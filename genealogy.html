@@ -21,7 +21,7 @@
             uniqueID=[];
     names = ['A','B','C','D','E','F','G','H','I','J','K'];
 
-    d3.csv("data/genealogyTest.csv", function (error, data) {
+    d3.csv("data/genealogy.csv", function (error, data) {
 
         data.forEach(function (d, i) {
             if (i <100 && +d['egoUPDBID']>0 & +d['bdate']>0) {
@@ -31,8 +31,10 @@
 //                d.label = 'TEST'
                 d.ma = +d['maUPDBID']
                 d.pa = +d['paUPDBID']
+                d.spouse = undefined
+                d.children =0;
                 d.x = 0
-                d.y = i
+                d.y = undefined
                 d.generation = undefined;
                 d.size = d['deceased'] == 1 ? 2 : 2
                 d.color = d['sex'] == 'M' ? '#263d60' : '#a91d4e'
@@ -64,7 +66,7 @@
 
         });
 
-
+        //sort by year of birth
         g.nodes.sort(function(a, b) {
             return parseFloat(b['bdate']) - parseFloat(a['bdate']);
         });
@@ -74,14 +76,26 @@
             uniqueID.push(d.id);
         });
 
+        //Store spouse and children in each node;
+        g.nodes.forEach(function(node){
+            var maID = uniqueID.indexOf(node['ma']);
+            var paID = uniqueID.indexOf(node['pa']);
+
+            if (maID >-1 && paID >-1){
+                g.nodes[maID].spouse = node['pa'];
+                g.nodes[paID].spouse = node['ma'];
+                g.nodes[maID].children = g.nodes[maID].children+1;
+                g.nodes[paID].children = g.nodes[paID].children+1
+            }
+        })
+
         g.nodes.forEach(function(node,ind){assignGeneration(node,ind)});
 
-        //sort so as to start from oldest generation
+        //sort by generation
         g.nodes.sort(function(a, b) {
             return parseFloat(a['generation']) - parseFloat(b['generation']);
         });
 
-        console.log(g.nodes[0].generation)
         uniqueID=[];
         g.nodes.forEach(function(d){
             uniqueID.push(d.id);
@@ -89,8 +103,10 @@
 
         g.nodes.forEach(function(node){node.x = node.generation});
 
+//        g.nodes.forEach(function(node,i){node.y = i});
 
-        g.nodes.forEach(function(node,i){node.y = i});
+        g.nodes[0].y = 1;
+        g.nodes.forEach(function(node){assignOrder(node)});
 
         relationshipNodes=[];
         relationshipEdges=[];
@@ -101,17 +117,17 @@
             var paID = uniqueID.indexOf(node['pa']);
 
             if (maID >-1 && paID >-1){
-                console.log('node ', node.label , 'has mom ', g.nodes[maID].label , ' and dad ', g.nodes[paID].label)
                 rnode={
                     'x':g.nodes[maID].x,
-                    'y':(g.nodes[maID].y + g.nodes[paID].y)/2
+                    'y':(g.nodes[maID].y + g.nodes[paID].y)/2,
+                    'y1':g.nodes[maID].y,
+                    'y2':g.nodes[paID].y,
                 }
                 relationshipNodes.push(rnode);
                 relationshipEdges.push({
                     source: rnode,
                     target: node
                 })
-
             }
         })
 
@@ -121,7 +137,7 @@
 
         glyphSize = 8;
         margin = {top: 20, right: 120, bottom: 20, left: 20},
-                width = (maxLevel - minLevel)*50,
+                width = (maxLevel - minLevel)*200,
                 height = (glyphSize+3)  * g.nodes.length * 2;
 
          x = d3.scaleLinear().range([0, width]).domain([minLevel, maxLevel]);
@@ -137,10 +153,20 @@
         var edges = svg.selectAll("g.edges")
                 .data(relationshipEdges)
                 .enter().append("path")
-                .attr("class", "link")
+                .attr("class", "edges")
                 .style("stroke", '#000')
                 .style("fill",'none')
-                .attr("d", elbow);
+                .attr("d",elbow)
+
+
+        var edges = svg.selectAll("g.parentEdges")
+                .data(relationshipNodes)
+                .enter().append("path")
+                .attr("class", "parentEdges")
+                .style("stroke", '#000')
+                .style("stroke-width",2)
+                .style("fill",'none')
+                .attr("d", parentEdge);
 
         var fnodes = svg.selectAll("g.node .female")
                 .data(g.nodes.filter(function(d){return d['sex'] == 'F'}))
@@ -165,13 +191,13 @@
                 .attr("height", glyphSize*2)
                 .style("fill", 'white')
                 .style('stroke','#000')
-
-        svg.selectAll('g.node')
-                .append('text')
-                .text(function(d){return d.label})
-                .attr('fontsize',12)
-                .attr('dx',-glyphSize)
-                .attr('dy',glyphSize)
+//
+//        svg.selectAll('g.node')
+//                .append('text')
+//                .text(function(d){return d.label})
+//                .attr('fontsize',12)
+//                .attr('dx',-glyphSize)
+//                .attr('dy',glyphSize)
 
     })
 

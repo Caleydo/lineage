@@ -1,6 +1,43 @@
 /**
  * Created by cnobre on 12/10/16.
  */
+
+function assignOrder(node){
+    // console.log('*****')
+    // g.nodes.forEach(function(node){console.log('Node ', node.label, ' y:', node.y)})
+
+    var maID = uniqueID.indexOf(node['ma']);
+    var paID = uniqueID.indexOf(node['pa']);
+    var spouseID = uniqueID.indexOf(node['spouse']);
+
+    if (node.y == undefined) {
+        node.y = d3.max(g.nodes,function(d){return d.y})+1;
+    }
+    //Put spouse to the left of the current node (at least in a first pass)
+    if (node.spouse && g.nodes[spouseID].y == undefined) {
+        g.nodes[spouseID].y = node.y;
+
+        //Push all nodes one to the right
+        g.nodes.forEach(function(d){if (d.y>node.y) d.y = d.y+1})
+        node.y  = node.y + 1;
+    }
+
+    if (maID >-1 && paID >-1){
+
+        if (g.nodes[maID].y && !node.y) {
+            node.y = g.nodes[maID].y;
+
+            g.nodes.forEach(function (d) {
+                if (d.y > node.y)
+                    d.y = d.y + 1
+            })
+
+            g.nodes[maID].y = node.y + 1;
+            g.nodes[paID].y = node.y + 2;
+        }
+    }
+}
+
 function assignGeneration(node,ind){
     if (node.generation == undefined) {
         node.generation = getParentGeneration(ind);
@@ -77,25 +114,28 @@ function yPOS(node){
         return y(node.y)-glyphSize
 }
 
+function valueline(d){
+    var linedata = [{
+        x: d.source.x,
+        y: d.source.y
+    },{
+        x: d.target.x,
+        y: d.target.y
+    }]
+
+    var fun = d3.line()
+        .curve(d3.curveCatmullRomOpen)
+        .x(function(d) { return x(d.x); })
+        .y(function(d) { return y(d.y); })
+
+    return fun(linedata)
+}
+;
+
 function elbow(d) {
     var xdiff = d.source.x - d.target.x;
     var ydiff = d.source.y - d.target.y;
     var nx = d.source.x - xdiff * connectorScale(ydiff) ;
-
-//Vertical Layout
-//            linedata = [{
-//                x: d.target.x,
-//                y: d.target.y
-//            }, {
-//                x: d.target.x,
-//                y: ny
-//            },{
-//                x: d.source.x,
-//                y: ny
-//            },{
-//                x: d.source.x,
-//                y: d.source.y
-//            }]
 
     var linedata = [{
         x: d.source.x,
@@ -109,6 +149,26 @@ function elbow(d) {
     },{
         x: d.target.x,
         y: d.target.y
+    }]
+
+    var fun = d3.line()
+        .curve(d3.curveBasis)
+        .x(function (d) {
+        return x(d.x);
+    }).y(function (d) {
+        return y(d.y);
+    })
+    return fun(linedata);
+}
+
+function parentEdge(d) {
+
+    var linedata = [{
+        x: d.x,
+        y: d.y1
+    }, {
+        x: d.x,
+        y: d.y2
     }]
 
     var fun = d3.line().x(function (d) {

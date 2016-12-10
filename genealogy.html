@@ -1,5 +1,6 @@
 <!--D3 IMPORT -->
 <script src="https://d3js.org/d3.v4.js"></script>
+<script src="utils.js"></script>
 <script>
     /**
      * This example shows how to use the sigma.plugins.animate plugin. It
@@ -17,27 +18,26 @@
                 nodes: [],
                 edges: []
             },
-            uniqueID=[],
-            nodeSize = 10;
-
+            uniqueID=[];
     names = ['A','B','C','D','E','F','G','H','I','J','K'];
-    d3.csv("data/genealogy.csv", function (error, data) {
+
+    d3.csv("data/genealogyTest.csv", function (error, data) {
 
         data.forEach(function (d, i) {
-            if (i < 200 && +d['egoUPDBID']>0 & +d['bdate']>0) {
+            if (i <100 && +d['egoUPDBID']>0 & +d['bdate']>0) {
 
                 d.id = +d['egoUPDBID']
-//                d.label = names[i]
-                d.label = 'TEST'
+                d.label = names[i]
+//                d.label = 'TEST'
                 d.ma = +d['maUPDBID']
                 d.pa = +d['paUPDBID']
-                d.x = i
-                d.y = 0
+                d.x = 0
+                d.y = i
                 d.generation = undefined;
-                d.size = d['deceased'] == 1 ? 4 : 4
+                d.size = d['deceased'] == 1 ? 2 : 2
                 d.color = d['sex'] == 'M' ? '#263d60' : '#a91d4e'
 
-
+                //Skip duplicate rows
                 if (uniqueID.indexOf(d.id) == -1) {
                     g.nodes.push(d);
                     uniqueID.push(d.id);
@@ -47,7 +47,6 @@
         });
 
         g.nodes.forEach(function(d,i){
-
             if (uniqueID.indexOf(d['ma']) != -1){
                 g.edges.push({
                     id: 'e1' + i,
@@ -55,7 +54,6 @@
                     target: g.nodes[uniqueID.indexOf(d['ma'])]
                 });
             }
-
             if (uniqueID.indexOf(d['pa']) != -1) {
                 g.edges.push({
                     id: 'e2' + i,
@@ -66,6 +64,7 @@
 
         });
 
+
         g.nodes.sort(function(a, b) {
             return parseFloat(b['bdate']) - parseFloat(a['bdate']);
         });
@@ -73,104 +72,61 @@
         uniqueID=[];
         g.nodes.forEach(function(d){
             uniqueID.push(d.id);
-        })
-
-        //Youngest Node gets level 1
-        g.nodes[0].y = 1;
+        });
 
         g.nodes.forEach(function(node,ind){assignGeneration(node,ind)});
 
-        function assignGeneration(node,ind){
-            if (node.generation == undefined) {
-//                console.log('assigning generation to node ',  node.label , '***********************')
-                node.generation = getParentGeneration(ind);
-                if (node.generation == undefined)
-                    node.generation = 1;
+        //sort so as to start from oldest generation
+        g.nodes.sort(function(a, b) {
+            return parseFloat(a['generation']) - parseFloat(b['generation']);
+        });
 
-//                console.log('assigning node generation ', node.generation, ' to node ', node.label)
-                setParentGeneration(ind, node.generation)
-            }
-        }
+        console.log(g.nodes[0].generation)
+        uniqueID=[];
+        g.nodes.forEach(function(d){
+            uniqueID.push(d.id);
+        });
 
-        function setParentGeneration(nodeID,generation){
-            var node = g.nodes[nodeID]
+        g.nodes.forEach(function(node){node.x = node.generation});
 
+
+        g.nodes.forEach(function(node,i){node.y = i});
+
+        relationshipNodes=[];
+        relationshipEdges=[];
+
+        //Create relationship nodes
+        g.nodes.forEach(function(node){
             var maID = uniqueID.indexOf(node['ma']);
             var paID = uniqueID.indexOf(node['pa']);
 
-            //Mother exists in array of nodes and does not have a generation assigned
-            if (maID > -1 && g.nodes[maID].generation == undefined) {
-                g.nodes[maID].generation = generation + 1;
-//                console.log('assigning mom parent generation ', generation +1,  ' to node ', g.nodes[maID].label)
-                setParentGeneration(maID,generation+1)
-            }
-
-            //Father exists in array of nodes and does not have a generation assigned
-            if (paID > -1 && g.nodes[paID].generation == undefined) {
-                g.nodes[paID].generation = generation + 1;
-//                console.log('assigning dad parent generation ', generation +1,  ' to node ', g.nodes[paID].label)
-                setParentGeneration(paID,generation+1)
-            }
-
-        }
-        function getParentGeneration(nodeID){
-
-            var node = g.nodes[nodeID]
-            var maID = uniqueID.indexOf(node['ma']);
-            var paID = uniqueID.indexOf(node['pa']);
-
-//            console.log('nodeID is ', nodeID, 'node is ', node.label, 'maID is', maID , ' paID is ', paID)
-
-
-            if (maID >-1) { //Mother exists in array of nodes
-//                console.log('maNode is', g.nodes[maID].label);
-                maGeneration = g.nodes[maID].generation
-                if (maGeneration == undefined) {
-//                    console.log('calling getParentGeneration on mom', g.nodes[maID].label)
-                    maGeneration = getParentGeneration(maID)
-//                    console.log('returned getParentGeneration on mom', g.nodes[maID] , 'value:', maGeneration)
-
+            if (maID >-1 && paID >-1){
+                console.log('node ', node.label , 'has mom ', g.nodes[maID].label , ' and dad ', g.nodes[paID].label)
+                rnode={
+                    'x':g.nodes[maID].x,
+                    'y':(g.nodes[maID].y + g.nodes[paID].y)/2
                 }
+                relationshipNodes.push(rnode);
+                relationshipEdges.push({
+                    source: rnode,
+                    target: node
+                })
+
             }
-            else {
-                maGeneration = false;
-            }
-            if (paID >-1) { //Father exists in array of nodes
-                paGeneration = g.nodes[paID].generation
-                if (paGeneration == undefined) {
-//                    console.log('calling getParentGeneration on dad', g.nodes[paID].label)
-                    paGeneration = getParentGeneration(paID) //continue searching up the tree
-//                    console.log('returned getParentGeneration on dad', g.nodes[paID].label , 'value:', paGeneration)
+        })
 
-                }
-            }
-            else {
-                paGeneration = false;
-            }
+//      Render Genealogy to the Screen
+        minLevel = d3.min(g.nodes,function(d){return d.x});
+        maxLevel = d3.max(g.nodes,function(d){return d.x});
 
-//            console.log('determining join parent generation:', maGeneration, paGeneration)
-            if (maGeneration && paGeneration)
-                return (maGeneration + paGeneration) / 2 -1
-            else if (maGeneration || paGeneration)
-                return (maGeneration || paGeneration) - 1
-            else
-                return undefined
-        }
+        glyphSize = 8;
+        margin = {top: 20, right: 120, bottom: 20, left: 20},
+                width = (maxLevel - minLevel)*50,
+                height = (glyphSize+3)  * g.nodes.length * 2;
 
-        g.nodes.forEach(function(d){d.y = -d.generation});
-
-        minLevel = d3.min(g.nodes,function(d){return d.y});
-        maxLevel = d3.max(g.nodes,function(d){return d.y});
-
-        console.log( 'minLevel is ', minLevel , '  max level is ',  maxLevel)
-
-
-        var margin = {top: 20, right: 120, bottom: 20, left: 120},
-                width = 960 - margin.right - margin.left,
-                height = 500 - margin.top - margin.bottom;
-
-        var x = d3.scaleLinear().range([margin.left , width]).domain([0,g.nodes.length]);
-        var y = d3.scaleLinear().range([margin.top , height]).domain([minLevel, maxLevel]);
+         x = d3.scaleLinear().range([0, width]).domain([minLevel, maxLevel]);
+         y = d3.scaleLinear().range([0, height]).domain([0, g.nodes.length]);
+         connectorScale = d3.scaleLinear().range([.75 , .25]).domain([2, g.nodes.length])
 
         var svg = d3.select("body").append("svg")
                 .attr("width", width + margin.right + margin.left)
@@ -178,55 +134,44 @@
                 .append("g")
                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-        var link = svg.selectAll("g.link")
-                .data(g.edges)
+        var edges = svg.selectAll("g.edges")
+                .data(relationshipEdges)
                 .enter().append("path")
                 .attr("class", "link")
                 .style("stroke", '#000')
                 .style("fill",'none')
                 .attr("d", elbow);
 
-        var node = svg.selectAll("g.node")
-                .data(g.nodes)
+        var fnodes = svg.selectAll("g.node .female")
+                .data(g.nodes.filter(function(d){return d['sex'] == 'F'}))
                 .enter()
                 .append("g")
                 .attr("class", "node")
-                .attr("transform", function(d) { return "translate(" + x(d.x) + "," + y(d.y)+ ")"; })
+                .attr("transform", function(d) { return "translate(" + xPOS(d) + "," + yPOS(d)+ ")"; })
                 .append("circle")
-                .attr("r", nodeSize)
-                .style("fill", function(d) { return d.color})
-                .append("text")
-                .attr("x", 13)
-                .attr("dy", ".35em")
-                .attr("text-anchor", "end")
-                .text(function(d) { return d.id; })
-                .style("fill-opacity", 1e-6);
+                .attr("r", glyphSize)
+//                .style("fill", function(d) { return d.color})
+                .style("fill", 'white')
+                .style('stroke','#000')
 
-        function elbow(d, i) {
-            var diff = d.source.y - d.target.y;
-            //0.40 defines the point from where you need the line to break out change is as per your choice.
-            var ny = d.target.y + diff * 0.40;
+        var mnodes = svg.selectAll("g.node .male")
+                .data(g.nodes.filter(function(d){return d['sex'] == 'M'}))
+                .enter()
+                .append("g")
+                .attr("class", "node")
+                .attr("transform", function(d) { return "translate(" + xPOS(d) + "," + yPOS(d)+ ")"; })
+                .append("rect")
+                .attr("width", glyphSize*2)
+                .attr("height", glyphSize*2)
+                .style("fill", 'white')
+                .style('stroke','#000')
 
-            linedata = [{
-                x: d.target.x,
-                y: d.target.y
-            }, {
-                x: d.target.x,
-                y: ny
-            }, {
-                x: d.source.x,
-                y: d.source.y
-            }]
-
-            var fun = d3.line().x(function (d) {
-                return x(d.x);
-            }).y(function (d) {
-                return y(d.y);
-            })
-            return fun(linedata);
-        }
-        console.log('done')
-
+        svg.selectAll('g.node')
+                .append('text')
+                .text(function(d){return d.label})
+                .attr('fontsize',12)
+                .attr('dx',-glyphSize)
+                .attr('dy',glyphSize)
 
     })
 

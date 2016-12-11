@@ -1,19 +1,8 @@
 <!--D3 IMPORT -->
 <script src="https://d3js.org/d3.v4.js"></script>
-<script src="utils.js"></script>
+<script src="utils2.js"></script>
+<script src="renderGraph.js"></script>
 <script>
-    /**
-     * This example shows how to use the sigma.plugins.animate plugin. It
-     * creates a random graph with two different views:
-     *
-     * The circular view displays the nodes on a circle, with each node
-     * having a random color and a random size.
-     *
-     * The grid view displays every nodes with the same size, and on a grid.
-     *
-     * Every two seconds, the graph will be animated from a view to the other
-     * one, in a one second animation.
-     */
     var g = {
                 nodes: [],
                 edges: []
@@ -21,6 +10,7 @@
             uniqueID=[];
     names = ['A','B','C','D','E','F','G','H','I','J','K'];
 
+    collapseParents = true
     d3.csv("data/genealogy.csv", function (error, data) {
 
         data.forEach(function (d, i) {
@@ -37,7 +27,9 @@
                 d.y = undefined
                 d.generation = undefined;
                 d.size = d['deceased'] == 1 ? 2 : 2
-                d.color = d['sex'] == 'M' ? '#263d60' : '#a91d4e'
+                d.color = 'black';
+                d.hide = false; //used to hide/show nodes
+                d.type = 'individual'
 
                 //Skip duplicate rows
                 if (uniqueID.indexOf(d.id) == -1) {
@@ -51,14 +43,12 @@
         g.nodes.forEach(function(d,i){
             if (uniqueID.indexOf(d['ma']) != -1){
                 g.edges.push({
-                    id: 'e1' + i,
                     source: g.nodes[uniqueID.indexOf(d['id'])],
                     target: g.nodes[uniqueID.indexOf(d['ma'])]
                 });
             }
             if (uniqueID.indexOf(d['pa']) != -1) {
                 g.edges.push({
-                    id: 'e2' + i,
                     source: g.nodes[uniqueID.indexOf(d['id'])],
                     target: g.nodes[uniqueID.indexOf(d['pa'])]
                 })
@@ -103,102 +93,64 @@
 
         g.nodes.forEach(function(node){node.x = node.generation});
 
-//        g.nodes.forEach(function(node,i){node.y = i});
-
         g.nodes[0].y = 1;
         g.nodes.forEach(function(node){assignOrder(node)});
 
         console.log('Max Order is ', d3.max(g.nodes,function(node){return node.y}))
+
         relationshipNodes=[];
         relationshipEdges=[];
 
+        randColor = d3.scaleOrdinal(d3.schemeCategory20b);
         //Create relationship nodes
         g.nodes.forEach(function(node){
             var maID = uniqueID.indexOf(node['ma']);
             var paID = uniqueID.indexOf(node['pa']);
 
             if (maID >-1 && paID >-1){
-                rnode={
+
+                rColor = randColor(node.y);
+
+                if (g.nodes[maID].color == 'black') {
+                    g.nodes[maID].color = rColor
+                    g.nodes[paID].color = rColor
+                }
+
+                var rnode={
                     'x':g.nodes[maID].x,
                     'y':(g.nodes[maID].y + g.nodes[paID].y)/2,
                     'y1':g.nodes[maID].y,
                     'y2':g.nodes[paID].y,
+                    'color':g.nodes[maID].color,
+                    'type':'parent'
                 }
+
+                if (node['spouse']) {
+                    spouseNode = g.nodes[uniqueID.indexOf(node['spouse'])]
+                    tnode = {
+                        'x': node.x,
+                        'y': (node.y + spouseNode.y) / 2,
+                        'y1': node.y,
+                        'y2': spouseNode.y,
+                        'color': node.color,
+                        'type':'parent'
+                    }
+                }
+                else
+                    tnode = node;
+
                 relationshipNodes.push(rnode);
                 relationshipEdges.push({
                     source: rnode,
-                    target: node
+                    target: tnode,
+                    'color':g.nodes[maID].color
                 })
             }
         })
 
-//      Render Genealogy to the Screen
-        minLevel = d3.min(g.nodes,function(d){return d.x});
-        maxLevel = d3.max(g.nodes,function(d){return d.x});
+        //Render Graph
+        renderGraph(g);
 
-        glyphSize = 8;
-        margin = {top: 20, right: 120, bottom: 20, left: 20},
-                width = (maxLevel - minLevel)*150,
-                height = (glyphSize+3)  * g.nodes.length * 2;
-
-         x = d3.scaleLinear().range([0, width]).domain([minLevel, maxLevel]);
-         y = d3.scaleLinear().range([0, height]).domain([0, g.nodes.length]);
-         connectorScale = d3.scaleLinear().range([.75 , .25]).domain([2, g.nodes.length])
-
-        var svg = d3.select("body").append("svg")
-                .attr("width", width + margin.right + margin.left)
-                .attr("height", height + margin.top + margin.bottom)
-                .append("g")
-                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-        var edges = svg.selectAll("g.edges")
-                .data(relationshipEdges)
-                .enter().append("path")
-                .attr("class", "edges")
-                .style("stroke", '#000')
-                .style("fill",'none')
-                .attr("d",elbow)
-
-
-        var edges = svg.selectAll("g.parentEdges")
-                .data(relationshipNodes)
-                .enter().append("path")
-                .attr("class", "parentEdges")
-                .style("stroke", '#000')
-                .style("stroke-width",2)
-                .style("fill",'none')
-                .attr("d", parentEdge);
-
-        var fnodes = svg.selectAll("g.node .female")
-                .data(g.nodes.filter(function(d){return d['sex'] == 'F'}))
-                .enter()
-                .append("g")
-                .attr("class", "node")
-                .attr("transform", function(d) { return "translate(" + xPOS(d) + "," + yPOS(d)+ ")"; })
-                .append("circle")
-                .attr("r", glyphSize)
-//                .style("fill", function(d) { return d.color})
-                .style("fill", 'white')
-                .style('stroke','#000')
-
-        var mnodes = svg.selectAll("g.node .male")
-                .data(g.nodes.filter(function(d){return d['sex'] == 'M'}))
-                .enter()
-                .append("g")
-                .attr("class", "node")
-                .attr("transform", function(d) { return "translate(" + xPOS(d) + "," + yPOS(d)+ ")"; })
-                .append("rect")
-                .attr("width", glyphSize*2)
-                .attr("height", glyphSize*2)
-                .style("fill", 'white')
-                .style('stroke','#000')
-//
-//        svg.selectAll('g.node')
-//                .append('text')
-//                .text(function(d){return d.label})
-//                .attr('fontsize',12)
-//                .attr('dx',-glyphSize)
-//                .attr('dy',glyphSize)
 
     })
 

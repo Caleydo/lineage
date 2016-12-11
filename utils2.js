@@ -7,16 +7,23 @@ function assignOrder(node){
     var paID = uniqueID.indexOf(node['pa']);
     var spouseID = uniqueID.indexOf(node['spouse']);
 
-    if (node.y == undefined) {
+    if (!node.y) {
         node.y = d3.max(g.nodes,function(d){return d.y})+1;
     }
     //Put spouse to the left of the current node (at least in a first pass)
-    if (node.spouse && g.nodes[spouseID].y == undefined) {
+    if (node.spouse && !g.nodes[spouseID].y) {
         g.nodes[spouseID].y = node.y;
 
-        //Push all nodes one to the right
-        g.nodes.forEach(function(d){if (d.y>node.y) d.y = d.y+1})
-        node.y  = node.y + 1;
+        if (!collapseParents){
+            //Push all nodes one to the right
+            g.nodes.forEach(function (d) {
+                if (d.y > node.y) d.y = d.y + 1
+            })
+            node.y = node.y + 1;
+        }
+    }
+    else if (node.spouse && g.nodes[spouseID].y && collapseParents){
+        node.y = g.nodes[spouseID].y;
     }
 
     if (maID >-1 && paID >-1){
@@ -24,25 +31,30 @@ function assignOrder(node){
         if (g.nodes[maID].y) {
             if (g.nodes[maID].y < node.y){
                 node.y = g.nodes[maID].y;
-
+                g.nodes.forEach(function (d) {if (d.y > node.y) d.y = d.y + 1})
                 g.nodes[maID].y = node.y + 1;
-                g.nodes[paID].y = node.y + 2;
+
+                if (!collapseParents){
+                    g.nodes[paID].y = g.nodes[maID].y+1;
+                }
+                else
+                    g.nodes[paID].y = g.nodes[maID].y;
+
             }
         }
         else{
-            g.nodes.forEach(function (d) {
-                if (d.y > node.y)
-                    d.y = d.y + 2
-            })
+            if (!collapseParents){
+                g.nodes.forEach(function (d) {if (d.y > node.y) d.y = d.y + 2 })
+                g.nodes[paID].y = node.y + 2;
+            }
+            else{
+                g.nodes.forEach(function (d) {if (d.y > node.y) d.y = d.y + 1 })
+                g.nodes[paID].y = node.y + 1;
+            }
             g.nodes[maID].y = node.y + 1;
-            g.nodes[paID].y = node.y + 2;
+
         }
     }
-    //
-    // console.log('*****')
-    // console.log('Current Node: ', node.label)
-    // g.nodes.forEach(function(node){console.log('Node ', node.label, ' y:', node.y)})
-
 }
 
 function assignGeneration(node,ind){
@@ -160,10 +172,11 @@ function parentEdge(d) {
         y: d.y2
     }]
 
-    var fun = d3.line().x(function (d) {
-        return x(d.x);
-    }).y(function (d) {
-        return y(d.y);
-    })
+    var fun = d3.line()
+        .x(function (d) {
+            return x(d.x);
+        }).y(function (d) {
+            return y(d.y);
+        })
     return fun(linedata);
 }

@@ -108,6 +108,7 @@
         g.nodes[0].y = 1;
         g.nodes.forEach(function(node){assignOrder(node)});
 
+        console.log('Max Order is ', d3.max(g.nodes,function(node){return node.y}))
         relationshipNodes=[];
         relationshipEdges=[];
 
@@ -137,7 +138,7 @@
 
         glyphSize = 8;
         margin = {top: 20, right: 120, bottom: 20, left: 20},
-                width = (maxLevel - minLevel)*200,
+                width = (maxLevel - minLevel)*150,
                 height = (glyphSize+3)  * g.nodes.length * 2;
 
          x = d3.scaleLinear().range([0, width]).domain([minLevel, maxLevel]);

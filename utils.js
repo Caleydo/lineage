@@ -3,9 +3,6 @@
  */
 
 function assignOrder(node){
-    // console.log('*****')
-    // g.nodes.forEach(function(node){console.log('Node ', node.label, ' y:', node.y)})
-
     var maID = uniqueID.indexOf(node['ma']);
     var paID = uniqueID.indexOf(node['pa']);
     var spouseID = uniqueID.indexOf(node['spouse']);
@@ -24,18 +21,28 @@ function assignOrder(node){
 
     if (maID >-1 && paID >-1){
 
-        if (g.nodes[maID].y && !node.y) {
-            node.y = g.nodes[maID].y;
+        if (g.nodes[maID].y) {
+            if (g.nodes[maID].y < node.y){
+                node.y = g.nodes[maID].y;
 
+                g.nodes[maID].y = node.y + 1;
+                g.nodes[paID].y = node.y + 2;
+            }
+        }
+        else{
             g.nodes.forEach(function (d) {
                 if (d.y > node.y)
-                    d.y = d.y + 1
+                    d.y = d.y + 2
             })
-
             g.nodes[maID].y = node.y + 1;
             g.nodes[paID].y = node.y + 2;
         }
     }
+    //
+    // console.log('*****')
+    // console.log('Current Node: ', node.label)
+    // g.nodes.forEach(function(node){console.log('Node ', node.label, ' y:', node.y)})
+
 }
 
 function assignGeneration(node,ind){
@@ -113,24 +120,6 @@ function yPOS(node){
     else
         return y(node.y)-glyphSize
 }
-
-function valueline(d){
-    var linedata = [{
-        x: d.source.x,
-        y: d.source.y
-    },{
-        x: d.target.x,
-        y: d.target.y
-    }]
-
-    var fun = d3.line()
-        .curve(d3.curveCatmullRomOpen)
-        .x(function(d) { return x(d.x); })
-        .y(function(d) { return y(d.y); })
-
-    return fun(linedata)
-}
-;
 
 function elbow(d) {
     var xdiff = d.source.x - d.target.x;

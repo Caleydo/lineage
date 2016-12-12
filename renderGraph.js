@@ -1,52 +1,53 @@
 /**
  * Created by cnobre on 12/11/16.
  */
+
 function renderGraph(g) {
-//      Render Genealogy to the Screen
-    minLevel = d3.min(g.nodes, function (d) {
-        return d.x
-    });
-    maxLevel = d3.max(g.nodes, function (d) {
-        return d.x
-    });
 
-    glyphSize = 12;
-    spaceBetweenGenerations = 100;
+    glyphSize = 14;
+    spaceBetweenGenerations=5;
 
-    margin = {top: 20, right: 120, bottom: 20, left: 20},
-        width = (maxLevel - minLevel) * spaceBetweenGenerations,
-        height = (glyphSize + 3) * g.nodes.length * 2;
 
-    x = d3.scaleLinear().range([0, width]).domain([minLevel, maxLevel]);
-    y = d3.scaleLinear().range([0, height]).domain([0, g.nodes.length + (g.nodes.length *.1)]);
-    connectorScale = d3.scaleLinear().range([.75, .25]).domain([2, g.nodes.length])
-
+    //Render Genealogy Graph to the Screen
     tableWidth = 150;
 
+    minX = d3.min(g.nodes, function (d) {
+        return d.x
+    });
+    maxX = d3.max(g.nodes, function (d) {
+        return d.x
+    });
+
+    minY = 0;
+    maxY = g.nodes.length;
+
+    margin = {top: 40, right: 120, bottom: 20, left: 20},
+        width = (maxX - minX) * spaceBetweenGenerations,
+        height = (glyphSize + 5) * g.nodes.length * 2;
+
+    // Scales
+    x = d3.scaleLinear().range([0, width]).domain([minX, maxX]);
+    y = d3.scaleLinear().range([0, height]).domain([minY,maxY]);
+
+    connectorScale = d3.scaleLinear().range([.75, .25]).domain([2, g.nodes.length])
+
+
     var svg = d3.select("body").append("svg")
-        .attr("width", width + tableWidth+ margin.right + margin.left)
+        .attr("width", width + tableWidth + margin.right + margin.left)
         .attr("height", height + margin.top + margin.bottom);
 
-    var table = svg.append("g")
-        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
     var graph = svg.append("g")
-        .attr("transform", "translate(" + (margin.left + tableWidth) + "," + (margin.top + glyphSize) + ")");
+        .attr("transform", "translate(" + margin.left + "," + (margin.top + glyphSize) + ")");
 
-    var rect = table.selectAll(".rect")
-        .data(g.nodes)
-        .enter()
-        .append("rect")
-        // .attr("class", "day")
-        .attr("width", 10*glyphSize)
-        .attr("height", 2*glyphSize)
-        .attr("x", function(d) { return x(1)})
-        .attr("y", function(d) { return y(d.y)})
-        .style("stroke",'gray')
-        .style("fill", function (d) {
-            return (+d.affection == 100) ? "black" : "white"
-        })
-        .style('stroke-width',2)
+    var axis = svg.append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top  + ")")
+        .call(d3.axisTop(x).tickFormat(d3.format("d")));
+
+    var grid = svg.append("g")
+        .attr("class", "grid")
+        .attr("transform", "translate(" + margin.left + "," + margin.top  + ")")
+        .call(d3.axisTop(x).tickFormat("").tickSize(-height));
 
     var edges = graph.selectAll(".edges")
         .data(relationshipEdges)
@@ -93,27 +94,6 @@ function renderGraph(g) {
         .append("circle")
         .attr("r", glyphSize)
 
-    // var mrnodes = svg.selectAll("g.node .mparent")
-    //     .data(relationshipNodes)
-    //     .enter()
-    //     .append("g")
-    //     .attr("class", "node")
-    //     .append("rect")
-    //     .attr("width", glyphSize * 2.2)
-    //     .attr("height", glyphSize * 2.2)
-    //     .attr('x', -glyphSize/3)
-    //     .attr('y', -glyphSize/3)
-    //
-    // var drnodes = svg.selectAll("g.node .dparent")
-    //     .data(relationshipNodes)
-    //     .enter()
-    //     .append("g")
-    //     .attr("class", "node")
-    //     .append("circle")
-    //     .attr("r", glyphSize)
-    //     .attr('cx',glyphSize/3)
-    //     .attr('cy',glyphSize/3)
-
 
     var allNodes = graph.selectAll(".node")
         .attr("transform", function (d) {
@@ -126,13 +106,48 @@ function renderGraph(g) {
             return d.color
         })
         .style("stroke-width", 3)
-//
+
     var nodeLabels = graph.selectAll('.node')
         .append('text')
-            .text(function (d) {return d.y
+        .text(function (d) {
+            return d.y
         })
-        .attr('dx', function(d){return d['sex']=='M' ? glyphSize/2 : -glyphSize/2} )
-        .attr('dy', function(d){return d['sex']=='M' ? 1.5*glyphSize : glyphSize/2} )
-        .attr('fill', function(d){return (+d.affection == 100) ? "white" : "black"})
+        .attr('dx', function (d) {
+            return d['sex'] == 'M' ? glyphSize / 2 : -glyphSize / 2
+        })
+        .attr('dy', function (d) {
+            return d['sex'] == 'M' ? 1.5 * glyphSize : glyphSize / 2
+        })
+        .attr('fill', function (d) {
+            return (+d.affection == 100) ? "white" : "black"
+        })
         .attr('stroke', 'none')
+}
+
+function renderTable(g){
+
+    var table = d3.select('svg').append("g")
+        .attr("transform", "translate(" +(2*margin.left + width ) + "," + margin.top + ")");
+
+    var rect = table.selectAll(".rect")
+        .data(g.nodes)
+        .enter()
+        .append("rect")
+        // .attr("class", "day")
+        .attr("width", 10 * glyphSize)
+        .attr("height", 2 * glyphSize)
+        .attr("x", function (d) {
+            return x(minX)
+        })
+        .attr("y", function (d) {
+            return y(d.y)
+        })
+        .style("stroke", 'gray')
+        .style("fill", function (d) {
+            return (+d.affection == 100) ? "black" : "white"
+        })
+        .style('stroke-width', 2)
+
+
+
 }

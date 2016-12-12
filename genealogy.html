@@ -1,156 +1,26 @@
 <!--D3 IMPORT -->
 <script src="https://d3js.org/d3.v4.js"></script>
-<script src="utils2.js"></script>
+<script src="graph.js"></script>
 <script src="renderGraph.js"></script>
-<script>
-    var g = {
-                nodes: [],
-                edges: []
-            },
-            uniqueID=[];
-    names = ['A','B','C','D','E','F','G','H','I','J','K'];
 
-    collapseParents = true
+<link rel="stylesheet" href="graph.css">
+
+<script>
+
+    collapseParents = true;
     d3.csv("data/genealogy.csv", function (error, data) {
 
-        data.forEach(function (d, i) {
-            if (i <100 && +d['egoUPDBID']>0 & +d['bdate']>0) {
+        //Create Graph
+        g = createGraph(data,200);
 
-                d.id = +d['egoUPDBID']
-                d.label = names[i]
-//                d.label = 'TEST'
-                d.ma = +d['maUPDBID']
-                d.pa = +d['paUPDBID']
-                d.spouse = undefined
-                d.children =0;
-                d.x = 0
-                d.y = undefined
-                d.generation = undefined;
-                d.size = d['deceased'] == 1 ? 2 : 2
-                d.color = 'black';
-                d.hide = false; //used to hide/show nodes
-                d.type = 'individual'
-
-                //Skip duplicate rows
-                if (uniqueID.indexOf(d.id) == -1) {
-                    g.nodes.push(d);
-                    uniqueID.push(d.id);
-                }
-            }
-
-        });
-
-        g.nodes.forEach(function(d,i){
-            if (uniqueID.indexOf(d['ma']) != -1){
-                g.edges.push({
-                    source: g.nodes[uniqueID.indexOf(d['id'])],
-                    target: g.nodes[uniqueID.indexOf(d['ma'])]
-                });
-            }
-            if (uniqueID.indexOf(d['pa']) != -1) {
-                g.edges.push({
-                    source: g.nodes[uniqueID.indexOf(d['id'])],
-                    target: g.nodes[uniqueID.indexOf(d['pa'])]
-                })
-            }
-
-        });
-
-        //sort by year of birth
-        g.nodes.sort(function(a, b) {
-            return parseFloat(b['bdate']) - parseFloat(a['bdate']);
-        });
-
-        uniqueID=[];
-        g.nodes.forEach(function(d){
-            uniqueID.push(d.id);
-        });
-
-        //Store spouse and children in each node;
-        g.nodes.forEach(function(node){
-            var maID = uniqueID.indexOf(node['ma']);
-            var paID = uniqueID.indexOf(node['pa']);
-
-            if (maID >-1 && paID >-1){
-                g.nodes[maID].spouse = node['pa'];
-                g.nodes[paID].spouse = node['ma'];
-                g.nodes[maID].children = g.nodes[maID].children+1;
-                g.nodes[paID].children = g.nodes[paID].children+1
-            }
-        })
-
-        g.nodes.forEach(function(node,ind){assignGeneration(node,ind)});
-
-        //sort by generation
-        g.nodes.sort(function(a, b) {
-            return parseFloat(a['generation']) - parseFloat(b['generation']);
-        });
-
-        uniqueID=[];
-        g.nodes.forEach(function(d){
-            uniqueID.push(d.id);
-        });
-
-        g.nodes.forEach(function(node){node.x = node.generation});
-
-        g.nodes[0].y = 1;
-        g.nodes.forEach(function(node){assignOrder(node)});
-
-        console.log('Max Order is ', d3.max(g.nodes,function(node){return node.y}))
-
-        relationshipNodes=[];
-        relationshipEdges=[];
-
-        randColor = d3.scaleOrdinal(d3.schemeCategory20b);
-        //Create relationship nodes
-        g.nodes.forEach(function(node){
-            var maID = uniqueID.indexOf(node['ma']);
-            var paID = uniqueID.indexOf(node['pa']);
-
-            if (maID >-1 && paID >-1){
-
-                rColor = randColor(node.y);
-
-                if (g.nodes[maID].color == 'black') {
-                    g.nodes[maID].color = rColor
-                    g.nodes[paID].color = rColor
-                }
-
-                var rnode={
-                    'x':g.nodes[maID].x,
-                    'y':(g.nodes[maID].y + g.nodes[paID].y)/2,
-                    'y1':g.nodes[maID].y,
-                    'y2':g.nodes[paID].y,
-                    'color':g.nodes[maID].color,
-                    'type':'parent'
-                }
-
-                if (node['spouse']) {
-                    spouseNode = g.nodes[uniqueID.indexOf(node['spouse'])]
-                    tnode = {
-                        'x': node.x,
-                        'y': (node.y + spouseNode.y) / 2,
-                        'y1': node.y,
-                        'y2': spouseNode.y,
-                        'color': node.color,
-                        'type':'parent'
-                    }
-                }
-                else
-                    tnode = node;
-
-                relationshipNodes.push(rnode);
-                relationshipEdges.push({
-                    source: rnode,
-                    target: tnode,
-                    'color':g.nodes[maID].color
-                })
-            }
-        })
+        //Create Layout
+        g = arrangeLayout(g);
 
         //Render Graph
         renderGraph(g);
 
+        //Render table;
+        renderTable(g);
 
     })
 

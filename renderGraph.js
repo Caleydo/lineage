@@ -15,7 +15,7 @@ function renderGraph(g) {
         return d.x
     });
     maxX = d3.max(g.nodes, function (d) {
-        return d.x
+        return d['ddate']
     });
 
     minY = 0;
@@ -40,14 +40,17 @@ function renderGraph(g) {
     var graph = svg.append("g")
         .attr("transform", "translate(" + margin.left + "," + (margin.top + glyphSize) + ")");
 
-    var axis = svg.append("g")
-        .attr("transform", "translate(" + margin.left + "," + margin.top  + ")")
-        .call(d3.axisTop(x).tickFormat(d3.format("d")));
-
+    //append grid
     var grid = svg.append("g")
         .attr("class", "grid")
         .attr("transform", "translate(" + margin.left + "," + margin.top  + ")")
         .call(d3.axisTop(x).tickFormat("").tickSize(-height));
+
+    //append axis
+    svg.append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top  + ")")
+        .call(d3.axisTop(x).tickFormat(d3.format("d")));
+
 
     var edges = graph.selectAll(".edges")
         .data(relationshipEdges)
@@ -107,21 +110,54 @@ function renderGraph(g) {
         })
         .style("stroke-width", 3)
 
-    var nodeLabels = graph.selectAll('.node')
-        .append('text')
+
+    var lifeRects = graph.selectAll(".lifeSpan rect")
+        .data(g.nodes)
+        .enter()
+        .append("g")
+        .attr('class','lifeRect')
+        .attr("transform", function (d) {
+            return "translate(" + x(d['bdate']) + "," + yPOS(d) + ")";
+        })
+
+        lifeRects
+        .append("rect")
+            .attr('y',glyphSize)
+        .attr("width", function(d){return Math.abs(x(d['ddate'])-x(d['bdate']))})
+        .attr("height", glyphSize/4 )
+        .style('fill',function(d){return (+d.affection == 100) ? "black" : "none"})
+        .style('opacity',.8)
+
+
+    lifeRects
+        .append("text")
+        // .attr("y", glyphSize )
+        .attr("dy", glyphSize*0.8)
+        .attr("dx", function(d){return Math.abs(x(d['ddate'])-x(d['bdate']))})
+        .attr("text-anchor", 'end')
         .text(function (d) {
-            return d.y
+            return Math.abs(+d['ddate'] - +d['bdate'])
         })
-        .attr('dx', function (d) {
-            return d['sex'] == 'M' ? glyphSize / 2 : -glyphSize / 2
-        })
-        .attr('dy', function (d) {
-            return d['sex'] == 'M' ? 1.5 * glyphSize : glyphSize / 2
-        })
-        .attr('fill', function (d) {
-            return (+d.affection == 100) ? "white" : "black"
-        })
-        .attr('stroke', 'none')
+        .attr('fill',function(d){return (+d.affection == 100) ? "black" : "none"})
+        .style('font-size',glyphSize*1.8)
+        // .style('font-weight','bold')
+
+
+    // var nodeLabels = graph.selectAll('.node')
+    //     .append('text')
+    //     .text(function (d) {
+    //         return d.y
+    //     })
+    //     .attr('dx', function (d) {
+    //         return d['sex'] == 'M' ? glyphSize / 2 : -glyphSize / 2
+    //     })
+    //     .attr('dy', function (d) {
+    //         return d['sex'] == 'M' ? 1.5 * glyphSize : glyphSize / 2
+    //     })
+    //     .attr('fill', function (d) {
+    //         return (+d.affection == 100) ? "white" : "black"
+    //     })
+    //     .attr('stroke', 'none')
 }
 
 function renderTable(g){

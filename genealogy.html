@@ -11,16 +11,16 @@
     d3.csv("data/genealogy.csv", function (error, data) {
 
         //Create Graph
-        g = createGraph(data,200);
+        g = createGraph(data,100);
 
         //Create Layout
-        g = arrangeLayout(g);
+        arrangeLayout(g);
 
         //Render Graph
-        renderGraph(g);
+        renderGraph(g)
 
         //Render table;
-        renderTable(g);
+//        renderTable(g);
 
     })
 

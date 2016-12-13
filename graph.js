@@ -13,8 +13,6 @@ function createGraph(data,numElements){
     data.forEach(function (d, i) {
         //Limit Size of graph and only consider entries with a valid bdate and id
         if (i <numElements && +d['egoUPDBID']>0 & +d['bdate']>0) {
-
-
             //Demographic Info
             d.id = +d['egoUPDBID']
             d.ma = +d['maUPDBID']
@@ -56,10 +54,8 @@ function createGraph(data,numElements){
 
     });
 
-    console.log(g.nodes.length ,' nodes')
     //Filter out nodes with no parents and no children
     g.nodes = g.nodes.filter(function(node){return node.children.length>0 || node['ma']>0})
-    console.log(g.nodes.length ,' nodes')
 
     //Create edges between individuals and their parents
     g.nodes.forEach(function(d){
@@ -90,12 +86,12 @@ function assignLinearOrder(node){
 
     if (!node.y) {
         node.y = d3.max(g.nodes,function(d){return d.y})+1;
-        console.log('assigning', node.y)
+        // console.log('assigning', node.y)
     }
     //Put spouse to the left of the current node (at least in a first pass)
     if (node.spouse && !g.nodes[spouseID].y) {
         g.nodes[spouseID].y = node.y;
-        console.log('assigning', node.y , 'to spouse')
+        // console.log('assigning', node.y , 'to spouse')
 
         if (!collapseParents){
             //Push all nodes one to the right
@@ -103,12 +99,12 @@ function assignLinearOrder(node){
                 if (d.y > node.y) d.y = d.y + 1
             })
             node.y = node.y + 1;
-            console.log('assigning', node.y+1 ,'to', node.y)
+            // console.log('assigning', node.y+1 ,'to', node.y)
         }
     }
     else if (node.spouse && g.nodes[spouseID].y && collapseParents){
         node.y = g.nodes[spouseID].y;
-        console.log('assigning', g.nodes[spouseID].y , 'from spouse')
+        // console.log('assigning', g.nodes[spouseID].y , 'from spouse')
     }
 
     if (maID >-1 && paID >-1){
@@ -307,7 +303,7 @@ function elbow(d) {
     }]
 
     var fun = d3.line()
-        .curve(d3.curveBasis)
+        // .curve(d3.curveBasis)
         .x(function (d) {
         return x(d.x);
     }).y(function (d) {

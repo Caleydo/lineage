@@ -2,8 +2,78 @@
  * Created by cnobre on 12/10/16.
  */
 
-function createGraph(data,numElements){
+//Set callbacks for all buttons/list items/etc
+function setCallbacks(){
 
+    d3.selectAll(".lifeRect").attr("visibility","hidden")
+    d3.selectAll(".ageLabel").attr("visibility","hidden")
+
+    d3.select("#collapse").on('click', function () {
+        d3.selectAll(".lifeRect").attr("visibility","visible")
+
+    })
+
+    d3.select("#expand").on('click', function () {
+        d3.selectAll(".lifeRect").attr("visibility","hidden")
+
+    })
+    d3.select("#curvedEdges").on('click', function () {
+        curvedLines = true;
+        d3.selectAll(".edges")
+            .attr("d", elbow);
+    })
+
+    d3.select("#straightEdges").on('click', function () {
+        curvedLines = false;
+        d3.selectAll(".edges")
+            .attr("d", elbow);
+    })
+
+    d3.select("#addLabels").on('click', function () {
+        d3.selectAll(".ageLabel").attr("visibility","visible")
+    })
+
+    d3.select("#removeLabels").on('click', function () {
+        d3.selectAll(".ageLabel").attr("visibility","hidden")
+    })
+
+
+    d3.select("#rotate").on('click', function () {
+        toggleOrientation()
+    })
+
+}
+
+//set orientation of main div w/ visualization (horizontal or vertical)
+function setOrientation(){
+    if (!vertOrientation) {
+        d3.select('#allVis').attr("transform", 'translate(' + height + ',0), rotate(90)')
+        d3.select("svg").attr('width',height).attr('height',width)
+    }
+    else {
+        d3.select('#allVis').attr("transform", 'translate(0,0), rotate(0)')
+        d3.select("svg").attr('width',width).attr('height', height)
+    }
+
+}
+
+//Toggle Orientation of main vis between horizontal and vertical
+function toggleOrientation(){
+    if (vertOrientation) {
+        vertOrientation = false;
+        d3.select('#allVis').attr("transform", 'translate(' + height + ',0), rotate(90)')
+        d3.select("svg").attr('width',height).attr('height',width)
+    }
+    else {
+        vertOrientation = true;
+        d3.select('#allVis').attr("transform", 'translate(0,0), rotate(0)')
+        d3.select("svg").attr('width',width).attr('height',height)
+    }
+
+}
+
+//Function that creates graph structure from input data
+function createGraph(data,numElements){
     var g = {
             nodes: [],
             edges: []
@@ -84,12 +154,10 @@ function assignLinearOrder(node){
 
     if (!node.y) {
         node.y = d3.max(g.nodes,function(d){return d.y})+1;
-        // console.log('assigning', node.y)
     }
     //Put spouse to the left of the current node (at least in a first pass)
     if (node.spouse && !g.nodes[spouseID].y) {
         g.nodes[spouseID].y = node.y;
-        // console.log('assigning', node.y , 'to spouse')
 
         if (!collapseParents){
             //Push all nodes one to the right
@@ -97,12 +165,10 @@ function assignLinearOrder(node){
                 if (d.y > node.y) d.y = d.y + 1
             })
             node.y = node.y + 1;
-            // console.log('assigning', node.y+1 ,'to', node.y)
         }
     }
     else if (node.spouse && g.nodes[spouseID].y && collapseParents){
         node.y = g.nodes[spouseID].y;
-        // console.log('assigning', g.nodes[spouseID].y , 'from spouse')
     }
 
     if (maID >-1 && paID >-1){
@@ -292,6 +358,14 @@ function yPOS(node){
         return y(node.y)-glyphSize
 }
 
+var  lineFunction = d3.line()
+    .x(function (d) {
+        return x(d.x);
+    }).y(function (d) {
+        return y(d.y);
+    })
+
+
 function elbow(d) {
     var xdiff = d.source.x - d.target.x;
     var ydiff = d.source.y - d.target.y;
@@ -311,18 +385,12 @@ function elbow(d) {
         y: d.target.y
     }]
 
-    var fun = d3.line()
-        .x(function (d) {
-        return x(d.x);
-    }).y(function (d) {
-        return y(d.y);
-    })
+    if (curvedLines)
+        lineFunction.curve(d3.curveBasis)
+    else
+        lineFunction.curve(d3.curveLinear)
 
-    if (curvedLines) {
-        fun.curve(d3.curveBasis)
-    }
-
-    return fun(linedata);
+    return lineFunction(linedata);
 }
 
 function parentEdge(d) {
@@ -335,11 +403,5 @@ function parentEdge(d) {
         y: d.y2
     }]
 
-    var fun = d3.line()
-        .x(function (d) {
-            return x(d.x);
-        }).y(function (d) {
-            return y(d.y);
-        })
-    return fun(linedata);
+    return lineFunction(linedata);
 }

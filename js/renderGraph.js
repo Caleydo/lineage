@@ -6,7 +6,7 @@ function renderGraph(g) {
 
 
     glyphSize = 14;
-    spaceBetweenGenerations=5;
+    spaceBetweenGenerations = 5;
 
 
     //Render Genealogy Graph to the Screen
@@ -24,23 +24,22 @@ function renderGraph(g) {
 
     margin = {top: 40, right: 120, bottom: 20, left: 20},
         width = (maxX - minX) * spaceBetweenGenerations ,
-        height = (glyphSize + 5) * g.nodes.length * 2 ;
+        height = (glyphSize + 5) * g.nodes.length * 2;
 
     // Scales
-    x = d3.scaleLinear().range([0, width-50]).domain([minX, maxX]);
-    y = d3.scaleLinear().range([0, height]).domain([minY,maxY]);
+    x = d3.scaleLinear().range([0, width - 50]).domain([minX, maxX]);
+    y = d3.scaleLinear().range([0, height]).domain([minY, maxY]);
 
     connectorScale = d3.scaleLinear().range([.75, .25]).domain([2, g.nodes.length])
 
 
-
-     svg1 = d3.select("#graphDiv").append("svg")
+    svg1 = d3.select("#graphDiv").append("svg")
         .attr("width", width + tableWidth + margin.right + margin.left)
         .attr("height", height + margin.top + margin.bottom)
 
 
     var svg = svg1.append("g")
-        .attr('id','allVis')
+        .attr('id', 'allVis')
 
 
     var graph = svg.append("g")
@@ -54,7 +53,7 @@ function renderGraph(g) {
 
     //append axis
     svg.append("g")
-        .attr("transform", "translate(" + margin.left + "," + margin.top  + ")")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
         .call(d3.axisTop(x).tickFormat(d3.format("d")));
 
 
@@ -81,38 +80,51 @@ function renderGraph(g) {
         .style("fill", 'none')
         .attr("d", parentEdge);
 
+    //Add life line groups
     var lifeRects = graph.selectAll(".lifeSpan")
         .data(g.nodes)
         .enter()
         .append("g")
-        .attr('class','lifeRect')
+        .attr('class', 'lifeRect')
         .attr("transform", function (d) {
-            return d.sex == 'M'?  "translate(" + (x(d['bdate'])) + "," + yPOS(d) + ")" : "translate(" + (x(d['bdate'])) + "," + (yPOS(d) -glyphSize) + ")";
+            return d.sex == 'M' ? "translate(" + (x(d['bdate'])) + "," + yPOS(d) + ")" : "translate(" + (x(d['bdate'])) + "," + (yPOS(d) - glyphSize) + ")";
         })
 
-    lifeRects.filter(function(d){return (+d.deceased ==1)})
+    //Add actual life lines
+    lifeRects.filter(function (d) {
+        return (+d.deceased == 1)
+    })
         .append("rect")
-        .attr('y',glyphSize)
-        .attr("width", function(d){return Math.abs(x(d['ddate'])-x(d['bdate']))})
-        .attr("height", glyphSize/4 )
-        .style('fill',function(d){return (+d.affection == 100) ? "black" : "#e0dede"})
-        .style('opacity',.8)
+        .attr('y', glyphSize)
+        .attr("width", function (d) {
+            return Math.abs(x(d['ddate']) - x(d['bdate']))
+        })
+        .attr("height", glyphSize / 4)
+        .style('fill', function (d) {
+            return (+d.affection == 100) ? "black" : "#e0dede"
+        })
+        .style('opacity', .8)
 
-
+    //Add label to lifelines
     lifeRects
         .append("text")
         // .attr("y", glyphSize )
-        .attr("dy", glyphSize*0.8)
-        .attr("dx", function(d){return Math.abs(x(d['ddate'])-x(d['bdate']))})
+        .attr("dy", glyphSize * 0.8)
+        .attr("dx", function (d) {
+            return Math.abs(x(d['ddate']) - x(d['bdate']))
+        })
         .attr("text-anchor", 'end')
         .text(function (d) {
             return Math.abs(+d['ddate'] - +d['bdate'])
         })
-        .attr('fill',function(d){return (+d.affection == 100) ? "black" : "#e0dede"})
-        .style('font-size',glyphSize*1.8)
-    // .style('font-weight','bold')
+        .attr('fill', function (d) {
+            return (+d.affection == 100) ? "black" : "#e0dede"
+        })
+        .style('font-size', glyphSize * 1.8)
+        .style('font-weight','bold')
 
-    var mnodes = graph.selectAll(".node .male")
+    //Add Male Node Glyphs
+    graph.selectAll(".node .male")
         .data(g.nodes.filter(function (d) {
             return d['sex'] == 'M'
         }))
@@ -123,7 +135,8 @@ function renderGraph(g) {
         .attr("width", glyphSize * 2)
         .attr("height", glyphSize * 2)
 
-    var fnodes = graph.selectAll(".node .female")
+    //Add female node glyphs
+    graph.selectAll(".node .female")
         .data(g.nodes.filter(function (d) {
             return d['sex'] == 'F'
         }))
@@ -134,6 +147,7 @@ function renderGraph(g) {
         .attr("r", glyphSize)
 
 
+    //Position and Color all Nodes
     var allNodes = graph.selectAll(".node")
         .attr("transform", function (d) {
             return "translate(" + xPOS(d) + "," + yPOS(d) + ")";
@@ -146,55 +160,60 @@ function renderGraph(g) {
         })
         .style("stroke-width", 3)
 
-    allNodes.filter(function(d){return (+d.deceased ==1 & +d.affection !=100)})
+    //Add cross through lines for deceased people
+    allNodes.filter(function (d) {
+        return (+d.deceased == 1 & +d.affection != 100)
+    })
         .append("line")
-        .attr("x1", function(d){return d.sex == 'F'? -glyphSize : -glyphSize/2})
-        .attr("y1", function(d){return d.sex == 'F'? -glyphSize : -glyphSize/2})
-        .attr("x2", function(d){return d.sex == 'F'? glyphSize: glyphSize*2.5})
-        .attr("y2", function(d){return d.sex == 'F'? glyphSize : glyphSize*2.5})
+        .attr("x1", function (d) {
+            return d.sex == 'F' ? -glyphSize : -glyphSize / 2
+        })
+        .attr("y1", function (d) {
+            return d.sex == 'F' ? -glyphSize : -glyphSize / 2
+        })
+        .attr("x2", function (d) {
+            return d.sex == 'F' ? glyphSize : glyphSize * 2.5
+        })
+        .attr("y2", function (d) {
+            return d.sex == 'F' ? glyphSize : glyphSize * 2.5
+        })
         .attr("stroke-width", 3)
         .attr("stroke", "black");
 
 
-
-
-        var nodeLabels = graph.selectAll('g.node')
-            .append('text')
-            .attr('class','ageLabel')
-            // .attr('visibility','hidden')
-            .text(function (d) {
-                if (+d.ddate > 0) {
-                    return Math.abs(d['ddate'] - d['bdate'])
-                }
-                else
-                    return Math.abs(2016 - d['bdate'])
-            })
-            // .text(function (d) {
-            //     return d.y
-            // })
-            .attr('dx', function (d) {
-                return d['sex'] == 'M' ? glyphSize / 2 : -glyphSize / 2
-            })
-            .attr('dy', function (d) {
-                return d['sex'] == 'M' ? 1.5 * glyphSize : glyphSize / 2
-            })
-            .attr('fill', function (d) {
-                return (+d.affection == 100) ? "white" : "black"
-            })
-            .attr('stroke', 'none')
+    graph.selectAll('g.node')
+        .append('text')
+        .attr('class', 'ageLabel')
+        // .attr('visibility','hidden')
+        .text(function (d) {
+            if (+d.ddate > 0) {
+                return Math.abs(d['ddate'] - d['bdate'])
+            }
+            else
+                return Math.abs(2016 - d['bdate'])
+        })
+        .attr('dx', function (d) {
+            return d['sex'] == 'M' ? glyphSize / 2 : -glyphSize / 2
+        })
+        .attr('dy', function (d) {
+            return d['sex'] == 'M' ? 1.5 * glyphSize : glyphSize / 2
+        })
+        .attr('fill', function (d) {
+            return (+d.affection == 100) ? "white" : "black"
+        })
+        .attr('stroke', 'none')
 
 }
 
-function renderTable(g){
+function renderTable(g) {
 
     var table = d3.select('svg').append("g")
-        .attr("transform", "translate(" +(2*margin.left + width ) + "," + margin.top + ")");
+        .attr("transform", "translate(" + (2 * margin.left + width ) + "," + margin.top + ")");
 
     var rect = table.selectAll(".rect")
         .data(g.nodes)
         .enter()
         .append("rect")
-        // .attr("class", "day")
         .attr("width", 10 * glyphSize)
         .attr("height", 2 * glyphSize)
         .attr("x", function (d) {
@@ -208,7 +227,6 @@ function renderTable(g){
             return (+d.affection == 100) ? "black" : "white"
         })
         .style('stroke-width', 2)
-
 
 
 }

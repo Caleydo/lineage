@@ -46,22 +46,6 @@
                 </a>
             </li>
 
-            <!--<li>-->
-                <!--<div class="input-group">-->
-                <!--<span class="input-group-addon" id="basic-addon1">Graph Size</span>-->
-
-                <!--<input type="text" class="form-control" placeholder="100" aria-describedby="basic-addon1" id="graphSize" >-->
-            <!--</div>-->
-            <!--</li>-->
-
-            <!--<li>-->
-            <!--<div class="btn-group" role="group" aria-label="...">-->
-                <!--<button type="button" class="btn btn-default" id="collapse">Collapse</button>-->
-                <!--<button type="button" class="btn btn-default">Expand</button>-->
-                <!--&lt;!&ndash;<button type="button" class="btn btn-default">Right</button>&ndash;&gt;-->
-            <!--</div>-->
-            <!--</li>-->
-
             <li id="collapse">
                 <a href="#">Add Life Lines</a>
             </li>
@@ -115,94 +99,15 @@
 
 <script>
 
-    collapseParents = true;
+    //Set display flags
     curvedLines = false;
-    n = 100;
     vertOrientation = true;
+    collapseParents = true;
+    n = 100;
+
 
     d3.csv("data/genealogy.csv", function (error, data) {
 
-    DATA = data;
-        createVis(DATA,n);
-        setOrientation()
-
-        d3.selectAll(".lifeRect").attr("visibility","hidden")
-        d3.selectAll(".ageLabel").attr("visibility","hidden")
-
-        d3.select("#collapse").on('click', function () {
-            d3.selectAll(".lifeRect").attr("visibility","visible")
-
-        })
-
-        d3.select("#expand").on('click', function () {
-            d3.selectAll(".lifeRect").attr("visibility","hidden")
-
-        })
-
-        d3.select("#curvedEdges").on('click', function () {
-            curvedLines = true;
-            d3.selectAll(".edges")
-                    .attr("d", elbow);
-        })
-
-
-        d3.select("#straightEdges").on('click', function () {
-            curvedLines = false;
-            d3.selectAll(".edges")
-                    .attr("d", elbow);
-
-        })
-
-        d3.select("#addLabels").on('click', function () {
-            d3.selectAll(".ageLabel").attr("visibility","visible")
-        })
-
-        d3.select("#removeLabels").on('click', function () {
-            d3.selectAll(".ageLabel").attr("visibility","hidden")
-        })
-
-
-        d3.select("#rotate").on('click', function () {
-            toggleOrientation()
-        })
-
-        function setOrientation(){
-            if (!vertOrientation) {
-                d3.select('#allVis').attr("transform", 'translate(' + height + ',0), rotate(90)')
-                d3.select("svg").attr('width',height).attr('height',width)
-            }
-            else {
-                d3.select('#allVis').attr("transform", 'translate(0,0), rotate(0)')
-                d3.select("svg").attr('width',width).attr('height', height)
-            }
-
-        }
-
-        function toggleOrientation(){
-            if (vertOrientation) {
-                vertOrientation = false;
-                d3.select('#allVis').attr("transform", 'translate(' + height + ',0), rotate(90)')
-                d3.select("svg").attr('width',height).attr('height',width)
-            }
-            else {
-                vertOrientation = true;
-                d3.select('#allVis').attr("transform", 'translate(0,0), rotate(0)')
-                d3.select("svg").attr('width',width).attr('height',height)
-            }
-
-        }
-
-        d3.select("#graphSize").on("input", function() {
-            console.log( +this.value)
-//            d3.select('svg').remove();
-//            createVis(DATA,this.value);
-
-        });
-
-
-    })
-
-    function createVis(data,n){
         //Create Graph
         g = createGraph(data,n);
 
@@ -212,9 +117,13 @@
         //Render Graph
         renderGraph(g)
 
+        //Set callbacks for user interaction buttons
+        setCallbacks();
+
         //Render table;
         //renderTable(g);
-    }
+
+    })
 
 </script>
 

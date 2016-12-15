@@ -1,17 +1,210 @@
-<!--D3 IMPORT -->
-<script src="https://d3js.org/d3.v4.js"></script>
-<script src="graph.js"></script>
-<script src="renderGraph.js"></script>
+<!DOCTYPE html>
+<html lang="en">
 
-<link rel="stylesheet" href="graph.css">
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, shrink-to-fit=no, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Genealogy Visualization Tool</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="css/simple-sidebar.css" rel="stylesheet">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+    <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!--D3 IMPORT -->
+    <script src="https://d3js.org/d3.v4.js"></script>
+    <script src="js/graph.js"></script>
+    <script src="js/renderGraph.js"></script>
+
+    <link rel="stylesheet" href="css/graph.css">
+
+</head>
+
+<body>
+
+<div id="wrapper">
+
+    <!-- Sidebar -->
+    <div id="sidebar-wrapper">
+        <ul class="sidebar-nav">
+            <li class="sidebar-brand">
+                <a href="#">
+                    Display Options
+                </a>
+            </li>
+
+            <!--<li>-->
+                <!--<div class="input-group">-->
+                <!--<span class="input-group-addon" id="basic-addon1">Graph Size</span>-->
+
+                <!--<input type="text" class="form-control" placeholder="100" aria-describedby="basic-addon1" id="graphSize" >-->
+            <!--</div>-->
+            <!--</li>-->
+
+            <!--<li>-->
+            <!--<div class="btn-group" role="group" aria-label="...">-->
+                <!--<button type="button" class="btn btn-default" id="collapse">Collapse</button>-->
+                <!--<button type="button" class="btn btn-default">Expand</button>-->
+                <!--&lt;!&ndash;<button type="button" class="btn btn-default">Right</button>&ndash;&gt;-->
+            <!--</div>-->
+            <!--</li>-->
+
+            <li id="collapse">
+                <a href="#">Add Life Lines</a>
+            </li>
+            <li id="expand">
+                <a href="#">Remove Life Lines</a>
+            </li>
+            <li id="addLabels">
+                <a href="#">Add Age Labels</a>
+            </li>
+
+            <li id="removeLabels">
+                <a href="#">Remove Age Labels</a>
+            </li>
+
+            <li id="straightEdges">
+                <a href="#">Straight Edges</a>
+            </li>
+            <li id="curvedEdges">
+                <a href="#">Curved Edges</a>
+            </li>
+            <li id="rotate">
+                <a href="#">Rotate Tree </a>
+            </li>
+
+
+        </ul>
+    </div>
+    <!-- /#sidebar-wrapper -->
+
+    <!-- Page Content -->
+    <div id="page-content-wrapper">
+        <div class="container-fluid">
+
+
+            <div class="row">
+                <div class="col-lg-12">
+                    <h1>Genealogy Visualization Tool </h1>
+                    <!--<a href="#menu-toggle" class="btn btn-default" id="menu-toggle">Toggle Display Options</a>-->
+                </div>
+            </div>
+
+            <div id="graphDiv" style="width:1800px; overflow:scroll"></div>
+
+        </div>
+    </div>
+    <!-- /#page-content-wrapper -->
+
+</div>
+<!-- /#wrapper -->
+
 
 <script>
 
     collapseParents = true;
+    curvedLines = false;
+    n = 100;
+    vertOrientation = true;
+
     d3.csv("data/genealogy.csv", function (error, data) {
 
+    DATA = data;
+        createVis(DATA,n);
+        setOrientation()
+
+        d3.selectAll(".lifeRect").attr("visibility","hidden")
+        d3.selectAll(".ageLabel").attr("visibility","hidden")
+
+        d3.select("#collapse").on('click', function () {
+            d3.selectAll(".lifeRect").attr("visibility","visible")
+
+        })
+
+        d3.select("#expand").on('click', function () {
+            d3.selectAll(".lifeRect").attr("visibility","hidden")
+
+        })
+
+        d3.select("#curvedEdges").on('click', function () {
+            curvedLines = true;
+            d3.selectAll(".edges")
+                    .attr("d", elbow);
+        })
+
+
+        d3.select("#straightEdges").on('click', function () {
+            curvedLines = false;
+            d3.selectAll(".edges")
+                    .attr("d", elbow);
+
+        })
+
+        d3.select("#addLabels").on('click', function () {
+            d3.selectAll(".ageLabel").attr("visibility","visible")
+        })
+
+        d3.select("#removeLabels").on('click', function () {
+            d3.selectAll(".ageLabel").attr("visibility","hidden")
+        })
+
+
+        d3.select("#rotate").on('click', function () {
+            toggleOrientation()
+        })
+
+        function setOrientation(){
+            if (!vertOrientation) {
+                d3.select('#allVis').attr("transform", 'translate(' + height + ',0), rotate(90)')
+                d3.select("svg").attr('width',height).attr('height',width)
+            }
+            else {
+                d3.select('#allVis').attr("transform", 'translate(0,0), rotate(0)')
+                d3.select("svg").attr('width',width).attr('height', height)
+            }
+
+        }
+
+        function toggleOrientation(){
+            if (vertOrientation) {
+                vertOrientation = false;
+                d3.select('#allVis').attr("transform", 'translate(' + height + ',0), rotate(90)')
+                d3.select("svg").attr('width',height).attr('height',width)
+            }
+            else {
+                vertOrientation = true;
+                d3.select('#allVis').attr("transform", 'translate(0,0), rotate(0)')
+                d3.select("svg").attr('width',width).attr('height',height)
+            }
+
+        }
+
+        d3.select("#graphSize").on("input", function() {
+            console.log( +this.value)
+//            d3.select('svg').remove();
+//            createVis(DATA,this.value);
+
+        });
+
+
+    })
+
+    function createVis(data,n){
         //Create Graph
-        g = createGraph(data,100);
+        g = createGraph(data,n);
 
         //Create Layout
         arrangeLayout(g);
@@ -20,8 +213,18 @@
         renderGraph(g)
 
         //Render table;
-//        renderTable(g);
-
-    })
+        //renderTable(g);
+    }
 
 </script>
+
+<!-- jQuery -->
+<script src="js/jquery.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="js/bootstrap.min.js"></script>
+
+
+</body>
+
+</html>

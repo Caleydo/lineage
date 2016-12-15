@@ -9,32 +9,49 @@ function setCallbacks(){
     d3.selectAll(".ageLabel").attr("visibility","hidden")
 
     d3.select("#collapse").on('click', function () {
-        d3.selectAll(".lifeRect").attr("visibility","visible")
+        if (!showLifeLines) {
+            d3.selectAll(".lifeRect").attr("visibility", "visible")
+            d3.select(this).select('a').html('Remove Life Lines')
+            showLifeLines = true;
+        }
+        else{
+            d3.selectAll(".lifeRect").attr("visibility", "hidden")
+            d3.select(this).select('a').html('Add Life Lines')
+            showLifeLines = false;
+        }
 
     })
+    
 
-    d3.select("#expand").on('click', function () {
-        d3.selectAll(".lifeRect").attr("visibility","hidden")
-
-    })
     d3.select("#curvedEdges").on('click', function () {
-        curvedLines = true;
+        if (!curvedLines) {
+            d3.select(this).select('a').html('Straight Edges')
+            curvedLines = true;
+        }
+        else{
+            d3.select(this).select('a').html('Curved Edges')
+            curvedLines = false;
+        }
         d3.selectAll(".edges")
             .attr("d", elbow);
+
     })
 
-    d3.select("#straightEdges").on('click', function () {
-        curvedLines = false;
-        d3.selectAll(".edges")
-            .attr("d", elbow);
-    })
+
+
 
     d3.select("#addLabels").on('click', function () {
-        d3.selectAll(".ageLabel").attr("visibility","visible")
-    })
+        if (!showAgeLabels) {
+            d3.selectAll(".ageLabel").attr("visibility", "visible")
+            d3.select(this).select('a').html('Remove Age Labels')
+            showAgeLabels = true;
+        }
+        else{
+            d3.selectAll(".ageLabel").attr("visibility", "hidden")
+            d3.select(this).select('a').html('Add Age Labels')
+            showAgeLabels = false;
+        }
 
-    d3.select("#removeLabels").on('click', function () {
-        d3.selectAll(".ageLabel").attr("visibility","hidden")
     })
 
 

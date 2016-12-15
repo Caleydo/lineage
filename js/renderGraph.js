@@ -61,15 +61,16 @@ function renderGraph(g) {
         .data(relationshipEdges)
         .enter().append("path")
         .attr("class", "edges")
-        .style("stroke", function (d) {
-            return d.color
-        })
-        .style("fill", 'none')
+        // .style("stroke", function (d) {
+        //     return d.color
+        // })
+        // .style("fill", 'none')
         .attr("d", elbow)
         .attr("stroke-width", 3)
+        .on('click',function(d){console.log(d)})
 
 
-    var edges = graph.selectAll(".parentEdges")
+    var parentEdges = graph.selectAll(".parentEdges")
         .data(relationshipNodes)
         .enter().append("path")
         .attr("class", "parentEdges")
@@ -155,10 +156,45 @@ function renderGraph(g) {
         .style("fill", function (d) {
             return (+d.affection == 100) ? "black" : "white"
         })
-        .style('stroke', function (d) {
-            return d.color
-        })
+        // .style('stroke', function (d) {
+        //     return d.color
+        // })
         .style("stroke-width", 3)
+        .on("click",function(d){
+            if(!d3.select(this).classed('selected')){
+                edges.classed('selected',false);
+                allNodes.classed('selected',false);
+                highlightPath(d)
+            }
+            else {
+                edges.classed('selected', false);
+                allNodes.classed('selected', false);
+            }});
+
+    function highlightPath(d){
+
+
+        edges.filter(function(e){return e.target.id == d.id}).classed('selected',true)
+        var maID = uniqueID.indexOf(d['ma']);
+        var paID = uniqueID.indexOf(d['pa']);
+
+        allNodes.filter(function (n) {
+            return n.id == d.id
+        }).classed('selected', true);
+
+        if (maID>-1) {
+            allNodes.filter(function (n) {
+                return n.id == d['ma']
+            }).classed('selected', true);
+            highlightPath(g.nodes[maID]);
+        }
+        if (paID>-1) {
+            allNodes.filter(function (n) {
+                return n.id == d['ma']
+            }).classed('selected', true);
+            highlightPath(g.nodes[paID]);
+        }
+};
 
     //Add cross through lines for deceased people
     allNodes.filter(function (d) {

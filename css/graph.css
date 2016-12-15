@@ -22,3 +22,26 @@
 #graphDiv{
     overflow-x:scroll;
 }
+
+.edges.selected{
+    stroke:red;
+    stroke-width:3px;
+    fill:none
+}
+
+.node.selected{
+    stroke:red;
+    stroke-width:3px;
+    /*fill:none*/
+}
+
+.node{
+    stroke:black;
+    stroke-width: 3px;
+}
+
+.edges{
+    stroke:black;
+    stroke-width: 3px;
+    fill:none
+}

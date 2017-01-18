@@ -1,0 +1,13 @@
+{
+  "mode": "modules",
+  "out": "./docs",
+  "theme": "minimal",
+  "ignoreCompilerErrors": false,
+  "experimentalDecorators": true,
+  "emitDecoratorMetadata": true,
+  "preserveConstEnums": true,
+  "stripInternal": true,
+  "suppressExcessPropertyErrors": true,
+  "suppressImplicitAnyIndexErrors": true,
+  "exclude": "**/*.test.ts"
+}

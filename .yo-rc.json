@@ -1,0 +1,36 @@
+{
+  "generator-phovea": {
+    "type": "app",
+    "app": "genealogyVIS",
+    "clientOnly": true,
+    "entries": {
+      "app": "./src/index.ts"
+    },
+    "libraries": [
+      "d3",
+      "jquery",
+      "font-awesome",
+      "bootstrap"
+    ],
+    "modules": [
+      "phovea_core",
+      "phovea_ui"
+    ],
+    "libraryAliases": {
+      "d3": "d3/d3"
+    },
+    "libraryExternals": [
+      "d3",
+      "jquery",
+      "font-awesome",
+      "bootstrap",
+      "bootstrap-sass"
+    ],
+    "ignores": [],
+    "extensions": [],
+    "name": "genealogy_vis",
+    "author": "Carolina Nobre",
+    "today": "Wed, 18 Jan 2017 08:33:38 GMT",
+    "githubAccount": "phovea"
+  }
+}

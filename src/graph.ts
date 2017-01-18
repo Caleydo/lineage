@@ -7,7 +7,7 @@ import {Config} from './config';
 import {glyphSize, height, width, connectorScale, x, y} from './renderGraph';
 
 
-export const uniqueID = [];
+export let uniqueID = [];
 export const relationshipNodes=[];
 export const relationshipEdges=[];
 
@@ -16,70 +16,70 @@ let g; // graph
 //Set callbacks for all buttons/list items/etc
 export function setCallbacks(){
 
-    d3.selectAll(".lifeRect").attr("visibility","hidden")
-    d3.selectAll(".ageLabel").attr("visibility","hidden")
+    d3.selectAll(".lifeRect").attr("visibility","hidden");
+    d3.selectAll(".ageLabel").attr("visibility","hidden");
 
     d3.select("#collapse").on('click', function () {
         if (!Config.showLifeLines) {
-            d3.selectAll(".lifeRect").attr("visibility", "visible")
-            d3.select(this).select('a').html('Remove Life Lines')
+            d3.selectAll(".lifeRect").attr("visibility", "visible");
+            d3.select(this).select('a').html('Remove Life Lines');
             Config.showLifeLines = true;
         }
         else{
-            d3.selectAll(".lifeRect").attr("visibility", "hidden")
-            d3.select(this).select('a').html('Add Life Lines')
+            d3.selectAll(".lifeRect").attr("visibility", "hidden");
+            d3.select(this).select('a').html('Add Life Lines');
             Config.showLifeLines = false;
         }
 
-    })
+    });
 
 
     d3.select("#curvedEdges").on('click', function () {
         if (!Config.curvedLines) {
-            d3.select(this).select('a').html('Straight Edges')
+            d3.select(this).select('a').html('Straight Edges');
             Config.curvedLines = true;
         }
         else{
-            d3.select(this).select('a').html('Curved Edges')
+            d3.select(this).select('a').html('Curved Edges');
             Config.curvedLines = false;
         }
         d3.selectAll(".edges")
             .attr("d", elbow);
 
-    })
+    });
 
 
 
 
     d3.select("#addLabels").on('click', function () {
         if (!Config.showAgeLabels) {
-            d3.selectAll(".ageLabel").attr("visibility", "visible")
-            d3.select(this).select('a').html('Remove Age Labels')
+            d3.selectAll(".ageLabel").attr("visibility", "visible");
+            d3.select(this).select('a').html('Remove Age Labels');
             Config.showAgeLabels = true;
         }
         else{
-            d3.selectAll(".ageLabel").attr("visibility", "hidden")
-            d3.select(this).select('a').html('Add Age Labels')
+            d3.selectAll(".ageLabel").attr("visibility", "hidden");
+            d3.select(this).select('a').html('Add Age Labels');
             Config.showAgeLabels = false;
         }
 
-    })
+    });
 
 
     d3.select("#rotate").on('click', function () {
         toggleOrientation()
-    })
+    });
 
 }
 
 //set orientation of main div w/ visualization (horizontal or vertical)
 function setOrientation(){
     if (!Config.vertOrientation) {
-        d3.select('#allVis').attr("transform", 'translate(' + height + ',0), rotate(90)')
+        d3.select('#allVis').attr("transform", 'translate(' + height + ',0), rotate(90)');
         d3.select("svg").attr('width',height).attr('height',width)
     }
     else {
-        d3.select('#allVis').attr("transform", 'translate(0,0), rotate(0)')
+        d3.select('#allVis').attr("transform", 'translate(0,0), rotate(0)');
         d3.select("svg").attr('width',width).attr('height', height)
     }
 
@@ -89,12 +89,12 @@ function setOrientation(){
 function toggleOrientation(){
     if (Config.vertOrientation) {
         Config.vertOrientation = false;
-        d3.select('#allVis').attr("transform", 'translate(' + height + ',0), rotate(90)')
+        d3.select('#allVis').attr("transform", 'translate(' + height + ',0), rotate(90)');
         d3.select("svg").attr('width',height).attr('height',width)
     }
     else {
         Config.vertOrientation = true;
-        d3.select('#allVis').attr("transform", 'translate(0,0), rotate(0)')
+        d3.select('#allVis').attr("transform", 'translate(0,0), rotate(0)');
         d3.select("svg").attr('width',width).attr('height',height)
     }
 
@@ -105,29 +105,29 @@ export function createGraph(data,numElements){
     g = {
             nodes: [],
             edges: []
-        },
-         uniqueID=[];
+        };
+    uniqueID=[];
 
     data.forEach(function (d, i) {
         //Limit Size of graph and only consider entries with a valid bdate and id
         if (i <numElements && +d['egoUPDBID']>0 & +d['bdate']>0) { // TODO consider using `&&` instead
             //Demographic Info
-            d.id = +d['egoUPDBID']
-            d.ma = +d['maUPDBID']
-            d.pa= +d['paUPDBID']
-            d.spouse = undefined
+            d.id = +d['egoUPDBID'];
+            d.ma = +d['maUPDBID'];
+            d.pa= +d['paUPDBID'];
+            d.spouse = undefined;
             d.children = [];
 
             //Position Info
             d.x = undefined;
-            d.y = undefined
+            d.y = undefined;
             d.generation = undefined;
             d.linearOrder = undefined;
 
             //Display Info
             d.hide = false; //used to hide/show nodes
-            d.type = 'individual' //vs aggregate'
-            d.color = 'black'
+            d.type = 'individual'; //vs aggregate'
+            d.color = 'black';
 
             //Skip duplicate rows
             if (g.nodes.filter(function(node){return node.id == d.id}).length == 0){
@@ -153,7 +153,7 @@ export function createGraph(data,numElements){
     });
 
     //Filter out nodes with no parents and no children
-    g.nodes = g.nodes.filter(function(node){return node.children.length>0 || uniqueID.indexOf(node['ma'])>-1})
+    g.nodes = g.nodes.filter(function(node){return node.children.length>0 || uniqueID.indexOf(node['ma'])>-1});
     //Create edges between individuals and their parents
     g.nodes.forEach(function(d,i){
 
@@ -167,11 +167,11 @@ export function createGraph(data,numElements){
             g.edges.push({
                 source: g.nodes[uniqueID.indexOf(d['id'])],
                 target: g.nodes[uniqueID.indexOf(d['pa'])]
-            })
+            });
         }
 
     });
-    return g
+    return g;
 
 }
 
@@ -191,7 +191,7 @@ function assignLinearOrder(node){
             //Push all nodes one to the right
             g.nodes.forEach(function (d) {
                 if (d.y > node.y) d.y = d.y + 1
-            })
+            });
             node.y = node.y + 1;
         }
     }
@@ -204,7 +204,7 @@ function assignLinearOrder(node){
         if (g.nodes[maID].y) {
             if (g.nodes[maID].y < node.y){
                 node.y = g.nodes[maID].y;
-                g.nodes.forEach(function (d) {if (d.y > node.y) d.y = d.y + 1})
+                g.nodes.forEach(function (d) {if (d.y > node.y) d.y = d.y + 1});
                 g.nodes[maID].y = node.y + 1;
 
                 if (!Config.collapseParents){
@@ -217,11 +217,11 @@ function assignLinearOrder(node){
         }
         else{
             if (!Config.collapseParents){
-                g.nodes.forEach(function (d) {if (d.y > node.y) d.y = d.y + 2 })
+                g.nodes.forEach(function (d) {if (d.y > node.y) d.y = d.y + 2 });
                 g.nodes[paID].y = node.y + 2;
             }
             else{
-                g.nodes.forEach(function (d) {if (d.y > node.y) d.y = d.y + 1 })
+                g.nodes.forEach(function (d) {if (d.y > node.y) d.y = d.y + 1 });
                 g.nodes[paID].y = node.y + 1;
             }
             g.nodes[maID].y = node.y + 1;
@@ -253,11 +253,11 @@ export function arrangeLayout(g){
 
         if (g.nodes.filter(function(n){return n.y!=undefined & n.y == thisNode.y }).length>1) {
             g.nodes.forEach(function (d) {
-                if (d.y > thisNode.y) d.y = d.y + 1
-            })
+                if (d.y > thisNode.y) d.y = d.y + 1;
+            });
             thisNode.y = thisNode.y + 1;
         }
-    })
+    });
 
     var randColor = d3.scaleOrdinal(d3.schemeCategory20b);
 
@@ -271,8 +271,8 @@ export function arrangeLayout(g){
             var rColor = randColor(node.y);
 
             if (g.nodes[maID].color == 'black') {
-                g.nodes[maID].color = rColor
-                g.nodes[paID].color = rColor
+                g.nodes[maID].color = rColor;
+                g.nodes[paID].color = rColor;
             }
 
             var rnode={
@@ -284,23 +284,23 @@ export function arrangeLayout(g){
                 'x2':g.nodes[paID].x,
                 'color':g.nodes[maID].color,
                 'type':'parent'
-            }
+            };
 
             relationshipNodes.push(rnode);
             relationshipEdges.push({
                 source: rnode,
                 target: node,
                 'color':g.nodes[maID].color
-            })
+            });
         }
-    })
+    });
 
     return g;
 }
 
 function assignGeneration(node,ind){
 
-    node.generation = +node['bdate']
+    node.generation = +node['bdate'];
     //
     // if (node.generation == undefined) {
     //     node.generation = getParentGeneration(ind);
@@ -311,7 +311,7 @@ function assignGeneration(node,ind){
 }
 
 function setParentGeneration(nodeID,generation){
-    var node = g.nodes[nodeID]
+    var node = g.nodes[nodeID];
 
     var maID = uniqueID.indexOf(node['ma']);
     var paID = uniqueID.indexOf(node['pa']);
@@ -319,19 +319,19 @@ function setParentGeneration(nodeID,generation){
     //Mother exists in array of nodes and does not have a generation assigned
     if (maID > -1 && g.nodes[maID].generation == undefined) {
         g.nodes[maID].generation = generation + 1;
-        setParentGeneration(maID,generation+1)
+        setParentGeneration(maID,generation+1);
     }
 
     //Father exists in array of nodes and does not have a generation assigned
     if (paID > -1 && g.nodes[paID].generation == undefined) {
         g.nodes[paID].generation = generation + 1;
-        setParentGeneration(paID,generation+1)
+        setParentGeneration(paID,generation+1);
     }
 
 }
 function getParentGeneration(nodeID){
 
-    var node = g.nodes[nodeID]
+    var node = g.nodes[nodeID];
     var maID = uniqueID.indexOf(node['ma']);
     var paID = uniqueID.indexOf(node['pa']);
     var maGeneration;
@@ -339,7 +339,7 @@ function getParentGeneration(nodeID){
 
 
     if (maID >-1) { //Mother exists in array of nodes
-        maGeneration = g.nodes[maID].generation
+        maGeneration = g.nodes[maID].generation;
         if (maGeneration == undefined) {
             maGeneration = getParentGeneration(maID)
         }
@@ -348,9 +348,9 @@ function getParentGeneration(nodeID){
         maGeneration = false;
     }
     if (paID >-1) { //Father exists in array of nodes
-        paGeneration = g.nodes[paID].generation
+        paGeneration = g.nodes[paID].generation;
         if (paGeneration == undefined) {
-            paGeneration = getParentGeneration(paID) //continue searching up the tree
+            paGeneration = getParentGeneration(paID); //continue searching up the tree
         }
     }
     else {
@@ -358,29 +358,29 @@ function getParentGeneration(nodeID){
     }
 
     if (maGeneration && paGeneration)
-        return (maGeneration + paGeneration) / 2 -1
+        return (maGeneration + paGeneration) / 2 -1;
     else if (maGeneration || paGeneration)
-        return (maGeneration || paGeneration) - 1
+        return (maGeneration || paGeneration) - 1;
     else
-        return undefined
+        return undefined;
 }
 
 export function xPOS(node){
     if (node['sex'] == 'F')
         if (node['spouse'] && Config.collapseParents)
-            return x(node.x) //+glyphSize/2
+            return x(node.x); //+glyphSize/2
         else
-            return x(node.x)
+            return x(node.x);
     else
-            return x(node.x)-glyphSize
+            return x(node.x)-glyphSize;
 }
 
 export function yPOS(node){
     if (node['sex'] == 'F')
         if (node['spouse'] && Config.collapseParents)
-            return y(node.y) //- glyphSize/2
+            return y(node.y); //- glyphSize/2
         else
-            return y(node.y)
+            return y(node.y);
     else
         return y(node.y)-glyphSize
 }
@@ -410,12 +410,12 @@ export function elbow(d) {
     },{
         x: d.target.x,
         y: d.target.y
-    }]
+    }];
 
     if (Config.curvedLines)
-        lineFunction.curve(d3.curveBasis)
+        lineFunction.curve(d3.curveBasis);
     else
-        lineFunction.curve(d3.curveLinear)
+        lineFunction.curve(d3.curveLinear);
 
     return lineFunction(linedata);
 }
@@ -428,7 +428,7 @@ export function parentEdge(d) {
     }, {
         x: d.x2,
         y: d.y2
-    }]
+    }];
 
     return lineFunction(linedata);
 }

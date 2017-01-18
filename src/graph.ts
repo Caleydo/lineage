@@ -110,7 +110,7 @@ export function createGraph(data,numElements){
 
     data.forEach(function (d, i) {
         //Limit Size of graph and only consider entries with a valid bdate and id
-        if (i <numElements && +d['egoUPDBID']>0 & +d['bdate']>0) { // TODO consider using `&&` instead
+        if (i <numElements && +d['egoUPDBID']>0 && +d['bdate']>0) {
             //Demographic Info
             d.id = +d['egoUPDBID'];
             d.ma = +d['maUPDBID'];
@@ -251,7 +251,7 @@ export function arrangeLayout(g){
 
     g.nodes.forEach(function(thisNode){
 
-        if (g.nodes.filter(function(n){return n.y!=undefined & n.y == thisNode.y }).length>1) {
+        if (g.nodes.filter(function(n){return n.y!=undefined && n.y == thisNode.y }).length>1) {
             g.nodes.forEach(function (d) {
                 if (d.y > thisNode.y) d.y = d.y + 1;
             });

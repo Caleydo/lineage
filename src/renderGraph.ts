@@ -239,7 +239,7 @@ let startYPos;
 
     //Add cross through lines for deceased people
     allNodes.filter(function (d) {
-        return (+d.deceased == 1 & +d.affection != 100); // TODO consider using `&&` instead
+        return (+d.deceased == 1 && +d.affection != 100);
     })
         .append("line")
         .attr("x1", function (d) {

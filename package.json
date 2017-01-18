@@ -68,12 +68,7 @@
     "@types/d3": "4.4.0",
     "d3": "4.4.1",
     "phovea_core": "github:phovea/phovea_core#v0.0.5",
-    "phovea_ui": "github:phovea/phovea_ui#v0.0.5",
-    "@types/jquery": "2.0.33",
-    "jquery": "3.1.1",
-    "font-awesome": "4.6.3",
-    "@types/bootstrap": "3.3.32",
-    "bootstrap-sass": "3.3.7"
+    "phovea_ui": "github:phovea/phovea_ui#v0.0.5"
   },
   "name": "genealogy_vis",
   "description": "",

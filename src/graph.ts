@@ -73,7 +73,7 @@ export function setCallbacks(){
 }
 
 //set orientation of main div w/ visualization (horizontal or vertical)
-function setOrientation(){
+/*function setOrientation(){
     if (!Config.vertOrientation) {
         d3.select('#allVis').attr("transform", 'translate(' + height + ',0), rotate(90)');
         d3.select("svg").attr('width',height).attr('height',width)
@@ -83,7 +83,7 @@ function setOrientation(){
         d3.select("svg").attr('width',width).attr('height', height)
     }
 
-}
+}*/
 
 //Toggle Orientation of main vis between horizontal and vertical
 function toggleOrientation(){

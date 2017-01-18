@@ -3,7 +3,14 @@
  */
 
 import * as d3 from 'd3';
-import {HELLO_WORLD} from './language';
+
+// bundle data file and get URL
+import * as csvUrl from 'file-loader!./data/genealogy.csv';
+import {Config} from './config';
+import {createGraph, arrangeLayout, setCallbacks} from './graph';
+import {renderGraph} from './renderGraph';
+
+
 
 /**
  * The main class for the App app
@@ -22,7 +29,32 @@ export class App {
    * @returns {Promise<App>}
    */
   init() {
+    this.loadData();
     return this.build();
+  }
+
+  private loadData() {
+
+    const n = 100;
+
+    d3.csv(csvUrl, function (error, data) {
+
+      //Create Graph
+      const graph = createGraph(data,n);
+
+      //Create Layout
+      arrangeLayout(graph);
+
+      //Render Graph
+      renderGraph(graph);
+
+      //Set callbacks for user interaction buttons
+      setCallbacks();
+
+      //Render table;
+      //renderTable(graph);
+
+    });
   }
 
   /**
@@ -30,8 +62,10 @@ export class App {
    * @returns {Promise<App>}
    */
   private build() {
-    this.$node.html(HELLO_WORLD);
-    return Promise.resolve(null);
+    this.$node.select('h3').remove();
+    this.setBusy(false);
+
+    return Promise.resolve(this);
   }
 
   /**

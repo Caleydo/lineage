@@ -27,8 +27,8 @@ export function renderGraph(g) {
     minY = 0;
     maxY = g.nodes.length;
 
-    margin = {top: 40, right: 120, bottom: 20, left: 20},
-    width = (maxX - minX) * spaceBetweenGenerations ,
+    margin = {top: 40, right: 120, bottom: 20, left: 20};
+    width = (maxX - minX) * spaceBetweenGenerations;
     height = (glyphSize + 5) * g.nodes.length * 2;
 
     // Scales
@@ -38,21 +38,21 @@ export function renderGraph(g) {
     connectorScale = d3.scaleLinear().range([.75, .25]).domain([2, g.nodes.length]);
 
 
-    var svg1 = d3.select("#graphDiv").append("svg")
+    const svg1 = d3.select("#graphDiv").append("svg")
         .attr("width", width + tableWidth + margin.right + margin.left)
         .attr("height", height + margin.top + margin.bottom);
 
 
-    var svg = svg1.append("g")
+    const svg = svg1.append("g")
         .attr('id', 'allVis');
 
 
-    var graph = svg.append("g")
+    const graph = svg.append("g")
         .attr("transform", "translate(" + margin.left + "," + (margin.top + glyphSize) + ")")
         .attr('id','graph');
 
     // //append grid
-    // var grid = svg.append("g")
+    // const grid = svg.append("g")
     //     .attr("class", "grid")
     //     .attr("transform", "translate(" + margin.left + "," + margin.top  + ")")
     //     .call(d3.axisTop(x).tickFormat("").tickSize(-height));
@@ -63,7 +63,7 @@ export function renderGraph(g) {
         .call(d3.axisTop(x).tickFormat(d3.format("d")));
 
 
-    var edges = graph.selectAll(".edges")
+    const edges = graph.selectAll(".edges")
         .data(relationshipEdges)
         .enter().append("path")
         .attr("class", "edges")
@@ -76,7 +76,7 @@ export function renderGraph(g) {
         .on('click',function(d){console.log(d)});
 
 
-    var parentEdges = graph.selectAll(".parentEdges")
+    const parentEdges = graph.selectAll(".parentEdges")
         .data(relationshipNodes)
         .enter().append("path")
         .attr("class", "parentEdges")
@@ -88,7 +88,7 @@ export function renderGraph(g) {
         .attr("d", parentEdge);
 
     //Add life line groups
-    var lifeRects = graph.selectAll(".lifeSpan")
+    const lifeRects = graph.selectAll(".lifeSpan")
         .data(g.nodes)
         .enter()
         .append("g")
@@ -157,7 +157,7 @@ export function renderGraph(g) {
 
 
     //Position and Color all Nodes
-    var allNodes = graph.selectAll(".node")
+    const allNodes = graph.selectAll(".node")
         .attr("transform", function (d) {
             return "translate(" + xPOS(d) + "," + yPOS(d) + ")";
         })
@@ -189,20 +189,20 @@ export function renderGraph(g) {
 let startYPos;
 
     function started(d){
-        //var node = d3.select(this).data()[0];
+        //const node = d3.select(this).data()[0];
         startYPos = y.invert(d3.mouse(d3.select('#graph').node())[1]);
 
     }
     function ended(d){
-        //var node = d3.select(this).data()[0];
-        var ypos2 = y.invert(d3.mouse(d3.select('#graph').node())[1]);
+        //const node = d3.select(this).data()[0];
+        const ypos2 = y.invert(d3.mouse(d3.select('#graph').node())[1]);
         console.log('started dragging at position ', Math.round(startYPos));
         console.log('ended dragging at position ', Math.round(ypos2));
 
     }
 
     function dragged(d) {
-        var node = d3.select(this).data()[0];
+        const node = d3.select(this).data()[0];
         node.y = y.invert(d3.mouse(d3.select('#graph').node())[1]);
         //currentY = Math.round(y.invert(d3.mouse(d3.select('#graph').node())[1]));
 
@@ -216,8 +216,8 @@ let startYPos;
     function highlightPath(d){
 
         edges.filter(function(e){return e.target.id == d.id}).classed('selected',true);
-        var maID = uniqueID.indexOf(d['ma']);
-        var paID = uniqueID.indexOf(d['pa']);
+        const maID = uniqueID.indexOf(d['ma']);
+        const paID = uniqueID.indexOf(d['pa']);
 
         allNodes.filter(function (n) {
             return n.id == d.id;
@@ -284,10 +284,10 @@ let startYPos;
 
 export function renderTable(g) {
 
-    var table = d3.select('svg').append("g")
+    const table = d3.select('svg').append("g")
         .attr("transform", "translate(" + (2 * margin.left + width ) + "," + margin.top + ")");
 
-    var rect = table.selectAll(".rect")
+    const rect = table.selectAll(".rect")
         .data(g.nodes)
         .enter()
         .append("rect")

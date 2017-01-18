@@ -139,8 +139,8 @@ export function createGraph(data,numElements){
         //Store spouse and children in each node;
         g.nodes.forEach(function(node,id){
             //Check for the existence of mother and father nodes
-            var maID = uniqueID.indexOf(node['ma']);
-            var paID = uniqueID.indexOf(node['pa']);
+            const maID = uniqueID.indexOf(node['ma']);
+            const paID = uniqueID.indexOf(node['pa']);
 
             if (maID >-1 && paID >-1){
                 g.nodes[maID].spouse = node['pa'];
@@ -176,9 +176,9 @@ export function createGraph(data,numElements){
 }
 
 function assignLinearOrder(node){
-    var maID = uniqueID.indexOf(node['ma']);
-    var paID = uniqueID.indexOf(node['pa']);
-    var spouseID = uniqueID.indexOf(node['spouse']);
+    const maID = uniqueID.indexOf(node['ma']);
+    const paID = uniqueID.indexOf(node['pa']);
+    const spouseID = uniqueID.indexOf(node['spouse']);
 
     if (!node.y) {
         node.y = d3.max(g.nodes,function(d){return d.y})+1;
@@ -259,23 +259,23 @@ export function arrangeLayout(g){
         }
     });
 
-    var randColor = d3.scaleOrdinal(d3.schemeCategory20b);
+    const randColor = d3.scaleOrdinal(d3.schemeCategory20b);
 
     //Create relationship nodes
     g.nodes.forEach(function(node){
-        var maID = uniqueID.indexOf(node['ma']);
-        var paID = uniqueID.indexOf(node['pa']);
+        const maID = uniqueID.indexOf(node['ma']);
+        const paID = uniqueID.indexOf(node['pa']);
 
         if (maID >-1 && paID >-1){
 
-            var rColor = randColor(node.y);
+            const rColor = randColor(node.y);
 
             if (g.nodes[maID].color == 'black') {
                 g.nodes[maID].color = rColor;
                 g.nodes[paID].color = rColor;
             }
 
-            var rnode={
+            const rnode={
                 'x':(g.nodes[maID].x + g.nodes[paID].x)/2,
                 'y':(g.nodes[maID].y + g.nodes[paID].y)/2,
                 'y1':g.nodes[maID].y,
@@ -311,10 +311,10 @@ function assignGeneration(node,ind){
 }
 
 function setParentGeneration(nodeID,generation){
-    var node = g.nodes[nodeID];
+    const node = g.nodes[nodeID];
 
-    var maID = uniqueID.indexOf(node['ma']);
-    var paID = uniqueID.indexOf(node['pa']);
+    const maID = uniqueID.indexOf(node['ma']);
+    const paID = uniqueID.indexOf(node['pa']);
 
     //Mother exists in array of nodes and does not have a generation assigned
     if (maID > -1 && g.nodes[maID].generation == undefined) {
@@ -331,11 +331,11 @@ function setParentGeneration(nodeID,generation){
 }
 function getParentGeneration(nodeID){
 
-    var node = g.nodes[nodeID];
-    var maID = uniqueID.indexOf(node['ma']);
-    var paID = uniqueID.indexOf(node['pa']);
-    var maGeneration;
-    var paGeneration;
+    const node = g.nodes[nodeID];
+    const maID = uniqueID.indexOf(node['ma']);
+    const paID = uniqueID.indexOf(node['pa']);
+    let maGeneration;
+    let paGeneration;
 
 
     if (maID >-1) { //Mother exists in array of nodes
@@ -385,20 +385,20 @@ export function yPOS(node){
         return y(node.y)-glyphSize
 }
 
-var  lineFunction = d3.line()
+const  lineFunction = d3.line()
     .x(function (d) {
         return x(d.x);
     }).y(function (d) {
         return y(d.y);
-    })
+    });
 
 
 export function elbow(d) {
-    var xdiff = d.source.x - d.target.x;
-    var ydiff = d.source.y - d.target.y;
-    var nx = d.source.x - xdiff * connectorScale(ydiff) ;
+    const xdiff = d.source.x - d.target.x;
+    const ydiff = d.source.y - d.target.y;
+    const nx = d.source.x - xdiff * connectorScale(ydiff) ;
 
-    var linedata = [{
+    const linedata = [{
         x: d.source.x,
         y: d.source.y
     }, {
@@ -422,7 +422,7 @@ export function elbow(d) {
 
 export function parentEdge(d) {
 
-    var linedata = [{
+    const linedata = [{
         x: d.x1,
         y: d.y1
     }, {

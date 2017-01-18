@@ -1,0 +1,86 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>genealogyVIS</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width">
+    <link href="//fonts.googleapis.com/css?family=Yantramanav:500,400,300" rel="stylesheet" type="text/css">
+    <script src="https://cdn.polyfill.io/v2/polyfill.min.js"></script>
+    <link href="./style.css"rel="stylesheet" type="text/css">
+</head>
+<body>
+
+<div id="caleydoHeader"></div>
+
+<div id="app">
+    <h3 style="margin: 5px;">Loading &hellip;</h3>
+    <div class="busy"></div>
+
+    <div id="wrapper">
+
+        <!-- Sidebar -->
+        <div id="sidebar-wrapper">
+            <ul class="sidebar-nav">
+                <li class="sidebar-brand">
+                    <a href="#">
+                        Display Options
+                    </a>
+                </li>
+
+                <li id="collapse">
+                    <a href="#">Add Life Lines</a>
+                </li>
+
+                <li id="addLabels">
+                    <a href="#">Add Age Labels</a>
+                </li>
+
+                <li id="curvedEdges">
+                    <a href="#">Curved Edges</a>
+                </li>
+                <li id="rotate">
+                    <a href="#">Rotate Tree </a>
+                </li>
+
+            </ul>
+        </div>
+        <!-- /#sidebar-wrapper -->
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper">
+            <div class="container-fluid">
+
+
+                <div class="row">
+                    <div class="col-lg-12">
+                        <h1>Genealogy Visualization Tool </h1>
+                        <!--<a href="#menu-toggle" class="btn btn-default" id="menu-toggle">Toggle Display Options</a>-->
+                    </div>
+                </div>
+
+                <div id="graphDiv" style="width:1800px; overflow:scroll"></div>
+
+            </div>
+        </div>
+        <!-- /#page-content-wrapper -->
+
+    </div>
+    <!-- /#wrapper -->
+
+</div>
+
+<script>
+  (function() {
+    var isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+    if (!isChrome) {
+      alert('This application was designed to be used in Google Chrome.\nRunning the application in other browsers might result in performance issues or other misbehavior.');
+    }
+  })();
+</script>
+<script src="./common.js"></script>
+<script src="./app.js" data-phovea-offline="true"></script>
+
+</body>
+</html>

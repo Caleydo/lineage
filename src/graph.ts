@@ -181,7 +181,7 @@ function assignLinearOrder(node){
     const spouseID = uniqueID.indexOf(node['spouse']);
 
     if (!node.y) {
-        node.y = d3.max(g.nodes,function(d){return d.y})+1;
+        node.y = d3.max(g.nodes,function(d:any){return d.y})+1;
     }
     //Put spouse to the left of the current node (at least in a first pass)
     if (node.spouse && !g.nodes[spouseID].y) {
@@ -385,10 +385,10 @@ export function yPOS(node){
         return y(node.y)-glyphSize
 }
 
-const  lineFunction = d3.line()
-    .x(function (d) {
+const  lineFunction = d3.line<any>()
+    .x(function (d:any) {
         return x(d.x);
-    }).y(function (d) {
+    }).y(function (d:any) {
         return y(d.y);
     });
 

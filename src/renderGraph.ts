@@ -17,10 +17,10 @@ export function renderGraph(g) {
 
     //Render Genealogy Graph to the Screen
 
-    minX = d3.min(g.nodes, function (d) {
+    minX = d3.min(g.nodes, function (d:any) {
         return d.x;
     });
-    maxX = d3.max(g.nodes, function (d) {
+    maxX = d3.max(g.nodes, function (d:any) {
         return d.x;
     });
 
@@ -93,12 +93,12 @@ export function renderGraph(g) {
         .enter()
         .append("g")
         .attr('class', 'lifeRect')
-        .attr("transform", function (d) {
+        .attr("transform", function (d:any) {
             return d.sex == 'M' ? "translate(" + (x(d['bdate'])) + "," + yPOS(d) + ")" : "translate(" + (x(d['bdate'])) + "," + (yPOS(d) - glyphSize) + ")";
         });
 
     //Add actual life lines
-    lifeRects.filter(function (d) {
+    lifeRects.filter(function (d:any) {
         return (+d.deceased == 1);
     })
         .append("rect")
@@ -107,7 +107,7 @@ export function renderGraph(g) {
             return Math.abs(x(d['ddate']) - x(d['bdate']));
         })
         .attr("height", glyphSize / 4)
-        .style('fill', function (d) {
+        .style('fill', function (d:any) {
             return (+d.affection == 100) ? "black" : "#e0dede";
         })
         .style('opacity', .8);
@@ -124,7 +124,7 @@ export function renderGraph(g) {
         .text(function (d) {
             return Math.abs(+d['ddate'] - +d['bdate']);
         })
-        .attr('fill', function (d) {
+        .attr('fill', function (d:any) {
             return (+d.affection == 100) ? "black" : "#e0dede";
         })
         .style('font-size', glyphSize * 1.8)
@@ -161,7 +161,7 @@ export function renderGraph(g) {
         .attr("transform", function (d) {
             return "translate(" + xPOS(d) + "," + yPOS(d) + ")";
         })
-        .style("fill", function (d) {
+        .style("fill", function (d:any) {
             return (+d.affection == 100) ? "black" : "white";
         })
         // .style('stroke', function (d) {
@@ -190,20 +190,20 @@ let startYPos;
 
     function started(d){
         //const node = d3.select(this).data()[0];
-        startYPos = y.invert(d3.mouse(d3.select('#graph').node())[1]);
+        startYPos = y.invert(d3.mouse(<any>d3.select('#graph').node())[1]);
 
     }
     function ended(d){
         //const node = d3.select(this).data()[0];
-        const ypos2 = y.invert(d3.mouse(d3.select('#graph').node())[1]);
+        const ypos2 = y.invert(d3.mouse(<any>d3.select('#graph').node())[1]);
         console.log('started dragging at position ', Math.round(startYPos));
         console.log('ended dragging at position ', Math.round(ypos2));
 
     }
 
     function dragged(d) {
-        const node = d3.select(this).data()[0];
-        node.y = y.invert(d3.mouse(d3.select('#graph').node())[1]);
+        const node:any = d3.select(this).data()[0];
+        node.y = y.invert(d3.mouse(<any>d3.select('#graph').node())[1]);
         //currentY = Math.round(y.invert(d3.mouse(d3.select('#graph').node())[1]));
 
         d3.select(this).attr("transform", function () {
@@ -219,39 +219,39 @@ let startYPos;
         const maID = uniqueID.indexOf(d['ma']);
         const paID = uniqueID.indexOf(d['pa']);
 
-        allNodes.filter(function (n) {
+        allNodes.filter(function (n:any) {
             return n.id == d.id;
         }).classed('selected', true);
 
         if (maID>-1) {
-            allNodes.filter(function (n) {
+            allNodes.filter(function (n:any) {
                 return n.id == d['ma']
             }).classed('selected', true);
             highlightPath(g.nodes[maID]);
         }
         if (paID>-1) {
-            allNodes.filter(function (n) {
+            allNodes.filter(function (n:any) {
                 return n.id == d['ma']
             }).classed('selected', true);
             highlightPath(g.nodes[paID]);
         }
-};
+}
 
     //Add cross through lines for deceased people
-    allNodes.filter(function (d) {
+    allNodes.filter(function (d:any) {
         return (+d.deceased == 1 && +d.affection != 100);
     })
         .append("line")
-        .attr("x1", function (d) {
+        .attr("x1", function (d:any) {
             return d.sex == 'F' ? -glyphSize : -glyphSize / 2;
         })
-        .attr("y1", function (d) {
+        .attr("y1", function (d:any) {
             return d.sex == 'F' ? -glyphSize : -glyphSize / 2;
         })
-        .attr("x2", function (d) {
+        .attr("x2", function (d:any) {
             return d.sex == 'F' ? glyphSize : glyphSize * 2.5;
         })
-        .attr("y2", function (d) {
+        .attr("y2", function (d:any) {
             return d.sex == 'F' ? glyphSize : glyphSize * 2.5;
         })
         .attr("stroke-width", 3)
@@ -262,7 +262,7 @@ let startYPos;
         .append('text')
         .attr('class', 'ageLabel')
         // .attr('visibility','hidden')
-        .text(function (d) {
+        .text(function (d:any) {
             if (+d.ddate > 0) {
                 return Math.abs(d['ddate'] - d['bdate']);
             }
@@ -275,7 +275,7 @@ let startYPos;
         .attr('dy', function (d) {
             return d['sex'] == 'M' ? 1.5 * glyphSize : glyphSize / 2;
         })
-        .attr('fill', function (d) {
+        .attr('fill', function (d:any) {
             return (+d.affection == 100) ? "white" : "black";
         })
         .attr('stroke', 'none');
@@ -296,11 +296,11 @@ export function renderTable(g) {
         .attr("x", function (d) {
             return x(minX);
         })
-        .attr("y", function (d) {
+        .attr("y", function (d:any) {
             return y(d.y);
         })
         .style("stroke", 'gray')
-        .style("fill", function (d) {
+        .style("fill", function (d:any) {
             return (+d.affection == 100) ? "black" : "white";
         })
         .style('stroke-width', 2);

@@ -6,7 +6,7 @@ function renderGraph(g) {
 
 
     glyphSize = 14;
-    spaceBetweenGenerations = 5;
+    spaceBetweenGenerations = 4;
 
 
     //Render Genealogy Graph to the Screen
@@ -16,7 +16,7 @@ function renderGraph(g) {
         return d.x
     });
     maxX = d3.max(g.nodes, function (d) {
-        return +d['ddate']
+        return d.x
     });
 
     minY = 0;
@@ -43,7 +43,8 @@ function renderGraph(g) {
 
 
     var graph = svg.append("g")
-        .attr("transform", "translate(" + margin.left + "," + (margin.top + glyphSize) + ")");
+        .attr("transform", "translate(" + margin.left + "," + (margin.top + glyphSize) + ")")
+        .attr('id','graph');
 
     // //append grid
     // var grid = svg.append("g")
@@ -74,9 +75,9 @@ function renderGraph(g) {
         .data(relationshipNodes)
         .enter().append("path")
         .attr("class", "parentEdges")
-        .style("stroke", function (d) {
-            return d.color
-        })
+        // .style("stroke", function (d) {
+        //     return d.color
+        // })
         .style("stroke-width", 4)
         .style("fill", 'none')
         .attr("d", parentEdge);
@@ -136,6 +137,8 @@ function renderGraph(g) {
         .attr("width", glyphSize * 2)
         .attr("height", glyphSize * 2)
 
+
+
     //Add female node glyphs
     graph.selectAll(".node .female")
         .data(g.nodes.filter(function (d) {
@@ -169,10 +172,41 @@ function renderGraph(g) {
             else {
                 edges.classed('selected', false);
                 allNodes.classed('selected', false);
-            }});
+            }
+        });
+
+        allNodes.call(d3.drag()
+            .on("start",started)
+            .on("drag", dragged)
+            .on("end",ended));
+
+
+    function started(d){
+        var node = d3.select(this).data()[0];
+        startYPos = y.invert(d3.mouse(d3.select('#graph').node())[1]);
+
+    }
+    function ended(d){
+        var node = d3.select(this).data()[0];
+        ypos2 = y.invert(d3.mouse(d3.select('#graph').node())[1]);
+        console.log('started dragging at position ', Math.round(startYPos))
+        console.log('ended dragging at position ', Math.round(ypos2))
+
+    }
+
+    function dragged(d) {
+        var node = d3.select(this).data()[0];
+        node.y = y.invert(d3.mouse(d3.select('#graph').node())[1]);
+        currentY = Math.round(y.invert(d3.mouse(d3.select('#graph').node())[1]));
+
+        d3.select(this).attr("transform", function () {
+            return "translate(" + xPOS(node) + "," + yPOS(node) + ")";
+        })
+    }
+
+
 
     function highlightPath(d){
-
 
         edges.filter(function(e){return e.target.id == d.id}).classed('selected',true)
         var maID = uniqueID.indexOf(d['ma']);

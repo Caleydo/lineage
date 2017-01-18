@@ -45,3 +45,9 @@
     stroke-width: 3px;
     fill:none
 }
+
+.parentEdges{
+    stroke:black;
+    stroke-width: 3px;
+    fill:none
+}

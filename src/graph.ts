@@ -2,35 +2,46 @@
  * Created by cnobre on 12/10/16.
  */
 
+import * as d3 from 'd3';
+import {Config} from './config';
+import {glyphSize, height, width, connectorScale, x, y} from './renderGraph';
+
+
+export const uniqueID = [];
+export const relationshipNodes=[];
+export const relationshipEdges=[];
+
+let g; // graph
+
 //Set callbacks for all buttons/list items/etc
-function setCallbacks(){
+export function setCallbacks(){
 
     d3.selectAll(".lifeRect").attr("visibility","hidden")
     d3.selectAll(".ageLabel").attr("visibility","hidden")
 
     d3.select("#collapse").on('click', function () {
-        if (!showLifeLines) {
+        if (!Config.showLifeLines) {
             d3.selectAll(".lifeRect").attr("visibility", "visible")
             d3.select(this).select('a').html('Remove Life Lines')
-            showLifeLines = true;
+            Config.showLifeLines = true;
         }
         else{
             d3.selectAll(".lifeRect").attr("visibility", "hidden")
             d3.select(this).select('a').html('Add Life Lines')
-            showLifeLines = false;
+            Config.showLifeLines = false;
         }
 
     })
-    
+
 
     d3.select("#curvedEdges").on('click', function () {
-        if (!curvedLines) {
+        if (!Config.curvedLines) {
             d3.select(this).select('a').html('Straight Edges')
-            curvedLines = true;
+            Config.curvedLines = true;
         }
         else{
             d3.select(this).select('a').html('Curved Edges')
-            curvedLines = false;
+            Config.curvedLines = false;
         }
         d3.selectAll(".edges")
             .attr("d", elbow);
@@ -41,15 +52,15 @@ function setCallbacks(){
 
 
     d3.select("#addLabels").on('click', function () {
-        if (!showAgeLabels) {
+        if (!Config.showAgeLabels) {
             d3.selectAll(".ageLabel").attr("visibility", "visible")
             d3.select(this).select('a').html('Remove Age Labels')
-            showAgeLabels = true;
+            Config.showAgeLabels = true;
         }
         else{
             d3.selectAll(".ageLabel").attr("visibility", "hidden")
             d3.select(this).select('a').html('Add Age Labels')
-            showAgeLabels = false;
+            Config.showAgeLabels = false;
         }
 
     })
@@ -63,7 +74,7 @@ function setCallbacks(){
 
 //set orientation of main div w/ visualization (horizontal or vertical)
 function setOrientation(){
-    if (!vertOrientation) {
+    if (!Config.vertOrientation) {
         d3.select('#allVis').attr("transform", 'translate(' + height + ',0), rotate(90)')
         d3.select("svg").attr('width',height).attr('height',width)
     }
@@ -76,13 +87,13 @@ function setOrientation(){
 
 //Toggle Orientation of main vis between horizontal and vertical
 function toggleOrientation(){
-    if (vertOrientation) {
-        vertOrientation = false;
+    if (Config.vertOrientation) {
+        Config.vertOrientation = false;
         d3.select('#allVis').attr("transform", 'translate(' + height + ',0), rotate(90)')
         d3.select("svg").attr('width',height).attr('height',width)
     }
     else {
-        vertOrientation = true;
+        Config.vertOrientation = true;
         d3.select('#allVis').attr("transform", 'translate(0,0), rotate(0)')
         d3.select("svg").attr('width',width).attr('height',height)
     }
@@ -90,16 +101,16 @@ function toggleOrientation(){
 }
 
 //Function that creates graph structure from input data
-function createGraph(data,numElements){
-    var g = {
+export function createGraph(data,numElements){
+    g = {
             nodes: [],
             edges: []
-        };
+        },
          uniqueID=[];
 
     data.forEach(function (d, i) {
         //Limit Size of graph and only consider entries with a valid bdate and id
-        if (i <numElements && +d['egoUPDBID']>0 & +d['bdate']>0) {
+        if (i <numElements && +d['egoUPDBID']>0 & +d['bdate']>0) { // TODO consider using `&&` instead
             //Demographic Info
             d.id = +d['egoUPDBID']
             d.ma = +d['maUPDBID']
@@ -176,7 +187,7 @@ function assignLinearOrder(node){
     if (node.spouse && !g.nodes[spouseID].y) {
         g.nodes[spouseID].y = node.y;
 
-        if (!collapseParents){
+        if (!Config.collapseParents){
             //Push all nodes one to the right
             g.nodes.forEach(function (d) {
                 if (d.y > node.y) d.y = d.y + 1
@@ -184,7 +195,7 @@ function assignLinearOrder(node){
             node.y = node.y + 1;
         }
     }
-    else if (node.spouse && g.nodes[spouseID].y && collapseParents){
+    else if (node.spouse && g.nodes[spouseID].y && Config.collapseParents){
         node.y = g.nodes[spouseID].y;
     }
 
@@ -196,7 +207,7 @@ function assignLinearOrder(node){
                 g.nodes.forEach(function (d) {if (d.y > node.y) d.y = d.y + 1})
                 g.nodes[maID].y = node.y + 1;
 
-                if (!collapseParents){
+                if (!Config.collapseParents){
                     g.nodes[paID].y = g.nodes[maID].y+1;
                 }
                 else
@@ -205,7 +216,7 @@ function assignLinearOrder(node){
             }
         }
         else{
-            if (!collapseParents){
+            if (!Config.collapseParents){
                 g.nodes.forEach(function (d) {if (d.y > node.y) d.y = d.y + 2 })
                 g.nodes[paID].y = node.y + 2;
             }
@@ -220,7 +231,7 @@ function assignLinearOrder(node){
 
 }
 
-function arrangeLayout(g){
+export function arrangeLayout(g){
     g.nodes.forEach(function(node,ind){assignGeneration(node,ind)});
 
     g.nodes.forEach(function(node){node.x = node.generation});
@@ -248,10 +259,7 @@ function arrangeLayout(g){
         }
     })
 
-    relationshipNodes=[];
-    relationshipEdges=[];
-
-    randColor = d3.scaleOrdinal(d3.schemeCategory20b);
+    var randColor = d3.scaleOrdinal(d3.schemeCategory20b);
 
     //Create relationship nodes
     g.nodes.forEach(function(node){
@@ -260,7 +268,7 @@ function arrangeLayout(g){
 
         if (maID >-1 && paID >-1){
 
-            rColor = randColor(node.y);
+            var rColor = randColor(node.y);
 
             if (g.nodes[maID].color == 'black') {
                 g.nodes[maID].color = rColor
@@ -326,6 +334,8 @@ function getParentGeneration(nodeID){
     var node = g.nodes[nodeID]
     var maID = uniqueID.indexOf(node['ma']);
     var paID = uniqueID.indexOf(node['pa']);
+    var maGeneration;
+    var paGeneration;
 
 
     if (maID >-1) { //Mother exists in array of nodes
@@ -355,9 +365,9 @@ function getParentGeneration(nodeID){
         return undefined
 }
 
-function xPOS(node){
+export function xPOS(node){
     if (node['sex'] == 'F')
-        if (node['spouse'] && collapseParents)
+        if (node['spouse'] && Config.collapseParents)
             return x(node.x) //+glyphSize/2
         else
             return x(node.x)
@@ -365,9 +375,9 @@ function xPOS(node){
             return x(node.x)-glyphSize
 }
 
-function yPOS(node){
+export function yPOS(node){
     if (node['sex'] == 'F')
-        if (node['spouse'] && collapseParents)
+        if (node['spouse'] && Config.collapseParents)
             return y(node.y) //- glyphSize/2
         else
             return y(node.y)
@@ -383,7 +393,7 @@ var  lineFunction = d3.line()
     })
 
 
-function elbow(d) {
+export function elbow(d) {
     var xdiff = d.source.x - d.target.x;
     var ydiff = d.source.y - d.target.y;
     var nx = d.source.x - xdiff * connectorScale(ydiff) ;
@@ -402,7 +412,7 @@ function elbow(d) {
         y: d.target.y
     }]
 
-    if (curvedLines)
+    if (Config.curvedLines)
         lineFunction.curve(d3.curveBasis)
     else
         lineFunction.curve(d3.curveLinear)
@@ -410,7 +420,7 @@ function elbow(d) {
     return lineFunction(linedata);
 }
 
-function parentEdge(d) {
+export function parentEdge(d) {
 
     var linedata = [{
         x: d.x1,

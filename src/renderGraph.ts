@@ -2,15 +2,20 @@
  * Created by cnobre on 12/11/16.
  */
 
-function renderGraph(g) {
+import * as d3 from 'd3';
+import {elbow, uniqueID, relationshipEdges, relationshipNodes, parentEdge, yPOS, xPOS} from './graph';
 
 
-    glyphSize = 14;
-    spaceBetweenGenerations = 4;
+export const glyphSize = 14;
+export const spaceBetweenGenerations = 4;
+export const tableWidth = 150;
 
+//TODO fix this bad style, because of late instantiation
+export let minX, maxX, minY, maxY, margin, width, height, y, x, connectorScale;
+
+export function renderGraph(g) {
 
     //Render Genealogy Graph to the Screen
-    tableWidth = 150;
 
     minX = d3.min(g.nodes, function (d) {
         return d.x
@@ -23,8 +28,8 @@ function renderGraph(g) {
     maxY = g.nodes.length;
 
     margin = {top: 40, right: 120, bottom: 20, left: 20},
-        width = (maxX - minX) * spaceBetweenGenerations ,
-        height = (glyphSize + 5) * g.nodes.length * 2;
+    width = (maxX - minX) * spaceBetweenGenerations ,
+    height = (glyphSize + 5) * g.nodes.length * 2;
 
     // Scales
     x = d3.scaleLinear().range([0, width - 50]).domain([minX, maxX]);
@@ -33,7 +38,7 @@ function renderGraph(g) {
     connectorScale = d3.scaleLinear().range([.75, .25]).domain([2, g.nodes.length])
 
 
-    svg1 = d3.select("#graphDiv").append("svg")
+    var svg1 = d3.select("#graphDiv").append("svg")
         .attr("width", width + tableWidth + margin.right + margin.left)
         .attr("height", height + margin.top + margin.bottom)
 
@@ -181,14 +186,16 @@ function renderGraph(g) {
             .on("end",ended));
 
 
+let startYPos;
+
     function started(d){
-        var node = d3.select(this).data()[0];
+        //var node = d3.select(this).data()[0];
         startYPos = y.invert(d3.mouse(d3.select('#graph').node())[1]);
 
     }
     function ended(d){
-        var node = d3.select(this).data()[0];
-        ypos2 = y.invert(d3.mouse(d3.select('#graph').node())[1]);
+        //var node = d3.select(this).data()[0];
+        var ypos2 = y.invert(d3.mouse(d3.select('#graph').node())[1]);
         console.log('started dragging at position ', Math.round(startYPos))
         console.log('ended dragging at position ', Math.round(ypos2))
 
@@ -197,7 +204,7 @@ function renderGraph(g) {
     function dragged(d) {
         var node = d3.select(this).data()[0];
         node.y = y.invert(d3.mouse(d3.select('#graph').node())[1]);
-        currentY = Math.round(y.invert(d3.mouse(d3.select('#graph').node())[1]));
+        //currentY = Math.round(y.invert(d3.mouse(d3.select('#graph').node())[1]));
 
         d3.select(this).attr("transform", function () {
             return "translate(" + xPOS(node) + "," + yPOS(node) + ")";
@@ -232,7 +239,7 @@ function renderGraph(g) {
 
     //Add cross through lines for deceased people
     allNodes.filter(function (d) {
-        return (+d.deceased == 1 & +d.affection != 100)
+        return (+d.deceased == 1 & +d.affection != 100) // TODO consider using `&&` instead
     })
         .append("line")
         .attr("x1", function (d) {
@@ -275,7 +282,7 @@ function renderGraph(g) {
 
 }
 
-function renderTable(g) {
+export function renderTable(g) {
 
     var table = d3.select('svg').append("g")
         .attr("transform", "translate(" + (2 * margin.left + width ) + "," + margin.top + ")");

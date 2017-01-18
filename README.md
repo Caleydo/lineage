@@ -1,6 +1,6 @@
 # genealogyVIS
 
-To launch, open `genealogy.html` in Safari.
+... write an abstract ...
 
 Installation
 ------------

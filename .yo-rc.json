@@ -7,17 +7,12 @@
       "app": "./src/index.ts"
     },
     "libraries": [
-      "d3",
-      "jquery",
-      "font-awesome",
-      "bootstrap"
     ],
     "modules": [
       "phovea_core",
       "phovea_ui"
     ],
     "libraryAliases": {
-      "d3": "d3/d3"
     },
     "libraryExternals": [
       "d3",

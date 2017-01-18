@@ -1,9 +1,6 @@
 # genealogyVIS
 
-<<<<<<< origin/master
 To launch, open `genealogy.html` in Safari.
-=======
-
 
 Installation
 ------------
@@ -50,4 +47,3 @@ This repository is part of **[Phovea](http://phovea.caleydo.org/)**, a platform 
 [travis-url]: https://travis-ci.org/phovea/genealogy_vis
 [daviddm-image]: https://david-dm.org/phovea/genealogy_vis.svg?theme=shields.io
 [daviddm-url]: https://david-dm.org/phovea/genealogy_vis
->>>>>>> local

@@ -4,6 +4,8 @@
 
 import * as d3 from 'd3';
 
+import * as dataClass from './genealogyData'
+
 // bundle data file and get URL
 import * as csvUrl from 'file-loader!./data/genealogy.csv';
 import {Config} from './config';
@@ -19,6 +21,8 @@ export class App {
 
   private $node;
 
+  private data;
+
   constructor(parent:Element) {
     this.$node = d3.select(parent);
   }
@@ -29,7 +33,7 @@ export class App {
    * @returns {Promise<App>}
    */
   init() {
-    this.loadData();
+    this.data = dataClass.create(csvUrl);
     return this.build();
   }
 

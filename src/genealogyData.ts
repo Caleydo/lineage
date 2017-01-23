@@ -130,7 +130,7 @@ class genealogyData {
     if (node.spouse && !this.nodes[spouseID].y) {
       this.nodes[spouseID].y = node.y;
 
-      if (!Config.this.collapseParents) {
+      if (!Config.collapseParents) {
         //Push all nodes one to the right
         this.nodes.forEach(function (d) {
           if (d.y > node.y) d.y = d.y + 1
@@ -138,7 +138,7 @@ class genealogyData {
         node.y = node.y + 1;
       }
     }
-    else if (node.spouse && this.nodes[spouseID].y && Config.this.collapseParents) {
+    else if (node.spouse && this.nodes[spouseID].y && Config.collapseParents) {
       node.y = this.nodes[spouseID].y;
     }
 
@@ -152,7 +152,7 @@ class genealogyData {
           });
           this.nodes[maID].y = node.y + 1;
 
-          if (!Config.this.collapseParents) {
+          if (!Config.collapseParents) {
             this.nodes[paID].y = this.nodes[maID].y + 1;
           }
           else
@@ -161,7 +161,7 @@ class genealogyData {
         }
       }
       else {
-        if (!Config.this.collapseParents) {
+        if (!Config.collapseParents) {
           this.nodes.forEach(function (d) {
             if (d.y > node.y) d.y = d.y + 2
           });

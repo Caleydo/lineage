@@ -78,10 +78,10 @@ class genealogyTree{
 }
 
 /**
- * Factory method to create a new Histogram2D instance
+ * Factory method to create a new instance of the genealogyTree
  * @param parent
  * @param options
- * @returns {FilterBar}
+ * @returns {genealogyTree}
  */
 export function create(parent: Element) {
   return new genealogyTree(parent);

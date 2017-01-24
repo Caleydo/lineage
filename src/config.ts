@@ -8,4 +8,7 @@ export class Config {
   public static collapseParents = true;
   public static showLifeLines = false;
   public static showAgeLabels = false;
+
+  public static glyphSize = 14;
+  public static spaceBetweenGenerations = 4;
 }

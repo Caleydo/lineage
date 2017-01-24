@@ -4,15 +4,8 @@
 
 import * as d3 from 'd3';
 
-import * as dataClass from './genealogyData'
-
-// bundle data file and get URL
-import * as csvUrl from 'file-loader!./data/genealogy.csv';
-import {Config} from './config';
-import {createGraph, arrangeLayout, setCallbacks} from './graph';
-import {renderGraph} from './renderGraph';
-
-
+//Import typescript modeule for the genealogy Tree
+import * as tree from './genealogyTree'
 
 /**
  * The main class for the App app
@@ -21,10 +14,12 @@ export class App {
 
   private $node;
 
-  private data;
-
   constructor(parent:Element) {
     this.$node = d3.select(parent);
+
+    this.$node.append('div').classed('graph', true);
+    this.$node.append('div').classed('table', true);
+    this.$node.append('div').classed('attributePanel', true);
   }
 
   /**
@@ -33,32 +28,7 @@ export class App {
    * @returns {Promise<App>}
    */
   init() {
-    this.data = dataClass.create(csvUrl);
     return this.build();
-  }
-
-  private loadData() {
-
-    const n = 100;
-
-    d3.csv(csvUrl, function (error, data) {
-
-      //Create Graph
-      const graph = createGraph(data,n);
-
-      //Create Layout
-      arrangeLayout(graph);
-
-      //Render Graph
-      renderGraph(graph);
-
-      //Set callbacks for user interaction buttons
-      setCallbacks();
-
-      //Render table;
-      //renderTable(graph);
-
-    });
   }
 
   /**
@@ -66,6 +36,12 @@ export class App {
    * @returns {Promise<App>}
    */
   private build() {
+
+    let genealogyTree = tree.create(this.$node.select('.graph').node());
+    genealogyTree.init();
+
+    // TODO: Build the views for the attribute panel and the table.
+    
     this.$node.select('h3').remove();
     this.setBusy(false);
 

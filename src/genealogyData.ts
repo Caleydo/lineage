@@ -10,17 +10,17 @@ import {Config} from './config';
  */
 class genealogyData {
 
-  private nodes = [];
+  public nodes = [];
 
-  private edges = [];
+  public edges = [];
 
-  private uniqueID = [];
+  public uniqueID = [];
 
-  private relationshipNodes = [];
+  public relationshipNodes = [];
 
-  private relationshipEdges = [];
+  public relationshipEdges = [];
 
-  private numElements = 200;
+  public numElements = 200;
 
 
   constructor(data) {

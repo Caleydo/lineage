@@ -51,3 +51,13 @@
     stroke-width: 3px;
     fill:none
 }
+
+.row.selected{
+  rect{
+    stroke:red;
+  }
+}
+
+#app{
+  display: flex;
+}

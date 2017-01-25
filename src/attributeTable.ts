@@ -1,5 +1,3 @@
-
-
 import * as events from 'phovea_core/src/event';
 import {AppConstants, ChangeTypes} from './app_constants';
 import * as d3 from 'd3';
@@ -8,11 +6,11 @@ import {Config} from './config';
 /**
  * Creates the attribute table view
  */
-class attributeTable{
+class attributeTable {
 
   private $node;
 
-  constructor(parent: Element) {
+  constructor(parent:Element) {
     this.$node = d3.select(parent)
       .append('div')
       .classed('attributeTable', true);
@@ -41,26 +39,47 @@ class attributeTable{
     const svg = this.$node.append('svg');
     const table = svg.append("g");
 
-    table.selectAll(".row")
-      .data([{'id':'rect1'},{'id':'rect2'}])
+    let rows = table.selectAll(".row")
+      .data([{'id': 'rect1', 'foo': 'blah', 'bar': 'blah2'}, {'id': 'rect2', 'foo': 'blah', 'bar': 'blah2'}])
       .enter()
-      .append("rect")
-      .attr('id',function(d){return ('row_' + d.id)})
-      .attr('class','row')
+      .append("g")
+      .attr('id', function (d) {
+        return ('row_' + d.id)
+      })
+      .attr('class', 'row')
+      .attr("transform", function (d, i) {
+        return ('translate(20, ' + (20 + Config.glyphSize * (3 * i)) + ' )')
+      });
+
+    rows.selectAll('.cell')
+      .data(function (d) {
+        return d3.entries(d)
+      })
+      .enter()
+      .append('rect')
+      .attr('id', function (d) {
+        return ('cell_' + d.key) //or d.value
+      })
       .attr("width", Config.glyphSize * 5)
       .attr("height", Config.glyphSize * 2)
-      .attr('stroke','black')
-      .attr('stroke-width',3)
-      .attr('fill','none')
-      .attr("transform",function(d,i){return ('translate(20, ' + (20 + Config.glyphSize * (3*i)) +' )')});
+      .attr('stroke', 'black')
+      .attr('stroke-width', 3)
+      .attr('fill', 'none')
+      .attr("transform", function (d, i) {
+        return ('translate(' + (20 + Config.glyphSize * (5 * i)) + ' , 0)')
+      });
     // this.$node.html(` <div id="tree"> </div>`);
 
   }
 
   private attachListener() {
 
-      //Set listener for click event on corresponding node that changes the color of that row to red
-      events.on('node_clicked',(evt,item)=> {d3.selectAll('.row').attr('stroke','black'); d3.select('#row_' + item).attr('stroke','red')});
+    //Set listener for click event on corresponding node that changes the color of that row to red
+    events.on('node_clicked', (evt, item)=> {
+      d3.selectAll('.row').classed('selected', function (d) {
+        return d3.select(this).attr('id') === 'row_' + item;
+      });
+    });
   }
 
 }
@@ -71,6 +90,6 @@ class attributeTable{
  * @param options
  * @returns {genealogyTree}
  */
-export function create(parent: Element) {
+export function create(parent:Element) {
   return new attributeTable(parent);
 }

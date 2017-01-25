@@ -2,7 +2,8 @@
  * Created by Caleydo Team on 31.08.2016.
  */
 
-import * as d3 from 'd3';
+// import * as d3 from 'd3';
+import {select, selectAll} from 'd3-selection';
 
 //Import typescript module for the genealogy Tree
 import * as tree from './genealogyTree'
@@ -27,7 +28,7 @@ export class App {
   private $node;
 
   constructor(parent:Element) {
-    this.$node = d3.select(parent);
+    this.$node = select(parent);
 
     this.$node.append('div').classed('panel col-sm-4 col-md-4', true);
     this.$node.append('div').classed('graph', true);

@@ -2,9 +2,6 @@
  * Created by Carolina Nobre on 01.22.2017
  */
 
-import * as d3 from 'd3';
-import {Config} from './config';
-
 /**
  * Class that represents the genealogy data
  */

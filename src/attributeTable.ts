@@ -1,7 +1,11 @@
 import * as events from 'phovea_core/src/event';
 import {AppConstants, ChangeTypes} from './app_constants';
-import * as d3 from 'd3';
+// import * as d3 from 'd3';
 import {Config} from './config';
+
+import {select, selectAll} from 'd3-selection';
+import {scaleLinear} from 'd3-scale';
+import {entries} from 'd3-collection';
 
 /**
  * Creates the attribute table view
@@ -14,7 +18,7 @@ class attributeTable {
   private height;
 
   constructor(parent:Element) {
-    this.$node = d3.select(parent)
+    this.$node = select(parent)
       .append('div')
       .classed('attributeTable', true);
   }
@@ -43,8 +47,8 @@ class attributeTable {
     this.height = Config.glyphSize*3* data.length;
 
     // Scales
-    let x = d3.scaleLinear().range([0, this.width]).domain([1 ,1]);
-    let y = d3.scaleLinear().range([0, this.height]).domain([0 ,data.length]);
+    let x = scaleLinear().range([0, this.width]).domain([1 ,1]);
+    let y = scaleLinear().range([0, this.height]).domain([0 ,data.length]);
 
 
     const svg = this.$node.append('svg')
@@ -67,7 +71,7 @@ class attributeTable {
 
     rows.selectAll('.cell')
       .data(function (d) {
-        return d3.entries(d)
+        return entries(d)
       })
       .enter()
       .append('rect')
@@ -90,8 +94,8 @@ class attributeTable {
 
     //Set listener for click event on corresponding node that changes the color of that row to red
     events.on('node_clicked', (evt, item)=> {
-      d3.selectAll('.row').classed('selected', function (d) {
-        return (!d3.select(this).classed('selected') && d3.select(this).attr('id') === 'row_' + item);
+      selectAll('.row').classed('selected', function (d) {
+        return (!select(this).classed('selected') && select(this).attr('id') === 'row_' + item);
       });
     });
   }

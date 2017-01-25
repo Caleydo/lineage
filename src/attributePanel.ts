@@ -1,6 +1,9 @@
 import * as events from 'phovea_core/src/event';
 import {AppConstants, ChangeTypes} from './app_constants';
-import * as d3 from 'd3';
+// import * as d3 from 'd3';
+
+import {select, selectAll} from 'd3-selection';
+
 import {Config} from './config';
 
 /**
@@ -11,7 +14,7 @@ class attributePanel {
   private $node;
 
   constructor(parent:Element) {
-    this.$node = d3.select(parent)
+    this.$node = select(parent)
       .append('div')
       .classed('nav-side-menu', true);
   }
@@ -84,8 +87,8 @@ class attributePanel {
 
     //Set listener for click event on corresponding node that changes the color of that row to red
     events.on('node_clicked', (evt, item)=> {
-      d3.selectAll('.row').classed('selected', function (d) {
-        return d3.select(this).attr('id') === 'row_' + item;
+      selectAll('.row').classed('selected', function (d) {
+        return select(this).attr('id') === 'row_' + item;
       });
     });
   }

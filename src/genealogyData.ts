@@ -2,7 +2,11 @@
  * Created by Carolina Nobre on 01.22.2017
  */
 
-import * as d3 from 'd3';
+// import * as d3 from 'd3';
+
+import {max} from 'd3-array';
+import {scaleOrdinal, schemeCategory20b} from 'd3-scale';
+
 import {Config} from './config';
 
 /**
@@ -122,7 +126,7 @@ class genealogyData {
     const spouseID = this.uniqueID.indexOf(node['spouse']);
 
     if (!node.y) {
-      node.y = d3.max(this.nodes, function (d:any) {
+      node.y = max(this.nodes, function (d:any) {
           return d.y
         }) + 1;
     }
@@ -217,7 +221,7 @@ class genealogyData {
       }
     });
 
-    const randColor = d3.scaleOrdinal(d3.schemeCategory20b);
+    const randColor = scaleOrdinal(schemeCategory20b);
 
     //Create relationship nodes
     this.nodes.forEach(function (node) {

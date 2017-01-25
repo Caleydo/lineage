@@ -4,7 +4,13 @@
 
 import * as events from 'phovea_core/src/event';
 import {AppConstants, ChangeTypes} from './app_constants';
-import * as d3 from 'd3';
+// import * as d3 from 'd3';
+
+import {select, selectAll, mouse} from 'd3-selection';
+import {scaleLinear} from 'd3-scale';
+import {max, min} from 'd3-array';
+
+
 import * as genealogyData from './genealogyData'
 import {Config} from './config';
 
@@ -28,7 +34,7 @@ class genealogyTree {
 
 
   constructor(parent:Element) {
-    this.$node = d3.select(parent)
+    this.$node = select(parent)
       .append('div')
       .classed('genealogyTree', true);
   }
@@ -59,8 +65,8 @@ class genealogyTree {
     this.height = Config.glyphSize * 3 * data.length;
 
     // Scales
-    let x = d3.scaleLinear().range([20, this.width]).domain([d3.min(data,function(d){return d['dob']}), d3.max(data,function(d){return d['dob']}) + 20]);
-    let y = d3.scaleLinear().range([0, this.height]).domain([0, data.length]);
+    let x = scaleLinear().range([20, this.width]).domain([min(data,function(d){return d['dob']}), max(data,function(d){return d['dob']}) + 20]);
+    let y = scaleLinear().range([0, this.height]).domain([0, data.length]);
 
     console.log(x.domain(), x.range())
 
@@ -104,7 +110,7 @@ class genealogyTree {
     lifeRects
       .append("rect")
       .attr('y', Config.glyphSize)
-      .attr("width", function(d){return (d3.max(x.range()) - x(d['dob']))})
+      .attr("width", function(d){return (max(x.range()) - x(d['dob']))})
       .attr("height", Config.glyphSize / 4)
       .style('fill', 'black')
       .style('opacity', .4)
@@ -120,12 +126,12 @@ class genealogyTree {
 
     function started(d){
       //const node = d3.select(this).data()[0];
-      startYPos = y.invert(d3.mouse(<any>d3.select('.genealogyTree').node())[1]);
+      startYPos = y.invert(mouse(<any>select('.genealogyTree').node())[1]);
 
     }
     function ended(d){
       //const node = d3.select(this).data()[0];
-      const ypos2 = y.invert(d3.mouse(<any>d3.select('.genealogyTree').node())[1]);
+      const ypos2 = y.invert(mouse(<any>select('.genealogyTree').node())[1]);
       console.log('started dragging at position ', Math.round(startYPos));
       console.log('ended dragging at position ', Math.round(ypos2));
       // events.fire('node_dragged', [Math.round(startYPos),Math.round(ypos2)]);
@@ -134,11 +140,11 @@ class genealogyTree {
     }
 
     function dragged(d) {
-      const node:any = d3.select(this).data()[0];
-      node.y = y.invert(d3.mouse(<any>d3.select('.genealogyTree').node())[1]);
+      const node:any = select(this).data()[0];
+      node.y = y.invert(mouse(<any>select('.genealogyTree').node())[1]);
       //currentY = Math.round(y.invert(d3.mouse(d3.select('#graph').node())[1]));
 
-      d3.select(this).attr("transform", function (d,i) {
+      select(this).attr("transform", function (d,i) {
         return "translate(0," + y(Math.round(node.y)) + ")";
       });
     }
@@ -150,7 +156,7 @@ class genealogyTree {
     //Fire Event when first rect is clicked
     this.$node.selectAll('.node')
       .on('click', function (e) {
-        events.fire('node_clicked', d3.select(this).attr('id'));
+        events.fire('node_clicked', select(this).attr('id'));
       });
 
 

@@ -47,22 +47,23 @@ class attributePanel {
     let item1 = menu_content.append('li')
       .classed('collapsed active', true)
       .attr('data-target','#sublist')
-      .attr('data-toggel','collapse')
+      .attr('data-toggle','collapse')
       .append('a').attr('href','#')
-      .html('<i><img src=\"http://skyrites.com/projects/spaciux/images/fa-user1.png\" alt=\"\"></i>')
-      .append('strong').html('Option 1')
+      .html('<i><img src=\"http://megaicons.net/static/img/icons_sizes/8/178/512/charts-genealogy-icon.png\" alt=\"\"></i>')
+      .append('strong').html('Filter 1')
       .append('span')
       .classed('arrow',true);
 
-    let item1 = menu_content.append('li')
+     let item2 = menu_content.append('li')
       .classed('collapsed active', true)
-      .attr('data-target','#products')
-      .attr('data-toggel','collapse')
+      .attr('data-target','#sublist')
+      .attr('data-toggle','collapse')
       .append('a').attr('href','#')
-      .html('<i><img src=\"http://skyrites.com/projects/spaciux/images/fa-user1.png\" alt=\"\"></i>')
-      .append('strong').html('Option 2')
+      .html('<i><img src=\"http://megaicons.net/static/img/icons_sizes/8/178/512/charts-genealogy-icon.png\" alt=\"\"></i>')
+      .append('strong').html('Filter 2')
       .append('span')
       .classed('arrow',true);
+
 
     //adding sub items to item1 notice that data-target should match
     let sublist = menu_content.append('ul')

@@ -6,20 +6,17 @@
     "entries": {
       "app": "./src/index.ts"
     },
-    "libraries": [
-    ],
+    "libraries": [],
     "modules": [
       "phovea_core",
-      "phovea_ui"
+      "phovea_ui",
+      "phovea_clue"
     ],
-    "libraryAliases": {
-    },
+    "libraryAliases": {},
     "libraryExternals": [
-      "d3",
       "jquery",
       "font-awesome",
-      "bootstrap",
-      "bootstrap-sass"
+      "marked"
     ],
     "ignores": [],
     "extensions": [],

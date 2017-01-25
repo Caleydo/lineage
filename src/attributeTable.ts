@@ -21,9 +21,9 @@ class attributeTable {
    * that is resolved as soon the view is completely initialized.
    * @returns {Promise<FilterBar>}
    */
-  init() {
+  init(data) {
 
-    this.build();
+    this.build(data);
     this.attachListener();
 
     // return the promise directly as long there is no dynamical data to update
@@ -34,13 +34,16 @@ class attributeTable {
   /**
    * Build the basic DOM elements and binds the change function
    */
-  private build() {
+  private build(data) {
 
-    const svg = this.$node.append('svg');
+    const svg = this.$node.append('svg')
+      .attr('width',300)
+      .attr('height',Config.glyphSize*4* data.length);
+
     const table = svg.append("g");
 
     let rows = table.selectAll(".row")
-      .data([{'id': 'rect1', 'foo': 'blah', 'bar': 'blah2'}, {'id': 'rect2', 'foo': 'blah', 'bar': 'blah2'}])
+      .data(data)
       .enter()
       .append("g")
       .attr('id', function (d) {
@@ -48,7 +51,7 @@ class attributeTable {
       })
       .attr('class', 'row')
       .attr("transform", function (d, i) {
-        return ('translate(20, ' + (20 + Config.glyphSize * (3 * i)) + ' )')
+        return ('translate(0, ' + (20 + Config.glyphSize * (3 * i)) + ' )')
       });
 
     rows.selectAll('.cell')

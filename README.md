@@ -1,12 +1,13 @@
-# genealogyVIS
+genealogy_vis [![Phovea][phovea-image]][phovea-url] [![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Dependency Status][daviddm-image]][daviddm-url]
+=====================
 
-... write an abstract ...
+
 
 Installation
 ------------
 
 ```
-git clone https://github.com/Caleydo/genealogyVIS.git
+git clone https://github.com/phovea/genealogy_vis.git
 cd genealogy_vis
 npm install
 ```
@@ -25,12 +26,6 @@ Building
 npm run build
 ```
 
-Launching
----------
-
-```
-npm start
-```
 
 
 ***

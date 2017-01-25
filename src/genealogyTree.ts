@@ -32,10 +32,10 @@ class genealogyTree{
    * that is resolved as soon the view is completely initialized.
    * @returns {Promise<FilterBar>}
    */
-  init() {
+  init(data) {
 
     //this.data = genealogyData.create(csvUrl);
-    this.build();
+    this.build(data);
     this.attachListener();
 
     // return the promise directly as long there is no dynamical data to update
@@ -46,13 +46,15 @@ class genealogyTree{
   /**
    * Build the basic DOM elements and binds the change function
    */
-  private build() {
+  private build(data) {
 
-    const svg = this.$node.append('svg');
+    const svg = this.$node.append('svg')
+      .attr('width',Config.glyphSize *2 + 20)
+      .attr('height',Config.glyphSize*4* data.length);
     const graph = svg.append("g");
 
     graph.selectAll(".node")
-      .data([{'id':'rect1'},{'id':'rect2'}])
+      .data(data)
       .enter()
       .append("rect")
       .attr('id',function(d){return d.id})

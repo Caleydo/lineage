@@ -4,8 +4,9 @@
 
 import * as d3 from 'd3';
 
-//Import typescript modeule for the genealogy Tree
+//Import typescript module for the genealogy Tree
 import * as tree from './genealogyTree'
+import * as table from './attributeTable'
 
 /**
  * The main class for the App app
@@ -40,8 +41,11 @@ export class App {
     let genealogyTree = tree.create(this.$node.select('.graph').node());
     genealogyTree.init();
 
+    let attributeTable = table.create(this.$node.select('.table').node());
+    attributeTable.init();
+
     // TODO: Build the views for the attribute panel and the table.
-    
+
     this.$node.select('h3').remove();
     this.setBusy(false);
 

@@ -1,30 +1,21 @@
-/**
- * Created by Holger Stitz on 19.12.2016.
- */
+
 
 import * as events from 'phovea_core/src/event';
 import {AppConstants, ChangeTypes} from './app_constants';
 import * as d3 from 'd3';
-import * as genealogyData from './genealogyData'
 import {Config} from './config';
 
-// bundle data file and get URL
-import * as csvUrl from 'file-loader!./data/genealogy.csv';
-
-
 /**
- * Creates the genealogy tree view
+ * Creates the attribute table view
  */
-class genealogyTree{
+class attributeTable{
 
   private $node;
-
-  private data;
 
   constructor(parent: Element) {
     this.$node = d3.select(parent)
       .append('div')
-      .classed('genealogyTree', true);
+      .classed('attributeTable', true);
   }
 
   /**
@@ -34,7 +25,6 @@ class genealogyTree{
    */
   init() {
 
-    //this.data = genealogyData.create(csvUrl);
     this.build();
     this.attachListener();
 
@@ -49,16 +39,19 @@ class genealogyTree{
   private build() {
 
     const svg = this.$node.append('svg');
-    const graph = svg.append("g");
+    const table = svg.append("g");
 
-    graph.selectAll(".node")
+    table.selectAll(".row")
       .data([{'id':'rect1'},{'id':'rect2'}])
       .enter()
       .append("rect")
-      .attr('id',function(d){return d.id})
-      .attr('class','node')
-      .attr("width", Config.glyphSize * 2)
+      .attr('id',function(d){return ('row_' + d.id)})
+      .attr('class','row')
+      .attr("width", Config.glyphSize * 5)
       .attr("height", Config.glyphSize * 2)
+      .attr('stroke','black')
+      .attr('stroke-width',3)
+      .attr('fill','none')
       .attr("transform",function(d,i){return ('translate(20, ' + (20 + Config.glyphSize * (3*i)) +' )')});
     // this.$node.html(` <div id="tree"> </div>`);
 
@@ -66,14 +59,8 @@ class genealogyTree{
 
   private attachListener() {
 
-    //Fire Event when first rect is clicked
-    this.$node.selectAll('.node')
-      .on('click', function (e) {
-        events.fire('node_clicked',d3.select(this).attr('id'));
-      });
-
-      //Set listener for click event that changes the color of the rect to red
-      //events.on('node_clicked',(evt,item)=> {d3.select(item).attr('fill','red')});
+      //Set listener for click event on corresponding node that changes the color of that row to red
+      events.on('node_clicked',(evt,item)=> {d3.selectAll('.row').attr('stroke','black'); d3.select('#row_' + item).attr('stroke','red')});
   }
 
 }
@@ -85,5 +72,5 @@ class genealogyTree{
  * @returns {genealogyTree}
  */
 export function create(parent: Element) {
-  return new genealogyTree(parent);
+  return new attributeTable(parent);
 }

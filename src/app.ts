@@ -7,6 +7,7 @@ import * as d3 from 'd3';
 //Import typescript module for the genealogy Tree
 import * as tree from './genealogyTree'
 import * as table from './attributeTable'
+import * as panel from './attributePanel'
 
 import * as graphData from './graphData'
 // import {ProvenanceGraph, cat} from 'phovea_core/src/provenance';
@@ -28,9 +29,10 @@ export class App {
   constructor(parent:Element) {
     this.$node = d3.select(parent);
 
+    this.$node.append('div').classed('panel col-sm-4 col-md-4', true);
     this.$node.append('div').classed('graph', true);
     this.$node.append('div').classed('table', true);
-    this.$node.append('div').classed('attributePanel', true);
+
   }
 
   /**
@@ -64,7 +66,8 @@ export class App {
     let attributeTable = table.create(this.$node.select('.table').node());
     attributeTable.init(tableData);
 
-    // TODO: Build the view for the attribute panel
+    let attributePanel = panel.create(this.$node.select('.panel').node());
+    attributePanel.init();
 
     this.$node.select('h3').remove();
     this.setBusy(false);

@@ -1,0 +1,393 @@
+.panel{
+  height: 100vh;
+  border-right: solid lightgrey;
+}
+.nav-side-menu {
+
+  overflow: auto;
+  font-size: 12px;
+  font-weight: 200;
+  /*background-color: #000;*/
+  top: 0px;
+  height: 100%;
+  color: #e1ffff;
+  margin-top:15px;
+}
+.nav-side-menu .brand {
+  background-color: #23282e;
+  line-height: 38px;
+  display: none;
+  text-align: center;
+  font-size: 14px;
+}
+.nav-side-menu .toggle-btn {
+  display: none;
+}
+.nav-side-menu ul,
+.nav-side-menu li {
+  list-style: none;
+  padding: 0px;
+  margin: 0px;
+  line-height: 35px;
+  cursor: pointer;
+      font-size: 13px;
+  /*
+    .collapsed{
+       .arrow:before{
+                 font-family: FontAwesome;
+                 content: "\f053";
+                 display: inline-block;
+                 padding-left:10px;
+                 padding-right: 10px;
+                 vertical-align: middle;
+                 float:right;
+            }
+     }
+*/
+}
+.nav-side-menu ul a > strong,
+.nav-side-menu li > a > strong{
+    font-size: 1.5em;
+    font-weight: 400;
+    vertical-align: middle;
+}
+.nav-side-menu ul :not(collapsed) .arrow:before,
+.nav-side-menu li :not(collapsed) .arrow:before {
+  font-family: FontAwesome;
+  /*content: "\f078";*/
+  content:"\f107";
+  display: inline-block;
+  padding-left: 10px;
+  padding-right: 10px;
+  vertical-align: middle;
+  float: right;
+  font-size:14px;
+}
+.nav-side-menu ul .active,
+.nav-side-menu li .active {
+  /*border-left: 3px solid #fe0266;
+  background-color: #4f5b69;*/
+}
+.nav-side-menu ul .sub-menu li.active,
+.nav-side-menu li .sub-menu li.active {
+  color: #d19b3d;
+}
+.nav-side-menu ul .sub-menu li.active a,
+.nav-side-menu li .sub-menu li.active a {
+  color:#1182c5;
+}
+.nav-side-menu ul .sub-menu li,
+.nav-side-menu li .sub-menu li {
+  /*background-color: #181c20;*/
+  border: none;
+  line-height: 28px;
+  /*border-bottom: 1px solid #23282e;*/
+  margin-left: 0px;
+}
+.nav-side-menu ul .sub-menu li:hover,
+.nav-side-menu li .sub-menu li:hover {
+  /*background-color: #020203;*/
+}
+.nav-side-menu ul .sub-menu li:before,
+.nav-side-menu li .sub-menu li:before {
+  font-family: FontAwesome;
+  content: "\f105";
+  /*content:"\f107";*/
+  display: inline-block;
+  padding-left: 10px;
+  padding-right: 10px;
+  vertical-align: middle;
+  color:#333;
+  font-weight:normal;
+}
+.nav-side-menu li {
+  padding-left: 0px;
+  /*border-left: 3px solid #fe0266;
+  border-bottom: 1px solid #23282e;*/
+}
+.nav-side-menu li a {
+  text-decoration: none;
+  color: #333;
+}
+.nav-side-menu li img {
+  width: 20px;
+  height: 20px;
+}
+.nav-side-menu li a:hover {
+  text-decoration: none;
+  color: #1182c5;
+}
+.nav-side-menu li a i {
+ 	display: inline-block;
+    margin-right: 5px;
+	vertical-align: middle;
+    width: 32px;
+}
+.nav-side-menu li:hover {
+  /*border-left: 3px solid #1182c5;
+  background-color: #4f5b69;*/
+  -webkit-transition: all 1s ease;
+  -moz-transition: all 1s ease;
+  -o-transition: all 1s ease;
+  -ms-transition: all 1s ease;
+  transition: all 1s ease;
+}
+@media (max-width: 767px) {
+  .nav-side-menu {
+    position: relative;
+    width: 100%;
+    margin-bottom: 10px;
+  }
+  .nav-side-menu .toggle-btn {
+    display: block;
+    cursor: pointer;
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    z-index: 10 !important;
+    padding: 3px;
+    background-color: #ffffff;
+    color: #000;
+    width: 40px;
+    text-align: center;
+  }
+  .nav-side-menu .brand {
+    text-align: left !important;
+    padding-left: 20px;
+    line-height: 50px !important;
+	display:block;
+  }
+}
+@media (min-width: 767px) {
+  .nav-side-menu .menu-list .menu-content {
+    display: block;
+  }
+}
+
+
+/*--------------------profile-------------------*/
+.fb-profile{
+	position:relative;
+}
+.fb-profile img.fb-image-lg{
+    z-index: 0;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.fb-image-profile
+{
+   margin:-50px 10px 0 50px;
+    z-index: 9;
+    width: 10%;
+}
+.fb-profile-text{
+	position:relative;
+	margin-bottom: 50px;
+	z-index: 1;
+}
+.fb-profile-text h4{
+	margin-bottom:4px;
+	display:inline-block;
+	vertical-align:middle;
+}
+.fb-profile-text p{
+	margin-bottom:4px;
+	display:inline-block;
+	vertical-align:middle;
+}
+.thumbnail{
+	border-radius: 15px;
+}
+.profile-imgbox{
+	 bottom:0px;
+    left: auto;
+    position: absolute;
+    right: 0;
+	text-align: center;
+	z-index: 2;
+}
+.profile-imgbox ul{
+	list-style:none;
+	margin:0;
+	padding:0;
+}
+.profile-imgbox ul li{
+	list-style:none;
+	margin:0;
+	padding:0;
+	display:inline-block;
+	text-align:center;
+	vertical-align:bottom;
+}
+.profile-imgbox ul li a{
+	display:block;
+	padding:0 18px;
+	text-align:center;
+	text-decoration:none;
+
+}
+.profile-imgbox ul li a span{
+	background:#0088CB;
+	border: 2px solid #ffffff;
+    border-radius: 4px;
+    display: block;
+    margin: 0 auto;
+    padding: 10px;
+    text-align: center;
+    width: 100px;
+}
+.profile-imgbox ul li a span i {
+	display:inline-block;
+	color:#FFF;
+	vertical-align: middle;
+
+}
+.profile-imgbox ul li a b{
+	display:block;
+	font-weight:normal;
+	height:48px;
+}
+.profile-imgbox p{
+	text-align:center;
+	display:block;
+	font-size:18px;
+	margin-bottom:10px;
+	background:rgba(0,0,0,0.44);
+	display:inline-block;
+	padding:4px 24px;
+	border-radius:4px;
+	color:#ffffff;
+}
+.project-detail{
+}
+.project-detail h4{
+	color: #202020;
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0;
+    text-transform: uppercase;
+}
+.project-detail b{
+	background: #202020 ;
+    display: inline-block;
+	text-align: center;
+    height: 1px;
+    width: 8%;
+}
+.project-detailBox{
+	margin-bottom:18px;
+	margin-top:18px;
+}
+.project-detailBox label.project-label{
+	width:200px;
+	padding:0 10px;
+	display:inline-block;
+	color: #333;
+    font-size: 14px;
+    list-style: outside none none;
+    margin: 0 0 10px;
+    padding: 0 ;
+	float:left;
+}
+.project-infobox{
+	margin-left: 215px;
+	margin-bottom: 10px;
+}
+.project-infobox ul{
+	line-height:none;
+	margin:0;
+	padding:0;
+	width:400px;
+	list-style:none;
+}
+.project-infobox ul li{
+	float:left;
+	width:50%;
+	margin:0;
+	padding:0;
+}
+.project-infobox ul li span{
+	width:74%;
+	padding:0 10px 0 0;
+	display:inline-block;
+	color: #333;
+    font-size: 14px;
+    list-style: outside none none;
+    margin: 0 0 10px;
+	font-weight:normal;
+	float:left;
+}
+.project-infobox ul li strong{
+	float:left;
+	width:26%;
+	padding:0 0 0 10px;
+	display:inline-block;
+	color: #ed1651;
+    font-size: 14px;
+    list-style: outside none none;
+    margin: 0 0 10px;
+	font-weight:700;
+}
+.project-infobox p{
+	line-height:24px;
+	font-size:14px;
+}
+
+
+
+@media (max-width:768px)
+{
+
+.fb-profile-text>h1{
+    font-weight: 700;
+    font-size:14px;
+}
+
+.fb-image-profile
+{
+    margin:-50px 10px 0 50px;
+    z-index: 9;
+    width: 10%;
+}
+}
+
+
+
+.spacialCheckbox-ul{
+}
+.nav-side-menu ul.spacialCheckbox-ul li:before{
+    content:"";
+}
+.spacialCheckbox{
+	position:relative;
+	line-height:20px;
+}
+.spacialCheckbox label{
+	position:relative;
+	padding-left:26px;
+	padding-top: 2px;
+	color:#333;
+	line-height:26px;
+}
+.spacialCheckbox label input[type="checkbox"]{
+	position:absolute;
+	left:0;
+	top:0;
+	opacity:0;
+	visibility:hidden;
+}
+.spacialCheckbox label input[type="checkbox"] + i{
+	background:url(http://skyrites.com/projects/spaciux/images/checkbox.jpg) no-repeat left top;
+	width:25px;
+	height:25px;
+	display:inline-block;
+	position:absolute;
+	left:0;
+	top:0;
+	z-index:1;
+
+}
+.spacialCheckbox label input[type="checkbox"]:checked + i{
+	background:url(http://skyrites.com/projects/spaciux/images/checkbox.jpg) no-repeat left bottom;
+}

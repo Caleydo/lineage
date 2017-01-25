@@ -54,7 +54,17 @@ class attributePanel {
       .append('span')
       .classed('arrow',true);
 
-     let item2 = menu_content.append('li')
+
+    //adding sub items to item1 notice that data-target should match
+    let sublist = menu_content.append('ul')
+      .classed('sub-menu collapse fade',true)
+      .attr('id', 'sublist')
+
+    sublist.append('li').attr('class','active').append('a').attr('href','#').html('sub item 1');
+    sublist.append('li').append('a').attr('href','#').html('sub item 2');
+    sublist.append('li').append('a').attr('href','#').html('sub item 3');
+
+    let item2 = menu_content.append('li')
       .classed('collapsed active', true)
       .attr('data-target','#sublist')
       .attr('data-toggle','collapse')
@@ -63,17 +73,6 @@ class attributePanel {
       .append('strong').html('Filter 2')
       .append('span')
       .classed('arrow',true);
-
-
-    //adding sub items to item1 notice that data-target should match
-    let sublist = menu_content.append('ul')
-      .classed('sub-menu collapse fade',true)
-      .attr('id', 'sublist')
-
-    sublist.append('li').attr('class','active').append('a').attr('href','#').html('sub item 1')
-    sublist.append('li').append('a').attr('href','#').html('sub item 2')
-    sublist.append('li').append('a').attr('href','#').html('sub item 3')
-
 
 
 

@@ -6,7 +6,7 @@ import * as d3 from 'd3';
 import {Config} from './config';
 
 /**
- * Class that represents the genealogy data, including attributes that will be used to populate the table
+ * Class that represents the genealogy data
  */
 class genealogyData {
 

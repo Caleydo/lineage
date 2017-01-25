@@ -55,12 +55,14 @@ class genealogyTree {
 
     let data = dataObject.data;
 
-    this.width = Config.glyphSize * 2 + this.margin.left + 50
+    this.width = 250
     this.height = Config.glyphSize * 3 * data.length;
 
     // Scales
-    let x = d3.scaleLinear().range([0, this.width]).domain([1, 1]);
+    let x = d3.scaleLinear().range([20, this.width]).domain([d3.min(data,function(d){return d['dob']}), d3.max(data,function(d){return d['dob']}) + 20]);
     let y = d3.scaleLinear().range([0, this.height]).domain([0, data.length]);
+
+    console.log(x.domain(), x.range())
 
     const svg = this.$node.append('svg')
       .attr('width', this.width)
@@ -73,7 +75,7 @@ class genealogyTree {
       .append("g")
       .attr('class','nodeGroup')
       .attr("transform", function (d, i) {
-        return ('translate(20, ' + y(i) + ' )')
+        return ('translate(' + x(d['dob']) + ',' + y(i) + ' )')
       });
 
     let nodes = nodeGroups
@@ -102,7 +104,7 @@ class genealogyTree {
     lifeRects
       .append("rect")
       .attr('y', Config.glyphSize)
-      .attr("width", 50)
+      .attr("width", function(d){return (d3.max(x.range()) - x(d['dob']))})
       .attr("height", Config.glyphSize / 4)
       .style('fill', 'black')
       .style('opacity', .4)

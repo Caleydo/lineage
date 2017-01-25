@@ -83,8 +83,9 @@
     "d3-request": "^1.0.3",
     "d3-scale": "^1.0.3",
     "d3-shape": "^1.0.4",
-    "phovea_core": "github:phovea/phovea_core#v0.0.5",
-    "phovea_ui": "github:phovea/phovea_ui#v0.0.5"
+    "phovea_core": "github:phovea/phovea_core#develop",
+    "phovea_ui": "github:phovea/phovea_ui#develop",
+    "phovea_clue": "github:phovea/phovea_clue#develop"
   },
   "name": "genealogy_vis",
   "description": "",

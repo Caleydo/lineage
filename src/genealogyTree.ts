@@ -35,8 +35,8 @@ class genealogyTree {
 
   constructor(parent:Element) {
     this.$node = select(parent)
-      .append('div')
-      .classed('genealogyTree', true);
+      // .append('div')
+      // .classed('genealogyTree', true);
   }
 
   /**

@@ -19,8 +19,8 @@ class attributeTable {
 
   constructor(parent:Element) {
     this.$node = select(parent)
-      .append('div')
-      .classed('attributeTable', true);
+      // .append('div')
+      // .classed('attributeTable', true);
   }
 
   /**

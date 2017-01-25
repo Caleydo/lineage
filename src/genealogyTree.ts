@@ -56,6 +56,7 @@ class genealogyTree{
       .enter()
       .append("rect")
       .attr('id',function(d){return d.id})
+      .attr('class','node')
       .attr("width", Config.glyphSize * 2)
       .attr("height", Config.glyphSize * 2)
       .attr("transform",function(d,i){return ('translate(' + (20 + Config.glyphSize * (3*i)) + ',20 )')});
@@ -66,13 +67,13 @@ class genealogyTree{
   private attachListener() {
 
     //Fire Event when first rect is clicked
-    this.$node.select('#rect1')
+    this.$node.selectAll('.node')
       .on('click', function (e) {
-        events.fire('node_clicked');
+        events.fire('node_clicked',this);
       });
 
-      //Set listener for event that changes the color of the second rect to red
-      events.on('node_clicked',(evt,items)=> {console.log(evt,items); this.$node.select('#rect2').attr('fill',function(){return 'red'})});
+      //Set listener for click event that changes the color of the rect to red
+      events.on('node_clicked',(evt,item)=> {d3.select(item).attr('fill','red')});
   }
 
 }

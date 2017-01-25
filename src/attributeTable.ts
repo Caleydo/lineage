@@ -91,7 +91,7 @@ class attributeTable {
     //Set listener for click event on corresponding node that changes the color of that row to red
     events.on('node_clicked', (evt, item)=> {
       d3.selectAll('.row').classed('selected', function (d) {
-        return d3.select(this).attr('id') === 'row_' + item;
+        return (!d3.select(this).classed('selected') && d3.select(this).attr('id') === 'row_' + item);
       });
     });
   }

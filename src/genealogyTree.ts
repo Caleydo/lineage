@@ -15,13 +15,19 @@ import * as csvUrl from 'file-loader!./data/genealogy.csv';
 /**
  * Creates the genealogy tree view
  */
-class genealogyTree{
+class genealogyTree {
 
   private $node;
 
   private data;
 
-  constructor(parent: Element) {
+  private width;
+  private height;
+
+  private margin = {top: 40, right: 120, bottom: 20, left: 20};
+
+
+  constructor(parent:Element) {
     this.$node = d3.select(parent)
       .append('div')
       .classed('genealogyTree', true);
@@ -33,9 +39,8 @@ class genealogyTree{
    * @returns {Promise<FilterBar>}
    */
   init(data) {
-
-    //this.data = genealogyData.create(csvUrl);
-    this.build(data);
+    this.data = data;
+    this.build(this.data);
     this.attachListener();
 
     // return the promise directly as long there is no dynamical data to update
@@ -46,23 +51,95 @@ class genealogyTree{
   /**
    * Build the basic DOM elements and binds the change function
    */
-  private build(data) {
+  private build(dataObject) {
+
+    let data = dataObject.data;
+
+    this.width = Config.glyphSize * 2 + this.margin.left + 50
+    this.height = Config.glyphSize * 3 * data.length;
+
+    // Scales
+    let x = d3.scaleLinear().range([0, this.width]).domain([1, 1]);
+    let y = d3.scaleLinear().range([0, this.height]).domain([0, data.length]);
 
     const svg = this.$node.append('svg')
-      .attr('width',Config.glyphSize *2 + 20)
-      .attr('height',Config.glyphSize*4* data.length);
+      .attr('width', this.width)
+      .attr('height', this.height);
     const graph = svg.append("g");
 
-    graph.selectAll(".node")
+    let nodeGroups = graph.selectAll(".node")
       .data(data)
       .enter()
+      .append("g")
+      .attr('class','nodeGroup')
+      .attr("transform", function (d, i) {
+        return ('translate(20, ' + y(i) + ' )')
+      });
+
+    let nodes = nodeGroups
       .append("rect")
-      .attr('id',function(d){return d.id})
-      .attr('class','node')
+      .attr('class', 'node')
       .attr("width", Config.glyphSize * 2)
       .attr("height", Config.glyphSize * 2)
-      .attr("transform",function(d,i){return ('translate(20, ' + (20 + Config.glyphSize * (3*i)) +' )')});
-    // this.$node.html(` <div id="tree"> </div>`);
+      .attr('id', function (d) {
+        return d.id
+      })
+      // .attr("transform", function (d, i) {
+      //   return ('translate(20, ' + y(i) + ' )')
+      // })
+      .style("fill",'white')
+      .style("stroke-width", 3)
+
+    //Add life line groups
+    const lifeRects = nodeGroups
+      .append("g")
+      .attr('class', 'lifeRect')
+      .attr("transform", function (d, i) {
+        return ('translate('+ 2*Config.glyphSize + ', 0)')
+      })
+
+    //Add actual life lines
+    lifeRects
+      .append("rect")
+      .attr('y', Config.glyphSize)
+      .attr("width", 50)
+      .attr("height", Config.glyphSize / 4)
+      .style('fill', 'black')
+      .style('opacity', .4)
+
+
+    // nodes.call(d3.drag()
+    //   .on("start",started)
+    //   .on("drag", dragged)
+    //   .on("end",ended));
+
+
+    let startYPos;
+
+    function started(d){
+      //const node = d3.select(this).data()[0];
+      startYPos = y.invert(d3.mouse(<any>d3.select('.genealogyTree').node())[1]);
+
+    }
+    function ended(d){
+      //const node = d3.select(this).data()[0];
+      const ypos2 = y.invert(d3.mouse(<any>d3.select('.genealogyTree').node())[1]);
+      console.log('started dragging at position ', Math.round(startYPos));
+      console.log('ended dragging at position ', Math.round(ypos2));
+      // events.fire('node_dragged', [Math.round(startYPos),Math.round(ypos2)]);
+      dataObject.aggregateNodes(Math.round(startYPos),Math.round(ypos2))
+
+    }
+
+    function dragged(d) {
+      const node:any = d3.select(this).data()[0];
+      node.y = y.invert(d3.mouse(<any>d3.select('.genealogyTree').node())[1]);
+      //currentY = Math.round(y.invert(d3.mouse(d3.select('#graph').node())[1]));
+
+      d3.select(this).attr("transform", function (d,i) {
+        return "translate(0," + y(Math.round(node.y)) + ")";
+      });
+    }
 
   }
 
@@ -71,11 +148,12 @@ class genealogyTree{
     //Fire Event when first rect is clicked
     this.$node.selectAll('.node')
       .on('click', function (e) {
-        events.fire('node_clicked',d3.select(this).attr('id'));
+        events.fire('node_clicked', d3.select(this).attr('id'));
       });
 
-      //Set listener for click event that changes the color of the rect to red
-      //events.on('node_clicked',(evt,item)=> {d3.select(item).attr('fill','red')});
+
+    //Set listener for click event that changes the color of the rect to red
+    //events.on('node_clicked',(evt,item)=> {d3.select(item).attr('fill','red')});
   }
 
 }
@@ -86,6 +164,6 @@ class genealogyTree{
  * @param options
  * @returns {genealogyTree}
  */
-export function create(parent: Element) {
+export function create(parent:Element) {
   return new genealogyTree(parent);
 }

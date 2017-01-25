@@ -10,6 +10,9 @@ class attributeTable {
 
   private $node;
 
+  private width;
+  private height;
+
   constructor(parent:Element) {
     this.$node = d3.select(parent)
       .append('div')
@@ -36,9 +39,17 @@ class attributeTable {
    */
   private build(data) {
 
+    this.width = 300;
+    this.height = Config.glyphSize*3* data.length;
+
+    // Scales
+    let x = d3.scaleLinear().range([0, this.width]).domain([1 ,1]);
+    let y = d3.scaleLinear().range([0, this.height]).domain([0 ,data.length]);
+
+
     const svg = this.$node.append('svg')
-      .attr('width',300)
-      .attr('height',Config.glyphSize*4* data.length);
+      .attr('width', this.width)
+      .attr('height',this.height);
 
     const table = svg.append("g");
 
@@ -51,7 +62,7 @@ class attributeTable {
       })
       .attr('class', 'row')
       .attr("transform", function (d, i) {
-        return ('translate(0, ' + (20 + Config.glyphSize * (3 * i)) + ' )')
+        return ('translate(0, ' + y(i)+ ' )')
       });
 
     rows.selectAll('.cell')
@@ -69,7 +80,7 @@ class attributeTable {
       .attr('stroke-width', 3)
       .attr('fill', 'none')
       .attr("transform", function (d, i) {
-        return ('translate(' + (20 + Config.glyphSize * (5 * i)) + ' , 0)')
+        return ('translate(' + (Config.glyphSize * (5 * i)) + ' , 0)')
       });
     // this.$node.html(` <div id="tree"> </div>`);
 

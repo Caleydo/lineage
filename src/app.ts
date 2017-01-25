@@ -7,6 +7,8 @@ import * as d3 from 'd3';
 //Import typescript module for the genealogy Tree
 import * as tree from './genealogyTree'
 import * as table from './attributeTable'
+
+import * as graphData from './graphData'
 // import {ProvenanceGraph, cat} from 'phovea_core/src/provenance';
 // import {createSetCLUEHelloWorldText} from './cmds';
 import {init as initCore} from 'phovea_core/src';
@@ -46,14 +48,6 @@ export class App {
    */
   private build() {
 
-    let graphData = [
-      {'id':1,'name':'A','sex':'F'},
-      {'id':2,'name':'B','sex':'M'},
-      {'id':3,'name':'C','sex':'F'},
-      {'id':4,'name':'D','sex':'F'},
-      {'id':5,'name':'E','sex':'M'},
-      {'id':6,'name':'F','sex':'F'}];
-
     let tableData = [
       {'id':1,'age':32, 'BMI':19},
       {'id':2,'age':40,'BMI':19},
@@ -65,7 +59,7 @@ export class App {
 
 
     let genealogyTree = tree.create(this.$node.select('.graph').node());
-    genealogyTree.init(graphData);
+    genealogyTree.init(graphData.create());
 
     let attributeTable = table.create(this.$node.select('.table').node());
     attributeTable.init(tableData);

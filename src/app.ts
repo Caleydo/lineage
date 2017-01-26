@@ -13,6 +13,7 @@ import * as panel from './attributePanel'
 import * as graphData from './graphData'
 
 import {create as createCLUE} from 'phovea_clue/src/template';
+import * as header from 'phovea_ui/src/header';
 import {ProvenanceGraph, cat} from 'phovea_core/src/provenance';
 // import {createSetCLUEHelloWorldText} from './cmds';
 import {init as initCore} from 'phovea_core/src';
@@ -34,6 +35,7 @@ export class App {
     const clue = createCLUE(document.body, {
       id: 'clue_genealogy_vis',
       app: 'Genealogy VIS',
+      appLink: new header.AppHeaderLink('Lineage'),
       thumbnails: false, //no server thumbnails
     });
 

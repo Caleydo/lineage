@@ -93,7 +93,7 @@ class attributeTable {
   private attachListener() {
 
     //Set listener for click event on corresponding node that changes the color of that row to red
-    events.on('node_clicked', (evt, item)=> {
+    events.on('node_clicked', (evt, item)=> { 
       selectAll('.row').classed('selected', function (d) {
         return (!select(this).classed('selected') && select(this).attr('id') === 'row_' + item);
       });

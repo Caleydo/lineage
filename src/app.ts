@@ -5,15 +5,20 @@
 // import * as d3 from 'd3';
 import {select, selectAll} from 'd3-selection';
 
-//Import typescript module for the genealogy Tree
+//Import typescript modules for the views
 import * as tree from './genealogyTree'
 import * as table from './attributeTable'
 import * as panel from './attributePanel'
 
+//Import Data Structure for graph
 import * as graphData from './graphData'
 
+//Provenance Tracking
 import {create as createCLUE} from 'phovea_clue/src/template';
 import * as header from 'phovea_ui/src/header';
+
+
+
 import {ProvenanceGraph, cat} from 'phovea_core/src/provenance';
 // import {createSetCLUEHelloWorldText} from './cmds';
 import {init as initCore} from 'phovea_core/src';

@@ -1,4 +1,4 @@
-genealogy_vis [![Phovea][phovea-image]][phovea-url] [![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Dependency Status][daviddm-image]][daviddm-url]
+Lineage [![Phovea][phovea-image]][phovea-url] [![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Dependency Status][daviddm-image]][daviddm-url]
 =====================
 
 
@@ -7,8 +7,8 @@ Installation
 ------------
 
 ```
-git clone https://github.com/phovea/genealogy_vis.git
-cd genealogy_vis
+git clone https://github.com/phovea/lineage.git
+cd lineage
 npm install
 ```
 

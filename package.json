@@ -98,10 +98,10 @@
   },
   "license": "BSD-3-Clause",
   "bugs": {
-    "url": "https://github.com/phovea/genealogy_vis/issues"
+    "url": "https://github.com/phovea/lineage/issues"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/phovea/genealogy_vis.git"
+    "url": "https://github.com/phovea/lineage.git"
   }
 }

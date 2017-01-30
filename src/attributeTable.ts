@@ -71,24 +71,24 @@ class attributeTable {
         return ('translate(0, ' + y(d['y'])+ ' )')
       });
 
-    rows.selectAll('.cell')
-      .data(function (d) {
-        return entries(d)
-      })
-      .enter()
+    rows
+    // .select('.cell')
+    //   .data(function (d) {
+    //     return entries(d)
+    //   })
+    //   .enter()
       .append('rect')
-      .attr('id', function (d) {
-        return ('cell_' + d.key) //or d.value
-      })
-      .attr("width", Config.glyphSize * 3)
+      // .attr('id', function (d) {
+      //   return ('cell_' + d.key) //or d.value
+      // })
+      .attr("width", Config.glyphSize * 10)
       .attr("height", Config.glyphSize * 2.5)
       .attr('stroke', 'black')
       .attr('stroke-width', 3)
       .attr('fill', 'none')
-      .attr("transform", function (d, i) {
-        return ('translate(' + (Config.glyphSize * (3 * i)) + ' , 0)')
-      });
-    // this.$node.html(` <div id="tree"> </div>`);
+      // .attr("transform", function (d, i) {
+      //   return ('translate(' + (Config.glyphSize * (3 * i)) + ' , 0)')
+      // });
 
   }
 

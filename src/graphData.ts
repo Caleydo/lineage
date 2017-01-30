@@ -7,22 +7,27 @@
  */
 class graphData {
 
-  public data = [
-    {'id': 1, 'name': 'A', 'sex': 'M', 'dob':1982},
-    {'id': 2, 'name': 'B', 'sex': 'M', 'dob':1984},
-    {'id': 3, 'name': 'C', 'sex': 'M', 'dob':1986},
-    {'id': 4, 'name': 'D', 'sex': 'M','dob':1988},
-    {'id': 5, 'name': 'E', 'sex': 'M', 'dob':1956},
-    {'id': 6, 'name': 'F', 'sex': 'F', 'dob':1958}];
+  public data;
+    // = [
+    // {'id': 1, 'name': 'A', 'sex': 'M', 'dob':1982},
+    // {'id': 2, 'name': 'B', 'sex': 'M', 'dob':1984},
+    // {'id': 3, 'name': 'C', 'sex': 'M', 'dob':1986},
+    // {'id': 4, 'name': 'D', 'sex': 'M','dob':1988},
+    // {'id': 5, 'name': 'E', 'sex': 'M', 'dob':1956},
+    // {'id': 6, 'name': 'F', 'sex': 'F', 'dob':1958}];
 
 
-  constructor() {
+  constructor(data) {
+
+    this.data = data;
     //Initially set all nodes to visible and of type 'single' (vs aggregate)
     this.data.forEach(function(d)
     {
-      d['index'] = d.id;
+      // d['index'] = d.id;
       d['type']  = 'single';
       d['visible']=true;
+      d['bdate']=+d['bdate'];
+
     });
   }
 
@@ -78,8 +83,8 @@ class graphData {
  * @param data
  * @returns {graphData}
  */
-export function create() {
-  return new graphData();
+export function create(data) {
+  return new graphData(data);
 }
 
 

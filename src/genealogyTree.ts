@@ -65,8 +65,8 @@ class genealogyTree {
     this.height = Config.glyphSize * 3 * data.length;
 
     // Scales
-    let x = scaleLinear().range([20, this.width]).domain([min(data,function(d){return d['dob']}), max(data,function(d){return d['dob']}) + 20]);
-    let y = scaleLinear().range([0, this.height]).domain([0, data.length]);
+    let x = scaleLinear().range([20, this.width]).domain([min(data,function(d){return d['bdate']}), max(data,function(d){return d['bdate']}) + 20]);
+    let y = scaleLinear().range([0, this.height]).domain([min(data,function(d){return d['y']}), max(data,function(d){return d['y']}) ])
 
     console.log(x.domain(), x.range())
 
@@ -81,7 +81,7 @@ class genealogyTree {
       .append("g")
       .attr('class','nodeGroup')
       .attr("transform", function (d, i) {
-        return ('translate(' + x(d['dob']) + ',' + y(i) + ' )')
+        return ('translate(' + x(d['bdate']) + ',' + y(d['y']) + ' )')
       });
 
     let nodes = nodeGroups
@@ -110,7 +110,7 @@ class genealogyTree {
     lifeRects
       .append("rect")
       .attr('y', Config.glyphSize)
-      .attr("width", function(d){return (max(x.range()) - x(d['dob']))})
+      .attr("width", function(d){return (max(x.range()) - x(d['bdate']))})
       .attr("height", Config.glyphSize / 4)
       .style('fill', 'black')
       .style('opacity', .4)

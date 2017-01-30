@@ -13,6 +13,9 @@ import * as panel from './attributePanel'
 //Import Data Structure for graph
 import * as graphData from './graphData'
 
+//Import Actual Data from ./sampleData
+import {sampleData} from './sampleData'
+
 //Provenance Tracking
 import {create as createCLUE} from 'phovea_clue/src/template';
 import * as header from 'phovea_ui/src/header';
@@ -70,19 +73,11 @@ export class App {
    */
   private build() {
 
-    let tableData = [
-      {'id': 1, 'age': 32, 'BMI': 19},
-      {'id': 2, 'age': 40, 'BMI': 19},
-      {'id': 3, 'age': 15, 'BMI': 19},
-      {'id': 4, 'age': 24, 'BMI': 19},
-      {'id': 5, 'age': 4, 'BMI': 19},
-      {'id': 6, 'age': 66, 'BMI': 19}];
-
     let genealogyTree = tree.create(this.$node.select('.graph_table').node());
-    genealogyTree.init(graphData.create());
+    genealogyTree.init(graphData.create(sampleData));
 
     let attributeTable = table.create(this.$node.select('.graph_table').node());
-    attributeTable.init(tableData);
+    attributeTable.init(sampleData);
 
     let attributePanel = panel.create(this.$node.select('.panel').node());
     attributePanel.init();

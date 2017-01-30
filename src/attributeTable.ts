@@ -5,6 +5,7 @@ import {Config} from './config';
 
 import {select, selectAll} from 'd3-selection';
 import {scaleLinear} from 'd3-scale';
+import {max, min} from 'd3-array';
 import {entries} from 'd3-collection';
 
 /**
@@ -48,7 +49,8 @@ class attributeTable {
 
     // Scales
     let x = scaleLinear().range([0, this.width]).domain([1 ,1]);
-    let y = scaleLinear().range([0, this.height]).domain([0 ,data.length]);
+     let y = scaleLinear().range([0, this.height]).domain([min(data,function(d){return d['y']}), max(data,function(d){return d['y']}) ])
+
 
 
     const svg = this.$node.append('svg')
@@ -66,7 +68,7 @@ class attributeTable {
       })
       .attr('class', 'row')
       .attr("transform", function (d, i) {
-        return ('translate(0, ' + y(i)+ ' )')
+        return ('translate(0, ' + y(d['y'])+ ' )')
       });
 
     rows.selectAll('.cell')
@@ -78,13 +80,13 @@ class attributeTable {
       .attr('id', function (d) {
         return ('cell_' + d.key) //or d.value
       })
-      .attr("width", Config.glyphSize * 5)
-      .attr("height", Config.glyphSize * 2)
+      .attr("width", Config.glyphSize * 3)
+      .attr("height", Config.glyphSize * 2.5)
       .attr('stroke', 'black')
       .attr('stroke-width', 3)
       .attr('fill', 'none')
       .attr("transform", function (d, i) {
-        return ('translate(' + (Config.glyphSize * (5 * i)) + ' , 0)')
+        return ('translate(' + (Config.glyphSize * (3 * i)) + ' , 0)')
       });
     // this.$node.html(` <div id="tree"> </div>`);
 
@@ -93,7 +95,7 @@ class attributeTable {
   private attachListener() {
 
     //Set listener for click event on corresponding node that changes the color of that row to red
-    events.on('node_clicked', (evt, item)=> { 
+    events.on('node_clicked', (evt, item)=> {
       selectAll('.row').classed('selected', function (d) {
         return (!select(this).classed('selected') && select(this).attr('id') === 'row_' + item);
       });

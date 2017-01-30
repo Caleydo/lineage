@@ -7,7 +7,7 @@ Installation
 ------------
 
 ```
-git clone https://github.com/phovea/lineage.git
+git clone https://github.com/Caleydo/lineage.git
 cd lineage
 npm install
 ```

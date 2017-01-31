@@ -9,13 +9,16 @@ import {AppConstants, ChangeTypes} from './app_constants';
 import {select, selectAll, mouse} from 'd3-selection';
 import {scaleLinear} from 'd3-scale';
 import {max, min} from 'd3-array';
+import {axisTop} from 'd3-axis';
+import {format} from 'd3-format';
+import {line} from 'd3-shape';
+import {curveBasis, curveLinear} from 'd3-shape';
 
 
 import * as genealogyData from './genealogyData'
 import {Config} from './config';
 
-// bundle data file and get URL
-import * as csvUrl from 'file-loader!./data/genealogy.csv';
+
 
 
 /**
@@ -28,15 +31,22 @@ class genealogyTree {
   private data;
 
   private width;
+
   private height;
 
-  private margin = {top: 40, right: 120, bottom: 20, left: 20};
+  private margin = {top: 60, right: 20, bottom: 60, left: 40};
+
+  private x  = scaleLinear();
+
+  private y = scaleLinear();
+
+  private interGenerationScale = scaleLinear();
 
 
   constructor(parent:Element) {
     this.$node = select(parent)
-      // .append('div')
-      // .classed('genealogyTree', true);
+    // .append('div')
+    // .classed('genealogyTree', true);
   }
 
   /**
@@ -46,7 +56,7 @@ class genealogyTree {
    */
   init(data) {
     this.data = data;
-    this.build(this.data);
+    this.build();
     this.attachListener();
 
     // return the promise directly as long there is no dynamical data to update
@@ -57,60 +67,108 @@ class genealogyTree {
   /**
    * Build the basic DOM elements and binds the change function
    */
-  private build(dataObject) {
+  private build() {
 
-    let data = dataObject.data;
+    let nodes = this.data.data; //.nodes;
+    // let edges = this.data.relationshipEdges;
+    // let parentEdges = this.data.relationshipNodes;
 
-    this.width = 250
-    this.height = Config.glyphSize * 3 * data.length;
+    this.width = 600 - this.margin.left - this.margin.right
+    this.height = Config.glyphSize * 3 * nodes.length - this.margin.top - this.margin.bottom;
 
     // Scales
-    let x = scaleLinear().range([20, this.width]).domain([min(data,function(d){return d['bdate']}), max(data,function(d){return d['bdate']}) + 20]);
-    let y = scaleLinear().range([0, this.height]).domain([min(data,function(d){return d['y']}), max(data,function(d){return d['y']}) ])
+    this.x.range([0, this.width]).domain([min(nodes, function (d) {
+      return d['bdate']
+    }), max(nodes, function (d) {
+      return d['bdate']
+    }) + 20]);
+    this.y.range([0, this.height]).domain([min(nodes, function (d) {
+      return d['y']
+    }), max(nodes, function (d) {
+      return d['y']
+    })])
 
-    console.log(x.domain(), x.range())
+    this.interGenerationScale.range([.75, .25]).domain([2, nodes.length]);
+
 
     const svg = this.$node.append('svg')
-      .attr('width', this.width)
-      .attr('height', this.height);
-    const graph = svg.append("g");
+      .attr("width", this.width + this.margin.left + this.margin.right)
+      .attr("height", this.height + this.margin.top + this.margin.bottom)
+
+    //append axis
+    svg.append("g")
+      .attr("transform", "translate(" + this.margin.left + "," + this.margin.top / 1.5 + ")")
+      .call(axisTop(this.x).tickFormat(format("d")));
+
+
+    const graph = svg.append("g")
+      .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
+
+    // const edgePaths = graph.selectAll(".edges")
+    //   .data(edges)
+    //   .enter().append("path")
+    //   .attr("class", "edges")
+    //   // .style("stroke", function (d) {
+    //   //     return d.color
+    //   // })
+    //   // .style("fill", 'none')
+    //   .attr("d", this.elbow)
+    //   .attr("stroke-width", 3)
+    //   .on('click', function (d) {
+    //     console.log(d)
+    //   });
+    //
+    //
+    // const parentEdgePaths = graph.selectAll(".parentEdges")
+    //   .data(parentEdges)
+    //   .enter().append("path")
+    //   .attr("class", "parentEdges")
+    //   // .style("stroke", function (d) {
+    //   //     return d.color
+    //   // })
+    //   .style("stroke-width", 4)
+    //   .style("fill", 'none')
+    //   .attr("d", this.parentEdge);
+
 
     let nodeGroups = graph.selectAll(".node")
-      .data(data)
+      .data(nodes)
       .enter()
       .append("g")
-      .attr('class','nodeGroup')
-      .attr("transform", function (d, i) {
-        return ('translate(' + x(d['bdate']) + ',' + y(d['y']) + ' )')
+      .attr('class', 'nodeGroup')
+      .attr("transform", d=> {
+        return ('translate(' + this.x(+d['x']) + ',' + this.y(+d['y']) + ' )')
       });
 
-    let nodes = nodeGroups
+
+    let nodeObjects = nodeGroups
       .append("rect")
       .attr('class', 'node')
       .attr("width", Config.glyphSize * 2)
       .attr("height", Config.glyphSize * 2)
+
+
       .attr('id', function (d) {
         return d.id
       })
-      // .attr("transform", function (d, i) {
-      //   return ('translate(20, ' + y(i) + ' )')
-      // })
-      .style("fill",'white')
+      .style("fill", 'white')
       .style("stroke-width", 3)
 
     //Add life line groups
     const lifeRects = nodeGroups
       .append("g")
       .attr('class', 'lifeRect')
-      .attr("transform", function (d, i) {
-        return ('translate('+ 2*Config.glyphSize + ', 0)')
-      })
+    // .attr("transform", function (d, i) {
+    //   return ('translate('+ 2*Config.glyphSize + ', 0)')
+    // })
 
     //Add actual life lines
     lifeRects
       .append("rect")
       .attr('y', Config.glyphSize)
-      .attr("width", function(d){return (max(x.range()) - x(d['bdate']))})
+      .attr("width", d=> {
+        return (max(this.x.range()) - this.x(d['bdate']))
+      })
       .attr("height", Config.glyphSize / 4)
       .style('fill', 'black')
       .style('opacity', .4)
@@ -124,28 +182,29 @@ class genealogyTree {
 
     let startYPos;
 
-    function started(d){
+    function started(d) {
       //const node = d3.select(this).data()[0];
-      startYPos = y.invert(mouse(<any>select('.genealogyTree').node())[1]);
+      startYPos = this.y.invert(mouse(<any>select('.genealogyTree').node())[1]);
 
     }
-    function ended(d){
+
+    function ended(d) {
       //const node = d3.select(this).data()[0];
-      const ypos2 = y.invert(mouse(<any>select('.genealogyTree').node())[1]);
+      const ypos2 = this.y.invert(mouse(<any>select('.genealogyTree').node())[1]);
       console.log('started dragging at position ', Math.round(startYPos));
       console.log('ended dragging at position ', Math.round(ypos2));
       // events.fire('node_dragged', [Math.round(startYPos),Math.round(ypos2)]);
-      dataObject.aggregateNodes(Math.round(startYPos),Math.round(ypos2))
+      this.data.aggregateNodes(Math.round(startYPos), Math.round(ypos2))
 
     }
 
     function dragged(d) {
       const node:any = select(this).data()[0];
-      node.y = y.invert(mouse(<any>select('.genealogyTree').node())[1]);
+      node.y = this.y.invert(mouse(<any>select('.genealogyTree').node())[1]);
       //currentY = Math.round(y.invert(d3.mouse(d3.select('#graph').node())[1]));
 
-      select(this).attr("transform", function (d,i) {
-        return "translate(0," + y(Math.round(node.y)) + ")";
+      select(this).attr("transform", function (d, i) {
+        return "translate(0," + this.y(Math.round(node.y)) + ")";
       });
     }
 
@@ -163,6 +222,55 @@ class genealogyTree {
     //Set listener for click event that changes the color of the rect to red
     //events.on('node_clicked',(evt,item)=> {d3.select(item).attr('fill','red')});
   }
+
+  private  lineFunction = line<any>()
+    .x(function (d:any) {
+        return this.x(d.x);
+    }).y(function (d:any) {
+        return this.y(d.y);
+    });
+
+
+  private elbow(d) {
+    const xdiff = d.source.x - d.target.x;
+    const ydiff = d.source.y - d.target.y;
+    const nx = d.source.x - xdiff * this.interGenerationScale(ydiff);
+
+    const linedata = [{
+      x: d.source.x,
+      y: d.source.y
+    }, {
+      x: nx,
+      y: d.source.y
+    }, {
+      x: nx,
+      y: d.target.y
+    }, {
+      x: d.target.x,
+      y: d.target.y
+    }];
+
+    if (Config.curvedLines)
+      this.lineFunction.curve(curveBasis);
+    else
+      this.lineFunction.curve(curveLinear);
+
+    return this.lineFunction(linedata);
+  }
+
+  private parentEdge(d) {
+
+    const linedata = [{
+      x: d.x1,
+      y: d.y1
+    }, {
+      x: d.x2,
+      y: d.y2
+    }];
+
+    return this.lineFunction(linedata);
+  }
+
 
 }
 

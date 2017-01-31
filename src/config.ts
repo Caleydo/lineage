@@ -3,7 +3,7 @@
  */
 
 export class Config {
-  public static curvedLines = false;
+  public static curvedLines = true;
   public static vertOrientation = true;
   public static collapseParents = true;
   public static showLifeLines = false;
@@ -11,4 +11,6 @@ export class Config {
 
   public static glyphSize = 14;
   public static spaceBetweenGenerations = 4;
+  
+  
 }

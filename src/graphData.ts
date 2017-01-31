@@ -8,13 +8,7 @@
 class graphData {
 
   public data;
-    // = [
-    // {'id': 1, 'name': 'A', 'sex': 'M', 'dob':1982},
-    // {'id': 2, 'name': 'B', 'sex': 'M', 'dob':1984},
-    // {'id': 3, 'name': 'C', 'sex': 'M', 'dob':1986},
-    // {'id': 4, 'name': 'D', 'sex': 'M','dob':1988},
-    // {'id': 5, 'name': 'E', 'sex': 'M', 'dob':1956},
-    // {'id': 6, 'name': 'F', 'sex': 'F', 'dob':1958}];
+  
 
 
   constructor(data) {

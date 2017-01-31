@@ -10,16 +10,25 @@ import * as tree from './genealogyTree'
 import * as table from './attributeTable'
 import * as panel from './attributePanel'
 
+
+import {csv} from 'd3-request';
+
 //Import Data Structure for graph
 import * as graphData from './graphData'
+
+// import * as graphData from './genealogyData'
+
 
 //Import Actual Data from ./sampleData
 import {sampleData} from './sampleData'
 
+// bundle data file and get URL
+import * as csvUrl from 'file-loader!./data/sampleData.csv';
+
+
 //Provenance Tracking
 import {create as createCLUE} from 'phovea_clue/src/template';
 import * as header from 'phovea_ui/src/header';
-
 
 
 import {ProvenanceGraph, cat} from 'phovea_core/src/provenance';
@@ -37,6 +46,8 @@ initCore({offline: true});
 export class App {
 
   private $node;
+
+  private graphData;
 
   constructor(parent:Element) {
 
@@ -73,19 +84,22 @@ export class App {
    */
   private build() {
 
-    let genealogyTree = tree.create(this.$node.select('.graph_table').node());
-    genealogyTree.init(graphData.create(sampleData));
+      let genealogyTree = tree.create(this.$node.select('.graph_table').node());
+      genealogyTree.init(graphData.create(sampleData));
 
-    let attributeTable = table.create(this.$node.select('.graph_table').node());
-    attributeTable.init(sampleData);
+      let attributeTable = table.create(this.$node.select('.graph_table').node());
+      attributeTable.init(sampleData);
 
-    let attributePanel = panel.create(this.$node.select('.panel').node());
-    attributePanel.init();
+      let attributePanel = panel.create(this.$node.select('.panel').node());
+      attributePanel.init();
+
 
     this.$node.select('h3').remove();
     this.setBusy(false);
 
     return Promise.resolve(this);
+
+
   }
 
   /**

@@ -104,6 +104,35 @@ class genealogyData {
 
     });
 
+
+     //Create relationship nodes
+    data.forEach(function(node){
+        const maID = this.uniqueID.indexOf(node['ma']);
+        const paID = this.uniqueID.indexOf(node['pa']);
+
+        if (maID >-1 && paID >-1){
+
+            const rnode={
+                'x':(this.nodes[maID].x + this.nodes[paID].x)/2,
+                'y':(this.nodes[maID].y + this.nodes[paID].y)/2,
+                'y1':this.nodes[maID].y,
+                'y2':this.nodes[paID].y,
+                'x1':this.nodes[maID].x,
+                'x2':this.nodes[paID].x,
+                'color':this.nodes[maID].color,
+                'type':'parent'
+            };
+
+            this.relationshipNodes.push(rnode);
+            this.relationshipEdges.push({
+                source: rnode,
+                target: node,
+                'color':this.nodes[maID].color
+            });
+        }
+    });
+
+
   }
 
   /**

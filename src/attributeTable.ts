@@ -18,6 +18,8 @@ class attributeTable {
   private width;
   private height;
 
+     private margin = {top: 60, right: 20, bottom: 60, left: 40};
+
   constructor(parent:Element) {
     this.$node = select(parent)
       // .append('div')
@@ -44,20 +46,21 @@ class attributeTable {
    */
   private build(data) {
 
-    this.width = 300;
-    this.height = Config.glyphSize*3* data.length;
+     this.width = 150 - this.margin.left - this.margin.right
+    this.height = Config.glyphSize * 3 * data.length - this.margin.top - this.margin.bottom;
 
     // Scales
-    let x = scaleLinear().range([0, this.width]).domain([1 ,1]);
+    let x = scaleLinear().range([0 , this.width]).domain([1 ,1]);
      let y = scaleLinear().range([0, this.height]).domain([min(data,function(d){return d['y']}), max(data,function(d){return d['y']}) ])
 
 
 
     const svg = this.$node.append('svg')
-      .attr('width', this.width)
-      .attr('height',this.height);
+      .attr('width', this.width + this.margin.left + this.margin.right)
+      .attr("height", this.height + this.margin.top + this.margin.bottom)
 
-    const table = svg.append("g");
+    const table = svg.append("g")
+    .attr("transform", "translate(0," + this.margin.top + ")")
 
     let rows = table.selectAll(".row")
       .data(data)

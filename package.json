@@ -87,21 +87,21 @@
     "phovea_ui": "github:phovea/phovea_ui#develop",
     "phovea_clue": "github:phovea/phovea_clue#develop"
   },
-  "name": "genealogy_vis",
+  "name": "lineage",
   "description": "",
   "homepage": "https://phovea.caleydo.org",
   "version": "1.0.0-SNAPSHOT",
   "author": {
     "name": "Carolina Nobre",
-    "email": "cnoble@sasrlink.com",
+    "email": "cnobre@sci.utah.edu",
     "url": ""
   },
   "license": "BSD-3-Clause",
   "bugs": {
-    "url": "https://github.com/phovea/genealogy_vis/issues"
+    "url": "https://github.com/phovea/lineage/issues"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/phovea/genealogy_vis.git"
+    "url": "https://github.com/phovea/lineage.git"
   }
 }

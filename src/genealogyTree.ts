@@ -141,27 +141,11 @@ class genealogyTree {
       });
 
 
-    let nodeObjects = nodeGroups
-      .append("rect")
-      .attr('class', 'node')
-      .attr("width", Config.glyphSize * 2)
-      .attr("height", Config.glyphSize * 2)
-
-
-      .attr('id', function (d) {
-        return d.id
-      })
-      .style("fill", 'white')
-      .style("stroke-width", 3)
-
     //Add life line groups
     const lifeRects = nodeGroups
       .append("g")
       .attr('class', 'lifeRect')
-    // .attr("transform", function (d, i) {
-    //   return ('translate('+ 2*Config.glyphSize + ', 0)')
-    // })
-
+      
     //Add actual life lines
     lifeRects
       .append("rect")
@@ -169,10 +153,25 @@ class genealogyTree {
       .attr("width", d=> {
         return (max(this.x.range()) - this.x(d['bdate']))
       })
-      .attr("height", Config.glyphSize / 4)
-      .style('fill', 'black')
-      .style('opacity', .4)
-
+      .attr("height", Config.glyphSize/6)
+      .style('opacity', .3)
+      .attr("fill", "black")
+      .attr("stroke", "steelblue")
+      .attr("stroke-linejoin", "round")
+      .attr("stroke-linecap", "round")
+      .attr("stroke-width", 1.5)
+//       .attr('stroke-dasharray',5)
+      
+      let nodeObjects = nodeGroups
+      .append("rect")
+      .attr('class', 'node')
+      .attr("width", Config.glyphSize * 2)
+      .attr("height", Config.glyphSize * 2)
+      .attr('id', function (d) {
+        return d.id
+      })
+      .style("fill", 'white')
+      .style("stroke-width", 3)
 
     // nodes.call(d3.drag()
     //   .on("start",started)

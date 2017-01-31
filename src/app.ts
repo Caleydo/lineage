@@ -47,21 +47,20 @@ export class App {
 
   private $node;
 
-  private graphData;
-
   constructor(parent:Element) {
 
-    const clue = createCLUE(document.body, {
-      id: 'clue_genealogy_vis',
-      app: 'Genealogy VIS',
-      appLink: new header.AppHeaderLink('Lineage'),
-      thumbnails: false, //no server thumbnails
-    });
+    // const clue = createCLUE(document.body, {
+    //   id: 'clue_genealogy_vis',
+    //   app: 'Genealogy VIS',
+    //   appLink: new header.AppHeaderLink('Lineage'),
+    //   thumbnails: false, //no server thumbnails
+    // });
+    //
+    // // init app
+    // clue.$main.html(`<div class="clue"></div>`);
 
-    // init app
-    clue.$main.html(`<div class="clue"></div>`);
-
-    this.$node = select('.clue');
+    // this.$node = select('.clue');
+        this.$node = select(parent);
 
     this.$node.append('div').classed('panel col-sm-4 col-md-4', true);
     this.$node.append('div').classed('graph_table', true);

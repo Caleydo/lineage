@@ -106,7 +106,6 @@ class genealogyTree {
         return Promise.resolve(this);
     }
 
-
     /**
      * Build the basic DOM elements and binds the change function
      */
@@ -339,7 +338,7 @@ class genealogyTree {
  })
       .on("end",(d)=>{
 	  
-// 	  selectAll('.phantom').remove();  
+ 	  selectAll('.phantom').remove();  
 	    
 	  const node_group = select('#g_' + d['id']);   
 	  

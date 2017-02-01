@@ -179,7 +179,7 @@ class genealogyTree {
         .append("g")
         .attr('class', 'lifeRect')
         .attr("transform",  (d:any) => {
-            return d.sex == 'M' ? "translate(" + (this.x(d['bdate'])) + "," + this.y(d['y']) + ")" : "translate(" + (this.x(d['bdate'])) + "," + (this.y(d['y']) - Config.glyphSize) + ")";
+            return d.sex == 'M' ? "translate(" + (this.x(d['bdate'])) + "," + this.yPOS(d) + ")" : "translate(" + (this.x(d['bdate'])) + "," + (this.yPOS(d) - Config.glyphSize) + ")";
         });
 
     //Add actual life lines
@@ -197,14 +197,13 @@ class genealogyTree {
         })
         .style('opacity', .8);
 
-/*
     //Add label to lifelines
     lifeRects
         .append("text")
         // .attr("y", glyphSize )
-        .attr("dy", glyphSize * 0.8)
-        .attr("dx", function (d) {
-            return Math.abs(x(d['ddate']) - x(d['bdate']));
+        .attr("dy", Config.glyphSize * 0.8)
+        .attr("dx", (d) => {
+            return Math.abs(this.x(d['ddate']) - this.x(d['bdate']));
         })
         .attr("text-anchor", 'end')
         .text(function (d) {
@@ -213,10 +212,9 @@ class genealogyTree {
         .attr('fill', function (d:any) {
             return (+d.affection == 100) ? "black" : "#e0dede";
         })
-        .style('font-size', glyphSize * 1.8)
+        .style('font-size', Config.glyphSize * 1.8)
         .style('font-weight','bold');
             
-*/
             
                 //Add Male Node Glyphs
     graph.selectAll(".node .male")
@@ -250,8 +248,11 @@ class genealogyTree {
             return "translate(" + this.xPOS(d) + "," + this.yPOS(d) + ")";
         })
         .style("fill", function (d:any) {
-            return (+d.affection == 1) ? "black" : "white";
+            return (+d.affection == 1) ? "white" : "black";
         })
+                    .attr('id', function(d) {
+                return d.id
+            })
         // .style('stroke', function (d) {
         //     return d.color
         // })
@@ -294,7 +295,7 @@ class genealogyTree {
 
         //Fire Event when first rect is clicked
         this.$node.selectAll('.node')
-            .on('click', function(e) {
+            .on('click', function(e) { 
                 events.fire('node_clicked', select(this).attr('id'));
             });
     }

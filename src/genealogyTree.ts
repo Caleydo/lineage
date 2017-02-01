@@ -215,51 +215,17 @@ class genealogyTree {
         .style('font-size', Config.glyphSize * 1.5)
         .style('font-weight','bold');
             
-            
-                //Add Male Node Glyphs
-    graph.selectAll(".node .male")
-        .data(nodes.filter(function (d) {
-            return d['sex'] == 'M';
-        }))
+        
+        let allNodes = graph.selectAll(".node")
+        .data(nodes)
         .enter()
         .append("g")
-        .attr("class", "node")
-        .append("rect")
-        .attr("width", Config.glyphSize * 2)
-        .attr("height", Config.glyphSize * 2);
-
-
-
-    //Add female node glyphs
-    graph.selectAll(".node .female")
-        .data(nodes.filter(function (d) {
-            return d['sex'] == 'F';
-        }))
-        .enter()
-        .append("g")
-        .attr("class", "node")
-        .append("circle")
-        .attr("r", Config.glyphSize);
-
-
-    //Position and Color all Nodes
-    const allNodes = graph.selectAll(".node")
-        .attr("transform", (d)=> {
-            return "translate(" + this.xPOS(d) + "," + this.yPOS(d) + ")";
-        })
-        .style("fill", function (d:any) {
-            return (+d.affection == 100) ? "black" : "white";
-        })
-                    .attr('id', function(d) {
-                return d.id
-            })
-        // .style('stroke', function (d) {
-        //     return d.color
-        // })
-        .style("stroke-width", 3)
+        .attr('class','node');
         
         
-        //Add cross through lines for deceased people
+        
+    
+	//Add cross through lines for deceased people
     allNodes.filter(function (d:any) {
         return (+d.deceased == 1);
     })
@@ -278,6 +244,43 @@ class genealogyTree {
         })
         .attr("stroke-width", 3)
         .attr("stroke", "black");
+        
+        
+   allNodes.filter(function (d:any) {
+        return d['sex'] == 'M';
+    })  
+        .append("rect")
+        .classed('male',true)
+        .attr("width", Config.glyphSize * 2)
+        .attr("height", Config.glyphSize * 2);
+
+
+
+    //Add female node glyphs
+    allNodes.filter(function (d:any) {
+        return d['sex'] == 'F';
+    })
+        .append("circle")
+        .attr("r", Config.glyphSize);
+
+
+
+    //Position and Color all Nodes
+      allNodes
+        .attr("transform", (d)=> {console.log(d);
+            return "translate(" + this.xPOS(d) + "," + this.yPOS(d) + ")";
+        })
+        .style("fill", function (d:any) {
+            return (+d.affection == 100) ? "black" : "white";
+        })
+                    .attr('id', function(d) {
+                return d.id
+            })
+        .style("stroke-width", 3)
+
+        
+        
+
 
 
     graph.selectAll('g.node')

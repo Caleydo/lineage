@@ -1,0 +1,331 @@
+{
+  "file": "sampleData.csv",
+  "type": "table",
+  "id": "sampleData2o",
+  "name": "sampleData",
+  "description": "",
+  "creator": "Anonymous",
+  "ts": 1485932416914,
+  "fqname": "upload/sampleData",
+  "size": [
+    25,
+    16
+  ],
+  "separator" : ",t",
+  "idtype": "Custom",
+  "columns": [
+    {
+      "column": 0,
+      "name": "kindredID",
+      "value": {
+        "type": "string"
+      }
+    },
+    {
+      "column": 1,
+      "name": "egoSeqID",
+      "value": {
+        "type": "string"
+      }
+    },
+    {
+      "column": 2,
+      "name": "paSeqID",
+      "value": {
+        "type": "string"
+      }
+    },
+    {
+      "column": 3,
+      "name": "maSeqID",
+      "value": {
+        "type": "string"
+      }
+    },
+    {
+      "column": 4,
+      "name": "sex",
+      "value": {
+        "type": "categorical",
+        "categories": [
+          {
+            "name": "F",
+            "color": "#1f77b4"
+          },
+          {
+            "name": "M",
+            "color": "#ff7f0e"
+          }
+        ]
+      }
+    },
+    {
+      "column": 5,
+      "name": "deceased",
+      "value": {
+        "type": "int",
+        "range": [
+          0,
+          1
+        ]
+      }
+    },
+    {
+      "column": 6,
+      "name": "source",
+      "value": {
+        "type": "categorical",
+        "categories": [
+          {
+            "name": "UPDB",
+            "color": "#1f77b4"
+          }
+        ]
+      }
+    },
+    {
+      "column": 7,
+      "name": "egoUPDBID",
+      "value": {
+        "type": "string"
+      }
+    },
+    {
+      "column": 8,
+      "name": "paUPDBID",
+      "value": {
+        "type": "string"
+      }
+    },
+    {
+      "column": 9,
+      "name": "maUPDBID",
+      "value": {
+        "type": "string"
+      }
+    },
+    {
+      "column": 10,
+      "name": "affection",
+      "value": {
+        "type": "categorical",
+        "categories": [
+          {
+            "name": "1",
+            "color": "#1f77b4"
+          },
+          {
+            "name": "100",
+            "color": "#ff7f0e"
+          }
+        ]
+      }
+    },
+    {
+      "column": 11,
+      "name": "bdate",
+      "value": {
+        "type": "categorical",
+        "categories": [
+          {
+            "name": "1869",
+            "color": "#1f77b4"
+          },
+          {
+            "name": "1876",
+            "color": "#ff7f0e"
+          },
+          {
+            "name": "1897",
+            "color": "#2ca02c"
+          },
+          {
+            "name": "1898",
+            "color": "#d62728"
+          },
+          {
+            "name": "1899",
+            "color": "#9467bd"
+          },
+          {
+            "name": "1905",
+            "color": "#8c564b"
+          },
+          {
+            "name": "1909",
+            "color": "#e377c2"
+          },
+          {
+            "name": "1917",
+            "color": "#7f7f7f"
+          },
+          {
+            "name": "1922",
+            "color": "#bcbd22"
+          },
+          {
+            "name": "1924",
+            "color": "#17becf"
+          },
+          {
+            "name": "1926",
+            "color": "gray"
+          },
+          {
+            "name": "1938",
+            "color": "gray"
+          },
+          {
+            "name": "1941",
+            "color": "gray"
+          },
+          {
+            "name": "1942",
+            "color": "gray"
+          },
+          {
+            "name": "1945",
+            "color": "gray"
+          },
+          {
+            "name": "1949",
+            "color": "gray"
+          },
+          {
+            "name": "1954",
+            "color": "gray"
+          },
+          {
+            "name": "1956",
+            "color": "gray"
+          },
+          {
+            "name": "1957",
+            "color": "gray"
+          },
+          {
+            "name": "1965",
+            "color": "gray"
+          },
+          {
+            "name": "1967",
+            "color": "gray"
+          },
+          {
+            "name": "1970",
+            "color": "gray"
+          },
+          {
+            "name": "1980",
+            "color": "gray"
+          }
+        ]
+      }
+    },
+    {
+      "column": 12,
+      "name": "ddate",
+      "value": {
+        "type": "categorical",
+        "categories": [
+          {
+            "name": "0",
+            "color": "#1f77b4"
+          },
+          {
+            "name": "1900",
+            "color": "#ff7f0e"
+          },
+          {
+            "name": "1948",
+            "color": "#2ca02c"
+          },
+          {
+            "name": "1950",
+            "color": "#d62728"
+          },
+          {
+            "name": "1961",
+            "color": "#9467bd"
+          },
+          {
+            "name": "1962",
+            "color": "#8c564b"
+          },
+          {
+            "name": "1965",
+            "color": "#e377c2"
+          },
+          {
+            "name": "1974",
+            "color": "#7f7f7f"
+          },
+          {
+            "name": "1980",
+            "color": "#bcbd22"
+          },
+          {
+            "name": "1985",
+            "color": "#17becf"
+          },
+          {
+            "name": "2000",
+            "color": "gray"
+          },
+          {
+            "name": "2002",
+            "color": "gray"
+          },
+          {
+            "name": "2003",
+            "color": "gray"
+          },
+          {
+            "name": "2010",
+            "color": "gray"
+          },
+          {
+            "name": "2011",
+            "color": "gray"
+          },
+          {
+            "name": "2013",
+            "color": "gray"
+          }
+        ]
+      }
+    },
+    {
+      "column": 13,
+      "name": "OMEID",
+      "value": {
+        "type": "string"
+      }
+    },
+    {
+      "column": 14,
+      "name": "LabID",
+      "value": {
+        "type": "string"
+      }
+    },
+    {
+      "column": 15,
+      "name": "marryin",
+      "value": {
+        "type": "categorical",
+        "categories": [
+          {
+            "name": "",
+            "color": "#1f77b4"
+          },
+          {
+            "name": "sp",
+            "color": "#ff7f0e"
+          }
+        ]
+      }
+    }
+  ],
+  "idcolumn": "_index"
+}

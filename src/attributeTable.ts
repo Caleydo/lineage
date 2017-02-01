@@ -72,8 +72,39 @@ class attributeTable {
       .attr('class', 'row')
       .attr("transform", function (d, i) {
         return ('translate(0, ' + y(d['y'])+ ' )')
-      });
+      })//;
+     //.attr("transform", function(d, i) { return "scale(0," + i * 20 + ")"; })
+     .on('click', function(d) {
+         console.log(d)
+     });
 
+
+     const ageCell = rows
+         .append("rect")
+         .attr("class", "ageCell")
+         .attr("width", function (d) {
+           if(d.ddate - d.bdate > 0)
+              return d.ddate - d.bdate;
+           else
+              return 30;  // TODO
+         })
+         .attr("height", Config.glyphSize * 2.5)
+         .attr('fill', 'grey')
+         .attr("transform", function (d, i) {
+           return ('translate(40 )')
+         });
+
+
+     const genderCell = rows
+         .append("rect")
+         .attr("class", "ageCell")
+         .attr("width", 40) //Config.glyphSize * 10)
+         .attr("height", Config.glyphSize * 2.5)
+         .attr('fill', function (d) {
+           return d.sex == 'F' ? 'pink' : 'steelblue';
+         });
+
+/*
     rows
     // .select('.cell')
     //   .data(function (d) {
@@ -85,13 +116,20 @@ class attributeTable {
       //   return ('cell_' + d.key) //or d.value
       // })
       .attr("width", Config.glyphSize * 10)
+      //  function (d) {
+      //   return d.id/1000+14;
+      // })
       .attr("height", Config.glyphSize * 2.5)
-      .attr('stroke', 'black')
+      .attr('stroke', 'grey')
       .attr('stroke-width', 3)
-      .attr('fill', 'none')
+      .attr('fill', 'none');
       // .attr("transform", function (d, i) {
       //   return ('translate(' + (Config.glyphSize * (3 * i)) + ' , 0)')
       // });
+
+*/
+
+
 
   }
 
@@ -103,13 +141,13 @@ class attributeTable {
         return (!select(this).classed('selected') && select(this).attr('id') === 'row_' + item);
       });
     });
-    
+
         //Set listener for hover off event on corresponding node that changes the color back to black
     events.on('node_hover_off', (evt, item)=> {
       selectAll('.row').classed('selected',false);
     });
-    
-    
+
+
   }
 
 }

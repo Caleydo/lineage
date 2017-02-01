@@ -1,8 +1,10 @@
 import * as events from 'phovea_core/src/event';
 import {AppConstants, ChangeTypes} from './app_constants';
-// import * as d3 from 'd3';
-
+import datasets, {IDataSetSpec} from './data/datasets';
+import {csv} from 'd3-request';
+//import {dsv} from 'd3-request';
 import {select, selectAll} from 'd3-selection';
+import {keys} from 'd3-collection';
 
 import {Config} from './config';
 
@@ -12,6 +14,8 @@ import {Config} from './config';
 class attributePanel {
 
   private $node;
+
+  public data = [];
 
   constructor(parent:Element) {
     this.$node = select(parent)
@@ -38,47 +42,83 @@ class attributePanel {
    * Build the basic DOM elements and binds the change function
    */
   private build() {
-    // menu container container
+
+     // menu container container
     const menu_list = this.$node.append('div')
       .classed('menu-list', true);
     // list that holds filter items
     const menu_content = menu_list.append('ul')
       .attr('id', 'menu-content')
-      .classed('menu-content collapse in',true);
-
-    //adding an item to teh list
-    let item1 = menu_content.append('li')
-      .classed('collapsed active', true)
-      .attr('data-target','#sublist')
-      .attr('data-toggle','collapse')
-      .append('a').attr('href','#')
-      .html('<i><img src=\"http://megaicons.net/static/img/icons_sizes/8/178/512/charts-genealogy-icon.png\" alt=\"\"></i>')
-      .append('strong').html('Filter 1')
-      .append('span')
-      .classed('arrow',true);
+      .classed('menu-content collapse in', true);
 
 
-    //adding sub items to item1 notice that data-target should match
-    let sublist = menu_content.append('ul')
+    this.loadData();
+    this.populateData();
+
+
+  }
+
+  /**
+   * load data into attribute panel
+   */
+  private loadData() {
+
+    const data_desc = datasets[0].desc;
+    const data_url = datasets[0].url;
+    let headers = []
+
+    csv(data_url, (_data) => {
+      //"personid", "byr", "sex", "Archivepersonid", "OMEID", "LabID", "FirstBMI", "FirstBMIYr", "MaxBMI", "MaxBMIYr"]
+      headers = keys(_data[0])
+      _data.forEach( (d, i) => {
+        d.FirstBMI = +d['FirstBMI']
+        d.MaxBMI = +d['MaxBMI']
+        this.data.push(d);
+      })
+       headers.forEach((h)=> {
+       this.addHeader(h)
+     })
+    })
+  }
+
+
+  private addHeader(header) {
+        //append the header as a menu option
+        select('#menu-content').append('li')
+          .classed('collapsed active', true)
+          .attr('data-target', '#' + header)
+          .attr('data-toggle', 'collapse')
+          .append('a').attr('href', '#')
+          .html('<i><img src=\"http://megaicons.net/static/img/icons_sizes/8/178/512/charts-genealogy-icon.png\" alt=\"\"></i>')
+          .append('strong').html(header)
+          .append('span')
+          .classed('arrow', true);
+
+    // adding collapsible svg for each header
+    select('#menu-content').append('ul')
       .classed('sub-menu collapse fade',true)
-      .attr('id', 'sublist')
+      .attr('id', header)
 
-    sublist.append('li').attr('class','active').append('a').attr('href','#').html('sub item 1');
-    sublist.append('li').append('a').attr('href','#').html('sub item 2');
-    sublist.append('li').append('a').attr('href','#').html('sub item 3');
-
-    let item2 = menu_content.append('li')
-      .classed('collapsed active', true)
-      .attr('data-target','#sublist')
-      .attr('data-toggle','collapse')
-      .append('a').attr('href','#')
-      .html('<i><img src=\"http://megaicons.net/static/img/icons_sizes/8/178/512/charts-genealogy-icon.png\" alt=\"\"></i>')
-      .append('strong').html('Filter 2')
-      .append('span')
-      .classed('arrow',true);
+    select('#'+header).append('li')
+      .attr('class','active')
+      .append('svg');
 
 
+  }
 
+  private populateData(){
+    let svg = selectAll("svg");
+    let selection = svg.selectAll("rect").data([127, 61, 256])
+      .enter().append("rect")
+                .attr("x", 0)
+                .attr("y", function (d, i) {
+                    return i * 90 + 50
+                })
+                .attr("width", function (d, i) {
+                    return d;
+                })
+                .attr("height", 20)
+                .style("fill", "steelblue");
 
 
   }

@@ -46,6 +46,18 @@
 	stroke:none
 }
 
+.node text{
+	pointer-events: none;
+}
+
+.node:hover .male,
+.node:hover .female,
+  {
+//     opacity: 0.5;
+    stroke:red;
+  }
+
+
 
 .edges{
     stroke:black;

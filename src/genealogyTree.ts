@@ -33,6 +33,9 @@ import {
     curveBasis,
     curveLinear
 } from 'd3-shape';
+import {
+    drag
+} from 'd3-drag';
 
 
 import * as genealogyData from './genealogyData'
@@ -259,6 +262,7 @@ class genealogyTree {
         return d['sex'] == 'F';
     })
         .append("circle")
+        .classed('female',true)
         .attr("r", Config.glyphSize);
 
 
@@ -275,10 +279,6 @@ class genealogyTree {
                 return d.id
             })
         .style("stroke-width", 3)
-
-        
-        
-
 
 
     graph.selectAll('g.node')
@@ -302,22 +302,45 @@ class genealogyTree {
             return (+d.affection == 100) ? "white" : "black";
         })
         .attr('stroke', 'none');
-
         
         
 /*
-        .on("click",function(d){
-            if(!d3.select(this).classed('selected')){
-                edges.classed('selected',false);
-                allNodes.classed('selected',false);
-                highlightPath(d)
-            }
-            else {
-                edges.classed('selected', false);
-                allNodes.classed('selected', false);
-            }
-        });
+        allNodes.call(drag()
+      .on("start",started)
+      .on("drag", dragged)
+      .on("end",ended));
+      
+      
+          let startYPos;
+
+    private started(d) {
+      //const node = d3.select(this).data()[0];
+      startYPos = this.y.invert(mouse(<any>select('.genealogyTree').node())[1]);
+
+    }
+
+    private ended(d) {
+      //const node = d3.select(this).data()[0];
+      const ypos2 = this.y.invert(mouse(<any>select('.genealogyTree').node())[1]);
+      console.log('started dragging at position ', Math.round(startYPos));
+      console.log('ended dragging at position ', Math.round(ypos2));
+      // events.fire('node_dragged', [Math.round(startYPos),Math.round(ypos2)]);
+      this.data.aggregateNodes(Math.round(startYPos), Math.round(ypos2))
+
+    
+
+    private dragged(d) {
+      const node:any = select(this).data()[0];
+      node.y = this.y.invert(mouse(<any>select('.genealogyTree').node())[1]);
+      //currentY = Math.round(y.invert(d3.mouse(d3.select('#graph').node())[1]));
+
+      select(this).attr("transform", function (d, i) {
+        return "translate(0," + this.y(Math.round(node.y)) + ")";
+      });
+    }
 */
+
+       
 
     }
 

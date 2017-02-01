@@ -116,17 +116,15 @@ class genealogyTree {
 
         // Scales
         this.x.range([0, this.width]).domain([min(nodes, function(d) {
-            return d['bdate']
+            return +d['bdate']
         }), max(nodes, function(d) {
-            return d['bdate']
+            return +d['ddate']
         }) + 20]);
         this.y.range([0, this.height]).domain([min(nodes, function(d) {
             return d['y']
         }), max(nodes, function(d) {
             return d['y']
         })])
-        
-        console.log(this.y.domain())
 
         this.interGenerationScale.range([.75, .25]).domain([2, nodes.length]);
 
@@ -174,53 +172,123 @@ class genealogyTree {
                 return this.parentEdge(d, this.lineFunction)
             })
 
+//Add life line groups
+    const lifeRects = graph.selectAll(".lifeSpan")
+        .data(nodes)
+        .enter()
+        .append("g")
+        .attr('class', 'lifeRect')
+        .attr("transform",  (d:any) => {
+            return d.sex == 'M' ? "translate(" + (this.x(d['bdate'])) + "," + this.y(d['y']) + ")" : "translate(" + (this.x(d['bdate'])) + "," + (this.y(d['y']) - Config.glyphSize) + ")";
+        });
+
+    //Add actual life lines
+    lifeRects.filter(function (d:any) {
+        return (+d.deceased == 1);
+    })
+        .append("rect")
+        .attr('y', Config.glyphSize)
+        .attr("width",  (d)=> {
+            return Math.abs(this.x(d['ddate']) - this.x(d['bdate']));
+        })
+        .attr("height", Config.glyphSize / 4)
+        .style('fill',  (d:any)=> {
+            return (+d.affection == 100) ? "black" : "#e0dede";
+        })
+        .style('opacity', .8);
+
+/*
+    //Add label to lifelines
+    lifeRects
+        .append("text")
+        // .attr("y", glyphSize )
+        .attr("dy", glyphSize * 0.8)
+        .attr("dx", function (d) {
+            return Math.abs(x(d['ddate']) - x(d['bdate']));
+        })
+        .attr("text-anchor", 'end')
+        .text(function (d) {
+            return Math.abs(+d['ddate'] - +d['bdate']);
+        })
+        .attr('fill', function (d:any) {
+            return (+d.affection == 100) ? "black" : "#e0dede";
+        })
+        .style('font-size', glyphSize * 1.8)
+        .style('font-weight','bold');
+            
+*/
+            
+                //Add Male Node Glyphs
+    graph.selectAll(".node .male")
+        .data(nodes.filter(function (d) {
+            return d['sex'] == 'M';
+        }))
+        .enter()
+        .append("g")
+        .attr("class", "node")
+        .append("rect")
+        .attr("width", Config.glyphSize * 2)
+        .attr("height", Config.glyphSize * 2);
 
 
-        let nodeGroups = graph.selectAll(".node")
-            .data(nodes)
-            .enter()
-            .append("g")
-            .attr('class', 'nodeGroup')
-            .attr("transform", d => {
-                return ('translate(' + this.x(+d['x']) + ',' + this.y(+d['y']) + ' )')
-            });
+
+    //Add female node glyphs
+    graph.selectAll(".node .female")
+        .data(nodes.filter(function (d) {
+            return d['sex'] == 'F';
+        }))
+        .enter()
+        .append("g")
+        .attr("class", "node")
+        .append("circle")
+        .attr("r", Config.glyphSize);
 
 
-        //Add life line groups
-        const lifeRects = nodeGroups
-            .append("g")
-            .attr('class', 'lifeRect')
-
-        //Add actual life lines
-        lifeRects
-            .append("rect")
-            .attr('y', Config.glyphSize)
-            .attr("width", d => {
-                return (max(this.x.range()) - this.x(d['bdate']))
-            })
-            .attr("height", Config.glyphSize / 6)
-            .style('opacity', .3)
-            .attr("fill", 'black')
-            .attr("stroke", "steelblue")
-            .attr("stroke-linejoin", "round")
-            .attr("stroke-linecap", "round")
-            .attr("stroke-width", 1.5)
-        //       .attr('stroke-dasharray',5)
-
-        let nodeObjects = nodeGroups
-            .append("rect")
-            .attr('class', 'node')
-            .attr("width", Config.glyphSize * 2)
-            .attr("height", Config.glyphSize * 2)
-            .attr('id', function(d) {
-                return d.id
-            })
-            .style("fill", (d)=> {return d.color})
-            .style("stroke-width", 3)
+    //Position and Color all Nodes
+    const allNodes = graph.selectAll(".node")
+        .attr("transform", (d)=> {
+            return "translate(" + this.xPOS(d) + "," + this.yPOS(d) + ")";
+        })
+        .style("fill", function (d:any) {
+            return (+d.affection == 1) ? "black" : "white";
+        })
+        // .style('stroke', function (d) {
+        //     return d.color
+        // })
+        .style("stroke-width", 3)
+/*
+        .on("click",function(d){
+            if(!d3.select(this).classed('selected')){
+                edges.classed('selected',false);
+                allNodes.classed('selected',false);
+                highlightPath(d)
+            }
+            else {
+                edges.classed('selected', false);
+                allNodes.classed('selected', false);
+            }
+        });
+*/
 
     }
 
     //End of Build Function
+    
+    private xPOS(node){
+    if (node['sex'] == 'F')
+            return this.x(node.x);
+    else
+            return this.x(node.x)-Config.glyphSize;
+}
+
+	private yPOS(node){
+    if (node['sex'] == 'F')
+            return this.y(node.y);
+    else
+        return this.y(node.y)-Config.glyphSize
+}
+
+
 
     private attachListener() {
 

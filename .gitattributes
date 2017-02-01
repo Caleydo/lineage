@@ -67,6 +67,7 @@
 # build config
 *.npmignore text
 *.bowerrc text
+Dockerfile text eof=LF
 
 # Heroku
 Procfile text

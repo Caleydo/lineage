@@ -12,7 +12,6 @@
     16
   ],
   "separator" : ",t",
-  //"primaryKey": "schoolname",
   "idtype": "Custom",
   "columns": [
     {

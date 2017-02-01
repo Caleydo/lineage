@@ -1,22 +1,44 @@
 /**
  * Created by Holger Stitz on 19.12.2016.
  */
-
 import * as events from 'phovea_core/src/event';
-import {AppConstants, ChangeTypes} from './app_constants';
+import {
+    AppConstants,
+    ChangeTypes
+} from './app_constants';
 // import * as d3 from 'd3';
 
-import {select, selectAll, mouse} from 'd3-selection';
-import {scaleLinear} from 'd3-scale';
-import {max, min} from 'd3-array';
-import {axisTop} from 'd3-axis';
-import {format} from 'd3-format';
-import {line} from 'd3-shape';
-import {curveBasis, curveLinear} from 'd3-shape';
+import {
+    select,
+    selectAll,
+    mouse
+} from 'd3-selection';
+import {
+    scaleLinear
+} from 'd3-scale';
+import {
+    max,
+    min
+} from 'd3-array';
+import {
+    axisTop
+} from 'd3-axis';
+import {
+    format
+} from 'd3-format';
+import {
+    line
+} from 'd3-shape';
+import {
+    curveBasis,
+    curveLinear
+} from 'd3-shape';
 
 
 import * as genealogyData from './genealogyData'
-import {Config} from './config';
+import {
+    Config
+} from './config';
 
 
 
@@ -26,251 +48,226 @@ import {Config} from './config';
  */
 class genealogyTree {
 
-  private $node;
+    private $node;
 
-  private data;
+    private data;
 
-  private width;
+    private width;
 
-  private height;
+    private height;
 
-  private margin = {top: 60, right: 20, bottom: 60, left: 40};
+    private margin = {
+        top: 60,
+        right: 20,
+        bottom: 60,
+        left: 40
+    };
 
-  private x  = scaleLinear();
+    private x = scaleLinear();
 
-  private y = scaleLinear();
+    private y = scaleLinear();
 
-  private interGenerationScale = scaleLinear();
+    private interGenerationScale = scaleLinear();
 
+    private self;
 
-  constructor(parent:Element) {
-    this.$node = select(parent)
-    // .append('div')
-    // .classed('genealogyTree', true);
-  }
-
-  /**
-   * Initialize the view and return a promise
-   * that is resolved as soon the view is completely initialized.
-   * @returns {Promise<FilterBar>}
-   */
-  init(data) {
-    this.data = data;
-    this.build();
-    this.attachListener();
-
-    // return the promise directly as long there is no dynamical data to update
-    return Promise.resolve(this);
-  }
+    private lineFunction = line < any > ()
+        .x((d: any) => {
+            return this.x(d.x);
+        }).y((d: any) => {
+            return this.y(d.y);
+        })
+        .curve(curveBasis);
 
 
-  /**
-   * Build the basic DOM elements and binds the change function
-   */
-  private build() {
+    constructor(parent: Element) {
+        this.$node = select(parent)
+        this.self = this;
+        // .append('div')
+        // .classed('genealogyTree', true);
+    }
 
-    let nodes = this.data.data; //.nodes;
-    // let edges = this.data.relationshipEdges;
-    // let parentEdges = this.data.relationshipNodes;
+    /**
+     * Initialize the view and return a promise
+     * that is resolved as soon the view is completely initialized.
+     * @returns {Promise<FilterBar>}
+     */
+    init(data) {
+        this.data = data;
+        this.build();
+        this.attachListener();
 
-    this.width = 600 - this.margin.left - this.margin.right
-    this.height = Config.glyphSize * 3 * nodes.length - this.margin.top - this.margin.bottom;
-
-    // Scales
-    this.x.range([0, this.width]).domain([min(nodes, function (d) {
-      return d['bdate']
-    }), max(nodes, function (d) {
-      return d['bdate']
-    }) + 20]);
-    this.y.range([0, this.height]).domain([min(nodes, function (d) {
-      return d['y']
-    }), max(nodes, function (d) {
-      return d['y']
-    })])
-
-    this.interGenerationScale.range([.75, .25]).domain([2, nodes.length]);
+        // return the promise directly as long there is no dynamical data to update
+        return Promise.resolve(this);
+    }
 
 
-    const svg = this.$node.append('svg')
-      .attr("width", this.width + this.margin.left + this.margin.right)
-      .attr("height", this.height + this.margin.top + this.margin.bottom)
+    /**
+     * Build the basic DOM elements and binds the change function
+     */
+    private build() {
 
-    //append axis
-    svg.append("g")
-      .attr("transform", "translate(" + this.margin.left + "," + this.margin.top / 1.5 + ")")
-      .call(axisTop(this.x).tickFormat(format("d")));
+        let nodes = this.data.nodes; //.nodes;
+        let edges = this.data.parentChildEdges;
+        let parentEdges = this.data.parentParentEdges;
 
+        this.width = 600 - this.margin.left - this.margin.right
+        this.height = Config.glyphSize * 3 * nodes.length - this.margin.top - this.margin.bottom;
 
-    const graph = svg.append("g")
-      .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
+        // Scales
+        this.x.range([0, this.width]).domain([min(nodes, function(d) {
+            return d['bdate']
+        }), max(nodes, function(d) {
+            return d['bdate']
+        }) + 20]);
+        this.y.range([0, this.height]).domain([min(nodes, function(d) {
+            return d['y']
+        }), max(nodes, function(d) {
+            return d['y']
+        })])
+        
+        console.log(this.y.domain())
 
-    // const edgePaths = graph.selectAll(".edges")
-    //   .data(edges)
-    //   .enter().append("path")
-    //   .attr("class", "edges")
-    //   // .style("stroke", function (d) {
-    //   //     return d.color
-    //   // })
-    //   // .style("fill", 'none')
-    //   .attr("d", this.elbow)
-    //   .attr("stroke-width", 3)
-    //   .on('click', function (d) {
-    //     console.log(d)
-    //   });
-    //
-    //
-    // const parentEdgePaths = graph.selectAll(".parentEdges")
-    //   .data(parentEdges)
-    //   .enter().append("path")
-    //   .attr("class", "parentEdges")
-    //   // .style("stroke", function (d) {
-    //   //     return d.color
-    //   // })
-    //   .style("stroke-width", 4)
-    //   .style("fill", 'none')
-    //   .attr("d", this.parentEdge);
+        this.interGenerationScale.range([.75, .25]).domain([2, nodes.length]);
 
 
-    let nodeGroups = graph.selectAll(".node")
-      .data(nodes)
-      .enter()
-      .append("g")
-      .attr('class', 'nodeGroup')
-      .attr("transform", d=> {
-        return ('translate(' + this.x(+d['x']) + ',' + this.y(+d['y']) + ' )')
-      });
+        const svg = this.$node.append('svg')
+            .attr("width", this.width + this.margin.left + this.margin.right)
+            .attr("height", this.height + this.margin.top + this.margin.bottom)
+
+        //append axis
+        svg.append("g")
+            .attr("transform", "translate(" + this.margin.left + "," + this.margin.top / 1.5 + ")")
+            .call(axisTop(this.x).tickFormat(format("d")));
 
 
-    //Add life line groups
-    const lifeRects = nodeGroups
-      .append("g")
-      .attr('class', 'lifeRect')
-      
-    //Add actual life lines
-    lifeRects
-      .append("rect")
-      .attr('y', Config.glyphSize)
-      .attr("width", d=> {
-        return (max(this.x.range()) - this.x(d['bdate']))
-      })
-      .attr("height", Config.glyphSize/6)
-      .style('opacity', .3)
-      .attr("fill", "black")
-      .attr("stroke", "steelblue")
-      .attr("stroke-linejoin", "round")
-      .attr("stroke-linecap", "round")
-      .attr("stroke-width", 1.5)
-//       .attr('stroke-dasharray',5)
-      
-      let nodeObjects = nodeGroups
-      .append("rect")
-      .attr('class', 'node')
-      .attr("width", Config.glyphSize * 2)
-      .attr("height", Config.glyphSize * 2)
-      .attr('id', function (d) {
-        return d.id
-      })
-      .style("fill", 'white')
-      .style("stroke-width", 3)
+        const graph = svg.append("g")
+            .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
 
-    // nodes.call(d3.drag()
-    //   .on("start",started)
-    //   .on("drag", dragged)
-    //   .on("end",ended));
+        const edgePaths = graph.selectAll(".edges")
+            .data(edges)
+            .enter().append("path")
+            .attr("class", "edges")
+            // .style("stroke", function (d) {
+            //     return d.color
+            // })
+            // .style("fill", 'none')
+            .attr("d", (d) => {
+                return this.elbow(d, this.interGenerationScale, this.lineFunction)
+            })
+            .attr("stroke-width", 3)
+            .on('click', function(d) {
+                console.log(d)
+            });
 
 
-    let startYPos;
+        const parentEdgePaths = graph.selectAll(".parentEdges")
+            .data(parentEdges)
+            .enter().append("path")
+            .attr("class", "parentEdges")
+            // .style("stroke", function (d) {
+            //     return d.color
+            // })
+            .style("stroke-width", 4)
+            .style("fill", 'none')
+            .attr("d", (d) => {
+                return this.parentEdge(d, this.lineFunction)
+            })
 
-    function started(d) {
-      //const node = d3.select(this).data()[0];
-      startYPos = this.y.invert(mouse(<any>select('.genealogyTree').node())[1]);
+
+
+        let nodeGroups = graph.selectAll(".node")
+            .data(nodes)
+            .enter()
+            .append("g")
+            .attr('class', 'nodeGroup')
+            .attr("transform", d => {
+                return ('translate(' + this.x(+d['x']) + ',' + this.y(+d['y']) + ' )')
+            });
+
+
+        //Add life line groups
+        const lifeRects = nodeGroups
+            .append("g")
+            .attr('class', 'lifeRect')
+
+        //Add actual life lines
+        lifeRects
+            .append("rect")
+            .attr('y', Config.glyphSize)
+            .attr("width", d => {
+                return (max(this.x.range()) - this.x(d['bdate']))
+            })
+            .attr("height", Config.glyphSize / 6)
+            .style('opacity', .3)
+            .attr("fill", 'black')
+            .attr("stroke", "steelblue")
+            .attr("stroke-linejoin", "round")
+            .attr("stroke-linecap", "round")
+            .attr("stroke-width", 1.5)
+        //       .attr('stroke-dasharray',5)
+
+        let nodeObjects = nodeGroups
+            .append("rect")
+            .attr('class', 'node')
+            .attr("width", Config.glyphSize * 2)
+            .attr("height", Config.glyphSize * 2)
+            .attr('id', function(d) {
+                return d.id
+            })
+            .style("fill", (d)=> {return d.color})
+            .style("stroke-width", 3)
 
     }
 
-    function ended(d) {
-      //const node = d3.select(this).data()[0];
-      const ypos2 = this.y.invert(mouse(<any>select('.genealogyTree').node())[1]);
-      console.log('started dragging at position ', Math.round(startYPos));
-      console.log('ended dragging at position ', Math.round(ypos2));
-      // events.fire('node_dragged', [Math.round(startYPos),Math.round(ypos2)]);
-      this.data.aggregateNodes(Math.round(startYPos), Math.round(ypos2))
+    //End of Build Function
 
+    private attachListener() {
+
+        //Fire Event when first rect is clicked
+        this.$node.selectAll('.node')
+            .on('click', function(e) {
+                events.fire('node_clicked', select(this).attr('id'));
+            });
     }
 
-    function dragged(d) {
-      const node:any = select(this).data()[0];
-      node.y = this.y.invert(mouse(<any>select('.genealogyTree').node())[1]);
-      //currentY = Math.round(y.invert(d3.mouse(d3.select('#graph').node())[1]));
+    private elbow(d, interGenerationScale, lineFunction) {
+        const xdiff = d.source.x - d.target.x;
+        const ydiff = d.source.y - d.target.y;
+        const nx = d.source.x - xdiff * interGenerationScale(ydiff);
 
-      select(this).attr("transform", function (d, i) {
-        return "translate(0," + this.y(Math.round(node.y)) + ")";
-      });
+        const linedata = [{
+            x: d.source.x,
+            y: d.source.y
+        }, {
+            x: nx,
+            y: d.source.y
+        }, {
+            x: nx,
+            y: d.target.y
+        }, {
+            x: d.target.x,
+            y: d.target.y
+        }];
+
+        if (Config.curvedLines)
+            lineFunction.curve(curveBasis);
+        else
+            lineFunction.curve(curveLinear);
+
+        return lineFunction(linedata);
     }
 
-  }
-
-  private attachListener() {
-
-    //Fire Event when first rect is clicked
-    this.$node.selectAll('.node')
-      .on('click', function (e) {
-        events.fire('node_clicked', select(this).attr('id'));
-      });
-
-
-    //Set listener for click event that changes the color of the rect to red
-    //events.on('node_clicked',(evt,item)=> {d3.select(item).attr('fill','red')});
-  }
-
-  private  lineFunction = line<any>()
-    .x(function (d:any) {
-        return this.x(d.x);
-    }).y(function (d:any) {
-        return this.y(d.y);
-    });
-
-
-  private elbow(d) {
-    const xdiff = d.source.x - d.target.x;
-    const ydiff = d.source.y - d.target.y;
-    const nx = d.source.x - xdiff * this.interGenerationScale(ydiff);
-
-    const linedata = [{
-      x: d.source.x,
-      y: d.source.y
-    }, {
-      x: nx,
-      y: d.source.y
-    }, {
-      x: nx,
-      y: d.target.y
-    }, {
-      x: d.target.x,
-      y: d.target.y
-    }];
-
-    if (Config.curvedLines)
-      this.lineFunction.curve(curveBasis);
-    else
-      this.lineFunction.curve(curveLinear);
-
-    return this.lineFunction(linedata);
-  }
-
-  private parentEdge(d) {
-
-    const linedata = [{
-      x: d.x1,
-      y: d.y1
-    }, {
-      x: d.x2,
-      y: d.y2
-    }];
-
-    return this.lineFunction(linedata);
-  }
-
-
+    private parentEdge(d, lineFunction) {
+        const linedata = [{
+            x: d.x1,
+            y: d.y1
+        }, {
+            x: d.x2,
+            y: d.y2
+        }];
+        return lineFunction(linedata);
+    }
 }
 
 /**
@@ -279,6 +276,6 @@ class genealogyTree {
  * @param options
  * @returns {genealogyTree}
  */
-export function create(parent:Element) {
-  return new genealogyTree(parent);
+export function create(parent: Element) {
+    return new genealogyTree(parent);
 }

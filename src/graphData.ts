@@ -7,34 +7,74 @@
  */
 class graphData {
 
-  public data;
+  public nodes;
+  
+  private uniqueID;
+  
+  public parentChildEdges =[];
+  
+  public parentParentEdges = [];
   
 
 
   constructor(data) {
 
-    this.data = data;
+    this.nodes = data;
+    
+    this.uniqueID =[]; 
     //Initially set all nodes to visible and of type 'single' (vs aggregate)
-    this.data.forEach(function(d)
+    this.nodes.forEach(d=>
     {
       // d['index'] = d.id;
       d['type']  = 'single';
       d['visible']=true;
       d['bdate']=+d['bdate'];
+      d['color']= +d['affection'] == 1 ? 'black' : 'white'
+      
+      this.uniqueID.push(+d['egoUPDBID']);
 
     });
-  }
-
-
-  /**
-   * Restores the order of the nodes to the original sorting
+    
+    this.createEdges();
+  }  
+    /**
+   * Compute Parent/Children edges and Parent-Parent Edges
    */
-  private restoreOrder() {
-    this.data.forEach(function(d)
-    {
-      d['index'] = d.id;
+  private createEdges() {
+
+//Create relationship nodes
+    this.nodes.forEach(node=>{
+        const maID = this.uniqueID.indexOf(node['ma']);
+        const paID = this.uniqueID.indexOf(node['pa']);
+
+// 		console.log(maID, paID)
+        if (maID >-1 && paID >-1){
+
+            const rnode={
+                'x':(this.nodes[maID].x + this.nodes[paID].x)/2,
+                'y':(this.nodes[maID].y + this.nodes[paID].y)/2,
+                'y1':this.nodes[maID].y,
+                'y2':this.nodes[paID].y,
+                'x1':this.nodes[maID].x,
+                'x2':this.nodes[paID].x,
+                'color':this.nodes[maID].color,
+                'type':'parent'
+            };
+			
+// 			console.log(rnode)
+            this.parentParentEdges.push(rnode);
+            this.parentChildEdges.push({
+                source: rnode,
+                target: node,
+                'color':this.nodes[maID].color
+            });
+        }
     });
+
+
   }
+  
+  
 
   /**
    * Aggregates Nodes
@@ -42,7 +82,7 @@ class graphData {
   public aggregateNodes(ind1,ind2) {
     let collapseCols = ind2 - ind1 -1;
     let collapsed = [];
-    this.data.forEach(function(d)
+    this.nodes.forEach(function(d)
     {
       if (d.id <= ind2 && d.id >=ind1){
         d['visible'] = 'false';
@@ -60,7 +100,7 @@ class graphData {
       'dob':undefined
     }
 
-    this.data.push(aggregateNode)
+    this.nodes.push(aggregateNode)
 
     aggregateNode['index'] = ind1;
     aggregateNode['collapsed'] = collapsed;

@@ -53,6 +53,7 @@ class attributePanel {
 
 
     this.loadData();
+    this.populateData();
 
 
   }
@@ -105,67 +106,22 @@ class attributePanel {
 
   }
 
-/*
-    //adding an item to teh list
-    let item1 = menu_content.append('li')
-      .classed('collapsed active', true)
-      .attr('data-target','#sublist')
-      .attr('data-toggle','collapse')
-      .append('a').attr('href','#')
-      .html('<i><img src=\"http://megaicons.net/static/img/icons_sizes/8/178/512/charts-genealogy-icon.png\" alt=\"\"></i>')
-      .append('strong').html('Filter 1')
-      .append('span')
-      .classed('arrow',true);
+  private populateData(){
+    let svg = selectAll("svg");
+    let selection = svg.selectAll("rect").data([127, 61, 256])
+      .enter().append("rect")
+                .attr("x", 0)
+                .attr("y", function (d, i) {
+                    return i * 90 + 50
+                })
+                .attr("width", function (d, i) {
+                    return d;
+                })
+                .attr("height", 20)
+                .style("fill", "steelblue");
 
-
-    //adding sub items to item1 notice that data-target should match
-    let sublist = menu_content.append('ul')
-      .classed('sub-menu collapse fade',true)
-      .attr('id', 'sublist')
-
-    sublist.append('li').attr('class','active').append('svg');
-    sublist.append('li').append('a').attr('href','#').html('sub item 2');
-    sublist.append('li').append('a').attr('href','#').html('sub item 3');
-
-    let item2 = menu_content.append('li')
-      .classed('collapsed active', true)
-      .attr('data-target','#sublist')
-      .attr('data-toggle','collapse')
-      .append('a').attr('href','#')
-      .html('<i><img src=\"http://megaicons.net/static/img/icons_sizes/8/178/512/charts-genealogy-icon.png\" alt=\"\"></i>')
-      .append('strong').html('Filter 2')
-      .append('span')
-      .classed('arrow',true);
 
   }
-
-/*
-    const loadDataset = (dataset: IDataSetSpec) => {
-    const desc = dataset.desc;
-    const file = dataset.url;
-    //setBusy(true);
-    d3.dsv(desc.separator || ',', 'text/plain')(file, (_data) => {
-      console.log(dataset.name)
-      console.log(_data)
-      //lineup = initLineup(dataset.name, desc, _data, lineup);
-      //setBusy(false);
-    });
-  };
-
-  {
-    let base = <HTMLElement>document.querySelector('#menu-content');
-    datasets.forEach((d) => {
-      const li = document.createElement('li');
-      li.innerHTML = `<a href="#${d.id}">${d.name}</a>`;
-      li.firstElementChild.addEventListener('click', (event) => {
-        loadDataset(d);
-      });
-      base.appendChild(li);
-    });
-  }
-
-  */
-
 
   private attachListener() {
 

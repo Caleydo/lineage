@@ -14,4 +14,4 @@ import 'phovea_core/phovea_registry.js';
 import 'phovea_ui/phovea_registry.js';
 import 'phovea_clue/phovea_registry.js';
 //self
-register('genealogy_vis',require('./phovea.js'));
+register('lineage',require('./phovea.js'));

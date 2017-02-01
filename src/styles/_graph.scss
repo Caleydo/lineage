@@ -35,10 +35,17 @@
     /*fill:none*/
 }
 
-.node{
+.node rect, 
+.node circle {
     stroke:black;
     stroke-width: 3px;
 }
+
+.node .lifeRect rect
+{
+	stroke:none
+}
+
 
 .edges{
     stroke:black;
@@ -60,4 +67,11 @@
 
 #app{
   display: flex;
+}
+
+.node a{
+visibility:hidden;
+}
+.node:hover a {
+ visibility:visible;
 }

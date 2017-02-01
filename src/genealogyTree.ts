@@ -171,15 +171,19 @@ class genealogyTree {
             .attr("d", (d) => {
                 return this.parentEdge(d, this.lineFunction)
             })
-
-//Add life line groups
-    const lifeRects = graph.selectAll(".lifeSpan")
+            
+       let allNodes = graph.selectAll(".node")
         .data(nodes)
         .enter()
         .append("g")
+        .attr('class','node');
+
+
+//Add life line groups
+    const lifeRects = allNodes.append("g")
         .attr('class', 'lifeRect')
         .attr("transform",  (d:any) => {
-            return d.sex == 'M' ? "translate(" + (this.x(d['bdate'])) + "," + this.yPOS(d) + ")" : "translate(" + (this.x(d['bdate'])) + "," + (this.yPOS(d) - Config.glyphSize) + ")";
+            return d.sex == 'M' ? "translate(0,0)" : "translate(0," + (- Config.glyphSize) + ")";
         });
 
     //Add actual life lines
@@ -195,7 +199,8 @@ class genealogyTree {
         .style('fill',  (d:any)=> {
             return (+d.affection == 100) ? "black" : "#e0dede";
         })
-        .style('opacity', .8);
+        .style('opacity', .8)
+//         .style('stroke','none')
 
     //Add label to lifelines
     lifeRects
@@ -215,13 +220,6 @@ class genealogyTree {
         .style('font-size', Config.glyphSize * 1.5)
         .style('font-weight','bold');
             
-        
-        let allNodes = graph.selectAll(".node")
-        .data(nodes)
-        .enter()
-        .append("g")
-        .attr('class','node');
-        
         
         
     

@@ -1,8 +1,10 @@
 import * as events from 'phovea_core/src/event';
 import {AppConstants, ChangeTypes} from './app_constants';
 import datasets, {IDataSetSpec} from './data/datasets';
-import {csv,dsv} from 'd3-request';
+import {csv} from 'd3-request';
+//import {dsv} from 'd3-request';
 import {select, selectAll} from 'd3-selection';
+import {keys} from 'd3-collection';
 
 import {Config} from './config';
 
@@ -12,6 +14,8 @@ import {Config} from './config';
 class attributePanel {
 
   private $node;
+
+  public data = [];
 
   constructor(parent:Element) {
     this.$node = select(parent)
@@ -26,11 +30,7 @@ class attributePanel {
    */
   init() {
 
-    console.log('Hi attribute panel')
-    console.log(datasets)
-
     this.build();
-    this.loadData();
     this.attachListener();
 
     // return the promise directly as long there is no dynamical data to update
@@ -42,14 +42,70 @@ class attributePanel {
    * Build the basic DOM elements and binds the change function
    */
   private build() {
-    // menu container container
+
+     // menu container container
     const menu_list = this.$node.append('div')
       .classed('menu-list', true);
     // list that holds filter items
     const menu_content = menu_list.append('ul')
       .attr('id', 'menu-content')
-      .classed('menu-content collapse in',true);
+      .classed('menu-content collapse in', true);
 
+
+    this.loadData();
+
+
+  }
+
+  /**
+   * load data into attribute panel
+   */
+  private loadData() {
+
+    const data_desc = datasets[0].desc;
+    const data_url = datasets[0].url;
+    let headers = []
+
+    csv(data_url, (_data) => {
+      //"personid", "byr", "sex", "Archivepersonid", "OMEID", "LabID", "FirstBMI", "FirstBMIYr", "MaxBMI", "MaxBMIYr"]
+      headers = keys(_data[0])
+      _data.forEach( (d, i) => {
+        d.FirstBMI = +d['FirstBMI']
+        d.MaxBMI = +d['MaxBMI']
+        this.data.push(d);
+      })
+       headers.forEach((h)=> {
+       this.addHeader(h)
+     })
+    })
+  }
+
+
+  private addHeader(header) {
+        //append the header as a menu option
+        select('#menu-content').append('li')
+          .classed('collapsed active', true)
+          .attr('data-target', '#' + header)
+          .attr('data-toggle', 'collapse')
+          .append('a').attr('href', '#')
+          .html('<i><img src=\"http://megaicons.net/static/img/icons_sizes/8/178/512/charts-genealogy-icon.png\" alt=\"\"></i>')
+          .append('strong').html(header)
+          .append('span')
+          .classed('arrow', true);
+
+    // adding collapsible svg for each header
+    select('#menu-content').append('ul')
+      .classed('sub-menu collapse fade',true)
+      .attr('id', header)
+
+    select('#'+header).append('li')
+      .attr('class','active')
+      .append('svg');
+
+
+  }
+
+/*
     //adding an item to teh list
     let item1 = menu_content.append('li')
       .classed('collapsed active', true)
@@ -67,7 +123,7 @@ class attributePanel {
       .classed('sub-menu collapse fade',true)
       .attr('id', 'sublist')
 
-    sublist.append('li').attr('class','active').append('a').attr('href','#').html('sub item 1');
+    sublist.append('li').attr('class','active').append('svg');
     sublist.append('li').append('a').attr('href','#').html('sub item 2');
     sublist.append('li').append('a').attr('href','#').html('sub item 3');
 
@@ -81,23 +137,16 @@ class attributePanel {
       .append('span')
       .classed('arrow',true);
 
-
-
-
-
   }
 
-  /**
-   * load data into attribute panel
-   */
-  private loadData(){
-
+/*
     const loadDataset = (dataset: IDataSetSpec) => {
     const desc = dataset.desc;
     const file = dataset.url;
     //setBusy(true);
-    dsv(desc.separator || ',', 'text/plain')(file, (_data) => {
+    d3.dsv(desc.separator || ',', 'text/plain')(file, (_data) => {
       console.log(dataset.name)
+      console.log(_data)
       //lineup = initLineup(dataset.name, desc, _data, lineup);
       //setBusy(false);
     });
@@ -108,14 +157,15 @@ class attributePanel {
     datasets.forEach((d) => {
       const li = document.createElement('li');
       li.innerHTML = `<a href="#${d.id}">${d.name}</a>`;
-       loadDataset(d);
       li.firstElementChild.addEventListener('click', (event) => {
         loadDataset(d);
       });
       base.appendChild(li);
     });
   }
-  }
+
+  */
+
 
   private attachListener() {
 

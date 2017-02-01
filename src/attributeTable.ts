@@ -97,12 +97,19 @@ class attributeTable {
 
   private attachListener() {
 
-    //Set listener for click event on corresponding node that changes the color of that row to red
-    events.on('node_clicked', (evt, item)=> {
+    //Set listener for hover event on corresponding node that changes the color of that row to red
+    events.on('node_hover_on', (evt, item)=> {
       selectAll('.row').classed('selected', function (d) {
         return (!select(this).classed('selected') && select(this).attr('id') === 'row_' + item);
       });
     });
+    
+        //Set listener for hover off event on corresponding node that changes the color back to black
+    events.on('node_hover_off', (evt, item)=> {
+      selectAll('.row').classed('selected',false);
+    });
+    
+    
   }
 
 }

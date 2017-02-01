@@ -140,7 +140,7 @@ class genealogyTree {
 
 
         const graph = svg.append("g")
-            .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
+            .attr("transform", "translate(" + this.margin.left + "," + (this.margin.top + Config.glyphSize) + ")");
 
         const edgePaths = graph.selectAll(".edges")
             .data(edges)
@@ -212,7 +212,7 @@ class genealogyTree {
         .attr('fill', function (d:any) {
             return (+d.affection == 100) ? "black" : "#e0dede";
         })
-        .style('font-size', Config.glyphSize * 1.8)
+        .style('font-size', Config.glyphSize * 1.5)
         .style('font-weight','bold');
             
             
@@ -248,7 +248,7 @@ class genealogyTree {
             return "translate(" + this.xPOS(d) + "," + this.yPOS(d) + ")";
         })
         .style("fill", function (d:any) {
-            return (+d.affection == 1) ? "white" : "black";
+            return (+d.affection == 100) ? "black" : "white";
         })
                     .attr('id', function(d) {
                 return d.id
@@ -257,6 +257,53 @@ class genealogyTree {
         //     return d.color
         // })
         .style("stroke-width", 3)
+        
+        
+        //Add cross through lines for deceased people
+    allNodes.filter(function (d:any) {
+        return (+d.deceased == 1);
+    })
+        .append("line")
+        .attr("x1", function (d:any) {
+            return d.sex == 'F' ? -Config.glyphSize : -Config.glyphSize / 2;
+        })
+        .attr("y1", function (d:any) {
+            return d.sex == 'F' ? -Config.glyphSize : -Config.glyphSize / 2;
+        })
+        .attr("x2", function (d:any) {
+            return d.sex == 'F' ? Config.glyphSize : Config.glyphSize * 2.5;
+        })
+        .attr("y2", function (d:any) {
+            return d.sex == 'F' ? Config.glyphSize : Config.glyphSize * 2.5;
+        })
+        .attr("stroke-width", 3)
+        .attr("stroke", "black");
+
+
+    graph.selectAll('g.node')
+        .append('text')
+        .attr('class', 'ageLabel')
+        // .attr('visibility','hidden')
+        .text(function (d:any) {
+            if (+d.ddate > 0) {
+                return Math.abs(d['ddate'] - d['bdate']);
+            }
+            else
+                return Math.abs(2016 - d['bdate']);
+        })
+        .attr('dx', function (d) {
+            return d['sex'] == 'M' ? Config.glyphSize / 2 : -Config.glyphSize / 2;
+        })
+        .attr('dy', function (d) {
+            return d['sex'] == 'M' ? 1.5 * Config.glyphSize : Config.glyphSize / 2;
+        })
+        .attr('fill', function (d:any) {
+            return (+d.affection == 100) ? "white" : "black";
+        })
+        .attr('stroke', 'none');
+
+        
+        
 /*
         .on("click",function(d){
             if(!d3.select(this).classed('selected')){
@@ -295,8 +342,11 @@ class genealogyTree {
 
         //Fire Event when first rect is clicked
         this.$node.selectAll('.node')
-            .on('click', function(e) { 
-                events.fire('node_clicked', select(this).attr('id'));
+            .on('mouseover', function(e) { 
+                events.fire('node_hover_on', select(this).attr('id'));
+            })
+            .on('mouseout', function(e) { 
+                events.fire('node_hover_off', select(this).attr('id'));
             });
     }
 

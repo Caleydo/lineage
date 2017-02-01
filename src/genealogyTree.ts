@@ -69,6 +69,8 @@ class genealogyTree {
     private x = scaleLinear();
 
     private y = scaleLinear();
+    
+    private startYPos;
 
     private interGenerationScale = scaleLinear();
 
@@ -143,7 +145,9 @@ class genealogyTree {
 
 
         const graph = svg.append("g")
-            .attr("transform", "translate(" + this.margin.left + "," + (this.margin.top + Config.glyphSize) + ")");
+            .attr("transform", "translate(" + this.margin.left + "," + (this.margin.top + Config.glyphSize) + ")")
+            .classed('genealogyTree',true)
+            .attr('id','genealogyTree')
 
         const edgePaths = graph.selectAll(".edges")
             .data(edges)
@@ -179,7 +183,10 @@ class genealogyTree {
         .data(nodes)
         .enter()
         .append("g")
-        .attr('class','node');
+        .attr('class',(d)=>{return 'row_' + d['y']})
+        .classed('node','true')
+        
+       
 
 
 //Add life line groups
@@ -252,6 +259,7 @@ class genealogyTree {
     })  
         .append("rect")
         .classed('male',true)
+        .classed('nodeIcon',true)
         .attr("width", Config.glyphSize * 2)
         .attr("height", Config.glyphSize * 2);
 
@@ -263,21 +271,20 @@ class genealogyTree {
     })
         .append("circle")
         .classed('female',true)
+        .classed('nodeIcon',true)
         .attr("r", Config.glyphSize);
 
 
 
     //Position and Color all Nodes
       allNodes
-        .attr("transform", (d)=> {console.log(d);
+        .attr("transform", (d)=> {
             return "translate(" + this.xPOS(d) + "," + this.yPOS(d) + ")";
         })
         .style("fill", function (d:any) {
             return (+d.affection == 100) ? "black" : "white";
         })
-                    .attr('id', function(d) {
-                return d.id
-            })
+        .attr('id',(d)=> {return 'g_' + d['id']} )
         .style("stroke-width", 3)
 
 
@@ -304,48 +311,84 @@ class genealogyTree {
         .attr('stroke', 'none');
         
         
-/*
+
         allNodes.call(drag()
-      .on("start",started)
-      .on("drag", dragged)
-      .on("end",ended));
+      .on("start",(d)=>{
+	         this.startYPos = this.y.invert(mouse(<any>select('.genealogyTree').node())[1]);
+	         
+	         //Create phantom node
+	         const Node = document.getElementById('g_' + d['id'])
+	         const phantomNode = Node.cloneNode(true)
+	            
+	         phantomNode.setAttribute('class', 'phantom node');        
+
+	         document.getElementById('genealogyTree').appendChild(phantomNode)
+      })
+      .on("drag", (d)=>{
       
+      const node_group = select('#g_' + d['id']);    
+      const currentPos  = mouse(<any>select('.genealogyTree').node());
       
-          let startYPos;
-
-    private started(d) {
-      //const node = d3.select(this).data()[0];
-      startYPos = this.y.invert(mouse(<any>select('.genealogyTree').node())[1]);
-
-    }
-
-    private ended(d) {
-      //const node = d3.select(this).data()[0];
-      const ypos2 = this.y.invert(mouse(<any>select('.genealogyTree').node())[1]);
-      console.log('started dragging at position ', Math.round(startYPos));
-      console.log('ended dragging at position ', Math.round(ypos2));
-      // events.fire('node_dragged', [Math.round(startYPos),Math.round(ypos2)]);
-      this.data.aggregateNodes(Math.round(startYPos), Math.round(ypos2))
-
+      node_group.attr("transform", ()=> {
+        return "translate(" + this.xPOS(d) + "," + currentPos[1] + ")";
+      })
+      
+      //Check to see where the current i is
     
 
-    private dragged(d) {
-      const node:any = select(this).data()[0];
-      node.y = this.y.invert(mouse(<any>select('.genealogyTree').node())[1]);
-      //currentY = Math.round(y.invert(d3.mouse(d3.select('#graph').node())[1]));
-
-      select(this).attr("transform", function (d, i) {
-        return "translate(0," + this.y(Math.round(node.y)) + ")";
-      });
+ })
+      .on("end",(d)=>{
+	  
+// 	  selectAll('.phantom').remove();  
+	    
+	  const node_group = select('#g_' + d['id']);   
+	  
+// 	  node_group.select('.lifeRect').attr('visibility','hidden') 
+	  
+      const currentPos  = mouse(<any>select('.genealogyTree').node());
+      
+      node_group.classed('row_' + d['y'], false);
+      
+      d['y'] = Math.round(this.y.invert(currentPos[1]))
+      
+      node_group.attr("transform", ()=> {
+        return "translate(" + this.xPOS(d) + "," + this.yPOS(d) + ")";
+      })
+      
+      node_group.classed('row_' + d['y'], true);
+      
+      const row_nodes = selectAll('.row_' + d['y']);
+      
+      row_nodes
+      .selectAll('.lifeRect').attr('visibility','hidden');
+      row_nodes.classed('aggregate', true)
+	      
+	      
+      }));
+      
     }
-*/
-
-       
-
-    }
-
-    //End of Build Function
     
+    
+    
+        //End of Build Function
+    
+	private create_phantom(){
+		
+		
+	}
+	
+	private update_pos(){
+		
+		
+	}
+	
+	private delete_phantom(){
+		
+		
+	
+	}
+	
+	
     private xPOS(node){
     if (node['sex'] == 'F')
             return this.x(node.x);

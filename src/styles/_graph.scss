@@ -46,6 +46,15 @@
 	stroke:none
 }
 
+.phantom{
+ 	stroke-opacity:.2;
+ 	stroke-dasharray:5;
+}
+
+.aggregate{
+ 	opacity:.2;
+}
+
 .node text{
 	pointer-events: none;
 }

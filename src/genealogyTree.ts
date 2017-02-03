@@ -318,10 +318,10 @@ class genealogyTree {
 	         //Create phantom node
 	         const Node = document.getElementById('g_' + d['id'])
 	         const phantomNode = Node.cloneNode(true)
-	            
-	         phantomNode.setAttribute('class', 'phantom node');        
 
+			 console.log(phantomNode.getAttribute('class'))
 	         document.getElementById('genealogyTree').appendChild(phantomNode)
+// 	         phantomNode.setAttribute("class", "phantom node");        
       })
       .on("drag", (d)=>{
       
@@ -338,7 +338,7 @@ class genealogyTree {
  })
       .on("end",(d)=>{
 	  
- 	  selectAll('.phantom').remove();  
+//  	  selectAll('.phantom').remove();  
 	    
 	  const node_group = select('#g_' + d['id']);   
 	  

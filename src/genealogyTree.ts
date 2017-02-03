@@ -71,6 +71,8 @@ class genealogyTree {
     private y = scaleLinear();
     
     private startYPos;
+    
+    private aggregating_levels
 
     private interGenerationScale = scaleLinear();
 
@@ -310,60 +312,34 @@ class genealogyTree {
         .attr('stroke', 'none');
         
         
-
+		
+		
         allNodes.call(drag()
-      .on("start",(d)=>{
-	         this.startYPos = this.y.invert(mouse(<any>select('.genealogyTree').node())[1]);
-	         
-	         //Create phantom node
-	         const Node = document.getElementById('g_' + d['id'])
-	         const phantomNode = Node.cloneNode(true)
+      .on("start",(d)=> {
+	      this.startYPos = this.y.invert(mouse(<any>select('.genealogyTree').node())[1]);
+	      this.aggregating_levels = new Set();
+		  this.create_phantom(d)})
+      .on("drag", (d)=>{ 
+	      let currentY = this.floorY(); //this.y.invert(mouse(<any>select('.genealogyTree').node())[1]);      
+	      if (currentY > this.startYPos){
+		      //user is dragging down
+// 		      currentY = this.floorY();
+		      this.aggregating_levels.add(currentY);
+	      }
+	      else{
+// 		      currentY = this.ceilY();
+			  this.aggregating_levels.delete(currentY);    
+		      }
+		   
+		   console.log(this.aggregating_levels)
+		   	this.aggregating_levels.forEach((level)=> {
+			this.create_phantom(this.get_row_data('.row_' + level))
+		   	this.update_pos_row('.row_' + level)
+			});
 
-			 console.log(phantomNode.getAttribute('class'))
-	         document.getElementById('genealogyTree').appendChild(phantomNode)
-// 	         phantomNode.setAttribute("class", "phantom node");        
-      })
-      .on("drag", (d)=>{
-      
-      const node_group = select('#g_' + d['id']);    
-      const currentPos  = mouse(<any>select('.genealogyTree').node());
-      
-      node_group.attr("transform", ()=> {
-        return "translate(" + this.xPOS(d) + "," + currentPos[1] + ")";
-      })
-      
-      //Check to see where the current i is
-    
 
- })
-      .on("end",(d)=>{
-	  
-//  	  selectAll('.phantom').remove();  
-	    
-	  const node_group = select('#g_' + d['id']);   
-	  
-// 	  node_group.select('.lifeRect').attr('visibility','hidden') 
-	  
-      const currentPos  = mouse(<any>select('.genealogyTree').node());
-      
-      node_group.classed('row_' + d['y'], false);
-      
-      d['y'] = Math.round(this.y.invert(currentPos[1]))
-      
-      node_group.attr("transform", ()=> {
-        return "translate(" + this.xPOS(d) + "," + this.yPOS(d) + ")";
-      })
-      
-      node_group.classed('row_' + d['y'], true);
-      
-      const row_nodes = selectAll('.row_' + d['y']);
-      
-      row_nodes
-      .selectAll('.lifeRect').attr('visibility','hidden');
-      row_nodes.classed('aggregate', true)
-	      
-	      
-      }));
+	      this.update_pos(d)})
+      .on("end",(d)=>{ this.delete_phantom(d)}));
       
     }
     
@@ -371,20 +347,102 @@ class genealogyTree {
     
         //End of Build Function
     
-	private create_phantom(){
-		
+	private create_phantom(d){
+	         
+	         let phantom = selectAll('#g_' + d['id']);
+	         
+	         if (phantom.size() ==1){
+		          //Create phantom node
+	         const Node = document.getElementById('g_' + d['id'])
+	         const phantomNode = Node.cloneNode(true)
+
+			 phantomNode.setAttribute("class", "phantom node");   
+	         document.getElementById('genealogyTree').appendChild(phantomNode)
+		        
+	         }
+	        
 		
 	}
 	
-	private update_pos(){
-		
-		
+	//Update position of a group based on data 
+	private update_pos(d){
+	  
+	  const node_group = select('#g_' + d['id']);    
+      const currentPos  = mouse(<any>select('.genealogyTree').node());
+      
+      node_group.attr("transform", ()=> {
+        return "translate(" + this.xPOS(d) + "," + currentPos[1] + ")";
+      })	
 	}
 	
-	private delete_phantom(){
-		
-		
+	//Update position of a group based on a class
+		private update_pos_row(class_id){
+	  
+	  const row_nodes = select(class_id);
+	  
+      const currentPos  = mouse(<any>select('.genealogyTree').node());
+      
+      const node = row_nodes.data()[0];
+      
+      node['y'] = this.y.invert(currentPos[1])
+      
+      row_nodes.attr("transform", ()=> {
+        return "translate(" + this.xPOS(node) + "," + this.yPOS(node) + ")";
+      })	
+	}
 	
+	private get_row_data(class_id){
+		return select(class_id).data()[0];    
+
+	}
+	
+	
+	
+	private closestY(){
+	   const currentPos  = mouse(<any>select('.genealogyTree').node());      
+       return Math.round(this.y.invert(currentPos[1]))
+	}
+	
+	private ceilY(){
+	   const currentPos  = mouse(<any>select('.genealogyTree').node());      
+       return Math.ceil(this.y.invert(currentPos[1]))
+	}
+	
+	private floorY(){
+	   const currentPos  = mouse(<any>select('.genealogyTree').node());      
+       return Math.floor(this.y.invert(currentPos[1]))
+	}
+	
+	private delete_phantom(d){
+// 	  selectAll('.phantom').remove();  
+	    
+	  const node_group = select('#g_' + d['id']);   
+	  
+// 	  node_group.select('.lifeRect').attr('visibility','hidden') 
+	  
+      const closestY = this.closestY()
+      
+      
+      if (d['y'] != closestY){ 
+	   node_group.classed('row_' + d['y'], false);
+       d['y'] = closestY; 
+       node_group.classed('row_' + d['y'], true); 
+       
+      const row_nodes = selectAll('.row_' + d['y']);
+      
+      //Hide all life lines
+      row_nodes
+      .selectAll('.lifeRect').attr('visibility','hidden');
+      row_nodes.classed('aggregate', true)      
+      }
+      
+      
+       
+        node_group.attr("transform", ()=> {
+        return "translate(" + this.xPOS(d) + "," + this.yPOS(d) + ")";
+      })
+      
+ 
 	}
 	
 	

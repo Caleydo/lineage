@@ -18,7 +18,6 @@ import * as graphData from './graphData'
 
 // import * as graphData from './genealogyData'
 
-
 //Import Actual Data from ./sampleData
 import {sampleData} from './sampleData'
 
@@ -63,7 +62,7 @@ export class App {
         this.$node = select(parent);
 
     this.$node.append('div').classed('panel col-sm-4 col-md-4', true);
-    this.$node.append('div').classed('graph_table', true);
+    this.$node.append('div').attr('id','graph_table');
 
   }
 
@@ -83,10 +82,10 @@ export class App {
    */
   private build() {
 
-      let genealogyTree = tree.create(this.$node.select('.graph_table').node());
+      let genealogyTree = tree.create(this.$node.select('#graph_table').node());
       genealogyTree.init(graphData.create(sampleData));
 
-      let attributeTable = table.create(this.$node.select('.graph_table').node());
+      let attributeTable = table.create(this.$node.select('#graph_table').node());
       attributeTable.init(sampleData);
 
       let attributePanel = panel.create(this.$node.select('.panel').node());

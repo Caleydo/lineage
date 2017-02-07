@@ -5,6 +5,15 @@
     stroke-width: 2px;
 }
 
+#graph_table{
+	overflow: scroll;
+	height: 400px;
+}
+
+.axis{
+	position: absolute
+}
+
 .grid line {
     stroke: lightgrey;
     stroke-opacity: 0.7;
@@ -50,6 +59,12 @@
  	stroke-opacity:.2;
  	stroke-dasharray:5;
  	fill: white  !important
+}
+
+.phantom{
+	.lifeRect{
+		visibility: hidden
+	}
 }
 
 .aggregate{

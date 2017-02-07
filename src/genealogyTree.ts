@@ -131,6 +131,11 @@ class genealogyTree {
         }), max(nodes, function(d) {
             return d['y']
         })])
+        
+        //xrange should be defined based only on what is visible on the screen. 
+        
+        //When the user scrolls, the y axis should be updated as should the position of all the elements on the screen. 
+        
 
         this.interGenerationScale.range([.75, .25]).domain([2, nodes.length]);
 
@@ -140,9 +145,16 @@ class genealogyTree {
             .attr("height", this.height + this.margin.top + this.margin.bottom)
 
         //append axis
-        svg.append("g")
+        const axis = svg.append("g")
             .attr("transform", "translate(" + this.margin.left + "," + this.margin.top / 1.5 + ")")
-            .call(axisTop(this.x).tickFormat(format("d")));
+            .call(axisTop(this.x).tickFormat(format("d")))
+            .attr('class','axis')
+            
+//         this.$node.on('scroll', ()=>{console.log(this.$node.position())})
+        
+        document.getElementById('graph_table').addEventListener('scroll', function(evt) {
+
+		axis.attr("transform", "translate(" + 40 + "," + (this.scrollTop + 40)+ ")")}, false)
 
 
         const graph = svg.append("g")
@@ -331,20 +343,26 @@ class genealogyTree {
 			  this.aggregating_levels.delete(currentY);    
 		      }
 		   
-		   console.log(this.aggregating_levels)
 		   	this.aggregating_levels.forEach((level)=> {
 			this.create_phantom(this.get_row_data('.row_' + level))
 		   	this.update_pos_row('.row_' + level)
 			});
 
 
-	      this.update_pos(d)})
-      .on("end",(d)=>{ this.delete_phantom(d)}));
+	      //this.update_pos(d)
+	      this.update_pos_row('.row_' + Math.round(this.startYPos))
+	      })
+	      
+      .on("end",(d)=>{ 
+	        this.aggregating_levels.add(this.closestY())
+	       	this.aggregating_levels.forEach((level)=> {
+			this.delete_phantom(this.get_row_data('.row_' + level))
+			});
+      }));
       
     }
     
-    
-    
+   
         //End of Build Function
     
 	private create_phantom(d){
@@ -354,14 +372,13 @@ class genealogyTree {
 	         if (phantom.size() ==1){
 		          //Create phantom node
 	         const Node = document.getElementById('g_' + d['id'])
-	         const phantomNode = Node.cloneNode(true)
 
-			 phantomNode.setAttribute("class", "phantom node");   
-	         document.getElementById('genealogyTree').appendChild(phantomNode)
+	         let phantomNode = Node.cloneNode(true)
+
+			 //phantomNode.setAttribute("class", "phantom node");   
+	         //document.getElementById('genealogyTree').appendChild(phantomNode)
 		        
 	         }
-	        
-		
 	}
 	
 	//Update position of a group based on data 
@@ -414,7 +431,7 @@ class genealogyTree {
 	}
 	
 	private delete_phantom(d){
-// 	  selectAll('.phantom').remove();  
+	  selectAll('.phantom').remove();  
 	    
 	  const node_group = select('#g_' + d['id']);   
 	  

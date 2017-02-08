@@ -173,23 +173,13 @@ class genealogyTree {
             .attr('id', 'axis')
 
 		//Add scroll listener for the graph table div	
-        document.getElementById('graph_table').addEventListener('scroll', () => {
-	        
-	    this.update_time_axis();
-	    
-	    /* clear the old timeout */
-	    clearTimeout(this.timer);
-	    /* wait until 400 ms for callback */
-	    this.timer = setTimeout(()=>{this.update_visible_nodes()}, 100);
-		});
-
-
-/*
-            this.update_on_scroll()
-        }, false)
-*/
-        
-        
+        document.getElementById('graph_table').addEventListener('scroll', () => {      
+		    this.update_time_axis();  
+		    /* clear the old timeout */
+		    clearTimeout(this.timer);
+		    /* wait until 100 ms for callback */
+		    this.timer = setTimeout(()=>{this.update_visible_nodes()}, 100);
+		});    
 		
 		//Create group for genealogy tree
         svg.append("g")
@@ -467,7 +457,7 @@ class genealogyTree {
             .on("start", (d) => {
                 this.startYPos = this.y.invert(mouse( < any > select('.genealogyTree').node())[1]);
                 this.aggregating_levels = new Set();
-//                 this.create_phantom(d)
+                this.create_phantom(d)
                 
             })
             .on("drag", (d) => {
@@ -482,7 +472,7 @@ class genealogyTree {
                 }
 
                 this.aggregating_levels.forEach((level) => {
-//                     this.create_phantom(this.get_row_data('.row_' + level))
+                    this.create_phantom(this.get_row_data('.row_' + level))
                     this.update_pos_row('.row_' + level)
                 });
 
@@ -498,7 +488,7 @@ class genealogyTree {
             .on("end", (d) => {
                 this.aggregating_levels.add(this.closestY())
                 this.aggregating_levels.forEach((level) => {
-//                     this.delete_phantom(this.get_row_data('.row_' + level))
+                    this.delete_phantom(this.get_row_data('.row_' + level))
                 });
             }));
 

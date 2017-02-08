@@ -75,6 +75,8 @@
     "@types/d3-scale": "^1.0.4",
     "@types/d3-shape": "^1.0.7",
     "@types/d3-collection": "^1.0.2",
+    "@types/d3-transition": "^1.0.0",
+    "@types/d3-ease": "^1.0.0",
     "d3-array": "^1.0.2",
     "d3-collection": "^1.0.2",
     "d3-axis": "^1.0.3",
@@ -84,6 +86,8 @@
     "d3-request": "^1.0.3",
     "d3-scale": "^1.0.3",
     "d3-shape": "^1.0.4",
+    "d3-transition": "^1.0.0",
+    "d3-ease": "^1.0.0",
     "phovea_core": "github:phovea/phovea_core#develop",
     "phovea_ui": "github:phovea/phovea_ui#develop",
     "phovea_clue": "github:phovea/phovea_clue#develop"

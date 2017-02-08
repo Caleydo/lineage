@@ -58,7 +58,8 @@ class graphData {
                 'x1':this.nodes[maID].x,
                 'x2':this.nodes[paID].x,
                 'color':this.nodes[maID].color,
-                'type':'parent'
+                'type':'parent',
+                'id':Math.random()
             };
 			
 // 			console.log(rnode)
@@ -66,7 +67,8 @@ class graphData {
             this.parentChildEdges.push({
                 source: rnode,
                 target: node,
-                'color':this.nodes[maID].color
+                'color':this.nodes[maID].color,
+                'id':node.id
             });
         }
     });

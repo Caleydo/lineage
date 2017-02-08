@@ -107,7 +107,7 @@ class attributePanel {
   }
 
   private populateData(){
-    let svg = selectAll("svg");
+    let svg = select('.panel').selectAll("svg");
     let selection = svg.selectAll("rect").data([127, 61, 256])
       .enter().append("rect")
                 .attr("x", 0)

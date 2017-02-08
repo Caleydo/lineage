@@ -1,13 +1,17 @@
 
 .line {
     fill: none;
-    stroke: steelblue;
+    stroke: red;
     stroke-width: 2px;
 }
 
 #graph_table{
 	overflow: scroll;
-	height: 400px;
+	height: 600px;
+}
+
+.hide{
+	opacity: .2
 }
 
 .axis{

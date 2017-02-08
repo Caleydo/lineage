@@ -282,7 +282,7 @@ class genealogyTree {
         
         
         let allNodes = graph.selectAll(".node")
-            .data(nodes, function(d) {return d['id'];});
+            .data(nodes.filter((d)=>{return d['visible']}), function(d) {return d['id'];});
             
         allNodes.exit().transition().duration(400).style('opacity',0).remove();
             
@@ -487,9 +487,22 @@ class genealogyTree {
 
             .on("end", (d) => {
                 this.aggregating_levels.add(this.closestY())
+                
+                let indexes =[];
+                
+                for (let v of this.aggregating_levels){
+	                indexes.push(v)
+                }
+                this.data.aggregateNodes(min(indexes),max(indexes));
+                
+                this.update_visible_nodes()
+                
+                
+/*
                 this.aggregating_levels.forEach((level) => {
                     this.delete_phantom(this.get_row_data('.row_' + level))
                 });
+*/
             }));
 
 
@@ -561,19 +574,6 @@ class genealogyTree {
 	        
 	}
 
-/*
-    private update_on_scroll() {
-	
-        this.update_time_axis()   
-        
-        let scrollOffset = document.getElementById('graph_table').scrollTop; 
-        
-
-        select("#axis")
-            .attr("transform", "translate(" + this.margin.left + "," + (scrollOffset + this.margin.top / 1.5) + ")")
-          
-    }
-*/
 
 
     private create_phantom(d) {

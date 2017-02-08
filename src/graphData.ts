@@ -43,7 +43,7 @@ class graphData {
   private createEdges() {
 
 //Create relationship nodes
-    this.nodes.forEach(node=>{
+    this.nodes.filter((d)=>{return d.visible}).forEach(node=>{
         const maID = this.uniqueID.indexOf(node['ma']);
         const paID = this.uniqueID.indexOf(node['pa']);
 
@@ -86,17 +86,17 @@ class graphData {
     let collapsed = [];
     this.nodes.forEach(function(d)
     {
-      if (d.id <= ind2 && d.id >=ind1){
-        d['visible'] = 'false';
+      if (d.y <= ind2 && d.y >=ind1){
+        d['visible'] = false;
         collapsed.push(d);
       }
-      if (d.id >ind2){
-        d['index'] = d['index'] - collapseCols;
+      if (d.y >ind2){
+        d['y'] = d['y'] - collapseCols;
       }
     });
 
     let aggregateNode =  {
-      'id': 1,
+      'id': Math.random(),
       'name': 'A',
       'sex': 'F',
       'dob':undefined
@@ -104,11 +104,13 @@ class graphData {
 
     this.nodes.push(aggregateNode)
 
-    aggregateNode['index'] = ind1;
+    aggregateNode['y'] = ind1;
     aggregateNode['collapsed'] = collapsed;
     aggregateNode['type']= 'aggregate';
     aggregateNode['visible']=true;
   };
+  
+  
 
 };
 

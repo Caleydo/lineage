@@ -26,7 +26,8 @@ export let sampleData =[
       "generation":1869,
       "hide":false,
       "type":"individual",
-      "color":"#8ca252"
+      "color":"#8ca252",
+      "maxBMI":3
    },
    {
       "kindredID":"38",
@@ -55,7 +56,8 @@ export let sampleData =[
       "generation":1876,
       "hide":false,
       "type":"individual",
-      "color":"#8ca252"
+      "color":"#8ca252",
+      "maxBMI":-1
    },
    {
       "kindredID":"38",
@@ -84,7 +86,8 @@ export let sampleData =[
       "generation":1897,
       "hide":false,
       "type":"individual",
-      "color":"#7b4173"
+      "color":"#7b4173",
+      "maxBMI":4
    },
    {
       "kindredID":"38",
@@ -113,7 +116,8 @@ export let sampleData =[
       "generation":1898,
       "hide":false,
       "type":"individual",
-      "color":"#e7cb94"
+      "color":"#e7cb94",
+      "maxBMI":-2
    },
    {
       "kindredID":"38",
@@ -142,7 +146,8 @@ export let sampleData =[
       "generation":1899,
       "hide":false,
       "type":"individual",
-      "color":"#e7cb94"
+      "color":"#e7cb94",
+      "maxBMI":3
    },
    {
       "kindredID":"38",
@@ -171,7 +176,8 @@ export let sampleData =[
       "generation":1905,
       "hide":false,
       "type":"individual",
-      "color":"#7b4173"
+      "color":"#7b4173",
+      "maxBMI":-1
    },
    {
       "kindredID":"38",
@@ -200,7 +206,8 @@ export let sampleData =[
       "generation":1909,
       "hide":false,
       "type":"individual",
-      "color":"#de9ed6"
+      "color":"#de9ed6",
+      "maxBMI":-3
    },
    {
       "kindredID":"38",
@@ -229,7 +236,8 @@ export let sampleData =[
       "generation":1917,
       "hide":false,
       "type":"individual",
-      "color":"#de9ed6"
+      "color":"#de9ed6",
+      "maxBMI":6
    },
    {
       "kindredID":"38",
@@ -258,7 +266,8 @@ export let sampleData =[
       "generation":1922,
       "hide":false,
       "type":"individual",
-      "color":"#a55194"
+      "color":"#a55194",
+      "maxBMI":4
    },
    {
       "kindredID":"38",
@@ -287,7 +296,8 @@ export let sampleData =[
       "generation":1924,
       "hide":false,
       "type":"individual",
-      "color":"#cedb9c"
+      "color":"#cedb9c",
+      "maxBMI":5
    },
    {
       "kindredID":"38",
@@ -316,7 +326,8 @@ export let sampleData =[
       "generation":1924,
       "hide":false,
       "type":"individual",
-      "color":"#cedb9c"
+      "color":"#cedb9c",
+      "maxBMI":-2
    },
    {
       "kindredID":"38",
@@ -345,7 +356,8 @@ export let sampleData =[
       "generation":1926,
       "hide":false,
       "type":"individual",
-      "color":"#a55194"
+      "color":"#a55194",
+      "maxBMI":-1
    },
    {
       "kindredID":"38",
@@ -373,7 +385,8 @@ export let sampleData =[
       "generation":1938,
       "hide":false,
       "type":"individual",
-      "color":"black"
+      "color":"black",
+      "maxBMI":2
    },
    {
       "kindredID":"38",
@@ -401,7 +414,8 @@ export let sampleData =[
       "generation":1941,
       "hide":false,
       "type":"individual",
-      "color":"black"
+      "color":"black",
+      "maxBMI":-1
    },
    {
       "kindredID":"38",
@@ -429,7 +443,8 @@ export let sampleData =[
       "generation":1949,
       "hide":false,
       "type":"individual",
-      "color":"black"
+      "color":"black",
+      "maxBMI":3
    },
    {
       "kindredID":"38",
@@ -457,7 +472,8 @@ export let sampleData =[
       "generation":1954,
       "hide":false,
       "type":"individual",
-      "color":"black"
+      "color":"black",
+      "maxBMI":7
    },
    {
       "kindredID":"38",
@@ -485,7 +501,8 @@ export let sampleData =[
       "generation":1956,
       "hide":false,
       "type":"individual",
-      "color":"black"
+      "color":"black",
+      "maxBMI":-1
    },
    {
       "kindredID":"38",
@@ -513,7 +530,8 @@ export let sampleData =[
       "generation":1957,
       "hide":false,
       "type":"individual",
-      "color":"black"
+      "color":"black",
+      "maxBMI":-2
    },
    {
       "kindredID":"38",
@@ -541,6 +559,7 @@ export let sampleData =[
       "generation":1967,
       "hide":false,
       "type":"individual",
-      "color":"black"
+      "color":"black",
+      "maxBMI":3
    }
 ];

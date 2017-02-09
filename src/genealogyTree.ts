@@ -80,7 +80,7 @@ class genealogyTree {
 
     private startYPos;
 
-    private aggregating_levels
+    private aggregating_levels;
 
     private interGenerationScale = scaleLinear();
 
@@ -480,12 +480,9 @@ class genealogyTree {
             .on("end", (d) => {
                 this.aggregating_levels.add(this.closestY())
                 
-                let indexes =[];
+                let indexes = Array.from(this.aggregating_levels);
                 
-                for (let v of this.aggregating_levels){
-	                indexes.push(v)
-                }
-                this.data.aggregateNodes(min(indexes),max(indexes));
+                this.data.aggregateNodes(Math.min.apply(null,indexes),Math.max.apply(null,indexes));
                 
                 this.update_visible_nodes()
                 
@@ -761,16 +758,16 @@ class genealogyTree {
     }
 
     private elbow(d, interGenerationScale, lineFunction) {
-        const xdiff = d.source.x - d.target.x;
-        const ydiff = d.source.y - d.target.y;
-        const nx = d.source.x - xdiff * interGenerationScale(ydiff);
+        const xdiff = d.ma.x - d.target.x;
+        const ydiff = d.ma.y - d.target.y;
+        const nx = d.ma.x - xdiff * interGenerationScale(ydiff);
 
         const linedata = [{
-            x: d.source.x,
-            y: d.source.y
+            x: d.ma.x,
+            y: (d.ma.y + d.pa.y)/2
         }, {
             x: nx,
-            y: d.source.y
+            y: (d.ma.y + d.pa.y)/2
         }, {
             x: nx,
             y: d.target.y
@@ -789,11 +786,11 @@ class genealogyTree {
 
     private parentEdge(d, lineFunction) {
         const linedata = [{
-            x: d.x1,
-            y: d.y1
+            x: d['ma'].x ,
+            y: d['ma'].y
         }, {
-            x: d.x2,
-            y: d.y2
+            x: d['pa'].x,
+            y: d['pa'].y
         }];
         return lineFunction(linedata);
     }

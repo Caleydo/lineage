@@ -58,6 +58,8 @@ class graphData {
                 'x1':this.nodes[maID].x,
                 'x2':this.nodes[paID].x,
                 'color':this.nodes[maID].color,
+                'ma':this.nodes[maID],
+                'pa':this.nodes[paID],
                 'type':'parent',
                 'id':Math.random()
             };
@@ -65,7 +67,8 @@ class graphData {
 // 			console.log(rnode)
             this.parentParentEdges.push(rnode);
             this.parentChildEdges.push({
-                source: rnode,
+                ma: this.nodes[maID],
+                pa: this.nodes[paID],
                 target: node,
                 'color':this.nodes[maID].color,
                 'id':node.id
@@ -82,18 +85,29 @@ class graphData {
    * Aggregates Nodes
    */
   public aggregateNodes(ind1,ind2) {
-    let collapseCols = ind2 - ind1 -1;
+	  
+	  console.log(ind1,ind2)
+    let collapseCols = ind2 - ind1;
+    
+    console.log('collapse ' , collapseCols  ,  'rows');
     let collapsed = [];
     this.nodes.forEach(function(d)
     {
-      if (d.y <= ind2 && d.y >=ind1){
+      if (d['y'] <= ind2 && d['y'] >=ind1){
+	      console.log('set to invisible')
         d['visible'] = false;
         collapsed.push(d);
       }
-      if (d.y >ind2){
+    });
+    
+    this.nodes.forEach(function(d)
+    {
+    if (d['y'] > ind2){
+	      console.log('set to invisible2')
         d['y'] = d['y'] - collapseCols;
       }
-    });
+	 });
+
 
     let aggregateNode =  {
       'id': Math.random(),
@@ -102,7 +116,7 @@ class graphData {
       'dob':undefined
     }
 
-    this.nodes.push(aggregateNode)
+//     this.nodes.push(aggregateNode)
 
     aggregateNode['y'] = ind1;
     aggregateNode['collapsed'] = collapsed;

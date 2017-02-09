@@ -9,8 +9,16 @@ export class Config {
   public static showLifeLines = false;
   public static showAgeLabels = false;
 
-  public static glyphSize = 14;
+  public static glyphSize = 12;
   public static spaceBetweenGenerations = 4;
+  
+  
+  public static margin = {
+        top: 80,
+        right: 20,
+        bottom: 60,
+        left: 40
+    };
   
   
 }

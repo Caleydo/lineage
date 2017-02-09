@@ -25,7 +25,9 @@ import {
 } from 'd3-scale';
 import {
     max,
-    min
+    min,
+    ticks,
+    range
 } from 'd3-array';
 import {
     axisTop
@@ -68,12 +70,7 @@ class genealogyTree {
 
     private height;
 
-    private margin = {
-        top: 60,
-        right: 20,
-        bottom: 60,
-        left: 40
-    };
+    private margin = Config.margin;
 
     private x = scaleLinear();
 
@@ -135,12 +132,8 @@ class genealogyTree {
         this.height = Config.glyphSize * 3 * nodes.length - this.margin.top - this.margin.bottom;
 
 
-        // Scales
-        this.x.range([0, this.width]).domain([min(nodes, function(d) {
-            return +d['bdate']
-        }), max(nodes, function(d) {
-            return +d['ddate']
-        }) + 20]);
+        // Y scale. Xscale range and domain are defined in update_time_axis;
+            
         this.y.range([0, this.height]).domain([min(nodes, function(d) {
             return d['y']
         }), max(nodes, function(d) {
@@ -148,11 +141,10 @@ class genealogyTree {
         })])
         
         this.xAxis = axisTop(this.x).tickFormat(format("d"))
-       
         
-        //Filter data to only render what is visible in the current window
-        this.update_time_axis();
-
+//         select(this.xAxis).selectAll('text').attr('font-size',Config.glyphSize * 1.5)
+       
+       
         //xrange should be defined based only on what is visible on the screen. 
 
         //When the user scrolls, the x (time) axis should be updated as should the position of all the elements on the screen. 
@@ -171,7 +163,7 @@ class genealogyTree {
             .attr("transform", "translate(" + this.margin.left + "," + this.margin.top / 1.5 + ")")
             .call(this.xAxis)
             .attr('id', 'axis')
-
+            
 		//Add scroll listener for the graph table div	
         document.getElementById('graph_table').addEventListener('scroll', () => {      
 		    this.update_time_axis();  
@@ -189,6 +181,10 @@ class genealogyTree {
 
 		//Call function that updates the position of all elements in the tree	
         this.update_graph(this.data.nodes, this.data.parentChildEdges, this.data.parentParentEdges)
+        
+        //Filter data to only render what is visible in the current window
+        this.update_time_axis();
+
 
     }
 
@@ -238,10 +234,7 @@ class genealogyTree {
             
             
 	   edgePaths
-        .attr("stroke-width", 3)
-        .on('click', function(d) {
-            console.log(d)
-        });
+        .attr("stroke-width", Config.glyphSize/4)
 
 
         let parentEdgePaths = graph.selectAll(".parentEdges")
@@ -261,7 +254,7 @@ class genealogyTree {
         
         parentEdgePaths
             .attr("class", "parentEdges")
-            .style("stroke-width", 4)
+            .attr("stroke-width", Config.glyphSize/4)
             .style("fill", 'none')
             .transition(t)
             .attr("d", (d) => {
@@ -448,7 +441,8 @@ class genealogyTree {
             .attr('fill', function(d: any) {
                 return (+d.affection == 100) ? "white" : "black";
             })
-            .attr('stroke', 'none');
+            .attr('stroke', 'none')
+            .style('font-size', Config.glyphSize)
 
 
 
@@ -527,19 +521,85 @@ class genealogyTree {
             return d['y'] >= Math.round(minY) && d['y'] <= Math.round(maxY)
         });
 
-		let new_domain = [min(filtered_nodes, function(d) {return +d['bdate']-5}), 
+		let filtered_domain = [min(filtered_nodes, function(d) {return +d['bdate']-5}), 
         max(filtered_nodes, function(d) {return +d['ddate'] + 5}) ];
-		
-        this.x.domain(new_domain);
+        
+        
+        let all_domain = [min(this.data.nodes, function(d) {return +d['bdate']-5}), 
+        max(this.data.nodes, function(d) {return +d['ddate']}) + 5];
        
+		//Build non linear axis
+		
+		let axis_range = [0];
+		let axis_domain =[all_domain[0]];
+		let axis_ticks=[all_domain[0]];
+		
+		//If there are hidden nodes older than the first visible node
+		if (all_domain[0] < filtered_domain[0]){
+			axis_range.push(this.width*0.05);
+			axis_domain.push(filtered_domain[0])
+			
+
+			let left_range = range(all_domain[0],filtered_domain[0],2);
+			axis_ticks = axis_ticks.concat(left_range);
+			
+/*
+			
+			left_range.forEach((item, index) => {
+				if (index == 0 || index == left_range.length-1){
+					axis_ticks.push(item)
+				}
+				else{
+					axis_ticks.push(0)
+				}			
+			});
+*/			
+			
+		}
+			
+		//Add tick marks for visible(filtered) domain;
+		axis_ticks = axis_ticks.concat(ticks(filtered_domain[0],filtered_domain[1],10));
+		
+		if (all_domain[1] != filtered_domain[1]){
+			
+			axis_range.push(this.width*0.95);
+			axis_domain.push(filtered_domain[1])
+			
+			let right_range = range(filtered_domain[1],all_domain[1],2);
+			axis_ticks = axis_ticks.concat(right_range);			
+/*
+			right_range.forEach((item, index) => {
+				if (index == 0 || index == right_range.length-1){
+					axis_ticks.push(item)
+				}
+				else{
+					axis_ticks.push(0)
+				}			
+			});
+*/		
+		}
+	
+		axis_range.push(this.width);
+		axis_domain.push(all_domain[1])
+		axis_ticks.push(all_domain[1]);
+		
+	
+// 		console.log(all_domain, filtered_domain)
+		this.x.range(axis_range)
+        this.x.domain(axis_domain);
+        
+        this.xAxis.tickValues(axis_ticks);
         
         select('#axis')  
         .transition(transition('t2').duration(750).ease(easeLinear))        
         .call(this.xAxis)
         
-        
         select("#axis")
             .attr("transform", "translate(" + this.margin.left + "," + (scrollOffset + this.margin.top / 1.5) + ")")
+            .selectAll("text")	
+			.attr("dx", "1.5em")
+			.attr("dy", "-.15em")
+			.attr("transform", "rotate(-35)");
         
     }
         

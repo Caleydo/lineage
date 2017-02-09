@@ -178,14 +178,12 @@ class genealogyTree {
             .attr("transform", "translate(" + this.margin.left + "," + (this.margin.top + Config.glyphSize) + ")")
             .classed('genealogyTree', true)
             .attr('id', 'genealogyTree')
-
-		//Call function that updates the position of all elements in the tree	
-        this.update_graph(this.data.nodes, this.data.parentChildEdges, this.data.parentParentEdges)
-        
+            
         //Filter data to only render what is visible in the current window
         this.update_time_axis();
 
-
+		//Call function that updates the position of all elements in the tree	
+        this.update_graph(this.data.nodes, this.data.parentChildEdges, this.data.parentParentEdges)
     }
 
     //End of Build Function

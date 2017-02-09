@@ -15,7 +15,7 @@ export class Config {
   
   public static margin = {
         top: 80,
-        right: 20,
+        right: 40,
         bottom: 60,
         left: 40
     };

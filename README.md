@@ -12,6 +12,14 @@ cd lineage
 npm install
 ```
 
+Running Lineage
+------------
+To run lineage, you will need access to data files that we can currently not provide publictly. If you have those files, run: 
+
+```
+npm start
+```
+
 Testing
 -------
 

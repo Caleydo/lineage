@@ -86,6 +86,12 @@ class graphData {
    */
   public aggregateNodes(ind1,ind2) {
 	  
+	  //User clicked and released on the same node;
+	  if (ind1 == ind2){
+		  return;
+	  }
+	
+	  
 	  console.log(ind1,ind2)
     let collapseCols = ind2 - ind1;
     

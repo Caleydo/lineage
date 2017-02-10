@@ -27,7 +27,8 @@ import {
     max,
     min,
     ticks,
-    range
+    range,
+    extent
 } from 'd3-array';
 import {
     axisTop
@@ -133,7 +134,7 @@ class genealogyTree {
      * Build the basic DOM elements and binds the change function
      */
     private build() {
-
+	    
         let nodes = this.data.nodes;
 
 
@@ -195,6 +196,19 @@ class genealogyTree {
             .attr("transform", "translate(" + this.margin.left + "," + (this.margin.top + Config.glyphSize) + ")")
             .classed('genealogyTree', true)
             .attr('id', 'genealogyTree')
+            
+	    //When user clicks on background, clear all selections
+	    select('#genealogyTree')
+        .on('click', function() {
+	        console.log('clicked on background')
+//             selectAll('.nodeIcon').classed('selected',false);
+        })
+
+
+
+	        
+
+                   
             
         //Filter data to only render what is visible in the current window
         this.update_time_axis();
@@ -306,6 +320,22 @@ class genealogyTree {
                 return 'row_' + d['y']
             })
             .classed("node", true)
+            
+		//Attach background rectangle to all rows and set to invisible (will be visible on hover)
+		allNodesEnter 
+		.append('rect')
+		.classed('hovered',true);
+		
+		allNodes
+		.selectAll('.hovered')
+// 		.attr('y',(d)=>{})
+// 		.attr('y', ()=>{console.log(this.y.invert(pos)); return this.y(this.y.invert(pos)) })
+		.attr("width", (d)=>{return (max(this.x.range())- this.x(d['x']) + this.margin.right);})
+	    .attr("height", Config.glyphSize *2)
+	    .attr("transform", (d: any) => {
+                return d.sex == 'M' ? "translate(" + Config.glyphSize +  ",0)" : "translate("+ 0 + "," + (-Config.glyphSize) + ")";
+        })
+        .attr('visibility', 'hidden' )
 
 
         //Add life line groups
@@ -334,7 +364,7 @@ class genealogyTree {
             })
             .attr("height", Config.glyphSize / 4)
             .style('fill', (d: any) => {
-                return (+d.affection == 100) ? "black" : "#e0dede";
+                return (+d.affection == 100) ? "black" : "#9e9d9b";
             })
             .style('opacity', .8)
         //         .style('stroke','none')
@@ -355,7 +385,7 @@ class genealogyTree {
                 return Math.abs(+d['ddate'] - +d['bdate']);
             })
             .attr('fill', function(d: any) {
-                return (+d.affection == 100) ? "black" : "#e0dede";
+                return (+d.affection == 100) ? "black" : "#9e9d9b";
             })
             .style('font-size', Config.glyphSize * 1.5)
             .style('font-weight', 'bold');
@@ -386,20 +416,20 @@ class genealogyTree {
             .attr("stroke", "black");
 
 
+		//Add Male Node glyphs	
         allNodesEnter.filter(function(d: any) {
                 return d['sex'] == 'M';
             })
             .append("rect")
-            .classed('male', true);
-            
+            .classed('male', true)
+                     
         allNodes.selectAll('.male')
 //             .classed('male', true)
             .classed('nodeIcon', true)
             .attr("width", Config.glyphSize * 2)
             .attr("height", Config.glyphSize * 2);
 
-
-
+			
         //Add female node glyphs
         allNodesEnter.filter(function(d: any) {
                 return d['sex'] == 'F';
@@ -413,7 +443,11 @@ class genealogyTree {
 
 
 		allNodesEnter.attr('opacity',0);
-		
+	
+		allNodes.on("click",function(){
+			selectAll('.nodeIcon').classed('selected',false); 
+			select(this).select('.nodeIcon').classed('selected', true)});
+			
         //Position and Color all Nodes
         allNodes
          	.transition(t)
@@ -426,7 +460,14 @@ class genealogyTree {
             .attr('id', (d) => {
                 return 'g_' + d['id']
             })
-            .style("stroke-width", 3)
+            .style("stroke-width", 3);
+            
+            
+        allNodes
+            .on('mouseover',function(){
+	            select(this).select('.hovered').attr('visibility', 'visible' )	        
+			})
+		    .on('mouseout', ()=>{selectAll('.hovered').attr('visibility', 'hidden')})
             
         allNodes
             .transition(t.transition().ease(easeLinear))
@@ -819,6 +860,80 @@ class genealogyTree {
         }];
         return lineFunction(linedata);
     }
+    
+//     
+    
+  private menu(x, y) {
+        select('#context-menu').remove();
+        
+        console.log(x,y)
+        
+        let height = Config.glyphSize*4;
+        let width = height;
+        let margin = 0.1;
+        
+		let items = ['first item', 'second option', 'whatever, man'];
+		
+/*
+		let style = {
+            'rect': {
+                'mouseout': {
+                    'fill': 'rgb(244,244,244)', 
+                    'stroke': 'white', 
+                    'stroke-width': '1px'
+                }, 
+                'mouseover': {
+                    'fill': 'rgb(200,200,200)'
+                }
+            }, 
+            'text': {
+                'fill': 'steelblue', 
+                'font-size': '13'
+            }
+            };
+*/
+        // Draw the menu
+        select('#graph')
+            .append('g')
+            .attr('id', 'context-menu')
+            .selectAll('tmp')
+            .data(items).enter()
+            .append('g').attr('class', 'menu-entry')
+//             ./* style */({'cursor': 'pointer'})
+            .on('mouseover', function(){ 
+                select(this).select('rect').attr('class','rect-mouseover')}) //(style.rect.mouseover) })
+            .on('mouseout', function(){ 
+                select(this).select('rect').attr('class','rect-mouseover')}); //style(style.rect.mouseout) });
+        
+        selectAll('.menu-entry')
+            .append('rect')
+            .attr('x', x)
+            .attr('y', function(d, i){ return y + (i * height); })
+            .attr('width', width)
+            .attr('height', height)
+//             .style(style.rect.mouseout);
+        
+        selectAll('.menu-entry')
+            .append('text')
+            .text(function(d){ return 'test'; })
+            .attr('x', x)
+            .attr('y', function(d, i){ return y + (i * height); })
+            .attr('dy', height - margin / 2)
+            .attr('dx', margin)
+//             .style(style.text);
+
+        // Other interactions
+/*
+        select('body')
+            .on('click', function() {
+                select('#context-menu').remove();
+            });
+*/
+
+    }
+
+
+
 }
 
 /**

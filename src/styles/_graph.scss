@@ -1,3 +1,4 @@
+     
 .line {
     fill: none;
     stroke: red;
@@ -45,10 +46,17 @@
     fill:none
 }
 
-.node.selected{
-    stroke:red;
-    stroke-width:3px;
+.nodeIcon.selected{
+    stroke: #ff6400;
+    stroke-width:2px;
     /*fill:none*/
+}
+
+.hovered{
+    stroke:  #ffc800;
+    stroke-width:0px;
+    opacity: .2;
+    fill:#ffc800
 }
 
 .node rect, 
@@ -86,7 +94,7 @@
 .node:hover .female,
   {
 //     opacity: 0.5;
-    stroke:red;
+//     stroke:red;
   }
 
 

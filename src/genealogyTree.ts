@@ -343,19 +343,24 @@ class genealogyTree {
         lifeRects        
             .attr('class', 'lifeRect')
             .attr("transform", (d: any) => {
-                return d.sex == 'M' ? "translate(0,0)" : "translate(0," + (-Config.glyphSize) + ")";
+                return d.sex == 'M' ? "translate(" + Config.glyphSize + ",0)" : "translate(0," + (-Config.glyphSize) + ")";
             });
 
         //Add actual life lines
-        lifeRectsEnter.filter(function(d: any) {
+        lifeRectsEnter
+/*
+            .filter(function(d: any) {
                 return (+d.deceased == 1);
             })
+*/
             .append("rect")
             
         lifeRects.selectAll('rect')
             .attr('y', Config.glyphSize)
             .attr("width", (d) => {
-                return Math.abs(this.x(d['ddate']) - this.x(d['bdate']));
+	            let ageAtDeath = Math.abs(this.x(d['ddate']) - this.x(d['bdate'])) ;
+	            let ageToday = Math.abs(this.x(2017) - this.x(d['bdate'])) 
+		        return (+d['deceased'] == 1) ?  ageAtDeath :  ageToday;
             })
             .attr("height", Config.glyphSize / 4)
             .style('fill', (d: any) => {
@@ -373,11 +378,20 @@ class genealogyTree {
             // .attr("y", glyphSize )
             .attr("dy", Config.glyphSize * 0.8)
             .attr("dx", (d) => {
-                return Math.abs(this.x(d['ddate']) - this.x(d['bdate']));
+	            let ageAtDeath = Math.abs(this.x(d['ddate']) - this.x(d['bdate'])) ;
+	            let ageToday = Math.abs(this.x(2017) - this.x(d['bdate'])) 
+	            
+                return (+d['deceased'] == 1) ?  ageAtDeath :  ageToday;  
+//                 return Math.abs(this.x(d['ddate']) - this.x(d['bdate']));
             })
             .attr("text-anchor", 'end')
             .text(function(d) {
-                return Math.abs(+d['ddate'] - +d['bdate']);
+	            let ageAtDeath = (d['ddate']- d['bdate']) ;
+	            let ageToday = (2017 - d['bdate']) 
+	            
+                return (+d['deceased'] == 1) ?  ageAtDeath :  ageToday;  
+                
+//                 return Math.abs(+d['ddate'] - +d['bdate']);
             })
             .attr('fill', function(d: any) {
                 return (+d.affection == 100) ? "black" : "#9e9d9b";

@@ -72,11 +72,20 @@ class genealogyTree {
 
     private margin = Config.margin;
 
+	//Time scale for visible nodes
     private x = scaleLinear();
+    
+    //Time scale for nodes outside the viewport
+    private x2 = scaleLinear();
 
+	
     private y = scaleLinear();
 
-	private xAxis;
+	//Axis for the visible nodes
+	private visibleXAxis;
+	
+	//Axis for the nodes outside of the viewport
+	private extremesXAxis;
 
     private startYPos;
 
@@ -140,7 +149,8 @@ class genealogyTree {
             return d['y']
         })])
         
-        this.xAxis = axisTop(this.x).tickFormat(format("d"))
+        this.visibleXAxis = axisTop(this.x).tickFormat(format("d"))
+        this.extremesXAxis = axisTop(this.x2)
         
 //         select(this.xAxis).selectAll('text').attr('font-size',Config.glyphSize * 1.5)
        
@@ -158,11 +168,18 @@ class genealogyTree {
 
 
 		
-        //append axis
+        //Create group for all axis
         const axis = svg.append("g")
             .attr("transform", "translate(" + this.margin.left + "," + this.margin.top / 1.5 + ")")
-            .call(this.xAxis)
             .attr('id', 'axis')
+            
+        axis.append("g")
+        .attr('id','visible_axis')
+        .call(this.visibleXAxis)
+        
+        axis.append("g")
+        .attr('id','extremes_axis')
+        .call(this.extremesXAxis)
             
 		//Add scroll listener for the graph table div	
         document.getElementById('graph_table').addEventListener('scroll', () => {      
@@ -523,74 +540,82 @@ class genealogyTree {
         let all_domain = [min(this.data.nodes, function(d) {return +d['bdate']-5}), 
         max(this.data.nodes, function(d) {return +d['ddate']}) + 5];
        
-		//Build non linear axis
-		
-		let axis_range = [0];
-		let axis_domain =[all_domain[0]];
-		let axis_ticks=[all_domain[0]];
-		
+		//Build time axis
+        
+        //for visible nodes
+        let x_range = [0];
+        let x_domain=[all_domain[0]];
+        let x_ticks=[all_domain[0]]
+        
+        //for out of scope nodes
+        let x2_range =[0];
+        let x2_domain=[all_domain[0]];
+        let x2_ticks = [];
+        
+       
 		//If there are hidden nodes older than the first visible node
 		if (all_domain[0] < filtered_domain[0]){
-			axis_range.push(this.width*0.05);
-			axis_domain.push(filtered_domain[0])
+			x_range.push(this.width*0.05);
+			x_domain.push(filtered_domain[0])
+			x_ticks.push(filtered_domain[0])
 			
-
+			
+			x2_range.push(this.width*0.05);
+			x2_domain.push(filtered_domain[0])
+			
+			//Add tick marks
 			let left_range = range(all_domain[0],filtered_domain[0],2);
-			axis_ticks = axis_ticks.concat(left_range);
-			
-/*
-			
-			left_range.forEach((item, index) => {
-				if (index == 0 || index == left_range.length-1){
-					axis_ticks.push(item)
-				}
-				else{
-					axis_ticks.push(0)
-				}			
-			});
-*/			
+			x2_ticks = left_range;		
 			
 		}
-			
-		//Add tick marks for visible(filtered) domain;
-		axis_ticks = axis_ticks.concat(ticks(filtered_domain[0],filtered_domain[1],10));
+		
+		x_ticks = x_ticks.concat(ticks(filtered_domain[0],filtered_domain[1],10));
+        		
 		
 		if (all_domain[1] != filtered_domain[1]){
 			
-			axis_range.push(this.width*0.95);
-			axis_domain.push(filtered_domain[1])
+			x_range.push(this.width*0.95);
+			x_domain.push(filtered_domain[1])
+			x_ticks.push(filtered_domain[1])
 			
+			x2_range.push(this.width*0.95)
+			x2_domain.push(filtered_domain[1])
+			
+			x2_range.push(this.width)
+			x2_domain.push(all_domain[1])
+						
 			let right_range = range(filtered_domain[1],all_domain[1],2);
-			axis_ticks = axis_ticks.concat(right_range);			
-/*
-			right_range.forEach((item, index) => {
-				if (index == 0 || index == right_range.length-1){
-					axis_ticks.push(item)
-				}
-				else{
-					axis_ticks.push(0)
-				}			
-			});
-*/		
+			x2_ticks = x2_ticks.concat(right_range);					
 		}
-	
-		axis_range.push(this.width);
-		axis_domain.push(all_domain[1])
-		axis_ticks.push(all_domain[1]);
 		
-	
-// 		console.log(all_domain, filtered_domain)
-		this.x.range(axis_range)
-        this.x.domain(axis_domain);
+		x_range.push(this.width);
+	    x_domain.push(all_domain[1]);	
+	    x_ticks.push(all_domain[1]);
+			
+	 
         
-        this.xAxis.tickValues(axis_ticks);
+        this.x.domain(x_domain);
+        this.x.range(x_range)
         
-        select('#axis')  
+        this.x2.domain(x2_domain);
+        this.x2.range(x2_range)
+        
+        this.visibleXAxis.tickValues(x_ticks);
+        this.extremesXAxis.tickValues(x2_ticks);
+        
+        select('#visible_axis')  
         .transition(transition('t2').duration(750).ease(easeLinear))        
-        .call(this.xAxis)
+        .call(this.visibleXAxis)
+        
+        
+       select('#extremes_axis')  
+        .transition(transition('t2').duration(750).ease(easeLinear))        
+        .call(this.extremesXAxis)
         
         select("#axis")
-            .attr("transform", "translate(" + this.margin.left + "," + (scrollOffset + this.margin.top / 1.5) + ")")
+        .attr("transform", "translate(" + this.margin.left + "," + (scrollOffset + this.margin.top / 1.5) + ")")
+        
+        select('#visible_axis')
             .selectAll("text")	
 			.attr("dx", "1.5em")
 			.attr("dy", "-.15em")

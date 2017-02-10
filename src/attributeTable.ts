@@ -18,11 +18,8 @@ class attributeTable {
   private width;
   private height;
 
-
-// TODO! This used to  left: 40, right: 20
-//   private margin = {top: 60, right: 10, bottom: 60, left: 20};
-  
-  private margin = Config.margin; 
+ 
+  private margin = Config.margin;
 
   constructor(parent:Element) {
     this.$node = select(parent)

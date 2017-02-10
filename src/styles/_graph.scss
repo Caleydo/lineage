@@ -52,11 +52,18 @@
     /*fill:none*/
 }
 
-.hovered{
+.backgroundBar{
     stroke:  #ffc800;
     stroke-width:0px;
-    opacity: .2;
+//     opacity: .2;
     fill:#ffc800
+}
+
+rect.selected{
+    stroke:  #ff6400;
+    stroke-width:0px;
+    opacity: .2;
+    fill:#ff6400
 }
 
 .node rect, 

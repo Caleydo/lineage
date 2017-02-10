@@ -8,5 +8,3 @@ node_modules/
 *.map
 *.css
 *.log
-/src/data/data_structure.json
-/src/data/SuicideMasterList.csv

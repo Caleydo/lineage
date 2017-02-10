@@ -12,7 +12,8 @@ import {
     select,
     selectAll,
     selection,
-    mouse
+    mouse,
+    event
 } from 'd3-selection';
 import {
     transition
@@ -196,20 +197,8 @@ class genealogyTree {
             .attr("transform", "translate(" + this.margin.left + "," + (this.margin.top + Config.glyphSize) + ")")
             .classed('genealogyTree', true)
             .attr('id', 'genealogyTree')
-            
-	    //When user clicks on background, clear all selections
-	    select('#genealogyTree')
-        .on('click', function() {
-	        console.log('clicked on background')
-//             selectAll('.nodeIcon').classed('selected',false);
-        })
+          
 
-
-
-	        
-
-                   
-            
         //Filter data to only render what is visible in the current window
         this.update_time_axis();
 
@@ -220,11 +209,9 @@ class genealogyTree {
     //End of Build Function
     
     
-    private update_graph(nodes, edges, parentEdges) {
-	    
+    private update_graph(nodes, edges, parentEdges) {	    
 	    this.update_edges(nodes,edges,parentEdges);
 	    this.update_nodes(nodes,edges,parentEdges)
-        
        }
 
 	//Function that updates the position of all element in the genealogy tree
@@ -297,7 +284,8 @@ class genealogyTree {
     };
             
     private update_nodes(nodes, edges, parentEdges) {
-	    
+		
+		console.log('called update_nodes')	    
 	    let t = transition('t').duration(500).ease(easeLinear);
 
         let graph = select('#genealogyTree')        
@@ -321,22 +309,29 @@ class genealogyTree {
             })
             .classed("node", true)
             
-		//Attach background rectangle to all rows and set to invisible (will be visible on hover)
+            //Attach background rectangle to all rows and set to invisible (will be visible on hover)
 		allNodesEnter 
 		.append('rect')
-		.classed('hovered',true);
+		.classed('backgroundBar',true);
 		
 		allNodes
-		.selectAll('.hovered')
-// 		.attr('y',(d)=>{})
-// 		.attr('y', ()=>{console.log(this.y.invert(pos)); return this.y(this.y.invert(pos)) })
-		.attr("width", (d)=>{return (max(this.x.range())- this.x(d['x']) + this.margin.right);})
+		.selectAll('.backgroundBar')
+		.attr("width", (d)=>{return (max(this.x.range())- min(this.x.range()) + this.margin.right);})
+		.attr('x',(d)=>{ return (min([- this.x(d['x']),-this.x2(d['x'])]))})
 	    .attr("height", Config.glyphSize *2)
 	    .attr("transform", (d: any) => {
                 return d.sex == 'M' ? "translate(" + Config.glyphSize +  ",0)" : "translate("+ 0 + "," + (-Config.glyphSize) + ")";
         })
-        .attr('visibility', 'hidden' )
-
+        
+        allNodes
+		.selectAll('.backgroundBar')
+        .attr('opacity', 0.01 )
+        .on('mouseover',function(){
+	            select(this).attr('opacity',.2 )	        
+			})
+		.on('mouseout', ()=>{selectAll('.backgroundBar').attr('opacity', 0.01)})
+            
+		
 
         //Add life line groups
         let lifeRectsEnter = allNodesEnter.append("g");
@@ -444,10 +439,19 @@ class genealogyTree {
 
 		allNodesEnter.attr('opacity',0);
 	
-		allNodes.on("click",function(){
-			selectAll('.nodeIcon').classed('selected',false); 
-			select(this).select('.nodeIcon').classed('selected', true)});
+		allNodes
+		.on("click",function(){
+			//'Unselect all other background bars if ctrl was not pressed
+			if (!event.shiftKey){
+			selectAll('.backgroundBar').classed('selected',false); 
+			}
 			
+			select(this).select('.backgroundBar').classed('selected',function(){
+				return (!select(this).classed('selected'));
+			})
+		})
+        
+	
         //Position and Color all Nodes
         allNodes
          	.transition(t)
@@ -462,12 +466,6 @@ class genealogyTree {
             })
             .style("stroke-width", 3);
             
-            
-        allNodes
-            .on('mouseover',function(){
-	            select(this).select('.hovered').attr('visibility', 'visible' )	        
-			})
-		    .on('mouseout', ()=>{selectAll('.hovered').attr('visibility', 'hidden')})
             
         allNodes
             .transition(t.transition().ease(easeLinear))
@@ -501,8 +499,16 @@ class genealogyTree {
             .style('font-size', Config.glyphSize)
 
 
+/*
+			select('#genealogyTree')
+			.on('mouseover',function(){
+	            console.log('here')
+// 	            select(this).select('.hovered').attr('visibility', 'visible' )	        
+			})
+*/
+// 			.on('mouseout', ()=>{selectAll('.hovered').attr('visibility', 'hidden')})
 
-
+/*
         allNodes.call(drag()
             .on("start", (d) => {
                 this.startYPos = this.y.invert(mouse( < any > select('.genealogyTree').node())[1]);
@@ -545,12 +551,19 @@ class genealogyTree {
                 this.update_visible_nodes()
                 
                 
-/*
-                this.aggregating_levels.forEach((level) => {
-                    this.delete_phantom(this.get_row_data('.row_' + level))
-                });
-*/
+                //this.aggregating_levels.forEach((level) => {
+                //    this.delete_phantom(this.get_row_data('.row_' + level))
+                //});
+                
             }));
+*/
+
+
+
+
+	
+          
+           
 
 
     }

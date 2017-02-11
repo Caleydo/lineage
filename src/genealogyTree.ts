@@ -189,7 +189,7 @@ class genealogyTree {
 		    /* clear the old timeout */
 		    clearTimeout(this.timer);
 		    /* wait until 100 ms for callback */
-		    this.timer = setTimeout(()=>{this.update_visible_nodes()}, 10);
+		    this.timer = setTimeout(()=>{this.update_visible_nodes()}, 30);
 		});    
 		
 		//Create group for genealogy tree
@@ -611,6 +611,13 @@ class genealogyTree {
             }));
 */
 
+/*
+			 allNodesEnter 
+			 .append("svg:image")
+			 .attr("xlink:href", "./icons/gear.svg")
+			 .attr("width", Config.glyphSize*2)
+			 .attr("height", Config.glyphSize*2)
+*/
 
 
 
@@ -889,13 +896,13 @@ class genealogyTree {
         //Fire Events when a row is hovered or selected
         this.$node.selectAll('.backgroundBar')
             .on('mouseover', function(e) {
-                events.fire('node_hover_on', select(this).attr('id'));
+                events.fire('row_mouseover', e['id']);
             })
             .on('mouseout', function(e) {
-                events.fire('node_hover_off', select(this).attr('id'));
+                events.fire('row_mouseout', e['id']);
             })
             .on('click',function(e){
-	            console.log('row_selected', select(this).attr('id'));
+	            events.fire('row_selected', e['id']);
             })
     }
 

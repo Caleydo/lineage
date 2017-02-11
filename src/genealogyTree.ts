@@ -327,14 +327,14 @@ class genealogyTree {
 		.selectAll('.backgroundBar')
         .attr('opacity', 0)
         .on('mouseover',function(d){
-	            select(this).attr('opacity',.2 )
-				selectAll('.ageLabel').attr('visibility','hidden');	
+	            select(this).attr('opacity',.2)
 	            select('.row_' + d['y']).select('.lifeRect').select('.ageLabel').attr('visibility','visible');		
 	            
 	        events.fire('row_mouseover', d['id']);                   
 			})
 		.on('mouseout', (d)=>{
 			selectAll('.backgroundBar').attr('opacity', 0)
+			selectAll('.ageLabel').attr('visibility','hidden');				
 			events.fire('row_mouseout', d['id']);
 			})
 		
@@ -538,12 +538,16 @@ class genealogyTree {
         allNodes.selectAll('.nodeLabel')
             // .attr('visibility','hidden')
             .text(function(d: any) {
+	            
+	            return d['generation']
+/*
 	            let year = new Date().getFullYear();
                                             if (+d.ddate > 0) {
                                 return Math.abs(d['ddate'] - d['bdate']);
                             }
                             else
                                 return Math.abs(year - d['bdate']);
+*/
                
             })
             .attr('dx', function(d) {

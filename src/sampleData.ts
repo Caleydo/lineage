@@ -130,7 +130,7 @@ export let sampleData =[
       "egoUPDBID":"1495566",
       "paUPDBID":"57",
       "maUPDBID":"59",
-      "affection":"1",
+      "affection":"100",
       "bdate":"1899",
       "ddate":"1965",
       "OMEID":"",

@@ -30,6 +30,8 @@ class graphData {
       d['visible']=true;
       d['bdate']=+d['bdate'];
       d['color']= +d['affection'] == 1 ? 'black' : 'white'
+      d['generation'] = -1;
+      d['descendant']=false; //flag for blood descendants of founders
       
       
       this.uniqueID.push(+d['egoUPDBID']);
@@ -43,11 +45,42 @@ class graphData {
   //Function that assigns a generation to each node.
   private computeGenerations(){
 	//Find oldest couple and tag them as the founders
-	let sorted_nodes = this.nodes.sort((a,b)=>{return a['bdate'] - b['bdate']});  
+	this.nodes.sort((a,b)=>{return a['bdate'] - b['bdate']});  
 	
-	let founder1 = sorted_nodes[0];
-	let founder2 = sorted_nodes[1];
-	 
+	this.nodes[0]['generation']=0;
+	this.nodes[1]['generation']=0;
+	
+	//for each couple, find all children and: 1) assign their generation 2)Tag them as 'descendants'
+	this.nodes.forEach((n)=>{
+		this.parentChildEdges.forEach((edge)=>{
+			if (n == edge['ma'] || n == edge['pa']){
+				 if (n['generation'] >= 0){
+					edge['target']['generation'] = n['generation']+1;
+					edge['target']['descendant'] = true;	 
+				 }
+
+			}			
+		})
+		
+	})
+	
+	console.log('there are ', this.parentParentEdges.length , 'still parentEdges');
+	console.log('there are ', this.parentChildEdges.length , 'parentChildEdges');
+	console.log('there are ', this.nodes.length , 'nodes');
+	//Iterate through all nodes and for any without generation: 1)Copy the generation of their spouse  
+	this.nodes.filter(function(d){return d['generation']<0}).forEach((n)=>{
+		//Iterate through parent-parent edges to find spouses generation and copy it
+		this.parentParentEdges.forEach((edge)=>{
+			if (n == edge['pa']){
+				n['generation'] = edge['ma']['generation'];	 
+			}			
+			else if (n == edge['ma']){
+				n['generation'] = edge['pa']['generation'];	
+			}
+		})	
+	})
+	
+
   }
     /**
    * Compute Parent/Children edges and Parent-Parent Edges
@@ -73,8 +106,9 @@ class graphData {
                 'ma':this.nodes[maID],
                 'pa':this.nodes[paID],
                 'type':'parent',
-                'id':Math.random()
+                'id':this.nodes[maID]
             };
+			console.log(rnode)
 			
 // 			console.log(rnode)
             this.parentParentEdges.push(rnode);

@@ -123,7 +123,7 @@ class genealogyTree {
     init(data) {
         this.data = data;        
         this.build();
-        this.eventHandler(); 
+//         this.eventHandler(); 
           
 
         // return the promise directly as long there is no dynamical data to update
@@ -329,9 +329,14 @@ class genealogyTree {
         .on('mouseover',function(d){
 	            select(this).attr('opacity',.2 )
 				selectAll('.ageLabel').attr('visibility','hidden');	
-	            select('.row_' + d['y']).select('.lifeRect').select('.ageLabel').attr('visibility','visible');		                   
+	            select('.row_' + d['y']).select('.lifeRect').select('.ageLabel').attr('visibility','visible');		
+	            
+	        events.fire('row_mouseover', d['id']);                   
 			})
-		.on('mouseout', ()=>{selectAll('.backgroundBar').attr('opacity', 0)})
+		.on('mouseout', (d)=>{
+			selectAll('.backgroundBar').attr('opacity', 0)
+			events.fire('row_mouseout', d['id']);
+			})
 		
 
             
@@ -492,7 +497,7 @@ class genealogyTree {
 		allNodesEnter.attr('opacity',0);
 	
 		allNodes
-		.on("click",function(){
+		.on("click",function(d){
 			//'Unselect all other background bars if ctrl was not pressed
 			if (!event.shiftKey){
 			selectAll('.backgroundBar').classed('selected',false); 
@@ -501,6 +506,8 @@ class genealogyTree {
 			select(this).select('.backgroundBar').classed('selected',function(){
 				return (!select(this).classed('selected'));
 			})
+			
+			events.fire('row_selected', d['id']);
 		})
         
 	
@@ -887,23 +894,6 @@ class genealogyTree {
             return this.y(node.y);
         else
             return this.y(node.y) - Config.glyphSize
-    }
-
-
-
-    private eventHandler() {
-	    
-        //Fire Events when a row is hovered or selected
-        this.$node.selectAll('.backgroundBar')
-            .on('mouseover', function(e) {
-                events.fire('row_mouseover', e['id']);
-            })
-            .on('mouseout', function(e) {
-                events.fire('row_mouseout', e['id']);
-            })
-            .on('click',function(e){
-	            events.fire('row_selected', e['id']);
-            })
     }
 
     private elbow(d, interGenerationScale, lineFunction) {

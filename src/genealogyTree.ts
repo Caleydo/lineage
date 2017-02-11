@@ -905,7 +905,7 @@ class genealogyTree {
         const nx = d.ma.x - xdiff * interGenerationScale(ydiff);
 
         const linedata = [{
-            x: d.ma.x,
+            x: (d.ma.x + d.pa.x)/2,
             y: (d.ma.y + d.pa.y)/2
         }, {
             x: nx,

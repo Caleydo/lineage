@@ -328,9 +328,8 @@ class genealogyTree {
         .attr('opacity', 0.01 )
         .on('mouseover',function(d){
 	            select(this).attr('opacity',.2 )
-// 	            this.parentNode.appendChild(this);
-// 	            console.log(select(d))
-// 	            select('.ageLabel').selectAll('text').attr('visibility','visible');	        
+				selectAll('.ageLabel').attr('visibility','hidden');	
+	            select('.row_' + d['y']).select('.lifeRect').select('.ageLabel').attr('visibility','visible');	        
 			})
 		.on('mouseout', ()=>{selectAll('.backgroundBar').attr('opacity', 0.01)})
 		
@@ -403,7 +402,7 @@ class genealogyTree {
             })
             .style('font-size', Config.glyphSize * 1.5)
             .style('font-weight', 'bold')
-//             .attr('visibility','hidden');
+            .attr('visibility','hidden');
             
             
         //Add cross at the end of lifelines for deceased people

@@ -93,7 +93,11 @@ rect.selected{
  	opacity:.2;
 }
 
-.node text{
+.nodeLabel,
+.ageLabel,
+.nodeIcon,
+.lifeRect,
+.nodeLine{
 	pointer-events: none;
 }
 

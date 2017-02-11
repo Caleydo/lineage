@@ -327,6 +327,7 @@ class genealogyTree {
 		.selectAll('.backgroundBar')
         .attr('opacity', 0.01 )
         .on('mouseover',function(d){
+	        console.log('mouseover');
 	            select(this).attr('opacity',.2 )
 				selectAll('.ageLabel').attr('visibility','hidden');	
 	            select('.row_' + d['y']).select('.lifeRect').select('.ageLabel').attr('visibility','visible');	        

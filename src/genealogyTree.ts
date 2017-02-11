@@ -123,7 +123,7 @@ class genealogyTree {
     init(data) {
         this.data = data;        
         this.build();
-        this.attachListener(); 
+        this.eventHandler(); 
           
 
         // return the promise directly as long there is no dynamical data to update
@@ -189,7 +189,7 @@ class genealogyTree {
 		    /* clear the old timeout */
 		    clearTimeout(this.timer);
 		    /* wait until 100 ms for callback */
-		    this.timer = setTimeout(()=>{this.update_visible_nodes()}, 100);
+		    this.timer = setTimeout(()=>{this.update_visible_nodes()}, 10);
 		});    
 		
 		//Create group for genealogy tree
@@ -325,14 +325,13 @@ class genealogyTree {
         
         allNodes
 		.selectAll('.backgroundBar')
-        .attr('opacity', 0.01 )
+        .attr('opacity', 0)
         .on('mouseover',function(d){
-	        console.log('mouseover');
 	            select(this).attr('opacity',.2 )
 				selectAll('.ageLabel').attr('visibility','hidden');	
-	            select('.row_' + d['y']).select('.lifeRect').select('.ageLabel').attr('visibility','visible');	        
+	            select('.row_' + d['y']).select('.lifeRect').select('.ageLabel').attr('visibility','visible');		                   
 			})
-		.on('mouseout', ()=>{selectAll('.backgroundBar').attr('opacity', 0.01)})
+		.on('mouseout', ()=>{selectAll('.backgroundBar').attr('opacity', 0)})
 		
 
             
@@ -672,7 +671,7 @@ class genealogyTree {
 			x2_domain.push(filtered_domain[0])
 			
 			//Add tick marks
-			let left_range = range(all_domain[0],filtered_domain[0],2);
+			let left_range = range(all_domain[0],filtered_domain[0],10);
 			x2_ticks = left_range;		
 			
 		}
@@ -692,7 +691,7 @@ class genealogyTree {
 			x2_range.push(this.width)
 			x2_domain.push(all_domain[1])
 						
-			let right_range = range(filtered_domain[1],all_domain[1],2);
+			let right_range = range(filtered_domain[1],all_domain[1],10);
 			x2_ticks = x2_ticks.concat(right_range);					
 		}
 		
@@ -700,7 +699,7 @@ class genealogyTree {
 	    x_domain.push(all_domain[1]);	
 	    x_ticks.push(all_domain[1]);
 			
-	 
+	    let t2 = transition('t2').duration(750).ease(easeLinear);
         
         this.x.domain(x_domain);
         this.x.range(x_range)
@@ -712,13 +711,20 @@ class genealogyTree {
         this.extremesXAxis.tickValues(x2_ticks);
         
         select('#visible_axis')  
-        .transition(transition('t2').duration(750).ease(easeLinear))        
+        .transition(t2)        
         .call(this.visibleXAxis)
         
         
        select('#extremes_axis')  
-        .transition(transition('t2').duration(750).ease(easeLinear))        
+       	.attr('opacity',.6);
+       	
+       select('#extremes_axis')  
+//         .transition(t2)  
         .call(this.extremesXAxis)
+        
+      select('#extremes_axis')
+      .transition(t2)
+      .attr('opacity',.6)  
         
         select("#axis")
         .attr("transform", "translate(" + this.margin.left + "," + (scrollOffset + this.margin.top / 1.5) + ")")
@@ -878,16 +884,19 @@ class genealogyTree {
 
 
 
-    private attachListener() {
-
-        //Fire Event when first rect is clicked
-        this.$node.selectAll('.node')
+    private eventHandler() {
+	    
+        //Fire Events when a row is hovered or selected
+        this.$node.selectAll('.backgroundBar')
             .on('mouseover', function(e) {
                 events.fire('node_hover_on', select(this).attr('id'));
             })
             .on('mouseout', function(e) {
                 events.fire('node_hover_off', select(this).attr('id'));
-            });
+            })
+            .on('click',function(e){
+	            console.log('row_selected', select(this).attr('id'));
+            })
     }
 
     private elbow(d, interGenerationScale, lineFunction) {

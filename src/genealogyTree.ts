@@ -326,10 +326,15 @@ class genealogyTree {
         allNodes
 		.selectAll('.backgroundBar')
         .attr('opacity', 0.01 )
-        .on('mouseover',function(){
-	            select(this).attr('opacity',.2 )	        
+        .on('mouseover',function(d){
+	            select(this).attr('opacity',.2 )
+// 	            this.parentNode.appendChild(this);
+// 	            console.log(select(d))
+// 	            select('.ageLabel').selectAll('text').attr('visibility','visible');	        
 			})
 		.on('mouseout', ()=>{selectAll('.backgroundBar').attr('opacity', 0.01)})
+		
+
             
 		
 
@@ -397,7 +402,8 @@ class genealogyTree {
                 return (+d.affection == 100) ? "black" : "#9e9d9b";
             })
             .style('font-size', Config.glyphSize * 1.5)
-            .style('font-weight', 'bold');
+            .style('font-weight', 'bold')
+//             .attr('visibility','hidden');
             
             
         //Add cross at the end of lifelines for deceased people
@@ -524,7 +530,7 @@ class genealogyTree {
                                 return Math.abs(d['ddate'] - d['bdate']);
                             }
                             else
-                                return Math.abs(2016 - d['bdate']);
+                                return Math.abs(2017 - d['bdate']);
                
             })
             .attr('dx', function(d) {

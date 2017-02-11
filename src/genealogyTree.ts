@@ -398,17 +398,44 @@ class genealogyTree {
             })
             .style('font-size', Config.glyphSize * 1.5)
             .style('font-weight', 'bold');
-
-
-
+            
+            
+        //Add cross at the end of lifelines for deceased people
+        lifeRectsEnter.filter(function(d: any) {
+                return (+d.deceased == 1);
+            })
+            .append("line")
+            .attr('class','endOfTheLine')
+            
+            
+            
+        lifeRects.selectAll('.endOfTheLine')    
+            .attr("x1", (d: any)=> {
+	            return (Math.abs(this.x(d['ddate']) - this.x(d['bdate']))+ Config.glyphSize / 2) ;                                 
+            })
+            .attr("y1", function(d: any) {
+                return Config.glyphSize/2 ;
+            })
+            .attr("x2", (d: any)=> {
+	            return Math.abs(this.x(d['ddate']) - this.x(d['bdate']) -Config.glyphSize / 2) ;    
+            })
+            .attr("y2", function(d: any) {
+	            
+                return Config.glyphSize*2 ;
+            })
+            .attr("stroke-width", 2)
+            .attr("stroke", function(d: any) {
+                return (+d.affection == 100) ? "black" : "#9e9d9b";
+            })
 
         //Add cross through lines for deceased people
         allNodesEnter.filter(function(d: any) {
                 return (+d.deceased == 1);
             })
             .append("line")
+            .attr('class','nodeLine')
             
-        allNodes.selectAll('line')    
+        allNodes.selectAll('.nodeLine')    
             .attr("x1", function(d: any) {
                 return d.sex == 'F' ? -Config.glyphSize : -Config.glyphSize / 2;
             })

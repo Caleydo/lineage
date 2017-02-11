@@ -362,8 +362,10 @@ class genealogyTree {
         lifeRects.selectAll('rect')
             .attr('y', Config.glyphSize)
             .attr("width", (d) => {
+				let year = new Date().getFullYear();
+
 	            let ageAtDeath = Math.abs(this.x(d['ddate']) - this.x(d['bdate'])) ;
-	            let ageToday = Math.abs(this.x(2017) - this.x(d['bdate'])) 
+	            let ageToday = Math.abs(this.x(year) - this.x(d['bdate'])) 
 		        return (+d['deceased'] == 1) ?  ageAtDeath :  ageToday;
             })
             .attr("height", Config.glyphSize / 4)
@@ -382,16 +384,20 @@ class genealogyTree {
             // .attr("y", glyphSize )
             .attr("dy", Config.glyphSize * 0.8)
             .attr("dx", (d) => {
+	            let year = new Date().getFullYear();
+	            
 	            let ageAtDeath = Math.abs(this.x(d['ddate']) - this.x(d['bdate'])) ;
-	            let ageToday = Math.abs(this.x(2017) - this.x(d['bdate'])) 
+	            let ageToday = Math.abs(this.x(year) - this.x(d['bdate'])) 
 	            
                 return (+d['deceased'] == 1) ?  ageAtDeath :  ageToday;  
 //                 return Math.abs(this.x(d['ddate']) - this.x(d['bdate']));
             })
             .attr("text-anchor", 'end')
             .text(function(d) {
+	            let year = new Date().getFullYear();
+	            
 	            let ageAtDeath = (d['ddate']- d['bdate']) ;
-	            let ageToday = (2017 - d['bdate']) 
+	            let ageToday = (year - d['bdate']) 
 	            
                 return (+d['deceased'] == 1) ?  ageAtDeath :  ageToday;  
                 
@@ -525,11 +531,12 @@ class genealogyTree {
         allNodes.selectAll('.nodeLabel')
             // .attr('visibility','hidden')
             .text(function(d: any) {
+	            let year = new Date().getFullYear();
                                             if (+d.ddate > 0) {
                                 return Math.abs(d['ddate'] - d['bdate']);
                             }
                             else
-                                return Math.abs(2017 - d['bdate']);
+                                return Math.abs(year - d['bdate']);
                
             })
             .attr('dx', function(d) {

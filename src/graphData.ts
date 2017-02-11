@@ -31,12 +31,24 @@ class graphData {
       d['bdate']=+d['bdate'];
       d['color']= +d['affection'] == 1 ? 'black' : 'white'
       
+      
       this.uniqueID.push(+d['egoUPDBID']);
 
     });
     
     this.createEdges();
+    this.computeGenerations();
   }  
+  
+  //Function that assigns a generation to each node.
+  private computeGenerations(){
+	//Find oldest couple and tag them as the founders
+	let sorted_nodes = this.nodes.sort((a,b)=>{return a['bdate'] - b['bdate']});  
+	
+	let founder1 = sorted_nodes[0];
+	let founder2 = sorted_nodes[1];
+	 
+  }
     /**
    * Compute Parent/Children edges and Parent-Parent Edges
    */
@@ -78,9 +90,7 @@ class graphData {
 
 
   }
-  
-  
-
+ 
   /**
    * Aggregates Nodes
    */

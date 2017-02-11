@@ -550,7 +550,7 @@ class genealogyTree {
                 return d['sex'] == 'M' ? Config.glyphSize / 2 : -Config.glyphSize / 2;
             })
             .attr('dy', function(d) {
-                return d['sex'] == 'M' ? 1.5 * Config.glyphSize : Config.glyphSize / 2;
+                return d['sex'] == 'M' ? 1.3 * Config.glyphSize : Config.glyphSize / 2.75;
             })
             .attr('fill', function(d: any) {
                 return (+d.affection == 100) ? "white" : "black";

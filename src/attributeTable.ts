@@ -18,7 +18,7 @@ class attributeTable {
   private width;
   private height;
 
- 
+
   private margin = Config.margin;
 
   constructor(parent:Element) {
@@ -60,7 +60,8 @@ class attributeTable {
     let x = scaleLinear().range([0 , this.width]).domain([1 ,1]);
     let y = scaleLinear().range([0, this.height]).domain([min(data,function(d){return d['y']}), max(data,function(d){return d['y']}) ])
 
-    const rowHeight = Config.glyphSize * 2.5 - 2;
+
+    const rowHeight = Config.glyphSize * 2.5 - 4; //2
     const genderWidth = 20;
     const ageWidth = 50; // TODO!
     const bmiWidth = 30;
@@ -92,7 +93,7 @@ class attributeTable {
 
     const genderCell = rows
     .append("rect")
-    .attr("class", "ageCell")
+    .attr("class", "genderCell")
     .attr("width", genderWidth) //Config.glyphSize * 10)
     .attr("height", rowHeight)
     .attr('fill', function (d) {
@@ -268,6 +269,12 @@ class attributeTable {
     //Set listener for hover off event on corresponding node that changes the color back to black
     events.on('node_hover_off', (evt, item)=> {
       selectAll('.row').classed('selected',false);
+    });
+
+
+    events.on('row_mouseover', (evt, item)=> {
+      selectAll('.row').classed('selected', function (d) {
+        return (select(this).attr('id') === 'row_' + item)});
     });
 
     //Set listener for hover event on corresponding node that changes the color of that row to red

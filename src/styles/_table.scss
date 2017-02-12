@@ -1,4 +1,4 @@
-
+/*
 .line {
     fill: none;
     stroke: red;
@@ -49,7 +49,6 @@
 .nodeIcon.selected{
     stroke: #ff6400;
     stroke-width:2px;
-    /*fill:none*/
 }
 
 .backgroundBar{
@@ -120,13 +119,22 @@ rect.selected{
 //     stroke-width: 3px;
     fill:none
 }
-
-/*.row.selected{
-  rect{
-    stroke:red;
-  }
+*/
+/*.boundary.selected rect{
+ // rect{
+    stroke:blue;
+    stroke-width:20;
+ // }
 }*/
 
+
+.row.selected rect{
+ // rect{
+    stroke:red;
+ // }
+}
+
+/*
 #app{
   display: flex;
 }
@@ -137,3 +145,5 @@ visibility:hidden;
 .node:hover a {
  visibility:visible;
 }
+
+*/

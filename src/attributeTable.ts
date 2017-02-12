@@ -115,20 +115,29 @@ class attributeTable {
     .attr("transform", function (d, i) {
       return ('translate(0, ' + y(d['y'])+ ' )')
     })
+
     .on('click', function(d) {
       if (!event.shiftKey){ //will this be a problem?
 			     selectAll('.row').classed('selected',false);
 			}
-			select(this).classed('selected',function(){
-				return (!select(this).classed('selected'));
-			})
+			select(this).classed('selected', function(){
+				return (!select(this).classed('selected')); //toggle the selectedness
+			});
       events.fire('table_row_selected', d['id']);
+    })
+    .on('mouseover', function(d) {
+      select(this).classed('hovered', function(){
+        //hover event ONLY if not selected
+        return (!select(this).classed('selected'));
+      });
+      events.fire('table_row_hover_on', d['id']);
+    })
+    .on('mouseout', function(d) {
+      select(this).classed('hovered', false);/*function(){
+        return (!select(this).classed('hovered'));
+      })*/
+      events.fire('table_row_hover_off', d['id']);
     });
-    
-    // .on('hover', function(d) {
-    //   console.log(d)
-    //   events.fire('table_row_hover', d['id']);
-    // });
 
 
 
@@ -256,19 +265,20 @@ class attributeTable {
 
   private attachListener() {
     //Set listener for hover event on corresponding node that changes the color of that row to red
-    events.on('node_hover_on', (evt, item)=> {
-      selectAll('.row').classed('selected', function (d) {
-        return (!select(this).classed('selected') && select(this).attr('id') === 'row_' + item);
+    events.on('row_mouseover', (evt, item)=> {
+      selectAll('.row').classed('hovered', function (d) {
+        return (!select(this).classed('hovered') && !select(this).classed('selected') && 
+        select(this).attr('id') === 'row_' + item);
       });
     });
 
     //Set listener for hover off event on corresponding node that changes the color back to black
-    events.on('node_hover_off', (evt, item)=> {
-      selectAll('.row').classed('selected',false);
+    events.on('row_mouseout', (evt, item)=> {
+      selectAll('.row').classed('hovered',false);
     });
 
 
-    events.on('row_mouseover', (evt, item)=> {
+    events.on('row_selected', (evt, item)=> {
       selectAll('.row').classed('selected', function (d) {
         return (select(this).attr('id') === 'row_' + item)});
     });

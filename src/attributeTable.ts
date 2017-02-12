@@ -3,10 +3,12 @@ import {AppConstants, ChangeTypes} from './app_constants';
 // import * as d3 from 'd3';
 import {Config} from './config';
 
-import {select, selectAll} from 'd3-selection';
+import {select, selectAll, mouse, event} from 'd3-selection';
+import {format} from 'd3-format';
 import {scaleLinear} from 'd3-scale';
 import {max, min} from 'd3-array';
 import {entries} from 'd3-collection';
+import {axisTop} from 'd3-axis';
 
 /**
 * Creates the attribute table view
@@ -17,6 +19,8 @@ class attributeTable {
 
   private width;
   private height;
+
+  private tableAxis;
 
 
   private margin = Config.margin;
@@ -60,11 +64,13 @@ class attributeTable {
     let x = scaleLinear().range([0 , this.width]).domain([1 ,1]);
     let y = scaleLinear().range([0, this.height]).domain([min(data,function(d){return d['y']}), max(data,function(d){return d['y']}) ])
 
+    let tableAxis = axisTop(x).tickFormat(format("d"));
 
-    const rowHeight = Config.glyphSize * 2.5 - 4; //2
-    const genderWidth = this.width / 7; //20;
-    const ageWidth = 3 * this.width / 7;//50; // TODO!
-    const bmiWidth = 2 * this.width / 7;//30;
+    // TODO: base these off the data in Columns
+    const rowHeight = Config.glyphSize * 2.5 - 4;
+    const genderWidth = this.width / 7;
+    const ageWidth = 3 * this.width / 7;
+    const bmiWidth = 2 * this.width / 7;
 
     const medianBMI = ageWidth + genderWidth + (bmiWidth/2);
     const deceasedWidth = this.width - (ageWidth + genderWidth + bmiWidth);
@@ -72,6 +78,28 @@ class attributeTable {
     const svg = this.$node.append('svg')
     .attr('width', this.width + this.margin.left + this.margin.right)
     .attr("height", this.height + this.margin.top + this.margin.bottom)
+
+    const axis = svg.append("g")
+        .attr("transform", "translate(" + this.margin.left + "," + this.margin.top / 1.5 + ")")
+        .attr('id', 'axis')
+
+    axis.selectAll(".table_header")
+    .data(['Sex', 'Age', 'BMI', 'Deceased?'])
+    .enter()
+    .append("text")
+            .text(function(column) { return column; })
+            .attr('fill', 'black')
+      			.attr("transform", function (d) {
+              if (d=='Sex')
+                return "translate(" + (-35) + ", 20) rotate(-45)";
+              else if (d=='Age')
+                return "translate(" + (-15) + ", 20) rotate(-45)";
+              else if (d=='BMI')
+                return "translate(" + (6) + ", 20) rotate(-45)";
+              else
+                return "translate(" + (25) + ", 20) rotate(-45)";
+            });
+
 
     const table = svg.append("g")
     .attr("transform", "translate(0," + this.margin.top + ")")
@@ -86,8 +114,7 @@ class attributeTable {
     .attr('class', 'row')
     .attr("transform", function (d, i) {
       return ('translate(0, ' + y(d['y'])+ ' )')
-    })//;
-    //.attr("transform", function(d, i) { return "scale(0," + i * 20 + ")"; })
+    })
     .on('click', function(d) {
       console.log(d)
     });
@@ -97,7 +124,7 @@ class attributeTable {
     const genderCell = rows
     .append("rect")
     .attr("class", "genderCell")
-    .attr("width", genderWidth) //Config.glyphSize * 10)
+    .attr("width", genderWidth)
     .attr("height", rowHeight)
     .attr('fill', function (d) {
       return d.sex == 'F' ? lightPinkGrey : darkBlueGrey;
@@ -130,12 +157,11 @@ class attributeTable {
 
 // central ref line
     rows.append("line")
-    .attr("x1", medianBMI) //ageWidth + genderWidth)
+    .attr("x1", medianBMI)
     .attr("y1", 0)
-    .attr("x2", medianBMI) //)
+    .attr("x2", medianBMI)
     .attr("y2", rowHeight)
     .attr("stroke-width", 1)
-    //  .attr("stroke-dasharray", "2, 3")
     .attr("stroke", "#cccccc");
 
 
@@ -147,17 +173,7 @@ class attributeTable {
                         else
                           return medianBMI;
                       })
-
-
-    //ageWidth + genderWidth + (bmiWidth/2))
     .attr("cy", rowHeight / 2)
-//
-    // .attr("cy", function (d) {
-    //   if(d.ddate - d.bdate > 0)
-    //     return 70 + d.ddate - d.bdate;
-    //   else
-    //     return 50;
-    // })
     .attr("rx", 2)
     .attr("ry", 2)
     .attr('stroke', 'black')
@@ -223,45 +239,11 @@ class attributeTable {
     .attr("y2", rowHeight)
     .attr("stroke-width", 1)
     .attr("stroke", "black");
-
-
-
-
-  //  .attr("transform", function (d, i) {
-  //    return ('translate(40 )')
-  //  });
-
-    /*
-    rows
-    // .select('.cell')
-    //   .data(function (d) {
-    //     return entries(d)
-    //   })
-    //   .enter()
-    .append('rect')
-    // .attr('id', function (d) {
-    //   return ('cell_' + d.key) //or d.value
-    // })
-    .attr("width", Config.glyphSize * 10)
-    //  function (d) {
-    //   return d.id/1000+14;
-    // })
-    .attr("height", Config.glyphSize * 2.5)
-    .attr('stroke', 'grey')
-    .attr('stroke-width', 3)
-    .attr('fill', 'none');
-    // .attr("transform", function (d, i) {
-    //   return ('translate(' + (Config.glyphSize * (3 * i)) + ' , 0)')
-    // });
-
-    */
-
-
-
   }
 
-  private attachListener() {
 
+
+  private attachListener() {
     //Set listener for hover event on corresponding node that changes the color of that row to red
     events.on('node_hover_on', (evt, item)=> {
       selectAll('.row').classed('selected', function (d) {
@@ -280,6 +262,8 @@ class attributeTable {
         return (select(this).attr('id') === 'row_' + item)});
     });
 
+
+
     //Set listener for hover event on corresponding node that changes the color of that row to red
     events.on('rows_aggregated', (evt, item)=> {
       selectAll('.row').classed('selected', function (d) {
@@ -296,7 +280,7 @@ class attributeTable {
 * Factory method to create a new instance of the genealogyTree
 * @param parent
 * @param options
-* @returns {genealogyTree}
+* @returns {attributeTable}
 */
 export function create(parent:Element) {
   return new attributeTable(parent);

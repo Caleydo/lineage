@@ -62,9 +62,12 @@ class attributeTable {
 
 
     const rowHeight = Config.glyphSize * 2.5 - 4; //2
-    const genderWidth = 20;
-    const ageWidth = 50; // TODO!
-    const bmiWidth = 30;
+    const genderWidth = this.width / 7; //20;
+    const ageWidth = 3 * this.width / 7;//50; // TODO!
+    const bmiWidth = 2 * this.width / 7;//30;
+
+    const medianBMI = ageWidth + genderWidth + (bmiWidth/2);
+    const deceasedWidth = this.width - (ageWidth + genderWidth + bmiWidth);
 
     const svg = this.$node.append('svg')
     .attr('width', this.width + this.margin.left + this.margin.right)
@@ -123,7 +126,7 @@ class attributeTable {
 
 //// BMI
 
-  const medianBMI = ageWidth + genderWidth + (bmiWidth/2);
+
 
 // central ref line
     rows.append("line")
@@ -164,7 +167,7 @@ class attributeTable {
 
 //// END BMI
 
-    const deceasedWidth = this.width - (ageWidth + genderWidth + bmiWidth);
+
 
 
 

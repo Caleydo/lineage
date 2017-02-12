@@ -116,25 +116,33 @@ class attributeTable {
       return ('translate(0, ' + y(d['y'])+ ' )')
     })
 
+    // CLICK
     .on('click', function(d) {
       if (!event.shiftKey){ //will this be a problem?
-			     selectAll('.row').classed('selected',false);
-			}
-			select(this).classed('selected', function(){
-				return (!select(this).classed('selected')); //toggle the selectedness
-			});
+           selectAll('.boundary').classed('tableselected',false);
+      }
+      selectAll('.boundary').classed('tableselected', function(){
+        return (!select(this).classed('tableselected') &&
+        select(this).attr('id') === 'boundary_' + d.id); //toggle the selectedness
+      });
       events.fire('table_row_selected', d['id']);
     })
+
+    // MOUSE ON
     .on('mouseover', function(d) {
-      select(this).classed('hovered', function(){
+      selectAll('.boundary').classed('tablehovered', function(){
         //hover event ONLY if not selected
-        return (!select(this).classed('selected'));
+        return (!select(this).classed('tableselected') &&
+        select(this).attr('id') === 'boundary_' + d.id);
       });
       events.fire('table_row_hover_on', d['id']);
     })
+
+    // MOUSE OFF
     .on('mouseout', function(d) {
-      select(this).classed('hovered', false);/*function(){
-        return (!select(this).classed('hovered'));
+      selectAll('.boundary').classed('tablehovered', false); /*function(){
+        return (!select(this).classed('hovered') &&
+        select(this).attr('id') === 'boundary_' + d.id);
       })*/
       events.fire('table_row_hover_off', d['id']);
     });
@@ -226,11 +234,15 @@ class attributeTable {
     const boundary = rows
     .append("rect")
     .attr("class", "boundary")
+    .attr('id', function (d) {
+      return ('boundary_' + d.id)
+    })
     .attr("width", this.width)
     .attr("height", rowHeight)
     .attr('stroke', 'black')
     .attr('stroke-width', 1)
-    .attr('fill', 'none');   //;
+    .attr('fill', 'none');
+
 
 // seperate out gender
     rows.append("line")
@@ -264,31 +276,32 @@ class attributeTable {
 
 
   private attachListener() {
-    //Set listener for hover event on corresponding node that changes the color of that row to red
+    //NODE BEGIN HOVER
     events.on('row_mouseover', (evt, item)=> {
-      selectAll('.row').classed('hovered', function (d) {
-        return (!select(this).classed('hovered') && !select(this).classed('selected') && 
-        select(this).attr('id') === 'row_' + item);
+      selectAll('.boundary').classed('tablehovered', function (d) {
+        return (!select(this).classed('tablehovered') && !select(this).classed('tableselected') &&
+        select(this).attr('id') === 'boundary_' + item);
       });
     });
 
-    //Set listener for hover off event on corresponding node that changes the color back to black
+    //NODE END HOVER
     events.on('row_mouseout', (evt, item)=> {
-      selectAll('.row').classed('hovered',false);
+      selectAll('.boundary').classed('tablehovered',false);
     });
 
 
+    // NODE CLICK
     events.on('row_selected', (evt, item)=> {
-      selectAll('.row').classed('selected', function (d) {
-        return (select(this).attr('id') === 'row_' + item)});
+      selectAll('.boundary').classed('tableselected', function (d) {
+      //  console.log(select(this).attr('id') === 'boundary_' + item);
+        return (select(this).attr('id') === 'boundary_' + item)});
     });
 
 
-
-    //Set listener for hover event on corresponding node that changes the color of that row to red
+    //TODO
     events.on('rows_aggregated', (evt, item)=> {
-      selectAll('.row').classed('selected', function (d) {
-        return (!select(this).classed('selected') && select(this).attr('id') === 'row_' + item);
+      selectAll('.row').classed('tableselected', function (d) {
+        return (!select(this).classed('tableselected') && select(this).attr('id') === 'row_' + item);
       });
     });
 

@@ -1,3 +1,8 @@
+.axis{
+	position: absolute
+}
+
+
 /*
 .line {
     fill: none;
@@ -119,20 +124,43 @@ rect.selected{
 //     stroke-width: 3px;
     fill:none
 }
-*/
-/*.boundary.selected rect{
+
+
+.boundary {
+    stroke:purple;
+    stroke-width:4;
+}
+
+.boundary.selected {
  // rect{
     stroke:blue;
-    stroke-width:20;
- // }
-}*/
-
-
-.row.selected rect{
- // rect{
-    stroke:red;
  // }
 }
+
+*/
+
+
+.boundary.tableselected {
+    stroke:#ff6400;
+}
+
+.boundary.tablehovered {
+    stroke:#ffc800;
+}
+
+/*
+.row.tableselected .boundary{
+    stroke:blue;
+}
+
+.row.tablehovered .boundary{
+    stroke:purple;
+}
+
+*/
+
+
+
 
 /*
 #app{

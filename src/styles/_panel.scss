@@ -1,7 +1,10 @@
-.panel{
+#data_selection{
   height: 100vh;
   border-right: solid lightgrey;
+  margin-left: 10px;
+  min-width: 255px;
 }
+
 .nav-side-menu {
 
   overflow: auto;
@@ -13,16 +16,34 @@
   color: #e1ffff;
   margin-top:15px;
 }
-.nav-side-menu .brand {
-  background-color: #23282e;
-  line-height: 38px;
-  display: none;
-  text-align: center;
-  font-size: 14px;
+.nav-side-menu  .brand {
+  list-style: none;
+  padding: 0px;
+  margin: 0px;
+  line-height: 35px;
+      color: #333;
+   font-size: 1.5em;
+    font-weight: 400;
+    vertical-align: middle;
+  curser: default;
+  margin-bottom: 15px;
 }
 .nav-side-menu .toggle-btn {
-  display: none;
+  font-family: FontAwesome;
+  /*content: "\f078";*/
+  content:"\f047";
+  display: inline-block;
+  padding-left: 10px;
+  padding-right: 10px;
+  vertical-align: middle;
+  float: right;
+  font-size:18px;
+  cursor: pointer;
+
+
 }
+
+
 .nav-side-menu ul,
 .nav-side-menu li {
   list-style: none;
@@ -55,7 +76,7 @@
 .nav-side-menu li :not(collapsed) .arrow:before {
   font-family: FontAwesome;
   /*content: "\f078";*/
-  content:"\f107";
+  content:"\f047";
   display: inline-block;
   padding-left: 10px;
   padding-right: 10px;

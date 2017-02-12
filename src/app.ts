@@ -61,7 +61,7 @@ export class App {
     // this.$node = select('.clue');
         this.$node = select(parent);
 
-    this.$node.append('div').classed('panel col-sm-4 col-md-4', true);
+    this.$node.append('div').attr('id','data_selection');
     this.$node.append('div').attr('id','graph_table');
 
   }
@@ -88,7 +88,7 @@ export class App {
       let attributeTable = table.create(this.$node.select('#graph_table').node());
       attributeTable.init(sampleData);
 
-      let attributePanel = panel.create(this.$node.select('.panel').node());
+      let attributePanel = panel.create(this.$node.select('#data_selection').node());
       attributePanel.init();
 
 

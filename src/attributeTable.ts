@@ -116,8 +116,19 @@ class attributeTable {
       return ('translate(0, ' + y(d['y'])+ ' )')
     })
     .on('click', function(d) {
-      console.log(d)
+      if (!event.shiftKey){ //will this be a problem?
+			     selectAll('.row').classed('selected',false);
+			}
+			select(this).classed('selected',function(){
+				return (!select(this).classed('selected'));
+			})
+      events.fire('table_row_selected', d['id']);
     });
+    
+    // .on('hover', function(d) {
+    //   console.log(d)
+    //   events.fire('table_row_hover', d['id']);
+    // });
 
 
 

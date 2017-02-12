@@ -3,6 +3,7 @@ import {AppConstants, ChangeTypes} from './app_constants';
 import datasets, {IDataSetSpec} from './data/datasets';
 import {csv} from 'd3-request';
 import * as Sortable from 'sortablejs';
+import * as $ from 'jquery';
 import {select, selectAll} from 'd3-selection';
 import {keys} from 'd3-collection';
 
@@ -53,12 +54,67 @@ class attributePanel {
 
                </ul>`);
 
-    // list that holds filter items
-    const menu_content = menu_list.append('ul')
-      .attr('id', 'menu-content')
+    // list that holds data attribute
+    // initially all attributes are active
+    const active_menu_content = menu_list.append('ul')
+      .attr('id', 'active-menu-content')
       .classed('menu-content collapse in', true);
 
-    let sortable = Sortable.create(document.getElementById('menu-content'));
+    menu_list.append('div')
+      .classed('menu-list', true)
+      .html(` <ul >
+            <li class="brand" data-toggle="collapse"> <i class=""></i> <strong>Inactive data Selection</strong>
+             <span class="toggle-btn arrow"><i></i></span></li>
+
+               </ul>`);
+
+    // list that holds inactive attributes
+    // a user can populate this list by dragging elements from the active list
+    const inactive_menu_content = menu_list.append('ul')
+      .attr('id', 'inactive-menu-content')
+      .classed('menu-content collapse in', true)
+      .html(`
+      <li>item 1</li>`);
+
+    // Active sortable list
+    Sortable.create(document.getElementById('active-menu-content'),{
+      group: 'menu-content',
+      ghostClass: 'ghost',
+      animation: 150,
+      pull: true,
+      put: true,
+      onAdd: function (evt){
+        let item = evt.item.getElementsByTagName("strong")[0].innerHTML;
+        let newIndex = evt.newIndex;
+        events.fire('attribute_added', [item,newIndex]);
+
+      },
+		onUpdate: function (evt){
+      let item = evt.item.getElementsByTagName("strong")[0].innerHTML;
+      let newIndex = evt.newIndex;
+      let oldIndex = evt.oldIndex;
+      events.fire('attribute_reordered', [item,newIndex, oldIndex]);
+    },
+
+    });
+
+    //inactive sortable list
+    Sortable.create(document.getElementById('inactive-menu-content'),{
+      group: 'menu-content',
+      ghostClass: 'ghost',
+      animation: 150,
+       pull: true,
+      put: true,
+      onAdd: function (evt){
+         let item = evt.item.getElementsByTagName("strong")[0].innerHTML;
+      let newIndex = evt.newIndex;
+      let oldIndex = evt.oldIndex;
+
+      events.fire('attribute_removed', [item, oldIndex]);
+      },
+
+    });
+
 
 
     this.loadData();
@@ -93,15 +149,15 @@ class attributePanel {
 
   private addHeader(header) {
         //append the header as a menu option
-        select('#menu-content').append('li')
+        select('#active-menu-content').append('li')
           .classed('collapsed active', true)
           .attr('data-target', '#' + header)
           .attr('data-toggle', 'collapse')
           .append('a').attr('href', '#')
           .html('<i><img src=\"http://megaicons.net/static/img/icons_sizes/8/178/512/charts-genealogy-icon.png\" alt=\"\"></i>')
           .append('strong').html(header);
-          //.append('span')
-         // .classed('arrow', true);
+
+
   }
 
   private populateData(){

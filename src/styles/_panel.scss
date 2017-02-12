@@ -16,7 +16,7 @@
   color: #e1ffff;
   margin-top:15px;
 }
-.nav-side-menu  .brand {
+.nav-side-menu .brand {
   list-style: none;
   padding: 0px;
   margin: 0px;
@@ -39,10 +39,23 @@
   float: right;
   font-size:18px;
   cursor: pointer;
-
-
 }
 
+.ghost{
+  opacity: .5;
+  color: #737373;
+}
+
+#inactive-menu-content{
+  margin-top: 30px;
+  background-color: lightgrey;
+  height: 40%;
+}
+
+#inactive-menu-content li {
+  color: #737373;
+  opacity: .5;
+}
 
 .nav-side-menu ul,
 .nav-side-menu li {
@@ -185,230 +198,3 @@
   }
 }
 
-
-/*--------------------profile-------------------*/
-.fb-profile{
-	position:relative;
-}
-.fb-profile img.fb-image-lg{
-    z-index: 0;
-    width: 100%;
-    margin-bottom: 10px;
-}
-
-.fb-image-profile
-{
-   margin:-50px 10px 0 50px;
-    z-index: 9;
-    width: 10%;
-}
-.fb-profile-text{
-	position:relative;
-	margin-bottom: 50px;
-	z-index: 1;
-}
-.fb-profile-text h4{
-	margin-bottom:4px;
-	display:inline-block;
-	vertical-align:middle;
-}
-.fb-profile-text p{
-	margin-bottom:4px;
-	display:inline-block;
-	vertical-align:middle;
-}
-.thumbnail{
-	border-radius: 15px;
-}
-.profile-imgbox{
-	 bottom:0px;
-    left: auto;
-    position: absolute;
-    right: 0;
-	text-align: center;
-	z-index: 2;
-}
-.profile-imgbox ul{
-	list-style:none;
-	margin:0;
-	padding:0;
-}
-.profile-imgbox ul li{
-	list-style:none;
-	margin:0;
-	padding:0;
-	display:inline-block;
-	text-align:center;
-	vertical-align:bottom;
-}
-.profile-imgbox ul li a{
-	display:block;
-	padding:0 18px;
-	text-align:center;
-	text-decoration:none;
-
-}
-.profile-imgbox ul li a span{
-	background:#0088CB;
-	border: 2px solid #ffffff;
-    border-radius: 4px;
-    display: block;
-    margin: 0 auto;
-    padding: 10px;
-    text-align: center;
-    width: 100px;
-}
-.profile-imgbox ul li a span i {
-	display:inline-block;
-	color:#FFF;
-	vertical-align: middle;
-
-}
-.profile-imgbox ul li a b{
-	display:block;
-	font-weight:normal;
-	height:48px;
-}
-.profile-imgbox p{
-	text-align:center;
-	display:block;
-	font-size:18px;
-	margin-bottom:10px;
-	background:rgba(0,0,0,0.44);
-	display:inline-block;
-	padding:4px 24px;
-	border-radius:4px;
-	color:#ffffff;
-}
-.project-detail{
-}
-.project-detail h4{
-	color: #202020;
-    font-size: 24px;
-    font-weight: 700;
-    margin: 0;
-    text-transform: uppercase;
-}
-.project-detail b{
-	background: #202020 ;
-    display: inline-block;
-	text-align: center;
-    height: 1px;
-    width: 8%;
-}
-.project-detailBox{
-	margin-bottom:18px;
-	margin-top:18px;
-}
-.project-detailBox label.project-label{
-	width:200px;
-	padding:0 10px;
-	display:inline-block;
-	color: #333;
-    font-size: 14px;
-    list-style: outside none none;
-    margin: 0 0 10px;
-    padding: 0 ;
-	float:left;
-}
-.project-infobox{
-	margin-left: 215px;
-	margin-bottom: 10px;
-}
-.project-infobox ul{
-	line-height:none;
-	margin:0;
-	padding:0;
-	width:400px;
-	list-style:none;
-}
-.project-infobox ul li{
-	float:left;
-	width:50%;
-	margin:0;
-	padding:0;
-}
-.project-infobox ul li span{
-	width:74%;
-	padding:0 10px 0 0;
-	display:inline-block;
-	color: #333;
-    font-size: 14px;
-    list-style: outside none none;
-    margin: 0 0 10px;
-	font-weight:normal;
-	float:left;
-}
-.project-infobox ul li strong{
-	float:left;
-	width:26%;
-	padding:0 0 0 10px;
-	display:inline-block;
-	color: #ed1651;
-    font-size: 14px;
-    list-style: outside none none;
-    margin: 0 0 10px;
-	font-weight:700;
-}
-.project-infobox p{
-	line-height:24px;
-	font-size:14px;
-}
-
-
-
-@media (max-width:768px)
-{
-
-.fb-profile-text>h1{
-    font-weight: 700;
-    font-size:14px;
-}
-
-.fb-image-profile
-{
-    margin:-50px 10px 0 50px;
-    z-index: 9;
-    width: 10%;
-}
-}
-
-
-
-.spacialCheckbox-ul{
-}
-.nav-side-menu ul.spacialCheckbox-ul li:before{
-    content:"";
-}
-.spacialCheckbox{
-	position:relative;
-	line-height:20px;
-}
-.spacialCheckbox label{
-	position:relative;
-	padding-left:26px;
-	padding-top: 2px;
-	color:#333;
-	line-height:26px;
-}
-.spacialCheckbox label input[type="checkbox"]{
-	position:absolute;
-	left:0;
-	top:0;
-	opacity:0;
-	visibility:hidden;
-}
-.spacialCheckbox label input[type="checkbox"] + i{
-	background:url(http://skyrites.com/projects/spaciux/images/checkbox.jpg) no-repeat left top;
-	width:25px;
-	height:25px;
-	display:inline-block;
-	position:absolute;
-	left:0;
-	top:0;
-	z-index:1;
-
-}
-.spacialCheckbox label input[type="checkbox"]:checked + i{
-	background:url(http://skyrites.com/projects/spaciux/images/checkbox.jpg) no-repeat left bottom;
-}

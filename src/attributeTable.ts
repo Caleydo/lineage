@@ -121,16 +121,17 @@ class attributeTable {
       if (!event.shiftKey){ //will this be a problem?
            selectAll('.boundary').classed('tableselected',false);
       }
-      selectAll('.boundary').classed('tableselected', function(){
-        return (!select(this).classed('tableselected') &&
-        select(this).attr('id') === 'boundary_' + d.id); //toggle the selectedness
+      selectAll('.boundary').classed('tableselected', function(a){
+        console.log(this);
+        return  (!select(this).classed('tableselected') && select(this).attr('id') === 'boundary_' + d.id);
+        //toggle the selectedness
       });
       events.fire('table_row_selected', d['id']);
     })
 
     // MOUSE ON
     .on('mouseover', function(d) {
-      selectAll('.boundary').classed('tablehovered', function(){
+      selectAll('.boundary').classed('tablehovered', function(a){
         //hover event ONLY if not selected
         return (!select(this).classed('tableselected') &&
         select(this).attr('id') === 'boundary_' + d.id);

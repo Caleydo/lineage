@@ -231,8 +231,11 @@ class attributeTable {
     const boundary = rows
     .append("rect")
     .attr("class", "boundary")
-    .attr('id', function (d) {
-      return ('boundary_' + d.id)
+    // .attr('y', function (d) {
+    //   return (d.y)
+    // })
+    .attr('row_pos', function (d) {
+      return d.y;
     })
     .attr("width", this.width)
     .attr("height", rowHeight)
@@ -275,38 +278,37 @@ class attributeTable {
   // CLICK
   .on('click', function(d) {
     selectAll('.boundary').classed('tablehovered', false); //don't hover
-    if (!event.shiftKey){ //unless we pressed shift, unselect everything
+    if (!event.metaKey){ //unless we pressed shift, unselect everything
          selectAll('.boundary').classed('tableselected',false);
     }
     selectAll('.boundary').classed('tableselected', function(a){
-      // if it's the right row, toggle it
-      // if it's the wrong row, leave the selection the same
-      const rightRow = (select(this).attr('id') === 'boundary_' + d.id);
+      const rightRow = (select(this).attr('row_pos') == d.y);
       if(rightRow)
         return (!select(this).classed('tableselected')); //toggle it
       return select(this).classed('tableselected'); //leave it be
     });
-    events.fire('table_row_selected', d['id']);
+    if(event.metaKey)
+      events.fire('table_row_selected', d['y'], 'multiple');
+    else
+      events.fire('table_row_selected', d['y'], 'singular');
   })
 
   // MOUSE ON
   .on('mouseover', function(d) {
     selectAll('.boundary').classed('tablehovered', function(a){
-      const rightRow = (select(this).attr('id') === 'boundary_' + d.id);
+      const rightRow = (select(this).attr('row_pos') == d.y);
       if(rightRow){ //don't hover if it's selected
-        console.log("The current row is *not* selected:");
-        console.log(!select(this).classed('tableselected'));
         return !select(this).classed('tableselected');
       }
       return false; //otherwise don't hover
     });
-    events.fire('table_row_hover_on', d['id']);
+    events.fire('table_row_hover_on', d['y']);
   })
 
   // MOUSE OFF
   .on('mouseout', function(d) {
     selectAll('.boundary').classed('tablehovered', false);
-    events.fire('table_row_hover_off', d['id']);
+    events.fire('table_row_hover_off', d['y']);
   });
 
   }
@@ -317,7 +319,7 @@ class attributeTable {
     events.on('row_mouseover', (evt, item)=> {
       selectAll('.boundary').classed('tablehovered', function (d) {
         return (!select(this).classed('tablehovered') && !select(this).classed('tableselected') &&
-        select(this).attr('id') === 'boundary_' + item);
+        select(this).attr('row_pos') == item);
       });
     });
 
@@ -328,10 +330,20 @@ class attributeTable {
 
 
     // NODE CLICK
-    events.on('row_selected', (evt, item)=> {
-      selectAll('.boundary').classed('tablehovered', false);
-      selectAll('.boundary').classed('tableselected', function (d) {
-        return (select(this).attr('id') === 'boundary_' + item)});
+    events.on('row_selected', (evt, row, multipleSelection)=> {
+        selectAll('.boundary').classed('tablehovered', false); //don't hover
+        console.log(multipleSelection);
+        if (multipleSelection == 'single'){ //unless we pressed shift, unselect everything
+             selectAll('.boundary').classed('tableselected',false);
+        }
+        selectAll('.boundary').classed('tableselected', function(a){
+          // if it's the right row, toggle it
+          // if it's the wrong row, leave the selection the same
+          const rightRow = (select(this).attr('row_pos') == row);
+          if(rightRow)
+            return (!select(this).classed('tableselected')); //toggle it
+          return select(this).classed('tableselected'); //leave it be
+        });
     });
 
 

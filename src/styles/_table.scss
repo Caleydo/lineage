@@ -1,4 +1,9 @@
+.axis{
+	position: absolute
+}
 
+
+/*
 .line {
     fill: none;
     stroke: red;
@@ -7,7 +12,7 @@
 
 #graph_table{
 	overflow: scroll;
-	height: 400px;
+	height: 900px;
 }
 
 .hide{
@@ -49,7 +54,6 @@
 .nodeIcon.selected{
     stroke: #ff6400;
     stroke-width:2px;
-    /*fill:none*/
 }
 
 .backgroundBar{
@@ -65,18 +69,11 @@ rect.selected{
     fill:#ff6400
 }
 
-.node rect, 
-.node circle, 
-.node .hex{
+.node rect,
+.node circle {
     stroke:black;
 //     stroke-width: 3px;
 }
-
-/*
-.node{
-	stroke:black
-}
-*/
 
 .node .lifeRect rect
 {
@@ -97,10 +94,6 @@ rect.selected{
 
 .aggregate{
  	opacity:.2;
-}
-
-.collapsed .lifeRect{
-	visibility:hidden
 }
 
 .nodeLabel,
@@ -132,12 +125,46 @@ rect.selected{
     fill:none
 }
 
-/*.row.selected{
-  rect{
-    stroke:red;
-  }
-}*/
 
+.boundary {
+    stroke:purple;
+    stroke-width:4;
+}
+
+.boundary.selected {
+ // rect{
+    stroke:blue;
+ // }
+}
+
+*/
+
+
+.boundary.tableselected {
+    stroke:#ff6400;
+    stroke-width:2;
+}
+
+.boundary.tablehovered {
+    stroke:#ffc800;
+    stroke-width:2;
+}
+
+/*
+.row.tableselected .boundary{
+    stroke:blue;
+}
+
+.row.tablehovered .boundary{
+    stroke:purple;
+}
+
+*/
+
+
+
+
+/*
 #app{
   display: flex;
 }
@@ -148,3 +175,5 @@ visibility:hidden;
 .node:hover a {
  visibility:visible;
 }
+
+*/

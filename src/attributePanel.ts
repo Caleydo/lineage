@@ -2,7 +2,8 @@ import * as events from 'phovea_core/src/event';
 import {AppConstants, ChangeTypes} from './app_constants';
 import datasets, {IDataSetSpec} from './data/datasets';
 import {csv} from 'd3-request';
-//import {dsv} from 'd3-request';
+import * as Sortable from 'sortablejs';
+import * as $ from 'jquery';
 import {select, selectAll} from 'd3-selection';
 import {keys} from 'd3-collection';
 
@@ -20,7 +21,7 @@ class attributePanel {
   constructor(parent:Element) {
     this.$node = select(parent)
       .append('div')
-      .classed('nav-side-menu', true);
+      .classed('nav-side-menu active', true);
   }
 
   /**
@@ -29,6 +30,7 @@ class attributePanel {
    * @returns {Promise<FilterBar>}
    */
   init() {
+
 
     this.build();
     this.attachListener();
@@ -43,17 +45,81 @@ class attributePanel {
    */
   private build() {
 
-     // menu container container
+    // menu container container
     const menu_list = this.$node.append('div')
-      .classed('menu-list', true);
-    // list that holds filter items
-    const menu_content = menu_list.append('ul')
-      .attr('id', 'menu-content')
+      .classed('menu-list', true)
+      .html(` <ul >
+            <li class="brand" data-toggle="collapse"> <i class=""></i> <strong>Data Selection</strong>
+             <span class="toggle-btn"><i class="glyphicon glyphicon-menu-hamburger"></i></span></li>
+               </ul>`);
+
+    // list that holds data attribute
+    // initially all attributes are active
+    const active_menu_content = menu_list.append('ul')
+      .attr('id', 'active-menu-content')
       .classed('menu-content collapse in', true);
+
+    menu_list.append('ul')
+      .html(`
+       <li class="inactive collapsed active" data-target="#inactive-menu-content" data-toggle="collapse">
+                                  <i class=""></i><strong>Inactive attributes</strong> <span class="arrow"></span>
+                                </li>`);
+
+
+    // list that holds inactive attributes
+    // a user can populate this list by dragging elements from the active list
+    const inactive_menu_content = menu_list.append('ul')
+      .attr('id', 'inactive-menu-content')
+      .classed('menu-content sub-menu collapse in fade', true)
+      .html(`
+      <li class='placeholder'>DRAG AND DROP ATTRIBUTES HERE TO MAKE THEM INACTIVE</li>`);
+
+
+    // Active sortable list
+    Sortable.create(document.getElementById('active-menu-content'), {
+      group: 'menu-content',
+      ghostClass: 'ghost',
+      animation: 150,
+      pull: true,
+      put: true,
+      onAdd: function (evt) {
+        let item = evt.item.getElementsByTagName("strong")[0].innerHTML;
+        let newIndex = evt.newIndex;
+        events.fire('attribute_added', [item, newIndex]);
+
+      },
+      onUpdate: function (evt) {
+        let item = evt.item.getElementsByTagName("strong")[0].innerHTML;
+        let newIndex = evt.newIndex;
+        let oldIndex = evt.oldIndex;
+        events.fire('attribute_reordered', [item, newIndex, oldIndex]);
+      },
+
+    });
+
+    //inactive sortable list
+    Sortable.create(document.getElementById('inactive-menu-content'), {
+      group: 'menu-content',
+      ghostClass: 'ghost',
+      animation: 150,
+      pull: true,
+      put: true,
+      onAdd: function (evt) {
+        let item = evt.item.getElementsByTagName("strong")[0].innerHTML;
+        let newIndex = evt.newIndex;
+        let oldIndex = evt.oldIndex;
+
+        select('.placeholder')
+          .style('display', 'none');
+
+        events.fire('attribute_removed', [item, oldIndex]);
+      },
+
+    });
 
 
     this.loadData();
-    this.populateData();
+    //this.populateData();
 
 
   }
@@ -66,59 +132,59 @@ class attributePanel {
     const data_desc = datasets[0].desc;
     const data_url = datasets[0].url;
     let headers = []
+    let dataDesc = ['key', 'date', 'categorical', 'string', 'string', 'string', 'number', 'date', 'number', 'date'];
 
     csv(data_url, (_data) => {
       //"personid", "byr", "sex", "Archivepersonid", "OMEID", "LabID", "FirstBMI", "FirstBMIYr", "MaxBMI", "MaxBMIYr"]
       headers = keys(_data[0])
-      _data.forEach( (d, i) => {
+      _data.forEach((d, i) => {
         d.FirstBMI = +d['FirstBMI']
         d.MaxBMI = +d['MaxBMI']
         this.data.push(d);
       })
-       headers.forEach((h)=> {
-       this.addHeader(h)
-     })
+      headers.forEach((h)=> {
+        this.addHeader(h, dataDesc[headers.indexOf(h)])
+      })
     })
   }
 
 
-  private addHeader(header) {
-        //append the header as a menu option
-        select('#menu-content').append('li')
-          .classed('collapsed active', true)
-          .attr('data-target', '#' + header)
-          .attr('data-toggle', 'collapse')
-          .append('a').attr('href', '#')
-          .html('<i><img src=\"http://megaicons.net/static/img/icons_sizes/8/178/512/charts-genealogy-icon.png\" alt=\"\"></i>')
-          .append('strong').html(header)
-          .append('span')
-          .classed('arrow', true);
+  private addHeader(header, desc) {
 
-    // adding collapsible svg for each header
-    select('#menu-content').append('ul')
-      .classed('sub-menu collapse fade',true)
-      .attr('id', header)
+    //append the header as a menu option
+    let data_attr = select('#active-menu-content').append('li')
+      .classed('collapsed active', true)
+      .attr('data-target', '#' + header)
+      .attr('data-toggle', 'collapse');
 
-    select('#'+header).append('li')
-      .attr('class','active')
-      .append('svg');
+    data_attr.append('a').attr('href', '#')
+      .html('<i class=\"glyphicon glyphicon-move sort_handle\"></i>')
+      .append('strong').html(header)
+      .append('span').attr('class', desc);
 
+    data_attr.on('mouseover', function () {
+      select(this).select('.sort_handle').classed('focus', true)
+    });
+
+    data_attr.on('mouseout', function () {
+      select(this).select('.sort_handle').classed('focus', false)
+    });
 
   }
 
-  private populateData(){
+  private populateData() {
     let svg = select('.panel').selectAll("svg");
     let selection = svg.selectAll("rect").data([127, 61, 256])
       .enter().append("rect")
-                .attr("x", 0)
-                .attr("y", function (d, i) {
-                    return i * 90 + 50
-                })
-                .attr("width", function (d, i) {
-                    return d;
-                })
-                .attr("height", 20)
-                .style("fill", "steelblue");
+      .attr("x", 0)
+      .attr("y", function (d, i) {
+        return i * 90 + 50
+      })
+      .attr("width", function (d, i) {
+        return d;
+      })
+      .attr("height", 20)
+      .style("fill", "steelblue");
 
 
   }

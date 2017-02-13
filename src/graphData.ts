@@ -42,6 +42,7 @@ class graphData {
             d['Y'] = +d['y']; //keeps track of nodes original y position
             d['family_ids'] = []; //keeps track of nuclear families
             d['clicked'] = false;
+            
 
 
             this.uniqueID.push(+d['egoUPDBID']);
@@ -345,6 +346,16 @@ class graphData {
         
        
     };
+    
+    public hideNode(y){
+	    this.nodes.forEach(function(d,i) {
+// 	        console.log([d['y']-minY] , ' needs to decrease' , collapse[d['y']-minY-1] , 'rows')
+            if (d['y'] >y){
+	            d['y']= d['y']-1
+            }
+        });
+	    
+    }
 
     //Function that iterates through genealogy graph and removes empty rows; 
     public collapseEmptyRows(indexes) {

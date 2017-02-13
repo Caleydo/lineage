@@ -302,7 +302,7 @@ class genealogyTree {
         
         
         let allNodes = graph.selectAll(".node")
-            .data(nodes.filter((d)=>{return d['visible']}), function(d) {return d['id'];});
+            .data(nodes, function(d) {return d['id'];});
             
         allNodes.exit().transition().duration(400).style('opacity',0).remove();
             
@@ -322,6 +322,8 @@ class genealogyTree {
             .attr('class', (d) => {
                 return 'row_' + d['y']
             });
+            
+        allNodes.filter((d)=>{return !d['visible']}).classed('phantom',true);
             
         allNodes
             .classed("node", true)
@@ -706,10 +708,21 @@ class genealogyTree {
 			
 		})
 		
-		.on('click',function(d){
+		.on('click',(d)=>{
+			
+			if (event.altKey){
+			//Hide node
+			this.data.hideNode(d['y']);
+			d['visible']=false;
+			this.update_visible_nodes();
+// 			selectAll('.node').filter((e)=>{return e['id']==d['id']}).classed('phantom',true);
+			 			
+			return; 	
+			}
 	    	if (event.defaultPrevented) return; // dragged
 	
-		    let wasSelected = select(this).select('.backgroundBar').classed('selected');	
+			let wasSelected = selectAll('.backgroundBar').filter((e)=>{return e['y']==d['y']}).classed('selected');
+// 		    let wasSelected = select(this).select('.backgroundBar').classed('selected');	
 		    
 			//'Unselect all other background bars if ctrl was not pressed
 			if (!event.metaKey){
@@ -717,7 +730,7 @@ class genealogyTree {
 // 			console.log(selectAll('.selected').data())
 			}
 			
-			select(this).select('.backgroundBar').classed('selected',function(){
+			selectAll('.backgroundBar').filter((e)=>{return e['y']==d['y']}).classed('selected',function(){
 				return (!wasSelected);
 			})
 			

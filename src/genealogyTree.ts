@@ -22,7 +22,8 @@ import {
     easeLinear
 } from 'd3-ease';
 import {
-    scaleLinear
+    scaleLinear,
+    interpolateViridis,
 } from 'd3-scale';
 import {
     max,
@@ -97,7 +98,27 @@ class genealogyTree {
 
     private self;
     
-//     private t = transition('t').duration(500).ease(easeLinear);
+    private colors = ['#a6cee3','#1f78b4','#b2df8a','#33a02c','#fb9a99','#e31a1c','#fdbf6f','#ff7f00'];
+    
+//     private colorScale = scaleLinear().domain([1,2,3,4,5,6,7,8]).range(this.colors)
+    
+    
+    
+    //Data attributes to draw hexagons for aggregate rows    
+    private hexSize = Config.glyphSize*1.25;
+    
+    private hexData = [{x:this.hexSize, y:0}, 
+    {x:this.hexSize/2, y:this.hexSize*Math.sqrt(3)/2}, 
+    {x:-this.hexSize/2, y:this.hexSize*Math.sqrt(3)/2},
+    {x:-this.hexSize, y:0},
+    {x:-this.hexSize/2, y:-this.hexSize*Math.sqrt(3)/2},
+    {x:this.hexSize/2, y:-this.hexSize*Math.sqrt(3)/2},
+    {x:this.hexSize, y:0}];
+    
+    private hexLine = line < any > ()
+    .x(function(d){ return d['x']; })
+    .y(function(d){ return d['y']; });
+   
 
     private lineFunction = line < any > ()
         .x((d: any) => {
@@ -111,8 +132,6 @@ class genealogyTree {
     constructor(parent: Element) {
         this.$node = select(parent)
         this.self = this;
-        // .append('div')
-        // .classed('genealogyTree', true);
     }
 
     /**
@@ -123,9 +142,7 @@ class genealogyTree {
     init(data) {
         this.data = data;        
         this.build();
-//         this.eventHandler(); 
-          
-
+        this.attachListeners();
         // return the promise directly as long there is no dynamical data to update
         return Promise.resolve(this);
     }
@@ -153,13 +170,6 @@ class genealogyTree {
         
         this.visibleXAxis = axisTop(this.x).tickFormat(format("d"))
         this.extremesXAxis = axisTop(this.x2)
-        
-//         select(this.xAxis).selectAll('text').attr('font-size',Config.glyphSize * 1.5)
-       
-       
-        //xrange should be defined based only on what is visible on the screen. 
-
-        //When the user scrolls, the x (time) axis should be updated as should the position of all the elements on the screen. 
         
         this.interGenerationScale.range([.75, .25]).domain([2, nodes.length]);
         
@@ -189,7 +199,7 @@ class genealogyTree {
 		    /* clear the old timeout */
 		    clearTimeout(this.timer);
 		    /* wait until 100 ms for callback */
-		    this.timer = setTimeout(()=>{this.update_visible_nodes()}, 30);
+		    this.timer = setTimeout(()=>{this.update_visible_nodes()}, 100);
 		});    
 		
 		//Create group for genealogy tree
@@ -222,7 +232,7 @@ class genealogyTree {
         let graph = select('#genealogyTree')
         
         let edgePaths= graph.selectAll(".edges")
-            .data(edges,function(d) {return d['id'];});
+            .data(edges.filter(function(d){ return !d['target']['collapsed']}),function(d) {return d['id'];});
             
         //remove extra paths
         edgePaths.exit().transition().duration(400).style('opacity',0).remove();
@@ -253,8 +263,8 @@ class genealogyTree {
         .attr("stroke-width", Config.glyphSize/4)
 
 
-        let parentEdgePaths = graph.selectAll(".parentEdges")
-            .data(parentEdges,function(d) {return d['id'];});
+        let parentEdgePaths = graph.selectAll(".parentEdges")// only draw parent parent edges if neither parent is collapsed
+            .data(parentEdges.filter(function(d){return !d['ma']['collapsed'] || !d['pa']['collapsed']}),function(d) {return d['id'];});
             
             
         parentEdgePaths.exit().transition().duration(400).style('opacity',0).remove();
@@ -285,7 +295,7 @@ class genealogyTree {
             
     private update_nodes(nodes, edges, parentEdges) {
 		
-		console.log('called update_nodes')	    
+/* 		console.log */('called update_nodes')	    
 	    let t = transition('t').duration(500).ease(easeLinear);
 
         let graph = select('#genealogyTree')        
@@ -296,54 +306,87 @@ class genealogyTree {
             
         allNodes.exit().transition().duration(400).style('opacity',0).remove();
             
-            
+        
+          
         let allNodesEnter = allNodes
             .enter()
             .append("g");
+            
+//             console.log('allNodesEnter has ', allNodesEnter.size()  ,  'nodes');
+            
+
             
         allNodes = allNodesEnter.merge(allNodes);
         
         allNodes
             .attr('class', (d) => {
                 return 'row_' + d['y']
-            })
-            .classed("node", true)
+            });
             
-            //Attach background rectangle to all rows and set to invisible (will be visible on hover)
-		allNodesEnter 
+        allNodes
+            .classed("node", true)
+            .classed("collapsed",(d)=>{return d['collapsed']})
+            
+     
+            
+        //Attach background rectangle to all rows and set to invisible (will be visible on hover)
+		allNodesEnter.filter((d)=>{return !d['collapsed']}) 
 		.append('rect')
 		.classed('backgroundBar',true);
+	
+		
+/*
+		//Remove backgroundBar for nodes that were collapsed
+		allNodes.filter((d)=>{return d['collapsed']})
+		.select('.backgroundBar').remove();
+*/
+		
 		
 		allNodes
 		.selectAll('.backgroundBar')
 		.attr("width", (d)=>{return (max(this.x.range())- min(this.x.range()) + this.margin.right);})
-		.attr('x',(d)=>{ return (min([- this.x(d['x']),-this.x2(d['x'])]))})
+		.attr('x',(d)=>{ return -this.x(d['x'])}) 
 	    .attr("height", Config.glyphSize *2)
 	    .attr("transform", (d: any) => {
                 return d.sex == 'M' ? "translate(" + Config.glyphSize +  ",0)" : "translate("+ 0 + "," + (-Config.glyphSize) + ")";
         })
+//         .classed('selected',(d)=>{return d['clicked']}) for now
         
+/*
+        let mouseoverCallback = 
+        let mouseOutCallback = 
+        let clickCallback = 
+*/
         allNodes
 		.selectAll('.backgroundBar')
-        .attr('opacity', 0)
-        .on('mouseover',function(d){
+        .attr('opacity', 0);
+        
+        selectAll('.backgroundBar')
+        .on('mouseover',function(d:any){
 	            select(this).attr('opacity',.2)
-	            select('.row_' + d['y']).select('.lifeRect').select('.ageLabel').attr('visibility','visible');		
+	            select('.row_' + d['y']).filter((d)=>{return !d['collapsed']}).select('.lifeRect').select('.ageLabel').attr('visibility','visible');
+	            selectAll('.row_' + d['y']).filter('.collapsed').attr('opacity',1)
+	            selectAll('.row_' + d['y']).select('.hex').attr('opacity',0)	
+	            	
 	            
-	        events.fire('row_mouseover', d['id']);                   
+	        events.fire('row_mouseover', d['y']);                   
 			})
 		.on('mouseout', (d)=>{
+			selectAll('.collapsed').attr('opacity',0)
 			selectAll('.backgroundBar').attr('opacity', 0)
-			selectAll('.ageLabel').attr('visibility','hidden');				
-			events.fire('row_mouseout', d['id']);
+			selectAll('.ageLabel').attr('visibility','hidden');	
+			selectAll('.row_' + d['y']).select('.hex').attr('opacity',1)			
+			events.fire('row_mouseout', d['y']);
 			})
 		
-
+			
+		//Move all node icons to the front. 	
+// 		allNodes.selectAll('.nodeIcon').select(this).parentNode.appendChild(this)});
             
 		
 
         //Add life line groups
-        let lifeRectsEnter = allNodesEnter.append("g");
+        let lifeRectsEnter = allNodesEnter.filter((d)=>{return d['type'] == 'single'}).append("g");
         
         let lifeRects = allNodes.selectAll('g')
         
@@ -467,6 +510,18 @@ class genealogyTree {
             .attr("stroke-width", 3)
             .attr("stroke", "black");
 
+			
+		//Add Aggregate Node glyphs	
+        allNodesEnter.filter(function(d: any) {
+                return d['type'] == 'aggregate';
+            })
+            .append("path")
+            .attr("d", this.hexLine(this.hexData))
+            .classed('hex', true)
+                     
+        allNodes.selectAll('.hex')
+//             .classed('male', true)
+            .classed('nodeIcon', true)
 
 		//Add Male Node glyphs	
         allNodesEnter.filter(function(d: any) {
@@ -474,12 +529,21 @@ class genealogyTree {
             })
             .append("rect")
             .classed('male', true)
+            
+/*
+           console.log('allNodesEnter has ', allNodesEnter.filter(function(d: any) { console.log('looking at ', d)
+                return d['sex'] == 'M';
+            }).size() , ' male nodes'  );
+*/
                      
         allNodes.selectAll('.male')
 //             .classed('male', true)
             .classed('nodeIcon', true)
             .attr("width", Config.glyphSize * 2)
             .attr("height", Config.glyphSize * 2);
+            
+            
+            
 
 			
         //Add female node glyphs
@@ -497,38 +561,33 @@ class genealogyTree {
 		allNodesEnter.attr('opacity',0);
 	
 		allNodes
-		.on("click",function(d){
-			//'Unselect all other background bars if ctrl was not pressed
-			if (!event.shiftKey){
-			selectAll('.backgroundBar').classed('selected',false); 
-			}
-			
-			select(this).select('.backgroundBar').classed('selected',function(){
-				return (!select(this).classed('selected'));
-			})
-			
-			events.fire('row_selected', d['id']);
-		})
-        
-	
+// 		.on("click",function(d){console.log('clicked')});
+		
         //Position and Color all Nodes
         allNodes
          	.transition(t)
             .attr("transform", (d) => {
                 return "translate(" + this.xPOS(d) + "," + this.yPOS(d) + ")";
             })
-            .style("fill", function(d: any) {
-                return (+d.affection == 100) ? "black" : "white";
+            .style("fill", (d: any)=> {
+	            return (+d.affection == 100) ? "black" : "white" 
+//                 return interpolateViridis(d['maxBMI'][0]/6);
             })
             .attr('id', (d) => {
                 return 'g_' + d['id']
             })
             .style("stroke-width", 3);
+//             .style("stroke-width", 3);
             
-            
-        allNodes
-            .transition(t.transition().ease(easeLinear))
+        let tran = t.transition().ease(easeLinear)
+        allNodes.filter((d)=> {return !d['collapsed']})
+            .transition(tran)
             .attr('opacity',1);
+
+            
+        allNodes.filter((d)=> {return d['collapsed']})
+            .transition(tran.duration(100))
+            .attr('opacity',0);
 
 
         allNodesEnter
@@ -539,7 +598,7 @@ class genealogyTree {
             // .attr('visibility','hidden')
             .text(function(d: any) {
 	            
-	            return d['generation']
+	            return d['maxBMI'].toString() 
 /*
 	            let year = new Date().getFullYear();
                                             if (+d.ddate > 0) {
@@ -563,24 +622,19 @@ class genealogyTree {
             .style('font-size', Config.glyphSize)
 
 
-/*
-			select('#genealogyTree')
-			.on('mouseover',function(){
-	            console.log('here')
-// 	            select(this).select('.hovered').attr('visibility', 'visible' )	        
-			})
-*/
-// 			.on('mouseout', ()=>{selectAll('.hovered').attr('visibility', 'hidden')})
-
-/*
-        allNodes.call(drag()
+		let dragged = drag()
             .on("start", (d) => {
+	            
+	            
+	            console.log('started drag')
+	            
                 this.startYPos = this.y.invert(mouse( < any > select('.genealogyTree').node())[1]);
                 this.aggregating_levels = new Set();
                 this.create_phantom(d)
                 
             })
             .on("drag", (d) => {
+	            
                 let currentY = this.floorY(); //this.y.invert(mouse(<any>select('.genealogyTree').node())[1]);      
                 if (currentY > this.startYPos) {
                     //user is dragging down
@@ -596,48 +650,99 @@ class genealogyTree {
                     this.update_pos_row('.row_' + level)
                 });
 
-
-                //this.update_pos(d)
                 this.update_pos_row('.row_' + Math.round(this.startYPos))
                 
                 //Call function that updates the position of all elements in the tree	
 				this.update_edges(this.data.nodes, this.data.parentChildEdges, this.data.parentParentEdges)
-
+// 				event.stopPropagation()
             })
 
             .on("end", (d) => {
+	            
+	            this.update_pos_row('.row_' + Math.round(this.startYPos))
                 this.aggregating_levels.add(this.closestY())
                 
                 let indexes = Array.from(this.aggregating_levels);
+				
+				console.log('aggregating ' , indexes , 'on click')
+                this.data.aggregateNodes(indexes,[],[])   
                 
-                this.data.aggregateNodes(Math.min.apply(null,indexes),Math.max.apply(null,indexes));
+                selectAll('.phantom').remove();
                 
+                if (indexes.length == 1){
+					return;
+	  			}
+
                 this.update_visible_nodes()
                 
                 
-                //this.aggregating_levels.forEach((level) => {
-                //    this.delete_phantom(this.get_row_data('.row_' + level))
-                //});
-                
-            }));
-*/
+            });
+        
+        
+		allNodes
+		.on('contextmenu',(d)=>{
+			
+			console.log(d['family_ids'].slice(-1));
+			
+			this.data.collapseFamilies(d['family_ids'].slice(-1))   
+			this.update_visible_nodes()
 
-/*
-			 allNodesEnter 
-			 .append("svg:image")
-			 .attr("xlink:href", "./icons/gear.svg")
-			 .attr("width", Config.glyphSize*2)
-			 .attr("height", Config.glyphSize*2)
-*/
-
-
-
+			
+			event.preventDefault(); console.log('right menu clicked')
+			
+			})
+			
+		.on("dblclick",(d)=>{
+			
+			if(d['collapsedNodes']){
+				//clicked on an Aggregate Node
+				console.log('double clicked on an aggregate')
+				this.data.expandAggregates(d['collapsedNodes'].map((n)=>{return n['y']}))
+				this.update_visible_nodes()   
+			}
+			
+// 			this.update_visible_nodes()
+			
+			
+		})
+		
+		.on('click',function(d){
+	    	if (event.defaultPrevented) return; // dragged
 	
-          
-           
+		    let wasSelected = select(this).select('.backgroundBar').classed('selected');	
+		    
+			//'Unselect all other background bars if ctrl was not pressed
+			if (!event.metaKey){
+			selectAll('.backgroundBar').classed('selected',false); 
+// 			console.log(selectAll('.selected').data())
+			}
+			
+			select(this).select('.backgroundBar').classed('selected',function(){
+				return (!wasSelected);
+			})
+			
+// 			d['clicked'] = !wasSelected;
+			
+			if (!event.metaKey){
+				events.fire('row_selected', d['y'],'multiple');
+			}
+			else{
+				events.fire('row_selected', d['y'],'single');
+			}
+			
+			
+		})
+// 		.call(dragged)      
+
+		
 
 
     }
+    
+    
+//     		private clicked 
+		
+		
 
 	private update_time_axis(){
 		
@@ -798,8 +903,9 @@ class genealogyTree {
 
             let phantomNode = Node.cloneNode(true)
 
-            //phantomNode.setAttribute("class", "phantom node");   
-            //document.getElementById('genealogyTree').appendChild(phantomNode)
+            phantomNode.setAttribute("class", "phantom node");   
+            document.getElementById('genealogyTree').appendChild(phantomNode)
+//             console.log(phantom)
 
         }
     }
@@ -824,19 +930,39 @@ class genealogyTree {
 
         const node = row_nodes.data()[0];
 
-        node['y'] = this.y.invert(currentPos[1])
+        let nodePos ={
+	        'sex':node['sex'],
+	        'x':node['x'],
+	        'y':this.y.invert(currentPos[1])
+        }
+//         node['y'] = this.y.invert(currentPos[1])
+
+        row_nodes.attr("transform", () => {
+            return "translate(" + this.xPOS(nodePos) + "," + this.yPOS(nodePos) + ")";
+        })
+    }
+    
+    //Snap row to position
+    private snap_pos_row(class_id) {
+
+        const row_nodes = select(class_id);
+
+        const currentPos = mouse( < any > select('.genealogyTree').node());
+
+        const node = row_nodes.data()[0];
+
+        node['y'] = Math.round(this.y.invert(currentPos[1]))
 
         row_nodes.attr("transform", () => {
             return "translate(" + this.xPOS(node) + "," + this.yPOS(node) + ")";
         })
     }
+    
 
     private get_row_data(class_id) {
         return select(class_id).data()[0];
 
     }
-
-
 
     private closestY() {
         const currentPos = mouse( < any > select('.genealogyTree').node());
@@ -853,51 +979,19 @@ class genealogyTree {
         return Math.floor(this.y.invert(currentPos[1]))
     }
 
-    private delete_phantom(d) {
-        selectAll('.phantom').remove();
-
-        const node_group = select('#g_' + d['id']);
-
-        // 	  node_group.select('.lifeRect').attr('visibility','hidden') 
-
-        const closestY = this.closestY()
-
-
-        if (d['y'] != closestY) {
-            node_group.classed('row_' + d['y'], false);
-            d['y'] = closestY;
-            node_group.classed('row_' + d['y'], true);
-
-            const row_nodes = selectAll('.row_' + d['y']);
-
-            //Hide all life lines
-            row_nodes
-                .selectAll('.lifeRect').attr('visibility', 'hidden');
-            row_nodes.classed('aggregate', true)
-        }
-
-
-
-        node_group.attr("transform", () => {
-            return "translate(" + this.xPOS(d) + "," + this.yPOS(d) + ")";
-        })
-
-
-    }
-
-
+    
     private xPOS(node) {
-        if (node['sex'] == 'F')
-            return this.x(node.x);
+        if (node['sex'] == 'M')
+            return this.x(node.x)- Config.glyphSize;
         else
-            return this.x(node.x) - Config.glyphSize;
+            return this.x(node.x) ;
     }
 
     private yPOS(node) {
-        if (node['sex'] == 'F')
-            return this.y(node.y);
+        if (node['sex'] == 'M')
+            return this.y(node.y)- Config.glyphSize;
         else
-            return this.y(node.y) - Config.glyphSize
+            return this.y(node.y) 
     }
 
     private elbow(d, interGenerationScale, lineFunction) {
@@ -938,77 +1032,47 @@ class genealogyTree {
         return lineFunction(linedata);
     }
     
-//     
     
-  private menu(x, y) {
-        select('#context-menu').remove();
-        
-        console.log(x,y)
-        
-        let height = Config.glyphSize*4;
-        let width = height;
-        let margin = 0.1;
-        
-		let items = ['first item', 'second option', 'whatever, man'];
-		
-/*
-		let style = {
-            'rect': {
-                'mouseout': {
-                    'fill': 'rgb(244,244,244)', 
-                    'stroke': 'white', 
-                    'stroke-width': '1px'
-                }, 
-                'mouseover': {
-                    'fill': 'rgb(200,200,200)'
-                }
-            }, 
-            'text': {
-                'fill': 'steelblue', 
-                'font-size': '13'
-            }
-            };
-*/
-        // Draw the menu
-        select('#graph')
-            .append('g')
-            .attr('id', 'context-menu')
-            .selectAll('tmp')
-            .data(items).enter()
-            .append('g').attr('class', 'menu-entry')
-//             ./* style */({'cursor': 'pointer'})
-            .on('mouseover', function(){ 
-                select(this).select('rect').attr('class','rect-mouseover')}) //(style.rect.mouseover) })
-            .on('mouseout', function(){ 
-                select(this).select('rect').attr('class','rect-mouseover')}); //style(style.rect.mouseout) });
-        
-        selectAll('.menu-entry')
-            .append('rect')
-            .attr('x', x)
-            .attr('y', function(d, i){ return y + (i * height); })
-            .attr('width', width)
-            .attr('height', height)
-//             .style(style.rect.mouseout);
-        
-        selectAll('.menu-entry')
-            .append('text')
-            .text(function(d){ return 'test'; })
-            .attr('x', x)
-            .attr('y', function(d, i){ return y + (i * height); })
-            .attr('dy', height - margin / 2)
-            .attr('dx', margin)
-//             .style(style.text);
-
-        // Other interactions
-/*
-        select('body')
-            .on('click', function() {
-                select('#context-menu').remove();
-            });
-*/
-
+    private attachListeners(){
+	    
+	     events.on('table_row_selected', (evt, item)=> {
+		     
+		      let wasSelected = selectAll('.backgroundBar').filter((d)=>{return d['y']==item}).classed('selected');	
+		    
+			//'Unselect all other background bars if ctrl was not pressed
+			if (!event.metaKey){
+			selectAll('.backgroundBar').classed('selected',false); 
+			}
+			
+			selectAll('.backgroundBar').filter((d)=>{return d['y']==item}).classed('selected',function(){
+				return (!wasSelected);
+			})	     
+      
+    });
+    
+    	     events.on('table_row_hover_on', (evt, item)=> {
+	    	     
+	    	     
+	    	    selectAll('.backgroundBar').filter((d)=>{return d['y']==item}).attr('opacity',.2)
+	            select('.row_' + item).filter((d)=>{return !d['collapsed']}).select('.lifeRect').select('.ageLabel').attr('visibility','visible');
+	            selectAll('.row_' + item).filter('.collapsed').attr('opacity',1)
+	            selectAll('.row_' + item).select('.hex').attr('opacity',0)	
+	           
+     
+    });
+    
+    	     events.on('table_row_hover_off', (evt, item)=> {
+	    	    selectAll('.collapsed').attr('opacity',0)
+			selectAll('.backgroundBar').attr('opacity', 0)
+			selectAll('.ageLabel').attr('visibility','hidden');	
+			selectAll('.row_' + item).select('.hex').attr('opacity',1)      
+    });
+    
+    
+    
+    
+	    
     }
-
 
 
 }

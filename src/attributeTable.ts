@@ -142,7 +142,7 @@ class attributeTable {
     .attr('class', 'row')
     .attr("transform", function (d, i) {
       return ('translate(0, ' + y(d['y'])+ ' )')
-    })
+    });
 
 
 

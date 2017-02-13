@@ -7,7 +7,7 @@
 
 #graph_table{
 	overflow: scroll;
-	height: 900px;
+	height: 400px;
 }
 
 .hide{
@@ -65,11 +65,18 @@ rect.selected{
     fill:#ff6400
 }
 
-.node rect,
-.node circle {
+.node rect, 
+.node circle, 
+.node .hex{
     stroke:black;
 //     stroke-width: 3px;
 }
+
+/*
+.node{
+	stroke:black
+}
+*/
 
 .node .lifeRect rect
 {
@@ -90,6 +97,10 @@ rect.selected{
 
 .aggregate{
  	opacity:.2;
+}
+
+.collapsed .lifeRect{
+	visibility:hidden
 }
 
 .nodeLabel,

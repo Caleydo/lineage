@@ -142,7 +142,7 @@ class genealogyTree {
     init(data) {
         this.data = data;        
         this.build();
-          
+        this.attachListeners();
         // return the promise directly as long there is no dynamical data to update
         return Promise.resolve(this);
     }
@@ -662,7 +662,8 @@ class genealogyTree {
                 
                 let indexes = Array.from(this.aggregating_levels);
 				
-                this.data.aggregateNodes(indexes)   
+				console.log('aggregating ' , indexes , 'on click')
+                this.data.aggregateNodes(indexes,[],[])   
                 
                 selectAll('.phantom').remove();
                 
@@ -688,6 +689,7 @@ class genealogyTree {
 			event.preventDefault(); console.log('right menu clicked')
 			
 			})
+		
 		.on('click',function(d){
 	    	if (event.defaultPrevented) return; // dragged
 	
@@ -715,6 +717,8 @@ class genealogyTree {
 			
 		})
 // 		.call(dragged)      
+
+		
 
 
     }
@@ -1010,6 +1014,48 @@ class genealogyTree {
             y: d['pa'].y
         }];
         return lineFunction(linedata);
+    }
+    
+    
+    private attachListeners(){
+	    
+	     events.on('table_row_selected', (evt, item)=> {
+		     
+		      let wasSelected = selectAll('.backgroundBar').filter((d)=>{return d['y']==item}).classed('selected');	
+		    
+			//'Unselect all other background bars if ctrl was not pressed
+			if (!event.metaKey){
+			selectAll('.backgroundBar').classed('selected',false); 
+			}
+			
+			selectAll('.backgroundBar').filter((d)=>{return d['y']==item}).classed('selected',function(){
+				return (!wasSelected);
+			})	     
+      
+    });
+    
+    	     events.on('table_row_hover_on', (evt, item)=> {
+	    	     
+	    	     
+	    	    selectAll('.backgroundBar').filter((d)=>{return d['y']==item}).attr('opacity',.2)
+	            select('.row_' + item).filter((d)=>{return !d['collapsed']}).select('.lifeRect').select('.ageLabel').attr('visibility','visible');
+	            selectAll('.row_' + item).filter('.collapsed').attr('opacity',1)
+	            selectAll('.row_' + item).select('.hex').attr('opacity',0)	
+	           
+     
+    });
+    
+    	     events.on('table_row_hover_off', (evt, item)=> {
+	    	    selectAll('.collapsed').attr('opacity',0)
+			selectAll('.backgroundBar').attr('opacity', 0)
+			selectAll('.ageLabel').attr('visibility','hidden');	
+			selectAll('.row_' + item).select('.hex').attr('opacity',1)      
+    });
+    
+    
+    
+    
+	    
     }
 
 

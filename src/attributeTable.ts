@@ -144,7 +144,7 @@ class attributeTable {
         return  (!select(this).classed('tableselected') && select(this).attr('id') === 'boundary_' + d.id);
         //toggle the selectedness
       });
-      events.fire('table_row_selected', d['id']);
+      events.fire('table_row_selected', d['y']);
     })
 
     // MOUSE ON
@@ -154,7 +154,7 @@ class attributeTable {
         return (!select(this).classed('tableselected') &&
         select(this).attr('id') === 'boundary_' + d.id);
       });
-      events.fire('table_row_hover_on', d['id']);
+      events.fire('table_row_hover_on', d['y']);
     })
 
     // MOUSE OFF
@@ -163,7 +163,7 @@ class attributeTable {
         return (!select(this).classed('hovered') &&
         select(this).attr('id') === 'boundary_' + d.id);
       })*/
-      events.fire('table_row_hover_off', d['id']);
+      events.fire('table_row_hover_off', d['y']);
     });
 
 

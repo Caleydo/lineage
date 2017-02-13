@@ -240,7 +240,6 @@ class graphData {
             if (indexes.includes(d['y'])) { //found a node that will be collapsed
 	            //check to see if this node will be aggregated in another family as well
 	            if (d['family_ids'].length>1 && family_ids.includes(d['family_ids'][0]) && family_ids.includes(d['family_ids'][1] ) && id == d['family_ids'][0]){
-	            console.log('need to duplicate node at level' , d['y'], d['family_ids'],family_ids)
 	            node = JSON.parse(JSON.stringify(d));
 	            node['id']=Math.random(); //since id is used as the key, cannot have two of the same. 
 	            duplicateNodes.push(node);
@@ -276,7 +275,6 @@ class graphData {
             "affection": "1",
             "bdate": "1899",
             "ddate": "1965",
-            "id": 1495566,
             "ma": 59,
             "pa": 57,
             "spouse": undefined,
@@ -299,10 +297,34 @@ class graphData {
         aggregateNode['collapsed'] = false
         aggregateNode['type'] = 'aggregate';
         aggregateNode['visible'] = true;
-        aggregateNode['family_ids'] = [];;
+        aggregateNode['family_ids'] =[];
+        aggregateNode['id']=Math.random()
+/*
+        
+        aggregateNode['family_ids'] = [collapsedNodes.reduce((a,b)=>{console.log('here',a,b); 
+	        return min(b['family_ids'].concat(Array.isArray(a)? a['family_ids'] : [a]))})];;
+	    
+*/    
+	    
+        
+        console.log('created an aggregate node with family_id', aggregateNode['family_ids']);
 
 
         this.nodes.push(aggregateNode)
+        
+        //See if aggregate node connects to a previous family        
+        let multiFamilyNode =[];
+        collapsedNodes.forEach(function(d){if (d['family_ids'].length>1){multiFamilyNode.push(d)}})
+        
+        if (multiFamilyNode.length>0){
+	         //If aggregate contains a parent that has two families, create a parent/child  edge between aggregate node and the originating family
+         this.parentChildEdges.forEach(function(d){
+	         if (d['target'] == multiFamilyNode[0]){
+		         d['target'] = aggregateNode;
+	         }
+         })
+        }
+       
 
         
 

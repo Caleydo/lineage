@@ -22,7 +22,8 @@ import {
     easeLinear
 } from 'd3-ease';
 import {
-    scaleLinear
+    scaleLinear,
+    interpolateViridis,
 } from 'd3-scale';
 import {
     max,
@@ -96,6 +97,12 @@ class genealogyTree {
     private interGenerationScale = scaleLinear();
 
     private self;
+    
+    private colors = ['#a6cee3','#1f78b4','#b2df8a','#33a02c','#fb9a99','#e31a1c','#fdbf6f','#ff7f00'];
+    
+//     private colorScale = scaleLinear().domain([1,2,3,4,5,6,7,8]).range(this.colors)
+    
+    
     
     //Data attributes to draw hexagons for aggregate rows    
     private hexSize = Config.glyphSize*1.25;
@@ -225,7 +232,7 @@ class genealogyTree {
         let graph = select('#genealogyTree')
         
         let edgePaths= graph.selectAll(".edges")
-            .data(edges.filter(function(d){return !d['target']['collapsed']}),function(d) {return d['id'];});
+            .data(edges.filter(function(d){ return !d['target']['collapsed']}),function(d) {return d['id'];});
             
         //remove extra paths
         edgePaths.exit().transition().duration(400).style('opacity',0).remove();
@@ -256,8 +263,8 @@ class genealogyTree {
         .attr("stroke-width", Config.glyphSize/4)
 
 
-        let parentEdgePaths = graph.selectAll(".parentEdges")
-            .data(parentEdges,function(d) {return d['id'];});
+        let parentEdgePaths = graph.selectAll(".parentEdges")// only draw parent parent edges if neither parent is collapsed
+            .data(parentEdges.filter(function(d){return !d['ma']['collapsed'] || !d['pa']['collapsed']}),function(d) {return d['id'];});
             
             
         parentEdgePaths.exit().transition().duration(400).style('opacity',0).remove();
@@ -305,7 +312,7 @@ class genealogyTree {
             .enter()
             .append("g");
             
-            console.log('allNodesEnter has ', allNodesEnter.size()  ,  'nodes');
+//             console.log('allNodesEnter has ', allNodesEnter.size()  ,  'nodes');
             
 
             
@@ -521,9 +528,11 @@ class genealogyTree {
             .append("rect")
             .classed('male', true)
             
+/*
            console.log('allNodesEnter has ', allNodesEnter.filter(function(d: any) { console.log('looking at ', d)
                 return d['sex'] == 'M';
             }).size() , ' male nodes'  );
+*/
                      
         allNodes.selectAll('.male')
 //             .classed('male', true)
@@ -561,13 +570,15 @@ class genealogyTree {
             .attr("transform", (d) => {
                 return "translate(" + this.xPOS(d) + "," + this.yPOS(d) + ")";
             })
-            .style("fill", function(d: any) {
-                return (+d.affection == 100) ? "black" : "white";
+            .style("fill", (d: any)=> {
+	            return (+d.affection == 100) ? "black" : "white" 
+//                 return (+d.affection == 100) ? "black" : interpolateViridis(d['family_ids'][0]/6);
             })
             .attr('id', (d) => {
                 return 'g_' + d['id']
             })
             .style("stroke-width", 3);
+//             .style("stroke-width", 3);
             
         let tran = t.transition().ease(easeLinear)
         allNodes.filter((d)=> {return !d['collapsed']})
@@ -686,7 +697,7 @@ class genealogyTree {
 			//'Unselect all other background bars if ctrl was not pressed
 			if (!event.metaKey){
 			selectAll('.backgroundBar').classed('selected',false); 
-			console.log(selectAll('.selected').data())
+// 			console.log(selectAll('.selected').data())
 			}
 			
 			select(this).select('.backgroundBar').classed('selected',function(){
@@ -875,7 +886,7 @@ class genealogyTree {
 
             phantomNode.setAttribute("class", "phantom node");   
             document.getElementById('genealogyTree').appendChild(phantomNode)
-            console.log(phantom)
+//             console.log(phantom)
 
         }
     }

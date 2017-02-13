@@ -345,6 +345,16 @@ class graphData {
         
        
     };
+    
+    public hideNode(y){
+	    this.nodes.forEach(function(d,i) {
+// 	        console.log([d['y']-minY] , ' needs to decrease' , collapse[d['y']-minY-1] , 'rows')
+            if (d['y'] >y){
+	            d['y']= d['y']-1
+            }
+        });
+	    
+    }
 
     //Function that iterates through genealogy graph and removes empty rows; 
     public collapseEmptyRows(indexes) {

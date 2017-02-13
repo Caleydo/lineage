@@ -24,6 +24,7 @@ class attributeTable {
 
 
   // access to all the data in our backend
+  private all_the_data;
   private row_order;
   private column_order;
   private num_cols;
@@ -45,11 +46,12 @@ class attributeTable {
   * @returns {Promise<FilterBar>}
   */
   init(data) {
-
-    this.row_order = data.displayedRowOrder;
+    this.all_the_data = data;
     this.column_order = data.displayedColumnOrder;
     this.num_cols = data.numberOfColumnsDisplayed;
     this.col_names = data.referenceColumns;
+
+    this.row_order = data.displayedRowOrder;
     this.row_data = data.referenceRows;
 
 
@@ -85,7 +87,14 @@ class attributeTable {
 
     let tableAxis = axisTop(x).tickFormat(format("d"));
 
+/*
+    this.column_order = data.displayedColumnOrder;
+    this.num_cols = data.numberOfColumnsDisplayed;
+    this.col_names = data.referenceColumns;
+  */
+
     // TODO: base these off the data in Columns
+    // TODO: make an array w. widths and pop based on col's
     const rowHeight = Config.glyphSize * 2.5 - 4;
     const genderWidth = this.width / 7;
     const ageWidth = 3 * this.width / 7;
@@ -134,37 +143,6 @@ class attributeTable {
     .attr("transform", function (d, i) {
       return ('translate(0, ' + y(d['y'])+ ' )')
     })
-
-    // CLICK
-    .on('click', function(d) {
-      if (!event.shiftKey){ //will this be a problem?
-           selectAll('.boundary').classed('tableselected',false);
-      }
-      selectAll('.boundary').classed('tableselected', function(a){
-        return  (!select(this).classed('tableselected') && select(this).attr('id') === 'boundary_' + d.id);
-        //toggle the selectedness
-      });
-      events.fire('table_row_selected', d['id']);
-    })
-
-    // MOUSE ON
-    .on('mouseover', function(d) {
-      selectAll('.boundary').classed('tablehovered', function(a){
-        //hover event ONLY if not selected
-        return (!select(this).classed('tableselected') &&
-        select(this).attr('id') === 'boundary_' + d.id);
-      });
-      events.fire('table_row_hover_on', d['id']);
-    })
-
-    // MOUSE OFF
-    .on('mouseout', function(d) {
-      selectAll('.boundary').classed('tablehovered', false); /*function(){
-        return (!select(this).classed('hovered') &&
-        select(this).attr('id') === 'boundary_' + d.id);
-      })*/
-      events.fire('table_row_hover_off', d['id']);
-    });
 
 
 
@@ -290,8 +268,48 @@ class attributeTable {
     .attr("y2", rowHeight)
     .attr("stroke-width", 1)
     .attr("stroke", "black");
-  }
 
+
+
+  const eventListener = rows.append('rect').attr("height", rowHeight).attr("width", this.width).attr("fill", "transparent")
+  // CLICK
+  .on('click', function(d) {
+    selectAll('.boundary').classed('tablehovered', false); //don't hover
+    if (!event.shiftKey){ //unless we pressed shift, unselect everything
+         selectAll('.boundary').classed('tableselected',false);
+    }
+    selectAll('.boundary').classed('tableselected', function(a){
+      // if it's the right row, toggle it
+      // if it's the wrong row, leave the selection the same
+      const rightRow = (select(this).attr('id') === 'boundary_' + d.id);
+      if(rightRow)
+        return (!select(this).classed('tableselected')); //toggle it
+      return select(this).classed('tableselected'); //leave it be
+    });
+    events.fire('table_row_selected', d['id']);
+  })
+
+  // MOUSE ON
+  .on('mouseover', function(d) {
+    selectAll('.boundary').classed('tablehovered', function(a){
+      const rightRow = (select(this).attr('id') === 'boundary_' + d.id);
+      if(rightRow){ //don't hover if it's selected
+        console.log("The current row is *not* selected:");
+        console.log(!select(this).classed('tableselected'));
+        return !select(this).classed('tableselected');
+      }
+      return false; //otherwise don't hover
+    });
+    events.fire('table_row_hover_on', d['id']);
+  })
+
+  // MOUSE OFF
+  .on('mouseout', function(d) {
+    selectAll('.boundary').classed('tablehovered', false);
+    events.fire('table_row_hover_off', d['id']);
+  });
+
+  }
 
 
   private attachListener() {
@@ -305,23 +323,28 @@ class attributeTable {
 
     //NODE END HOVER
     events.on('row_mouseout', (evt, item)=> {
-      selectAll('.boundary').classed('tablehovered',false);
+      return selectAll('.boundary').classed('tablehovered',false);
     });
 
 
     // NODE CLICK
     events.on('row_selected', (evt, item)=> {
+      selectAll('.boundary').classed('tablehovered', false);
       selectAll('.boundary').classed('tableselected', function (d) {
-      //  console.log(select(this).attr('id') === 'boundary_' + item);
         return (select(this).attr('id') === 'boundary_' + item)});
     });
 
 
     //TODO
     events.on('rows_aggregated', (evt, item)=> {
-      selectAll('.row').classed('tableselected', function (d) {
-        return (!select(this).classed('tableselected') && select(this).attr('id') === 'row_' + item);
-      });
+      //this.all_the_data.aggregateRows();
+
+      // Things that need to happen here:
+      // change rows to be joined w. the displayRows instead of displayData- then we have to index each time for every attribute.
+      // update the displayedRows datastructure
+      //
+
+
     });
 
 

@@ -29,8 +29,28 @@ class tableData {
   // populates referenceRows & referenceColumns
   // initializes dRO & dCO to be the references
   public parseData(data_in){
-    var a = new Column('annie');
-    return a;
+    // grab all the attribute names (they're the keys in the obj dict)
+    Object.keys(data_in[0]).forEach(column_name=>{
+      this.referenceColumns.push(new Column(column_name));
+    });
+
+    // creates a row id & stashes data in a Row Obj. in the reference list.
+    data_in.forEach(d=>{
+      this.referenceRows.push(new Row('row_' + d['id'], d));
+    });
+
+    // init the displayedRowOrder to be the same as the reference rows
+    //     but rememeber it's LISTS of lists
+    for (var index = 0; index < this.referenceRows.length; index++) {
+      this.displayedRowOrder.push( [index] );
+    }
+
+    // init the displayedColOrder to be the same as the reference cols
+    for (var index = 0; index < this.referenceColumns.length; index++) {
+      this.displayedColumnOrder.push( index );
+    }
+
+
   }
 
   // adds to the *displayed* columns
@@ -60,14 +80,11 @@ class tableData {
     this.addColumn(column_name, desired_index);
   }
 
-}
+//TODO
+  public aggregateRows(row_index){
 
+  }
 
-function DataItem(data){
-  //whatever the parse function does
-  this.age = 2;
-  this.bmi = 4;
-  this.birth_year = 1992;
 }
 
 
@@ -76,7 +93,7 @@ function Row(row_id, row_data){
   this.row_data = row_data;
 }
 
-// hard-code some prefered default sizes for our data
+// hard-code some prefered default sizes for our data TODO
 function Width(column_name){ //column_name : string
   if(column_name === 'bmi')
     return 2;
@@ -88,7 +105,7 @@ function Width(column_name){ //column_name : string
 // columns have a name & a preferred width (s/m/l)
 function Column(name){ //name : string
   this.name = name;
-  this.width = this.Width(name);
+  this.width = Width(name);
 }
 
 

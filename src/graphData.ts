@@ -186,12 +186,36 @@ class graphData {
 	public collapseFamilies(root){
 		
 		// 		1. find which nuclear families to aggregate
-		let family_ids = [2,5,6];
+		let family_ids = root;
+		
+		console.log ('root is ', root[0])
+		
+		let allowedRoots = [2,5,6,4];
+		 
+		if (!allowedRoots.includes(root[0])){
+			return; //can only aggregate these families for now
+		}
+		
+		if (family_ids ==2){
+			family_ids = [5,6];
+		}
 				
 		family_ids.forEach((id)=>{
 			
 			//2. for each family, create a set of indexes to aggregate, (this set may be empty)
-			let toAggregate;
+			let aggregateSet=new Set();
+			
+			this.nodes.forEach(function(d){
+				if (+d['affection']<100 && d['family_ids'].includes(id)){
+					aggregateSet.add(d['y'])
+				}	
+			})
+			
+			//problem is that rows with nodes that will still be a part of another aggregate are being overriden. 
+			
+			
+			
+/*
 			//Iterate through all family members and push all non-afected members;
 			if (id == 5){
 				toAggregate = [65,66,68,69];
@@ -202,8 +226,10 @@ class graphData {
 			if (id == 6){
 				toAggregate = [71,72,73];
 			}
-			
-			
+*/			let toAggregate = Array.from(aggregateSet);
+
+			toAggregate.sort(function(a,b){return a-b});
+			console.log('toAggregate',toAggregate,'id',id);
 			
 			//Call aggregate Nodes on the non-affected
 			this.aggregateNodes(toAggregate,id,family_ids)
@@ -229,21 +255,18 @@ class graphData {
 
         let collapsedNodes = [];
         let duplicateNodes=[];
-
-        let collapseCols = indexes.length - 1;
         
-      
+//       filter(function(d){return !d['collapsed']}).
         
-          this.nodes.filter(function(d){return !d['collapsed']}).forEach(function(d) {
+          this.nodes.forEach(function(d) {
 	         
 	         let node = d;
-            if (indexes.includes(d['y'])) { //found a node that will be collapsed
+            if (indexes.includes(d['y']) && d['family_ids'].includes(id) ) { //found a node that will be collapsed
 	            //check to see if this node will be aggregated in another family as well
 	            if (d['family_ids'].length>1 && family_ids.includes(d['family_ids'][0]) && family_ids.includes(d['family_ids'][1] ) && id == d['family_ids'][0]){
 	            node = JSON.parse(JSON.stringify(d));
 	            node['id']=Math.random(); //since id is used as the key, cannot have two of the same. 
 	            duplicateNodes.push(node);
-	            console.log('duplicate node:' ,node)
 	            };
 	            
                 node['visible'] = true;
@@ -255,14 +278,6 @@ class graphData {
         });
         
         this.nodes = this.nodes.concat(duplicateNodes);
-
-/*
-        this.nodes.forEach(function(d) {
-            if (d['y'] > maxInd) {
-                d['y'] = d['y'] - collapseCols;
-            }
-        });
-*/
 
         //write function that given an array of nodes, returns an "average" node 
 
@@ -305,12 +320,10 @@ class graphData {
 	        return min(b['family_ids'].concat(Array.isArray(a)? a['family_ids'] : [a]))})];;
 	    
 */    
-	    
-        
-        console.log('created an aggregate node with family_id', aggregateNode['family_ids']);
 
 
         this.nodes.push(aggregateNode)
+        
         
         //See if aggregate node connects to a previous family        
         let multiFamilyNode =[];
@@ -325,14 +338,55 @@ class graphData {
          })
         }
        
-
+		console.log('indexes for ' , id , ' are', indexes.filter(x => [aggregateNode['y']].indexOf(x) < 0 ));
+		
+        this.collapseEmptyRows(indexes.filter(x => [aggregateNode['y']].indexOf(x) < 0 ));
+//         this.collapseEmptyRows(indexes);
         
-
-        this.collapseEmptyRows();
+       
     };
 
     //Function that iterates through genealogy graph and removes empty rows; 
-    public collapseEmptyRows() {
+    public collapseEmptyRows(indexes) {
+	    
+	    let minY = min(this.nodes,function(n){return n['Y']});
+	    let maxY = max(this.nodes,function(n){return n['Y']});
+	    
+	    //sort indexes and remove max since that is for the aggregate node
+	    indexes.sort(function(a,b){return a-b}) //; .splice(-1,1);
+	    
+	    console.log('indexes',indexes)
+	    
+	    let bin = [];
+	    for (let i = minY; i < maxY; i++) {
+		    if (indexes.includes(i)){
+		    bin.push(1)
+		    }
+		    else{
+		    bin.push(0) 
+		    }
+		}
+		console.log(bin);
+		
+		let collapse = bin.reduce(function(r, a) {
+			if (r.length > 0)
+				a += r[r.length - 1];
+				r.push(a);
+				return r;
+		}, []);
+		
+		console.log(collapse);
+   
+	    
+        this.nodes.forEach(function(d,i) {
+// 	        console.log([d['y']-minY] , ' needs to decrease' , collapse[d['y']-minY-1] , 'rows')
+            if (d['y'] >= min(indexes)) {
+	            
+                d['y'] = d['y'] - collapse[d['y']-minY-1];
+            }
+        });
+
+
 
     };
 

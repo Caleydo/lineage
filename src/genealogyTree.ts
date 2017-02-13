@@ -363,7 +363,7 @@ class genealogyTree {
         .on('mouseover',function(d:any){
 	            select(this).attr('opacity',.2)
 	            select('.row_' + d['y']).filter((d)=>{return !d['collapsed']}).select('.lifeRect').select('.ageLabel').attr('visibility','visible');
-	            selectAll('.row_' + d['y']).filter('.collapsed').attr('opacity',.2)
+	            selectAll('.row_' + d['y']).filter('.collapsed').attr('opacity',1)
 	            selectAll('.row_' + d['y']).select('.hex').attr('opacity',0)	
 	            	
 	            
@@ -561,9 +561,6 @@ class genealogyTree {
 		allNodes
 // 		.on("click",function(d){console.log('clicked')});
 		
-
-        
-	
         //Position and Color all Nodes
         allNodes
          	.transition(t)
@@ -572,7 +569,7 @@ class genealogyTree {
             })
             .style("fill", (d: any)=> {
 	            return (+d.affection == 100) ? "black" : "white" 
-//                 return (+d.affection == 100) ? "black" : interpolateViridis(d['family_ids'][0]/6);
+//                 return interpolateViridis(d['maxBMI'][0]/6);
             })
             .attr('id', (d) => {
                 return 'g_' + d['id']
@@ -599,7 +596,7 @@ class genealogyTree {
             // .attr('visibility','hidden')
             .text(function(d: any) {
 	            
-	            return d['family_ids'].toString() 
+	            return d['maxBMI'].toString() 
 /*
 	            let year = new Date().getFullYear();
                                             if (+d.ddate > 0) {
@@ -682,7 +679,9 @@ class genealogyTree {
 		allNodes
 		.on('contextmenu',(d)=>{
 			
-			this.data.collapseFamilies([2])   
+			console.log(d['family_ids'].slice(-1));
+			
+			this.data.collapseFamilies(d['family_ids'].slice(-1))   
 			this.update_visible_nodes()
 
 			

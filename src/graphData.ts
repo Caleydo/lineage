@@ -156,10 +156,14 @@ class graphData {
                 'ma':this.nodes[maID],
                 'pa':this.nodes[paID],
                 'type':'parent',
-                'id':this.nodes[maID]
+                'id':this.nodes[maID]['id']
             };
-			
-            this.parentParentEdges.push(rnode);
+            
+            //Only add parent parent Edge if it's not already there; 
+            if (!this.parentParentEdges.some((d)=>{return d['id'] == rnode['id']})){
+	            this.parentParentEdges.push(rnode);
+            }
+		
             this.parentChildEdges.push({
                 ma: this.nodes[maID],
                 pa: this.nodes[paID],

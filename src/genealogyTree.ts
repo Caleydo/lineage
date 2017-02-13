@@ -354,8 +354,10 @@ class genealogyTree {
 */
         allNodes
 		.selectAll('.backgroundBar')
-        .attr('opacity', 0)
-        .on('mouseover',function(d){
+        .attr('opacity', 0);
+        
+        selectAll('.backgroundBar')
+        .on('mouseover',function(d:any){
 	            select(this).attr('opacity',.2)
 	            select('.row_' + d['y']).filter((d)=>{return !d['collapsed']}).select('.lifeRect').select('.ageLabel').attr('visibility','visible');
 	            selectAll('.row_' + d['y']).filter('.collapsed').attr('opacity',.2)		
@@ -369,7 +371,9 @@ class genealogyTree {
 			events.fire('row_mouseout', d['y']);
 			})
 		
-
+			
+		//Move all node icons to the front. 	
+// 		allNodes.selectAll('.nodeIcon').select(this).parentNode.appendChild(this)});
             
 		
 
@@ -607,6 +611,8 @@ class genealogyTree {
 
 		let dragged = drag()
             .on("start", (d) => {
+	            
+	            
 	            console.log('started drag')
 	            
                 this.startYPos = this.y.invert(mouse( < any > select('.genealogyTree').node())[1]);
@@ -657,11 +663,6 @@ class genealogyTree {
                 
                 
             });
-
-		allNodes.on("contextmenu", ()=>{
-            event.preventDefault();
-           // react on right-clicking
-        });
         
         
 		allNodes.on('click',function(d){

@@ -225,7 +225,7 @@ class genealogyTree {
         let graph = select('#genealogyTree')
         
         let edgePaths= graph.selectAll(".edges")
-            .data(edges,function(d) {return d['id'];});
+            .data(edges.filter(function(d){return !d['target']['collapsed']}),function(d) {return d['id'];});
             
         //remove extra paths
         edgePaths.exit().transition().duration(400).style('opacity',0).remove();
@@ -299,10 +299,15 @@ class genealogyTree {
             
         allNodes.exit().transition().duration(400).style('opacity',0).remove();
             
-            
+        
+          
         let allNodesEnter = allNodes
             .enter()
             .append("g");
+            
+            console.log('allNodesEnter has ', allNodesEnter.size()  ,  'nodes');
+            
+
             
         allNodes = allNodesEnter.merge(allNodes);
         
@@ -321,6 +326,7 @@ class genealogyTree {
 		allNodesEnter.filter((d)=>{return !d['collapsed']}) 
 		.append('rect')
 		.classed('backgroundBar',true);
+	
 		
 		//Remove backgroundBar for nodes that were collapsed
 		allNodes.filter((d)=>{return d['collapsed']})
@@ -335,7 +341,7 @@ class genealogyTree {
 	    .attr("transform", (d: any) => {
                 return d.sex == 'M' ? "translate(" + Config.glyphSize +  ",0)" : "translate("+ 0 + "," + (-Config.glyphSize) + ")";
         })
-        .classed('selected',(d)=>{return d['clicked']})
+//         .classed('selected',(d)=>{return d['clicked']}) for now
         
 /*
         let mouseoverCallback = 
@@ -350,14 +356,17 @@ class genealogyTree {
         .on('mouseover',function(d:any){
 	            select(this).attr('opacity',.2)
 	            select('.row_' + d['y']).filter((d)=>{return !d['collapsed']}).select('.lifeRect').select('.ageLabel').attr('visibility','visible');
-	            selectAll('.row_' + d['y']).filter('.collapsed').attr('opacity',.2)		
+	            selectAll('.row_' + d['y']).filter('.collapsed').attr('opacity',.2)
+	            selectAll('.row_' + d['y']).select('.hex').attr('opacity',0)	
+	            	
 	            
 	        events.fire('row_mouseover', d['y']);                   
 			})
 		.on('mouseout', (d)=>{
 			selectAll('.collapsed').attr('opacity',0)
 			selectAll('.backgroundBar').attr('opacity', 0)
-			selectAll('.ageLabel').attr('visibility','hidden');				
+			selectAll('.ageLabel').attr('visibility','hidden');	
+			selectAll('.row_' + d['y']).select('.hex').attr('opacity',1)			
 			events.fire('row_mouseout', d['y']);
 			})
 		
@@ -511,6 +520,10 @@ class genealogyTree {
             })
             .append("rect")
             .classed('male', true)
+            
+           console.log('allNodesEnter has ', allNodesEnter.filter(function(d: any) { console.log('looking at ', d)
+                return d['sex'] == 'M';
+            }).size() , ' male nodes'  );
                      
         allNodes.selectAll('.male')
 //             .classed('male', true)
@@ -556,11 +569,11 @@ class genealogyTree {
             })
             .style("stroke-width", 3);
             
-            
         let tran = t.transition().ease(easeLinear)
         allNodes.filter((d)=> {return !d['collapsed']})
             .transition(tran)
             .attr('opacity',1);
+
             
         allNodes.filter((d)=> {return d['collapsed']})
             .transition(tran.duration(100))
@@ -655,7 +668,17 @@ class genealogyTree {
             });
         
         
-		allNodes.on('click',function(d){
+		allNodes
+		.on('contextmenu',(d)=>{
+			
+			this.data.collapseFamilies([2])   
+			this.update_visible_nodes()
+
+			
+			event.preventDefault(); console.log('right menu clicked')
+			
+			})
+		.on('click',function(d){
 	    	if (event.defaultPrevented) return; // dragged
 	
 		    let wasSelected = select(this).select('.backgroundBar').classed('selected');	

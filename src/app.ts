@@ -13,9 +13,9 @@ import * as panel from './attributePanel'
 
 import {csv} from 'd3-request';
 
-//Import Data Structure for graph
+//Import Data Structure for graph & table
 import * as graphData from './graphData'
-
+import * as tableData from './tableData'
 // import * as graphData from './genealogyData'
 
 //Import Actual Data from ./sampleData
@@ -86,7 +86,7 @@ export class App {
       genealogyTree.init(graphData.create(sampleData));
 
       let attributeTable = table.create(this.$node.select('#graph_table').node());
-      attributeTable.init(sampleData);
+      attributeTable.init(tableData.create(sampleData));
 
       let attributePanel = panel.create(this.$node.select('.panel').node());
       attributePanel.init();

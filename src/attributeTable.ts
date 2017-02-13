@@ -23,6 +23,14 @@ class attributeTable {
   private tableAxis;
 
 
+  // access to all the data in our backend
+  private row_order;
+  private column_order;
+  private num_cols;
+  private col_names;
+  private row_data;
+
+
   private margin = Config.margin;
 
   constructor(parent:Element) {
@@ -38,7 +46,14 @@ class attributeTable {
   */
   init(data) {
 
-    this.build(data);
+    this.row_order = data.displayedRowOrder;
+    this.column_order = data.displayedColumnOrder;
+    this.num_cols = data.numberOfColumnsDisplayed;
+    this.col_names = data.referenceColumns;
+    this.row_data = data.referenceRows;
+
+
+    this.build();
     this.attachListener();
 
     // return the promise directly as long there is no dynamical data to update
@@ -49,7 +64,11 @@ class attributeTable {
   /**
   * Build the basic DOM elements and binds the change function
   */
-  private build(data) {
+  private build() {
+
+    const data = this.row_data.map(function(d){
+      return d["value"];
+    });
 
     this.width = 150 - this.margin.left - this.margin.right
     this.height = Config.glyphSize * 3 * data.length - this.margin.top - this.margin.bottom;
@@ -122,7 +141,6 @@ class attributeTable {
            selectAll('.boundary').classed('tableselected',false);
       }
       selectAll('.boundary').classed('tableselected', function(a){
-        console.log(this);
         return  (!select(this).classed('tableselected') && select(this).attr('id') === 'boundary_' + d.id);
         //toggle the selectedness
       });

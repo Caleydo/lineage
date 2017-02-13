@@ -12,7 +12,7 @@ import {Config} from './config';
 */
 class tableData {
   public referenceColumns = []; //[Column]
-  public referenceRows = [];    //[Row]
+  public referenceRows = [];    //[{row_id, data}
 
   public displayedRowOrder = [];    //[int] : list of (lists of indicies) b.c aggregation
   public displayedColumnOrder = []; //[int] : list of indicies
@@ -34,9 +34,12 @@ class tableData {
       this.referenceColumns.push(new Column(column_name));
     });
 
+
     // creates a row id & stashes data in a Row Obj. in the reference list.
     data_in.forEach(d=>{
-      this.referenceRows.push(new Row('row_' + d['id'], d));
+      this.referenceRows.push({
+          key: 'row_' + d['id'],
+          value:  d })
     });
 
     // init the displayedRowOrder to be the same as the reference rows
@@ -49,7 +52,6 @@ class tableData {
     for (var index = 0; index < this.referenceColumns.length; index++) {
       this.displayedColumnOrder.push( index );
     }
-
 
   }
 
@@ -88,10 +90,10 @@ class tableData {
 }
 
 
-function Row(row_id, row_data){
+/*function Row(row_id, row_data){
   this.row_id = row_id;
   this.row_data = row_data;
-}
+}*/
 
 // hard-code some prefered default sizes for our data TODO
 function Width(column_name){ //column_name : string

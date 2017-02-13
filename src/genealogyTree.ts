@@ -335,9 +335,11 @@ class genealogyTree {
 		.classed('backgroundBar',true);
 	
 		
+/*
 		//Remove backgroundBar for nodes that were collapsed
 		allNodes.filter((d)=>{return d['collapsed']})
 		.select('.backgroundBar').remove();
+*/
 		
 		
 		allNodes
@@ -689,6 +691,20 @@ class genealogyTree {
 			event.preventDefault(); console.log('right menu clicked')
 			
 			})
+			
+		.on("dblclick",(d)=>{
+			
+			if(d['collapsedNodes']){
+				//clicked on an Aggregate Node
+				console.log('double clicked on an aggregate')
+				this.data.expandAggregates(d['collapsedNodes'].map((n)=>{return n['y']}))
+				this.update_visible_nodes()   
+			}
+			
+// 			this.update_visible_nodes()
+			
+			
+		})
 		
 		.on('click',function(d){
 	    	if (event.defaultPrevented) return; // dragged

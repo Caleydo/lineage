@@ -300,7 +300,7 @@ class graphData {
             "hide": false,
             "type": "individual",
             "color": "#e7cb94",
-            "maxBMI": 3
+            "maxBMI": ''
         };
 
 
@@ -389,6 +389,32 @@ class graphData {
 
 
     };
+    
+    //Function to re-expand aggregated nodes;
+    private expandAggregates(indexes){
+	    
+	    console.log('indexes are ', indexes)
+	    
+	    
+	    this.nodes.forEach(function(d,i) {
+// 	        console.log([d['y']-minY] , ' needs to decrease' , collapse[d['y']-minY-1] , 'rows')
+            
+//             if (indexes.includes(d['y'])){
+	            console.log('here')
+	            d['collapsed']=false;
+	            d['y'] = d['Y'];
+//             }
+/*
+            if (d['y'] >= min(indexes)) {
+	            
+                d['y'] = d['y'] - collapse[d['y']-minY-1];
+            }
+*/
+        });
+	    
+	    
+	    
+    }
 
 
 

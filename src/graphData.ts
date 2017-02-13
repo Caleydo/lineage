@@ -44,6 +44,7 @@ class graphData {
       d['descendant']=false; //flag for blood descendants of founders
       d['Y']=+d['y']; //keeps track of nodes original y position
       d['family_ids']=[]; //keeps track of nuclear families
+      d['clicked']=false;
       
       
       this.uniqueID.push(+d['egoUPDBID']);

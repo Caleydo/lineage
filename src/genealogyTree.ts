@@ -345,6 +345,7 @@ class genealogyTree {
 	    .attr("transform", (d: any) => {
                 return d.sex == 'M' ? "translate(" + Config.glyphSize +  ",0)" : "translate("+ 0 + "," + (-Config.glyphSize) + ")";
         })
+        .classed('selected',(d)=>{return d['clicked']})
         
 /*
         let mouseoverCallback = 
@@ -542,7 +543,7 @@ class genealogyTree {
 		allNodesEnter.attr('opacity',0);
 	
 		allNodes
-		.on("click",function(d){console.log('clicked')});
+// 		.on("click",function(d){console.log('clicked')});
 		
 
         
@@ -657,16 +658,17 @@ class genealogyTree {
                 
             });
 
-		allNodes.on("contextmenu", function (d, i) {
+		allNodes.on("contextmenu", ()=>{
             event.preventDefault();
            // react on right-clicking
         });
+        
+        
 		allNodes.on('click',function(d){
 	    	if (event.defaultPrevented) return; // dragged
-
-				
+	
 		    let wasSelected = select(this).select('.backgroundBar').classed('selected');	
-		    console.log(wasSelected)
+		    
 			//'Unselect all other background bars if ctrl was not pressed
 			if (!event.metaKey){
 			selectAll('.backgroundBar').classed('selected',false); 
@@ -675,6 +677,8 @@ class genealogyTree {
 			select(this).select('.backgroundBar').classed('selected',function(){
 				return (!wasSelected);
 			})
+			
+			d['clicked'] = !wasSelected;
 			
 			if (!event.metaKey){
 				events.fire('row_selected', d['y'],'multiple');

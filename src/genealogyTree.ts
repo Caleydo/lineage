@@ -97,9 +97,10 @@ class genealogyTree {
 
     private self;
     
+    //Data attributes to draw hexagons for aggregate rows    
     private hexSize = Config.glyphSize*1.25;
     
-   private hexData = [{x:this.hexSize, y:0}, 
+    private hexData = [{x:this.hexSize, y:0}, 
     {x:this.hexSize/2, y:this.hexSize*Math.sqrt(3)/2}, 
     {x:-this.hexSize/2, y:this.hexSize*Math.sqrt(3)/2},
     {x:-this.hexSize, y:0},
@@ -124,8 +125,6 @@ class genealogyTree {
     constructor(parent: Element) {
         this.$node = select(parent)
         this.self = this;
-        // .append('div')
-        // .classed('genealogyTree', true);
     }
 
     /**
@@ -136,9 +135,7 @@ class genealogyTree {
     init(data) {
         this.data = data;        
         this.build();
-//         this.eventHandler(); 
           
-
         // return the promise directly as long there is no dynamical data to update
         return Promise.resolve(this);
     }
@@ -166,13 +163,6 @@ class genealogyTree {
         
         this.visibleXAxis = axisTop(this.x).tickFormat(format("d"))
         this.extremesXAxis = axisTop(this.x2)
-        
-//         select(this.xAxis).selectAll('text').attr('font-size',Config.glyphSize * 1.5)
-       
-       
-        //xrange should be defined based only on what is visible on the screen. 
-
-        //When the user scrolls, the x (time) axis should be updated as should the position of all the elements on the screen. 
         
         this.interGenerationScale.range([.75, .25]).domain([2, nodes.length]);
         
@@ -340,7 +330,7 @@ class genealogyTree {
 		allNodes
 		.selectAll('.backgroundBar')
 		.attr("width", (d)=>{return (max(this.x.range())- min(this.x.range()) + this.margin.right);})
-		.attr('x',(d)=>{ return (min([- this.x(d['x']),-this.x2(d['x'])]))})
+		.attr('x',(d)=>{ return -this.x(d['x'])}) 
 	    .attr("height", Config.glyphSize *2)
 	    .attr("transform", (d: any) => {
                 return d.sex == 'M' ? "translate(" + Config.glyphSize +  ",0)" : "translate("+ 0 + "," + (-Config.glyphSize) + ")";
@@ -673,13 +663,14 @@ class genealogyTree {
 			//'Unselect all other background bars if ctrl was not pressed
 			if (!event.metaKey){
 			selectAll('.backgroundBar').classed('selected',false); 
+			console.log(selectAll('.selected').data())
 			}
 			
 			select(this).select('.backgroundBar').classed('selected',function(){
 				return (!wasSelected);
 			})
 			
-			d['clicked'] = !wasSelected;
+// 			d['clicked'] = !wasSelected;
 			
 			if (!event.metaKey){
 				events.fire('row_selected', d['y'],'multiple');

@@ -45,13 +45,12 @@ class attributePanel {
    */
   private build() {
 
-     // menu container container
+    // menu container container
     const menu_list = this.$node.append('div')
       .classed('menu-list', true)
       .html(` <ul >
             <li class="brand" data-toggle="collapse"> <i class=""></i> <strong>Data Selection</strong>
              <span class="toggle-btn"><i class="glyphicon glyphicon-menu-hamburger"></i></span></li>
-
                </ul>`);
 
     // list that holds data attribute
@@ -60,61 +59,63 @@ class attributePanel {
       .attr('id', 'active-menu-content')
       .classed('menu-content collapse in', true);
 
-    menu_list.append('div')
-      .classed('menu-list', true)
-      .html(` <ul >
-            <li class="brand" data-toggle="collapse"> <i class=""></i> <strong>Inactive data Selection</strong>
-             <span class="toggle-btn arrow"><i></i></span></li>
+    menu_list.append('ul')
+      .html(`
+       <li class="inactive collapsed active" data-target="#inactive-menu-content" data-toggle="collapse">
+                                  <i class=""></i><strong>Inactive attributes</strong> <span class="arrow"></span>
+                                </li>`);
 
-               </ul>`);
 
     // list that holds inactive attributes
     // a user can populate this list by dragging elements from the active list
     const inactive_menu_content = menu_list.append('ul')
       .attr('id', 'inactive-menu-content')
-      .classed('menu-content collapse in', true)
+      .classed('menu-content sub-menu collapse in fade', true)
       .html(`
-      <li>item 1</li>`);
+      <li class='placeholder'>DRAG AND DROP ATTRIBUTES HERE TO MAKE THEM INACTIVE</li>`);
+
 
     // Active sortable list
-    Sortable.create(document.getElementById('active-menu-content'),{
+    Sortable.create(document.getElementById('active-menu-content'), {
       group: 'menu-content',
       ghostClass: 'ghost',
       animation: 150,
       pull: true,
       put: true,
-      onAdd: function (evt){
+      onAdd: function (evt) {
         let item = evt.item.getElementsByTagName("strong")[0].innerHTML;
         let newIndex = evt.newIndex;
-        events.fire('attribute_added', [item,newIndex]);
+        events.fire('attribute_added', [item, newIndex]);
 
       },
-		onUpdate: function (evt){
-      let item = evt.item.getElementsByTagName("strong")[0].innerHTML;
-      let newIndex = evt.newIndex;
-      let oldIndex = evt.oldIndex;
-      events.fire('attribute_reordered', [item,newIndex, oldIndex]);
-    },
+      onUpdate: function (evt) {
+        let item = evt.item.getElementsByTagName("strong")[0].innerHTML;
+        let newIndex = evt.newIndex;
+        let oldIndex = evt.oldIndex;
+        events.fire('attribute_reordered', [item, newIndex, oldIndex]);
+      },
 
     });
 
     //inactive sortable list
-    Sortable.create(document.getElementById('inactive-menu-content'),{
+    Sortable.create(document.getElementById('inactive-menu-content'), {
       group: 'menu-content',
       ghostClass: 'ghost',
       animation: 150,
-       pull: true,
+      pull: true,
       put: true,
-      onAdd: function (evt){
-         let item = evt.item.getElementsByTagName("strong")[0].innerHTML;
-      let newIndex = evt.newIndex;
-      let oldIndex = evt.oldIndex;
+      onAdd: function (evt) {
+        let item = evt.item.getElementsByTagName("strong")[0].innerHTML;
+        let newIndex = evt.newIndex;
+        let oldIndex = evt.oldIndex;
 
-      events.fire('attribute_removed', [item, oldIndex]);
+        select('.placeholder')
+          .style('display', 'none');
+
+        events.fire('attribute_removed', [item, oldIndex]);
       },
 
     });
-
 
 
     this.loadData();
@@ -131,48 +132,59 @@ class attributePanel {
     const data_desc = datasets[0].desc;
     const data_url = datasets[0].url;
     let headers = []
+    let dataDesc = ['key', 'date', 'categorical', 'string', 'string', 'string', 'number', 'date', 'number', 'date'];
 
     csv(data_url, (_data) => {
       //"personid", "byr", "sex", "Archivepersonid", "OMEID", "LabID", "FirstBMI", "FirstBMIYr", "MaxBMI", "MaxBMIYr"]
       headers = keys(_data[0])
-      _data.forEach( (d, i) => {
+      _data.forEach((d, i) => {
         d.FirstBMI = +d['FirstBMI']
         d.MaxBMI = +d['MaxBMI']
         this.data.push(d);
       })
-       headers.forEach((h)=> {
-       this.addHeader(h)
-     })
+      headers.forEach((h)=> {
+        this.addHeader(h, dataDesc[headers.indexOf(h)])
+      })
     })
   }
 
 
-  private addHeader(header) {
-        //append the header as a menu option
-        select('#active-menu-content').append('li')
-          .classed('collapsed active', true)
-          .attr('data-target', '#' + header)
-          .attr('data-toggle', 'collapse')
-          .append('a').attr('href', '#')
-          .html('<i><img src=\"http://megaicons.net/static/img/icons_sizes/8/178/512/charts-genealogy-icon.png\" alt=\"\"></i>')
-          .append('strong').html(header);
+  private addHeader(header, desc) {
 
+    //append the header as a menu option
+    let data_attr = select('#active-menu-content').append('li')
+      .classed('collapsed active', true)
+      .attr('data-target', '#' + header)
+      .attr('data-toggle', 'collapse');
+
+    data_attr.append('a').attr('href', '#')
+      .html('<i class=\"glyphicon glyphicon-move sort_handle\"></i>')
+      .append('strong').html(header)
+      .append('span').attr('class', desc);
+
+    data_attr.on('mouseover', function () {
+      select(this).select('.sort_handle').classed('focus', true)
+    });
+
+    data_attr.on('mouseout', function () {
+      select(this).select('.sort_handle').classed('focus', false)
+    });
 
   }
 
-  private populateData(){
+  private populateData() {
     let svg = select('.panel').selectAll("svg");
     let selection = svg.selectAll("rect").data([127, 61, 256])
       .enter().append("rect")
-                .attr("x", 0)
-                .attr("y", function (d, i) {
-                    return i * 90 + 50
-                })
-                .attr("width", function (d, i) {
-                    return d;
-                })
-                .attr("height", 20)
-                .style("fill", "steelblue");
+      .attr("x", 0)
+      .attr("y", function (d, i) {
+        return i * 90 + 50
+      })
+      .attr("width", function (d, i) {
+        return d;
+      })
+      .attr("height", 20)
+      .style("fill", "steelblue");
 
 
   }

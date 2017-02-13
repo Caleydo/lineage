@@ -5,6 +5,13 @@
 /**
  * Class that represents the genealogy data
  */
+ 
+ import {
+    max,
+    min,
+    mean
+} from 'd3-array';
+
 class graphData {
 
   public nodes;
@@ -14,6 +21,8 @@ class graphData {
   public parentChildEdges =[];
   
   public parentParentEdges = [];
+  
+  private nuclearFamilyCounter = 1;
   
 
 
@@ -28,10 +37,13 @@ class graphData {
       // d['index'] = d.id;
       d['type']  = 'single';
       d['visible']=true;
+      d['collapsed']=false;
       d['bdate']=+d['bdate'];
       d['color']= +d['affection'] == 1 ? 'black' : 'white'
       d['generation'] = -1;
       d['descendant']=false; //flag for blood descendants of founders
+      d['Y']=+d['y']; //keeps track of nodes original y position
+      d['family_ids']=[]; //keeps track of nuclear families
       
       
       this.uniqueID.push(+d['egoUPDBID']);
@@ -50,10 +62,30 @@ class graphData {
 	this.nodes[0]['generation']=0;
 	this.nodes[1]['generation']=0;
 	
+	this.nodes[0]['family_ids']=[0,1];
+	this.nodes[1]['family_ids']=[0,1];
+	
 	//for each couple, find all children and: 1) assign their generation 2)Tag them as 'descendants'
 	this.nodes.forEach((n)=>{
 		this.parentChildEdges.forEach((edge)=>{
 			if (n == edge['ma'] || n == edge['pa']){
+				
+				 //If not already created, create new nuclear family
+				 if (n['family_ids'].length>0){
+					 
+					 if (n['family_ids'].length==1){
+						 this.nuclearFamilyCounter = this.nuclearFamilyCounter+1;
+						 n['family_ids'].push(this.nuclearFamilyCounter)
+					 }
+					 	
+					 if (n == edge['ma'] && edge['target']['family_ids'].length == 0){
+						 edge['target']['family_ids'].push(n['family_ids'][1]);
+					 }
+					 if(n == edge['pa'] && edge['target']['family_ids'].length == 0){
+						 edge['target']['family_ids'].push(n['family_ids'][1]);
+					 }
+				 }
+
 				 if (n['generation'] >= 0){
 					edge['target']['generation'] = n['generation']+1;
 					edge['target']['descendant'] = true;	 
@@ -63,16 +95,12 @@ class graphData {
 		})
 		
 	})
-	
-	console.log('there are ', this.parentParentEdges.length , 'still parentEdges');
-	console.log('there are ', this.parentChildEdges.length , 'parentChildEdges');
-	console.log('there are ', this.nodes.length , 'nodes');
 	//Iterate through all nodes and for any without generation: 1)Copy the generation of their spouse  
 	this.nodes.filter(function(d){return d['generation']<0}).forEach((n)=>{
 		//Iterate through parent-parent edges to find spouses generation and copy it
 		this.parentParentEdges.forEach((edge)=>{
 			if (n == edge['pa']){
-				n['generation'] = edge['ma']['generation'];	 
+				n['generation'] = edge['ma']['generation']; 
 			}			
 			else if (n == edge['ma']){
 				n['generation'] = edge['pa']['generation'];	
@@ -80,7 +108,29 @@ class graphData {
 		})	
 	})
 	
+	//Iterate through all nodes and for any without a family id: 1) Copy the family id of their spouse 
+	this.nodes.filter(function(d){return d['family_ids'].length<1}).forEach((n)=>{
+		//Iterate through parent-parent edges to find spouses generation and copy it
+		this.parentParentEdges.forEach((edge)=>{
+			if (n['family_ids'].length == 0){
+				if (n == edge['pa'] ){
+					n['family_ids'].push(edge['ma']['family_ids'][1]); 
+				}			
+				else if (n == edge['ma']){
+					n['family_ids'].push(edge['pa']['family_ids'][1]);	
+				}	
+			}
+			
+		})	
+	})
+	
 
+  }
+  
+  //Function that hides attributes for all non direct descendants of founder. 
+  private hideNonDescendants(){
+	  
+	  
   }
     /**
    * Compute Parent/Children edges and Parent-Parent Edges
@@ -92,7 +142,6 @@ class graphData {
         const maID = this.uniqueID.indexOf(node['ma']);
         const paID = this.uniqueID.indexOf(node['pa']);
 
-// 		console.log(maID, paID)
         if (maID >-1 && paID >-1){
 
             const rnode={
@@ -108,9 +157,7 @@ class graphData {
                 'type':'parent',
                 'id':this.nodes[maID]
             };
-			console.log(rnode)
 			
-// 			console.log(rnode)
             this.parentParentEdges.push(rnode);
             this.parentChildEdges.push({
                 ma: this.nodes[maID],
@@ -128,55 +175,89 @@ class graphData {
   /**
    * Aggregates Nodes
    */
-  public aggregateNodes(ind1,ind2) {
+  public aggregateNodes(indexes) {
+	  
+	  let minInd = Math.min.apply(null,indexes);
+	  let maxInd = Math.max.apply(null,indexes);
 	  
 	  //User clicked and released on the same node;
-	  if (ind1 == ind2){
+	  if (indexes.length == 1){
 		  return;
 	  }
-	
 	  
-	  console.log(ind1,ind2)
-    let collapseCols = ind2 - ind1;
-    
-    console.log('collapse ' , collapseCols  ,  'rows');
-    let collapsed = [];
+	  let collapsedNodes = [];
+	
+    let collapseCols = indexes.length-1;
+   
+
     this.nodes.forEach(function(d)
     {
-      if (d['y'] <= ind2 && d['y'] >=ind1){
-	      console.log('set to invisible')
-        d['visible'] = false;
-        collapsed.push(d);
+      if (indexes.includes(d['y'])){
+        d['visible'] = true;
+        d['collapsed'] = true;
+        d['y']= minInd
+        collapsedNodes.push(d);
+        
       }
     });
-    
+       
     this.nodes.forEach(function(d)
     {
-    if (d['y'] > ind2){
-	      console.log('set to invisible2')
+	    if (d['y'] > maxInd){
         d['y'] = d['y'] - collapseCols;
       }
 	 });
 
+	 //write function that given an array of nodes, returns an "average" node 
 
-    let aggregateNode =  {
-      'id': Math.random(),
-      'name': 'A',
-      'sex': 'F',
-      'dob':undefined
-    }
+    let aggregateNode =
+	{
+      "sex":undefined,
+      "deceased":"0",
+      "egoUPDBID":"1495566",
+      "paUPDBID":"57",
+      "maUPDBID":"59",
+      "affection":"1",
+      "bdate":"1899",
+      "ddate":"1965",
+      "id":1495566,
+      "ma":59,
+      "pa":57,
+      "spouse":undefined,
+      "children":true,
+      "x":1899,
+      "y":80,
+      "generation":1899,
+      "hide":false,
+      "type":"individual",
+      "color":"#e7cb94",
+      "maxBMI":3
+   };
 
-//     this.nodes.push(aggregateNode)
 
-    aggregateNode['y'] = ind1;
-    aggregateNode['collapsed'] = collapsed;
+    aggregateNode['y'] = indexes[0];
+    aggregateNode['x'] = mean(collapsedNodes,(d)=>{return d['x']});
+    aggregateNode['collapsedNodes'] = collapsedNodes;
+    aggregateNode['collapsed']=false
     aggregateNode['type']= 'aggregate';
     aggregateNode['visible']=true;
+    aggregateNode['family_ids']=collapsedNodes[0]['family_ids'];
+    
+    
+    this.nodes.push(aggregateNode)
+    
+    this.collapseEmptyRows();
+  };
+  
+  //Function that iterates through genealogy graph and removes empty rows; 
+  public collapseEmptyRows(){
+	  
   };
   
   
 
 };
+
 
 
 

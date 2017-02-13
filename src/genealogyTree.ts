@@ -97,7 +97,20 @@ class genealogyTree {
 
     private self;
     
-//     private t = transition('t').duration(500).ease(easeLinear);
+    private hexSize = Config.glyphSize*1.25;
+    
+   private hexData = [{x:this.hexSize, y:0}, 
+    {x:this.hexSize/2, y:this.hexSize*Math.sqrt(3)/2}, 
+    {x:-this.hexSize/2, y:this.hexSize*Math.sqrt(3)/2},
+    {x:-this.hexSize, y:0},
+    {x:-this.hexSize/2, y:-this.hexSize*Math.sqrt(3)/2},
+    {x:this.hexSize/2, y:-this.hexSize*Math.sqrt(3)/2},
+    {x:this.hexSize, y:0}];
+    
+    private hexLine = line < any > ()
+    .x(function(d){ return d['x']; })
+    .y(function(d){ return d['y']; });
+   
 
     private lineFunction = line < any > ()
         .x((d: any) => {
@@ -285,7 +298,7 @@ class genealogyTree {
             
     private update_nodes(nodes, edges, parentEdges) {
 		
-		console.log('called update_nodes')	    
+/* 		console.log */('called update_nodes')	    
 	    let t = transition('t').duration(500).ease(easeLinear);
 
         let graph = select('#genealogyTree')        
@@ -306,13 +319,23 @@ class genealogyTree {
         allNodes
             .attr('class', (d) => {
                 return 'row_' + d['y']
-            })
-            .classed("node", true)
+            });
             
-            //Attach background rectangle to all rows and set to invisible (will be visible on hover)
-		allNodesEnter 
+        allNodes
+            .classed("node", true)
+            .classed("collapsed",(d)=>{return d['collapsed']})
+            
+     
+            
+        //Attach background rectangle to all rows and set to invisible (will be visible on hover)
+		allNodesEnter.filter((d)=>{return !d['collapsed']}) 
 		.append('rect')
 		.classed('backgroundBar',true);
+		
+		//Remove backgroundBar for nodes that were collapsed
+		allNodes.filter((d)=>{return d['collapsed']})
+		.select('.backgroundBar').remove();
+		
 		
 		allNodes
 		.selectAll('.backgroundBar')
@@ -328,14 +351,17 @@ class genealogyTree {
         .attr('opacity', 0)
         .on('mouseover',function(d){
 	            select(this).attr('opacity',.2)
-	            select('.row_' + d['y']).select('.lifeRect').select('.ageLabel').attr('visibility','visible');		
 	            
-	        events.fire('row_mouseover', d['id']);                   
+	            select('.row_' + d['y']).filter((d)=>{return !d['collapsed']}).select('.lifeRect').select('.ageLabel').attr('visibility','visible');
+	            selectAll('.row_' + d['y']).filter('.collapsed').attr('opacity',.2)		
+	            
+	        events.fire('row_mouseover', d['y']);                   
 			})
 		.on('mouseout', (d)=>{
+			selectAll('.collapsed').attr('opacity',0)
 			selectAll('.backgroundBar').attr('opacity', 0)
 			selectAll('.ageLabel').attr('visibility','hidden');				
-			events.fire('row_mouseout', d['id']);
+			events.fire('row_mouseout', d['y']);
 			})
 		
 
@@ -343,7 +369,7 @@ class genealogyTree {
 		
 
         //Add life line groups
-        let lifeRectsEnter = allNodesEnter.append("g");
+        let lifeRectsEnter = allNodesEnter.filter((d)=>{return d['type'] == 'single'}).append("g");
         
         let lifeRects = allNodes.selectAll('g')
         
@@ -467,6 +493,18 @@ class genealogyTree {
             .attr("stroke-width", 3)
             .attr("stroke", "black");
 
+			
+		//Add Aggregate Node glyphs	
+        allNodesEnter.filter(function(d: any) {
+                return d['type'] == 'aggregate';
+            })
+            .append("path")
+            .attr("d", this.hexLine(this.hexData))
+            .classed('hex', true)
+                     
+        allNodes.selectAll('.hex')
+//             .classed('male', true)
+            .classed('nodeIcon', true)
 
 		//Add Male Node glyphs	
         allNodesEnter.filter(function(d: any) {
@@ -480,6 +518,9 @@ class genealogyTree {
             .classed('nodeIcon', true)
             .attr("width", Config.glyphSize * 2)
             .attr("height", Config.glyphSize * 2);
+            
+            
+            
 
 			
         //Add female node glyphs
@@ -507,7 +548,14 @@ class genealogyTree {
 				return (!select(this).classed('selected'));
 			})
 			
-			events.fire('row_selected', d['id']);
+			if (!event.shiftKey){
+				events.fire('row_selected', d['y'],'multiple');
+			}
+			else{
+				events.fire('row_selected', d['y'],'single');
+			}
+			
+			
 		})
         
 	
@@ -526,9 +574,14 @@ class genealogyTree {
             .style("stroke-width", 3);
             
             
-        allNodes
-            .transition(t.transition().ease(easeLinear))
+        let tran = t.transition().ease(easeLinear)
+        allNodes.filter((d)=> {return !d['collapsed']})
+            .transition(tran)
             .attr('opacity',1);
+            
+        allNodes.filter((d)=> {return d['collapsed']})
+            .transition(tran.duration(100))
+            .attr('opacity',0);
 
 
         allNodesEnter
@@ -539,7 +592,7 @@ class genealogyTree {
             // .attr('visibility','hidden')
             .text(function(d: any) {
 	            
-	            return d['generation']
+	            return d['family_ids'].toString() 
 /*
 	            let year = new Date().getFullYear();
                                             if (+d.ddate > 0) {
@@ -572,7 +625,6 @@ class genealogyTree {
 */
 // 			.on('mouseout', ()=>{selectAll('.hovered').attr('visibility', 'hidden')})
 
-/*
         allNodes.call(drag()
             .on("start", (d) => {
                 this.startYPos = this.y.invert(mouse( < any > select('.genealogyTree').node())[1]);
@@ -581,6 +633,7 @@ class genealogyTree {
                 
             })
             .on("drag", (d) => {
+	            
                 let currentY = this.floorY(); //this.y.invert(mouse(<any>select('.genealogyTree').node())[1]);      
                 if (currentY > this.startYPos) {
                     //user is dragging down
@@ -602,25 +655,40 @@ class genealogyTree {
                 
                 //Call function that updates the position of all elements in the tree	
 				this.update_edges(this.data.nodes, this.data.parentChildEdges, this.data.parentParentEdges)
-
+				event.stopPropagation()
             })
 
             .on("end", (d) => {
+	            
+	            this.update_pos_row('.row_' + Math.round(this.startYPos))
                 this.aggregating_levels.add(this.closestY())
                 
                 let indexes = Array.from(this.aggregating_levels);
+				
+/*
+				//Set the class for all aggregated rows to 'aggregate'
+                indexes.forEach(function(i){
+	                let row_node = selectAll('.row_' + i);
+	                console.log(row_node, '.row_' + i);
+	                row_node.classed('aggregate', true)   
+                })
+*/
                 
-                this.data.aggregateNodes(Math.min.apply(null,indexes),Math.max.apply(null,indexes));
+//                 this.data.aggregateNodes(Math.min.apply(null,indexes),Math.max.apply(null,indexes));
+                this.data.aggregateNodes(indexes)                
                 
+                selectAll('.phantom').remove();;
+/*
+                
+                this.aggregating_levels.forEach((level) => {
+                   this.delete_phantom(this.get_row_data('.row_' + level))
+                });
+                
+*/
                 this.update_visible_nodes()
                 
                 
-                //this.aggregating_levels.forEach((level) => {
-                //    this.delete_phantom(this.get_row_data('.row_' + level))
-                //});
-                
             }));
-*/
 
 /*
 			 allNodesEnter 
@@ -798,8 +866,9 @@ class genealogyTree {
 
             let phantomNode = Node.cloneNode(true)
 
-            //phantomNode.setAttribute("class", "phantom node");   
-            //document.getElementById('genealogyTree').appendChild(phantomNode)
+            phantomNode.setAttribute("class", "phantom node");   
+            document.getElementById('genealogyTree').appendChild(phantomNode)
+            console.log(phantom)
 
         }
     }
@@ -824,12 +893,34 @@ class genealogyTree {
 
         const node = row_nodes.data()[0];
 
-        node['y'] = this.y.invert(currentPos[1])
+        let nodePos ={
+	        'sex':node['sex'],
+	        'x':node['x'],
+	        'y':this.y.invert(currentPos[1])
+        }
+//         node['y'] = this.y.invert(currentPos[1])
+
+        row_nodes.attr("transform", () => {
+            return "translate(" + this.xPOS(nodePos) + "," + this.yPOS(nodePos) + ")";
+        })
+    }
+    
+    //Snap row to position
+    private snap_pos_row(class_id) {
+
+        const row_nodes = select(class_id);
+
+        const currentPos = mouse( < any > select('.genealogyTree').node());
+
+        const node = row_nodes.data()[0];
+
+        node['y'] = Math.round(this.y.invert(currentPos[1]))
 
         row_nodes.attr("transform", () => {
             return "translate(" + this.xPOS(node) + "," + this.yPOS(node) + ")";
         })
     }
+    
 
     private get_row_data(class_id) {
         return select(class_id).data()[0];
@@ -887,17 +978,17 @@ class genealogyTree {
 
 
     private xPOS(node) {
-        if (node['sex'] == 'F')
-            return this.x(node.x);
+        if (node['sex'] == 'M')
+            return this.x(node.x)- Config.glyphSize;
         else
-            return this.x(node.x) - Config.glyphSize;
+            return this.x(node.x) ;
     }
 
     private yPOS(node) {
-        if (node['sex'] == 'F')
-            return this.y(node.y);
+        if (node['sex'] == 'M')
+            return this.y(node.y)- Config.glyphSize;
         else
-            return this.y(node.y) - Config.glyphSize
+            return this.y(node.y) 
     }
 
     private elbow(d, interGenerationScale, lineFunction) {
@@ -943,7 +1034,7 @@ class genealogyTree {
   private menu(x, y) {
         select('#context-menu').remove();
         
-        console.log(x,y)
+//         console.log(x,y)
         
         let height = Config.glyphSize*4;
         let width = height;

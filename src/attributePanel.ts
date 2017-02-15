@@ -53,6 +53,22 @@ class attributePanel {
              <span class="toggle-btn"><i class="glyphicon glyphicon-menu-hamburger"></i></span></li>
                </ul>`);
 
+    // list that holds primary attributes
+    // a user can populate this list by dragging elements from the active list
+    const primary_menu_content = menu_list.append('ul')
+      .attr('id', 'primary-menu-content')
+      .classed('menu-content sub-menu collapse in fade', true)
+      .html(`
+      <li class='placeholder'>Pick your primary attribute</li>`);
+
+     // list that holds secondry attributes
+    // a user can populate this list by dragging elements from the active list
+    const secondry_menu_content = menu_list.append('ul')
+      .attr('id', 'secondry-menu-content')
+      .classed('menu-content sub-menu collapse in fade', true)
+      .html(`
+      <li class='placeholder'>Pick your secondry attribute</li>`);
+
     // list that holds data attribute
     // initially all attributes are active
     const active_menu_content = menu_list.append('ul')
@@ -66,6 +82,9 @@ class attributePanel {
                                 </li>`);
 
 
+
+
+
     // list that holds inactive attributes
     // a user can populate this list by dragging elements from the active list
     const inactive_menu_content = menu_list.append('ul')
@@ -74,6 +93,35 @@ class attributePanel {
       .html(`
       <li class='placeholder'>DRAG AND DROP ATTRIBUTES HERE TO MAKE THEM INACTIVE</li>`);
 
+
+    // primary sortable list
+    Sortable.create(document.getElementById('primary-menu-content'), {
+       group: 'menu-content',
+      ghostClass: 'ghost',
+      animation: 150,
+      pull: true,
+      put: true,
+       onAdd: function (evt) {
+        select('#primary-menu-content .placeholder')
+          .style('display', 'none');
+       // events.fire('attribute_removed', [item, oldIndex]);
+      },
+    });
+
+    // secondry sortable list
+    Sortable.create(document.getElementById('secondry-menu-content'), {
+       group: 'menu-content',
+      ghostClass: 'ghost',
+      animation: 150,
+      pull: true,
+      put: true,
+      onAdd: function (evt) {
+        select('#secondry-menu-content .placeholder')
+          .style('display', 'none');
+       // events.fire('attribute_removed', [item, oldIndex]);
+      },
+
+    });
 
     // Active sortable list
     Sortable.create(document.getElementById('active-menu-content'), {

@@ -420,7 +420,7 @@ class genealogyTree {
             })
             .attr("height", Config.glyphSize / 4)
             .style('fill', (d: any) => {
-                return (+d.affection == 100) ? "black" : "#9e9d9b";
+                return (d.affected) ? "black" : "#9e9d9b";
             })
             .style('opacity', .8)
         //         .style('stroke','none')
@@ -454,7 +454,7 @@ class genealogyTree {
 //                 return Math.abs(+d['ddate'] - +d['bdate']);
             })
             .attr('fill', function(d: any) {
-                return (+d.affection == 100) ? "black" : "#9e9d9b";
+                return (d.affected) ? "black" : "#9e9d9b";
             })
             .style('font-size', Config.glyphSize * 1.5)
             .style('font-weight', 'bold')
@@ -487,7 +487,7 @@ class genealogyTree {
             })
             .attr("stroke-width", 2)
             .attr("stroke", function(d: any) {
-                return (+d.affection == 100) ? "black" : "#9e9d9b";
+                return (d.affected) ? "black" : "#9e9d9b";
             })
 
         //Add cross through lines for deceased people
@@ -573,7 +573,7 @@ class genealogyTree {
                 return "translate(" + this.xPOS(d) + "," + this.yPOS(d) + ")";
             })
             .style("fill", (d: any)=> {
-	            return (+d.affection == 100) ? "black" : "white"
+	            return (d.affected) ? "black" : "white"
 //                 return interpolateViridis(d['maxBMI'][0]/6);
             })
             .attr('id', (d) => {
@@ -619,7 +619,7 @@ class genealogyTree {
                 return d['sex'] == 'M' ? 1.3 * Config.glyphSize : Config.glyphSize / 2.75;
             })
             .attr('fill', function(d: any) {
-                return (+d.affection == 100) ? "white" : "black";
+                return (d.affected) ? "white" : "black";
             })
             .attr('stroke', 'none')
             .style('font-size', Config.glyphSize)

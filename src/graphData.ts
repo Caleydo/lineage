@@ -27,25 +27,38 @@ class graphData {
     constructor(data) {
 
         this.nodes = data;
+        
+        console.log(data[0])
 
         this.uniqueID = [];
+        
+        //Sort nodes by y value, always starting at the founder (largest y) ;        
+        this.nodes.sort(function(a,b){return b['y'] - a['y']});
+    
+        
         //Initially set all nodes to visible and of type 'single' (vs aggregate)
         this.nodes.forEach(d => {
+	       
             // d['index'] = d.id;
             d['type'] = 'single';
-            d['visible'] = true;
+            d['hidden'] = false;
             d['collapsed'] = false;
             d['bdate'] = +d['bdate'];
+            d['deceased']= d['deceased']=='Y';
             d['color'] = +d['affection'] == 1 ? 'black' : 'white'
             d['generation'] = -1;
             d['descendant'] = false; //flag for blood descendants of founders
+            d['x']=+d['bdate']
             d['Y'] = +d['y']; //keeps track of nodes original y position
             d['family_ids'] = []; //keeps track of nuclear families
             d['clicked'] = false;
+            d['children']= false;
+            d['affected'] = +d["affection"]==100;
+            
             
 
 
-            this.uniqueID.push(+d['egoUPDBID']);
+            this.uniqueID.push(+d['id']);
 
         });
 
@@ -141,14 +154,13 @@ class graphData {
     private createEdges() {
 
         //Create relationship nodes
-        this.nodes.filter((d) => {
-            return d.visible
-        }).forEach(node => {
+        this.nodes
+        //.filter((d) => {return d.visible})
+        .forEach(node => {
             const maID = this.uniqueID.indexOf(node['ma']);
             const paID = this.uniqueID.indexOf(node['pa']);
 
             if (maID > -1 && paID > -1) {
-
                 const rnode = {
                     'x': (this.nodes[maID].x + this.nodes[paID].x) / 2,
                     'y': (this.nodes[maID].y + this.nodes[paID].y) / 2,
@@ -160,7 +172,8 @@ class graphData {
                     'ma': this.nodes[maID],
                     'pa': this.nodes[paID],
                     'type': 'parent',
-                    'id': this.nodes[maID]['id']
+                    'id': this.nodes[maID]['id']+this.nodes[paID]['id']
+                    
                 };
 
                 //Only add parent parent Edge if it's not already there; 
@@ -169,6 +182,10 @@ class graphData {
                     })) {
                     this.parentParentEdges.push(rnode);
                 }
+                
+                //Set flag for 'has children' so that they are never hidden in the 'sibling grid'
+                this.nodes[maID].children = true;
+                this.nodes[paID].children = true;
 
                 this.parentChildEdges.push({
                     ma: this.nodes[maID],
@@ -354,6 +371,60 @@ class graphData {
 	            d['y']= d['y']-1
             }
         });
+	    
+    }
+    
+    public hideNodes(startIndex){
+	    
+// 	    console.log('here')
+	    //Traverse down the 'tree' and note all indexes that need to be hidden
+	    
+	    let Y = startIndex;
+	    console.log('starting at', Y);
+	    
+	    this.nodes.sort((a,b)=>{return b['Y']- a['Y']});    
+	    //Assign a row for each affected case; 
+	       
+	    this.nodes.forEach((node,i)=> {
+		      
+// 		    if (indexes.includes(node['y'])){
+			if (node['y']<=startIndex){
+            
+				//leaf nodes
+				if (!node['children']){
+// 					console.log('node' , node['Y'] , 'does NOT have children');	
+					let edge = this.parentChildEdges.filter((d)=>{return d.target == node});
+					let ma = edge[0]['ma'];
+					let pa = edge[0]['pa'];
+										
+					//If both parents are affected 
+					if (ma['affected'] && pa['affected'] ){
+						
+						//place kid grid in the middle
+						node['y'] = (ma['y'] + pa['y'])/2	
+					}
+					//If only one or neither parent is affected, give the child the mom's y value.   
+					else{
+						node['y'] = ma['y'];  
+					} 
+				}
+				else{
+					node['y'] = Y;		
+				}
+				//If found affected case, decrease the Y value for the next non child node; 
+				if (node['affected']){
+					console.log('decrementing Y',Y);
+					Y = Y-1;
+				}
+			}
+
+        });
+        
+        
+        //Get rid of blank rows;
+        this.nodes.forEach((node,i)=>{
+	        node['y']=node['y']-Y;
+        }
 	    
     }
 

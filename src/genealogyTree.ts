@@ -323,7 +323,7 @@ class genealogyTree {
                 return 'row_' + d['y']
             });
 
-        allNodes.filter((d)=>{return !d['visible']}).classed('phantom',true);
+//         allNodes.filter((d)=>{return d['hidden']}).classed('phantom',true);
 
         allNodes
             .classed("node", true)
@@ -470,6 +470,7 @@ class genealogyTree {
 
 
 
+
         lifeRects.selectAll('.endOfTheLine')
             .attr("x1", (d: any)=> {
 	            return (Math.abs(this.x(d['ddate']) - this.x(d['bdate']))+ Config.glyphSize / 2) ;
@@ -600,7 +601,7 @@ class genealogyTree {
             // .attr('visibility','hidden')
             .text(function(d: any) {
 
-	            return d['maxBMI'].toString()
+	            return max(d['family_ids']);
 /*
 	            let year = new Date().getFullYear();
                                             if (+d.ddate > 0) {
@@ -709,11 +710,15 @@ class genealogyTree {
 		})
 
 		.on('click',(d)=>{
+			
+			console.log(d['KindredID'],console.log(d['y']))
 
 			if (event.altKey){
 			//Hide node
-			this.data.hideNode(d['y']);
-			d['visible']=false;
+			this.data.hideNodes(d['y']);
+			
+			//Defines the attributes of rendered node.
+// 			d['hidden']=true;
 			this.update_visible_nodes();
 // 			selectAll('.node').filter((e)=>{return e['id']==d['id']}).classed('phantom',true);
 

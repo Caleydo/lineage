@@ -102,9 +102,23 @@ rect.selected{
  	opacity:.2;
 }
 
+//Hide Life Line for Aggregated and Hidden Nodes;
+.aggregated .lifeRect,
 .collapsed .lifeRect{
-	visibility:hidden
+	visibility:hidden;
 }
+
+
+.collapsed .backgroundBar{
+	pointer-events: none;
+}
+
+.nodeLine{
+	stroke:black
+}
+
+
+
 
 .nodeLabel,
 .ageLabel,

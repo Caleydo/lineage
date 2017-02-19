@@ -42,7 +42,7 @@ class graphData {
             // d['index'] = d.id;
             d['type'] = 'single';
             d['hidden'] = false;
-            d['collapsed'] = false;
+            d['aggregated'] = false;
             d['bdate'] = +d['bdate'];
             d['deceased']= d['deceased']=='Y';
             d['color'] = +d['affection'] == 1 ? 'black' : 'white'
@@ -50,6 +50,7 @@ class graphData {
             d['descendant'] = false; //flag for blood descendants of founders
             d['x']=+d['bdate']
             d['Y'] = +d['y']; //keeps track of nodes original y position
+            d['X'] = +d['x']; //keeps track of nodes original x position - can change for kid grids on hide.
             d['family_ids'] = []; //keeps track of nuclear families
             d['clicked'] = false;
             d['children']= false;
@@ -172,13 +173,13 @@ class graphData {
                     'ma': this.nodes[maID],
                     'pa': this.nodes[paID],
                     'type': 'parent',
-                    'id': this.nodes[maID]['id']+this.nodes[paID]['id']
+                    'id': Math.random()
                     
                 };
 
                 //Only add parent parent Edge if it's not already there; 
                 if (!this.parentParentEdges.some((d) => {
-                        return d['id'] == rnode['id']
+                        return d['ma'] == rnode['ma'] && d['pa']==rnode['pa'];
                     })) {
                     this.parentParentEdges.push(rnode);
                 }
@@ -274,12 +275,12 @@ class graphData {
         let collapsedNodes = [];
         let duplicateNodes=[];
         
-//       filter(function(d){return !d['collapsed']}).
+//       filter(function(d){return !d['aggregated']}).
         
           this.nodes.forEach(function(d) {
 	         
 	         let node = d;
-            if (indexes.includes(d['y']) && d['family_ids'].includes(id) ) { //found a node that will be collapsed
+            if (indexes.includes(d['y']) && d['family_ids'].includes(id) ) { //found a node that will be aggregated
 	            //check to see if this node will be aggregated in another family as well
 	            if (d['family_ids'].length>1 && family_ids.includes(d['family_ids'][0]) && family_ids.includes(d['family_ids'][1] ) && id == d['family_ids'][0]){
 	            node = JSON.parse(JSON.stringify(d));
@@ -288,7 +289,7 @@ class graphData {
 	            };
 	            
                 node['visible'] = true;
-                node['collapsed'] = true;
+                node['aggregated'] = true;
                 node['y'] = maxInd
                 collapsedNodes.push(node);
 
@@ -327,7 +328,7 @@ class graphData {
             return d['x']
         });
         aggregateNode['collapsedNodes'] = collapsedNodes;
-        aggregateNode['collapsed'] = false
+        aggregateNode['aggregated'] = false
         aggregateNode['type'] = 'aggregate';
         aggregateNode['visible'] = true;
         aggregateNode['family_ids'] =[];
@@ -389,7 +390,8 @@ class graphData {
 		      
 // 		    if (indexes.includes(node['y'])){
 			if (node['y']<=startIndex){
-            
+				
+		
 				//leaf nodes
 				if (!node['children']){
 // 					console.log('node' , node['Y'] , 'does NOT have children');	
@@ -407,6 +409,9 @@ class graphData {
 					else{
 						node['y'] = ma['y'];  
 					} 
+					
+					if (!node['affected'])
+						node['x'] = ma['x']+5;
 				}
 				else{
 					node['y'] = Y;		
@@ -416,6 +421,9 @@ class graphData {
 					console.log('decrementing Y',Y);
 					Y = Y-1;
 				}
+				else{
+					node['hidden']=true;
+				}
 			}
 
         });
@@ -424,8 +432,20 @@ class graphData {
         //Get rid of blank rows;
         this.nodes.forEach((node,i)=>{
 	        node['y']=node['y']-Y;
-        }
+        })
 	    
+    }
+    
+    
+    public restoreTree(){
+	    
+/*
+	    this.nodes.forEach((node)=>{	    
+		    node['hidden']=false;
+		    node['x']=node['X'];
+		    node['y']=node'Y']; 	    
+	    })
+*/
     }
 
     //Function that iterates through genealogy graph and removes empty rows; 
@@ -483,7 +503,7 @@ class graphData {
             
 //             if (indexes.includes(d['y'])){
 	            console.log('here')
-	            d['collapsed']=false;
+	            d['aggregated']=false;
 	            d['y'] = d['Y'];
 //             }
 /*

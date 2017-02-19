@@ -30,6 +30,7 @@ class attributeTable {
   private num_cols;
   private col_names;
   private row_data;
+  private columns;
 
 
   private margin = Config.margin;
@@ -55,6 +56,8 @@ class attributeTable {
     this.row_data = data.referenceRows;
 
 
+
+
     this.build();
     this.attachListener();
 
@@ -71,7 +74,7 @@ class attributeTable {
       return d["value"];
     });
 
-    this.width = 150 - this.margin.left - this.margin.right
+    this.width = 450 - this.margin.left - this.margin.right
     this.height = Config.glyphSize * 3 * data.length - this.margin.top - this.margin.bottom;
 
     const darkGrey = '#4d4d4d';
@@ -92,13 +95,19 @@ class attributeTable {
     this.col_names = data.referenceColumns;
   */
 
+
+  //this.column_order[d].width  -> map over this to get width index, we'll update this on events
+
+  // this.columns
+
     // TODO: base these off the data in Columns
     // TODO: make an array w. widths and pop based on col's
     const rowHeight = Config.glyphSize * 2.5 - 4;
+
+
     const genderWidth = this.width / 7;
     const ageWidth = 3 * this.width / 7;
     const bmiWidth = 2 * this.width / 7;
-
     const medianBMI = ageWidth + genderWidth + (bmiWidth/2);
     const deceasedWidth = this.width - (ageWidth + genderWidth + bmiWidth);
 
@@ -110,41 +119,53 @@ class attributeTable {
         .attr("transform", "translate(" + this.margin.left + "," + this.margin.top / 1.5 + ")")
         .attr('id', 'axis')
 
+    const num_cols = this.num_cols; // because this in js is stupid
+    const col_names = this.col_names;
+    const totalWidth = this.width;
+    const col_order = this.column_order;
+
+
+    // this.row_data.map(function(d){
+    //   return d["value"];
+    // });
+
+    // holds the x pos of the left-most edge of each column
+    var col_xs = this.column_order.map(function(index){
+      var x_dist = 0;
+      for (var i = 0; i < index; i++) {
+        x_dist += col_names[i].width * totalWidth / num_cols
+      }
+      return x_dist;
+    });
+
+    // holds the x pos of the midpoint of each column
+     var label_xs = this.column_order.map(function(index){
+        const label_pos =
+        col_xs[index] + (col_names[index].width * totalWidth /num_cols)/2;
+        return label_pos - 35; //TODO: what's going on here?
+     });
+
+     // ^^ UPDATE THOSE ON EVENTS- IS THIS A BAD DESIGN?
+
+
+
     axis.selectAll(".table_header")
-    .data(['Sex', 'Age', 'BMI', 'Deceased?'])
+    .data(this.column_order)
     .enter()
     .append("text")
-            .text(function(column) { return column; })
+            .text(function(index) { return col_names[index].name; })
             .attr('fill', 'black')
-      			.attr("transform", function (d) {
-              if (d=='Sex')
-                return "translate(" + (-35) + ", 20) rotate(-45)";
-              else if (d=='Age')
-                return "translate(" + (-15) + ", 20) rotate(-45)";
-              else if (d=='BMI')
-                return "translate(" + (6) + ", 20) rotate(-45)";
-              else
-                return "translate(" + (25) + ", 20) rotate(-45)";
+      			.attr("transform", function (index) {
+                return "translate(" + label_xs[index] + ", 20) rotate(-45)";
             });
-
-
     const table = svg.append("g")
     .attr("transform", "translate(0," + this.margin.top + ")")
-
-/*
-this.row_order = data.displayedRowOrder;
-this.row_data
-
-const data = this.row_data.map(function(d){
-  return d["value"];
-});
-*/
 
     let rows = table.selectAll(".row")
     //.data(data)
     .data(this.row_order.map(function(index){
-      return index[0];
-    }), function(d) {return d;})//data, function(index) {return data[index[0]]}) // TODO: deal with aggregates
+      return index[0]; //TODO! aggregation!
+    })) //, function(d) {return d;})
     .enter()
     .append("g")
     .attr('id', function (d) {
@@ -155,6 +176,39 @@ const data = this.row_data.map(function(d){
       return ('translate(0, ' + y(data[d].y)+ ' )')
     });
 
+
+    // const num_cols = this.num_cols; // because this in js is stupid
+    // const col_names = this.col_names;
+
+    for (let i = 0; i < num_cols; i++) {
+      rows.append("rect")
+      //.attr("class", "genderCell")
+      .attr("width", col_xs[i])
+      .attr("height", rowHeight) // to do by attribute type?
+      .attr('fill', function (d) {
+
+        return data[d][col_names[col_order[i]]] == 'F' ? lightPinkGrey : darkBlueGrey;
+      });
+    }
+
+
+
+    // var col_xs = this.column_order.map(function(index){
+    //   var x_dist = 0;
+    //   for (var i = 0; i < index; i++) {
+    //     x_dist += col_names[i].width * totalWidth / num_cols
+    //   }
+    //   return x_dist;
+    // });
+    //
+    // // holds the x pos of the midpoint of each column
+    //  var label_xs = this.column_order.map(function(index){
+    //     const label_pos =
+    //     col_xs[index] + (col_names[index].width * totalWidth /num_cols)/2;
+    //     return label_pos - 35; //TODO: what's going on here?
+    //  });
+
+/*
     const genderCell = rows
     .append("rect")
     .attr("class", "genderCell")
@@ -282,7 +336,7 @@ const data = this.row_data.map(function(d){
     .attr("stroke-width", 1)
     .attr("stroke", "black");
 
-
+*/
 
   const eventListener = rows.append('rect').attr("height", rowHeight).attr("width", this.width).attr("fill", "transparent")
   // CLICK

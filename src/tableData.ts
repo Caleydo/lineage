@@ -53,6 +53,9 @@ class tableData {
       this.displayedColumnOrder.push( index );
     }
 
+    this.numberOfColumnsDisplayed = this.referenceColumns.length; //init
+    console.log("table data, numbcols: " + this.numberOfColumnsDisplayed);
+
   }
 
   // adds to the *displayed* columns

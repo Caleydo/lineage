@@ -18,8 +18,13 @@ import * as graphData from './graphData'
 import * as tableData from './tableData'
 // import * as graphData from './genealogyData'
 
+//Import Sample Data from ./sampleData
+// import {sampleData} from './sampleData'
+
 //Import Actual Data from ./sampleData
-import {sampleData} from './sampleData'
+import {realData} from './data_38'
+// import {realData} from './data_149'
+// import {realData} from './data_777721'
 
 // bundle data file and get URL
 import * as csvUrl from 'file-loader!./data/sampleData.csv';
@@ -83,10 +88,10 @@ export class App {
   private build() {
 
       let genealogyTree = tree.create(this.$node.select('#graph_table').node());
-      genealogyTree.init(graphData.create(sampleData));
+      genealogyTree.init(graphData.create(realData));
 
       let attributeTable = table.create(this.$node.select('#graph_table').node());
-      attributeTable.init(tableData.create(sampleData));
+      attributeTable.init(tableData.create(realData));
 
       let attributePanel = panel.create(this.$node.select('#data_selection').node());
       attributePanel.init();

@@ -10,6 +10,7 @@ export class Config {
   public static showAgeLabels = false;
 
   public static glyphSize = 10;
+  public static hiddenGlyphSize = 4;
   public static spaceBetweenGenerations = 4;
   
   

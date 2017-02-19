@@ -139,11 +139,6 @@ const data = this.row_data.map(function(d){
   return d["value"];
 });
 */
-  console.log("ROW ORDER:");
-  console.log(this.row_order);
-  console.log(this.row_order.map(function(index){
-    return index[0];
-  }));
 
     let rows = table.selectAll(".row")
     //.data(data)
@@ -153,16 +148,12 @@ const data = this.row_data.map(function(d){
     .enter()
     .append("g")
     .attr('id', function (d) {
-      return ('row_' + d.id)
+      return ('row_' + data[d].id)
     })
     .attr('class', 'row')
     .attr("transform", function (d, i) {
       return ('translate(0, ' + y(data[d].y)+ ' )')
     });
-
-    console.log("data[0].sex = " + data[0].sex);
-    console.log("data[1].sex = " + data[1].sex);
-    console.log("data is: "+ data);
 
     const genderCell = rows
     .append("rect")
@@ -170,17 +161,16 @@ const data = this.row_data.map(function(d){
     .attr("width", genderWidth)
     .attr("height", rowHeight)
     .attr('fill', function (d) {
-      console.log(data[d].sex + "-> sex of was data[d]");
       return data[d].sex == 'F' ? lightPinkGrey : darkBlueGrey;
     });
 
-/*
+
     const ageCell = rows
     .append("rect")
     .attr("class", "ageCell")
     .attr("width", function (d) {
-      if(d.ddate - d.bdate > 0)
-      return (d.ddate - d.bdate)* ageWidth / 100;
+      if(data[d].ddate - data[d].bdate > 0)
+      return (data[d].ddate - data[d].bdate)* ageWidth / 100;
       else
       return 15;  // TODO
     })
@@ -212,8 +202,8 @@ const data = this.row_data.map(function(d){
 
     const circleCell = rows.append("ellipse")
     .attr("cx",      function(d){
-                        if(d.maxBMI)
-                          return medianBMI + d.maxBMI;
+                        if(data[d].maxBMI)
+                          return medianBMI + data[d].maxBMI;
                         else
                           return medianBMI;
                       })
@@ -237,11 +227,12 @@ const data = this.row_data.map(function(d){
     .attr("width", deceasedWidth) //Config.glyphSize * 10)
     .attr("height", rowHeight)
     .attr('fill', function (d) {    // dk grey   lt grey
-      return d.deceased == 1 ? lightGrey : darkGrey;
+      return data[d].deceased == 1 ? lightGrey : darkGrey;
     })
     .attr("transform", function (d, i) {
       return ('translate(' + (genderWidth + ageWidth + bmiWidth) + ' )')
     });
+
 
 
 
@@ -254,7 +245,7 @@ const data = this.row_data.map(function(d){
     //   return (d.y)
     // })
     .attr('row_pos', function (d) {
-      return d.y;
+      return data[d].y;
     })
     .attr("width", this.width)
     .attr("height", rowHeight)
@@ -291,7 +282,7 @@ const data = this.row_data.map(function(d){
     .attr("stroke-width", 1)
     .attr("stroke", "black");
 
-*/
+
 
   const eventListener = rows.append('rect').attr("height", rowHeight).attr("width", this.width).attr("fill", "transparent")
   // CLICK
@@ -306,33 +297,33 @@ const data = this.row_data.map(function(d){
          selectAll('.boundary').classed('tableselected',false);
     }
     selectAll('.boundary').classed('tableselected', function(a){
-      const rightRow = (select(this).attr('row_pos') == d.y);
+      const rightRow = (select(this).attr('row_pos') == data[d].y);
       if(rightRow)
         return (!select(this).classed('tableselected')); //toggle it
       return select(this).classed('tableselected'); //leave it be
     });
     if(event.metaKey)
-      events.fire('table_row_selected', d['y'], 'multiple');
+      events.fire('table_row_selected', data[d].y, 'multiple');
     else
-      events.fire('table_row_selected', d['y'], 'singular');
+      events.fire('table_row_selected', data[d].y, 'singular');
   })
 
   // MOUSE ON
   .on('mouseover', function(d) {
     selectAll('.boundary').classed('tablehovered', function(a){
-      const rightRow = (select(this).attr('row_pos') == d.y);
+      const rightRow = (select(this).attr('row_pos') == data[d].y);
       if(rightRow){ //don't hover if it's selected
         return !select(this).classed('tableselected');
       }
       return false; //otherwise don't hover
     });
-    events.fire('table_row_hover_on', d['y']);
+    events.fire('table_row_hover_on', data[d].y);
   })
 
   // MOUSE OFF
   .on('mouseout', function(d) {
     selectAll('.boundary').classed('tablehovered', false);
-    events.fire('table_row_hover_off', d['y']);
+    events.fire('table_row_hover_off', data[d].y);
   });
 
   }

@@ -27,18 +27,18 @@ class graphData {
     constructor(data) {
 
         this.nodes = data;
-        
+
         console.log(data[0])
 
         this.uniqueID = [];
-        
-        //Sort nodes by y value, always starting at the founder (largest y) ;        
+
+        //Sort nodes by y value, always starting at the founder (largest y) ;
         this.nodes.sort(function(a,b){return b['y'] - a['y']});
-    
-        
+
+
         //Initially set all nodes to visible and of type 'single' (vs aggregate)
         this.nodes.forEach(d => {
-	       
+
             // d['index'] = d.id;
             d['type'] = 'single';
             d['hidden'] = false;
@@ -55,8 +55,8 @@ class graphData {
             d['clicked'] = false;
             d['children']= false;
             d['affected'] = +d["affection"]==100;
-            
-            
+
+
 
 
             this.uniqueID.push(+d['id']);
@@ -110,7 +110,7 @@ class graphData {
             })
 
         })
-        //Iterate through all nodes and for any without generation: 1)Copy the generation of their spouse  
+        //Iterate through all nodes and for any without generation: 1)Copy the generation of their spouse
         this.nodes.filter(function(d) {
             return d['generation'] < 0
         }).forEach((n) => {
@@ -124,7 +124,7 @@ class graphData {
             })
         })
 
-        //Iterate through all nodes and for any without a family id: 1) Copy the family id of their spouse 
+        //Iterate through all nodes and for any without a family id: 1) Copy the family id of their spouse
         this.nodes.filter(function(d) {
             return d['family_ids'].length < 1
         }).forEach((n) => {
@@ -144,7 +144,7 @@ class graphData {
 
     }
 
-    //Function that hides attributes for all non direct descendants of founder. 
+    //Function that hides attributes for all non direct descendants of founder.
     private hideNonDescendants() {
 
 
@@ -174,16 +174,16 @@ class graphData {
                     'pa': this.nodes[paID],
                     'type': 'parent',
                     'id': Math.random()
-                    
+
                 };
 
-                //Only add parent parent Edge if it's not already there; 
+                //Only add parent parent Edge if it's not already there;
                 if (!this.parentParentEdges.some((d) => {
                         return d['ma'] == rnode['ma'] && d['pa']==rnode['pa'];
                     })) {
                     this.parentParentEdges.push(rnode);
                 }
-                
+
                 //Set flag for 'has children' so that they are never hidden in the 'sibling grid'
                 this.nodes[maID].children = true;
                 this.nodes[paID].children = true;
@@ -203,37 +203,37 @@ class graphData {
 
 	//
 	public collapseFamilies(root){
-		
+
 		// 		1. find which nuclear families to aggregate
 		let family_ids = root;
-		
+
 		console.log ('root is ', root[0])
-		
+
 		let allowedRoots = [2,5,6,4];
-		 
-		if (!allowedRoots.includes(root[0])){
+
+		if (allowedRoots.indexOf(root[0]) != -1){
 			return; //can only aggregate these families for now
 		}
-		
+
 		if (family_ids ==2){
 			family_ids = [5,6];
 		}
-				
+
 		family_ids.forEach((id)=>{
-			
+
 			//2. for each family, create a set of indexes to aggregate, (this set may be empty)
 			let aggregateSet=new Set();
-			
+
 			this.nodes.forEach(function(d){
 				if (+d['affection']<100 && d['family_ids'].includes(id)){
 					aggregateSet.add(d['y'])
-				}	
+				}
 			})
-			
-			//problem is that rows with nodes that will still be a part of another aggregate are being overriden. 
-			
-			
-			
+
+			//problem is that rows with nodes that will still be a part of another aggregate are being overriden.
+
+
+
 /*
 			//Iterate through all family members and push all non-afected members;
 			if (id == 5){
@@ -249,19 +249,19 @@ class graphData {
 
 			toAggregate.sort(function(a,b){return a-b});
 			console.log('toAggregate',toAggregate,'id',id);
-			
+
 			//Call aggregate Nodes on the non-affected
 			this.aggregateNodes(toAggregate,id,family_ids)
-			
+
 		})
-		
+
 	}
 
     /**
      * Aggregates Nodes
      */
     public aggregateNodes(indexes,id,family_ids) {
-	    
+
 	    //Need family ids to see if a node needs to be duplicated
 
         //You need at least two levels to aggregate
@@ -274,20 +274,20 @@ class graphData {
 
         let collapsedNodes = [];
         let duplicateNodes=[];
-        
+
 //       filter(function(d){return !d['aggregated']}).
-        
+
           this.nodes.forEach(function(d) {
-	         
+
 	         let node = d;
             if (indexes.includes(d['y']) && d['family_ids'].includes(id) ) { //found a node that will be aggregated
 	            //check to see if this node will be aggregated in another family as well
 	            if (d['family_ids'].length>1 && family_ids.includes(d['family_ids'][0]) && family_ids.includes(d['family_ids'][1] ) && id == d['family_ids'][0]){
 	            node = JSON.parse(JSON.stringify(d));
-	            node['id']=Math.random(); //since id is used as the key, cannot have two of the same. 
+	            node['id']=Math.random(); //since id is used as the key, cannot have two of the same.
 	            duplicateNodes.push(node);
 	            };
-	            
+
                 node['visible'] = true;
                 node['aggregated'] = true;
                 node['y'] = maxInd
@@ -295,10 +295,10 @@ class graphData {
 
             }
         });
-        
+
         this.nodes = this.nodes.concat(duplicateNodes);
 
-        //write function that given an array of nodes, returns an "average" node 
+        //write function that given an array of nodes, returns an "average" node
 
         let aggregateNode = {
             "sex": undefined,
@@ -334,20 +334,20 @@ class graphData {
         aggregateNode['family_ids'] =[];
         aggregateNode['id']=Math.random()
 /*
-        
-        aggregateNode['family_ids'] = [collapsedNodes.reduce((a,b)=>{console.log('here',a,b); 
+
+        aggregateNode['family_ids'] = [collapsedNodes.reduce((a,b)=>{console.log('here',a,b);
 	        return min(b['family_ids'].concat(Array.isArray(a)? a['family_ids'] : [a]))})];;
-	    
-*/    
+
+*/
 
 
         this.nodes.push(aggregateNode)
-        
-        
-        //See if aggregate node connects to a previous family        
+
+
+        //See if aggregate node connects to a previous family
         let multiFamilyNode =[];
         collapsedNodes.forEach(function(d){if (d['family_ids'].length>1){multiFamilyNode.push(d)}})
-        
+
         if (multiFamilyNode.length>0){
 	         //If aggregate contains a parent that has two families, create a parent/child  edge between aggregate node and the originating family
          this.parentChildEdges.forEach(function(d){
@@ -356,15 +356,15 @@ class graphData {
 	         }
          })
         }
-       
+
 		console.log('indexes for ' , id , ' are', indexes.filter(x => [aggregateNode['y']].indexOf(x) < 0 ));
-		
+
         this.collapseEmptyRows(indexes.filter(x => [aggregateNode['y']].indexOf(x) < 0 ));
 //         this.collapseEmptyRows(indexes);
-        
-       
+
+
     };
-    
+
     public hideNode(y){
 	    this.nodes.forEach(function(d,i) {
 // 	        console.log([d['y']-minY] , ' needs to decrease' , collapse[d['y']-minY-1] , 'rows')
@@ -372,51 +372,51 @@ class graphData {
 	            d['y']= d['y']-1
             }
         });
-	    
+
     }
-    
+
     public hideNodes(startIndex){
-	    
+
 // 	    console.log('here')
 	    //Traverse down the 'tree' and note all indexes that need to be hidden
-	    
+
 	    let Y = startIndex;
 	    console.log('starting at', Y);
-	    
-	    this.nodes.sort((a,b)=>{return b['Y']- a['Y']});    
-	    //Assign a row for each affected case; 
-	       
+
+	    this.nodes.sort((a,b)=>{return b['Y']- a['Y']});
+	    //Assign a row for each affected case;
+
 	    this.nodes.forEach((node,i)=> {
-		      
+
 // 		    if (indexes.includes(node['y'])){
 			if (node['y']<=startIndex){
-				
-		
+
+
 				//leaf nodes
 				if (!node['children']){
-// 					console.log('node' , node['Y'] , 'does NOT have children');	
+// 					console.log('node' , node['Y'] , 'does NOT have children');
 					let edge = this.parentChildEdges.filter((d)=>{return d.target == node});
 					let ma = edge[0]['ma'];
 					let pa = edge[0]['pa'];
-										
-					//If both parents are affected 
+
+					//If both parents are affected
 					if (ma['affected'] && pa['affected'] ){
-						
+
 						//place kid grid in the middle
-						node['y'] = (ma['y'] + pa['y'])/2	
+						node['y'] = (ma['y'] + pa['y'])/2
 					}
-					//If only one or neither parent is affected, give the child the mom's y value.   
+					//If only one or neither parent is affected, give the child the mom's y value.
 					else{
-						node['y'] = ma['y'];  
-					} 
-					
+						node['y'] = ma['y'];
+					}
+
 					if (!node['affected'])
 						node['x'] = ma['x']+5;
 				}
 				else{
-					node['y'] = Y;		
+					node['y'] = Y;
 				}
-				//If found affected case, decrease the Y value for the next non child node; 
+				//If found affected case, decrease the Y value for the next non child node;
 				if (node['affected']){
 					console.log('decrementing Y',Y);
 					Y = Y-1;
@@ -427,63 +427,63 @@ class graphData {
 			}
 
         });
-        
-        
+
+
         //Get rid of blank rows;
         this.nodes.forEach((node,i)=>{
 	        node['y']=node['y']-Y;
         })
-	    
+
     }
-    
-    
+
+
     public restoreTree(){
-	    
+
 /*
-	    this.nodes.forEach((node)=>{	    
+	    this.nodes.forEach((node)=>{
 		    node['hidden']=false;
 		    node['x']=node['X'];
-		    node['y']=node'Y']; 	    
+		    node['y']=node'Y'];
 	    })
 */
     }
 
-    //Function that iterates through genealogy graph and removes empty rows; 
+    //Function that iterates through genealogy graph and removes empty rows;
     public collapseEmptyRows(indexes) {
-	    
+
 	    let minY = min(this.nodes,function(n){return n['Y']});
 	    let maxY = max(this.nodes,function(n){return n['Y']});
-	    
+
 	    //sort indexes and remove max since that is for the aggregate node
 	    indexes.sort(function(a,b){return a-b}) //; .splice(-1,1);
-	    
+
 	    console.log('indexes',indexes)
-	    
+
 	    let bin = [];
 	    for (let i = minY; i < maxY; i++) {
 		    if (indexes.includes(i)){
 		    bin.push(1)
 		    }
 		    else{
-		    bin.push(0) 
+		    bin.push(0)
 		    }
 		}
 		console.log(bin);
-		
+
 		let collapse = bin.reduce(function(r, a) {
 			if (r.length > 0)
 				a += r[r.length - 1];
 				r.push(a);
 				return r;
 		}, []);
-		
+
 		console.log(collapse);
-   
-	    
+
+
         this.nodes.forEach(function(d,i) {
 // 	        console.log([d['y']-minY] , ' needs to decrease' , collapse[d['y']-minY-1] , 'rows')
             if (d['y'] >= min(indexes)) {
-	            
+
                 d['y'] = d['y'] - collapse[d['y']-minY-1];
             }
         });
@@ -491,16 +491,16 @@ class graphData {
 
 
     };
-    
+
     //Function to re-expand aggregated nodes;
     private expandAggregates(indexes){
-	    
+
 	    console.log('indexes are ', indexes)
-	    
-	    
+
+
 	    this.nodes.forEach(function(d,i) {
 // 	        console.log([d['y']-minY] , ' needs to decrease' , collapse[d['y']-minY-1] , 'rows')
-            
+
 //             if (indexes.includes(d['y'])){
 	            console.log('here')
 	            d['aggregated']=false;
@@ -508,14 +508,14 @@ class graphData {
 //             }
 /*
             if (d['y'] >= min(indexes)) {
-	            
+
                 d['y'] = d['y'] - collapse[d['y']-minY-1];
             }
 */
         });
-	    
-	    
-	    
+
+
+
     }
 
 

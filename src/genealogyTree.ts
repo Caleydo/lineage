@@ -50,7 +50,7 @@ import {
 } from 'd3-drag';
 
 
-import * as genealogyData from './genealogyData'
+//import * as genealogyData from './genealogyData'
 import {
     Config
 } from './config';
@@ -336,11 +336,11 @@ class genealogyTree {
 		allNodesEnter.filter((d)=>{return !d['aggregated']})
 		.append('rect')
 		.classed('backgroundBar',true);
-		
-		
-	
+
+
+
 /*
-		//Remove backgroundBar for nodes that were aggregated  - Don't remove because on uncollapse you don't want to have to re-attach; just hide; 
+		//Remove backgroundBar for nodes that were aggregated  - Don't remove because on uncollapse you don't want to have to re-attach; just hide;
 		allNodes.filter((d)=>{return d['aggregated'] || d['hidden']})
 		.select('.backgroundBar').remove();
 */
@@ -392,8 +392,8 @@ class genealogyTree {
 
         //Add life line groups
         let lifeRectsEnter = allNodesEnter.filter((d)=>{return d['type'] == 'single' && !d['hidden']}).append("g");
-		
-		
+
+
         let lifeRects = allNodes.selectAll('g').filter((d)=>{return !d['hidden']})
 
         lifeRects.exit().remove()
@@ -515,8 +515,8 @@ class genealogyTree {
                 return d.sex == 'F' ? Config.glyphSize : Config.glyphSize * 2.5;
             })
             .attr("stroke-width", 3)
-            
-            
+
+
        allNodes.selectAll('.nodeLine').filter((d)=>{return d['hidden'] && !d['children']})
             .attr("x1", function(d: any) {
                 return d.sex == 'F' ? -Config.hiddenGlyphSize : -Config.hiddenGlyphSize / 2;
@@ -531,8 +531,8 @@ class genealogyTree {
                 return d.sex == 'F' ? Config.hiddenGlyphSize : Config.hiddenGlyphSize * 2.5;
             })
             .attr("stroke-width", 1)
-            
-            
+
+
      allNodes.selectAll('.nodeLine').filter((d)=>{return d['hidden'] && d['children']})
             .attr("x1", function(d: any) {
                 return d.sex == 'F' ? -Config.glyphSize : -Config.glyphSize / 4;
@@ -582,15 +582,15 @@ class genealogyTree {
 
 
 		allNodes.selectAll('.male')
-          	.filter((d)=>{return d['hidden'] && !d['children'])
+          	.filter((d)=>{return d['hidden'] && !d['children']})
             .attr("width", Config.hiddenGlyphSize * 2)
             .attr("height", Config.hiddenGlyphSize * 2);
-            
-            
+
+
          allNodes.selectAll('.male')
-          	.filter((d)=>{return d['hidden'] && d['children'])
-            .attr("width", Config.glyphSize*1.5)
-            .attr("height", Config.glyphSize*1.5);
+          	.filter((d)=>{return d['hidden'] && d['children']})
+             .attr("width", Config.glyphSize*1.5)
+             .attr("height", Config.glyphSize*1.5);
 
 
 
@@ -606,13 +606,13 @@ class genealogyTree {
 
         allNodes.selectAll('.female')
             .attr("r", Config.glyphSize);
-            
+
         allNodes.selectAll('.female')
-			.filter((d)=>{return d['hidden'] && !d['children'])
+			.filter((d)=>{return d['hidden'] && !d['children']})
             .attr("r", Config.hiddenGlyphSize);
-            
+
          allNodes.selectAll('.female')
-			.filter((d)=>{return d['hidden'] && d['children'])
+			.filter((d)=>{return d['hidden'] && d['children']})
             .attr("r", Config.glyphSize*.75);
 
 
@@ -751,7 +751,7 @@ class genealogyTree {
 			})
 
 		.on("dblclick",(d)=>{
-			
+
 			this.data.restoreTree();
 			this.update_visible_nodes();
 
@@ -769,13 +769,13 @@ class genealogyTree {
 		})
 
 		.on('click',(d)=>{
-			
+
 			console.log(d['KindredID'],console.log(d['y']))
 
 			if (event.altKey){
 			//Hide node
 			this.data.hideNodes(d['y']);
-			
+
 			//Defines the attributes of rendered node.
 // 			d['hidden']=true;
 			this.update_visible_nodes();
@@ -969,19 +969,19 @@ class genealogyTree {
 
 	}
 
-
-
     private create_phantom(d) {
 
         let phantom = selectAll('#g_' + d['id']);
 
         if (phantom.size() == 1) {
             //Create phantom node
-            const Node = document.getElementById('g_' + d['id'])
 
-            let phantomNode = Node.cloneNode(true)
+            const node = document.getElementById('g_' + d['id'])
+            let phantomNode = node.cloneNode(true)
+            console.log("Node")
+            console.log(phantomNode);
 
-            phantomNode.setAttribute("class", "phantom node");
+    //        phantomNode.setAttribute("class", "phantom node");
             document.getElementById('genealogyTree').appendChild(phantomNode)
 //             console.log(phantom)
 
@@ -1059,9 +1059,9 @@ class genealogyTree {
 
 
     private xPOS(node) {
-	   
+
         if (node['sex'] == 'M'){
-            return node['hidden'] && !node['children'] ? this.x(node.x)- Config.hiddenGlyphSize : this.x(node.x)- Config.glyphSize; 
+            return node['hidden'] && !node['children'] ? this.x(node.x)- Config.hiddenGlyphSize : this.x(node.x)- Config.glyphSize;
             }
         else
             return this.x(node.x) ;

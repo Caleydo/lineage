@@ -365,7 +365,7 @@ class attributeTable {
 }
 
 /**
-* Factory method to create a new instance of the genealogyTree
+* Factory method to create a new instance of the Table
 * @param parent
 * @param options
 * @returns {attributeTable}

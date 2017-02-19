@@ -89,27 +89,7 @@ class attributeTable {
 
     let tableAxis = axisTop(x).tickFormat(format("d"));
 
-/*
-    this.column_order = data.displayedColumnOrder;
-    this.num_cols = data.numberOfColumnsDisplayed;
-    this.col_names = data.referenceColumns;
-  */
-
-
-  //this.column_order[d].width  -> map over this to get width index, we'll update this on events
-
-  // this.columns
-
-    // TODO: base these off the data in Columns
-    // TODO: make an array w. widths and pop based on col's
     const rowHeight = Config.glyphSize * 2.5 - 4;
-
-
-    const genderWidth = this.width / 7;
-    const ageWidth = 3 * this.width / 7;
-    const bmiWidth = 2 * this.width / 7;
-    const medianBMI = ageWidth + genderWidth + (bmiWidth/2);
-    const deceasedWidth = this.width - (ageWidth + genderWidth + bmiWidth);
 
     const svg = this.$node.append('svg')
     .attr('width', this.width + this.margin.left + this.margin.right)
@@ -119,19 +99,18 @@ class attributeTable {
         .attr("transform", "translate(" + this.margin.left + "," + this.margin.top / 1.5 + ")")
         .attr('id', 'axis')
 
-    const num_cols = this.num_cols; // because this in js is stupid
+ // because `this` in js is stupid, local bindings to use in lambdas
+    const num_cols = this.num_cols;
     const col_names = this.col_names;
     const totalWidth = this.width;
     const col_order = this.column_order;
 
-
-    // this.row_data.map(function(d){
-    //   return d["value"];
-    // });
+    const TEMP_LEFT_FIX = 35; //TODO: what's going on here?
 
     // holds how wide each col is
     var col_widths = this.column_order.map(function(index){
-      return col_names[index].width * totalWidth / num_cols
+      // TODO: weight num_cols by the TOTAL WEIGHT
+      return col_names[index].width * totalWidth / num_cols;
     });
 
     // holds the x pos of the left-most edge of each column
@@ -143,34 +122,53 @@ class attributeTable {
       return x_dist;
     });
 
+
     // holds the x pos of the midpoint of each column
      var label_xs = this.column_order.map(function(index){
         const label_pos =
         col_xs[index] + (col_names[index].width * totalWidth /num_cols)/2;
-        return label_pos - 35; //TODO: what's going on here?
+        return label_pos;
      });
 
      // ^^ UPDATE THOSE ON EVENTS- IS THIS A BAD DESIGN?
-
-
-
-    axis.selectAll(".table_header")
+    const table_header = axis.selectAll(".table_header")
     .data(this.column_order)
-    .enter()
-    .append("text")
-            .text(function(index) { return col_names[index].name; })
-            .attr('fill', 'black')
-      			.attr("transform", function (index) {
-                return "translate(" + label_xs[index] + ", 20) rotate(-45)";
-            });
+    .enter();
+
+    table_header.append("text")
+      .text(function(index) { return col_names[index].name; })
+      .attr('fill', 'black')
+			.attr("transform", function (index) {
+          return "translate(" + (label_xs[index] - TEMP_LEFT_FIX) + ", 20) rotate(-45)";
+      });
+
+
+// to sort the table by attribute
+    table_header.append("rect")
+      .attr('width', function(index){ return col_widths[index];})
+      .attr('height', 40)
+      .attr('fill', 'transparent')
+      .attr("transform", function (index) { //TODO: what's up with the shift?
+          return "translate(" + (col_xs[index] - TEMP_LEFT_FIX - 5) + ", 0)";
+      })
+      // CLICK
+      .on('click', function(d) {
+        //1. sort attributes, keep a hold of some row id - add row DS
+        //2. update row display order
+
+      })
+
+/// ^ columns
+
+/// v row
     const table = svg.append("g")
     .attr("transform", "translate(0," + this.margin.top + ")")
 
     let rows = table.selectAll(".row")
-    //.data(data)
+
     .data(this.row_order.map(function(index){
       return index[0]; //TODO! aggregation!
-    })) //, function(d) {return d;})
+    }))
     .enter()
     .append("g")
     .attr('id', function (d) {
@@ -182,23 +180,38 @@ class attributeTable {
     });
 
 
-    // const num_cols = this.num_cols; // because this in js is stupid
-    // const col_names = this.col_names;
 
+
+//////////////////////
 // monster for loop creates all vis. encodings for rows
     for (let i = 0; i < num_cols; i++) {
       console.log("col_xs was: " + col_xs[i]);
 
       rows.append("rect")
-      //.attr("class", "genderCell")
       .attr("width", col_widths[i])
-      .attr("height", rowHeight) // to do by attribute type?
-      .attr('fill', function (d) {
-        return data[d][col_names[col_order[i]]] == 'F' ? lightPinkGrey : 'pink';
+      .attr("height", rowHeight)
+      .attr('fill', function (d) { // TODO: visual encoding based on type!
+        //data[d][col_names[col_order[i]]] == 'F' ? lightPinkGrey : 'pink';
+        if(data[d].y % 3 == 0)
+          return 'lightcoral';
+        else if(data[d].y % 3 == 1)
+          return 'lightskyblue';
+        else
+          return 'lightgreen';
       })
       .attr("transform", function (row_index) {
         return ('translate(' + col_xs[i] + ' ,0)')
       });
+
+///// vv TEMPORARY ENCODING  vv //////////////
+      rows.append("text") // TODO: temp fix for no encoding
+      .text(function(index) {
+        const the_text = data[index][col_names[col_order[i]].name];
+        return the_text.toString().substring(0, 3); })
+      .attr("transform", function (row_index) {
+        return ('translate(' + (label_xs[i] - 10) + ' ,' + (rowHeight/2 + 5) + ')')
+      });
+///// ^^ TEMPORARY ENCODING ^^ //////////////
 
       rows.append("line")
       .attr("x1", col_xs[i])
@@ -208,6 +221,7 @@ class attributeTable {
       .attr("stroke-width", 1)
       .attr("stroke", "black");
     }
+//////////////
 // end for loop
 
     const boundary = rows
@@ -225,157 +239,10 @@ class attributeTable {
 
 
 
-    // var col_xs = this.column_order.map(function(index){
-    //   var x_dist = 0;
-    //   for (var i = 0; i < index; i++) {
-    //     x_dist += col_names[i].width * totalWidth / num_cols
-    //   }
-    //   return x_dist;
-    // });
-    //
-    // // holds the x pos of the midpoint of each column
-    //  var label_xs = this.column_order.map(function(index){
-    //     const label_pos =
-    //     col_xs[index] + (col_names[index].width * totalWidth /num_cols)/2;
-    //     return label_pos - 35; //TODO: what's going on here?
-    //  });
-
-/*
-    const genderCell = rows
-    .append("rect")
-    .attr("class", "genderCell")
-    .attr("width", genderWidth)
-    .attr("height", rowHeight)
-    .attr('fill', function (d) {
-      return data[d].sex == 'F' ? lightPinkGrey : darkBlueGrey;
-    });
-
-
-    const ageCell = rows
-    .append("rect")
-    .attr("class", "ageCell")
-    .attr("width", function (d) {
-      if(data[d].ddate - data[d].bdate > 0)
-      return (data[d].ddate - data[d].bdate)* ageWidth / 100;
-      else
-      return 15;  // TODO
-    })
-    .attr("height", rowHeight)
-    .attr('fill', mediumGrey) //light grey
-    .attr('stroke', '#a6a6a6') //slightly darker grey
-    .attr('stroke-width', 1)
-    .attr("transform", function (d, i) {
-      return ('translate(' + genderWidth + ' )')
-    });
-
-
-
-
-//// BMI
-
-
-
-// central ref line
-    rows.append("line")
-    .attr("x1", medianBMI)
-    .attr("y1", 0)
-    .attr("x2", medianBMI)
-    .attr("y2", rowHeight)
-    .attr("stroke-width", 1)
-    .attr("stroke", "#cccccc");
-
-
-
-    const circleCell = rows.append("ellipse")
-    .attr("cx",      function(d){
-                        if(data[d].maxBMI)
-                          return medianBMI + data[d].maxBMI;
-                        else
-                          return medianBMI;
-                      })
-    .attr("cy", rowHeight / 2)
-    .attr("rx", 2)
-    .attr("ry", 2)
-    .attr('stroke', 'black')
-    .attr('stroke-width', 1)
-    .attr('fill', '#d9d9d9');
-    //.attr("fill", 'red');
-
-//// END BMI
-
-
-
-
-
-    const deceasedCell = rows
-    .append("rect")
-    .attr("class", "deceasedCell")
-    .attr("width", deceasedWidth) //Config.glyphSize * 10)
-    .attr("height", rowHeight)
-    .attr('fill', function (d) {    // dk grey   lt grey
-      return data[d].deceased == 1 ? lightGrey : darkGrey;
-    })
-    .attr("transform", function (d, i) {
-      return ('translate(' + (genderWidth + ageWidth + bmiWidth) + ' )')
-    });
-
-
-
-
-
-
-    const boundary = rows
-    .append("rect")
-    .attr("class", "boundary")
-    .attr('row_pos', function (d) {
-      return data[d].y;
-    })
-    .attr("width", this.width)
-    .attr("height", rowHeight)
-    .attr('stroke', 'black')
-    .attr('stroke-width', 1)
-    .attr('fill', 'none');
-
-
-// seperate out gender
-    rows.append("line")
-    .attr("x1", genderWidth)
-    .attr("y1", 0)
-    .attr("x2", genderWidth)
-    .attr("y2", rowHeight)
-    .attr("stroke-width", 1)
-    .attr("stroke", "black");
-
-
-// seperate out age
-    rows.append("line")
-    .attr("x1", ageWidth + genderWidth)
-    .attr("y1", 0)
-    .attr("x2", ageWidth + genderWidth)
-    .attr("y2", rowHeight)
-    .attr("stroke-width", 1)
-    .attr("stroke", "black");
-
-// seperate out bmi
-    rows.append("line")
-    .attr("x1", ageWidth + genderWidth + bmiWidth)
-    .attr("y1", 0)
-    .attr("x2", ageWidth + genderWidth + bmiWidth)
-    .attr("y2", rowHeight)
-    .attr("stroke-width", 1)
-    .attr("stroke", "black");
-
-*/
-
   const eventListener = rows.append('rect').attr("height", rowHeight).attr("width", this.width).attr("fill", "transparent")
   // CLICK
   .on('click', function(d) {
-    selectAll('.boundary').classed('tablehovered', false); /*function(a){
-      const rightRow = (select(this).attr('row_pos') == d.y);
-      if(rightRow)
-        return (!select(this).classed('tablehovered')); //toggle it
-      return false; //dont do shit
-    }); */
+    selectAll('.boundary').classed('tablehovered', false);
     if (!event.metaKey){ //unless we pressed shift, unselect everything
          selectAll('.boundary').classed('tableselected',false);
     }

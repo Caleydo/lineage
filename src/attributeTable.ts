@@ -129,6 +129,11 @@ class attributeTable {
     //   return d["value"];
     // });
 
+    // holds how wide each col is
+    var col_widths = this.column_order.map(function(index){
+      return col_names[index].width * totalWidth / num_cols
+    });
+
     // holds the x pos of the left-most edge of each column
     var col_xs = this.column_order.map(function(index){
       var x_dist = 0;
@@ -180,16 +185,43 @@ class attributeTable {
     // const num_cols = this.num_cols; // because this in js is stupid
     // const col_names = this.col_names;
 
+// monster for loop creates all vis. encodings for rows
     for (let i = 0; i < num_cols; i++) {
+      console.log("col_xs was: " + col_xs[i]);
+
       rows.append("rect")
       //.attr("class", "genderCell")
-      .attr("width", col_xs[i])
+      .attr("width", col_widths[i])
       .attr("height", rowHeight) // to do by attribute type?
       .attr('fill', function (d) {
-
-        return data[d][col_names[col_order[i]]] == 'F' ? lightPinkGrey : darkBlueGrey;
+        return data[d][col_names[col_order[i]]] == 'F' ? lightPinkGrey : 'pink';
+      })
+      .attr("transform", function (row_index) {
+        return ('translate(' + col_xs[i] + ' ,0)')
       });
+
+      rows.append("line")
+      .attr("x1", col_xs[i])
+      .attr("y1", 0)
+      .attr("x2", col_xs[i])
+      .attr("y2", rowHeight)
+      .attr("stroke-width", 1)
+      .attr("stroke", "black");
     }
+// end for loop
+
+    const boundary = rows
+    .append("rect")
+    .attr("class", "boundary")
+    .attr('row_pos', function (d) {
+      return data[d].y;
+    })
+    .attr("width", this.width)
+    .attr("height", rowHeight)
+    .attr('stroke', 'black')
+    .attr('stroke-width', 1)
+    .attr('fill', 'none');
+
 
 
 
@@ -295,9 +327,6 @@ class attributeTable {
     const boundary = rows
     .append("rect")
     .attr("class", "boundary")
-    // .attr('y', function (d) {
-    //   return (d.y)
-    // })
     .attr('row_pos', function (d) {
       return data[d].y;
     })

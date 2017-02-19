@@ -22,7 +22,6 @@ class attributeTable {
 
   private tableAxis;
 
-
   // access to all the data in our backend
   private all_the_data;
   private row_order;
@@ -30,7 +29,6 @@ class attributeTable {
   private num_cols;
   private col_names;
   private row_data;
-
 
   private margin = Config.margin;
 
@@ -144,8 +142,6 @@ class attributeTable {
       return ('translate(0, ' + y(d['y'])+ ' )')
     });
 
-
-
     const genderCell = rows
     .append("rect")
     .attr("class", "genderCell")
@@ -154,7 +150,6 @@ class attributeTable {
     .attr('fill', function (d) {
       return d.sex == 'F' ? lightPinkGrey : darkBlueGrey;
     });
-
 
     const ageCell = rows
     .append("rect")
@@ -173,12 +168,7 @@ class attributeTable {
       return ('translate(' + genderWidth + ' )')
     });
 
-
-
-
 //// BMI
-
-
 
 // central ref line
     rows.append("line")
@@ -208,10 +198,6 @@ class attributeTable {
 
 //// END BMI
 
-
-
-
-
     const deceasedCell = rows
     .append("rect")
     .attr("class", "deceasedCell")
@@ -223,10 +209,6 @@ class attributeTable {
     .attr("transform", function (d, i) {
       return ('translate(' + (genderWidth + ageWidth + bmiWidth) + ' )')
     });
-
-
-
-
 
     const boundary = rows
     .append("rect")

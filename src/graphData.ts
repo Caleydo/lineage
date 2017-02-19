@@ -2,7 +2,7 @@
  * Created by Carolina Nobre on 01.22.2017
  */
 /**
- * Class that represents the genealogy data
+ * Data structure for the genealogy graph.
  */
 import {
   max,
@@ -16,7 +16,6 @@ class graphData {
   public parentChildEdges = [];
   public parentParentEdges = [];
   private nuclearFamilyCounter = 1;
-
 
   constructor(data) {
     this.nodes = data;
@@ -134,7 +133,6 @@ class graphData {
    * Compute Parent/Children edges and Parent-Parent Edges
    */
   private createEdges() {
-
     //Create relationship nodes
     this.nodes
     //.filter((d) => {return d.visible})

@@ -93,7 +93,7 @@
     "phovea_ui": "github:phovea/phovea_ui#develop",
     "sortablejs": "^1.5.0-rc1"
   },
-  "name": "lineage",
+  "name": "Lineage",
   "description": "",
   "homepage": "https://phovea.caleydo.org",
   "version": "1.0.0-SNAPSHOT",

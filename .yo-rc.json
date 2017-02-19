@@ -1,7 +1,7 @@
 {
   "generator-phovea": {
     "type": "app",
-    "app": "genealogyVIS",
+    "app": "Lineage",
     "clientOnly": true,
     "entries": {
       "app": "./src/index.ts"

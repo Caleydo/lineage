@@ -67,7 +67,6 @@ class attributeTable {
   * Build the basic DOM elements and binds the change function
   */
   private build() {
-
     const data = this.row_data.map(function(d){
       return d["value"];
     });
@@ -132,8 +131,25 @@ class attributeTable {
     const table = svg.append("g")
     .attr("transform", "translate(0," + this.margin.top + ")")
 
+/*
+this.row_order = data.displayedRowOrder;
+this.row_data
+
+const data = this.row_data.map(function(d){
+  return d["value"];
+});
+*/
+  console.log("ROW ORDER:");
+  console.log(this.row_order);
+  console.log(this.row_order.map(function(index){
+    return index[0];
+  }));
+
     let rows = table.selectAll(".row")
-    .data(data)
+    //.data(data)
+    .data(this.row_order.map(function(index){
+      return index[0];
+    }), function(d) {return d;})//data, function(index) {return data[index[0]]}) // TODO: deal with aggregates
     .enter()
     .append("g")
     .attr('id', function (d) {
@@ -141,10 +157,12 @@ class attributeTable {
     })
     .attr('class', 'row')
     .attr("transform", function (d, i) {
-      return ('translate(0, ' + y(d['y'])+ ' )')
+      return ('translate(0, ' + y(data[d].y)+ ' )')
     });
 
-
+    console.log("data[0].sex = " + data[0].sex);
+    console.log("data[1].sex = " + data[1].sex);
+    console.log("data is: "+ data);
 
     const genderCell = rows
     .append("rect")
@@ -152,10 +170,11 @@ class attributeTable {
     .attr("width", genderWidth)
     .attr("height", rowHeight)
     .attr('fill', function (d) {
-      return d.sex == 'F' ? lightPinkGrey : darkBlueGrey;
+      console.log(data[d].sex + "-> sex of was data[d]");
+      return data[d].sex == 'F' ? lightPinkGrey : darkBlueGrey;
     });
 
-
+/*
     const ageCell = rows
     .append("rect")
     .attr("class", "ageCell")
@@ -272,12 +291,17 @@ class attributeTable {
     .attr("stroke-width", 1)
     .attr("stroke", "black");
 
-
+*/
 
   const eventListener = rows.append('rect').attr("height", rowHeight).attr("width", this.width).attr("fill", "transparent")
   // CLICK
   .on('click', function(d) {
-    selectAll('.boundary').classed('tablehovered', false); //don't hover
+    selectAll('.boundary').classed('tablehovered', false); /*function(a){
+      const rightRow = (select(this).attr('row_pos') == d.y);
+      if(rightRow)
+        return (!select(this).classed('tablehovered')); //toggle it
+      return false; //dont do shit
+    }); */
     if (!event.metaKey){ //unless we pressed shift, unselect everything
          selectAll('.boundary').classed('tableselected',false);
     }
@@ -310,6 +334,10 @@ class attributeTable {
     selectAll('.boundary').classed('tablehovered', false);
     events.fire('table_row_hover_off', d['y']);
   });
+
+  }
+
+  private update(data){
 
   }
 

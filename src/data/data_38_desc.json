@@ -1,0 +1,272 @@
+{
+  "type": "table",
+  "id": "dataTable4j",
+  "name": "dataTable",
+  "description": "",
+  "creator": "Anonymous",
+  "ts": 1487613774419,
+  "fqname": "upload/dataTable",
+  "size": [
+    19,
+    24
+  ],
+  "idtype": "Custom",
+  "columns": [
+    {
+      "column": 1,
+      "name": "RelativeID",
+      "value": {
+        "type": "idType",
+        "idType": "Custom"
+      }
+    },
+    {
+      "column": 2,
+      "name": "MaID",
+      "value": {
+        "type": "idType",
+        "range": [
+          0,
+          60
+        ],
+        "idType": "Custom"
+      }
+    },
+    {
+      "column": 3,
+      "name": "PaID",
+      "value": {
+        "type": "idType",
+        "idType": "Custom"
+      }
+    },
+    {
+      "column": 4,
+      "name": "sex",
+      "value": {
+        "type": "categorical",
+        "categories": [
+          {
+            "name": "F",
+            "color": "#1f77b4"
+          },
+          {
+            "name": "M",
+            "color": "#ff7f0e"
+          }
+        ]
+      }
+    },
+    {
+      "column": 5,
+      "name": "deceased",
+      "value": {
+        "type": "categorical",
+        "categories": [
+          {
+            "name": "Y",
+            "color": "#1f77b4"
+          }
+        ]
+      }
+    },
+    {
+      "column": 6,
+      "name": "suicide",
+      "value": {
+        "type": "categorical",
+        "categories": [
+          {
+            "name": "N",
+            "color": "#1f77b4"
+          }
+        ]
+      }
+    },
+    {
+      "column": 7,
+      "name": "bdate",
+      "value": {
+        "type": "int",
+        "range": [
+          1811,
+          1899
+        ]
+      }
+    },
+    {
+      "column": 8,
+      "name": "ddate",
+      "value": {
+        "type": "int",
+        "range": [
+          1885,
+          1991
+        ]
+      }
+    },
+    {
+      "column": 9,
+      "name": "OMEID",
+      "value": {
+        "type": "idType",
+        "idType": "Custom"
+      }
+    },
+    {
+      "column": 10,
+      "name": "LabID",
+      "value": {
+        "type": "idType",
+        "idType": "Custom"
+      }
+    },
+    {
+      "column": 11,
+      "name": "UPDBid",
+      "value": {
+        "type": "idType",
+        "idType": "Custom"
+      }
+    },
+    {
+      "column": 12,
+      "name": "ArchivePersonID",
+      "value": {
+        "type": "idType",
+        "idType": "Custom"
+      }
+    },
+    {
+      "column": 13,
+      "name": "id",
+      "value": {
+        "type": "idType",
+        "idType": "Custom"
+      }
+    },
+    {
+      "column": 14,
+      "name": "ma",
+      "value": {
+        "type": "int",
+        "range": [
+          0,
+          60
+        ]
+      }
+    },
+    {
+      "column": 15,
+      "name": "pa",
+      "value": {
+        "type": "int",
+        "range": [
+          0,
+          62
+        ]
+      }
+    },
+    {
+      "column": 16,
+      "name": "affection",
+      "value": {
+        "type": "categorical",
+        "categories": [
+          {
+            "name": "1",
+            "color": "#1f77b4"
+          }
+        ]
+      }
+    },
+    {
+      "column": 17,
+      "name": "spouse",
+      "value": {
+        "type": "idType",
+        "idType": "Custom"
+      }
+    },
+    {
+      "column": 18,
+      "name": "children",
+      "value": {
+        "type": "categorical",
+        "categories": [
+          {
+            "name": "true",
+            "color": "#1f77b4"
+          }
+        ]
+      }
+    },
+    {
+      "column": 19,
+      "name": "x",
+      "value": {
+        "type": "int",
+        "range": [
+          1811,
+          1899
+        ]
+      }
+    },
+    {
+      "column": 20,
+      "name": "y",
+      "value": {
+        "type": "int",
+        "range": [
+          12,
+          97
+        ]
+      }
+    },
+    {
+      "column": 21,
+      "name": "generation",
+      "value": {
+        "type": "int",
+        "range": [
+          1811,
+          1899
+        ]
+      }
+    },
+    {
+      "column": 22,
+      "name": "hide",
+      "value": {
+        "type": "categorical",
+        "categories": [
+          {
+            "name": "false",
+            "color": "#1f77b4"
+          }
+        ]
+      }
+    },
+    {
+      "column": 23,
+      "name": "type",
+      "value": {
+        "type": "categorical",
+        "categories": [
+          {
+            "name": "individual",
+            "color": "#1f77b4"
+          }
+        ]
+      }
+    },
+    {
+      "column": 24,
+      "name": "color",
+      "value": {
+        "type": "string"
+      }
+    }
+  ],
+  "idcolumn": 0
+}

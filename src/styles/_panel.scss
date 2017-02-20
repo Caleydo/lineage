@@ -64,12 +64,33 @@
   height: 100px;
 }
 
+#primary-menu-content .placeholder,
+#secondry-menu-content .placeholder,
 #inactive-menu-content .placeholder{
     font-size: 20px;
     max-width: 200px;
   margin-left: 20px;
 }
 
+
+#primary-menu-content .placeholder{
+  color: #373737;
+  opacity: .5;
+}
+
+#primary-menu-content li{
+  color: #0e2231;
+}
+
+
+#secondry-menu-content .placeholder{
+  color: #373737;
+  opacity: .5;
+}
+
+#secondry-menu-content li{
+  color: #0e2231;
+}
 
 #inactive-menu-content li{
   color: #373737;

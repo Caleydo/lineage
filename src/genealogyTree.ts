@@ -231,6 +231,7 @@ class genealogyTree {
 
     let graph = select('#genealogyTree')
 
+	//Only draw parentedges if target node is not 
     let edgePaths = graph.selectAll(".edges")
       .data(edges.filter(function (d) {
         return !d['target']['aggregated']
@@ -1000,7 +1001,7 @@ class genealogyTree {
 
 
     let filtered_parentParentEdges = this.data.parentParentEdges.filter((d) => {
-      return d['y2'] >= Math.round(minY)
+      return d['ma'].y >= Math.round(minY) && d['pa'].y >= Math.round(minY)
     });
 
     let filtered_parentChildEdges = this.data.parentChildEdges.filter((d) => {

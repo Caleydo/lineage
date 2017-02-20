@@ -96,10 +96,13 @@ export class App {
       let attributePanel = panel.create(this.$node.select('#data_selection').node());
       attributePanel.init();
 
+
     this.$node.select('h3').remove();
     this.setBusy(false);
 
     return Promise.resolve(this);
+
+
   }
 
   /**
@@ -109,6 +112,7 @@ export class App {
   setBusy(isBusy) {
     this.$node.select('.busy').classed('hidden', !isBusy);
   }
+
 }
 
 /**

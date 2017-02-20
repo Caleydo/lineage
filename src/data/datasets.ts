@@ -2,10 +2,8 @@
  * Created by Asmaa Aljuhani on 01.30.2017 .
  */
 
-import * as dataGenealogy from 'file-loader!./SuicideMasterList.csv';
-import * as descGenealogy from './data_structure.json';
-import * as sampleDataGenealogy from 'file-loader!./sampleData.csv';
-import * as sampleDescGenealogy from './sample_data_structure.json';
+//import * as realData from './data_38';
+import * as realDataDesc from './data_38_desc.json';
 
 export interface IDataSetSpec {
   id: string;
@@ -14,17 +12,11 @@ export interface IDataSetSpec {
   url: string;
 }
 const data: IDataSetSpec[] = [
-  {
-    id: 'attribute_panel_Data',
-    name: 'Geneaology  Data',
-    desc: descGenealogy,
-    url: dataGenealogy
-  },
-  {
-    id: 'sample_Data',
-    name: 'Geneaology Sample Data',
-    desc: sampleDescGenealogy,
-    url: sampleDataGenealogy
+   {
+    id: 'real_Data',
+    name: 'Real Geneaology Sample Data',
+    desc: realDataDesc,
+    url: ""
   }
 ];
 

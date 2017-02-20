@@ -16,7 +16,16 @@ class attributePanel {
 
   private $node;
 
-  public data = [];
+   // access to all the data in our backend
+  private all_the_data;
+  private column_order;
+  private num_cols;
+  private col_names;
+  private columns;
+
+
+  // attributes lists
+  private
 
   constructor(parent:Element) {
     this.$node = select(parent)
@@ -29,9 +38,13 @@ class attributePanel {
    * that is resolved as soon the view is completely initialized.
    * @returns {Promise<FilterBar>}
    */
-  init() {
+  init(data) {
+    this.all_the_data = data;
+    this.column_order = data.displayedColumnOrder;
+    this.num_cols = data.numberOfColumnsDisplayed;
+    this.col_names = data.referenceColumns;
 
-
+    console.log(this.col_names);
     this.build();
     this.attachListener();
 
@@ -104,6 +117,9 @@ class attributePanel {
        onAdd: function (evt) {
         select('#primary-menu-content .placeholder')
           .style('display', 'none');
+         let item = evt.item.getElementsByTagName("strong")
+         select(this).append(`<span class="badge">PRIMARY</span>`);
+         //
        // events.fire('attribute_removed', [item, oldIndex]);
       },
     });
@@ -166,7 +182,7 @@ class attributePanel {
     });
 
 
-    this.loadData();
+    //this.loadData();
     //this.populateData();
 
 
@@ -220,22 +236,6 @@ class attributePanel {
 
   }
 
-  private populateData() {
-    let svg = select('.panel').selectAll("svg");
-    let selection = svg.selectAll("rect").data([127, 61, 256])
-      .enter().append("rect")
-      .attr("x", 0)
-      .attr("y", function (d, i) {
-        return i * 90 + 50
-      })
-      .attr("width", function (d, i) {
-        return d;
-      })
-      .attr("height", 20)
-      .style("fill", "steelblue");
-
-
-  }
 
   private attachListener() {
 

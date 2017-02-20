@@ -20,23 +20,24 @@ class tableData {
 
 
 
-  constructor(data) {
-    this.parseData(data);
+  constructor(data ,desc) {
+    this.parseData(data,desc);
     //  this.layout();
   }
 
 
   // populates referenceRows & referenceColumns
   // initializes dRO & dCO to be the references
-  public parseData(data_in){
+  public parseData(data_in , desc_in){
+
 
     const TEMP_MAX_COLS_DISPLAYED = 15;
 
     // grab all the attribute names (they're the keys in the obj dict)
-    Object.keys(data_in[0]).forEach(column_name=>{
-      this.referenceColumns.push(new Column(column_name));
+    desc_in.forEach(column=>{
+      this.referenceColumns.push(new Column(column.name , column.value.type));
     });
-
+    
 
     // creates a row id & stashes data in a Row Obj. in the reference list.
     data_in.forEach(d=>{
@@ -106,9 +107,10 @@ function Width(column_type){ //column_name : string
 }
 
 // columns have a name & a preferred width (s/m/l)
-function Column(name){ //name : string
+function Column(name, type){ //name : string
   this.name = name;
-  this.width = Width(this.type);
+  this.width = Width(type);
+  this.type = type;
 }
 
 
@@ -120,6 +122,6 @@ function Column(name){ //name : string
 * @param data
 * @returns {tableData}
 */
-export function create(data) {
-  return new tableData(data);
+export function create(data , desc) {
+  return new tableData(data , desc);
 }

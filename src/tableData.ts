@@ -10,6 +10,8 @@ import {Config} from './config';
 /**
 * Class that represents the table data
 */
+import * as events from 'phovea_core/src/event';
+
 class tableData {
   public referenceColumns = []; //[Column]
   public referenceRows = [];    //[{row_id, data}
@@ -28,6 +30,8 @@ class tableData {
   // populates referenceRows & referenceColumns
   // initializes dRO & dCO to be the references
   public parseData(data_in , desc_in){
+
+    this.attachListener();
 
 
     const TEMP_MAX_COLS_DISPLAYED = 15;
@@ -91,6 +95,24 @@ class tableData {
   public aggregateRows(row_index){
 
   }
+
+  private attachListener() {
+
+    //Set listener for added attribute to the active list
+    events.on('attribute_added', (evt, item )=> {
+      this.addColumn(item.name , item.newIndex);
+    });
+
+    //Set listener for removed attribute from the active list
+    events.on('attribute_reordered', (evt, item )=> {
+      this.reorderColumn(item.name, item.newIndex);
+    });
+    //Set listener for reordering attribute within the active list
+    events.on('attribute_removed', (evt, item )=> {
+      this.removeColumn(item.name)
+    });
+  }
+
 
 
 }

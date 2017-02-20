@@ -16,15 +16,13 @@ class attributePanel {
 
   private $node;
 
-   // access to all the data in our backend
+  // access to all the data in our backend
   private all_the_data;
   private column_order;
   private columns;
 
 
   // attributes lists
-  private primary_attribute_list;
-  private secondry_attribute_list;
   private active_attribute_list;
   private inactive_attribute_list;
 
@@ -65,21 +63,6 @@ class attributePanel {
              <span class="toggle-btn"><i class="glyphicon glyphicon-menu-hamburger"></i></span></li>
                </ul>`);
 
-    // list that holds primary attributes
-    // a user can populate this list by dragging elements from the active list
-    this.primary_attribute_list = menu_list.append('ul')
-      .attr('id', 'primary-menu-content')
-      .classed('menu-content sub-menu collapse in fade', true)
-      .html(`
-      <li class='placeholder'>Pick your primary attribute</li>`);
-
-     // list that holds secondry attributes
-    // a user can populate this list by dragging elements from the active list
-    this.secondry_attribute_list = menu_list.append('ul')
-      .attr('id', 'secondry-menu-content')
-      .classed('menu-content sub-menu collapse in fade', true)
-      .html(`
-      <li class='placeholder'>Pick your secondry attribute</li>`);
 
     // list that holds data attribute
     // initially all attributes are active
@@ -103,38 +86,6 @@ class attributePanel {
       <li class='placeholder'>DRAG AND DROP ATTRIBUTES HERE TO MAKE THEM INACTIVE</li>`);
 
 
-    // primary sortable list
-    Sortable.create(document.getElementById('primary-menu-content'), {
-       group: 'menu-content',
-      ghostClass: 'ghost',
-      animation: 150,
-      pull: true,
-      put: true,
-       onAdd: function (evt) {
-        select('#primary-menu-content .placeholder')
-          .style('display', 'none');
-         let item = evt.item.getElementsByTagName("strong")
-         select(this).append(`<span class="badge">PRIMARY</span>`);
-         //
-       // events.fire('attribute_removed', [item, oldIndex]);
-      },
-    });
-
-    // secondry sortable list
-    Sortable.create(document.getElementById('secondry-menu-content'), {
-       group: 'menu-content',
-      ghostClass: 'ghost',
-      animation: 150,
-      pull: true,
-      put: true,
-      onAdd: function (evt) {
-        select('#secondry-menu-content .placeholder')
-          .style('display', 'none');
-       // events.fire('attribute_removed', [item, oldIndex]);
-      },
-
-    });
-
     // Active sortable list
     Sortable.create(document.getElementById('active-menu-content'), {
       group: 'menu-content',
@@ -143,16 +94,20 @@ class attributePanel {
       pull: true,
       put: true,
       onAdd: function (evt) {
-        let item = evt.item.getElementsByTagName("strong")[0].innerHTML;
-        let newIndex = evt.newIndex;
-        events.fire('attribute_added', [item, newIndex]);
+        let item  = {
+          name: evt.item.getElementsByTagName("strong")[0].textContent,
+          newIndex: evt.newIndex
+        };
+        events.fire('attribute_added', item);
 
       },
       onUpdate: function (evt) {
-        let item = evt.item.getElementsByTagName("strong")[0].innerHTML;
-        let newIndex = evt.newIndex;
-        let oldIndex = evt.oldIndex;
-        events.fire('attribute_reordered', [item, newIndex, oldIndex]);
+        let item  = {
+          name: evt.item.getElementsByTagName("strong")[0].textContent,
+          newIndex: evt.newIndex,
+          oldIndex: evt.oldIndex
+        };
+        events.fire('attribute_reordered', item);
       },
 
     });
@@ -165,21 +120,23 @@ class attributePanel {
       pull: true,
       put: true,
       onAdd: function (evt) {
-        let item = evt.item.getElementsByTagName("strong")[0].innerHTML;
-        let newIndex = evt.newIndex;
-        let oldIndex = evt.oldIndex;
+        let item = {
+          name: evt.item.getElementsByTagName("strong")[0].textContent,
+          newIndex: evt.newIndex,
+          oldIndex: evt.oldIndex
+        };
 
         select('.placeholder')
           .style('display', 'none');
 
-        events.fire('attribute_removed', [item, oldIndex]);
+        events.fire('attribute_removed', item);
       },
 
     });
 
     this.columns.forEach(column=> {
-        this.addAttribute(column.name, column.type)
-      })
+      this.addAttribute(column.name, column.type)
+    })
 
 
   }

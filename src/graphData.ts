@@ -366,7 +366,7 @@ class graphData {
 
         //leaf nodes
         if (!node['children']) {
-// 					console.log('node' , node['Y'] , 'does NOT have children');
+	        
           let edge = this.parentChildEdges.filter((d) => {
             return d.target == node
           });
@@ -383,12 +383,22 @@ class graphData {
           else {
             node['y'] = ma['y'];
           }
-
+		  
+		  //First attempt at the kid grid
           if (!node['affected'])
             node['x'] = ma['x'] + 5;
         }
         else {
           node['y'] = Y;
+          
+          //Place Mom and Dad Nodes on top of Each other (at the dad's x location) . 
+          //Iterate through parent-child edges and find the spouse
+	      this.parentParentEdges.forEach((edge) => {
+	        if (node == edge['pa'] || node==edge['ma']) {
+	          node['x'] = edge['pa']['x']
+	        } 
+	      })
+      
         }
         //If found affected case, decrease the Y value for the next non child node;
         if (node['affected']) {

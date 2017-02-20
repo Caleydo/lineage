@@ -211,18 +211,7 @@ class genealogyTree {
 	    .attr("stop-opacity", 1);
 	    
     
-    //Create group for all axis
-    const axis = svg.append("g")
-      .attr("transform", "translate(" + this.margin.left + "," + this.margin.top / 1.5 + ")")
-      .attr('id', 'axis')
 
-    axis.append("g")
-      .attr('id', 'visible_axis')
-      .call(this.visibleXAxis)
-
-    axis.append("g")
-      .attr('id', 'extremes_axis')
-      .call(this.extremesXAxis)
 
     //Add scroll listener for the graph table div
     document.getElementById('graph_table').addEventListener('scroll', () => {
@@ -232,7 +221,7 @@ class genealogyTree {
       /* wait until 100 ms for callback */
       this.timer = setTimeout(() => {
         this.update_visible_nodes()
-      }, 100);
+      }, 5);
     });
 
     //Create group for genealogy tree
@@ -240,6 +229,28 @@ class genealogyTree {
       .attr("transform", "translate(" + this.margin.left + "," + (this.margin.top + Config.glyphSize) + ")")
       .classed('genealogyTree', true)
       .attr('id', 'genealogyTree')
+      
+          //Create group for all axis
+    const axis = svg.append("g")
+      .attr("transform", "translate(" + this.margin.left + "," + this.margin.top / 1.5 + ")")
+      .attr('id', 'axis')
+      
+      axis
+       .append('rect')
+       .attr("width", this.width)
+       .attr ('height',100)
+       .attr('y',-100)
+       .attr('fill','white')
+      
+
+    axis.append("g")
+      .attr('id', 'visible_axis')
+      .call(this.visibleXAxis)
+
+    axis.append("g")
+      .attr('id', 'extremes_axis')
+      .call(this.extremesXAxis)
+      
 
 
     //Filter data to only render what is visible in the current window
@@ -1088,7 +1099,7 @@ class genealogyTree {
 
     // 	          console.log(divHeight, this.y(65),this.y(72), (divHeight + scrollOffset) - 75)
 
-    let minY = this.y.invert(scrollOffset);
+    let minY = this.y.invert(scrollOffset)-2;
     let maxY = this.y.invert(divHeight + scrollOffset - 75)
 
     let filtered_nodes = this.data.nodes.filter((d) => {
@@ -1106,6 +1117,7 @@ class genealogyTree {
 
 
     //Call function that updates the position of all elements in the tree
+//     this.update_graph(this.data.nodes, this.data.parentParentEdges, this.data.parentChildEdges)
     this.update_graph(filtered_nodes, filtered_parentChildEdges, filtered_parentParentEdges)
 
 

@@ -26,6 +26,10 @@ import {realData} from './data/data_38'
 // import {realData} from './data_149'
 // import {realData} from './data_777721'
 
+//Import data desc from datasets.ts
+import datasets from './data/datasets';
+
+
 // bundle data file and get URL
 import * as csvUrl from 'file-loader!./data/sampleData.csv';
 
@@ -90,11 +94,14 @@ export class App {
       let genealogyTree = tree.create(this.$node.select('#graph_table').node());
       genealogyTree.init(graphData.create(realData));
 
+      //shared data for attributTable and attributePanel
+      let table_data = tableData.create(realData, datasets[0].desc.columns);
+
       let attributeTable = table.create(this.$node.select('#graph_table').node());
-      attributeTable.init(tableData.create(realData));
+      attributeTable.init(table_data);
 
       let attributePanel = panel.create(this.$node.select('#data_selection').node());
-      attributePanel.init();
+      attributePanel.init(table_data);
 
 
     this.$node.select('h3').remove();

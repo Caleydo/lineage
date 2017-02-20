@@ -16,7 +16,15 @@ class attributePanel {
 
   private $node;
 
-  public data = [];
+  // access to all the data in our backend
+  private all_the_data;
+  private column_order;
+  private columns;
+
+
+  // attributes lists
+  private active_attribute_list;
+  private inactive_attribute_list;
 
   constructor(parent:Element) {
     this.$node = select(parent)
@@ -29,8 +37,10 @@ class attributePanel {
    * that is resolved as soon the view is completely initialized.
    * @returns {Promise<FilterBar>}
    */
-  init() {
-
+  init(data) {
+    this.all_the_data = data;
+    this.column_order = data.displayedColumnOrder;
+    this.columns = data.referenceColumns;
 
     this.build();
     this.attachListener();
@@ -53,25 +63,10 @@ class attributePanel {
              <span class="toggle-btn"><i class="glyphicon glyphicon-menu-hamburger"></i></span></li>
                </ul>`);
 
-    // list that holds primary attributes
-    // a user can populate this list by dragging elements from the active list
-    const primary_menu_content = menu_list.append('ul')
-      .attr('id', 'primary-menu-content')
-      .classed('menu-content sub-menu collapse in fade', true)
-      .html(`
-      <li class='placeholder'>Pick your primary attribute</li>`);
-
-     // list that holds secondry attributes
-    // a user can populate this list by dragging elements from the active list
-    const secondry_menu_content = menu_list.append('ul')
-      .attr('id', 'secondry-menu-content')
-      .classed('menu-content sub-menu collapse in fade', true)
-      .html(`
-      <li class='placeholder'>Pick your secondry attribute</li>`);
 
     // list that holds data attribute
     // initially all attributes are active
-    const active_menu_content = menu_list.append('ul')
+    this.active_attribute_list = menu_list.append('ul')
       .attr('id', 'active-menu-content')
       .classed('menu-content collapse in', true);
 
@@ -82,46 +77,14 @@ class attributePanel {
                                 </li>`);
 
 
-
-
-
     // list that holds inactive attributes
     // a user can populate this list by dragging elements from the active list
-    const inactive_menu_content = menu_list.append('ul')
+    this.inactive_attribute_list = menu_list.append('ul')
       .attr('id', 'inactive-menu-content')
       .classed('menu-content sub-menu collapse in fade', true)
       .html(`
       <li class='placeholder'>DRAG AND DROP ATTRIBUTES HERE TO MAKE THEM INACTIVE</li>`);
 
-
-    // primary sortable list
-    Sortable.create(document.getElementById('primary-menu-content'), {
-       group: 'menu-content',
-      ghostClass: 'ghost',
-      animation: 150,
-      pull: true,
-      put: true,
-       onAdd: function (evt) {
-        select('#primary-menu-content .placeholder')
-          .style('display', 'none');
-       // events.fire('attribute_removed', [item, oldIndex]);
-      },
-    });
-
-    // secondry sortable list
-    Sortable.create(document.getElementById('secondry-menu-content'), {
-       group: 'menu-content',
-      ghostClass: 'ghost',
-      animation: 150,
-      pull: true,
-      put: true,
-      onAdd: function (evt) {
-        select('#secondry-menu-content .placeholder')
-          .style('display', 'none');
-       // events.fire('attribute_removed', [item, oldIndex]);
-      },
-
-    });
 
     // Active sortable list
     Sortable.create(document.getElementById('active-menu-content'), {
@@ -131,16 +94,20 @@ class attributePanel {
       pull: true,
       put: true,
       onAdd: function (evt) {
-        let item = evt.item.getElementsByTagName("strong")[0].innerHTML;
-        let newIndex = evt.newIndex;
-        events.fire('attribute_added', [item, newIndex]);
+        let item  = {
+          name: evt.item.getElementsByTagName("strong")[0].textContent,
+          newIndex: evt.newIndex
+        };
+        events.fire('attribute_added', item);
 
       },
       onUpdate: function (evt) {
-        let item = evt.item.getElementsByTagName("strong")[0].innerHTML;
-        let newIndex = evt.newIndex;
-        let oldIndex = evt.oldIndex;
-        events.fire('attribute_reordered', [item, newIndex, oldIndex]);
+        let item  = {
+          name: evt.item.getElementsByTagName("strong")[0].textContent,
+          newIndex: evt.newIndex,
+          oldIndex: evt.oldIndex
+        };
+        events.fire('attribute_reordered', item);
       },
 
     });
@@ -153,62 +120,40 @@ class attributePanel {
       pull: true,
       put: true,
       onAdd: function (evt) {
-        let item = evt.item.getElementsByTagName("strong")[0].innerHTML;
-        let newIndex = evt.newIndex;
-        let oldIndex = evt.oldIndex;
+        let item = {
+          name: evt.item.getElementsByTagName("strong")[0].textContent,
+          newIndex: evt.newIndex,
+          oldIndex: evt.oldIndex
+        };
 
         select('.placeholder')
           .style('display', 'none');
 
-        events.fire('attribute_removed', [item, oldIndex]);
+        events.fire('attribute_removed', item);
       },
 
     });
 
-
-    this.loadData();
-    //this.populateData();
-
-
-  }
-
-  /**
-   * load data into attribute panel
-   */
-  private loadData() {
-
-    const data_desc = datasets[0].desc;
-    const data_url = datasets[0].url;
-    let headers = []
-    let dataDesc = ['key', 'date', 'categorical', 'string', 'string', 'string', 'number', 'date', 'number', 'date'];
-
-    csv(data_url, (_data) => {
-      //"personid", "byr", "sex", "Archivepersonid", "OMEID", "LabID", "FirstBMI", "FirstBMIYr", "MaxBMI", "MaxBMIYr"]
-      headers = keys(_data[0])
-      _data.forEach((d, i) => {
-        d.FirstBMI = +d['FirstBMI']
-        d.MaxBMI = +d['MaxBMI']
-        this.data.push(d);
-      })
-      headers.forEach((h)=> {
-        this.addHeader(h, dataDesc[headers.indexOf(h)])
-      })
+    this.columns.forEach(column=> {
+      this.addAttribute(column.name, column.type)
     })
+
+
   }
 
 
-  private addHeader(header, desc) {
+  private addAttribute(column_name, column_desc) {
 
     //append the header as a menu option
     let data_attr = select('#active-menu-content').append('li')
       .classed('collapsed active', true)
-      .attr('data-target', '#' + header)
+      .attr('data-target', '#' + column_name)
       .attr('data-toggle', 'collapse');
 
     data_attr.append('a').attr('href', '#')
       .html('<i class=\"glyphicon glyphicon-move sort_handle\"></i>')
-      .append('strong').html(header)
-      .append('span').attr('class', desc);
+      .append('strong').html(column_name)
+      .append('span').attr('class', column_desc);
 
     data_attr.on('mouseover', function () {
       select(this).select('.sort_handle').classed('focus', true)
@@ -220,22 +165,6 @@ class attributePanel {
 
   }
 
-  private populateData() {
-    let svg = select('.panel').selectAll("svg");
-    let selection = svg.selectAll("rect").data([127, 61, 256])
-      .enter().append("rect")
-      .attr("x", 0)
-      .attr("y", function (d, i) {
-        return i * 90 + 50
-      })
-      .attr("width", function (d, i) {
-        return d;
-      })
-      .attr("height", 20)
-      .style("fill", "steelblue");
-
-
-  }
 
   private attachListener() {
 

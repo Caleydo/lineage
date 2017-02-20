@@ -79,6 +79,10 @@ class genealogyTree {
 
 
   private y = scaleLinear();
+  
+  
+  //Scale to place siblings on kid grid
+  private kidGridScale = scaleLinear().domain([1,4]).range([0,Config.glyphSize*2]);
 
   //Axis for the visible nodes
   private visibleXAxis;
@@ -160,7 +164,6 @@ class genealogyTree {
 
 
     // Y scale. Xscale range and domain are defined in update_time_axis;
-
     this.y.range([0, this.height]).domain([min(nodes, function (d) {
       return d['y']
     }), max(nodes, function (d) {
@@ -171,6 +174,7 @@ class genealogyTree {
     this.extremesXAxis = axisTop(this.x2)
 
     this.interGenerationScale.range([.75, .25]).domain([2, nodes.length]);
+    
 
     const svg = this.$node.append('svg')
       .attr("width", this.width + this.margin.left + this.margin.right)
@@ -178,6 +182,32 @@ class genealogyTree {
       .attr('id', 'graph')
 
 
+	  //Create gradients
+	  let gradient = svg.append("defs")
+	  .append("linearGradient")
+	    .attr("id", "gradient")
+	    .attr("x1", "0%")
+	    .attr("y1", "50%")
+	    .attr("x2", "100%")
+	    .attr("y2", "50%")
+	    .attr("spreadMethod", "pad");
+	
+	gradient.append("stop")
+	    .attr("offset", "0%")
+	    .attr("stop-color", "#9e9d9b")
+	    .attr("stop-opacity", 1);
+	    
+	gradient.append("stop")
+	    .attr("offset", "80%")
+	    .attr("stop-color", "#9e9d9b")
+	    .attr("stop-opacity", 1);
+	
+	gradient.append("stop")
+	    .attr("offset", "100%")
+	    .attr("stop-color", "white")
+	    .attr("stop-opacity", 1);
+	    
+    
     //Create group for all axis
     const axis = svg.append("g")
       .attr("transform", "translate(" + this.margin.left + "," + this.margin.top / 1.5 + ")")
@@ -502,7 +532,12 @@ class genealogyTree {
       })
       .attr("height", Config.glyphSize / 4)
       .style('fill', (d: any) => {
-        return (d.affected) ? "black" : "#9e9d9b";
+	      if (d.affected)
+	      return "black"
+	      if (d.deceased)
+	      return "#9e9d9b"
+	      else
+		  return "url(#gradient)"
       })
       .style('opacity', .8)
     //         .style('stroke','none')

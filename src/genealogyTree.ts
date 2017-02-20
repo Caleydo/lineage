@@ -211,18 +211,7 @@ class genealogyTree {
 	    .attr("stop-opacity", 1);
 	    
     
-    //Create group for all axis
-    const axis = svg.append("g")
-      .attr("transform", "translate(" + this.margin.left + "," + this.margin.top / 1.5 + ")")
-      .attr('id', 'axis')
 
-    axis.append("g")
-      .attr('id', 'visible_axis')
-      .call(this.visibleXAxis)
-
-    axis.append("g")
-      .attr('id', 'extremes_axis')
-      .call(this.extremesXAxis)
 
     //Add scroll listener for the graph table div
     document.getElementById('graph_table').addEventListener('scroll', () => {
@@ -232,14 +221,52 @@ class genealogyTree {
       /* wait until 100 ms for callback */
       this.timer = setTimeout(() => {
         this.update_visible_nodes()
-      }, 100);
+      }, 5);
     });
 
     //Create group for genealogy tree
     svg.append("g")
       .attr("transform", "translate(" + this.margin.left + "," + (this.margin.top + Config.glyphSize) + ")")
-      .classed('genealogyTree', true)
+//       .classed('genealogyTree', true)
       .attr('id', 'genealogyTree')
+      
+      
+      //Ensure the right order of edges and nodes
+      
+      //create a group in the background for edges
+      select('#genealogyTree')
+      .append("g")
+      .attr("id","edges")
+      
+      //create a group in the foreground for nodes
+     select('#genealogyTree')
+      .append("g")
+      .attr("id","nodes")
+      
+      
+      
+      
+          //Create group for all axis
+    const axis = svg.append("g")
+      .attr("transform", "translate(" + this.margin.left + "," + this.margin.top / 1.5 + ")")
+      .attr('id', 'axis')
+      
+      axis
+       .append('rect')
+       .attr("width", this.width)
+       .attr ('height',100)
+       .attr('y',-100)
+       .attr('fill','white')
+      
+
+    axis.append("g")
+      .attr('id', 'visible_axis')
+      .call(this.visibleXAxis)
+
+    axis.append("g")
+      .attr('id', 'extremes_axis')
+      .call(this.extremesXAxis)
+      
 
 
     //Filter data to only render what is visible in the current window
@@ -262,10 +289,10 @@ class genealogyTree {
 
     let t = transition('t').duration(500).ease(easeLinear);
 
-    let graph = select('#genealogyTree')
+    let edgeGroup = select('#genealogyTree').select('#edges')
 
 	//Only draw parentedges if target node is not 
-    let edgePaths = graph.selectAll(".edges")
+    let edgePaths = edgeGroup.selectAll(".edges")
       .data(edges.filter(function (d) {
         return !d['target']['aggregated']
       }), function (d) {
@@ -301,7 +328,7 @@ class genealogyTree {
       .attr("stroke-width", Config.glyphSize / 4)
 
 
-    let parentEdgePaths = graph.selectAll(".parentEdges")// only draw parent parent edges if neither parent is aggregated
+    let parentEdgePaths = edgeGroup.selectAll(".parentEdges")// only draw parent parent edges if neither parent is aggregated
       .data(parentEdges.filter(function (d) {
         return !d['ma']['aggregated'] || !d['pa']['aggregated']
       }), function (d) {
@@ -341,10 +368,11 @@ class genealogyTree {
     ('called update_nodes')
     let t = transition('t').duration(500).ease(easeLinear);
 
-    let graph = select('#genealogyTree')
+
+	let nodeGroup = select('#genealogyTree').select('#nodes')
 
 
-    let allNodes = graph.selectAll(".node")
+    let allNodes = nodeGroup.selectAll(".node")
       .data(nodes, function (d) {
         return d['id'];
       });
@@ -1088,7 +1116,7 @@ class genealogyTree {
 
     // 	          console.log(divHeight, this.y(65),this.y(72), (divHeight + scrollOffset) - 75)
 
-    let minY = this.y.invert(scrollOffset);
+    let minY = this.y.invert(scrollOffset)-2;
     let maxY = this.y.invert(divHeight + scrollOffset - 75)
 
     let filtered_nodes = this.data.nodes.filter((d) => {
@@ -1106,6 +1134,7 @@ class genealogyTree {
 
 
     //Call function that updates the position of all elements in the tree
+//     this.update_graph(this.data.nodes, this.data.parentParentEdges, this.data.parentChildEdges)
     this.update_graph(filtered_nodes, filtered_parentChildEdges, filtered_parentParentEdges)
 
 
@@ -1218,10 +1247,12 @@ class genealogyTree {
         	
         	this.data.parentChildEdges.forEach((d,i)=>{
 	        	
-	        	if (d.ma == ma && d.pa == pa){
-		        	childCount = childCount +1
+	        	if (d.ma == ma && d.pa == pa ){
+		        	//Only count unaffected children so as to avoid gaps in the kid Grid
+		        	if (!d.target.affected)
+		        		childCount = childCount +1
 		        	if (d.target == node){			        	
-			        	console.log('Child Count, ' , childCount  , ' child x is ' , Math.ceil(childCount % this.kidGridSize))
+			        	console.log('Family ' , max(node['family_ids']) ,   ' has ', childCount  , ' kids. child is ' , Math.ceil(childCount % this.kidGridSize))
 			        	return this.x(node.x) + this.kidGridScale(childCount % this.kidGridSize);	
 		        	}
 		        		        	
@@ -1256,10 +1287,10 @@ class genealogyTree {
         	this.data.parentChildEdges.forEach((d,i)=>{
 	        	
 	        	if (d.ma == ma && d.pa == pa){
-		        	childCount = childCount +1		        	
+		        	//Only count unaffected children so as to avoid gaps in the kid Grid
+		        	if (!d.target.affected)
+		        		childCount = childCount +1		        	
 		        	if (d.target == node){
-			        	
-			        	console.log('Child Count, ' , childCount  , 'child y is ' , Math.ceil(childCount / this.kidGridSize))
 			        	return this.y(node.y) + this.kidGridScale(Math.ceil(childCount / this.kidGridSize));
 		        	}
 		        			        	
@@ -1316,7 +1347,7 @@ class genealogyTree {
   private attachListeners() {
     events.on('table_row_selected', (evt, item) => {
       let wasSelected = selectAll('.highlightBar').filter((d) => {
-        return d['y'] == item
+        return d['id'] == item
       }).classed('selected');
 
       //'Unselect all other background bars if ctrl was not pressed
@@ -1325,7 +1356,7 @@ class genealogyTree {
       }
 
       selectAll('.highlightBar').filter((d) => {
-        return d['y'] == item
+        return d['id'] == item
       }).classed('selected', function () {
         return (!wasSelected);
       })
@@ -1333,7 +1364,7 @@ class genealogyTree {
 
     events.on('table_row_hover_on', (evt, item) => {
       selectAll('.highlightBar').filter((d) => {
-        return d['y'] == item
+        return d['id'] == item
       }).attr('opacity', .2)
       select('.row_' + item).filter((d) => {
         return !d['aggregated']

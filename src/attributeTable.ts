@@ -246,9 +246,9 @@ class attributeTable {
       return select(this).classed('tableselected'); //leave it be
     });
     if(event.metaKey)
-      events.fire('table_row_selected', data[d].y, 'multiple');
+      events.fire('table_row_selected', data[d].id, 'multiple');
     else
-      events.fire('table_row_selected', data[d].y, 'singular');
+      events.fire('table_row_selected', data[d].id, 'singular');
   })
 
   // MOUSE ON
@@ -260,13 +260,13 @@ class attributeTable {
       }
       return false; //otherwise don't hover
     });
-    events.fire('table_row_hover_on', data[d].y);
+    events.fire('table_row_hover_on', data[d].id);
   })
 
   // MOUSE OFF
   .on('mouseout', function(d) {
     selectAll('.boundary').classed('tablehovered', false);
-    events.fire('table_row_hover_off', data[d].y);
+    events.fire('table_row_hover_off', data[d].id);
   });
 
   }

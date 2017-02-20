@@ -22,7 +22,6 @@ class attributeTable {
 
   private tableAxis;
 
-
   // access to all the data in our backend
   private all_the_data;
   private row_order;
@@ -31,7 +30,6 @@ class attributeTable {
   private col_names;
   private row_data;
   private columns;
-
 
   private margin = Config.margin;
 
@@ -142,7 +140,6 @@ class attributeTable {
           return "translate(" + (label_xs[index] - TEMP_LEFT_FIX) + ", 20) rotate(-45)";
       });
 
-
 // to sort the table by attribute
     table_header.append("rect")
       .attr('width', function(index){ return col_widths[index];})
@@ -155,7 +152,6 @@ class attributeTable {
       .on('click', function(d) {
         //1. sort attributes, keep a hold of some row id - add row DS
         //2. update row display order
-
       })
 
 /// ^ columns
@@ -181,12 +177,9 @@ class attributeTable {
 
 
 
-
 //////////////////////
 // monster for loop creates all vis. encodings for rows
     for (let i = 0; i < num_cols; i++) {
-      console.log("col_xs was: " + col_xs[i]);
-
       rows.append("rect")
       .attr("width", col_widths[i])
       .attr("height", rowHeight)
@@ -334,7 +327,7 @@ class attributeTable {
 }
 
 /**
-* Factory method to create a new instance of the genealogyTree
+* Factory method to create a new instance of the Table
 * @param parent
 * @param options
 * @returns {attributeTable}

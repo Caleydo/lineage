@@ -50,7 +50,7 @@
     "karma-jasmine": "1.1.0",
     "karma-junit-reporter": "2.0.0",
     "karma-sourcemap-loader": "0.3.7",
-    "karma-webpack": "2.0.1",
+    "karma-webpack": "2.0.2",
     "mkdirp": "0.5.1",
     "node-sass": "4.3.0",
     "null-loader": "0.1.1",
@@ -59,10 +59,10 @@
     "style-loader": "0.13.1",
     "tslint": "4.3.1",
     "typedoc": "0.5.5",
-    "typescript": "2.1.5",
+    "typescript": "2.2.0",
     "url-loader": "0.5.7",
-    "webpack": "2.1.0-beta.28",
-    "webpack-dev-server": "2.1.0-beta.12",
+    "webpack": "2.2.1",
+    "webpack-dev-server": "2.3.0",
     "tslib": "1.5.0"
   },
   "dependencies": {
@@ -93,7 +93,7 @@
     "phovea_ui": "github:phovea/phovea_ui#develop",
     "sortablejs": "^1.5.0-rc1"
   },
-  "name": "lineage",
+  "name": "Lineage",
   "description": "",
   "homepage": "https://phovea.caleydo.org",
   "version": "1.0.0-SNAPSHOT",

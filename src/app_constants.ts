@@ -9,7 +9,7 @@ export class AppConstants {
    * Note: the string value is referenced for multiple view definitions in the package.json,
    *       i.e. be careful when refactor the value
    */
-  static VIEW = 'genealogyVIS';
+  static VIEW = 'Lineage';
 
 
   /**

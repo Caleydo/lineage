@@ -32,7 +32,6 @@ class tableData {
 
     const TEMP_MAX_COLS_DISPLAYED = 15;
 
-
     // grab all the attribute names (they're the keys in the obj dict)
     Object.keys(data_in[0]).forEach(column_name=>{
       this.referenceColumns.push(new Column(column_name));
@@ -59,8 +58,6 @@ class tableData {
     }
 
     this.numberOfColumnsDisplayed = Math.min(TEMP_MAX_COLS_DISPLAYED, this.referenceColumns.length); //init
-    console.log("table data, numbcols: " + this.numberOfColumnsDisplayed);
-
   }
 
   // adds to the *displayed* columns

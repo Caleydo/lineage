@@ -22,7 +22,7 @@ import * as tableData from './tableData'
 // import {sampleData} from './sampleData'
 
 //Import Actual Data from ./sampleData
-import {realData} from './data_38'
+import {realData} from './data/data_38'
 // import {realData} from './data_149'
 // import {realData} from './data_777721'
 
@@ -96,13 +96,10 @@ export class App {
       let attributePanel = panel.create(this.$node.select('#data_selection').node());
       attributePanel.init();
 
-
     this.$node.select('h3').remove();
     this.setBusy(false);
 
     return Promise.resolve(this);
-
-
   }
 
   /**
@@ -112,7 +109,6 @@ export class App {
   setBusy(isBusy) {
     this.$node.select('.busy').classed('hidden', !isBusy);
   }
-
 }
 
 /**

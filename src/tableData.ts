@@ -10,31 +10,35 @@ import {Config} from './config';
 /**
 * Class that represents the table data
 */
+import * as events from 'phovea_core/src/event';
+
 class tableData {
   public referenceColumns = []; //[Column]
   public referenceRows = [];    //[{row_id, data}
-
   public displayedRowOrder = [];    //[int] : list of (lists of indicies) b.c aggregation
   public displayedColumnOrder = []; //[int] : list of indicies
   public numberOfColumnsDisplayed = 0; //keep track of length bc js arrays
 
 
 
-  constructor(data) {
-    this.parseData(data);
+  constructor(data ,desc) {
+    this.parseData(data,desc);
     //  this.layout();
   }
 
 
   // populates referenceRows & referenceColumns
   // initializes dRO & dCO to be the references
-  public parseData(data_in){
+  public parseData(data_in , desc_in){
+
+    this.attachListener();
+
 
     const TEMP_MAX_COLS_DISPLAYED = 15;
 
     // grab all the attribute names (they're the keys in the obj dict)
-    Object.keys(data_in[0]).forEach(column_name=>{
-      this.referenceColumns.push(new Column(column_name));
+    desc_in.forEach(column=>{
+      this.referenceColumns.push(new Column(column.name , column.value.type));
     });
 
 
@@ -92,6 +96,24 @@ class tableData {
 
   }
 
+  private attachListener() {
+
+    //Set listener for added attribute to the active list
+    events.on('attribute_added', (evt, item )=> {
+      this.addColumn(item.name , item.newIndex);
+    });
+
+    //Set listener for removed attribute from the active list
+    events.on('attribute_reordered', (evt, item )=> {
+      this.reorderColumn(item.name, item.newIndex);
+    });
+    //Set listener for reordering attribute within the active list
+    events.on('attribute_removed', (evt, item )=> {
+      this.removeColumn(item.name)
+    });
+  }
+
+
 
 }
 
@@ -106,9 +128,10 @@ function Width(column_type){ //column_name : string
 }
 
 // columns have a name & a preferred width (s/m/l)
-function Column(name){ //name : string
+function Column(name, type){ //name : string
   this.name = name;
-  this.width = Width(this.type);
+  this.width = Width(type);
+  this.type = type;
 }
 
 
@@ -120,6 +143,6 @@ function Column(name){ //name : string
 * @param data
 * @returns {tableData}
 */
-export function create(data) {
-  return new tableData(data);
+export function create(data , desc) {
+  return new tableData(data , desc);
 }

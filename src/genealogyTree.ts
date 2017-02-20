@@ -1247,10 +1247,12 @@ class genealogyTree {
         	
         	this.data.parentChildEdges.forEach((d,i)=>{
 	        	
-	        	if (d.ma == ma && d.pa == pa){
-		        	childCount = childCount +1
+	        	if (d.ma == ma && d.pa == pa ){
+		        	//Only count unaffected children so as to avoid gaps in the kid Grid
+		        	if (!d.target.affected)
+		        		childCount = childCount +1
 		        	if (d.target == node){			        	
-			        	console.log('Child Count, ' , childCount  , ' child x is ' , Math.ceil(childCount % this.kidGridSize))
+			        	console.log('Family ' , max(node['family_ids']) ,   ' has ', childCount  , ' kids. child is ' , Math.ceil(childCount % this.kidGridSize))
 			        	return this.x(node.x) + this.kidGridScale(childCount % this.kidGridSize);	
 		        	}
 		        		        	
@@ -1285,10 +1287,10 @@ class genealogyTree {
         	this.data.parentChildEdges.forEach((d,i)=>{
 	        	
 	        	if (d.ma == ma && d.pa == pa){
-		        	childCount = childCount +1		        	
+		        	//Only count unaffected children so as to avoid gaps in the kid Grid
+		        	if (!d.target.affected)
+		        		childCount = childCount +1		        	
 		        	if (d.target == node){
-			        	
-			        	console.log('Child Count, ' , childCount  , 'child y is ' , Math.ceil(childCount / this.kidGridSize))
 			        	return this.y(node.y) + this.kidGridScale(Math.ceil(childCount / this.kidGridSize));
 		        	}
 		        			        	
@@ -1345,7 +1347,7 @@ class genealogyTree {
   private attachListeners() {
     events.on('table_row_selected', (evt, item) => {
       let wasSelected = selectAll('.highlightBar').filter((d) => {
-        return d['y'] == item
+        return d['id'] == item
       }).classed('selected');
 
       //'Unselect all other background bars if ctrl was not pressed
@@ -1354,7 +1356,7 @@ class genealogyTree {
       }
 
       selectAll('.highlightBar').filter((d) => {
-        return d['y'] == item
+        return d['id'] == item
       }).classed('selected', function () {
         return (!wasSelected);
       })
@@ -1362,7 +1364,7 @@ class genealogyTree {
 
     events.on('table_row_hover_on', (evt, item) => {
       selectAll('.highlightBar').filter((d) => {
-        return d['y'] == item
+        return d['id'] == item
       }).attr('opacity', .2)
       select('.row_' + item).filter((d) => {
         return !d['aggregated']

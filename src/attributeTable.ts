@@ -295,16 +295,22 @@ class attributeTable {
     events.on('row_selected', (evt, row, multipleSelection)=> {
         selectAll('.boundary').classed('tablehovered', false); //don't hover
         console.log(multipleSelection);
-        if (multipleSelection == 'single'){ //unless we pressed shift, unselect everything
-             selectAll('.boundary').classed('tableselected',false);
-        }
         selectAll('.boundary').classed('tableselected', function(a){
           // if it's the right row, toggle it
           // if it's the wrong row, leave the selection the same
           const rightRow = (select(this).attr('row_pos') == row);
           if(rightRow)
             return (!select(this).classed('tableselected')); //toggle it
-          return select(this).classed('tableselected'); //leave it be
+          else{
+            if (multipleSelection == 'single'){ //unless we pressed shift, unselect everything else
+                 select(this).classed('tableselected',false);
+            }
+            return select(this).classed('tableselected'); //leave it be
+          }
+
+
+
+
         });
     });
 

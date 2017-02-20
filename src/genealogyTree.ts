@@ -81,7 +81,7 @@ class genealogyTree {
   private y = scaleLinear();
   
   
-  private kidGridSize = 4;
+  private kidGridSize = 2;
   //Scale to place siblings on kid grid
   private kidGridScale = scaleLinear()
   .domain([1,this.kidGridSize])
@@ -661,7 +661,7 @@ class genealogyTree {
 
 	  
 /*
-	 //Node Lines for kid grid - Temporarily 
+	 //Node Lines for kid grid - Temporarily removed to declutter
     allNodes.selectAll('.nodeLine').filter((d) => {
       return d['hidden'] && !d['children']
     })
@@ -778,7 +778,11 @@ class genealogyTree {
     allNodes
       .transition(t)
       .attr("transform", (d) => {
-        return "translate(" + this.xPOS(d) + "," + this.yPOS(d) + ")";
+	    let xpos = this.xPOS(d);
+	    let ypos = this.yPOS(d);
+	    
+	    console.log(xpos,ypos)
+        return "translate(" + xpos + "," + ypos + ")";
       })
       .style("fill", (d: any) => {
         return (d.affected) ? "black" : "white"
@@ -1252,8 +1256,16 @@ class genealogyTree {
 		        	if (!d.target.affected)
 		        		childCount = childCount +1
 		        	if (d.target == node){			        	
-			        	console.log('Family ' , max(node['family_ids']) ,   ' has ', childCount  , ' kids. child is ' , Math.ceil(childCount % this.kidGridSize))
-			        	return this.x(node.x) + this.kidGridScale(childCount % this.kidGridSize);	
+			        	
+			        	let xpos = childCount % this.kidGridSize; 
+			        	if (xpos == 0)
+			        		xpos = this.kidGridSize
+			        		
+			        		
+						let ans  = this.x(node.x) + this.kidGridScale(xpos)
+			        		
+			        	console.log('Family ' , max(node['family_ids']) ,   ' has ', childCount  , ' kids. child xpos is ' , ans)
+			        	return ans;	
 		        	}
 		        		        	
 	        	}
@@ -1291,7 +1303,9 @@ class genealogyTree {
 		        	if (!d.target.affected)
 		        		childCount = childCount +1		        	
 		        	if (d.target == node){
-			        	return this.y(node.y) + this.kidGridScale(Math.ceil(childCount / this.kidGridSize));
+			        	let ypos = this.y(node.y) + this.kidGridScale(Math.ceil(childCount / this.kidGridSize))
+			        	console.log('child y is ' , ypos)
+			        	return ypos;
 		        	}
 		        			        	
 	        	}

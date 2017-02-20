@@ -13,7 +13,7 @@
     ],
     "baseUrl": "../",
     "noImplicitAny": false,
-    "skipLibCheck": true
+     "skipLibCheck": true
   },
   "include": [
     "src/**/*.ts",

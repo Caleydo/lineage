@@ -1,3 +1,6 @@
+$edge-color: #4f4f4d;
+$node-color: #4f4f4d;
+
 
 .line {
     fill: none;
@@ -7,7 +10,7 @@
 
 #graph_table{
 	overflow: scroll;
-	height: 400px;
+	height: 900px;
 }
 
 .hide{
@@ -52,7 +55,7 @@
     /*fill:none*/
 }
 
-.backgroundBar{
+.highlightBar{
 //     stroke:  #ffc800;
     stroke-width:0px;
     fill:#ffc800
@@ -68,7 +71,7 @@ rect.selected{
 .node rect, 
 .node circle, 
 .node .hex{
-    stroke:black;
+    stroke:$node-color;
 //     stroke-width: 3px;
 }
 
@@ -80,8 +83,8 @@ rect.selected{
 
 .node .lifeRect rect
 {
-	stroke:none
-}
+	stroke:none;
+  }
 
 .phantom{
  	stroke-opacity:.2;
@@ -99,15 +102,30 @@ rect.selected{
  	opacity:.2;
 }
 
+//Hide Life Line for Aggregated and Hidden Nodes;
+.aggregated .lifeRect,
 .collapsed .lifeRect{
-	visibility:hidden
+	visibility:hidden;
 }
+
+
+.collapsed .backgroundBar{
+	pointer-events: none;
+}
+
+.nodeLine{
+	stroke:black;
+}
+
+
+
 
 .nodeLabel,
 .ageLabel,
 .nodeIcon,
 .lifeRect,
-.nodeLine{
+.nodeLine,
+.highlightBar{
 	pointer-events: none;
 }
 
@@ -121,13 +139,13 @@ rect.selected{
 
 
 .edges{
-    stroke:black;
+    stroke:$edge-color;
 //     stroke-width: 3px;
     fill:none
 }
 
 .parentEdges{
-    stroke:black;
+    stroke:$edge-color;
 //     stroke-width: 3px;
     fill:none
 }

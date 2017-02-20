@@ -29,6 +29,9 @@ class tableData {
   // populates referenceRows & referenceColumns
   // initializes dRO & dCO to be the references
   public parseData(data_in){
+
+    const TEMP_MAX_COLS_DISPLAYED = 15;
+
     // grab all the attribute names (they're the keys in the obj dict)
     Object.keys(data_in[0]).forEach(column_name=>{
       this.referenceColumns.push(new Column(column_name));
@@ -49,10 +52,12 @@ class tableData {
     }
 
     // init the displayedColOrder to be the same as the reference cols
-    for (var index = 0; index < this.referenceColumns.length; index++) {
+    for (var index = 0; index <
+      Math.min(TEMP_MAX_COLS_DISPLAYED, this.referenceColumns.length); index++) {
       this.displayedColumnOrder.push( index );
     }
 
+    this.numberOfColumnsDisplayed = Math.min(TEMP_MAX_COLS_DISPLAYED, this.referenceColumns.length); //init
   }
 
   // adds to the *displayed* columns
@@ -87,28 +92,26 @@ class tableData {
 
   }
 
+
 }
 
 
-/*function Row(row_id, row_data){
-  this.row_id = row_id;
-  this.row_data = row_data;
-}*/
-
-// hard-code some prefered default sizes for our data TODO
-function Width(column_name){ //column_name : string
-  if(column_name === 'bmi')
-    return 2;
-  else if(column_name === 'age')
-    return 3;
+// TODO once we know types of columns
+function Width(column_type){ //column_name : string
+  // if(column_type === 'ID')
+  //   return 1;
+  // else if(column_type === 'age')
+  //   return 3;
   return 1; // everything else & unknown column type
 }
 
 // columns have a name & a preferred width (s/m/l)
 function Column(name){ //name : string
   this.name = name;
-  this.width = Width(name);
+  this.width = Width(this.type);
 }
+
+
 
 
 

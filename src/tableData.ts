@@ -13,7 +13,6 @@ import {Config} from './config';
 class tableData {
   public referenceColumns = []; //[Column]
   public referenceRows = [];    //[{row_id, data}
-
   public displayedRowOrder = [];    //[int] : list of (lists of indicies) b.c aggregation
   public displayedColumnOrder = []; //[int] : list of indicies
   public numberOfColumnsDisplayed = 0; //keep track of length bc js arrays
@@ -37,7 +36,7 @@ class tableData {
     desc_in.forEach(column=>{
       this.referenceColumns.push(new Column(column.name , column.value.type));
     });
-    
+
 
     // creates a row id & stashes data in a Row Obj. in the reference list.
     data_in.forEach(d=>{

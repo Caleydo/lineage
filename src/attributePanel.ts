@@ -19,13 +19,14 @@ class attributePanel {
    // access to all the data in our backend
   private all_the_data;
   private column_order;
-  private num_cols;
-  private col_names;
   private columns;
 
 
   // attributes lists
-  private
+  private primary_attribute_list;
+  private secondry_attribute_list;
+  private active_attribute_list;
+  private inactive_attribute_list;
 
   constructor(parent:Element) {
     this.$node = select(parent)
@@ -41,10 +42,8 @@ class attributePanel {
   init(data) {
     this.all_the_data = data;
     this.column_order = data.displayedColumnOrder;
-    this.num_cols = data.numberOfColumnsDisplayed;
-    this.col_names = data.referenceColumns;
+    this.columns = data.referenceColumns;
 
-    console.log(this.col_names);
     this.build();
     this.attachListener();
 
@@ -68,7 +67,7 @@ class attributePanel {
 
     // list that holds primary attributes
     // a user can populate this list by dragging elements from the active list
-    const primary_menu_content = menu_list.append('ul')
+    this.primary_attribute_list = menu_list.append('ul')
       .attr('id', 'primary-menu-content')
       .classed('menu-content sub-menu collapse in fade', true)
       .html(`
@@ -76,7 +75,7 @@ class attributePanel {
 
      // list that holds secondry attributes
     // a user can populate this list by dragging elements from the active list
-    const secondry_menu_content = menu_list.append('ul')
+    this.secondry_attribute_list = menu_list.append('ul')
       .attr('id', 'secondry-menu-content')
       .classed('menu-content sub-menu collapse in fade', true)
       .html(`
@@ -84,7 +83,7 @@ class attributePanel {
 
     // list that holds data attribute
     // initially all attributes are active
-    const active_menu_content = menu_list.append('ul')
+    this.active_attribute_list = menu_list.append('ul')
       .attr('id', 'active-menu-content')
       .classed('menu-content collapse in', true);
 
@@ -95,12 +94,9 @@ class attributePanel {
                                 </li>`);
 
 
-
-
-
     // list that holds inactive attributes
     // a user can populate this list by dragging elements from the active list
-    const inactive_menu_content = menu_list.append('ul')
+    this.inactive_attribute_list = menu_list.append('ul')
       .attr('id', 'inactive-menu-content')
       .classed('menu-content sub-menu collapse in fade', true)
       .html(`
@@ -181,50 +177,26 @@ class attributePanel {
 
     });
 
-
-    //this.loadData();
-    //this.populateData();
+    this.columns.forEach(column=> {
+        this.addAttribute(column.name, column.type)
+      })
 
 
   }
 
-  /**
-   * load data into attribute panel
-   */
-  private loadData() {
 
-    const data_desc = datasets[0].desc;
-    const data_url = datasets[0].url;
-    let headers = []
-    let dataDesc = ['key', 'date', 'categorical', 'string', 'string', 'string', 'number', 'date', 'number', 'date'];
-
-    csv(data_url, (_data) => {
-      //"personid", "byr", "sex", "Archivepersonid", "OMEID", "LabID", "FirstBMI", "FirstBMIYr", "MaxBMI", "MaxBMIYr"]
-      headers = keys(_data[0])
-      _data.forEach((d, i) => {
-        d.FirstBMI = +d['FirstBMI']
-        d.MaxBMI = +d['MaxBMI']
-        this.data.push(d);
-      })
-      headers.forEach((h)=> {
-        this.addHeader(h, dataDesc[headers.indexOf(h)])
-      })
-    })
-  }
-
-
-  private addHeader(header, desc) {
+  private addAttribute(column_name, column_desc) {
 
     //append the header as a menu option
     let data_attr = select('#active-menu-content').append('li')
       .classed('collapsed active', true)
-      .attr('data-target', '#' + header)
+      .attr('data-target', '#' + column_name)
       .attr('data-toggle', 'collapse');
 
     data_attr.append('a').attr('href', '#')
       .html('<i class=\"glyphicon glyphicon-move sort_handle\"></i>')
-      .append('strong').html(header)
-      .append('span').attr('class', desc);
+      .append('strong').html(column_name)
+      .append('span').attr('class', column_desc);
 
     data_attr.on('mouseover', function () {
       select(this).select('.sort_handle').classed('focus', true)

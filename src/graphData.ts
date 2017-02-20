@@ -19,8 +19,6 @@ class graphData {
 
   constructor(data) {
     this.nodes = data;
-    console.log(data[0])
-
     this.uniqueID = [];
 
     //Sort nodes by y value, always starting at the founder (largest y) ;
@@ -182,8 +180,6 @@ class graphData {
     // 		1. find which nuclear families to aggregate
     let family_ids = root;
 
-    console.log('root is ', root[0])
-
     let allowedRoots = [2, 5, 6, 4];
 
     if (allowedRoots.indexOf(root[0]) != -1) {
@@ -225,7 +221,6 @@ class graphData {
       toAggregate.sort(function (a, b) {
         return a - b
       });
-      console.log('toAggregate', toAggregate, 'id', id);
 
       //Call aggregate Nodes on the non-affected
       this.aggregateNodes(toAggregate, id, family_ids)
@@ -331,8 +326,6 @@ class graphData {
       })
     }
 
-    console.log('indexes for ', id, ' are', indexes.filter(x => [aggregateNode['y']].indexOf(x) < 0));
-
     this.collapseEmptyRows(indexes.filter(x => [aggregateNode['y']].indexOf(x) < 0));
 //         this.collapseEmptyRows(indexes);
   };
@@ -352,7 +345,6 @@ class graphData {
     //Traverse down the 'tree' and note all indexes that need to be hidden
 
     let Y = startIndex;
-    console.log('starting at', Y);
 
     this.nodes.sort((a, b) => {
       return b['Y'] - a['Y']
@@ -402,7 +394,6 @@ class graphData {
         }
         //If found affected case, decrease the Y value for the next non child node;
         if (node['affected']) {
-          console.log('decrementing Y', Y);
           Y = Y - 1;
         }
         else {
@@ -443,7 +434,6 @@ class graphData {
       return a - b
     }) //; .splice(-1,1);
 
-    console.log('indexes', indexes)
 
     let bin = [];
     for (let i = minY; i < maxY; i++) {
@@ -454,7 +444,6 @@ class graphData {
         bin.push(0)
       }
     }
-    console.log(bin);
 
     let collapse = bin.reduce(function (r, a) {
       if (r.length > 0)
@@ -463,7 +452,6 @@ class graphData {
       return r;
     }, []);
 
-    console.log(collapse);
 
     this.nodes.forEach(function (d, i) {
 // 	        console.log([d['y']-minY] , ' needs to decrease' , collapse[d['y']-minY-1] , 'rows')
@@ -477,13 +465,10 @@ class graphData {
   //Function to re-expand aggregated nodes;
   private expandAggregates(indexes) {
 
-    console.log('indexes are ', indexes)
-
     this.nodes.forEach(function (d, i) {
 // 	        console.log([d['y']-minY] , ' needs to decrease' , collapse[d['y']-minY-1] , 'rows')
 
 //             if (indexes.includes(d['y'])){
-      console.log('here')
       d['aggregated'] = false;
       d['y'] = d['Y'];
 //             }

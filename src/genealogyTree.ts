@@ -81,8 +81,11 @@ class genealogyTree {
   private y = scaleLinear();
   
   
+  private kidGridSize = 4;
   //Scale to place siblings on kid grid
-  private kidGridScale = scaleLinear().domain([1,4]).range([0,Config.glyphSize*2]);
+  private kidGridScale = scaleLinear()
+  .domain([1,this.kidGridSize])
+  .range([-Config.glyphSize, Config.glyphSize]);
 
   //Axis for the visible nodes
   private visibleXAxis;
@@ -612,6 +615,7 @@ class genealogyTree {
       .append("line")
       .attr('class', 'nodeLine')
 
+	  //Node lines for deceased and uncollapsed nodes
     allNodes.selectAll('.nodeLine')
       .attr("x1", function (d: any) {
         return d.sex == 'F' ? -Config.glyphSize : -Config.glyphSize / 2;
@@ -627,7 +631,9 @@ class genealogyTree {
       })
       .attr("stroke-width", 3)
 
-
+	  
+/*
+	 //Node Lines for kid grid - Temporarily 
     allNodes.selectAll('.nodeLine').filter((d) => {
       return d['hidden'] && !d['children']
     })
@@ -644,8 +650,10 @@ class genealogyTree {
         return d.sex == 'F' ? Config.hiddenGlyphSize : Config.hiddenGlyphSize * 2.5;
       })
       .attr("stroke-width", 1)
+*/
 
 
+	  //Node Lines for 75%  sized hidden nodes
     allNodes.selectAll('.nodeLine').filter((d) => {
       return d['hidden'] && d['children']
     })
@@ -700,8 +708,8 @@ class genealogyTree {
       .filter((d) => {
         return d['hidden'] && !d['children']
       })
-      .attr("width", Config.hiddenGlyphSize * 2)
-      .attr("height", Config.hiddenGlyphSize * 2);
+      .attr("width", Config.hiddenGlyphSize * 1)
+      .attr("height", Config.hiddenGlyphSize * 1);
 
 
     allNodes.selectAll('.male')
@@ -727,7 +735,7 @@ class genealogyTree {
       .filter((d) => {
         return d['hidden'] && !d['children']
       })
-      .attr("r", Config.hiddenGlyphSize);
+      .attr("r", Config.hiddenGlyphSize/2);
 
     allNodes.selectAll('.female')
       .filter((d) => {
@@ -737,9 +745,6 @@ class genealogyTree {
 
 
     allNodesEnter.attr('opacity', 0);
-
-    allNodes
-// 		.on("click",function(d){console.log('clicked')});
 
     //Position and Color all Nodes
     allNodes
@@ -915,6 +920,7 @@ class genealogyTree {
         let wasSelected = selectAll('.highlightBar').filter((e) => {
           return e == d
         }).classed('selected');
+        
 // 		    let wasSelected = select(this).select('.backgroundBar').classed('selected');
 
         //'Unselect all other background bars if ctrl was not pressed
@@ -924,7 +930,7 @@ class genealogyTree {
         }
 
         selectAll('.highlightBar').filter((e) => {
-          return e['y'] == d['y']
+          return e == d
         }).classed('selected', function () {
           return (!wasSelected);
         })
@@ -1195,16 +1201,74 @@ class genealogyTree {
 
 
   private xPOS(node) {
+	  
+	//Check for hidden nodes with no children to place in the kid grid; 
+	
+	  if (node['hidden'] && !node['children']){
+        
+        	let childCount = 0;
+        	//Find ma and pa
+        	let edge = this.data.parentChildEdges.filter((d) => {
+            	return d.target == node
+          	});
+          	
+		  	let ma = edge[0]['ma'];
+		  	let pa = edge[0]['pa'];
+          
+        	
+        	this.data.parentChildEdges.forEach((d,i)=>{
+	        	
+	        	if (d.ma == ma && d.pa == pa){
+		        	childCount = childCount +1
+		        	if (d.target == node){			        	
+			        	console.log('Child Count, ' , childCount  , ' child x is ' , Math.ceil(childCount % this.kidGridSize))
+			        	return this.x(node.x) + this.kidGridScale(childCount % this.kidGridSize);	
+		        	}
+		        		        	
+	        	}
+	        	
+        	})    	
+	}
 
     if (node['sex'] == 'M') {
-      return node['hidden'] && !node['children'] ? this.x(node.x) - Config.hiddenGlyphSize : this.x(node.x) - Config.glyphSize;
+//       return node['hidden'] && !node['children'] ? this.x(node.x) - Config.hiddenGlyphSize : this.x(node.x) - Config.glyphSize;
+		return this.x(node.x) - Config.glyphSize;
     }
     else
       return this.x(node.x);
   }
 
   private yPOS(node) {
-    if (node['sex'] == 'M')
+	       
+	  
+	  	  if (node['hidden'] && !node['children']){
+        
+        	let childCount = 0;
+        	//Find ma and pa
+        	let edge = this.data.parentChildEdges.filter((d) => {
+            	return d.target == node
+          	});
+          	
+		  	let ma = edge[0]['ma'];
+		  	let pa = edge[0]['pa'];
+          
+        	
+        	this.data.parentChildEdges.forEach((d,i)=>{
+	        	
+	        	if (d.ma == ma && d.pa == pa){
+		        	childCount = childCount +1		        	
+		        	if (d.target == node){
+			        	
+			        	console.log('Child Count, ' , childCount  , 'child y is ' , Math.ceil(childCount / this.kidGridSize))
+			        	return this.y(node.y) + this.kidGridScale(Math.ceil(childCount / this.kidGridSize));
+		        	}
+		        			        	
+	        	}
+	        	
+        	})    	
+	}	
+	
+	      if (node['sex'] == 'M')
       return node['hidden'] && !node['children'] ? this.y(node.y) - Config.hiddenGlyphSize : this.y(node.y) - Config.glyphSize;
     else
       return this.y(node.y)

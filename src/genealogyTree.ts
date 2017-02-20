@@ -227,8 +227,24 @@ class genealogyTree {
     //Create group for genealogy tree
     svg.append("g")
       .attr("transform", "translate(" + this.margin.left + "," + (this.margin.top + Config.glyphSize) + ")")
-      .classed('genealogyTree', true)
+//       .classed('genealogyTree', true)
       .attr('id', 'genealogyTree')
+      
+      
+      //Ensure the right order of edges and nodes
+      
+      //create a group in the background for edges
+      select('#genealogyTree')
+      .append("g")
+      .attr("id","edges")
+      
+      //create a group in the foreground for nodes
+     select('#genealogyTree')
+      .append("g")
+      .attr("id","nodes")
+      
+      
+      
       
           //Create group for all axis
     const axis = svg.append("g")
@@ -273,10 +289,10 @@ class genealogyTree {
 
     let t = transition('t').duration(500).ease(easeLinear);
 
-    let graph = select('#genealogyTree')
+    let edgeGroup = select('#genealogyTree').select('#edges')
 
 	//Only draw parentedges if target node is not 
-    let edgePaths = graph.selectAll(".edges")
+    let edgePaths = edgeGroup.selectAll(".edges")
       .data(edges.filter(function (d) {
         return !d['target']['aggregated']
       }), function (d) {
@@ -312,7 +328,7 @@ class genealogyTree {
       .attr("stroke-width", Config.glyphSize / 4)
 
 
-    let parentEdgePaths = graph.selectAll(".parentEdges")// only draw parent parent edges if neither parent is aggregated
+    let parentEdgePaths = edgeGroup.selectAll(".parentEdges")// only draw parent parent edges if neither parent is aggregated
       .data(parentEdges.filter(function (d) {
         return !d['ma']['aggregated'] || !d['pa']['aggregated']
       }), function (d) {
@@ -352,10 +368,11 @@ class genealogyTree {
     ('called update_nodes')
     let t = transition('t').duration(500).ease(easeLinear);
 
-    let graph = select('#genealogyTree')
+
+	let nodeGroup = select('#genealogyTree').select('#nodes')
 
 
-    let allNodes = graph.selectAll(".node")
+    let allNodes = nodeGroup.selectAll(".node")
       .data(nodes, function (d) {
         return d['id'];
       });

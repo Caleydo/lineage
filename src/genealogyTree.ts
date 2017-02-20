@@ -345,12 +345,20 @@ class genealogyTree {
       })
 
 
-    //Attach background rectangle to all rows and set to invisible (will be visible on hover)
+    //Attach background rectangle to all rows and set to invisible (will be used to capture mouse events)
     allNodesEnter.filter((d) => {
-      return !d['aggregated']
+      return !d['aggregated'] 
     })
       .append('rect')
       .classed('backgroundBar', true);
+      
+      
+    //Attach highlight rectangle to all rows and set to invisible (will be set to visible on hover over backgroundBar)
+    allNodesEnter.filter((d) => {
+      return !d['aggregated'] && !d['hidden']
+    })
+      .append('rect')
+      .classed('highlightBar', true);
 
 
     /*
@@ -364,6 +372,7 @@ class genealogyTree {
       .selectAll('.backgroundBar')
       .attr("width", (d) => {
         return (max(this.x.range()) - min(this.x.range()) + this.margin.right);
+//         return (max(this.x.range()) - this.x(d['x']) + this.margin.right);
       })
       .attr('x', (d) => {
         return -this.x(d['x'])
@@ -372,6 +381,30 @@ class genealogyTree {
       .attr("transform", (d: any) => {
         return d.sex == 'M' ? "translate(" + Config.glyphSize + ",0)" : "translate(" + 0 + "," + (-Config.glyphSize) + ")";
       })
+      
+     allNodes
+      .selectAll('.highlightBar')
+      .attr("width", (d) => {
+//         return (max(this.x.range()) - min(this.x.range()) + this.margin.right);
+        return (max(this.x.range()) - this.x(d['x']) + this.margin.right);
+      })
+/*
+      .attr('x', (d) => {
+        return -this.x(d['x'])
+      })
+*/
+      .attr("height", Config.glyphSize * 2)
+      .attr("transform", (d: any) => {
+        return d.sex == 'M' ? "translate(" + Config.glyphSize + ",0)" : "translate(" + 0 + "," + (-Config.glyphSize) + ")";
+      })
+      
+      
+      
+
+
+
+
+      
 //         .classed('selected',(d)=>{return d['clicked']}) for now
 
     /*
@@ -382,25 +415,47 @@ class genealogyTree {
     allNodes
       .selectAll('.backgroundBar')
       .attr('opacity', 0);
+      
+      
+     allNodes
+      .selectAll('.highlightBar')
+      .attr('opacity', 0);
 
     selectAll('.backgroundBar')
       .on('mouseover', function (d: any) {
 // 	        console.log('moused_over' , )
-        select(this).attr('opacity', .2)
+		
+		//Set opacity of corresponding highlightBar 
+        selectAll('.highlightBar').filter((e)=>{return e ==d}).attr('opacity', .2)
+        
+        //Set the age label on the lifeLine of this row to visible
         select('.row_' + d['y']).filter((d) => {
           return !d['aggregated'] && !d['hidden']
         }).select('.lifeRect').select('.ageLabel').attr('visibility', 'visible');
+        
+        //For aggregated nodes, show all the nodes that went into the aggregate
         selectAll('.row_' + d['y']).filter('.aggregated').attr('opacity', 1)
+        
+        //Hide the aggregate node itself
         selectAll('.row_' + d['y']).select('.hex').attr('opacity', 0)
 
 
         events.fire('row_mouseover', d['y']);
       })
       .on('mouseout', (d) => {
-        selectAll('.aggregated').attr('opacity', 0)
-        selectAll('.backgroundBar').attr('opacity', 0)
+	             
+        //Hide all the highlightBars
+        selectAll('.highlightBar').attr('opacity', 0)
+        
+        //Hide all the age labels on the lifeLines
         selectAll('.ageLabel').attr('visibility', 'hidden');
+        
+        //Hide all nodes that were aggregated
+        selectAll('.aggregated').attr('opacity', 0);
+        
+        //Set the opacity of any aggregate icons back to 1; 
         selectAll('.row_' + d['y']).select('.hex').attr('opacity', 1)
+        
         events.fire('row_mouseout', d['y']);
       })
 
@@ -822,18 +877,18 @@ class genealogyTree {
         }
         if (event.defaultPrevented) return; // dragged
 
-        let wasSelected = selectAll('.backgroundBar').filter((e) => {
+        let wasSelected = selectAll('.highlightBar').filter((e) => {
           return e == d
         }).classed('selected');
 // 		    let wasSelected = select(this).select('.backgroundBar').classed('selected');
 
         //'Unselect all other background bars if ctrl was not pressed
         if (!event.metaKey) {
-          selectAll('.backgroundBar').classed('selected', false);
+          selectAll('.highlightBar').classed('selected', false);
 // 			console.log(selectAll('.selected').data())
         }
 
-        selectAll('.backgroundBar').filter((e) => {
+        selectAll('.highlightBar').filter((e) => {
           return e['y'] == d['y']
         }).classed('selected', function () {
           return (!wasSelected);
@@ -1161,16 +1216,16 @@ class genealogyTree {
 
   private attachListeners() {
     events.on('table_row_selected', (evt, item) => {
-      let wasSelected = selectAll('.backgroundBar').filter((d) => {
+      let wasSelected = selectAll('.highlightBar').filter((d) => {
         return d['y'] == item
       }).classed('selected');
 
       //'Unselect all other background bars if ctrl was not pressed
       if (!event.metaKey) {
-        selectAll('.backgroundBar').classed('selected', false);
+        selectAll('.highlightBar').classed('selected', false);
       }
 
-      selectAll('.backgroundBar').filter((d) => {
+      selectAll('.highlightBar').filter((d) => {
         return d['y'] == item
       }).classed('selected', function () {
         return (!wasSelected);
@@ -1178,7 +1233,7 @@ class genealogyTree {
     });
 
     events.on('table_row_hover_on', (evt, item) => {
-      selectAll('.backgroundBar').filter((d) => {
+      selectAll('.highlightBar').filter((d) => {
         return d['y'] == item
       }).attr('opacity', .2)
       select('.row_' + item).filter((d) => {
@@ -1190,7 +1245,7 @@ class genealogyTree {
 
     events.on('table_row_hover_off', (evt, item) => {
       selectAll('.aggregated').attr('opacity', 0)
-      selectAll('.backgroundBar').attr('opacity', 0)
+      selectAll('.highlightBar').attr('opacity', 0)
       selectAll('.ageLabel').attr('visibility', 'hidden');
       selectAll('.row_' + item).select('.hex').attr('opacity', 1)
     });

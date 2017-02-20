@@ -55,7 +55,7 @@ $node-color: #4f4f4d;
     /*fill:none*/
 }
 
-.backgroundBar{
+.highlightBar{
 //     stroke:  #ffc800;
     stroke-width:0px;
     fill:#ffc800
@@ -124,7 +124,8 @@ rect.selected{
 .ageLabel,
 .nodeIcon,
 .lifeRect,
-.nodeLine{
+.nodeLine,
+.highlightBar{
 	pointer-events: none;
 }
 

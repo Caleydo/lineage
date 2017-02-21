@@ -251,7 +251,7 @@ class genealogyTree {
       /* wait until 100 ms for callback */
       this.timer = setTimeout(() => {
         this.update_visible_nodes()
-      }, 20);
+      }, 100);
     });
 
     //Create group for genealogy tree
@@ -744,8 +744,24 @@ class genealogyTree {
       .classed('nodeIcon', true)
 
 	//Add KidGrids next to Dad's glyph (if they have children)
-    allNodesEnter.filter(function (d: any) {
-      return d['sex'] == 'M' && d['children'];
+    allNodesEnter.filter( (d: any)=> {
+	    if (d['sex'] == 'F')
+	    	return false;
+	    if (!d['children'])
+	    	return false; 
+	    
+	    let hasGrid = false;
+	    this.data.parentChildEdges.forEach((edge)=>{
+		    console.log(edge['pa']==d,edge['target']['children'])
+		    if (edge['pa']==d && !edge['target']['children']){
+			    console.log('found one')
+		    	hasGrid = true;
+		    }
+		    
+	    })
+	    return hasGrid;
+	    
+//       return d['sex'] == 'M' && d['children'];
     })
       .append("g")
       .classed('kidGrid', true)
@@ -760,7 +776,7 @@ class genealogyTree {
 	  .select('rect')
       .attr("width", Config.glyphSize*2)
       .attr("height", Config.glyphSize*2)
-      .attr("x",Config.glyphSize*2.2)
+      .attr("x",Config.glyphSize*1.7)
       .style('fill', "url(#kidGridGradient)")
       .style('stroke','none')
       
@@ -916,21 +932,22 @@ class genealogyTree {
         	if (node['sex'] == 'M') 
 				offset  = -Config.hiddenGlyphSize/2;
         	
-	return  "translate(" + (this.x(node['x']) + this.kidGridScale(xpos) + offset + Config.glyphSize) + "," + (this.y(node['y']) + this.kidGridScale(ypos) + offset) + ")";
+	return  "translate(" + (this.x(node['x']) + this.kidGridScale(xpos) + offset ) + "," + (this.y(node['y']) + this.kidGridScale(ypos) + offset) + ")";
         }
         
         
-      })
-      
-      
-      .style("fill", (d: any) => {
-        return (d.affected) ? "black" : "white"
-//                 return interpolateViridis(d['maxBMI'][0]/6);
       })
       .attr('id', (d) => {
         return 'g_' + d['id']
       })
       .style("stroke-width", 3);
+      
+      
+            allNodes
+      .style("fill", (d: any) => {
+        return (d.affected) ? "black" : "white"
+//                 return interpolateViridis(d['maxBMI'][0]/6);
+      })
 //             .style("stroke-width", 3);
 
     let tran = t.transition().ease(easeLinear)

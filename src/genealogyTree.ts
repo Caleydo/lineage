@@ -776,13 +776,13 @@ class genealogyTree {
 
     allNodes.selectAll('.couplesLine')
       .attr("x1", (d: any) => {
-        return Config.glyphSize *2.1;
+        return Config.glyphSize *1.5;
       })
       .attr("y1", function (d: any) {
         return 0;
       })
       .attr("x2", (d: any) => {
-        return Config.glyphSize *2.1;
+        return Config.glyphSize *1.5;
       })
       .attr("y2", function (d: any) {
 
@@ -824,8 +824,8 @@ class genealogyTree {
       .filter((d) => {
         return d['hidden'] && d['children']
       })
-      .attr("width", Config.glyphSize * 1.5)
-      .attr("height", Config.glyphSize * 1.5);
+      .attr("width", Config.glyphSize * .75)
+      .attr("height", Config.glyphSize * .75);
 
 
     //Add female node glyphs
@@ -849,15 +849,31 @@ class genealogyTree {
       .filter((d) => {
         return d['hidden'] && d['children']
       })
-      .attr("r", Config.glyphSize * .75);
+      .attr("r", Config.glyphSize * .45);
 
 
     allNodesEnter.attr('opacity', 0);
 
 	 
+	     //Position and Color all Nodes
+    allNodes.filter((d)=>{return d['hidden'] && d['children']})
+      .transition(t)
+      .attr("transform", (node) => {
+	    let xpos = this.xPOS(node);
+	    let ypos = this.yPOS(node);
+        
+        let offset = 0;
+        if (node['sex'] == 'F') 
+				offset  = -Config.hiddenGlyphSize*1.2;
+				
+	    let xoffset = Config.glyphSize
+				
+        return "translate(" + (xpos + offset ) + "," + (ypos - offset) + ")";
+       })
+        	
 	
     //Position and Color all Nodes
-    allNodes//.filter((d)=>{return !d['hidden'] || d['children']})
+    allNodes.filter((d)=>{return !d['hidden'] || !d['children']})
       .transition(t)
       .attr("transform", (node) => {
 	    let xpos = this.xPOS(node);
@@ -905,6 +921,8 @@ class genealogyTree {
         
         
       })
+      
+      
       .style("fill", (d: any) => {
         return (d.affected) ? "black" : "white"
 //                 return interpolateViridis(d['maxBMI'][0]/6);
@@ -965,10 +983,11 @@ class genealogyTree {
       //Temporarily hide all collapsed nodes that aren't in the kid grid;
       selectAll('.nodeIcon').filter((d)=>{return d['children'] && d['hidden']})
       .attr('visibility','hidden');
+ */
       
        selectAll('.nodeLine').filter((d)=>{return d['children'] && d['hidden']})
       .attr('visibility','hidden');
-*/
+
 
 
     let dragged = drag()

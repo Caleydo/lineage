@@ -110,14 +110,20 @@ class attributeTable {
     var col_xs = this.all_data.getDisplayedColumnXs(totalWidth);
     var label_xs = this.all_data.getDisplayedColumnMidpointXs(totalWidth);
 
+    var displayedColNames = this.all_data.getDisplayedColumnNames();
+
 
      // ^^ UPDATE THOSE ON EVENTS- IS THIS A BAD DESIGN?
     const table_header = axis.selectAll(".table_header")
     .data(this.column_order)
     .enter();
 
+    console.log("displayedColNames: " + displayedColNames);
+    console.log("col_names: " + col_names);
+
+
     table_header.append("text")
-      .text(function(index) { return col_names[index].name; })
+      .text(function(index) { return displayedColNames[index];})
       .attr('fill', 'black')
       .attr('class', 'b')
 			.attr("transform", function (index) {
@@ -212,9 +218,9 @@ class attributeTable {
         const allValues = data.map(function(elem){return elem[curr_col_name]});
         const uniqueValues = Array.from(new Set(allValues));
 
-        console.log('categorical!');
-        console.log("allValues: " + allValues);
-        console.log("uniqueValues: " + uniqueValues);
+    //    console.log('categorical!');
+    //    console.log("allValues: " + allValues);
+    //    console.log("uniqueValues: " + uniqueValues);
 
         uniqueValues.forEach(function(value) {
           rows.append("rect")

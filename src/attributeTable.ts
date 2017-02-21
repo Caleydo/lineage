@@ -164,73 +164,33 @@ class attributeTable {
 
 
     let rows = table.selectAll(".row")
-    .data(betterData)
-    //.map(function(index){
-    //return index[0]; //TODO! aggregation!
-  //  }))
-      /*this.row_order*/
-    //  betterData.map(function(index){
-    //  return index[0]; //TODO! aggregation!
-    //}))
+    .data(betterData) // TODO: aggregation
     .enter()
     .append("g")
-    .attr('id', function (d) {
-      console.log("d: " + d);
-      console.log("d.id: " + d.id);
-      return ('row_' + /*data.id)*/ d.id);
+    .attr('id', function (elem) {
+      return ('row_' +  elem.id);
     })
     .attr('class', 'row')
-    .attr("transform", function (d, i) {
-      console.log("d: " + d);
-      console.log("d.y: " + d.y);
-      return ('translate(0, ' + /*y(data.y)*/ y(d.y)+ ' )');
+    .attr("transform", function (elem) {
+      return ('translate(0, ' +  y(elem.y)+ ' )');
     });
 
-    rows.append('rect')
+  /*  rows.append('rect')
         .attr("width", this.width)
         .attr("height", rowHeight)
         .attr('fill', 'blue');
 
+*/
 
 
 
-/*
 
 //////////////////////
 // monster for loop creates all vis. encodings for rows
-    for (let i = 0; i < num_cols; i++) {
-    /*  const cell =
-      rows.append("rect")
-      .attr("width", col_widths[i]-3)
-      .attr("height", rowHeight)
-      .attr('fill', function (d) { // TODO: visual encoding based on type!
-        //data[d][col_names[col_order[i]]] == 'F' ? lightPinkGrey : 'pink';
-        if(data[d].y % 3 == 0)
-          return 'lightcoral';
-        else if(data[d].y % 3 == 1)
-          return 'lightskyblue';
-        else
-          return 'lightgreen';
-      })
-      .attr('stroke', 'black')
-      .attr('stoke-width', 1)
-      .attr("transform", function (row_index) {
-        return ('translate(' + col_xs[i] + ' ,0)')
-      }); */
-
-///// vv TEMPORARY ENCODING  vv //////////////
-
-//var displayedColNames = this.all_data.getDisplayedColumnNames();
-//var displayedColTypes = this.all_data.getDisplayedColumnTypes();
-// //
-
-
-
-/*
-
-      const curr_col_name = displayedColNames[i];
-      const curr_col_type = displayedColTypes[i];
-      const curr_col_width = col_widths[i] - 4;
+    for (let colIndex = 0; colIndex < num_cols; colIndex++) {
+      const curr_col_name = displayedColNames[colIndex];
+      const curr_col_type = displayedColTypes[colIndex];
+      const curr_col_width = col_widths[colIndex] - 4;
 
       if( curr_col_type == 'idType' ){
 
@@ -240,25 +200,23 @@ class attributeTable {
         .attr('fill', 'lightgrey')
         .attr('stroke', 'black')
         .attr('stoke-width', 1)
-        .attr("transform", function (row_index) {
-          return ('translate(' + col_xs[i] + ' ,0)')
+        .attr("transform", function () {
+          return ('translate(' + col_xs[colIndex] + ' ,0)')
         });
 
-        rows.append("text") // TODO: temp fix for no encoding
-        .text(function(index) {
-          const the_text = data[index][curr_col_name];  //TODO:idk?
+        rows.append("text")
+        .text(function(elem) {
+          const the_text = elem[curr_col_name];
           return the_text.toString().substring(0, 3); })
         .attr("transform", function (row_index) {
-          return ('translate(' + (label_xs[i] - 10) + ' ,' + (rowHeight/2 + 5) + ')')
+          return ('translate(' + (label_xs[colIndex] - 10) + ' ,' + (rowHeight/2 + 5) + ')')
         });
       }
+
       else if( curr_col_type == 'categorical'){
-        const allValues = data.map(function(elem){return elem[curr_col_name]});
+        const allValues = betterData.map(function(elem){return elem[curr_col_name]});
         const uniqueValues = Array.from(new Set(allValues));
 
-    //    console.log('categorical!');
-    //    console.log("allValues: " + allValues);
-    //    console.log("uniqueValues: " + uniqueValues);
 
         uniqueValues.forEach(function(value) {
           rows.append("rect")
@@ -267,15 +225,16 @@ class attributeTable {
           .attr('fill', 'lightgreen')
           .attr('stroke', 'black')
           .attr('stoke-width', 1)
-          .attr("transform", function (row_index) {
-            return ('translate(' + col_xs[i] + ' ,0)')
+          .attr("transform", function () {
+            return ('translate(' + col_xs[colIndex] + ' ,0)')
           });
       });
       }
+
       else if( curr_col_type == 'int' ){
         // how big is the range?
         //find min, find max
-        const allValues = data.map(function(elem){return elem[curr_col_name]});
+        const allValues = betterData.map(function(elem){return elem[curr_col_name]});
 
         // complicated min/max to avoid unspecified (zero) entries
         const min = [].reduce.call(allValues, function(acc, x) {
@@ -287,16 +246,16 @@ class attributeTable {
 
 
         // only rows that have data
-        rows.filter((elem)=>{return data[elem][curr_col_name].toString().length > 0;})
+        rows.filter((elem)=>{return elem[curr_col_name].toString().length > 0;})
         .append("rect")
-        .attr("width", function(index){
-          return Math.floor((data[index][curr_col_name]-min) * scaledRange);})
+        .attr("width", function(elem){
+          return Math.floor((elem[curr_col_name]-min) * scaledRange);})
         .attr("height", rowHeight)
         .attr('fill', 'grey')
         .attr('stroke', 'black')
         .attr('stoke-width', 1)
-        .attr("transform", function (row_index) {
-          return ('translate(' + col_xs[i] + ' ,0)')
+        .attr("transform", function () {
+          return ('translate(' + col_xs[colIndex] + ' ,0)')
         });
         // and a boundary
         rows.append("rect")
@@ -305,19 +264,14 @@ class attributeTable {
         .attr('fill', 'transparent')
         .attr('stroke', 'black')
         .attr('stoke-width', 1)
-        .attr("transform", function (row_index) {
-          return ('translate(' + col_xs[i] + ' ,0)')
+        .attr("transform", function () {
+          return ('translate(' + col_xs[colIndex] + ' ,0)')
         });
       }
       else
         console.log("oh no, what type is this: " + curr_col_type );
 
 }
-
-
-*/
-
-
 
 
 // filter to categorical

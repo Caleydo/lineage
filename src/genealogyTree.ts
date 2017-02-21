@@ -208,7 +208,40 @@ class genealogyTree {
 	gradient.append("stop")
 	    .attr("offset", "100%")
 	    .attr("stop-color", "white")
+	    .attr("stop-opacity", 0);
+	    
+	    
+ let kidGridGradient = svg.append("defs")
+	  .append("linearGradient")
+	    .attr("id", "kidGridGradient")
+	    .attr("x1", "0%")
+	    .attr("y1", "50%")
+	    .attr("x2", "100%")
+	    .attr("y2", "50%")
+	    .attr("spreadMethod", "pad");
+	
+	kidGridGradient.append("stop")
+	    .attr("offset", "0%")
+	    .attr("stop-color", "white")
+	    .attr("stop-opacity", 0);
+	    
+	kidGridGradient.append("stop")
+	    .attr("offset", "20%")
+	    .attr("stop-color", "white")
 	    .attr("stop-opacity", 1);
+	    
+	 kidGridGradient.append("stop")
+	    .attr("offset", "90%")
+	    .attr("stop-color", "white")
+	    .attr("stop-opacity", 1);
+	
+	kidGridGradient.append("stop")
+	    .attr("offset", "100%")
+	    .attr("stop-color", "white")
+	    .attr("stop-opacity", 0);
+	    
+	    
+	    
 	    
     
 
@@ -236,17 +269,16 @@ class genealogyTree {
       //create a group in the background for edges
       select('#genealogyTree')
       .append("g")
-      .attr("id","edges")
+      .attr("id","edges")  
+      
       
       //create a group in the foreground for nodes
      select('#genealogyTree')
       .append("g")
-      .attr("id","nodes")
+      .attr("id","nodes") 
       
-      
-      
-      
-          //Create group for all axis
+     
+    //Create group for all axis
     const axis = svg.append("g")
       .attr("transform", "translate(" + this.margin.left + "," + this.margin.top / 1.5 + ")")
       .attr('id', 'axis')
@@ -658,10 +690,12 @@ class genealogyTree {
         return d.sex == 'F' ? Config.glyphSize : Config.glyphSize * 2.5;
       })
       .attr("stroke-width", 3)
+      .attr("stroke", function (d: any) {
+        return (d.affected) ? "black" : "#9e9d9b";
+      })
 
 	  
-/*
-	 //Node Lines for kid grid - Temporarily removed to declutter
+	 //Node Lines for kid grid 
     allNodes.selectAll('.nodeLine').filter((d) => {
       return d['hidden'] && !d['children']
     })
@@ -677,8 +711,7 @@ class genealogyTree {
       .attr("y2", function (d: any) {
         return d.sex == 'F' ? Config.hiddenGlyphSize : Config.hiddenGlyphSize * 2.5;
       })
-      .attr("stroke-width", 1)
-*/
+      .attr("stroke-width", 0) //- Temporarily removed to declutter
 
 
 	  //Node Lines for 75%  sized hidden nodes
@@ -698,6 +731,9 @@ class genealogyTree {
         return d.sex == 'F' ? Config.glyphSize : Config.glyphSize * 1.75;
       })
       .attr("stroke-width", 1)
+      .attr("stroke", function (d: any) {
+        return (d.affected) ? "black" : "#9e9d9b";
+      })
 
 
     //Add Aggregate Node glyphs
@@ -719,12 +755,24 @@ class genealogyTree {
       .append("rect")
       .classed('male', true)
       .classed('nodeIcon', true)
+      
+      
+     //Add KidGrids next to Dad's glyph (if they have children)
+    allNodesEnter.filter(function (d: any) {
+      return d['sex'] == 'M' && d['children'];
+    })
+      .append("rect")
+      .classed('kidGrid', true)
+      
+     //Size kidGrids
+    allNodes.selectAll('.kidGrid')
+      .attr("width", (this.kidGridScale.range()[1] - this.kidGridScale.range()[0])) //size of kidGrid is the range of the kidGrid scale defined at the top
+      .attr("height", (this.kidGridScale.range()[1] - this.kidGridScale.range()[0]))
+      .attr("x",Config.glyphSize*3)
+      .style('fill', "url(#kidGridGradient)")
+      .style('stroke','none')
 
-    /*
-     console.log('allNodesEnter has ', allNodesEnter.filter(function(d: any) { console.log('looking at ', d)
-     return d['sex'] == 'M';
-     }).size() , ' male nodes'  );
-     */
+      
 
     //Size hidden nodes differently
     allNodes.selectAll('.male')
@@ -774,14 +822,15 @@ class genealogyTree {
 
     allNodesEnter.attr('opacity', 0);
 
+	 
+	
     //Position and Color all Nodes
     allNodes
       .transition(t)
       .attr("transform", (d) => {
 	    let xpos = this.xPOS(d);
 	    let ypos = this.yPOS(d);
-	    
-	    console.log(xpos,ypos)
+	   
         return "translate(" + xpos + "," + ypos + ")";
       })
       .style("fill", (d: any) => {
@@ -1237,6 +1286,7 @@ class genealogyTree {
 	  
 	//Check for hidden nodes with no children to place in the kid grid; 
 	
+/*
 	  if (node['hidden'] && !node['children']){
         
         	let childCount = 0;
@@ -1264,18 +1314,19 @@ class genealogyTree {
 			        		
 						let ans  = this.x(node.x) + this.kidGridScale(xpos)
 			        		
-			        	console.log('Family ' , max(node['family_ids']) ,   ' has ', childCount  , ' kids. child xpos is ' , ans)
+			        	console.log('Family ' , max(node['family_ids']) ,   ' has ', childCount  , ' kids. child has node.x ', node.x , ' and xpos is ' , ans)
 			        	return ans;	
 		        	}
 		        		        	
 	        	}
 	        	
         	})    	
-	}
+		}
+*/
 
     if (node['sex'] == 'M') {
-//       return node['hidden'] && !node['children'] ? this.x(node.x) - Config.hiddenGlyphSize : this.x(node.x) - Config.glyphSize;
-		return this.x(node.x) - Config.glyphSize;
+      return node['hidden'] && !node['children'] ? this.x(node.x) - Config.hiddenGlyphSize : this.x(node.x) - Config.glyphSize;
+// 		return this.x(node.x) - Config.glyphSize;
     }
     else
       return this.x(node.x);
@@ -1284,6 +1335,7 @@ class genealogyTree {
   private yPOS(node) {
 	       
 	  
+/*
 	  	  if (node['hidden'] && !node['children']){
         
         	let childCount = 0;
@@ -1304,16 +1356,17 @@ class genealogyTree {
 		        		childCount = childCount +1		        	
 		        	if (d.target == node){
 			        	let ypos = this.y(node.y) + this.kidGridScale(Math.ceil(childCount / this.kidGridSize))
-			        	console.log('child y is ' , ypos)
+			        	console.log('child has node.y ', node.y , ' and ypos is ' , ypos)
 			        	return ypos;
 		        	}
 		        			        	
 	        	}
 	        	
         	})    	
-	}	
+		}	
+*/
 	
-	      if (node['sex'] == 'M')
+	if (node['sex'] == 'M')
       return node['hidden'] && !node['children'] ? this.y(node.y) - Config.hiddenGlyphSize : this.y(node.y) - Config.glyphSize;
     else
       return this.y(node.y)

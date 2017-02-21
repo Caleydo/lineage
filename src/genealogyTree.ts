@@ -662,6 +662,27 @@ class genealogyTree {
         return (d.affected) ? "black" : "#9e9d9b";
       })
 
+	  	//Add KidGrids next to Dad's glyph (if they have children)
+    allNodesEnter.filter( (d: any)=> {
+	    if (d['sex'] == 'F')
+	    	return false;
+	    if (!d['children'])
+	    	return false; 
+	    
+	    let hasGrid = true; //change to false to only put kid grids on parents of leaf nodes
+	    this.data.parentChildEdges.forEach((edge)=>{
+		    if (edge['pa']==d && !edge['target']['children']){
+		    	hasGrid = true;
+		    }  
+	    })
+	    return hasGrid;
+	    
+//       return d['sex'] == 'M' && d['children'];
+    })
+      .append("g")
+      .classed('kidGrid', true)
+      .attr('visibility','hidden')
+      
     //Add cross through lines for deceased people
     allNodesEnter.filter(function (d: any) {
       return (+d.deceased == 1);
@@ -715,16 +736,16 @@ class genealogyTree {
       return d['hidden'] && d['children']
     })
       .attr("x1", function (d: any) {
-        return d.sex == 'F' ? -Config.glyphSize : -Config.glyphSize / 4;
+        return d.sex == 'F' ? -Config.hiddenGlyphSize*1.5 : -Config.hiddenGlyphSize / 1.5;
       })
       .attr("y1", function (d: any) {
-        return d.sex == 'F' ? -Config.glyphSize : -Config.glyphSize / 4;
+        return d.sex == 'F' ? -Config.hiddenGlyphSize*1.5 : -Config.hiddenGlyphSize / 1.5;
       })
       .attr("x2", function (d: any) {
-        return d.sex == 'F' ? Config.glyphSize : Config.glyphSize * 1.75;
+        return d.sex == 'F' ? Config.hiddenGlyphSize*1.5 : Config.hiddenGlyphSize * 2.5;
       })
       .attr("y2", function (d: any) {
-        return d.sex == 'F' ? Config.glyphSize : Config.glyphSize * 1.75;
+        return d.sex == 'F' ? Config.hiddenGlyphSize*1.5 : Config.hiddenGlyphSize * 2.5;
       })
       .attr("stroke-width", 1)
       .attr("stroke", function (d: any) {
@@ -744,26 +765,7 @@ class genealogyTree {
     //             .classed('male', true)
       .classed('nodeIcon', true)
 
-	//Add KidGrids next to Dad's glyph (if they have children)
-    allNodesEnter.filter( (d: any)=> {
-	    if (d['sex'] == 'F')
-	    	return false;
-	    if (!d['children'])
-	    	return false; 
-	    
-	    let hasGrid = true; //change to false to only put kid grids on parents of leaf nodes
-	    this.data.parentChildEdges.forEach((edge)=>{
-		    if (edge['pa']==d && !edge['target']['children']){
-		    	hasGrid = true;
-		    }  
-	    })
-	    return hasGrid;
-	    
-//       return d['sex'] == 'M' && d['children'];
-    })
-      .append("g")
-      .classed('kidGrid', true)
-      .attr('visibility','hidden')
+
       
      //Size kidGrids
     allNodesEnter.selectAll('.kidGrid')
@@ -774,7 +776,7 @@ class genealogyTree {
 	  .select('rect')
       .attr("width", (d)=>{
 	    
-	    let gridSize =  Config.glyphSize*2.5;
+	    let gridSize = Config.glyphSize*2.5;
 	    this.data.parentChildEdges.forEach((edge)=>{
 		    if (edge['pa']==d && !edge['target']['children']){
 		    	gridSize  =  Config.glyphSize *4;
@@ -904,11 +906,8 @@ class genealogyTree {
        })
         	
 	
-    //Position and Color all Nodes
-    /*
-    allNodes
-
-    .filter((d)=>{return d['hidden'] && !d['children']})
+    //Position  Kid Grid Nodes (i.e leaf siblings)  
+        allNodes.filter((d)=>{return d['hidden'] && !d['children']})
       .transition(t)
       .attr("transform", (node) => {
 	    let xpos = this.xPOS(node);
@@ -956,14 +955,7 @@ class genealogyTree {
         
         
       })
-*/
-		allNodes
-/*
-		      
-		.attr('id', (d) => {
-	        return 'g_' + d['id']
-	      })
-*/
+
 	      
 	      
       
@@ -1027,7 +1019,7 @@ class genealogyTree {
       .attr('visibility','hidden');
  */
       
-       selectAll('.nodeLine').filter((d)=>{return d['children'] && d['hidden']})
+       selectAll('.nodeLine').filter((d)=>{return !d['children'] && d['hidden']})
       .attr('visibility','hidden');
 
 

@@ -33,7 +33,9 @@ import {
   extent
 } from 'd3-array';
 import {
-  axisTop
+  axisTop,
+  axisLeft,
+  axisRight,
 } from 'd3-axis';
 import {
   format
@@ -175,6 +177,8 @@ class genealogyTree {
 
     this.visibleXAxis = axisTop(this.x).tickFormat(format("d"))
     this.extremesXAxis = axisTop(this.x2)
+    
+   
 
     this.interGenerationScale.range([.75, .25]).domain([2, nodes.length]);
 
@@ -231,8 +235,8 @@ class genealogyTree {
 	    .attr("stop-opacity", 1);
 	    
 	 kidGridGradient.append("stop")
-	    .attr("offset", "80%")
-	    .attr("stop-color", "#f2f3f4")
+	    .attr("offset", "75%")
+	    .attr("stop-color", "white")
 	    .attr("stop-opacity", 1);
 	
 	kidGridGradient.append("stop")
@@ -275,7 +279,7 @@ class genealogyTree {
       .attr("id","nodes") 
       
      
-    //Create group for all axis
+    //Create group for all time axis
     const axis = svg.append("g")
       .attr("transform", "translate(" + this.margin.left + "," + this.margin.top / 1.5 + ")")
       .attr('id', 'axis')
@@ -295,6 +299,15 @@ class genealogyTree {
     axis.append("g")
       .attr('id', 'extremes_axis')
       .call(this.extremesXAxis)
+
+
+/*
+	  //Create temporary group for y axis
+    const yaxis = svg.append("g")
+      .attr("transform", "translate(" +this.margin.left + "," + (this.margin.top + Config.glyphSize) + ")")
+      .attr('id', 'yaxis')
+      .call(axisRight(this.y).tickFormat(format(",.1f")).tickValues(range(1,105,.5)).tickSize(this.width))
+*/
 
 
 
@@ -420,7 +433,8 @@ class genealogyTree {
 
     allNodes
       .attr('class', (d) => {
-        return 'row_' + d['y']
+	      return 'row'
+//         return 'row_' + d['y']
       });
 
 //         allNodes.filter((d)=>{return d['hidden']}).classed('phantom',true);
@@ -489,19 +503,6 @@ class genealogyTree {
       })
 
 
-
-
-
-
-
-
-//         .classed('selected',(d)=>{return d['clicked']}) for now
-
-    /*
-     let mouseoverCallback =
-     let mouseOutCallback =
-     let clickCallback =
-     */
     allNodes
       .selectAll('.backgroundBar')
       .attr('opacity', 0);
@@ -519,15 +520,15 @@ class genealogyTree {
         selectAll('.highlightBar').filter((e)=>{return e ==d}).attr('opacity', .2)
 
         //Set the age label on the lifeLine of this row to visible
-        select('.row_' + d['y']).filter((d) => {
+         selectAll('.row').filter((e)=>{return e == d}).filter((d) => {
           return !d['aggregated'] && !d['hidden']
         }).select('.lifeRect').select('.ageLabel').attr('visibility', 'visible');
 
         //For aggregated nodes, show all the nodes that went into the aggregate
-        selectAll('.row_' + d['y']).filter('.aggregated').attr('opacity', 1)
+        selectAll('.row').filter((e)=>{return e == d}).filter('.aggregated').attr('opacity', 1)
 
         //Hide the aggregate node itself
-        selectAll('.row_' + d['y']).select('.hex').attr('opacity', 0)
+         selectAll('.row').filter((e)=>{return e == d}).select('.hex').attr('opacity', 0)
 
 
         events.fire('row_mouseover', d['y']);
@@ -544,7 +545,7 @@ class genealogyTree {
         selectAll('.aggregated').attr('opacity', 0);
 
         //Set the opacity of any aggregate icons back to 1;
-        selectAll('.row_' + d['y']).select('.hex').attr('opacity', 1)
+         selectAll('.row').filter((e)=>{return e == d}).select('.hex').attr('opacity', 1)
 
         events.fire('row_mouseout', d['y']);
       })
@@ -706,7 +707,7 @@ class genealogyTree {
       .attr("y2", function (d: any) {
         return d.sex == 'F' ? Config.hiddenGlyphSize : Config.hiddenGlyphSize * 2.5;
       })
-      .attr("stroke-width", 0) //- Temporarily removed to declutter
+      .attr("stroke-width", 1) //- Temporarily removed to declutter
 
 
 	  //Node Lines for 75%  sized hidden nodes
@@ -750,14 +751,11 @@ class genealogyTree {
 	    if (!d['children'])
 	    	return false; 
 	    
-	    let hasGrid = false;
+	    let hasGrid = true; //change to false to only put kid grids on parents of leaf nodes
 	    this.data.parentChildEdges.forEach((edge)=>{
-		    console.log(edge['pa']==d,edge['target']['children'])
 		    if (edge['pa']==d && !edge['target']['children']){
-			    console.log('found one')
 		    	hasGrid = true;
-		    }
-		    
+		    }  
 	    })
 	    return hasGrid;
 	    
@@ -774,9 +772,18 @@ class genealogyTree {
       
       allNodes.selectAll('.kidGrid')
 	  .select('rect')
-      .attr("width", Config.glyphSize*2)
+      .attr("width", (d)=>{
+	    
+	    let gridSize =  Config.glyphSize*2.5;
+	    this.data.parentChildEdges.forEach((edge)=>{
+		    if (edge['pa']==d && !edge['target']['children']){
+		    	gridSize  =  Config.glyphSize *4;
+		    }  
+	    })
+	    return  gridSize
+	  })
       .attr("height", Config.glyphSize*2)
-      .attr("x",Config.glyphSize*1.7)
+//       .attr("x",Config.glyphSize*1.7)
       .style('fill', "url(#kidGridGradient)")
       .style('stroke','none')
       
@@ -823,11 +830,13 @@ class genealogyTree {
       
 
     //Size hidden nodes differently
+    //regular nodes
     allNodes.selectAll('.male')
       .attr("width", Config.glyphSize * 2)
       .attr("height", Config.glyphSize * 2);
 
 
+	 //leaf nodes, go into kidGrid
     allNodes.selectAll('.male')
       .filter((d) => {
         return d['hidden'] && !d['children']
@@ -836,6 +845,7 @@ class genealogyTree {
       .attr("height", Config.hiddenGlyphSize * 1);
 
 
+	//non kid grid nodes, higher up in the tree	  
     allNodes.selectAll('.male')
       .filter((d) => {
         return d['hidden'] && d['children']
@@ -852,15 +862,18 @@ class genealogyTree {
       .classed('female', true)
       .classed('nodeIcon', true)
 
+	 //unhidden nodes
     allNodes.selectAll('.female')
       .attr("r", Config.glyphSize);
 
+	  //kidGrid nodes
     allNodes.selectAll('.female')
       .filter((d) => {
         return d['hidden'] && !d['children']
       })
       .attr("r", Config.hiddenGlyphSize/2);
 
+	 //Hidden nodes (not in kid grid) farther up the tree
     allNodes.selectAll('.female')
       .filter((d) => {
         return d['hidden'] && d['children']
@@ -872,24 +885,30 @@ class genealogyTree {
 
 	 
 	     //Position and Color all Nodes
-    allNodes.filter((d)=>{return d['hidden'] && d['children']})
+    allNodes
+    //.filter((d)=>{return d['hidden'] && d['children']})
       .transition(t)
       .attr("transform", (node) => {
 	    let xpos = this.xPOS(node);
 	    let ypos = this.yPOS(node);
-        
+	     
         let offset = 0;
+/*
         if (node['sex'] == 'F') 
 				offset  = -Config.hiddenGlyphSize*1.2;
 				
 	    let xoffset = Config.glyphSize
+*/
 				
-        return "translate(" + (xpos + offset ) + "," + (ypos - offset) + ")";
+        return "translate(" + (xpos ) + "," + (ypos ) + ")";
        })
         	
 	
     //Position and Color all Nodes
-    allNodes.filter((d)=>{return !d['hidden'] || !d['children']})
+    /*
+    allNodes
+
+    .filter((d)=>{return d['hidden'] && !d['children']})
       .transition(t)
       .attr("transform", (node) => {
 	    let xpos = this.xPOS(node);
@@ -930,24 +949,30 @@ class genealogyTree {
         	
         	let offset = 0;
         	if (node['sex'] == 'M') 
-				offset  = -Config.hiddenGlyphSize/2;
+				offset  = Config.hiddenGlyphSize;
         	
-	return  "translate(" + (this.x(node['x']) + this.kidGridScale(xpos) + offset ) + "," + (this.y(node['y']) + this.kidGridScale(ypos) + offset) + ")";
+				return  "translate(" + (this.x(node['x']) + this.kidGridScale(xpos) + offset ) + "," + (this.y(node['y']) + this.kidGridScale(ypos)) + ")";
         }
         
         
       })
-      .attr('id', (d) => {
-        return 'g_' + d['id']
-      })
-      .style("stroke-width", 3);
-      
+*/
+		allNodes
+/*
+		      
+		.attr('id', (d) => {
+	        return 'g_' + d['id']
+	      })
+*/
+	      
+	      
       
             allNodes
-      .style("fill", (d: any) => {
-        return (d.affected) ? "black" : "white"
+            .style("stroke-width", 2)
+			.style("fill", (d: any) => {
+				return (d.affected) ? "black" : "white"
 //                 return interpolateViridis(d['maxBMI'][0]/6);
-      })
+      		})
 //             .style("stroke-width", 3);
 
     let tran = t.transition().ease(easeLinear)
@@ -1444,7 +1469,7 @@ class genealogyTree {
 
 
     if (node['sex'] == 'M') {
-      return node['hidden'] && !node['children'] ? this.x(node.x) - Config.hiddenGlyphSize : this.x(node.x) - Config.glyphSize;
+      return (node['hidden'] && node['children']) ? this.x(node.x) - Config.hiddenGlyphSize : this.x(node.x) - Config.glyphSize;
 // 		return this.x(node.x) - Config.glyphSize;
     }
     else
@@ -1486,8 +1511,7 @@ class genealogyTree {
 */
 	
 	if (node['sex'] == 'M')
-
-      return node['hidden'] && !node['children'] ? this.y(node.y) - Config.hiddenGlyphSize : this.y(node.y) - Config.glyphSize;
+      return (node['hidden'] && node['children']) ? this.y(node.y) - Config.hiddenGlyphSize : this.y(node.y) - Config.glyphSize;
     else
       return this.y(node.y)
   }
@@ -1553,18 +1577,18 @@ class genealogyTree {
       selectAll('.highlightBar').filter((d) => {
         return d['id'] == item
       }).attr('opacity', .2)
-      select('.row_' + item).filter((d) => {
+       selectAll('.row').filter((e)=>{return e['id'] == item}).filter((d) => {
         return !d['aggregated']
       }).select('.lifeRect').select('.ageLabel').attr('visibility', 'visible');
-      selectAll('.row_' + item).filter('.aggregated').attr('opacity', 1)
-      selectAll('.row_' + item).select('.hex').attr('opacity', 0)
+       selectAll('.row').filter((e)=>{return e['id'] == item}).filter('.aggregated').attr('opacity', 1)
+       selectAll('.row').filter((e)=>{return e['id'] == item}).select('.hex').attr('opacity', 0)
     });
 
     events.on('table_row_hover_off', (evt, item) => {
       selectAll('.aggregated').attr('opacity', 0)
       selectAll('.highlightBar').attr('opacity', 0)
       selectAll('.ageLabel').attr('visibility', 'hidden');
-      selectAll('.row_' + item).select('.hex').attr('opacity', 1)
+       selectAll('.row').filter((e)=>{return e['id'] == item}).select('.hex').attr('opacity', 1)
     });
   }
 }

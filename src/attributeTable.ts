@@ -68,7 +68,7 @@ class attributeTable {
   * Build the basic DOM elements and binds the change function
   */
   private build() {
-    const data = this.row_data.map(function(d){
+    const data =this.row_data.map(function(d){
       return d["value"];
     });
 
@@ -97,13 +97,8 @@ class attributeTable {
         .attr("transform", "translate(" + this.margin.left + "," + this.margin.top / 1.5 + ")")
         .attr('id', 'axis')
 
- // because `this` in js is stupid, local bindings to use in lambdas
-//    const col_names = this.col_names;
-  //  const totalWidth = this.width;
-  //  const col_order = this.column_order;
 
     const TEMP_LEFT_FIX = 35; //TODO: what's going on here?
-
 
     var col_widths = this.all_data.getDisplayedColumnWidths(this.width);
     var col_xs = this.all_data.getDisplayedColumnXs(this.width);
@@ -112,6 +107,8 @@ class attributeTable {
 
     var displayedColNames = this.all_data.getDisplayedColumnNames();
     var displayedColTypes = this.all_data.getDisplayedColumnTypes();
+
+    var betterData = this.all_data.getDisplayedRowData();
 
 
      // ^^ UPDATE THOSE ON EVENTS- IS THIS A BAD DESIGN?

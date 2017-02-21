@@ -98,6 +98,16 @@ public getImmutableRowData(){
   });
 }
 
+public getDisplayedRowData(){
+  const rowRef = this.referenceRows;
+  return this.displayedRowOrder.map(function(d){
+    return rowRef[d]["value"];
+  })
+  // this.referenceRows.map(function(d){
+  //   return d["value"];
+  // });
+}
+
 public getTotalWeights(){
   const colRef = this.referenceColumns; //because `this` in js is goofed
 
@@ -142,12 +152,16 @@ public getDisplayedColumnMidpointXs(totalWidth){
 
 //TODO: active column instead of displayed columns
 public getDisplayedColumnNames(){
-  console.log("in displayed cols");
   const colRef = this.referenceColumns;
-  const toReturn= this.displayedColumnOrder.map(function(index)
+  return this.displayedColumnOrder.map(function(index)
     { return colRef[index].name; });
-//  console.log(toReturn);
-  return toReturn;
+}
+
+
+public getDisplayedColumnTypes(){
+  const colRef = this.referenceColumns;
+  return this.displayedColumnOrder.map(function(index)
+    { return colRef[index].type; });
 }
 
 public getNumberDisplayedColumns(){

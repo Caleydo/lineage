@@ -367,7 +367,7 @@ class genealogyTree {
 
 
     edgePaths
-      .attr("stroke-width", Config.glyphSize / 4)
+      .attr("stroke-width", Config.glyphSize / 5)
 
 
     let parentEdgePaths = edgeGroup.selectAll(".parentEdges")// only draw parent parent edges if neither parent is aggregated
@@ -391,7 +391,7 @@ class genealogyTree {
 
     parentEdgePaths
       .attr("class", "parentEdges")
-      .attr("stroke-width", Config.glyphSize / 4)
+      .attr("stroke-width", Config.glyphSize / 8)
       .style("fill", 'none')
       .transition(t)
       .attr("d", (d) => {
@@ -693,16 +693,16 @@ class genealogyTree {
 	  //Node lines for deceased and uncollapsed nodes
     allNodes.selectAll('.nodeLine')
       .attr("x1", function (d: any) {
-        return d.sex == 'F' ? -Config.glyphSize : -Config.glyphSize / 2;
+        return d.sex == 'F' ? -Config.glyphSize : -Config.glyphSize / 3;
       })
       .attr("y1", function (d: any) {
-        return d.sex == 'F' ? -Config.glyphSize : -Config.glyphSize / 2;
+        return d.sex == 'F' ? -Config.glyphSize : -Config.glyphSize / 3;
       })
       .attr("x2", function (d: any) {
-        return d.sex == 'F' ? Config.glyphSize : Config.glyphSize * 2.5;
+        return d.sex == 'F' ? Config.glyphSize : Config.glyphSize * 2.3;
       })
       .attr("y2", function (d: any) {
-        return d.sex == 'F' ? Config.glyphSize : Config.glyphSize * 2.5;
+        return d.sex == 'F' ? Config.glyphSize : Config.glyphSize * 2.3;
       })
       .attr("stroke-width", 3)
       .attr("stroke", function (d: any) {
@@ -814,7 +814,8 @@ class genealogyTree {
         return Config.glyphSize * 2;
       })
       .attr("stroke-width", 4)
-      .attr("stroke", '#a09f9f')
+//       .attr("stroke", '#a09f9f')
+      .attr('stroke','#bec3ce')
 
 
 
@@ -892,17 +893,8 @@ class genealogyTree {
       .transition(t)
       .attr("transform", (node) => {
 	    let xpos = this.xPOS(node);
-	    let ypos = this.yPOS(node);
-	     
-        let offset = 0;
-/*
-        if (node['sex'] == 'F') 
-				offset  = -Config.hiddenGlyphSize*1.2;
-				
-	    let xoffset = Config.glyphSize
-*/
-				
-        return "translate(" + (xpos ) + "," + (ypos ) + ")";
+	    let ypos = this.yPOS(node);				
+        return "translate(" + xpos + "," + ypos+ ")";
        })
         	
 	
@@ -963,9 +955,7 @@ class genealogyTree {
             .style("stroke-width", 2)
 			.style("fill", (d: any) => {
 				return (d.affected) ? "black" : "white"
-//                 return interpolateViridis(d['maxBMI'][0]/6);
       		})
-//             .style("stroke-width", 3);
 
     let tran = t.transition().ease(easeLinear)
     allNodes.filter((d) => {
@@ -1519,10 +1509,14 @@ class genealogyTree {
     }, {
       x: nx,
       y: (d.ma.y + d.pa.y) / 2
-    }, {
+    }, 
+/*
+    {
       x: nx,
       y: d.target.y
-    }, {
+    }, 
+*/
+    {
       x: d.target.x,
       y: d.target.y
     }];

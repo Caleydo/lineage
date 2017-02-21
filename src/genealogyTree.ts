@@ -728,7 +728,7 @@ class genealogyTree {
       .attr("y2", function (d: any) {
         return d.sex == 'F' ? Config.hiddenGlyphSize : Config.hiddenGlyphSize * 2.5;
       })
-      .attr("stroke-width", 1) //- Temporarily removed to declutter
+      .attr("stroke-width", 1)
 
 
 	  //Node Lines for 75%  sized hidden nodes
@@ -952,7 +952,10 @@ class genealogyTree {
 	      
       
             allNodes
-            .style("stroke-width", 2)
+            .style("stroke-width",(d: any) => {
+				return (d['hidden'] && !d['children']) ? 1 : 2
+      		})
+
 			.style("fill", (d: any) => {
 				return (d.affected) ? "black" : "white"
       		})

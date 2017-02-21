@@ -30,12 +30,21 @@ export default class dataExplorations {
     let test = await listData();
     console.log("Dataset");
 
-    const t = listData().then((d)=> console.log(convertTableToVectors(d)))
-    console.log("converted")
-    console.log(t);
+    // const t = listData().then((d)=> console.log(convertTableToVectors(d)))
+    // console.log("converted")
+    // console.log(t);
 
-    // let table : ITable = <ITable> test[0];
-    // console.log(table);
+    let table : ITable = <ITable> test[1];
+   // console.log(table);
+   // table.at(0, 0).then((d) => console.log("data: " + d));
+    let vector = table.col(0);
+    console.log("Lenght:" + vector.length);
+    console.log("IDType:" + vector.idtype);
+    console.log("First Element" + vector.at(0).then(
+      (d) => console.log(d)),
+      (err) => console.log("Error: " + err));
+
+  //   table.col(0).then((d) => console.log("column: " + d));
     // table.data().then((d)=>console.log("what" + d));
 
     //let table: ITable = test[0]

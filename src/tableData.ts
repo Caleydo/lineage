@@ -34,7 +34,7 @@ class tableData {
     this.attachListener();
 
 
-    const TEMP_MAX_COLS_DISPLAYED = 15;
+    const TEMP_MAX_COLS_DISPLAYED = 8;
 
     // grab all the attribute names (they're the keys in the obj dict)
     desc_in.forEach(column=>{
@@ -91,6 +91,102 @@ class tableData {
     this.addColumn(column_name, desired_index);
   }
 
+/////////
+public getImmutableRowData(){
+  return this.referenceRows.map(function(d){
+    return d["value"];
+  });
+}
+
+public getDisplayedRowData(){
+  const rowRef = this.referenceRows;
+  return this.displayedRowOrder.map(function(d){
+    return rowRef[d]["value"];
+  })
+  // this.referenceRows.map(function(d){
+  //   return d["value"];
+  // });
+}
+
+public getTotalWeights(){
+  const colRef = this.referenceColumns; //because `this` in js is goofed
+
+  return this.displayedColumnOrder.map(function (index){
+    return colRef[index].width
+  }).reduce(function(a, b) { return a + b; }, 0);
+}
+
+
+public getDisplayedColumnWidths(totalWidth){
+  const colRef = this.referenceColumns; //because `this` in js is goofed
+  const totalWeight = this.getTotalWeights();
+
+  return this.displayedColumnOrder.map(function(index){
+    // TODO: weight num_cols by the TOTAL WEIGHT
+    return colRef[index].width * totalWidth / totalWeight;
+  });
+}
+
+public getDisplayedColumnXs(totalWidth){
+  const colRef = this.referenceColumns; //because `this` in js is goofed
+  const totalWeight = this.getTotalWeights();
+
+  return this.displayedColumnOrder.map(function(index){
+    var x_dist = 0;
+    for (let i = 0; i < index; i++) {
+      const accum = colRef[i].width * totalWidth / totalWeight;
+      x_dist += accum;
+    }
+    return x_dist;
+  });
+}
+
+public getDisplayedColumnMidpointXs(totalWidth){
+  const colRef = this.referenceColumns;
+  const totalWeight = this.getTotalWeights();
+  const colXs = this.getDisplayedColumnXs(totalWidth);
+  return this.displayedColumnOrder.map(function(index){
+     return colXs[index] + (colRef[index].width * totalWidth /totalWeight)/2;
+  });
+}
+
+//TODO: active column instead of displayed columns
+public getDisplayedColumnNames(){
+  const colRef = this.referenceColumns;
+  return this.displayedColumnOrder.map(function(index)
+    { return colRef[index].name; });
+}
+
+
+public getDisplayedColumnTypes(){
+  const colRef = this.referenceColumns;
+  return this.displayedColumnOrder.map(function(index)
+    { return colRef[index].type; });
+}
+
+public getNumberDisplayedColumns(){
+  return this.numberOfColumnsDisplayed;
+}
+
+public getNumberDisplayedRows(){
+  return this.displayedRowOrder.length;
+}
+
+public getDisplayedColumnOrder(){
+  return this.displayedColumnOrder;
+}
+
+public getDisplayedRowOrder(){
+  return this.displayedRowOrder;
+}
+
+
+////////
+
+
+
+
+
 //TODO
   public aggregateRows(row_index){
 
@@ -120,11 +216,13 @@ class tableData {
 
 // TODO once we know types of columns
 function Width(column_type){ //column_name : string
-  // if(column_type === 'ID')
-  //   return 1;
-  // else if(column_type === 'age')
-  //   return 3;
-  return 1; // everything else & unknown column type
+  if( column_type == 'idType' )
+    return 2;
+  else if( column_type == 'categorical')
+    return 1;
+  else if( column_type == 'int' )
+    return 3;
+   return 1; // everything else & unknown column type
 }
 
 // columns have a name & a preferred width (s/m/l)

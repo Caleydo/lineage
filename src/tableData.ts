@@ -91,6 +91,95 @@ class tableData {
     this.addColumn(column_name, desired_index);
   }
 
+/////////
+public getImmutableRowData(){
+  return this.referenceRows.map(function(d){
+    return d["value"];
+  });
+}
+
+public getTotalWeights(){
+  const colRef = this.referenceColumns; //because `this` in js is goofed
+
+  return this.displayedColumnOrder.map(function (index){
+    return colRef[index].width
+  }).reduce(function(a, b) { return a + b; }, 0);
+}
+
+
+public getDisplayedColumnWidths(totalWidth){
+  const colRef = this.referenceColumns; //because `this` in js is goofed
+  const colNum = this.numberOfColumnsDisplayed;
+  return this.displayedColumnOrder.map(function(index){
+    // TODO: weight num_cols by the TOTAL WEIGHT
+    return colRef[index].width * totalWidth / colNum;
+  });
+}
+
+public getDisplayedColumnXs(totalWidth){
+  const colRef = this.referenceColumns; //because `this` in js is goofed
+  const colNum = this.numberOfColumnsDisplayed;
+//  console.log("total width: " + totalWidth);
+//  console.log("colRed, colNum: " + colRef + ", " + colNum);
+  const toReturn = this.displayedColumnOrder.map(function(index){
+    var x_dist = 0;
+    for (let i = 0; i < index; i++) {
+  //    console.log(colRef[i].width);
+      const accum = colRef[i].width * totalWidth / colNum;
+    //  console.log(accum);
+      x_dist += accum;
+    }
+  //  console.log("accumulated x_dist was: " + x_dist);
+    return x_dist;
+  });
+
+//  console.log("in displayed ColXs, returning: " + toReturn);
+}
+
+public getDisplayedColumnMidpointXs(totalWidth){
+  const colRef = this.referenceColumns;
+  const colNum = this.numberOfColumnsDisplayed;
+  const colXs = this.getDisplayedColumnXs(totalWidth);
+  const toReturn = this.displayedColumnOrder.map(function(index){
+     return colXs[index] + (colRef[index].width * totalWidth /colNum)/2;
+  });
+//  console.log("in ds, label_xs is: " + toReturn);
+//  console.log("column xs is: " + colXs);
+}
+
+//TODO: active column instead of displayed columns
+public getDisplayedColumnNames(){
+  console.log("in displayed cols");
+  const colRef = this.referenceColumns;
+  const toReturn= this.displayedColumnOrder.map(function(index)
+    { return colRef[index].name; });
+//  console.log(toReturn);
+  return toReturn;
+}
+
+public getNumberDisplayedColumns(){
+  return this.numberOfColumnsDisplayed;
+}
+
+public getNumberDisplayedRows(){
+  return this.displayedRowOrder.length;
+}
+
+public getDisplayedColumnOrder(){
+  return this.displayedColumnOrder;
+}
+
+public getDisplayedRowOrder(){
+  return this.displayedRowOrder;
+}
+
+
+////////
+
+
+
+
+
 //TODO
   public aggregateRows(row_index){
 

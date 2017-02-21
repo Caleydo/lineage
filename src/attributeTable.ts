@@ -23,7 +23,7 @@ class attributeTable {
   private tableAxis;
 
   // access to all the data in our backend
-  private all_the_data;
+  private all_data;
   private row_order;
   private column_order;
   private num_cols;
@@ -45,7 +45,7 @@ class attributeTable {
   * @returns {Promise<FilterBar>}
   */
   init(data) {
-    this.all_the_data = data;
+    this.all_data = data;
     this.column_order = data.displayedColumnOrder;
     this.num_cols = data.numberOfColumnsDisplayed;
     this.col_names = data.referenceColumns;
@@ -105,9 +105,10 @@ class attributeTable {
 
     const TEMP_LEFT_FIX = 35; //TODO: what's going on here?
 
-    const totalWeights =  this.column_order.map(function (index){
+    const totalWeights =  this.all_data.getTotalWeights();
+    /*this.column_order.map(function (index){
       return col_names[index].width
-    }).reduce(function(a, b) { return a + b; }, 0);
+    }).reduce(function(a, b) { return a + b; }, 0);*/
 
     // holds how wide each col is
     var col_widths = this.column_order.map(function(index){

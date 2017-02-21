@@ -98,29 +98,26 @@ class attributeTable {
         .attr('id', 'axis')
 
  // because `this` in js is stupid, local bindings to use in lambdas
-    const num_cols = this.num_cols;
-    const col_names = this.col_names;
-    const totalWidth = this.width;
-    const col_order = this.column_order;
+//    const col_names = this.col_names;
+  //  const totalWidth = this.width;
+  //  const col_order = this.column_order;
 
     const TEMP_LEFT_FIX = 35; //TODO: what's going on here?
 
 
-    var col_widths = this.all_data.getDisplayedColumnWidths(totalWidth);
-    var col_xs = this.all_data.getDisplayedColumnXs(totalWidth);
-    var label_xs = this.all_data.getDisplayedColumnMidpointXs(totalWidth);
+    var col_widths = this.all_data.getDisplayedColumnWidths(this.width);
+    var col_xs = this.all_data.getDisplayedColumnXs(this.width);
+    var label_xs = this.all_data.getDisplayedColumnMidpointXs(this.width);
+    var num_cols = this.all_data.getNumberDisplayedColumns();
 
     var displayedColNames = this.all_data.getDisplayedColumnNames();
+    var displayedColTypes = this.all_data.getDisplayedColumnTypes();
 
 
      // ^^ UPDATE THOSE ON EVENTS- IS THIS A BAD DESIGN?
     const table_header = axis.selectAll(".table_header")
     .data(this.column_order)
     .enter();
-
-    console.log("displayedColNames: " + displayedColNames);
-    console.log("col_names: " + col_names);
-
 
     table_header.append("text")
       .text(function(index) { return displayedColNames[index];})
@@ -190,8 +187,13 @@ class attributeTable {
       }); */
 
 ///// vv TEMPORARY ENCODING  vv //////////////
-      const curr_col_name = col_names[col_order[i]].name;
-      const curr_col_type = col_names[col_order[i]].type;
+
+//var displayedColNames = this.all_data.getDisplayedColumnNames();
+//var displayedColTypes = this.all_data.getDisplayedColumnTypes();
+// //
+
+      const curr_col_name = displayedColNames[i];
+      const curr_col_type = displayedColTypes[i];
       const curr_col_width = col_widths[i] - 4;
 
       if( curr_col_type == 'idType' ){

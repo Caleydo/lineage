@@ -108,6 +108,11 @@ rect.selected{
 	visibility:hidden;
 }
 
+.collapsed .kidGrid,
+.collapsed .couplesLine{
+	visibility:visible;
+}
+
 
 .collapsed .backgroundBar{
 	pointer-events: none;

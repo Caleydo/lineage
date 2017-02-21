@@ -81,11 +81,11 @@ class genealogyTree {
   private y = scaleLinear();
 
 
-  private kidGridSize = 2;
+  private kidGridSize = 4;
   //Scale to place siblings on kid grid
   private kidGridScale = scaleLinear()
   .domain([1,this.kidGridSize])
-  .range([-Config.glyphSize, Config.glyphSize]);
+  .range([-Config.glyphSize*.8, Config.glyphSize*.8]);
 
   //Axis for the visible nodes
   private visibleXAxis;
@@ -222,22 +222,22 @@ class genealogyTree {
 	
 	kidGridGradient.append("stop")
 	    .attr("offset", "0%")
-	    .attr("stop-color", "white")
-	    .attr("stop-opacity", 0);
+	    .attr("stop-color", "#f2f3f4")
+	    .attr("stop-opacity", 1);
 	    
 	kidGridGradient.append("stop")
 	    .attr("offset", "20%")
-	    .attr("stop-color", "white")
+	    .attr("stop-color", "#f2f3f4")
 	    .attr("stop-opacity", 1);
 	    
 	 kidGridGradient.append("stop")
-	    .attr("offset", "90%")
-	    .attr("stop-color", "white")
+	    .attr("offset", "80%")
+	    .attr("stop-color", "#f2f3f4")
 	    .attr("stop-opacity", 1);
 	
 	kidGridGradient.append("stop")
 	    .attr("offset", "100%")
-	    .attr("stop-color", "white")
+	    .attr("stop-color", "#f2f3f4")
 	    .attr("stop-opacity", 0);
 	    
 
@@ -251,7 +251,7 @@ class genealogyTree {
       /* wait until 100 ms for callback */
       this.timer = setTimeout(() => {
         this.update_visible_nodes()
-      }, 5);
+      }, 100);
     });
 
     //Create group for genealogy tree
@@ -557,28 +557,24 @@ class genealogyTree {
     //Add life line groups
     let lifeRectsEnter = allNodesEnter.filter((d) => {
       return d['type'] == 'single' && !d['hidden']
-    }).append("g");
+    }).append("g")
+    .classed('lifeRect',true);
 
 
-    let lifeRects = allNodes.selectAll('g').filter((d) => {
+    let lifeRects = allNodes.selectAll('.lifeRect').filter((d) => {
       return !d['hidden']
     })
 
     lifeRects.exit().remove()
 
     lifeRects
-      .attr('class', 'lifeRect')
       .attr("transform", (d: any) => {
         return d.sex == 'M' ? "translate(" + Config.glyphSize + ",0)" : "translate(0," + (-Config.glyphSize) + ")";
       });
 
     //Add actual life lines
     lifeRectsEnter
-    /*
-     .filter(function(d: any) {
-     return (+d.deceased == 1);
-     })
-     */
+
       .append("rect")
 
     lifeRects.selectAll('rect')
@@ -747,6 +743,73 @@ class genealogyTree {
     //             .classed('male', true)
       .classed('nodeIcon', true)
 
+	//Add KidGrids next to Dad's glyph (if they have children)
+    allNodesEnter.filter( (d: any)=> {
+	    if (d['sex'] == 'F')
+	    	return false;
+	    if (!d['children'])
+	    	return false; 
+	    
+	    let hasGrid = false;
+	    this.data.parentChildEdges.forEach((edge)=>{
+		    console.log(edge['pa']==d,edge['target']['children'])
+		    if (edge['pa']==d && !edge['target']['children']){
+			    console.log('found one')
+		    	hasGrid = true;
+		    }
+		    
+	    })
+	    return hasGrid;
+	    
+//       return d['sex'] == 'M' && d['children'];
+    })
+      .append("g")
+      .classed('kidGrid', true)
+      .attr('visibility','hidden')
+      
+     //Size kidGrids
+    allNodesEnter.selectAll('.kidGrid')
+      .append('rect')
+      
+      
+      allNodes.selectAll('.kidGrid')
+	  .select('rect')
+      .attr("width", Config.glyphSize*2)
+      .attr("height", Config.glyphSize*2)
+      .attr("x",Config.glyphSize*1.7)
+      .style('fill', "url(#kidGridGradient)")
+      .style('stroke','none')
+      
+      
+      //Add couples line at the end of lifelines for deceased people
+     allNodesEnter.filter(function (d: any) {
+      return d['sex'] == 'M' && d['children'];
+    })
+      .append("line")
+      .attr('class', 'couplesLine')
+      .attr('visibility','hidden')
+
+
+    allNodes.selectAll('.couplesLine')
+      .attr("x1", (d: any) => {
+        return Config.glyphSize *1.5;
+      })
+      .attr("y1", function (d: any) {
+        return 0;
+      })
+      .attr("x2", (d: any) => {
+        return Config.glyphSize *1.5;
+      })
+      .attr("y2", function (d: any) {
+
+        return Config.glyphSize * 2;
+      })
+      .attr("stroke-width", 4)
+      .attr("stroke", '#a09f9f')
+
+
+
+
     //Add Male Node glyphs
     allNodesEnter.filter(function (d: any) {
       return d['sex'] == 'M';
@@ -756,20 +819,6 @@ class genealogyTree {
       .classed('nodeIcon', true)
       
       
-     //Add KidGrids next to Dad's glyph (if they have children)
-    allNodesEnter.filter(function (d: any) {
-      return d['sex'] == 'M' && d['children'];
-    })
-      .append("rect")
-      .classed('kidGrid', true)
-      
-     //Size kidGrids
-    allNodes.selectAll('.kidGrid')
-      .attr("width", (this.kidGridScale.range()[1] - this.kidGridScale.range()[0])) //size of kidGrid is the range of the kidGrid scale defined at the top
-      .attr("height", (this.kidGridScale.range()[1] - this.kidGridScale.range()[0]))
-      .attr("x",Config.glyphSize*3)
-      .style('fill', "url(#kidGridGradient)")
-      .style('stroke','none')
 
       
 
@@ -791,8 +840,8 @@ class genealogyTree {
       .filter((d) => {
         return d['hidden'] && d['children']
       })
-      .attr("width", Config.glyphSize * 1.5)
-      .attr("height", Config.glyphSize * 1.5);
+      .attr("width", Config.glyphSize * .75)
+      .attr("height", Config.glyphSize * .75);
 
 
     //Add female node glyphs
@@ -816,30 +865,89 @@ class genealogyTree {
       .filter((d) => {
         return d['hidden'] && d['children']
       })
-      .attr("r", Config.glyphSize * .75);
+      .attr("r", Config.glyphSize * .45);
 
 
     allNodesEnter.attr('opacity', 0);
 
 	 
+	     //Position and Color all Nodes
+    allNodes.filter((d)=>{return d['hidden'] && d['children']})
+      .transition(t)
+      .attr("transform", (node) => {
+	    let xpos = this.xPOS(node);
+	    let ypos = this.yPOS(node);
+        
+        let offset = 0;
+        if (node['sex'] == 'F') 
+				offset  = -Config.hiddenGlyphSize*1.2;
+				
+	    let xoffset = Config.glyphSize
+				
+        return "translate(" + (xpos + offset ) + "," + (ypos - offset) + ")";
+       })
+        	
 	
     //Position and Color all Nodes
-    allNodes
+    allNodes.filter((d)=>{return !d['hidden'] || !d['children']})
       .transition(t)
-      .attr("transform", (d) => {
-	    let xpos = this.xPOS(d);
-	    let ypos = this.yPOS(d);
+      .attr("transform", (node) => {
+	    let xpos = this.xPOS(node);
+	    let ypos = this.yPOS(node);
+		
+		if (!node['hidden'] || node['children'])
+        	return "translate(" + xpos + "," + ypos + ")";
+        else{        
+	        
+        	let childCount = 0;
+        	//Find ma and pa
+        	let edge = this.data.parentChildEdges.filter((d) => {
+            	return d.target == node
+          	});
 
-        return "translate(" + xpos + "," + ypos + ")";
-      })
-      .style("fill", (d: any) => {
-        return (d.affected) ? "black" : "white"
-//                 return interpolateViridis(d['maxBMI'][0]/6);
+		  	let ma = edge[0]['ma'];
+		  	let pa = edge[0]['pa'];
+
+
+        	this.data.parentChildEdges.forEach((d,i)=>{
+
+	        	if (d.ma == ma && d.pa == pa ){
+		        	//Only count unaffected children so as to avoid gaps in the kid Grid
+		        	if (!d.target.affected)
+		        		childCount = childCount +1
+		        	if (d.target == node){
+
+			        	ypos = childCount % this.kidGridSize;
+			        	
+			        	if (ypos == 0)
+			        		ypos = this.kidGridSize
+			        		
+			        	xpos = Math.ceil(childCount / this.kidGridSize)			        		
+
+		        	}
+	        	}
+        	}) 
+        	
+        	let offset = 0;
+        	if (node['sex'] == 'M') 
+				offset  = -Config.hiddenGlyphSize/2;
+        	
+	return  "translate(" + (this.x(node['x']) + this.kidGridScale(xpos) + offset ) + "," + (this.y(node['y']) + this.kidGridScale(ypos) + offset) + ")";
+        }
+        
+        
       })
       .attr('id', (d) => {
         return 'g_' + d['id']
       })
       .style("stroke-width", 3);
+      
+      
+            allNodes
+      .style("fill", (d: any) => {
+        return (d.affected) ? "black" : "white"
+//                 return interpolateViridis(d['maxBMI'][0]/6);
+      })
 //             .style("stroke-width", 3);
 
     let tran = t.transition().ease(easeLinear)
@@ -887,6 +995,16 @@ class genealogyTree {
       })
       .attr('stroke', 'none')
       .style('font-size', Config.glyphSize)
+      
+/*
+      //Temporarily hide all collapsed nodes that aren't in the kid grid;
+      selectAll('.nodeIcon').filter((d)=>{return d['children'] && d['hidden']})
+      .attr('visibility','hidden');
+ */
+      
+       selectAll('.nodeLine').filter((d)=>{return d['children'] && d['hidden']})
+      .attr('visibility','hidden');
+
 
 
     let dragged = drag()

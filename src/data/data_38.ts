@@ -2299,10 +2299,10 @@ export let realData =[
       "MaID":"1436707",
       "PaID":"15158866",
       "sex":"F",
-      "deceased":"",
-      "suicide":"N",
+      "deceased":"Y",
+      "suicide":"Y",
       "bdate":"1979",
-      "ddate":"",
+      "ddate":"2010",
       "OMEID":"",
       "LabID":"",
       "UPDBid":"15282449",
@@ -2310,7 +2310,7 @@ export let realData =[
       "id":15282449,
       "ma":1436707,
       "pa":15158866,
-      "affection":1,
+      "affection":100,
       "children":[
 
       ],

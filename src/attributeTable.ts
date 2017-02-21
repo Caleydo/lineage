@@ -105,33 +105,11 @@ class attributeTable {
 
     const TEMP_LEFT_FIX = 35; //TODO: what's going on here?
 
-    const totalWeights =  this.all_data.getTotalWeights();
-    /*this.column_order.map(function (index){
-      return col_names[index].width
-    }).reduce(function(a, b) { return a + b; }, 0);*/
 
-    // holds how wide each col is
-    var col_widths = this.column_order.map(function(index){
-      // TODO: weight num_cols by the TOTAL WEIGHT
-      return col_names[index].width * totalWidth / totalWeights;
-    });
+    var col_widths = this.all_data.getDisplayedColumnWidths(totalWidth);
+    var col_xs = this.all_data.getDisplayedColumnXs(totalWidth);
+    var label_xs = this.all_data.getDisplayedColumnMidpointXs(totalWidth);
 
-    // holds the x pos of the left-most edge of each column
-    var col_xs = this.column_order.map(function(index){
-      var x_dist = 0;
-      for (var i = 0; i < index; i++) {
-        x_dist += col_names[i].width * totalWidth / totalWeights; // num_cols
-      }
-      return x_dist;
-    });
-
-
-    // holds the x pos of the midpoint of each column
-     var label_xs = this.column_order.map(function(index){
-        const label_pos =
-        col_xs[index] + (col_names[index].width * totalWidth /totalWeights /*num_cols*/)/2;
-        return label_pos;
-     });
 
      // ^^ UPDATE THOSE ON EVENTS- IS THIS A BAD DESIGN?
     const table_header = axis.selectAll(".table_header")

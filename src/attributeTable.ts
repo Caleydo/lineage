@@ -68,19 +68,11 @@ class attributeTable {
   * Build the basic DOM elements and binds the change function
   */
   private build() {
-    const data =this.row_data.map(function(d){
-      return d["value"];
-    });
-
     var betterData = this.all_data.getDisplayedRowData();
 
-    // for(var i = 0; i < data.length; i ++){
-    //   console.log("old data:" + data[i]['sex']) ;
-    //   console.log("new data:" + betterData[i]['sex']) ;
-    // }
 
     this.width = 450 - this.margin.left - this.margin.right
-    this.height = Config.glyphSize * 3 * data.length - this.margin.top - this.margin.bottom;
+    this.height = Config.glyphSize * 3 * betterData.length - this.margin.top - this.margin.bottom;
 
     const darkGrey = '#4d4d4d';
     const lightGrey = '#d9d9d9';
@@ -90,7 +82,7 @@ class attributeTable {
 
     // Scales
     let x = scaleLinear().range([0 , this.width]).domain([1 ,1]);
-    let y = scaleLinear().range([0, this.height]).domain([min(data,function(d){return +d['y']}), max(data,function(d){return +d['y']}) ])
+    let y = scaleLinear().range([0, this.height]).domain([min(betterData,function(d){return +d['y']}), max(betterData,function(d){return +d['y']}) ])
 
     let tableAxis = axisTop(x).tickFormat(format("d"));
 
@@ -107,15 +99,15 @@ class attributeTable {
 
     const TEMP_LEFT_FIX = 35; //TODO: what's going on here?
 
+    // todo: refactor so each column *knows* these things about itself
+
     var col_widths = this.all_data.getDisplayedColumnWidths(this.width);
     var col_xs = this.all_data.getDisplayedColumnXs(this.width);
     var label_xs = this.all_data.getDisplayedColumnMidpointXs(this.width);
     var num_cols = this.all_data.getNumberDisplayedColumns();
-
     var displayedColNames = this.all_data.getDisplayedColumnNames();
     var displayedColTypes = this.all_data.getDisplayedColumnTypes();
-
-
+  //  var displayedColOrder = this.all_data.getDisplayedColumnOrder();
 
 
      // ^^ UPDATE THOSE ON EVENTS- IS THIS A BAD DESIGN?
@@ -151,18 +143,6 @@ class attributeTable {
     const table = svg.append("g")
     .attr("transform", "translate(0," + this.margin.top + ")")
 
-
-    // console.log("old data: ") ;
-    // data.map(function(d){
-    //   console.log(d);
-    // });
-    //
-    // console.log("new data: ");
-    // betterData.map(function(d){
-    //       console.log(d);
-    //     });
-
-
     let rows = table.selectAll(".row")
     .data(betterData) // TODO: aggregation
     .enter()
@@ -174,14 +154,6 @@ class attributeTable {
     .attr("transform", function (elem) {
       return ('translate(0, ' +  y(elem.y)+ ' )');
     });
-
-  /*  rows.append('rect')
-        .attr("width", this.width)
-        .attr("height", rowHeight)
-        .attr('fill', 'blue');
-
-*/
-
 
 
 
@@ -273,37 +245,14 @@ class attributeTable {
 
 }
 
-
-// filter to categorical
-// table_header.append("text")
-//   .text(curr_col_name)
-//   .attr('fill', 'black')
-//   .attr("transform", function (index) {
-//       return "translate(" + (label_xs[index] - TEMP_LEFT_FIX) + ", 20) rotate(-45)";
-//   });
-
-///// ^^ TEMPORARY ENCODING ^^ //////////////
-/*
-      rows.append("line")
-      .attr("x1", col_xs[i])
-      .attr("y1", 0)
-      .attr("x2", col_xs[i])
-      .attr("y2", rowHeight)
-      .attr("stroke-width", 1)
-      .attr("stroke", "black");
-    }*/
-//////////////
 // end for loop
 
-
-
-/*
 
     const boundary = rows
     .append("rect")
     .attr("class", "boundary")
-    .attr('row_pos', function (d) {
-      return data[d].y;
+    .attr('row_pos', function (elem) {
+      return elem.y;
     })
     .attr("width", this.width)
     .attr("height", rowHeight)
@@ -315,43 +264,42 @@ class attributeTable {
 
 
   const eventListener = rows.append('rect').attr("height", rowHeight).attr("width", this.width).attr("fill", "transparent")
+
   // CLICK
-  .on('click', function(d) {
+  .on('click', function(elem) {
     selectAll('.boundary').classed('tablehovered', false);
     if (!event.metaKey){ //unless we pressed shift, unselect everything
          selectAll('.boundary').classed('tableselected',false);
     }
-    selectAll('.boundary').classed('tableselected', function(a){
-      const rightRow = (select(this).attr('row_pos') == data[d].y);
+    selectAll('.boundary').classed('tableselected', function(){
+      const rightRow = (select(this).attr('row_pos') == elem.y);
       if(rightRow)
         return (!select(this).classed('tableselected')); //toggle it
       return select(this).classed('tableselected'); //leave it be
     });
     if(event.metaKey)
-      events.fire('table_row_selected', data[d].id, 'multiple');
+      events.fire('table_row_selected', elem.id, 'multiple');
     else
-      events.fire('table_row_selected', data[d].id, 'singular');
+      events.fire('table_row_selected', elem.id, 'singular');
   })
 
   // MOUSE ON
-  .on('mouseover', function(d) {
-    selectAll('.boundary').classed('tablehovered', function(a){
-      const rightRow = (select(this).attr('row_pos') == data[d].y);
+  .on('mouseover', function(elem) {
+    selectAll('.boundary').classed('tablehovered', function(){
+      const rightRow = (select(this).attr('row_pos') == elem.y);
       if(rightRow){ //don't hover if it's selected
         return !select(this).classed('tableselected');
       }
       return false; //otherwise don't hover
     });
-    events.fire('table_row_hover_on', data[d].id);
+    events.fire('table_row_hover_on', elem.id);
   })
 
   // MOUSE OFF
-  .on('mouseout', function(d) {
+  .on('mouseout', function(elem) {
     selectAll('.boundary').classed('tablehovered', false);
-    events.fire('table_row_hover_off', data[d].id);
+    events.fire('table_row_hover_off', elem.id);
   });
-
-  */
 
 }
 

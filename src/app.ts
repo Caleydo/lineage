@@ -104,7 +104,7 @@ export class App {
       attributePanel.init(table_data);
 
       let data = dataExplorations.create();
-      data.listData();
+      data.listMyDatasets();
 
 
     this.$node.select('h3').remove();

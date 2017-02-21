@@ -4,6 +4,7 @@ import {
   VALUE_TYPE_STRING, VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL,
   IDataType
 } from 'phovea_core/src/datatype';
+import ITable from 'phovea_core/src/table/ITable';
 import {EventHandler} from 'phovea_core/src/event';
 import {INumericalMatrix} from 'phovea_core/src/matrix';
 import {IAnyVector} from 'phovea_core/src/vector';
@@ -11,6 +12,7 @@ import {list as listData, convertTableToVectors} from 'phovea_core/src/data';
 import {parseRemoteTable as parseRemoteTable} from 'phovea_d3/src/parser';
 import * as csvUrl from 'file-loader!../data/number_one_artists.csv';
 import * as dsv from 'd3-dsv';
+
 
 
 export default class dataExplorations {
@@ -23,9 +25,24 @@ export default class dataExplorations {
 
   }
 
-  public async listData() {
-    console.log("Trying to list data")
-    console.log(await listData())
+  public async listMyDatasets() {
+    console.log("Trying to list data");
+    let test = await listData();
+    console.log("Dataset");
+
+    const t = listData().then((d)=> console.log(convertTableToVectors(d)))
+    console.log("converted")
+    console.log(t);
+
+    // let table : ITable = <ITable> test[0];
+    // console.log(table);
+    // table.data().then((d)=>console.log("what" + d));
+
+    //let table: ITable = test[0]
+
+
+   // Promise.all([test[0].cols()]).then(function (table){
+//    })
   }
 
 }
@@ -38,18 +55,18 @@ export default class dataExplorations {
 export function create() {
   console.log("Eu");
 
-  parseRemoteTable(csvUrl).then(function (table) {
-    console.log("What?");
-    Promise.all([table.data(), table.cols()]).then(function (promise) {
-
-      console.log("All table data: " + promise[0].toString());
-      var firstColumnVector = promise[1][0];
-
-      firstColumnVector.data().then(function (vectorData) {
-        console.log("Data of first Column: " + promise[0].toString());
-      });
-    });
-  });
+  // parseRemoteTable(csvUrl).then(function (table) {
+  //   console.log("What?");
+  //   Promise.all([table.data(), table.cols()]).then(function (promise) {
+  //
+  //     console.log("All table data: " + promise[0].toString());
+  //     var firstColumnVector = promise[1][0];
+  //
+  //     firstColumnVector.data().then(function (vectorData) {
+  //       console.log("Data of first Column: " + promise[0].toString());
+  //     });
+  //   });
+  // });
 
   return new dataExplorations();
 }

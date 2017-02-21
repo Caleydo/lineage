@@ -9,6 +9,7 @@ import {INumericalMatrix} from 'phovea_core/src/matrix';
 import {IAnyVector} from 'phovea_core/src/vector';
 import {list as listData, convertTableToVectors} from 'phovea_core/src/data';
 import {parseRemoteTable as parseRemoteTable} from 'phovea_d3/src/parser';
+import * as csvUrl from 'file-loader!../data/number_one_artists.csv';
 
 
 export default class dataExplorations {
@@ -37,8 +38,8 @@ export function create() {
   console.log("Eu")
 
 
-  // trying to parse a table locally
-  parseRemoteTable('number_one_artists.csv').then(function (table) {
+ // trying to parse a table locally
+  parseRemoteTable(csvURL).then(function (table) {
     Promise.all([table.data(), table.cols()]).then(function (promise) {
 
       console.log("All table data: " + promise[0].toString());

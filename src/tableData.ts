@@ -42,7 +42,10 @@ class tableData {
     });
 
 
-    // creates a row id & stashes data in a Row Obj. in the reference list.
+    /**
+     * creates a row id & stashes data in a Row Obj. in the reference list.
+     *
+     * /
     data_in.forEach(d=>{
       this.referenceRows.push({
           key: 'row_' + d['id'],

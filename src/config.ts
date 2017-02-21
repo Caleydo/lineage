@@ -3,7 +3,7 @@
  */
 
 export class Config {
-  public static curvedLines = true;
+  public static curvedLines = false;
   public static vertOrientation = true;
   public static collapseParents = true;
   public static showLifeLines = false;

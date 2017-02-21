@@ -376,7 +376,15 @@ class graphData {
             node['x'] = ma['x'] + 5;
         }
         else {
-          node['y'] = Y;
+	      if (!node['affected']){
+	          if (node['sex']=='M')
+	          	node['y'] = Y-0.2;
+	          else
+	          	node['y'] = Y+0.2;
+          }
+          else{
+	          node['y']=Y;
+          }
 
           //Place Mom and Dad Nodes on top of Each other (at the dad's x location) .
           //Iterate through parent-child edges and find the spouse

@@ -44,11 +44,8 @@ import * as header from 'phovea_ui/src/header';
 
 import {ProvenanceGraph, cat} from 'phovea_core/src/provenance';
 // import {createSetCLUEHelloWorldText} from './cmds';
-import {init as initCore} from 'phovea_core/src';
 //import {APP_NAME} from './language';
 
-// mark the core to work offline
-initCore({offline: true});
 
 
 /**

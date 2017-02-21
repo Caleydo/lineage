@@ -105,17 +105,21 @@ class attributeTable {
 
     const TEMP_LEFT_FIX = 35; //TODO: what's going on here?
 
+    const totalWeights =  this.column_order.map(function (index){
+      return col_names[index].width
+    }).reduce(function(a, b) { return a + b; }, 0);
+
     // holds how wide each col is
     var col_widths = this.column_order.map(function(index){
       // TODO: weight num_cols by the TOTAL WEIGHT
-      return col_names[index].width * totalWidth / num_cols;
+      return col_names[index].width * totalWidth / totalWeights;
     });
 
     // holds the x pos of the left-most edge of each column
     var col_xs = this.column_order.map(function(index){
       var x_dist = 0;
       for (var i = 0; i < index; i++) {
-        x_dist += col_names[i].width * totalWidth / num_cols
+        x_dist += col_names[i].width * totalWidth / totalWeights; // num_cols
       }
       return x_dist;
     });
@@ -124,7 +128,7 @@ class attributeTable {
     // holds the x pos of the midpoint of each column
      var label_xs = this.column_order.map(function(index){
         const label_pos =
-        col_xs[index] + (col_names[index].width * totalWidth /num_cols)/2;
+        col_xs[index] + (col_names[index].width * totalWidth /totalWeights /*num_cols*/)/2;
         return label_pos;
      });
 
@@ -136,8 +140,9 @@ class attributeTable {
     table_header.append("text")
       .text(function(index) { return col_names[index].name; })
       .attr('fill', 'black')
+      .attr('class', 'b')
 			.attr("transform", function (index) {
-          return "translate(" + (label_xs[index] - TEMP_LEFT_FIX) + ", 20) rotate(-45)";
+          return "translate(" + (label_xs[index] - TEMP_LEFT_FIX) + ", 0) rotate(-45)";
       });
 
 // to sort the table by attribute
@@ -180,8 +185,9 @@ class attributeTable {
 //////////////////////
 // monster for loop creates all vis. encodings for rows
     for (let i = 0; i < num_cols; i++) {
+    /*  const cell =
       rows.append("rect")
-      .attr("width", col_widths[i])
+      .attr("width", col_widths[i]-3)
       .attr("height", rowHeight)
       .attr('fill', function (d) { // TODO: visual encoding based on type!
         //data[d][col_names[col_order[i]]] == 'F' ? lightPinkGrey : 'pink';
@@ -192,20 +198,109 @@ class attributeTable {
         else
           return 'lightgreen';
       })
+      .attr('stroke', 'black')
+      .attr('stoke-width', 1)
       .attr("transform", function (row_index) {
         return ('translate(' + col_xs[i] + ' ,0)')
-      });
+      }); */
 
 ///// vv TEMPORARY ENCODING  vv //////////////
-      rows.append("text") // TODO: temp fix for no encoding
-      .text(function(index) {
-        const the_text = data[index][col_names[col_order[i]].name];
-        return the_text.toString().substring(0, 3); })
-      .attr("transform", function (row_index) {
-        return ('translate(' + (label_xs[i] - 10) + ' ,' + (rowHeight/2 + 5) + ')')
-      });
-///// ^^ TEMPORARY ENCODING ^^ //////////////
+      const curr_col_name = col_names[col_order[i]].name;
+      const curr_col_type = col_names[col_order[i]].type;
+      const curr_col_width = col_widths[i] - 4;
 
+      if( curr_col_type == 'idType' ){
+
+        rows.append("rect")
+        .attr("width", curr_col_width)
+        .attr("height", rowHeight)
+        .attr('fill', 'lightgrey')
+        .attr('stroke', 'black')
+        .attr('stoke-width', 1)
+        .attr("transform", function (row_index) {
+          return ('translate(' + col_xs[i] + ' ,0)')
+        });
+
+        rows.append("text") // TODO: temp fix for no encoding
+        .text(function(index) {
+          const the_text = data[index][curr_col_name];
+          return the_text.toString().substring(0, 3); })
+        .attr("transform", function (row_index) {
+          return ('translate(' + (label_xs[i] - 10) + ' ,' + (rowHeight/2 + 5) + ')')
+        });
+      }
+      else if( curr_col_type == 'categorical'){
+        const allValues = data.map(function(elem){return elem[curr_col_name]});
+        const uniqueValues = Array.from(new Set(allValues));
+
+        console.log('categorical!');
+        console.log("allValues: " + allValues);
+        console.log("uniqueValues: " + uniqueValues);
+
+        uniqueValues.forEach(function(value) {
+          rows.append("rect")
+          .attr("width", curr_col_width)
+          .attr("height", rowHeight)
+          .attr('fill', 'lightgreen')
+          .attr('stroke', 'black')
+          .attr('stoke-width', 1)
+          .attr("transform", function (row_index) {
+            return ('translate(' + col_xs[i] + ' ,0)')
+          });
+      });
+      }
+      else if( curr_col_type == 'int' ){
+        // how big is the range?
+        //find min, find max
+        const allValues = data.map(function(elem){return elem[curr_col_name]});
+
+        // complicated min/max to avoid unspecified (zero) entries
+        const min = [].reduce.call(allValues, function(acc, x) {
+          //console.log("in min, x is: " + x +", x.length is: " + x.length);
+          return x.length == 0 ? acc : Math.min(x, acc); });
+        Math.min( ...allValues );
+        const max = Math.max( ...allValues );
+        const scaledRange = curr_col_width / (max - min);
+
+
+        // only rows that have data
+        rows.filter((elem)=>{return data[elem][curr_col_name].toString().length > 0;})
+        .append("rect")
+        .attr("width", function(index){
+          return Math.floor((data[index][curr_col_name]-min) * scaledRange);})
+        .attr("height", rowHeight)
+        .attr('fill', 'grey')
+        .attr('stroke', 'black')
+        .attr('stoke-width', 1)
+        .attr("transform", function (row_index) {
+          return ('translate(' + col_xs[i] + ' ,0)')
+        });
+        // and a boundary
+        rows.append("rect")
+        .attr("width", curr_col_width)
+        .attr("height", rowHeight)
+        .attr('fill', 'transparent')
+        .attr('stroke', 'black')
+        .attr('stoke-width', 1)
+        .attr("transform", function (row_index) {
+          return ('translate(' + col_xs[i] + ' ,0)')
+        });
+      }
+      else
+        console.log("oh no, what type is this: " + curr_col_type );
+
+}
+
+// filter to categorical
+// table_header.append("text")
+//   .text(curr_col_name)
+//   .attr('fill', 'black')
+//   .attr("transform", function (index) {
+//       return "translate(" + (label_xs[index] - TEMP_LEFT_FIX) + ", 20) rotate(-45)";
+//   });
+
+///// ^^ TEMPORARY ENCODING ^^ //////////////
+/*
       rows.append("line")
       .attr("x1", col_xs[i])
       .attr("y1", 0)
@@ -213,7 +308,7 @@ class attributeTable {
       .attr("y2", rowHeight)
       .attr("stroke-width", 1)
       .attr("stroke", "black");
-    }
+    }*/
 //////////////
 // end for loop
 
@@ -225,7 +320,7 @@ class attributeTable {
     })
     .attr("width", this.width)
     .attr("height", rowHeight)
-    .attr('stroke', 'black')
+    .attr('stroke', 'transparent')
     .attr('stroke-width', 1)
     .attr('fill', 'none');
 
@@ -269,11 +364,11 @@ class attributeTable {
     events.fire('table_row_hover_off', data[d].id);
   });
 
-  }
+}
 
-  private update(data){
+  //private update(data){
 
-  }
+  //}
 
 
   private attachListener() {

@@ -34,7 +34,7 @@ class tableData {
     this.attachListener();
 
 
-    const TEMP_MAX_COLS_DISPLAYED = 15;
+    const TEMP_MAX_COLS_DISPLAYED = 8;
 
     // grab all the attribute names (they're the keys in the obj dict)
     desc_in.forEach(column=>{
@@ -120,11 +120,13 @@ class tableData {
 
 // TODO once we know types of columns
 function Width(column_type){ //column_name : string
-  // if(column_type === 'ID')
-  //   return 1;
-  // else if(column_type === 'age')
-  //   return 3;
-  return 1; // everything else & unknown column type
+  if( column_type == 'idType' )
+    return 2;
+  else if( column_type == 'categorical')
+    return 1;
+  else if( column_type == 'int' )
+    return 3;
+   return 1; // everything else & unknown column type
 }
 
 // columns have a name & a preferred width (s/m/l)

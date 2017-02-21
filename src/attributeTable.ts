@@ -72,6 +72,13 @@ class attributeTable {
       return d["value"];
     });
 
+    var betterData = this.all_data.getDisplayedRowData();
+
+    // for(var i = 0; i < data.length; i ++){
+    //   console.log("old data:" + data[i]['sex']) ;
+    //   console.log("new data:" + betterData[i]['sex']) ;
+    // }
+
     this.width = 450 - this.margin.left - this.margin.right
     this.height = Config.glyphSize * 3 * data.length - this.margin.top - this.margin.bottom;
 
@@ -108,7 +115,7 @@ class attributeTable {
     var displayedColNames = this.all_data.getDisplayedColumnNames();
     var displayedColTypes = this.all_data.getDisplayedColumnTypes();
 
-    var betterData = this.all_data.getDisplayedRowData();
+
 
 
      // ^^ UPDATE THOSE ON EVENTS- IS THIS A BAD DESIGN?
@@ -144,22 +151,50 @@ class attributeTable {
     const table = svg.append("g")
     .attr("transform", "translate(0," + this.margin.top + ")")
 
-    let rows = table.selectAll(".row")
 
-    .data(this.row_order.map(function(index){
-      return index[0]; //TODO! aggregation!
-    }))
+    // console.log("old data: ") ;
+    // data.map(function(d){
+    //   console.log(d);
+    // });
+    //
+    // console.log("new data: ");
+    // betterData.map(function(d){
+    //       console.log(d);
+    //     });
+
+
+    let rows = table.selectAll(".row")
+    .data(betterData)
+    //.map(function(index){
+    //return index[0]; //TODO! aggregation!
+  //  }))
+      /*this.row_order*/
+    //  betterData.map(function(index){
+    //  return index[0]; //TODO! aggregation!
+    //}))
     .enter()
     .append("g")
     .attr('id', function (d) {
-      return ('row_' + data[d].id)
+      console.log("d: " + d);
+      console.log("d.id: " + d.id);
+      return ('row_' + /*data.id)*/ d.id);
     })
     .attr('class', 'row')
     .attr("transform", function (d, i) {
-      return ('translate(0, ' + y(data[d].y)+ ' )')
+      console.log("d: " + d);
+      console.log("d.y: " + d.y);
+      return ('translate(0, ' + /*y(data.y)*/ y(d.y)+ ' )');
     });
 
+    rows.append('rect')
+        .attr("width", this.width)
+        .attr("height", rowHeight)
+        .attr('fill', 'blue');
 
+
+
+
+/*
 
 //////////////////////
 // monster for loop creates all vis. encodings for rows
@@ -189,6 +224,10 @@ class attributeTable {
 //var displayedColTypes = this.all_data.getDisplayedColumnTypes();
 // //
 
+
+
+/*
+
       const curr_col_name = displayedColNames[i];
       const curr_col_type = displayedColTypes[i];
       const curr_col_width = col_widths[i] - 4;
@@ -207,7 +246,7 @@ class attributeTable {
 
         rows.append("text") // TODO: temp fix for no encoding
         .text(function(index) {
-          const the_text = data[index][curr_col_name];
+          const the_text = data[index][curr_col_name];  //TODO:idk?
           return the_text.toString().substring(0, 3); })
         .attr("transform", function (row_index) {
           return ('translate(' + (label_xs[i] - 10) + ' ,' + (rowHeight/2 + 5) + ')')
@@ -275,6 +314,12 @@ class attributeTable {
 
 }
 
+
+*/
+
+
+
+
 // filter to categorical
 // table_header.append("text")
 //   .text(curr_col_name)
@@ -295,6 +340,10 @@ class attributeTable {
     }*/
 //////////////
 // end for loop
+
+
+
+/*
 
     const boundary = rows
     .append("rect")
@@ -347,6 +396,8 @@ class attributeTable {
     selectAll('.boundary').classed('tablehovered', false);
     events.fire('table_row_hover_off', data[d].id);
   });
+
+  */
 
 }
 

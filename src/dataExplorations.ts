@@ -8,25 +8,22 @@ import {EventHandler} from 'phovea_core/src/event';
 import {INumericalMatrix} from 'phovea_core/src/matrix';
 import {IAnyVector} from 'phovea_core/src/vector';
 import {list as listData, convertTableToVectors} from 'phovea_core/src/data';
-
+import {parseRemoteTable as parseRemoteTable} from 'phovea_d3/src/parser';
 
 
 export default class dataExplorations {
 
-  constructor()
-  {
+  constructor() {
 
   }
 
-  destroy()
-  {
+  destroy() {
 
   }
 
-  public async listData()
-  {
+  public async listData() {
     console.log("Trying to list data")
-    console.log(await listData());
+    console.log(await listData())
   }
 
 }
@@ -37,5 +34,22 @@ export default class dataExplorations {
  * @returns {graphData}
  */
 export function create() {
+  console.log("Eu")
+
+
+  // trying to parse a table locally
+  parseRemoteTable('number_one_artists.csv').then(function (table) {
+    Promise.all([table.data(), table.cols()]).then(function (promise) {
+
+      console.log("All table data: " + promise[0].toString());
+      var firstColumnVector = promise[1][0];
+
+      firstColumnVector.data().then(function (vectorData) {
+        console.log("Data of first Column: " + promise[0].toString());
+      });
+    });
+  });
+
+
   return new dataExplorations();
 }

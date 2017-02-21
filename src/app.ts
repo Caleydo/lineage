@@ -18,6 +18,9 @@ import * as graphData from './graphData'
 import * as tableData from './tableData'
 // import * as graphData from './genealogyData'
 
+
+import * as dataExplorations from './dataExplorations'
+
 //Import Sample Data from ./sampleData
 // import {sampleData} from './sampleData'
 
@@ -102,6 +105,9 @@ export class App {
 
       let attributePanel = panel.create(this.$node.select('#data_selection').node());
       attributePanel.init(table_data);
+
+      let data = dataExplorations.create();
+      data.listData();
 
 
     this.$node.select('h3').remove();

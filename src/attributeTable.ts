@@ -83,7 +83,7 @@ class attributeTable {
 
     // Scales
     let x = scaleLinear().range([0 , this.width]).domain([1 ,1]);
-    let y = scaleLinear().range([0, this.height]).domain([min(data,function(d){return d['y']}), max(data,function(d){return d['y']}) ])
+    let y = scaleLinear().range([0, this.height]).domain([min(data,function(d){return +d['y']}), max(data,function(d){return +d['y']}) ])
 
     let tableAxis = axisTop(x).tickFormat(format("d"));
 

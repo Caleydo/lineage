@@ -960,6 +960,15 @@ class genealogyTree {
       })
       .attr('stroke', 'none')
       .style('font-size', Config.glyphSize)
+      
+/*
+      //Temporarily hide all collapsed nodes that aren't in the kid grid;
+      selectAll('.nodeIcon').filter((d)=>{return d['children'] && d['hidden']})
+      .attr('visibility','hidden');
+      
+       selectAll('.nodeLine').filter((d)=>{return d['children'] && d['hidden']})
+      .attr('visibility','hidden');
+*/
 
 
     let dragged = drag()

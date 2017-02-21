@@ -341,9 +341,6 @@ class graphData {
 
   public hideNodes(startIndex) {
 
-// 	    console.log('here')
-    //Traverse down the 'tree' and note all indexes that need to be hidden
-
     let Y = startIndex;
 
     this.nodes.sort((a, b) => {
@@ -352,12 +349,10 @@ class graphData {
     //Assign a row for each affected case;
 
     this.nodes.forEach((node, i) => {
-
-// 		    if (indexes.includes(node['y'])){
       if (node['y'] <= startIndex) {
 
         //leaf nodes
-        if (!node['children']) {
+        if (!node['children'] && !node['affected']) {
 
           let edge = this.parentChildEdges.filter((d) => {
             return d.target == node
@@ -371,12 +366,12 @@ class graphData {
             //place kid grid in the middle
             node['y'] = (ma['y'] + pa['y']) / 2
           }
-          //If only one or neither parent is affected, give the child the mom's y value.
+          //If only one or neither parent is affected, give the child the dad's y value.
           else {
             node['y'] = ma['y'];
           }
 
-		  //First attempt at the kid grid
+		  //Starting point for the kid grid
           if (!node['affected'])
             node['x'] = ma['x'] + 5;
         }

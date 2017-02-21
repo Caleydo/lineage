@@ -789,7 +789,7 @@ class genealogyTree {
         return Config.glyphSize * 2;
       })
       .attr("stroke-width", 4)
-      .attr("stroke", '#f28613')
+      .attr("stroke", '#a09f9f')
 
 
 

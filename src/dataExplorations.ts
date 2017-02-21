@@ -41,8 +41,8 @@ export default class dataExplorations {
     console.log("Lenght:" + vector.length);
     console.log("IDType:" + vector.idtype);
     console.log("First Element" + vector.at(0).then(
-      (d) => console.log(d)),
-      (err) => console.log("Error: " + err));
+      (d) => console.log(d),
+      (err) => console.log("Error: " + err)));
 
   //   table.col(0).then((d) => console.log("column: " + d));
     // table.data().then((d)=>console.log("what" + d));

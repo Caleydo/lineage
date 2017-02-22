@@ -43,7 +43,8 @@ class graphData {
       d['family_ids'] = []; //keeps track of nuclear families
       d['clicked'] = false;
       d['children'] = false;
-      d['affected'] = +d["affection"] == 100;
+//       d['affected'] = +d["affection"] == 100;
+	  d['affected'] = Math.random()>0.7
 
       this.uniqueID.push(+d['id']);
     });
@@ -367,6 +368,11 @@ class graphData {
             node['y'] = (ma['y'] + pa['y']) / 2
           }
           //If only one or neither parent is affected, give the child the dad's y value.
+          else if (ma['affected'])
+          	node['y'] = pa['y'];
+          else if (pa['affected'])
+          	node['y'] = ma['y'];
+          
           else { 
              if (node['sex']=='M')
 	          	node['y'] = pa['y'];

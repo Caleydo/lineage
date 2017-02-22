@@ -343,7 +343,7 @@ class genealogyTree {
 	//Only draw parentedges if target node is not
     let edgePaths = edgeGroup.selectAll(".edges")
       .data(edges.filter(function (d) {
-        return !d['target']['aggregated']
+        return (!d['target']['aggregated'] ||  !(d['hidden'] && !d['target']['children']))
       }), function (d) {
         return d['id'];
       });
@@ -364,7 +364,15 @@ class genealogyTree {
       .attr("class", "edges")
       .transition(t)
       .attr("d", (d) => {
-        return this.elbow(d, this.interGenerationScale, this.lineFunction)
+	      let maY = Math.round(d['ma']['y']);
+	      let paY = Math.round(d['pa']['y']);
+	      let nodeY = Math.round(d['target']['y']);
+	      
+	     if ((maY == nodeY) && (paY == nodeY)){
+		 	return this.elbow(d, this.interGenerationScale, this.lineFunction,false)
+		 }
+		 else
+		 	return this.elbow(d, this.interGenerationScale, this.lineFunction,true)
       })
 
 
@@ -1512,30 +1520,51 @@ class genealogyTree {
       return this.y(node.y)
   }
 
-  private elbow(d, interGenerationScale, lineFunction) {
+  private elbow(d, interGenerationScale, lineFunction,curves) {
     const xdiff = d.ma.x - d.target.x;
     const ydiff = d.ma.y - d.target.y;
-    const nx = d.ma.x - xdiff * interGenerationScale(ydiff);
+    let nx = d.ma.x - xdiff -4 //* interGenerationScale(ydiff)
 
-    const linedata = [{
+	let linedata; 
+	if (curves){
+		nx = d.ma.x - xdiff * interGenerationScale(ydiff)
+    linedata = [{
       x: (d.ma.x + d.pa.x) / 2,
       y: (d.ma.y + d.pa.y) / 2
-    }, {
+    }, 
+    {
       x: nx,
       y: (d.ma.y + d.pa.y) / 2
     }, 
-/*
     {
       x: nx,
       y: d.target.y
     }, 
-*/
     {
       x: d.target.x,
       y: d.target.y
     }];
+    }
+    else{
+	 linedata = [{
+      x: (d.ma.x + d.pa.x) / 2,
+      y: (d.ma.y + d.pa.y) / 2
+    }, 
+    {
+      x: nx,
+      y: (d.ma.y + d.pa.y) / 2
+    }, 
+    {
+      x: nx,
+      y: d.target.y
+    }, 
+    {
+      x: d.target.x,
+      y: d.target.y
+    }];
+    }
 
-    if (Config.curvedLines)
+    if (curves)
       lineFunction.curve(curveBasis);
     else
       lineFunction.curve(curveLinear);

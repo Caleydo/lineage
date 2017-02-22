@@ -108,19 +108,23 @@
   margin-top:5px;
 }
 
-.menu-content .attr_badges{
-    opacity: 0;
-}
 
-.menu-content .attr_badges  span:hover{
-  background-color: #1182c5;
-}
-
-.menu-content .attr_badges.focus{
+.menu-content .attr_badges label.focus{
     opacity: 1;
 }
 
 
+.menu-content .attr_badges label {
+    display:inline-block;
+    background-color:whitesmoke;
+    color: grey;
+    opacity: 0;
+}
+.menu-content .attr_badges .checked {
+    background-color:#bbb;
+    color:red;
+  opacity: 1;
+}
 
 .menu-content li:hover{
   background-color: lightgrey;

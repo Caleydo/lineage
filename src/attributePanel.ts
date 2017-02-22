@@ -159,19 +159,29 @@ class attributePanel {
       .append('strong').html(column_name)
       .append('span').attr('class', column_desc)
       .html(`<div class="attr_badges pull-right">
-<span class="badge  badge-blue ">primary</span>
-<span class="badge   badge-blue ">secomdry</span>
+     <label class="badge  badge-blue checked" >
+        <input type="radio" name="primary" id="primary_label" >
+        Primary
+      </label>
+      <label class="badge  badge-blue ">
+        <input type="radio" name="secondry" id="secondry_label">
+        Secondry
+      </label>
 </div>
       `);
     data_attr.on('mouseover', function () {
       select(this).select('.sort_handle').classed('focus', true)
-      select(this).select('.attr_badges').classed('focus', true)
+      select(this).select('.attr_badges label').classed('focus', true)
     });
 
     data_attr.on('mouseout', function () {
       select(this).select('.sort_handle').classed('focus', false)
-      select(this).select('.attr_badges').classed('focus', false)
+      select(this).select('.attr_badges label').classed('focus', false)
     });
+
+    select('#primary_label').on('click', function(){
+      console.log('click prim')
+    })
 
   }
 

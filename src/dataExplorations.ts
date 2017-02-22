@@ -78,7 +78,6 @@ export default class dataExplorations {
     console.log('Fourth Element: ' + fourthElement);
 
     // Here we directly access the first element in the first vector:
-    // FIXME: broken, error 500
     const first_value_of_first_vector = await table.at(0, 0);
     console.log('Accessing the Table for the first element: ' + first_value_of_first_vector);
 
@@ -109,11 +108,15 @@ export default class dataExplorations {
       .then(asTable)
       .then((table: ITable) => {
 
-        Promise.all([table.data(), table.cols()]).then(what =>
+        Promise.all([table.data(), table.cols()]).then(function(args)
         {
           console.log(table);
+          // FIXME: this table seems to be initialized but not have any data as payload?
+          table.at(0, 0).then(value =>
+          {
+            console.log('Accessing the Table for the first element: ' + value);
+          }).catch(err => console.log(err));
           this.listMyDatasets(table);
-
         });
       })
     // .then((args: any[]) => {
@@ -136,7 +139,6 @@ export default class dataExplorations {
  * @returns {graphData}
  */
 export function create() {
-
 
   return new dataExplorations();
 }

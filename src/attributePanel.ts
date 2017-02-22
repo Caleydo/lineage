@@ -158,30 +158,37 @@ class attributePanel {
       .html('<i class=\"glyphicon glyphicon-move sort_handle\"></i>')
       .append('strong').html(column_name)
       .append('span').attr('class', column_desc)
-      .html(`<div class="attr_badges pull-right">
-     <label class="badge  badge-blue checked" >
-        <input type="radio" name="primary" id="primary_label" >
-        Primary
-      </label>
-      <label class="badge  badge-blue ">
-        <input type="radio" name="secondry" id="secondry_label">
-        Secondry
-      </label>
+      .html(`<div class=" attr_badges pull-right">
+<span class=" badge" >primary</span>
+<span class=" badge" >secondry</span>
 </div>
       `);
     data_attr.on('mouseover', function () {
       select(this).select('.sort_handle').classed('focus', true)
-      select(this).select('.attr_badges label').classed('focus', true)
+      select(this).select('.attr_badges').classed('focus', true)
     });
 
     data_attr.on('mouseout', function () {
       select(this).select('.sort_handle').classed('focus', false)
-      select(this).select('.attr_badges label').classed('focus', false)
+      select(this).select('.attr_badges').classed('focus', false)
     });
 
-    select('#primary_label').on('click', function(){
-      console.log('click prim')
-    })
+    $(document).on('click', '.badge', function () {
+      let badge = $(this).text();
+      let attribute = $(this).closest('strong').contents()[0];
+      //reset badge dispaly for previously clicked badges
+      $(".checked_"+badge).parent().css( "display", "");
+      $(".checked_"+badge).parent().children().css( "display", "");
+      $(".checked_"+badge).removeClass(".checked_"+badge);
+
+        $(this).parent().css( "display", "inline");
+        $(this).parent().children().css( "display", "none");
+        $(this).addClass( "checked_"+badge);
+        $(this).css( "display", "inline");
+
+       events.fire('attribute_selected',{attribute, badge});
+
+    });
 
   }
 
@@ -221,6 +228,7 @@ class Attribute{
     this.name = name;
     this.atype = atype;
     this.data = data;
+
   }
 
 

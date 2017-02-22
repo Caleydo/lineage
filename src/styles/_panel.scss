@@ -108,6 +108,18 @@
   margin-top:5px;
 }
 
+.menu-content .attr_badges{
+    opacity: 0;
+}
+
+.menu-content .attr_badges  span:hover{
+  background-color: #1182c5;
+}
+
+.menu-content .attr_badges.focus{
+    opacity: 1;
+}
+
 
 
 .menu-content li:hover{

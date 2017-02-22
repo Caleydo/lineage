@@ -47,6 +47,10 @@ import {ProvenanceGraph, cat} from 'phovea_core/src/provenance';
 //import {APP_NAME} from './language';
 
 
+// mark the core to work offline - comment the next two lines out if working with a server!
+import {init as initCore} from 'phovea_core/src';
+initCore({offline: true});
+
 
 /**
  * The main class for the App app
@@ -104,7 +108,7 @@ export class App {
       attributePanel.init(table_data);
 
       let data = dataExplorations.create();
-      data.listMyDatasets();
+    data.loadLocalData().then((d) => data.listMyDatasets());
 
 
     this.$node.select('h3').remove();

@@ -24,8 +24,6 @@ export default class dataExplorations {
     console.log("All loaded datasets:");
     console.log(all_datasets);
 
-
-
     // here we pick the first dataset and cast it to ITable
     let table: ITable = <ITable> all_datasets[0];
     console.log("The Table:");
@@ -41,7 +39,7 @@ export default class dataExplorations {
     // what you do is, you call a then function which takes a callback as a parameter.
     // This handles the "good" case and passes the data in.
     // You should also handle the "bad" case in a catch function:
-      const first_promise = vector.at(0).then(
+    const first_promise = vector.at(0).then(
       function (d) {
         console.log("The data:")
         console.log(d);
@@ -82,7 +80,40 @@ export default class dataExplorations {
     // TODO: get a summary statistic on views
 
   }
+
+  public async loadLocalData() {
+    // Here we demonstrate how to parse a local table.
+    // To do that, put your data file and your json data description in the top-level data directory.
+    // Import the CSV's url using the import statement (see above)
+    // import * as csvUrl from 'file-loader!../data/number_one_artists.csv';
+    // The "file-loader! is a webpack feature to load the file TODO: more background?
+
+    const loading = new Promise((resolve, reject) => {
+      tsv(csvUrl, (error, data) => {
+        if (error) {
+          reject(error);
+        }
+        resolve(data);
+      });
+    });
+    loading
+      .then(asTable)
+      .then((table: ITable) => {
+        return Promise.all([table.data(), table.cols()]);
+      })
+      .then((args: any[]) => {
+        const data: any[] = args[0];
+        console.log('All table data: ' + data.toString());
+        const cols: IAnyVector[] = args[1];
+        const firstColumnVector = cols[0];
+        firstColumnVector.data().then((vectorData) => {
+          console.log('Data of first Column: ' + vectorData.toString());
+        });
+      });
+  }
+
 }
+
 
 /**
  * Method to create a new graphData instance
@@ -90,35 +121,6 @@ export default class dataExplorations {
  * @returns {graphData}
  */
 export function create() {
-
-  // Here we demonstrate how to parse a local table.
-  // To do that, put your data file and your json data description in the top-level data directory.
-  // Import the CSV's url using the import statement (see above)
-  // import * as csvUrl from 'file-loader!../data/number_one_artists.csv';
-  // The "file-loader! is a webpack feature to load the file TODO: more background?
-
-  const loading = new Promise((resolve, reject) => {
-    tsv(csvUrl, (error, data) => {
-      if (error) {
-        reject(error);
-      }
-      resolve(data);
-    });
-  });
-  loading
-    .then(asTable)
-    .then((table: ITable) => {
-      return Promise.all([table.data(), table.cols()]);
-    })
-    .then((args: any[]) => {
-      const data: any[] = args[0];
-      console.log('All table data: ' + data.toString());
-      const cols: IAnyVector[] = args[1];
-      const firstColumnVector = cols[0];
-      firstColumnVector.data().then((vectorData) => {
-        console.log('Data of first Column: ' + vectorData.toString());
-      });
-    });
 
 
   return new dataExplorations();

@@ -1,17 +1,8 @@
-import IDType from 'phovea_core/src/idtype/IDType';
-import {ICategoricalVector, INumericalVector} from 'phovea_core/src/vector';
-import {
-  VALUE_TYPE_STRING, VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL,
-  IDataType
-} from 'phovea_core/src/datatype';
-import ITable from 'phovea_core/src/table/ITable';
-import {EventHandler} from 'phovea_core/src/event';
-import {INumericalMatrix} from 'phovea_core/src/matrix';
+import {ITable, asTable} from 'phovea_core/src/table';
 import {IAnyVector} from 'phovea_core/src/vector';
-import {list as listData, convertTableToVectors} from 'phovea_core/src/data';
-import {parseRemoteTable as parseRemoteTable} from 'phovea_d3/src/parser';
+import {list as listData} from 'phovea_core/src/data';
 import * as csvUrl from 'file-loader!../data/number_one_artists.csv';
-import * as dsv from 'd3-dsv';
+import {tsv} from 'd3-request';
 
 
 export default class dataExplorations {
@@ -95,20 +86,27 @@ export function create() {
 
   // We use the parseRemoteTable function that's part of the phovea_d3 package (also included above).
   // FIXME Broken
-  parseRemoteTable(csvUrl).then(function (table) {
-    console.log("What?");
-    Promise.all([table.data(), table.cols()]).then(function (table) {
-
-      // table here is an instance of ITable FIXME - no idea whether that's correct
-            console.log("All table data: " + table[0].toString());
-      // FIXME - this should work?
-      let firstColumnVector = table[1][0];
-
-      firstColumnVector.data().then(function (vectorData) {
-        console.log("Data of first Column: " + table[0].toString());
-      });
+  const loading = new Promise((resolve, reject) => {
+    tsv(csvUrl, (error, data) => {
+      if (error) {
+        reject(error);
+      }
+      resolve(data);
     });
   });
-
+  loading
+    .then(asTable)
+    .then((table: ITable) => {
+      return Promise.all([table.data(), table.cols()]);
+    })
+    .then((args) => {
+      const data: any[] = args[0];
+      console.log('All table data: ' + data.toString());
+      const cols: IAnyVector[] = args[1];
+      const firstColumnVector = cols[0];
+      firstColumnVector.data().then((vectorData) => {
+        console.log('Data of first Column: ' + vectorData.toString());
+      });
+    });
   return new dataExplorations();
 }

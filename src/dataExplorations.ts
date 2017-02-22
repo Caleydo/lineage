@@ -15,17 +15,26 @@ export default class dataExplorations {
 
   }
 
+  offline: boolean = true;
+  table: ITable;
+
   public async listMyDatasets() {
     console.log("Trying to list data");
 
+    let table: ITable;
     // listData() returns a list of all datasets loaded by the server
     // notice the await keyword - you'll see an explanation below
-    let all_datasets = await listData();
-    console.log("All loaded datasets:");
-    console.log(all_datasets);
+    if (this.offline) {
+      table = this.table;
+    }
+    else {
+      let all_datasets = await listData();
+      console.log("All loaded datasets:");
+      console.log(all_datasets);
 
-    // here we pick the first dataset and cast it to ITable
-    let table: ITable = <ITable> all_datasets[0];
+      // here we pick the first dataset and cast it to ITable
+      table = <ITable> all_datasets[0];
+    }
     console.log("The Table:");
     console.log(table);
     console.log("Table Name: " + table.desc.name);
@@ -102,6 +111,7 @@ export default class dataExplorations {
         return Promise.all([table.data(), table.cols()]);
       })
       .then((args: any[]) => {
+        this.table = args[0];
         const data: any[] = args[0];
         console.log('All table data: ' + data.toString());
         const cols: IAnyVector[] = args[1];

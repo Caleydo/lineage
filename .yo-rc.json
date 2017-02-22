@@ -2,7 +2,7 @@
   "generator-phovea": {
     "type": "app",
     "app": "Lineage",
-    "clientOnly": false,
+    "clientOnly": true,
     "entries": {
       "app": "./src/index.ts"
     },

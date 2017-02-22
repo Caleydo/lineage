@@ -348,14 +348,15 @@ class graphData {
       return b['Y'] - a['Y']
     });
     //Assign a row for each affected case;
-
+	let lastNodeChecked = undefined; 
+	
     this.nodes.forEach((node, i) => {
-      if (node['y'] <= startIndex) {
-
-        //leaf nodes
+      if (node['y'] <= startIndex) {  	
+	  	
+        //non affected leaf nodes
         if (!node['children'] && !node['affected']) {
-
-          let edge = this.parentChildEdges.filter((d) => {
+	        
+	      let edge = this.parentChildEdges.filter((d) => {
             return d.target == node
           });
           let ma = edge[0]['ma'];
@@ -368,10 +369,12 @@ class graphData {
             node['y'] = (ma['y'] + pa['y']) / 2
           }
           //If only one or neither parent is affected, give the child the dad's y value.
+/*
           else if (ma['affected'])
           	node['y'] = pa['y'];
           else if (pa['affected'])
           	node['y'] = ma['y'];
+*/
           
           else { 
              if (node['sex']=='M')
@@ -383,7 +386,7 @@ class graphData {
 		  //Starting point for the kid grid
           if (!node['affected'])
             node['x'] = ma['x'] + 5;
-        }
+        } //end leaf nodes 
         else {
 	      if (!node['affected']){
 	          if (node['sex']=='M')
@@ -391,8 +394,28 @@ class graphData {
 	          else
 	          	node['y'] = Y+0.2;
           }
-          else{
-	          node['y']=Y;
+          else{ //affected node
+	          node['y']=Y;	          
+	          //Search for spouse and place in the right location (if not affected)
+	          let edge = this.parentParentEdges.filter((d) => {
+			  	return node['sex']=='M' ? d['pa'] == node : d['ma']==node
+	          });
+	          
+	          if (edge.length>0){
+			      let spouse; 
+		          if (node['sex']=='M')
+		          	spouse = edge[0]['ma'];
+		          else
+		          	spouse = edge[0]['pa'];
+		          	
+		          if (!spouse['affected'])
+		          	spouse['y']= Y -1 +0.2; 
+			          
+	          }
+	          
+
+	          
+	          
           }
 
           //Place Mom and Dad Nodes on top of Each other (at the dad's x location) .

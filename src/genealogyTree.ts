@@ -942,9 +942,7 @@ class genealogyTree {
 		        		childCount = childCount +1
 		        	if (d.target == node){
 
-			        	yind = childCount % (this.kidGridSize/2);
-			        	
-			        	console.log(childCount, yind, Math.ceil(childCount/2)	)
+			        	yind = childCount % (this.kidGridSize/2);		        	
 			        	
 			        	if (yind == 0)
 			        		yind = this.kidGridSize/2
@@ -954,7 +952,6 @@ class genealogyTree {
 		        	}
 	        	}
         	}) 
-        		console.log(node['family_ids'], node['sex'],xind,yind)
 				return  "translate(" + (xpos + this.kidGridXScale(xind)) + "," + (ypos + + this.kidGridYScale(yind)) + ")";
         
       })

@@ -367,8 +367,11 @@ class graphData {
             node['y'] = (ma['y'] + pa['y']) / 2
           }
           //If only one or neither parent is affected, give the child the dad's y value.
-          else {
-            node['y'] = ma['y'];
+          else { 
+             if (node['sex']=='M')
+	          	node['y'] = pa['y'];
+	          else
+	          	node['y'] = ma['y'];
           }
 
 		  //Starting point for the kid grid

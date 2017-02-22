@@ -99,7 +99,7 @@ export function create() {
     .then((table: ITable) => {
       return Promise.all([table.data(), table.cols()]);
     })
-    .then((args) => {
+    .then((args: any[]) => {
       const data: any[] = args[0];
       console.log('All table data: ' + data.toString());
       const cols: IAnyVector[] = args[1];

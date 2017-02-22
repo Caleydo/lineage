@@ -18,14 +18,14 @@ export default class dataExplorations {
   offline: boolean = true;
   table: ITable;
 
-  public async listMyDatasets() {
+  public async listMyDatasets(table : ITable) {
     console.log("Trying to list data");
 
-    let table: ITable;
+
     // listData() returns a list of all datasets loaded by the server
     // notice the await keyword - you'll see an explanation below
     if (this.offline) {
-      table = this.table;
+
     }
     else {
       let all_datasets = await listData();
@@ -108,18 +108,23 @@ export default class dataExplorations {
     loading
       .then(asTable)
       .then((table: ITable) => {
-        return Promise.all([table.data(), table.cols()]);
-      })
-      .then((args: any[]) => {
-        this.table = args[0];
-        const data: any[] = args[0];
-        console.log('All table data: ' + data.toString());
-        const cols: IAnyVector[] = args[1];
-        const firstColumnVector = cols[0];
-        firstColumnVector.data().then((vectorData) => {
-          console.log('Data of first Column: ' + vectorData.toString());
+
+        Promise.all([table.data(), table.cols()]).then(what =>
+        {
+          console.log(table);
+          this.listMyDatasets(table);
+
         });
-      });
+      })
+    // .then((args: any[]) => {
+    //   const data: any[] = args[0];
+    //   console.log('All table data: ' + data.toString());
+    //   const cols: IAnyVector[] = args[1];
+    //   const firstColumnVector = cols[0];
+    //   firstColumnVector.data().then((vectorData) => {
+    //     console.log('Data of first Column: ' + vectorData.toString());
+    //   });
+    // });
   }
 
 }

@@ -206,15 +206,21 @@ class attributeTable {
       else if( curr_col_type == 'int' ){
         // how big is the range?
         //find min, find max
-        const allValues = betterData.map(function(elem){return elem[curr_col_name]});
+        const allValues = betterData.map(function(elem){return elem[curr_col_name]}).filter(function(x){return x.length != 0;});
 
         // complicated min/max to avoid unspecified (zero) entries
-        const min = [].reduce.call(allValues, function(acc, x) {
-          //console.log("in min, x is: " + x +", x.length is: " + x.length);
-          return x.length == 0 ? acc : Math.min(x, acc); });
-        Math.min( ...allValues );
+        // const min = [].reduce.call(allValues, function(acc, x) {
+        //   //console.log("in min, x is: " + x +", x.length is: " + x.length);
+        //   return x.length == 0 ? acc : Math.min(x, acc); });
+        const min = Math.min( ...allValues );
         const max = Math.max( ...allValues );
+        const avg = allValues.reduce(function(acc, x) {
+          return parseInt(acc) + parseInt(x);}) / (allValues.length);
+
         const scaledRange = curr_col_width / (max - min);
+
+
+        console.log(curr_col_name + "s avg was: " + avg);
 
 
         // only rows that have data
@@ -237,7 +243,16 @@ class attributeTable {
         .attr('stroke', 'black')
         .attr('stoke-width', 1)
         .attr("transform", function () {
-          return ('translate(' + col_xs[colIndex] + ' ,0)')
+          return ('translate(' + col_xs[colIndex] + ' ,0)');
+        });
+        // stick on the median
+        rows.append("rect") //sneaky line is a rectangle
+        .attr("width", 2)
+        .attr("height", rowHeight)
+        .attr("fill", 'black')
+        .attr("transform", function () {
+          return ('translate(' + (Math.floor((avg-min) * scaledRange)
+          + col_xs[colIndex]) + ',0)');
         });
       }
       else

@@ -96,7 +96,6 @@ class attributeTable {
         .attr("transform", "translate(" + this.margin.left + "," + this.margin.top / 1.5 + ")")
         .attr('id', 'axis')
 
-
     const TEMP_LEFT_FIX = 35; //TODO: what's going on here?
 
     // todo: refactor so each column *knows* these things about itself
@@ -119,12 +118,11 @@ class attributeTable {
       .text(function(index) { return displayedColNames[index];})
       .attr('fill', 'black')
       .attr('class', 'b')
-			.attr("transform", function (index) {
-          return "translate(" + (label_xs[index] - TEMP_LEFT_FIX) + ", 0) rotate(-45)";
+			.attr("transform", function (index) { // the 5 is to bump slight left
+          return "translate(" + (label_xs[index] - 5 - TEMP_LEFT_FIX) + ", 0) rotate(-45)";
       });
 
     const loremIpsum = ["", "", "", "M", "T", "T", "   ...", "   ..."];
-
     table_header.append("text")
     // did someone say stand in text?
       .text(function(index) { return loremIpsum[index]; })
@@ -132,6 +130,16 @@ class attributeTable {
       .attr("transform", function (index) {
           return "translate(" + (col_xs[index] - TEMP_LEFT_FIX) + ", 20)";
       });
+
+      const wholeWidth = this.width; //binding here bc "this" mess
+    axis.append("rect")
+    .attr('width', wholeWidth)
+    .attr('height', 1)
+    .attr('fill', 'black')
+    .attr("transform", function (index) { //TODO: what's up with the shift?
+        return "translate(" + (-1*TEMP_LEFT_FIX - 5) + ", 5)";
+    })
+
 
 // TODO: to sort the table by attribute
     table_header.append("rect")
@@ -206,10 +214,7 @@ class attributeTable {
           .attr("width", curr_col_width)
           .attr("height", rowHeight)
           .attr('fill', function(elem){
-            console.log("elem: " + elem[curr_col_name] + ", gold: " + uniqueValues[0])
-            if(elem[curr_col_name] === uniqueValues[0])
-              return '#666666';
-            return 'white';
+            return (elem[curr_col_name] === uniqueValues[0]) ? '#666666' : 'white';
           })
           .attr('stroke', 'black')
           .attr('stoke-width', 1)

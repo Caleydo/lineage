@@ -292,7 +292,7 @@ class attributeTable {
     .attr('row_pos', function (elem) {
       return elem.y;
     })
-    .attr("width", this.width)
+    .attr("width", this.width-col_margin)
     .attr("height", rowHeight)
     .attr('stroke', 'transparent')
     .attr('stroke-width', 1)

@@ -3,8 +3,8 @@ import {IAnyVector} from 'phovea_core/src/vector';
 import {list as listData, getFirstByName, get as getById} from 'phovea_core/src/data';
 import * as csvUrl from 'file-loader!../data/number_one_artists.csv';
 import {tsv} from 'd3-request';
-import {ICategoricalVector, INumericalVector} from '../../phovea_core/src/vector/IVector';
-import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT} from '../../phovea_core/src/datatype';
+import {ICategoricalVector, INumericalVector} from 'phovea_core/src/vector/IVector';
+import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT} from 'phovea_core/src/datatype';
 
 
 export default class dataExplorations {

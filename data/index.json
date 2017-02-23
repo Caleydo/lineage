@@ -1,7 +1,7 @@
 [
   {
     "name": "Artists",
-    "path": "number_one_artist.csv",
+    "path": "number_one_artists.csv",
     "separator": "\t",
     "id": "numer-one-artists",
     "size": [

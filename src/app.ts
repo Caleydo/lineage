@@ -44,11 +44,12 @@ import * as header from 'phovea_ui/src/header';
 
 import {ProvenanceGraph, cat} from 'phovea_core/src/provenance';
 // import {createSetCLUEHelloWorldText} from './cmds';
-import {init as initCore} from 'phovea_core/src';
 //import {APP_NAME} from './language';
 
-// mark the core to work offline
-initCore({offline: true});
+
+// mark the core to work offline - comment the next two lines out if working with a server!
+//import {init as initCore} from 'phovea_core/src';
+//initCore({offline: true});
 
 
 /**
@@ -107,7 +108,9 @@ export class App {
       attributePanel.init(table_data);
 
       let data = dataExplorations.create();
-      data.listData();
+      data.loadLocalData();
+      data.demoDatasets(null);
+      //data.demoGenealogyData();
 
 
     this.$node.select('h3').remove();

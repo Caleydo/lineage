@@ -104,7 +104,8 @@ rect.selected{
 
 //Hide Life Line for Aggregated and Hidden Nodes;
 .aggregated .lifeRect,
-.collapsed .lifeRect{
+.collapsed .lifeRect,
+.collapsed .attributeBar{
 	visibility:hidden;
 }
 

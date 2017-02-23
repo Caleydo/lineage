@@ -48,8 +48,8 @@ import {ProvenanceGraph, cat} from 'phovea_core/src/provenance';
 
 
 // mark the core to work offline - comment the next two lines out if working with a server!
-import {init as initCore} from 'phovea_core/src';
-initCore({offline: true});
+//import {init as initCore} from 'phovea_core/src';
+//initCore({offline: true});
 
 
 /**
@@ -109,6 +109,7 @@ export class App {
 
       let data = dataExplorations.create();
       data.loadLocalData();
+      data.demoDatasets(null);
 
 
     this.$node.select('h3').remove();

@@ -123,7 +123,17 @@ class attributeTable {
           return "translate(" + (label_xs[index] - TEMP_LEFT_FIX) + ", 0) rotate(-45)";
       });
 
-// to sort the table by attribute
+    const loremIpsum = ["", "", "", "M", "T", "T", "   ...", "   ..."];
+
+    table_header.append("text")
+    // did someone say stand in text?
+      .text(function(index) { return loremIpsum[index]; })
+      .attr('fill', 'black')
+      .attr("transform", function (index) {
+          return "translate(" + (col_xs[index] - TEMP_LEFT_FIX) + ", 20)";
+      });
+
+// TODO: to sort the table by attribute
     table_header.append("rect")
       .attr('width', function(index){ return col_widths[index];})
       .attr('height', 40)
@@ -195,7 +205,12 @@ class attributeTable {
           rows.append("rect")
           .attr("width", curr_col_width)
           .attr("height", rowHeight)
-          .attr('fill', 'lightgreen')
+          .attr('fill', function(elem){
+            console.log("elem: " + elem[curr_col_name] + ", gold: " + uniqueValues[0])
+            if(elem[curr_col_name] === uniqueValues[0])
+              return '#666666';
+            return 'white';
+          })
           .attr('stroke', 'black')
           .attr('stoke-width', 1)
           .attr("transform", function () {

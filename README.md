@@ -53,10 +53,14 @@ npm test
 
 Building
 --------
-
+From lineage-workspace/lineage - **NOT** from lineage-workspace/lineage/lineage!
 ```
 npm run build
 ```
+
+Version Control
+--------
+Use 'git' in **lineage-workspace/lineage/lineage**.
 
 
 

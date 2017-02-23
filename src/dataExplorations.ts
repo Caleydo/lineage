@@ -1,25 +1,22 @@
 import {ITable, asTable} from 'phovea_core/src/table';
 import {IAnyVector} from 'phovea_core/src/vector';
-import {list as listData, getFirstByName} from 'phovea_core/src/data';
+import {list as listData, getFirstByName, get as getById} from 'phovea_core/src/data';
 import * as csvUrl from 'file-loader!../data/number_one_artists.csv';
 import {tsv} from 'd3-request';
-import {ICategoricalVector} from '../../phovea_core/src/vector/IVector';
-import {VALUE_TYPE_CATEGORICAL} from '../../phovea_core/src/datatype';
+import {ICategoricalVector, INumericalVector} from '../../phovea_core/src/vector/IVector';
+import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT} from '../../phovea_core/src/datatype';
 
 
 export default class dataExplorations {
 
   constructor() {
-
   }
 
   destroy() {
-
   }
 
   offline: boolean = false;
   table: ITable;
-
 
   /**
    *
@@ -39,7 +36,10 @@ export default class dataExplorations {
    */
 
   public async demoDatasets(table: ITable) {
-    console.log("Trying to list data");
+
+    console.log("=============================");
+    console.log("RETRIEVING DATA");
+    console.log("=============================");
 
 
     // this is true in the server case, when we don't want to pass a dataset into this.
@@ -56,8 +56,8 @@ export default class dataExplorations {
       table = <ITable> all_datasets[0];
 
       // retrieving a dataset by name
-      table = <ITable> await getFirstByName("Artists")
-      console.log("Artists dataset retrieved by name:")
+      table = <ITable> await getFirstByName("Artists");
+      console.log("Artists dataset retrieved by name:");
       console.log(table);
 
 
@@ -66,16 +66,40 @@ export default class dataExplorations {
       console.log("The Table as passed via parameter:");
       console.log(table);
     }
+
+    console.log("=============================");
+    console.log("ACCESSING METADATA");
+    console.log("=============================");
+
     // Accessing the description of the dataset:
-    console.log("Table description:")
+    console.log("Table description:");
     console.log(table.desc);
     // Printing the name
     console.log("Table Name: " + table.desc.name);
 
+
+    console.log("=============================");
+    console.log("ACCESSING COLUMNS/VECTORS");
+    console.log("=============================");
+
     // Here we retrieve the first vector from the table.
     let vector = table.col(0);
+    console.log("The first vector:")
+    console.log(vector);
     console.log("Length:" + vector.length);
     console.log("IDType:" + vector.idtype);
+
+    // TODO: retrieve a vector by name
+
+    // Access the data of a vector by name:
+    console.log("Accessing a the data of a column by name:");
+    console.log(await table.colData("artist"));
+
+
+    console.log("=============================");
+    console.log("ACCESSING RAW DATA");
+    console.log("=============================");
+
 
     // whenever you access raw data, the data structures return promises, not the data directly.
     // what you do is, you call a then function which takes a callback as a parameter.
@@ -83,7 +107,7 @@ export default class dataExplorations {
     // You should also handle the "bad" case in a catch function:
     const first_promise = vector.at(0).then(
       function (d) {
-        console.log("The data:")
+        console.log("The data:");
         console.log(d);
         return d;
       })
@@ -114,6 +138,9 @@ export default class dataExplorations {
     const first_value_of_first_vector = await table.at(0, 0);
     console.log('Accessing the Table for the first element: ' + first_value_of_first_vector);
 
+    console.log("=============================");
+    console.log("SLICING, SELECTIVE ACCESS");
+    console.log("=============================");
 
     // We retrieve the columns with index 0 and one by using a range operator that we pass as a string.
     console.log("First two columns using ranges:");
@@ -126,24 +153,62 @@ export default class dataExplorations {
     // this array can be directly used to map to d3
     console.log(await table.col(1).data("7:12"));
 
-    console.log("The data type of the fourth column (categories):")
+
+    console.log("=============================");
+    console.log("CATEGORICAL VECTORS & STATS");
+    console.log("=============================");
+
+
+    console.log("The data type of the fourth column (categories):");
     console.log(table.col(3).desc.value.type);
 
     if (table.col(3).desc.value.type == VALUE_TYPE_CATEGORICAL) {
       let catVector = <ICategoricalVector> table.col(3);
-      console.log("The categories of the fourth column:")
+      console.log("The categories of the fourth column:");
       // these also contain colors that can be easily used in d3.
       console.log(catVector.desc.value.categories);
       // FIXME this doesn't contain bins?
+      console.log("The histogram: BROKEN")
       console.log(await catVector.hist());
     }
 
-    // TODO: access a vector by name
 
-    // TODO: slice a vector by range
+    console.log("=============================");
+    console.log("NUMERICAL VECTORS & STATS");
+    console.log("=============================");
 
-    // TODO: get a summary statistic on views
+    if (table.col(5).desc.value.type == VALUE_TYPE_INT) {
+      let numVector = <INumericalVector> table.col(5);
+      console.log("3rd value from the 5th vector:" + await numVector.at(3));
+      console.log("Stats on a vector: BROKEN");
+      // FIXME: the stats in here are NAN?
+      console.log(await numVector.stats());
+    }
 
+    console.log("=============================");
+    console.log("VIEWS");
+    console.log("=============================");
+
+    // A view represents a subset of a table. Subsets can be defined via rows and/or columns.
+    // So, in a 10x100 table, I can pick columns 2, 4 and rows, 2-5 and 70-90.
+    // It behaves exactly like a regular table.
+
+    console.log("New view on a table that only contains the first two columns:")
+    let sliced_table = table.view("(0:-1),(0:2)");
+    console.log(sliced_table);
+
+    console.log("New view on a table that only contains the first two columns and the first five rows:")
+    sliced_table = table.view("(0,1,2,3,4),(0:2)");
+    console.log(sliced_table);
+
+
+  }
+
+  public async demoGenealogyData() {
+    const table = <ITable> await getById("big-decent-clipped-38");
+    console.log("Genealogy Data");
+    console.log(table);
+    //   console.log(table.colData("RelativeID"));
   }
 
   public async loadLocalData() {
@@ -173,7 +238,7 @@ export default class dataExplorations {
           }).catch(err => console.log(err));
           this.demoDatasets(table);
         });
-      })
+      });
     // .then((args: any[]) => {
     //   const data: any[] = args[0];
     //   console.log('All table data: ' + data.toString());

@@ -110,6 +110,7 @@ export class App {
       let data = dataExplorations.create();
       data.loadLocalData();
       data.demoDatasets(null);
+      //data.demoGenealogyData();
 
 
     this.$node.select('h3').remove();

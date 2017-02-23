@@ -23,7 +23,7 @@ class attributeTable {
   private tableAxis;
 
   // access to all the data in our backend
-  private all_the_data;
+  private all_data;
   private row_order;
   private column_order;
   private num_cols;
@@ -45,7 +45,7 @@ class attributeTable {
   * @returns {Promise<FilterBar>}
   */
   init(data) {
-    this.all_the_data = data;
+    this.all_data = data;
     this.column_order = data.displayedColumnOrder;
     this.num_cols = data.numberOfColumnsDisplayed;
     this.col_names = data.referenceColumns;
@@ -68,12 +68,11 @@ class attributeTable {
   * Build the basic DOM elements and binds the change function
   */
   private build() {
-    const data = this.row_data.map(function(d){
-      return d["value"];
-    });
+    var betterData = this.all_data.getDisplayedRowData();
+
 
     this.width = 450 - this.margin.left - this.margin.right
-    this.height = Config.glyphSize * 3 * data.length - this.margin.top - this.margin.bottom;
+    this.height = Config.glyphSize * 3 * betterData.length - this.margin.top - this.margin.bottom;
 
     const darkGrey = '#4d4d4d';
     const lightGrey = '#d9d9d9';
@@ -83,7 +82,7 @@ class attributeTable {
 
     // Scales
     let x = scaleLinear().range([0 , this.width]).domain([1 ,1]);
-    let y = scaleLinear().range([0, this.height]).domain([min(data,function(d){return +d['y']}), max(data,function(d){return +d['y']}) ])
+    let y = scaleLinear().range([0, this.height]).domain([min(betterData,function(d){return +d['y']}), max(betterData,function(d){return +d['y']}) ])
 
     let tableAxis = axisTop(x).tickFormat(format("d"));
 
@@ -97,36 +96,19 @@ class attributeTable {
         .attr("transform", "translate(" + this.margin.left + "," + this.margin.top / 1.5 + ")")
         .attr('id', 'axis')
 
- // because `this` in js is stupid, local bindings to use in lambdas
-    const num_cols = this.num_cols;
-    const col_names = this.col_names;
-    const totalWidth = this.width;
-    const col_order = this.column_order;
 
     const TEMP_LEFT_FIX = 35; //TODO: what's going on here?
 
-    // holds how wide each col is
-    var col_widths = this.column_order.map(function(index){
-      // TODO: weight num_cols by the TOTAL WEIGHT
-      return col_names[index].width * totalWidth / num_cols;
-    });
+    // todo: refactor so each column *knows* these things about itself
 
-    // holds the x pos of the left-most edge of each column
-    var col_xs = this.column_order.map(function(index){
-      var x_dist = 0;
-      for (var i = 0; i < index; i++) {
-        x_dist += col_names[i].width * totalWidth / num_cols
-      }
-      return x_dist;
-    });
+    var col_widths = this.all_data.getDisplayedColumnWidths(this.width);
+    var col_xs = this.all_data.getDisplayedColumnXs(this.width);
+    var label_xs = this.all_data.getDisplayedColumnMidpointXs(this.width);
+    var num_cols = this.all_data.getNumberDisplayedColumns();
+    var displayedColNames = this.all_data.getDisplayedColumnNames();
+    var displayedColTypes = this.all_data.getDisplayedColumnTypes();
+  //  var displayedColOrder = this.all_data.getDisplayedColumnOrder();
 
-
-    // holds the x pos of the midpoint of each column
-     var label_xs = this.column_order.map(function(index){
-        const label_pos =
-        col_xs[index] + (col_names[index].width * totalWidth /num_cols)/2;
-        return label_pos;
-     });
 
      // ^^ UPDATE THOSE ON EVENTS- IS THIS A BAD DESIGN?
     const table_header = axis.selectAll(".table_header")
@@ -134,10 +116,11 @@ class attributeTable {
     .enter();
 
     table_header.append("text")
-      .text(function(index) { return col_names[index].name; })
+      .text(function(index) { return displayedColNames[index];})
       .attr('fill', 'black')
+      .attr('class', 'b')
 			.attr("transform", function (index) {
-          return "translate(" + (label_xs[index] - TEMP_LEFT_FIX) + ", 20) rotate(-45)";
+          return "translate(" + (label_xs[index] - TEMP_LEFT_FIX) + ", 0) rotate(-45)";
       });
 
 // to sort the table by attribute
@@ -161,71 +144,119 @@ class attributeTable {
     .attr("transform", "translate(0," + this.margin.top + ")")
 
     let rows = table.selectAll(".row")
-
-    .data(this.row_order.map(function(index){
-      return index[0]; //TODO! aggregation!
-    }))
+    .data(betterData) // TODO: aggregation
     .enter()
     .append("g")
-    .attr('id', function (d) {
-      return ('row_' + data[d].id)
+    .attr('id', function (elem) {
+      return ('row_' +  elem.id);
     })
     .attr('class', 'row')
-    .attr("transform", function (d, i) {
-      return ('translate(0, ' + y(data[d].y)+ ' )')
+    .attr("transform", function (elem) {
+      return ('translate(0, ' +  y(elem.y)+ ' )');
     });
 
 
 
 //////////////////////
 // monster for loop creates all vis. encodings for rows
-    for (let i = 0; i < num_cols; i++) {
-      rows.append("rect")
-      .attr("width", col_widths[i])
-      .attr("height", rowHeight)
-      .attr('fill', function (d) { // TODO: visual encoding based on type!
-        //data[d][col_names[col_order[i]]] == 'F' ? lightPinkGrey : 'pink';
-        if(data[d].y % 3 == 0)
-          return 'lightcoral';
-        else if(data[d].y % 3 == 1)
-          return 'lightskyblue';
-        else
-          return 'lightgreen';
-      })
-      .attr("transform", function (row_index) {
-        return ('translate(' + col_xs[i] + ' ,0)')
-      });
+    for (let colIndex = 0; colIndex < num_cols; colIndex++) {
+      const curr_col_name = displayedColNames[colIndex];
+      const curr_col_type = displayedColTypes[colIndex];
+      const curr_col_width = col_widths[colIndex] - 4;
 
-///// vv TEMPORARY ENCODING  vv //////////////
-      rows.append("text") // TODO: temp fix for no encoding
-      .text(function(index) {
-        const the_text = data[index][col_names[col_order[i]].name];
-        return the_text.toString().substring(0, 3); })
-      .attr("transform", function (row_index) {
-        return ('translate(' + (label_xs[i] - 10) + ' ,' + (rowHeight/2 + 5) + ')')
-      });
-///// ^^ TEMPORARY ENCODING ^^ //////////////
+      if( curr_col_type == 'idType' ){
 
-      rows.append("line")
-      .attr("x1", col_xs[i])
-      .attr("y1", 0)
-      .attr("x2", col_xs[i])
-      .attr("y2", rowHeight)
-      .attr("stroke-width", 1)
-      .attr("stroke", "black");
-    }
-//////////////
+        rows.append("rect")
+        .attr("width", curr_col_width)
+        .attr("height", rowHeight)
+        .attr('fill', 'lightgrey')
+        .attr('stroke', 'black')
+        .attr('stoke-width', 1)
+        .attr("transform", function () {
+          return ('translate(' + col_xs[colIndex] + ' ,0)')
+        });
+
+        rows.append("text")
+        .text(function(elem) {
+          const the_text = elem[curr_col_name];
+          return the_text.toString().substring(0, 3); })
+        .attr("transform", function (row_index) {
+          return ('translate(' + (label_xs[colIndex] - 10) + ' ,' + (rowHeight/2 + 5) + ')')
+        });
+      }
+
+      else if( curr_col_type == 'categorical'){
+        const allValues = betterData.map(function(elem){return elem[curr_col_name]});
+        const uniqueValues = Array.from(new Set(allValues));
+
+
+        uniqueValues.forEach(function(value) {
+          rows.append("rect")
+          .attr("width", curr_col_width)
+          .attr("height", rowHeight)
+          .attr('fill', 'lightgreen')
+          .attr('stroke', 'black')
+          .attr('stoke-width', 1)
+          .attr("transform", function () {
+            return ('translate(' + col_xs[colIndex] + ' ,0)')
+          });
+      });
+      }
+
+      else if( curr_col_type == 'int' ){
+        // how big is the range?
+        //find min, find max
+        const allValues = betterData.map(function(elem){return elem[curr_col_name]});
+
+        // complicated min/max to avoid unspecified (zero) entries
+        const min = [].reduce.call(allValues, function(acc, x) {
+          //console.log("in min, x is: " + x +", x.length is: " + x.length);
+          return x.length == 0 ? acc : Math.min(x, acc); });
+        Math.min( ...allValues );
+        const max = Math.max( ...allValues );
+        const scaledRange = curr_col_width / (max - min);
+
+
+        // only rows that have data
+        rows.filter((elem)=>{return elem[curr_col_name].toString().length > 0;})
+        .append("rect")
+        .attr("width", function(elem){
+          return Math.floor((elem[curr_col_name]-min) * scaledRange);})
+        .attr("height", rowHeight)
+        .attr('fill', 'grey')
+        .attr('stroke', 'black')
+        .attr('stoke-width', 1)
+        .attr("transform", function () {
+          return ('translate(' + col_xs[colIndex] + ' ,0)')
+        });
+        // and a boundary
+        rows.append("rect")
+        .attr("width", curr_col_width)
+        .attr("height", rowHeight)
+        .attr('fill', 'transparent')
+        .attr('stroke', 'black')
+        .attr('stoke-width', 1)
+        .attr("transform", function () {
+          return ('translate(' + col_xs[colIndex] + ' ,0)')
+        });
+      }
+      else
+        console.log("oh no, what type is this: " + curr_col_type );
+
+}
+
 // end for loop
+
 
     const boundary = rows
     .append("rect")
     .attr("class", "boundary")
-    .attr('row_pos', function (d) {
-      return data[d].y;
+    .attr('row_pos', function (elem) {
+      return elem.y;
     })
     .attr("width", this.width)
     .attr("height", rowHeight)
-    .attr('stroke', 'black')
+    .attr('stroke', 'transparent')
     .attr('stroke-width', 1)
     .attr('fill', 'none');
 
@@ -233,47 +264,48 @@ class attributeTable {
 
 
   const eventListener = rows.append('rect').attr("height", rowHeight).attr("width", this.width).attr("fill", "transparent")
+
   // CLICK
-  .on('click', function(d) {
+  .on('click', function(elem) {
     selectAll('.boundary').classed('tablehovered', false);
     if (!event.metaKey){ //unless we pressed shift, unselect everything
          selectAll('.boundary').classed('tableselected',false);
     }
-    selectAll('.boundary').classed('tableselected', function(a){
-      const rightRow = (select(this).attr('row_pos') == data[d].y);
+    selectAll('.boundary').classed('tableselected', function(){
+      const rightRow = (select(this).attr('row_pos') == elem.y);
       if(rightRow)
         return (!select(this).classed('tableselected')); //toggle it
       return select(this).classed('tableselected'); //leave it be
     });
     if(event.metaKey)
-      events.fire('table_row_selected', data[d].id, 'multiple');
+      events.fire('table_row_selected', elem.id, 'multiple');
     else
-      events.fire('table_row_selected', data[d].id, 'singular');
+      events.fire('table_row_selected', elem.id, 'singular');
   })
 
   // MOUSE ON
-  .on('mouseover', function(d) {
-    selectAll('.boundary').classed('tablehovered', function(a){
-      const rightRow = (select(this).attr('row_pos') == data[d].y);
+  .on('mouseover', function(elem) {
+    selectAll('.boundary').classed('tablehovered', function(){
+      const rightRow = (select(this).attr('row_pos') == elem.y);
       if(rightRow){ //don't hover if it's selected
         return !select(this).classed('tableselected');
       }
       return false; //otherwise don't hover
     });
-    events.fire('table_row_hover_on', data[d].id);
+    events.fire('table_row_hover_on', elem.id);
   })
 
   // MOUSE OFF
-  .on('mouseout', function(d) {
+  .on('mouseout', function(elem) {
     selectAll('.boundary').classed('tablehovered', false);
-    events.fire('table_row_hover_off', data[d].id);
+    events.fire('table_row_hover_off', elem.id);
   });
 
-  }
+}
 
-  private update(data){
+  //private update(data){
 
-  }
+  //}
 
 
   private attachListener() {

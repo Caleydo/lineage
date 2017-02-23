@@ -85,9 +85,16 @@ class genealogyTree {
 
   private kidGridSize = 4;
   //Scale to place siblings on kid grid
-  private kidGridScale = scaleLinear()
+  private kidGridXScale = scaleLinear()
   .domain([1,this.kidGridSize])
-  .range([-Config.glyphSize*.8, Config.glyphSize*.8]);
+  .range([0, Config.glyphSize*2]);
+  
+  
+   private kidGridYScale = scaleLinear()
+  .domain([1,this.kidGridSize/2])
+  .range([-Config.hiddenGlyphSize/2, Config.hiddenGlyphSize]);
+  
+  
 
   //Axis for the visible nodes
   private visibleXAxis;
@@ -336,7 +343,7 @@ class genealogyTree {
 	//Only draw parentedges if target node is not
     let edgePaths = edgeGroup.selectAll(".edges")
       .data(edges.filter(function (d) {
-        return !d['target']['aggregated']
+        return (!d['target']['aggregated'] ||  !(d['hidden'] && !d['target']['children']))
       }), function (d) {
         return d['id'];
       });
@@ -357,7 +364,15 @@ class genealogyTree {
       .attr("class", "edges")
       .transition(t)
       .attr("d", (d) => {
-        return this.elbow(d, this.interGenerationScale, this.lineFunction)
+	      let maY = Math.round(d['ma']['y']);
+	      let paY = Math.round(d['pa']['y']);
+	      let nodeY = Math.round(d['target']['y']);
+	      
+	     if ((maY == nodeY) && (paY == nodeY)){
+		 	return this.elbow(d, this.interGenerationScale, this.lineFunction,false)
+		 }
+		 else
+		 	return this.elbow(d, this.interGenerationScale, this.lineFunction,true)
       })
 
 
@@ -367,7 +382,7 @@ class genealogyTree {
 
 
     edgePaths
-      .attr("stroke-width", Config.glyphSize / 4)
+      .attr("stroke-width", Config.glyphSize / 5)
 
 
     let parentEdgePaths = edgeGroup.selectAll(".parentEdges")// only draw parent parent edges if neither parent is aggregated
@@ -391,7 +406,7 @@ class genealogyTree {
 
     parentEdgePaths
       .attr("class", "parentEdges")
-      .attr("stroke-width", Config.glyphSize / 4)
+      .attr("stroke-width", Config.glyphSize / 8)
       .style("fill", 'none')
       .transition(t)
       .attr("d", (d) => {
@@ -693,16 +708,16 @@ class genealogyTree {
 	  //Node lines for deceased and uncollapsed nodes
     allNodes.selectAll('.nodeLine')
       .attr("x1", function (d: any) {
-        return d.sex == 'F' ? -Config.glyphSize : -Config.glyphSize / 2;
+        return d.sex == 'F' ? -Config.glyphSize : -Config.glyphSize / 3;
       })
       .attr("y1", function (d: any) {
-        return d.sex == 'F' ? -Config.glyphSize : -Config.glyphSize / 2;
+        return d.sex == 'F' ? -Config.glyphSize : -Config.glyphSize / 3;
       })
       .attr("x2", function (d: any) {
-        return d.sex == 'F' ? Config.glyphSize : Config.glyphSize * 2.5;
+        return d.sex == 'F' ? Config.glyphSize : Config.glyphSize * 2.3;
       })
       .attr("y2", function (d: any) {
-        return d.sex == 'F' ? Config.glyphSize : Config.glyphSize * 2.5;
+        return d.sex == 'F' ? Config.glyphSize : Config.glyphSize * 2.3;
       })
       .attr("stroke-width", 3)
       .attr("stroke", function (d: any) {
@@ -728,7 +743,7 @@ class genealogyTree {
       .attr("y2", function (d: any) {
         return d.sex == 'F' ? Config.hiddenGlyphSize : Config.hiddenGlyphSize * 2.5;
       })
-      .attr("stroke-width", 1) //- Temporarily removed to declutter
+      .attr("stroke-width", 1)
 
 
 	  //Node Lines for 75%  sized hidden nodes
@@ -788,9 +803,10 @@ class genealogyTree {
 //       .attr("x",Config.glyphSize*1.7)
       .style('fill', "url(#kidGridGradient)")
       .style('stroke','none')
+
       
       
-      //Add couples line at the end of lifelines for deceased people
+      //Add couples line 
      allNodesEnter.filter(function (d: any) {
       return d['sex'] == 'M' && d['children'];
     })
@@ -801,20 +817,21 @@ class genealogyTree {
 
     allNodes.selectAll('.couplesLine')
       .attr("x1", (d: any) => {
-        return Config.glyphSize *1.5;
+        return Config.glyphSize *1.3;
       })
       .attr("y1", function (d: any) {
-        return 0;
+        return -Config.glyphSize*0.2;
       })
       .attr("x2", (d: any) => {
-        return Config.glyphSize *1.5;
+        return Config.glyphSize *1.3;
       })
       .attr("y2", function (d: any) {
 
-        return Config.glyphSize * 2;
+        return Config.glyphSize * 2.2;
       })
       .attr("stroke-width", 4)
-      .attr("stroke", '#a09f9f')
+//       .attr("stroke", '#a09f9f')
+      .attr('stroke','#bec3ce')
 
 
 
@@ -854,7 +871,7 @@ class genealogyTree {
       })
       .attr("width", Config.glyphSize * .75)
       .attr("height", Config.glyphSize * .75);
-
+      
 
     //Add female node glyphs
     allNodesEnter.filter(function (d: any) {
@@ -888,21 +905,12 @@ class genealogyTree {
 	 
 	     //Position and Color all Nodes
     allNodes
-    //.filter((d)=>{return d['hidden'] && d['children']})
+      .filter((d)=>{return !(d['hidden'] && !d['children'])})
       .transition(t)
       .attr("transform", (node) => {
 	    let xpos = this.xPOS(node);
-	    let ypos = this.yPOS(node);
-	     
-        let offset = 0;
-/*
-        if (node['sex'] == 'F') 
-				offset  = -Config.hiddenGlyphSize*1.2;
-				
-	    let xoffset = Config.glyphSize
-*/
-				
-        return "translate(" + (xpos ) + "," + (ypos ) + ")";
+	    let ypos = this.yPOS(node);				
+        return "translate(" + xpos + "," + ypos+ ")";
        })
         	
 	
@@ -910,12 +918,8 @@ class genealogyTree {
         allNodes.filter((d)=>{return d['hidden'] && !d['children']})
       .transition(t)
       .attr("transform", (node) => {
-	    let xpos = this.xPOS(node);
-	    let ypos = this.yPOS(node);
-		
-		if (!node['hidden'] || node['children'])
-        	return "translate(" + xpos + "," + ypos + ")";
-        else{        
+    	    let xpos = this.xPOS(node);
+		    let ypos = this.yPOS(node);	   
 	        
         	let childCount = 0;
         	//Find ma and pa
@@ -925,34 +929,30 @@ class genealogyTree {
 
 		  	let ma = edge[0]['ma'];
 		  	let pa = edge[0]['pa'];
+		  	
 
-
+		  	let xind; let yind;
+		  	
+		  	let gender = node['sex'];
         	this.data.parentChildEdges.forEach((d,i)=>{
 
 	        	if (d.ma == ma && d.pa == pa ){
 		        	//Only count unaffected children so as to avoid gaps in the kid Grid
-		        	if (!d.target.affected)
+		        	if (!d.target.affected && d.target.sex == gender)
 		        		childCount = childCount +1
 		        	if (d.target == node){
 
-			        	ypos = childCount % this.kidGridSize;
+			        	yind = childCount % (this.kidGridSize/2);		        	
 			        	
-			        	if (ypos == 0)
-			        		ypos = this.kidGridSize
+			        	if (yind == 0)
+			        		yind = this.kidGridSize/2
 			        		
-			        	xpos = Math.ceil(childCount / this.kidGridSize)			        		
+			        	xind = Math.ceil(childCount/2)			        		
 
 		        	}
 	        	}
         	}) 
-        	
-        	let offset = 0;
-        	if (node['sex'] == 'M') 
-				offset  = Config.hiddenGlyphSize;
-        	
-				return  "translate(" + (this.x(node['x']) + this.kidGridScale(xpos) + offset ) + "," + (this.y(node['y']) + this.kidGridScale(ypos)) + ")";
-        }
-        
+				return  "translate(" + (xpos + this.kidGridXScale(xind)) + "," + (ypos + + this.kidGridYScale(yind)) + ")";
         
       })
 
@@ -960,12 +960,13 @@ class genealogyTree {
 	      
       
             allNodes
-            .style("stroke-width", 2)
+            .style("stroke-width",(d: any) => {
+				return (d['hidden'] && !d['children']) ? 1 : 2
+      		})
+
 			.style("fill", (d: any) => {
 				return (d.affected) ? "black" : "white"
-//                 return interpolateViridis(d['maxBMI'][0]/6);
       		})
-//             .style("stroke-width", 3);
 
     let tran = t.transition().ease(easeLinear)
     allNodes.filter((d) => {
@@ -1084,7 +1085,6 @@ class genealogyTree {
     allNodes
       .on('contextmenu', (d) => {
 
-        console.log(d['family_ids'].slice(-1));
 
         this.data.collapseFamilies(d['family_ids'].slice(-1))
         this.update_visible_nodes()
@@ -1336,9 +1336,6 @@ class genealogyTree {
 
       const node = document.getElementById('g_' + d['id'])
       let phantomNode = node.cloneNode(true)
-      console.log("Node")
-      console.log(phantomNode);
-
       //        phantomNode.setAttribute("class", "phantom node");
       document.getElementById('genealogyTree').appendChild(phantomNode)
 //             console.log(phantom)
@@ -1461,8 +1458,12 @@ class genealogyTree {
 
 
     if (node['sex'] == 'M') {
-      return (node['hidden'] && node['children']) ? this.x(node.x) - Config.hiddenGlyphSize : this.x(node.x) - Config.glyphSize;
-// 		return this.x(node.x) - Config.glyphSize;
+      if (node['hidden'] && node['children'])
+	       return this.x(node.x) - Config.hiddenGlyphSize
+	  if (!node['hidden'])
+	  	return  this.x(node.x) - Config.glyphSize;
+	  if (node['hidden'] && !node['children']) 
+	  	return  this.x(node.x) - Config.hiddenGlyphSize/2; 
     }
     else
       return this.x(node.x);
@@ -1502,32 +1503,65 @@ class genealogyTree {
 		}	
 */
 	
-	if (node['sex'] == 'M')
-      return (node['hidden'] && node['children']) ? this.y(node.y) - Config.hiddenGlyphSize : this.y(node.y) - Config.glyphSize;
+	
+//       return (node['hidden'] && node['children']) ? this.y(node.y) - Config.hiddenGlyphSize : this.y(node.y) - Config.glyphSize;
+	if (node['sex'] == 'M'){
+	  if (node['hidden'] && node['children'])
+	       return this.y(node.y) - Config.hiddenGlyphSize
+	  if (!node['hidden'])
+	  	return  this.y(node.y) - Config.glyphSize
+	  if (node['hidden'] && !node['children']) 
+	  	return  this.y(node.y) - Config.hiddenGlyphSize; 
+	}
     else
       return this.y(node.y)
   }
 
-  private elbow(d, interGenerationScale, lineFunction) {
+  private elbow(d, interGenerationScale, lineFunction,curves) {
     const xdiff = d.ma.x - d.target.x;
     const ydiff = d.ma.y - d.target.y;
-    const nx = d.ma.x - xdiff * interGenerationScale(ydiff);
+    let nx = d.ma.x - xdiff -4 //* interGenerationScale(ydiff)
 
-    const linedata = [{
+	let linedata; 
+	if (curves){
+		nx = d.ma.x - xdiff * interGenerationScale(ydiff)
+    linedata = [{
       x: (d.ma.x + d.pa.x) / 2,
       y: (d.ma.y + d.pa.y) / 2
-    }, {
+    }, 
+    {
       x: nx,
       y: (d.ma.y + d.pa.y) / 2
-    }, {
+    }, 
+    {
       x: nx,
       y: d.target.y
-    }, {
+    }, 
+    {
       x: d.target.x,
       y: d.target.y
     }];
+    }
+    else{
+	 linedata = [{
+      x: (d.ma.x + d.pa.x) / 2,
+      y: (d.ma.y + d.pa.y) / 2
+    }, 
+    {
+      x: nx,
+      y: (d.ma.y + d.pa.y) / 2
+    }, 
+    {
+      x: nx,
+      y: d.target.y
+    }, 
+    {
+      x: d.target.x,
+      y: d.target.y
+    }];
+    }
 
-    if (Config.curvedLines)
+    if (curves)
       lineFunction.curve(curveBasis);
     else
       lineFunction.curve(curveLinear);

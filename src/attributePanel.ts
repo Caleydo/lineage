@@ -141,7 +141,11 @@ class attributePanel {
 
   }
 
-
+  /***
+   *
+   * @param column_name
+   * @param column_desc
+     */
   private addAttribute(column_name, column_desc) {
 
     //append the header as a menu option
@@ -153,14 +157,37 @@ class attributePanel {
     data_attr.append('a').attr('href', '#')
       .html('<i class=\"glyphicon glyphicon-move sort_handle\"></i>')
       .append('strong').html(column_name)
-      .append('span').attr('class', column_desc);
-
+      .append('span').attr('class', column_desc)
+      .html(`<div class=" attr_badges pull-right">
+<span class=" badge" >primary</span>
+<span class=" badge" >secondry</span>
+</div>
+      `);
     data_attr.on('mouseover', function () {
       select(this).select('.sort_handle').classed('focus', true)
+      select(this).select('.attr_badges').classed('focus', true)
     });
 
     data_attr.on('mouseout', function () {
       select(this).select('.sort_handle').classed('focus', false)
+      select(this).select('.attr_badges').classed('focus', false)
+    });
+
+    $(document).on('click', '.badge', function () {
+      let badge = $(this).text();
+      let attribute = $(this).closest('strong').contents()[0];
+      //reset badge dispaly for previously clicked badges
+      $(".checked_"+badge).parent().css( "display", "");
+      $(".checked_"+badge).parent().children().css( "display", "");
+      $(".checked_"+badge).removeClass(".checked_"+badge);
+
+        $(this).parent().css( "display", "inline");
+        $(this).parent().children().css( "display", "none");
+        $(this).addClass( "checked_"+badge);
+        $(this).css( "display", "inline");
+
+       events.fire('attribute_selected',{attribute, badge});
+
     });
 
   }
@@ -175,6 +202,35 @@ class attributePanel {
       });
     });
   }
+
+}
+
+/**
+ *
+ * Structure class for attributes for data selection panel
+ */
+class Attribute{
+  private name;
+  private atype;
+  private data;
+  private isActive;
+  private isCollapsed;
+  private isPrim;
+  private isSec;
+
+  /***
+   *
+   * @param name : name of the attribute
+   * @param atype : type is given as a string and is used to populate icons and define which vis to use
+   * @param isActive: a flag that indecate if an attribute is in the active list
+   */
+  constructor(name:string, atype:string, data:any[], isActive:number = 1){
+    this.name = name;
+    this.atype = atype;
+    this.data = data;
+
+  }
+
 
 }
 

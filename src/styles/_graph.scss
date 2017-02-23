@@ -13,6 +13,11 @@ $node-color: #4f4f4d;
 	height: 900px;
 }
 
+#yaxis{
+  opacity:.2;
+  pointer-events: none;
+}
+
 .hide{
 	opacity: .2
 }
@@ -68,8 +73,8 @@ rect.selected{
     fill:#ff6400
 }
 
-.node rect, 
-.node circle, 
+.node rect,
+.node circle,
 .node .hex{
     stroke:$node-color;
 //     stroke-width: 3px;

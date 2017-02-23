@@ -108,10 +108,19 @@ class graphData {
           return d['id'] == node['pa']
         });
 
-        // If so, create edges between parent and children, spouses, and add references to build tree
-        if (maNode.length > 0 && paNode.length > 0) {
+        //No parents found
+        if (maNode.length == 0 || paNode.length == 0){
+          node['ma']=undefined; node['pa']= undefined;
+        }
+
+        // If found parents, create edges between parent and children, spouses, and add references to build tree
+        else {
           maNode = maNode[0];
           paNode = paNode[0];
+
+          //Replace ma and pa fields with reference to actual ma/pa nodes
+          node['ma'] = maNode;
+          node['pa'] = paNode;
 
           //relationship node. Used to build parent child edges
           let rnode = {
@@ -199,36 +208,23 @@ class graphData {
       return (node['y'] == startIndex && !node['hidden']);
     })
 
-    console.log('start Node is ', startNode[0]['y'])
     //Iterate down that branch to find the last index of this family.
     let endIndex =  this.findLastLeaf(startNode[0]);
-
-    console.log('last leaf in this branch is ', endIndex);
 
     this.nodes.sort((a, b) => {
       return b['Y'] - a['Y']
     });
 
-    //Assign a row for each affected case;
-    this.nodes.forEach((node) => {
-      if (node['y'] <= startIndex && node['y'] >= endIndex) {
-
-        //If found affected case, decrease the Y value for the next non child node;
-        /*
-         if (lastNodeAffected && !node['affected']) {
-         Y = Y - 1;
-         }
-         */
+    //Assign a row for each affected case within the range to be collapsed;
+    this.nodes.filter((node)=>{return node['y'] <= startIndex && node['y'] >= endIndex}).forEach((node) => {
 
         //non affected leaf nodes
         if (!node['hasChildren'] && !node['affected']) {
 
+          let ma = node['ma'];
+          let pa = node['pa'];
 
-          let edge = this.parentChildEdges.filter((d) => {
-            return d.target == node
-          });
-          let ma = edge[0]['ma'];
-          let pa = edge[0]['pa'];
+          console.log(ma,pa);
 
           //If both parents are affected
           if (ma['affected'] && pa['affected']) {
@@ -263,16 +259,10 @@ class graphData {
         else {
           if (!node['affected']) {
 
-            let edge = this.parentParentEdges.filter((d) => {
-              return node['sex'] == 'M' ? d['pa'] == node : d['ma'] == node
-            });
+            let spouse = node['spouse'];
 
-            if (edge.length > 0) {
-              let spouse;
-              if (node['sex'] == 'M')
-                spouse = edge[0]['ma'];
-              else
-                spouse = edge[0]['pa'];
+            if (spouse.length > 0) { //they had at least one partner
+              spouse = spouse[0];
 
               if (spouse['affected']) {
                 if (node['sex'] == 'M')
@@ -363,8 +353,6 @@ class graphData {
 
           node['hidden'] = true;
         }
-
-      }
     });
 
 

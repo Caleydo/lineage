@@ -308,13 +308,13 @@ class genealogyTree {
       .call(this.extremesXAxis)
 
 
-/*
+
 	  //Create temporary group for y axis
     const yaxis = svg.append("g")
       .attr("transform", "translate(" +this.margin.left + "," + (this.margin.top + Config.glyphSize) + ")")
       .attr('id', 'yaxis')
       .call(axisRight(this.y).tickFormat(format(",.1f")).tickValues(range(1,105,.5)).tickSize(this.width))
-*/
+
 
 
 

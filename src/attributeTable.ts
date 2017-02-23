@@ -159,10 +159,11 @@ class attributeTable {
 
 //////////////////////
 // monster for loop creates all vis. encodings for rows
+    const col_margin = 4;
     for (let colIndex = 0; colIndex < num_cols; colIndex++) {
       const curr_col_name = displayedColNames[colIndex];
       const curr_col_type = displayedColTypes[colIndex];
-      const curr_col_width = col_widths[colIndex] - 4;
+      const curr_col_width = col_widths[colIndex] - col_margin;
 
       if( curr_col_type == 'idType' ){
 
@@ -217,24 +218,26 @@ class attributeTable {
         const avg = allValues.reduce(function(acc, x) {
           return parseInt(acc) + parseInt(x);}) / (allValues.length);
 
-        const scaledRange = curr_col_width / (max - min);
-
-
-        console.log(curr_col_name + "s avg was: " + avg);
-
-
         // only rows that have data
         rows.filter((elem)=>{return elem[curr_col_name].toString().length > 0;})
-        .append("rect")
-        .attr("width", function(elem){
+
+
+        const radius = 2;
+        const scaledRange = (curr_col_width-2*radius) / (max - min);
+
+        rows.append("ellipse")
+        .attr("cx", function(elem){
           return Math.floor((elem[curr_col_name]-min) * scaledRange);})
-        .attr("height", rowHeight)
-        .attr('fill', 'grey')
+        .attr("cy", rowHeight / 2)
+        .attr("rx", radius)
+        .attr("ry", radius)
         .attr('stroke', 'black')
-        .attr('stoke-width', 1)
-        .attr("transform", function () {
-          return ('translate(' + col_xs[colIndex] + ' ,0)')
+        .attr('stroke-width', 1)
+        .attr('fill', '#d9d9d9')
+        .attr("transform", function () { //yikes these shifts!
+          return ('translate(' + (col_xs[colIndex]+radius) + ' ,0)');
         });
+
         // and a boundary
         rows.append("rect")
         .attr("width", curr_col_width)
@@ -252,7 +255,7 @@ class attributeTable {
         .attr("fill", 'black')
         .attr("transform", function () {
           return ('translate(' + (Math.floor((avg-min) * scaledRange)
-          + col_xs[colIndex]) + ',0)');
+          + col_xs[colIndex] - col_margin) + ',0)');
         });
       }
       else

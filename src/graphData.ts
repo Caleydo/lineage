@@ -58,7 +58,7 @@ class graphData {
 
       //Define 'affected' state. Can be modified by the user with definePrimary();
 //       d['affected'] = +d["affection"] == 100;
-      d['affected'] = Math.random() > 0.95
+      d['affected'] = false; //Math.random() > 0.95
 
       // this.uniqueID.push(+d['id']);
     });
@@ -215,6 +215,9 @@ class graphData {
     let startNode = this.nodes.filter((node) => {
       return (node['y'] == startIndex && !node['hidden']);
     })
+
+    if (startNode.length == 0)
+        return; //user clicked on a hidden node;
 
     //Iterate down that branch to find the last index of this family.
     let endIndex = this.findLastLeaf(startNode[0]);

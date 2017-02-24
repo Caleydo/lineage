@@ -1152,11 +1152,8 @@ class genealogyTree {
         if (event.altKey) {
           //Hide node
           this.data.hideNodes(d['y']);
-
-          //Defines the attributes of rendered node.
-// 			d['hidden']=true;
+          this.update_time_axis();
           this.update_visible_nodes();
-// 			selectAll('.node').filter((e)=>{return e['id']==d['id']}).classed('phantom',true);
 
           return;
         }

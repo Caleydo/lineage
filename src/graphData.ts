@@ -60,7 +60,6 @@ class graphData {
 //       d['affected'] = +d["affection"] == 100;
       d['affected'] = false; //Math.random() > 0.95
 
-      // this.uniqueID.push(+d['id']);
     });
 
     // this.definePrimary('suicide', 'Y', undefined);
@@ -169,33 +168,20 @@ class graphData {
    */
   public findLastLeaf(node) {
 
-    console.log('find last leaf ', node)
     //Base case -> leaf node w/ no spouse
     if (node['spouse'].length == 0 && !node['hasChildren']) {
       return node['y'];
     }
 
-    //Base case -> leaf node w/ spouse
-    else if (node['spouse'].length > 0 && !node['hasChildren']) {
-      let levels = [node['y']];
-      node['spouse'].forEach((s) => {
-        levels.push(s['y'])
-      });
-      return max(levels);
-    }
+    //will have to add case if there are ever leaf nodes with spouses but no children. 2/23/2017
 
-    //Has only one spouse -> call find lastLeaf on each of their children.
-    else if (node['spouse'].length == 1) {
-      return min(node['children'].map((child) => {
-        return this.findLastLeaf(child);
-      }));
-    }
-
-    //Has more than one spouse, find last Leaf of all children in these relationships
-    else if (node['spouse'].length > 1) {
+    //Search through spouse and all of spouses relationships to find last child leaf
+    else {
       return min(node['spouse'].map((spouse) => {
-        return min(spouse['children'].map((child) => {
-          return this.findLastLeaf(child)
+        return min(spouse['spouse'].map((otherSpouse)=>{console.log('other spouse is ', otherSpouse['y'])
+          return min(otherSpouse['children'].map((child) => {
+            return this.findLastLeaf(child)
+          }));
         }));
       }));
     }
@@ -221,6 +207,8 @@ class graphData {
 
     //Iterate down that branch to find the last index of this family.
     let endIndex = this.findLastLeaf(startNode[0]);
+
+    console.log('last leaf is ', endIndex)
 
     this.nodes.sort((a, b) => {
       return b['Y'] - a['Y']
@@ -258,6 +246,7 @@ class graphData {
         }
         //Neither parent is affected
         else {
+          console.log('neither parent is affected -> Y is ', Y)
           if (node['sex'] == 'M')
             node['y'] = pa['y'];
           else
@@ -287,6 +276,7 @@ class graphData {
             }
             //Non affected Spouse
             else {
+              console.log('Non affected spouse -> Y is ', Y)
               if (node['sex'] == 'M')
                 node['y'] = Y - 0.2;
               else
@@ -358,7 +348,8 @@ class graphData {
     this.nodes.filter((d) => {
       return d.y >= endIndex
     }).forEach((node) => {
-      node['y'] = node['y'] - (Y - endIndex + 1);
+      let offset = Y - Math.round(endIndex) + 1;
+      node['y'] = node['y'] - offset;
     })
   }
 

@@ -96,7 +96,6 @@ class attributeTable {
         .attr("transform", "translate(" + this.margin.left + "," + this.margin.top / 1.5 + ")")
         .attr('id', 'axis')
 
-
     const TEMP_LEFT_FIX = 35; //TODO: what's going on here?
 
     // todo: refactor so each column *knows* these things about itself
@@ -119,11 +118,30 @@ class attributeTable {
       .text(function(index) { return displayedColNames[index];})
       .attr('fill', 'black')
       .attr('class', 'b')
-			.attr("transform", function (index) {
-          return "translate(" + (label_xs[index] - TEMP_LEFT_FIX) + ", 0) rotate(-45)";
+			.attr("transform", function (index) { // the 5 is to bump slight left
+          return "translate(" + (label_xs[index] - 5 - TEMP_LEFT_FIX) + ", 0) rotate(-45)";
       });
 
-// to sort the table by attribute
+    const loremIpsum = ["", "", "", "M", "T", "T", "   ...", "   ..."];
+    table_header.append("text")
+    // did someone say stand in text?
+      .text(function(index) { return loremIpsum[index]; })
+      .attr('fill', 'black')
+      .attr("transform", function (index) {
+          return "translate(" + (col_xs[index] - TEMP_LEFT_FIX) + ", 20)";
+      });
+
+      const wholeWidth = this.width; //binding here bc "this" mess
+    axis.append("rect")
+    .attr('width', wholeWidth)
+    .attr('height', 1)
+    .attr('fill', 'black')
+    .attr("transform", function (index) { //TODO: what's up with the shift?
+        return "translate(" + (-1*TEMP_LEFT_FIX - 5) + ", 5)";
+    })
+
+
+// TODO: to sort the table by attribute
     table_header.append("rect")
       .attr('width', function(index){ return col_widths[index];})
       .attr('height', 40)
@@ -159,10 +177,11 @@ class attributeTable {
 
 //////////////////////
 // monster for loop creates all vis. encodings for rows
+    const col_margin = 4;
     for (let colIndex = 0; colIndex < num_cols; colIndex++) {
       const curr_col_name = displayedColNames[colIndex];
       const curr_col_type = displayedColTypes[colIndex];
-      const curr_col_width = col_widths[colIndex] - 4;
+      const curr_col_width = col_widths[colIndex] - col_margin;
 
       if( curr_col_type == 'idType' ){
 
@@ -194,7 +213,9 @@ class attributeTable {
           rows.append("rect")
           .attr("width", curr_col_width)
           .attr("height", rowHeight)
-          .attr('fill', 'lightgreen')
+          .attr('fill', function(elem){
+            return (elem[curr_col_name] === uniqueValues[0]) ? '#666666' : 'white';
+          })
           .attr('stroke', 'black')
           .attr('stoke-width', 1)
           .attr("transform", function () {
@@ -206,29 +227,37 @@ class attributeTable {
       else if( curr_col_type == 'int' ){
         // how big is the range?
         //find min, find max
-        const allValues = betterData.map(function(elem){return elem[curr_col_name]});
+        const allValues = betterData.map(function(elem){return elem[curr_col_name]}).filter(function(x){return x.length != 0;});
 
         // complicated min/max to avoid unspecified (zero) entries
-        const min = [].reduce.call(allValues, function(acc, x) {
-          //console.log("in min, x is: " + x +", x.length is: " + x.length);
-          return x.length == 0 ? acc : Math.min(x, acc); });
-        Math.min( ...allValues );
+        // const min = [].reduce.call(allValues, function(acc, x) {
+        //   //console.log("in min, x is: " + x +", x.length is: " + x.length);
+        //   return x.length == 0 ? acc : Math.min(x, acc); });
+        const min = Math.min( ...allValues );
         const max = Math.max( ...allValues );
-        const scaledRange = curr_col_width / (max - min);
-
+        const avg = allValues.reduce(function(acc, x) {
+          return parseInt(acc) + parseInt(x);}) / (allValues.length);
 
         // only rows that have data
         rows.filter((elem)=>{return elem[curr_col_name].toString().length > 0;})
-        .append("rect")
-        .attr("width", function(elem){
+
+
+        const radius = 2;
+        const scaledRange = (curr_col_width-2*radius) / (max - min);
+
+        rows.append("ellipse")
+        .attr("cx", function(elem){
           return Math.floor((elem[curr_col_name]-min) * scaledRange);})
-        .attr("height", rowHeight)
-        .attr('fill', 'grey')
+        .attr("cy", rowHeight / 2)
+        .attr("rx", radius)
+        .attr("ry", radius)
         .attr('stroke', 'black')
-        .attr('stoke-width', 1)
-        .attr("transform", function () {
-          return ('translate(' + col_xs[colIndex] + ' ,0)')
+        .attr('stroke-width', 1)
+        .attr('fill', '#d9d9d9')
+        .attr("transform", function () { //yikes these shifts!
+          return ('translate(' + (col_xs[colIndex]+radius) + ' ,0)');
         });
+
         // and a boundary
         rows.append("rect")
         .attr("width", curr_col_width)
@@ -237,7 +266,16 @@ class attributeTable {
         .attr('stroke', 'black')
         .attr('stoke-width', 1)
         .attr("transform", function () {
-          return ('translate(' + col_xs[colIndex] + ' ,0)')
+          return ('translate(' + col_xs[colIndex] + ' ,0)');
+        });
+        // stick on the median
+        rows.append("rect") //sneaky line is a rectangle
+        .attr("width", 2)
+        .attr("height", rowHeight)
+        .attr("fill", 'black')
+        .attr("transform", function () {
+          return ('translate(' + (Math.floor((avg-min) * scaledRange)
+          + col_xs[colIndex] - col_margin) + ',0)');
         });
       }
       else
@@ -254,7 +292,7 @@ class attributeTable {
     .attr('row_pos', function (elem) {
       return elem.y;
     })
-    .attr("width", this.width)
+    .attr("width", this.width-col_margin)
     .attr("height", rowHeight)
     .attr('stroke', 'transparent')
     .attr('stroke-width', 1)

@@ -101,6 +101,9 @@ export class App {
 
 
       const attributeDataObj = attributeData.create('big-decent-clipped-38');
+      // This executes asynchronously, so you'll have to pass
+      // back a promise and resolve that before you keep going
+      attributeDataObj.loadData('big-decent-clipped-38');
       console.log('THE OBJECT RETURNED:');
       console.log(attributeDataObj);
 

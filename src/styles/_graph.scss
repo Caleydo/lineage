@@ -76,7 +76,7 @@ rect.selected{
 .node rect,
 .node circle,
 .node .hex{
-    stroke:$node-color;
+    //stroke:$node-color;
 //     stroke-width: 3px;
 }
 
@@ -125,7 +125,15 @@ rect.selected{
 }
 
 .nodeLine{
-	stroke:black;
+	stroke:#282828;
+}
+
+.lifeRect text{
+  stroke:none;
+}
+
+.collapsed .nodeLine{
+  stroke:#9b9a99;
 }
 
 

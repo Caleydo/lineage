@@ -309,11 +309,11 @@ class genealogyTree {
 
 
 
-	  //Create temporary group for y axis
-    const yaxis = svg.append("g")
-      .attr("transform", "translate(" +this.margin.left + "," + (this.margin.top + Config.glyphSize) + ")")
-      .attr('id', 'yaxis')
-      .call(axisRight(this.y).tickFormat(format(",.1f")).tickValues(range(1,105,.5)).tickSize(this.width))
+	 //  //Create temporary group for y axis
+    // const yaxis = svg.append("g")
+    //   .attr("transform", "translate(" +this.margin.left + "," + (this.margin.top + Config.glyphSize) + ")")
+    //   .attr('id', 'yaxis')
+    //   .call(axisRight(this.y).tickFormat(format(",.1f")).tickValues(range(1,105,.5)).tickSize(this.width))
 
 
 
@@ -721,7 +721,7 @@ class genealogyTree {
       })
       .attr("stroke-width", 3)
       .attr("stroke", function (d: any) {
-        return (d.affected) ? "black" : "#9e9d9b";
+        return (d.affected) ? "red" : "#e2e1e0";
       })
 
 
@@ -764,7 +764,7 @@ class genealogyTree {
       })
       .attr("stroke-width", 1)
       .attr("stroke", function (d: any) {
-        return (d.affected) ? "black" : "#9e9d9b";
+        return (d.affected) ? "red" : "#e2e1e0";
       })
 
 
@@ -991,12 +991,15 @@ class genealogyTree {
 
             allNodes
             .style("stroke-width",(d: any) => {
-				return (d['hidden'] && !d['hasChildren']) ? 1 : 2
+				return (d['hidden']) ? 1 : 2
       		})
 
-			.style("fill", (d: any) => {
-				return (d.affected) ? "black" : "white"
+			.style("stroke", (d: any) => {
+				return (d.affected) ? "black" : "#7b8282"
       		})
+              .style("fill", (d: any) => {
+                return (d.affected) ? "#7b8282" : "#e2e1e0"
+              })
 
     let tran = t.transition().ease(easeLinear);
     allNodes.filter((d) => {

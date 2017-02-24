@@ -1995,7 +1995,7 @@ export let realData =[
       "PaID":"16004095",
       "sex":"M",
       "deceased":"Y",
-      "suicide":"Y",
+      "suicide":"N",
       "bdate":"1968",
       "ddate":"2004",
       "OMEID":"200401278",
@@ -2005,7 +2005,7 @@ export let realData =[
       "id":28016042,
       "ma":16004092,
       "pa":16004095,
-      "affection":100,
+      "affection":1,
       "children":[
 
       ],

@@ -9,7 +9,7 @@ export class Config {
   public static showLifeLines = false;
   public static showAgeLabels = false;
 
-  public static glyphSize = 8;
+  public static glyphSize = 6;
   public static hiddenGlyphSize = 4;
   public static spaceBetweenGenerations = 4;
 

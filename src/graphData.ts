@@ -13,7 +13,6 @@ import {
 class graphData {
 
   public nodes;
-  private uniqueID;
 
   //Array of Parent Child Edges
   public parentChildEdges = [];
@@ -21,44 +20,39 @@ class graphData {
   //Array of Parent Parent Edges
   public parentParentEdges = [];
 
-  //Used to count nuclear families in a tree
-  private nuclearFamilyCounter = 1;
-
-
   constructor(data) {
     this.nodes = data;
     // this.uniqueID = [];
 
     //Sort nodes by y value, always starting at the founder (largest y) ;
     this.nodes.sort(function (a, b) {
-      return b['y'] - a['y']
+      return b.y - a.y ;
     });
 
     //Initially set all nodes to visible (i.e, not hidden)  and of type 'single' (vs aggregate)
-    this.nodes.forEach(d => {
+    this.nodes.forEach((d) => {
       // d['index'] = d.id;
-      d['type'] = 'single';
-      d['hidden'] = false;
-      d['aggregated'] = false;
-      d['bdate'] = +d['bdate'];
-      d['deceased'] = d['deceased'] === 'Y'; //transform to boolean values
-      // d['color'] = +d['affection'] === 1 ? 'black' : 'white'; //Set color in view, not here.
-      d['generation'] = -1; //indicator that generation has not been set
-      d['descendant'] = false; //flag for blood descendants of founders - not in use yet (2/23/17)
-      d['x'] = +d['bdate'] //set year as x attribute
-      d['Y'] = +d['y']; //keeps track of nodes original y position
-      d['X'] = +d['x']; //keeps track of nodes original x position - can change for kid grids on hide.
-      d['family_ids'] = []; //keeps track of nuclear families a given node belongs to.
-      d['clicked'] = false; //used to keep track of clicked nodes even when they are removed from the visible area. May not need if nodes are not removed and simply scroll out of view.
+      d.type = 'single';
+      d.hidden = false;
+      d.aggregated = false;
+      d.bdate = +d.bdate;
+      d.deceased = d.deceased === 'Y'; //transform to boolean values
+      d.generation = -1; //indicator that generation has not been set
+      d.descendant = false; //flag for blood descendants of founders - not in use yet (2/23/17)
+      d.x = +d.bdate; //set year as x attribute
+      d.Y = +d.y; //keeps track of nodes original y position
+      d.X = +d.x; //keeps track of nodes original x position - can change for kid grids on hide.
+      d.family_ids = []; //keeps track of nuclear families a given node belongs to.
+      d.clicked = false; //used to keep track of clicked nodes even when they are removed from the visible area. May not need if nodes are not removed and simply scroll out of view.
 
       //For Tree structure
-      d['hasChildren'] = false;
-      d['children'] = [] //Array of children
-      d['spouse'] = []; //Array of spouses (some have more than one)
+      d.hasChildren = false;
+      d.children = []; //Array of children
+      d.spouse = []; //Array of spouses (some have more than one)
 
       //Define 'affected' state. Can be modified by the user with definePrimary();
 //       d['affected'] = +d["affection"] === 100;
-      d['affected'] = Math.random() > 0.8
+      d.affected= Math.random() > 0.8;
 
     });
 
@@ -80,8 +74,8 @@ class graphData {
    */
   private definePrimary(attribute, threshold, compareOperator) {
     this.nodes.forEach((node) => {
-      node['affected'] = node[attribute] === threshold;
-    })
+      node.affected = node[attribute] === threshold;
+    });
 
   }
 
@@ -98,32 +92,31 @@ class graphData {
   private buildTree() {
 
     this.nodes
-      .forEach(node => {
+      .forEach((node) => {
         //Check if there are mother and father nodes in this family (founder won't have them for example)
         let maNode = this.nodes.filter((d) => {
-          return d['id'] === node['ma']
+          return d.id === node.ma;
         });
         let paNode = this.nodes.filter((d) => {
-          return d['id'] === node['pa']
+          return d.id === node.pa;
         });
 
         //No parents found
         if (maNode.length === 0 || paNode.length === 0) {
-          node['ma'] = undefined;
-          node['pa'] = undefined;
+          node.ma = undefined;
+          node.pa = undefined;
         }
-
         // If found parents, create edges between parent and children, spouses, and add references to build tree
         else {
           maNode = maNode[0];
           paNode = paNode[0];
 
           //Replace ma and pa fields with reference to actual ma/pa nodes
-          node['ma'] = maNode;
-          node['pa'] = paNode;
+          node.ma = maNode;
+          node.pa = paNode;
 
           //relationship node. Used to build parent child edges
-          let rnode = {
+          const rnode = {
             'ma': maNode,
             'pa': paNode,
             'type': 'parent',
@@ -132,13 +125,13 @@ class graphData {
 
           //Only add parent parent Edge if it's not already there;
           if (!this.parentParentEdges.some((d) => {
-              return d['ma'] === rnode['ma'] && d['pa'] === rnode['pa'];
+              return d.ma === rnode.ma && d.pa === rnode.pa;
             })) {
             this.parentParentEdges.push(rnode);
 
             //Set spouse fields
-            maNode['spouse'].push(paNode);
-            paNode['spouse'].push(maNode);
+            maNode.spouse.push(paNode);
+            paNode.spouse.push(maNode);
           }
 
           //Set flag for people with children so they are not placed in the kidGrid
@@ -197,7 +190,7 @@ class graphData {
   private findLargestY(node){
 
     //Base Case
-    if (node['spouse'].length === 1)
+    if (node.spouse['spouse'].length === 1)
         return max([node['y'],node['spouse']['y']]);
 
     else

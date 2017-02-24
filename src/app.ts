@@ -6,26 +6,24 @@
 import {select, selectAll} from 'd3-selection';
 
 //Import typescript modules for the views
-import * as tree from './genealogyTree'
-import * as table from './attributeTable'
-import * as panel from './attributePanel'
+import * as tree from './genealogyTree';
+import * as table from './attributeTable';
+import * as panel from './attributePanel';
 
 
 import {csv} from 'd3-request';
 
 //Import Data Structure for graph & table
-import * as graphData from './graphData'
-import * as tableData from './tableData'
-// import * as graphData from './genealogyData'
+import * as graphData from './GraphData';
+import * as tableData from './tableData';
 
-
-import * as dataExplorations from './dataExplorations'
+import * as dataExplorations from './dataExplorations';
 
 //Import Sample Data from ./sampleData
 // import {sampleData} from './sampleData'
 
 //Import Actual Data from ./sampleData
-import {realData} from './data/data_38'
+import {realData} from './data/data_38';
 // import {realData} from './data_149'
 // import {realData} from './data_777721'
 
@@ -95,19 +93,19 @@ export class App {
    */
   private build() {
 
-      let genealogyTree = tree.create(this.$node.select('#graph_table').node());
+      const genealogyTree = tree.create(this.$node.select('#graph_table').node());
       genealogyTree.init(graphData.create(realData));
 
-      //shared data for attributTable and attributePanel
-      let table_data = tableData.create(realData, datasets[0].desc.columns);
+      //shared data for attributeTable and attributePanel
+      const tableDataObject = tableData.create(realData, datasets[0].desc.columns);
 
-      let attributeTable = table.create(this.$node.select('#graph_table').node());
-      attributeTable.init(table_data);
+      const attributeTable = table.create(this.$node.select('#graph_table').node());
+      attributeTable.init(tableDataObject);
 
-      let attributePanel = panel.create(this.$node.select('#data_selection').node());
-      attributePanel.init(table_data);
+      const attributePanel = panel.create(this.$node.select('#data_selection').node());
+      attributePanel.init(tableDataObject);
 
-      let data = dataExplorations.create();
+      const data = dataExplorations.create();
       data.loadLocalData();
       data.demoDatasets(null);
       //data.demoGenealogyData();

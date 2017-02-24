@@ -56,7 +56,7 @@ export default class AttributeData {
     const  all_columns = this.table.cols();
     all_columns.forEach(col =>{
       console.log(col)
-      console.log(col.index)
+      // console.log(col.index)
       //adding a column object that has :
       // column name, type
       this.columns.push({

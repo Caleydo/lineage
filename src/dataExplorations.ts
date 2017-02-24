@@ -56,8 +56,7 @@ export default class DataExplorations {
       console.log(table);
 
 
-    }
-    else {
+    } else {
       console.log('The Table as passed via parameter:');
       console.log(table);
     }
@@ -157,13 +156,13 @@ export default class DataExplorations {
     console.log('The data type of the fourth column (categories):');
     console.log(table.col(3).desc.value.type);
 
-    if (table.col(3).desc.value.type == VALUE_TYPE_CATEGORICAL) {
+    if (table.col(3).desc.value.type === VALUE_TYPE_CATEGORICAL) {
       const catVector = <ICategoricalVector> table.col(3);
       console.log('The categories of the fourth column:');
       // these also contain colors that can be easily used in d3.
       console.log(catVector.desc.value.categories);
       // FIXME this doesn't contain bins?
-      console.log('The histogram: BROKEN')
+      console.log('The histogram: BROKEN');
       console.log(await catVector.hist());
     }
 

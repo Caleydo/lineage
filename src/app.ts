@@ -14,8 +14,11 @@ import * as panel from './attributePanel';
 import {csv} from 'd3-request';
 
 //Import Data Structure for graph & table
-import * as graphData from './GraphData';
+
+import * as graphData from './graphData';
 import * as tableData from './tableData';
+import * as attributeData from './attributeData';
+
 
 import * as dataExplorations from './dataExplorations';
 
@@ -96,19 +99,22 @@ export class App {
       const genealogyTree = tree.create(this.$node.select('#graph_table').node());
       genealogyTree.init(graphData.create(realData));
 
+
+      let attributeDataObj = attributeData.create('big-decent-clipped-38');
+
       //shared data for attributeTable and attributePanel
-      const tableDataObject = tableData.create(realData, datasets[0].desc.columns);
+      const tableDataObj = tableData.create(realData, datasets[0].desc.columns);
 
       const attributeTable = table.create(this.$node.select('#graph_table').node());
-      attributeTable.init(tableDataObject);
+      attributeTable.init(tableDataObj);
 
-      const attributePanel = panel.create(this.$node.select('#data_selection').node());
-      attributePanel.init(tableDataObject);
+      let attributePanel = panel.create(this.$node.select('#data_selection').node());
+      attributePanel.init(attributeDataObj);
 
       const data = dataExplorations.create();
       data.loadLocalData();
       data.demoDatasets(null);
-      //data.demoGenealogyData();
+      data.demoGenealogyData();
 
 
     this.$node.select('h3').remove();

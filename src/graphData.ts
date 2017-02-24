@@ -7,7 +7,6 @@
 import {
   max,
   min,
-  mean
 } from 'd3-array';
 
 class GraphData {
@@ -48,14 +47,10 @@ class GraphData {
       d.hasChildren = false;
       d.children = []; //Array of children
       d.spouse = []; //Array of spouses (some have more than one)
-
-      //Define 'affected' state. Can be modified by the user with definePrimary();
-//       d['affected'] = +d["affection"] === 100;
-      d.affected= Math.random() > 0.8;
-
     });
 
-    // this.definePrimary('suicide', 'Y', undefined);
+    //Define attribute that defines 'affected' state
+    this.definePrimary('suicide', 'Y');
     this.buildTree();
     // this.computeGenerations();
   }
@@ -68,12 +63,15 @@ class GraphData {
    * 2) between couples -> parent parent edges
    *
    * @param attribute attribute to be used to define 'affected' state of nodes.
-   * @param threshold threshold to apply to attribute when defining 'affected'. Array of 1 or two values.
-   * @param compareOperator can be >,<,=, or 'range' to apply to attribute when defining 'affected'
+   * @param threshold threshold to apply to attribute when defining 'affected'.
+   * Currently has a single value that indicates true.
    */
-  private definePrimary(attribute, threshold, compareOperator) {
+  private definePrimary(attribute, threshold) {
     this.nodes.forEach((node) => {
       node.affected = node[attribute] === threshold;
+      //node.affected = +d["affection"] === 100;
+      //node.affected= 0;
+      // node.affected = Math.random() > 0.8;
     });
 
   }
@@ -104,7 +102,7 @@ class GraphData {
         if (maNode.length === 0 || paNode.length === 0) {
           node.ma = undefined;
           node.pa = undefined;
-        }else{// If found parents, create edges between parent and children, spouses, and add references to build tree
+        } else { //If found parents, create edges between parent and children, spouses, and add references to build tree
           maNode = maNode[0];
           paNode = paNode[0];
 
@@ -186,7 +184,7 @@ class GraphData {
     if (node.spouse.length === 1) {
       return max([node.y, node.spouse.y]);
     } else {
-      return max([node.y].concat(node.spouse.map((s)=>{ return this.findLargestY(s)})));
+      return max([node.y].concat(node.spouse.map((s) => { return this.findLargestY(s);})));
     }
 
 
@@ -204,7 +202,7 @@ class GraphData {
     //Find the non hidden node in that row
     const startNode = this.nodes.filter((node) => {
       return (node.y === startIndex && !node.hidden);
-    })
+    });
 
     if (startNode.length === 0) {
       return; //user clicked on a hidden node;
@@ -232,7 +230,7 @@ class GraphData {
         if (ma.affected && pa.affected) { //place kid grid in the middle
           node.y = (ma.y + pa.y) / 2;
         } else if (ma.affected) { //Only mother is affected,
-          if (node.sex === 'M'){
+          if (node.sex === 'M') {
             node.y = ma.y - 0.2;
           } else {
             node.y = ma.y + .2;
@@ -244,7 +242,7 @@ class GraphData {
             node.y = pa.y + 0.2;
           }
         } else {//Neither parent is affected
-          if (node.sex === 'M'){
+          if (node.sex === 'M') {
             node.y = pa.y;
           } else {
             node.y = ma.y;
@@ -303,21 +301,20 @@ class GraphData {
 
       }
 
-      if (node.affected)
+      if (node.affected) {
         Y = Y - 1;
-
-      else {
-
+      } else {
         //Check if you are at the end of a branch w/ only unaffected leaf children.
-        let unaffectedLeafChildren = !this.hasAffectedChildren(node);
+        const unaffectedLeafChildren = !GraphData.hasAffectedChildren(node);
 
         //If current node has only unaffected leaf children and does not have any affected spouses and is not a leaf
-        let newBranch = unaffectedLeafChildren && node.hasChildren &&
-          node.spouse.reduce((acc, spouse) => {return acc && !spouse.affected}, true)
-          && node.Y < max(node.spouse.map((s) => {return s.Y}));
+        const newBranch = unaffectedLeafChildren && node.hasChildren &&
+          node.spouse.reduce((acc, spouse) => {return acc && !spouse.affected;}, true)
+          && node.Y < max(node.spouse.map((s) => {return s.Y;}));
 
-        if (newBranch)
+        if (newBranch) {
           Y = Y - 1;
+        }
 
         node.hidden = true;
       }
@@ -326,11 +323,11 @@ class GraphData {
 
     //Get rid of blank rows;
     this.nodes.filter((d) => {
-      return d.y >= endIndex
+      return d.y >= endIndex;
     }).forEach((node) => {
-      let offset = Y - Math.round(endIndex) + 1;
+      const offset = Y - Math.round(endIndex) + 1;
       node.y = node.y - offset;
-    })
+    });
   }
 
 
@@ -341,22 +338,18 @@ class GraphData {
    * @param node to query
    * @return true/false indicating whether this node has any affected leaf children
    */
-  private hasAffectedChildren(node){
-    let value = node.children.reduce((acc, child) => {
-      return acc && !child.affected && !child.hasChildren
-    }, true)
-
-    return !value;
-
+  static hasAffectedChildren(node) {
+    return !node.children.reduce((acc, child) => {
+      return acc && !child.affected && !child.hasChildren;
+    }, true);
   }
 
 }
 
-
 /**
  * Method to create a new graphData instance
  * @param data
- * @returns {graphData}
+ * @returns {GraphData}
  */
 export function create(data) {
   return new GraphData(data);

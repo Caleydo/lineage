@@ -228,7 +228,11 @@ class GraphData {
 
         //If both parents are affected
         if (ma.affected && pa.affected) { //place kid grid in the middle
-          node.y = (ma.y + pa.y) / 2;
+          if (node.sex === 'M') {
+            node.y = min([ma.y,pa.y]) + 0.3;
+          } else {
+            node.y = max([ma.y,pa.y]) - 0.3;
+          }
         } else if (ma.affected) { //Only mother is affected,
           if (node.sex === 'M') {
             node.y = ma.y - 0.2;
@@ -263,13 +267,14 @@ class GraphData {
             const spouse = spouses[0];
             // spouses.map((spouse) => {
               //Affected Spouse
-              if (spouse.affected) { //what happens if person has more than one affected spouse? where to place him/her then?
+              if (spouse.affected ) { //what happens if person has more than one affected spouse? where to place him/her then?
                 // node.y = spouse.y;
                 if (node.sex === 'M') {
                   node.y = spouse.y - 0.2;
                 } else {
                   node.y = spouse.y + 0.2;
                 }
+                node.x = spouse.x+6;
               } else { //Non affected Spouse
                 if (node.sex === 'M') {
                   node.y = Y - 0.2;
@@ -281,21 +286,23 @@ class GraphData {
           }
         } else { //Affected Nodes
           node.y = Y;
-          const spouse = node.spouse;
+          const spouses = node.spouse;
 
-            if (spouse.length > 0) {
+            if (spouses.length > 0) {
+              const spouse = spouses[0];
               if (!spouse.affected) {
-                if (node.sex === 'M') {
-                  spouse.y = Y;//-0.2;
+                if (spouse.sex === 'M') {
+                  spouse.y = Y -0.2;
                 } else {
-                  spouse.y = Y; //+0.2;
+                  spouse.y = Y +0.2;
                 }
+                spouse.x = node.x+6;
               }
             }
         }
 
         //Place Mom and Dad Nodes on top of Each other (at the dad's x location)
-        if (node.sex === 'F' && node.spouse.length > 0) {
+        if (node.sex === 'F' && node.spouse.length > 0 && !node.affected && !node.spouse[0].affected) {
           node.x = node.spouse[0].x; //need to figure out how to handle multi spouse situations 2/23/2017
         }
 

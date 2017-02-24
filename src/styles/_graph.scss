@@ -141,13 +141,11 @@ rect.selected{
 }
 
 .node:hover .male,
-.node:hover .female,
-  {
-//     opacity: 0.5;
-//     stroke:red;
+.node:hover .female {
+     //opacity: 0.2;
+     //stroke:red;
+  //fill:none;
   }
-
-
 
 .edges{
     stroke:$edge-color;

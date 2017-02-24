@@ -93,7 +93,7 @@ class attributeTable {
     .attr("height", this.height + this.margin.top + this.margin.bottom)
 
     const axis = svg.append("g")
-        .attr("transform", "translate(" + this.margin.left + "," + this.margin.top / 1.5 + ")")
+        .attr("transform", "translate(" + this.margin.left + "," + this.margin.axisTop / 1.5 + ")")
         .attr('id', 'axis')
 
     const TEMP_LEFT_FIX = 35; //TODO: what's going on here?

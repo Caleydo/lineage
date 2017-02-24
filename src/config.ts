@@ -12,14 +12,15 @@ export class Config {
   public static glyphSize = 10;
   public static hiddenGlyphSize = 4;
   public static spaceBetweenGenerations = 4;
-  
-  
+
+
   public static margin = {
-        top: 80,
+        axisTop: 80,
+        top: 150,
         right: 40,
         bottom: 60,
         left: 40
     };
-  
-  
+
+
 }

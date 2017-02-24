@@ -288,7 +288,7 @@ class genealogyTree {
 
     //Create group for all time axis
     const axis = svg.append("g")
-      .attr("transform", "translate(" + this.margin.left + "," + this.margin.top / 1.5 + ")")
+      .attr("transform", "translate(" + this.margin.left + "," + this.margin.axisTop / 1.5 + ")")
       .attr('id', 'axis')
 
       axis
@@ -1210,7 +1210,7 @@ class genealogyTree {
     let maxY = this.y.invert(divHeight + scrollOffset - 75)
 
     select("#axis")
-      .attr("transform", "translate(" + this.margin.left + "," + (scrollOffset + this.margin.top / 1.5) + ")")
+      .attr("transform", "translate(" + this.margin.left + "," + (scrollOffset + this.margin.axisTop / 1.5) + ")")
 
     //the 75 offset is the transform applied on the group
 

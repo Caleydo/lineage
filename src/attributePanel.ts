@@ -18,7 +18,6 @@ class attributePanel {
 
   // access to all the data in our backend
   private all_the_data;
-  private column_order;
   private columns;
 
 
@@ -37,10 +36,9 @@ class attributePanel {
    * that is resolved as soon the view is completely initialized.
    * @returns {Promise<FilterBar>}
    */
-  init(data) {
-    this.all_the_data = data;
-    this.column_order = data.displayedColumnOrder;
-    this.columns = data.referenceColumns;
+  init(columnData) {
+    console.log(columnData)
+    this.columns = await columnData.columns;
 
     this.build();
     this.attachListener();
@@ -205,34 +203,6 @@ class attributePanel {
 
 }
 
-/**
- *
- * Structure class for attributes for data selection panel
- */
-class Attribute{
-  private name;
-  private atype;
-  private data;
-  private isActive;
-  private isCollapsed;
-  private isPrim;
-  private isSec;
-
-  /***
-   *
-   * @param name : name of the attribute
-   * @param atype : type is given as a string and is used to populate icons and define which vis to use
-   * @param isActive: a flag that indecate if an attribute is in the active list
-   */
-  constructor(name:string, atype:string, data:any[], isActive:number = 1){
-    this.name = name;
-    this.atype = atype;
-    this.data = data;
-
-  }
-
-
-}
 
 /**
  * Factory method to create a new instance of the attributePanel

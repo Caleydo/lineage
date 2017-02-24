@@ -10,6 +10,7 @@ export default class AttributeData {
 
   table:ITable;
   public columns = []; // This holds headers as object {name,type}
+  public activeAttributes = [] ; // active attribute is an attribute that is not ID. This an array of strings (column name)
 
 
   constructor(dataset_name) {
@@ -54,19 +55,22 @@ export default class AttributeData {
     // all_columns hold columns as TableVector
     // we want to populate the public variable columns
     const  all_columns = this.table.cols();
+
     all_columns.forEach(col =>{
-      console.log(col)
-      console.log(col.index)
+      console.log(col);
+      let name = col.desc.name;
+      let type = col.desc.value.type;
       //adding a column object that has :
       // column name, type
       this.columns.push({
-        name: col.desc.name,
-        type: col.desc.value.type
+        name: name,
+        type: type
       })
+
+      // if the type of the column is ID then it is not in the active list
+      if(!(type === 'idType'))
+        this.activeAttributes.push(name);
     })
-
-
-
 
   }
 

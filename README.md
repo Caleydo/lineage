@@ -1,7 +1,7 @@
 Lineage [![Phovea][phovea-image]][phovea-url] [![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Dependency Status][daviddm-image]][daviddm-url]
 =====================
 
-Lineage is a genalogy visualization tool developed at the University of Utah. 
+Lineage is a genalogy visualization tool developed at the [Visualization Design Lab](http://vdl.sci.utah.edu) at the University of Utah, with contributions from the [Gehlenborg Lab](http://gehlenborg.com/) at the Harvard Medical School. 
 
 See also the [lineage_server](https://github.com/Caleydo/lineage_server) and the [lineage_product](https://github.com/Caleydo/lineage_product/) repositories.
 

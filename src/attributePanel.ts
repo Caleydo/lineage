@@ -37,8 +37,8 @@ class attributePanel {
    * @returns {Promise<FilterBar>}
    */
   init(columnData) {
-    console.log('In Init:::')
-    console.log(columnData)
+    console.log('In Init:::');
+    console.log(columnData.columns[0]);
     this.columns = columnData.columns;
 
     this.build();

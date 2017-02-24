@@ -15,19 +15,6 @@ export default class AttributeData {
 
   constructor(datasetName) {
     // load data into public variable table, after loading we can call different function that access data
-
-    this.loadData(datasetName).then(()=> {
-        this.parseData();
-      })
-      .catch(function (error) {
-        console.log('Error: ' + error);
-      })
-
-    console.log("END OF CONSTRUCTOR")
-    console.log(this.columns);
-
-    this.attachListener();
-
   }
 
 
@@ -41,7 +28,13 @@ export default class AttributeData {
   public async loadData(name:string) {
     //retrieving the desired dataset by name
     this.table = <ITable> await getFirstByName(name);
-    return this.table;
+    this.parseData();
+
+    console.log('END OF CONSTRUCTOR');
+    console.log(this.columns);
+
+    this.attachListener();
+
   }
 
   /**

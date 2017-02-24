@@ -100,7 +100,7 @@ export class App {
       genealogyTree.init(graphData.create(realData));
 
 
-      let attributeDataObj = attributeData.create('big-decent-clipped-38');
+      const attributeDataObj = attributeData.create('big-decent-clipped-38');
 
       //shared data for attributeTable and attributePanel
       const tableDataObj = tableData.create(realData, datasets[0].desc.columns);
@@ -108,13 +108,13 @@ export class App {
       const attributeTable = table.create(this.$node.select('#graph_table').node());
       attributeTable.init(tableDataObj);
 
-      let attributePanel = panel.create(this.$node.select('#data_selection').node());
+      const attributePanel = panel.create(this.$node.select('#data_selection').node());
       attributePanel.init(attributeDataObj);
 
-      const data = dataExplorations.create();
-      data.loadLocalData();
-      data.demoDatasets(null);
-      data.demoGenealogyData();
+      // const data = dataExplorations.create();
+      // data.loadLocalData();
+      // data.demoDatasets(null);
+      // data.demoGenealogyData();
 
 
     this.$node.select('h3').remove();

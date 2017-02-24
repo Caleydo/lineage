@@ -132,7 +132,8 @@ class attributePanel {
 
     });
 
-    this.columns.forEach(column=> {
+    this.columns.forEach((column)=> {
+      console.log('col',column)
       this.addAttribute(column.name, column.type)
     })
 

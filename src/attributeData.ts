@@ -13,10 +13,11 @@ export default class AttributeData {
   public activeAttributes = [] ; // active attribute is an attribute that is not ID. This an array of strings (column name)
 
 
-  constructor(dataset_name) {
+  constructor(datasetName) {
     // load data into public variable table, after loading we can call different function that access data
-    this.loadData(dataset_name).then(()=> {
-        this.parseData()
+
+    this.loadData(datasetName).then(()=> {
+        this.parseData();
       })
       .catch(function (error) {
         console.log('Error: ' + error);
@@ -25,6 +26,7 @@ export default class AttributeData {
     this.attachListener();
 
   }
+
 
   /**
    * This function load genealogy data from lineage-server
@@ -52,27 +54,31 @@ export default class AttributeData {
    */
   public async parseData() {
 
-    // all_columns hold columns as TableVector
-    // we want to populate the public variable columns
-    const  all_columns = this.table.cols();
+      //return new Promise((resolve, reject) => {
 
-    all_columns.forEach(col =>{
-      console.log(col);
-      let name = col.desc.name;
-      let type = col.desc.value.type;
+        // all_columns hold columns as TableVector
+        // we want to populate the public variable columns
+        const  allColumns = this.table.cols();
 
-      //adding a column object that has :
-      // column name, type
-      this.columns.push({
-        name: name,
-        type: type
-      })
+        allColumns.forEach((col) => {
+          console.log(col);
+          const name = col.desc.name;
+          const type = col.desc.value.type;
 
-      // if the type of the column is ID then it is not in the active list
-      if(!(type === 'idType'))
-        this.activeAttributes.push(name);
-    })
+          //adding a column object that has :
+          // column name, type
+          this.columns.push({
+            name: name,
+            type: type
+          })
 
+          // if the type of the column is ID then it is not in the active list
+          if(!(type === 'idType')) {
+            this.activeAttributes.push(name);
+          }
+        });
+        //resolve();
+      //});
   }
 
   private attachListener() {
@@ -101,7 +107,7 @@ export default class AttributeData {
 
  * @returns {AttributeData}
  */
-export function create(dataset_name) {
+export function create(datasetName) {
 
-  return new AttributeData(dataset_name);
+  return new AttributeData(datasetName);
 }

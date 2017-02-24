@@ -11,147 +11,114 @@ import {
 } from 'd3-array';
 
 class graphData {
+
   public nodes;
   private uniqueID;
+
+  //Array of Parent Child Edges
   public parentChildEdges = [];
+
+  //Array of Parent Parent Edges
   public parentParentEdges = [];
+
+  //Used to count nuclear families in a tree
   private nuclearFamilyCounter = 1;
+
 
   constructor(data) {
     this.nodes = data;
-    this.uniqueID = [];
+    // this.uniqueID = [];
 
     //Sort nodes by y value, always starting at the founder (largest y) ;
     this.nodes.sort(function (a, b) {
       return b['y'] - a['y']
     });
 
-    //Initially set all nodes to visible and of type 'single' (vs aggregate)
+    //Initially set all nodes to visible (i.e, not hidden)  and of type 'single' (vs aggregate)
     this.nodes.forEach(d => {
       // d['index'] = d.id;
       d['type'] = 'single';
       d['hidden'] = false;
       d['aggregated'] = false;
       d['bdate'] = +d['bdate'];
-      d['deceased'] = d['deceased'] == 'Y';
-      d['color'] = +d['affection'] == 1 ? 'black' : 'white'
-      d['generation'] = -1;
-      d['descendant'] = false; //flag for blood descendants of founders
-      d['x'] = +d['bdate']
+      d['deceased'] = d['deceased'] == 'Y'; //transform to boolean values
+      // d['color'] = +d['affection'] == 1 ? 'black' : 'white'; //Set color in view, not here.
+      d['generation'] = -1; //indicator that generation has not been set
+      d['descendant'] = false; //flag for blood descendants of founders - not in use yet (2/23/17)
+      d['x'] = +d['bdate'] //set year as x attribute
       d['Y'] = +d['y']; //keeps track of nodes original y position
       d['X'] = +d['x']; //keeps track of nodes original x position - can change for kid grids on hide.
-      d['family_ids'] = []; //keeps track of nuclear families
-      d['clicked'] = false;
-      d['children'] = false;
+      d['family_ids'] = []; //keeps track of nuclear families a given node belongs to.
+      d['clicked'] = false; //used to keep track of clicked nodes even when they are removed from the visible area. May not need if nodes are not removed and simply scroll out of view.
+
+      //For Tree structure
+      d['hasChildren'] = false;
+      d['children'] = [] //Array of children
+      d['spouse'] = []; //Array of spouses (some have more than one)
+
+      //Define 'affected' state. Can be modified by the user with definePrimary();
 //       d['affected'] = +d["affection"] == 100;
-	  d['affected'] = Math.random()>0.7
+      d['affected'] = Math.random() > 0.7
 
-      this.uniqueID.push(+d['id']);
+      // this.uniqueID.push(+d['id']);
     });
 
-    this.createEdges();
-    this.computeGenerations();
+    this.definePrimary('suicide', 'Y', undefined);
+    this.buildTree();
+    // this.computeGenerations();
   }
 
-  //Function that assigns a generation to each node.
-  private computeGenerations() {
-    //Find oldest couple and tag them as the founders
-    this.nodes.sort((a, b) => {
-      return a['bdate'] - b['bdate']
-    });
 
-    this.nodes[0]['generation'] = 0;
-    this.nodes[1]['generation'] = 0;
-
-    this.nodes[0]['family_ids'] = [0, 1];
-    this.nodes[1]['family_ids'] = [0, 1];
-
-    //for each couple, find all children and: 1) assign their generation 2)Tag them as 'descendants'
-    this.nodes.forEach((n) => {
-      this.parentChildEdges.forEach((edge) => {
-        if (n == edge['ma'] || n == edge['pa']) {
-
-          //If not already created, create new nuclear family
-          if (n['family_ids'].length > 0) {
-
-            if (n['family_ids'].length == 1) {
-              this.nuclearFamilyCounter = this.nuclearFamilyCounter + 1;
-              n['family_ids'].push(this.nuclearFamilyCounter)
-            }
-            if (n == edge['ma'] && edge['target']['family_ids'].length == 0) {
-              edge['target']['family_ids'].push(n['family_ids'][1]);
-            }
-            if (n == edge['pa'] && edge['target']['family_ids'].length == 0) {
-              edge['target']['family_ids'].push(n['family_ids'][1]);
-            }
-          }
-          if (n['generation'] >= 0) {
-            edge['target']['generation'] = n['generation'] + 1;
-            edge['target']['descendant'] = true;
-          }
-        }
-      })
+  /**
+   *
+   * This function defined the 'affected' state based on a user defined attribute.
+   * 1) between parents and their children -> parent child edges.
+   * 2) between couples -> parent parent edges
+   *
+   * @param attribute attribute to be used to define 'affected' state of nodes.
+   * @param threshold threshold to apply to attribute when defining 'affected'. Array of 1 or two values.
+   * @param compareOperator can be >,<,=, or 'range' to apply to attribute when defining 'affected'
+   */
+  private definePrimary(attribute, threshold, compareOperator) {
+    this.nodes.forEach((node) => {
+      node['affected'] = node[attribute] == threshold;
     })
-    //Iterate through all nodes and for any without generation: 1)Copy the generation of their spouse
-    this.nodes.filter(function (d) {
-      return d['generation'] < 0
-    }).forEach((n) => {
-      //Iterate through parent-parent edges to find spouses generation and copy it
-      this.parentParentEdges.forEach((edge) => {
-        if (n == edge['pa']) {
-          n['generation'] = edge['ma']['generation'];
-        } else if (n == edge['ma']) {
-          n['generation'] = edge['pa']['generation'];
-        }
-      })
-    })
-
-    //Iterate through all nodes and for any without a family id: 1) Copy the family id of their spouse
-    this.nodes.filter(function (d) {
-      return d['family_ids'].length < 1
-    }).forEach((n) => {
-      //Iterate through parent-parent edges to find spouses generation and copy it
-      this.parentParentEdges.forEach((edge) => {
-        if (n['family_ids'].length == 0) {
-          if (n == edge['pa']) {
-            n['family_ids'].push(edge['ma']['family_ids'][1]);
-          } else if (n == edge['ma']) {
-            n['family_ids'].push(edge['pa']['family_ids'][1]);
-          }
-        }
-      })
-    })
-  }
-
-  //Function that hides attributes for all non direct descendants of founder.
-  private hideNonDescendants() {
 
   }
 
   /**
-   * Compute Parent/Children edges and Parent-Parent Edges
+   *
+   * This function creates edges objects and adds the references between parents and children to create a tree.
+   * It creates two types of edges:
+   * 1) between parents and their children -> parent child edges.
+   * 2) between couples -> parent parent edges
+   *
+   * It populates the class attributes parentParentEdges and parentChildEdges.
    */
-  private createEdges() {
-    //Create relationship nodes
-    this.nodes
-    //.filter((d) => {return d.visible})
-      .forEach(node => {
-        const maID = this.uniqueID.indexOf(node['ma']);
-        const paID = this.uniqueID.indexOf(node['pa']);
 
-        if (maID > -1 && paID > -1) {
-          const rnode = {
-            'x': (this.nodes[maID].x + this.nodes[paID].x) / 2,
-            'y': (this.nodes[maID].y + this.nodes[paID].y) / 2,
-            'y1': this.nodes[maID].y,
-            'y2': this.nodes[paID].y,
-            'x1': this.nodes[maID].x,
-            'x2': this.nodes[paID].x,
-            'color': this.nodes[maID].color,
-            'ma': this.nodes[maID],
-            'pa': this.nodes[paID],
+  private buildTree() {
+
+    this.nodes
+      .forEach(node => {
+        //Check if there are mother and father nodes in this family (founder won't have them for example)
+        let maNode = this.nodes.filter((d) => {
+          return d['id'] == node['ma']
+        });
+        let paNode = this.nodes.filter((d) => {
+          return d['id'] == node['pa']
+        });
+
+        // If so, create edges between parent and children, spouses, and add references to build tree
+        if (maNode.length > 0 && paNode.length > 0) {
+          maNode = maNode[0];
+          paNode = paNode[0];
+
+          //relationship node. Used to build parent child edges
+          let rnode = {
+            'ma': maNode,
+            'pa': paNode,
             'type': 'parent',
-            'id': Math.random()
+            'id': Math.random() //Create random id or each parentParent Edge.
           };
 
           //Only add parent parent Edge if it's not already there;
@@ -159,204 +126,105 @@ class graphData {
               return d['ma'] == rnode['ma'] && d['pa'] == rnode['pa'];
             })) {
             this.parentParentEdges.push(rnode);
+
+            //Set spouse fields
+            maNode['spouse'].push(paNode);
+            paNode['spouse'].push(maNode);
           }
 
-          //Set flag for 'has children' so that they are never hidden in the 'sibling grid'
-          this.nodes[maID].children = true;
-          this.nodes[paID].children = true;
+          //Set flag for people with children so they are not placed in the kidGrid
+          maNode.hasChildren = true;
+          paNode.hasChildren = true;
+
+          //Add child to array of children of each parent
+          maNode.children.push(node);
+          paNode.children.push(node);
+
 
           this.parentChildEdges.push({
-            ma: this.nodes[maID],
-            pa: this.nodes[paID],
+            ma: maNode,
+            pa: paNode,
             target: node,
-            'color': this.nodes[maID].color,
-            'id': node.id
+            'id': node.id //id of parentChild Edge is the id of the child.
           });
         }
       });
-  }
-
-  public collapseFamilies(root) {
-
-    // 		1. find which nuclear families to aggregate
-    let family_ids = root;
-
-    let allowedRoots = [2, 5, 6, 4];
-
-    if (allowedRoots.indexOf(root[0]) != -1) {
-      return; //can only aggregate these families for now
-    }
-
-    if (family_ids == 2) {
-      family_ids = [5, 6];
-    }
-
-    family_ids.forEach((id) => {
-
-      //2. for each family, create a set of indexes to aggregate, (this set may be empty)
-      let aggregateSet = new Set();
-
-      this.nodes.forEach(function (d) {
-        if (+d['affection'] < 100 && d['family_ids'].includes(id)) {
-          aggregateSet.add(d['y'])
-        }
-      })
-
-      //problem is that rows with nodes that will still be a part of another aggregate are being overriden.
-
-
-      /*
-       //Iterate through all family members and push all non-afected members;
-       if (id == 5){
-       toAggregate = [65,66,68,69];
-       }
-       if (id == 2){
-       toAggregate = [69,72,74,75];
-       }
-       if (id == 6){
-       toAggregate = [71,72,73];
-       }
-       */
-      let toAggregate = Array.from(aggregateSet);
-
-      toAggregate.sort(function (a, b) {
-        return a - b
-      });
-
-      //Call aggregate Nodes on the non-affected
-      this.aggregateNodes(toAggregate, id, family_ids)
-    })
-  }
-
-  /**
-   * Aggregates Nodes
-   */
-  public aggregateNodes(indexes, id, family_ids) {
-
-    //Need family ids to see if a node needs to be duplicated
-
-    //You need at least two levels to aggregate
-    if (indexes.length < 2) {
-      return;
-    }
-
-    let minInd = Math.min.apply(null, indexes);
-    let maxInd = Math.max.apply(null, indexes);
-
-    let collapsedNodes = [];
-    let duplicateNodes = [];
-
-//       filter(function(d){return !d['aggregated']}).
-
-    this.nodes.forEach(function (d) {
-
-      let node = d;
-      if (indexes.includes(d['y']) && d['family_ids'].includes(id)) { //found a node that will be aggregated
-        //check to see if this node will be aggregated in another family as well
-        if (d['family_ids'].length > 1 && family_ids.includes(d['family_ids'][0]) && family_ids.includes(d['family_ids'][1]) && id == d['family_ids'][0]) {
-          node = JSON.parse(JSON.stringify(d));
-          node['id'] = Math.random(); //since id is used as the key, cannot have two of the same.
-          duplicateNodes.push(node);
-        };
-
-        node['visible'] = true;
-        node['aggregated'] = true;
-        node['y'] = maxInd
-        collapsedNodes.push(node);
-      }
-    });
-
-    this.nodes = this.nodes.concat(duplicateNodes);
-
-    //write function that given an array of nodes, returns an "average" node
-
-    let aggregateNode = {
-      "sex": undefined,
-      "deceased": "0",
-      "egoUPDBID": "1495566",
-      "paUPDBID": "57",
-      "maUPDBID": "59",
-      "affection": "1",
-      "bdate": "1899",
-      "ddate": "1965",
-      "ma": 59,
-      "pa": 57,
-      "spouse": undefined,
-      "children": true,
-      "x": 1899,
-      "y": 80,
-      "generation": 1899,
-      "hide": false,
-      "type": "individual",
-      "color": "#e7cb94",
-      "maxBMI": ''
-    };
-
-
-    aggregateNode['y'] = maxInd;
-    aggregateNode['x'] = min(collapsedNodes, (d) => {
-      return d['x']
-    });
-    aggregateNode['collapsedNodes'] = collapsedNodes;
-    aggregateNode['aggregated'] = false
-    aggregateNode['type'] = 'aggregate';
-    aggregateNode['visible'] = true;
-    aggregateNode['family_ids'] = [];
-    aggregateNode['id'] = Math.random()
-    /*
-     aggregateNode['family_ids'] = [collapsedNodes.reduce((a,b)=>{console.log('here',a,b);
-     return min(b['family_ids'].concat(Array.isArray(a)? a['family_ids'] : [a]))})];;
-     */
-
-    this.nodes.push(aggregateNode)
-
-    //See if aggregate node connects to a previous family
-    let multiFamilyNode = [];
-    collapsedNodes.forEach(function (d) {
-      if (d['family_ids'].length > 1) {
-        multiFamilyNode.push(d)
-      }
-    })
-
-    if (multiFamilyNode.length > 0) {
-      //If aggregate contains a parent that has two families, create a parent/child  edge between aggregate node and the originating family
-      this.parentChildEdges.forEach(function (d) {
-        if (d['target'] == multiFamilyNode[0]) {
-          d['target'] = aggregateNode;
-        }
-      })
-    }
-
-    this.collapseEmptyRows(indexes.filter(x => [aggregateNode['y']].indexOf(x) < 0));
-//         this.collapseEmptyRows(indexes);
   };
 
-  public hideNode(y) {
-    this.nodes.forEach(function (d, i) {
-// 	        console.log([d['y']-minY] , ' needs to decrease' , collapse[d['y']-minY-1] , 'rows')
-      if (d['y'] > y) {
-        d['y'] = d['y'] - 1
-      }
-    });
-  }
+  /**
+   *
+   * This function traverses down the tree to find the index of the last (upwards) leaf node in a given branch
+   *
+   * @param node - starting node.
+   */
+  public findLastLeaf(node) {
 
+    //Base case -> leaf node w/ no spouse
+    if (node['spouse'].length==0 && !node['hasChildren']){
+      return node['y'];
+    }
+
+    //Base case -> leaf node w/ spouse
+    else if (node['spouse'].length>0 && !node['hasChildren']){
+      let levels = [node['y']];
+      node['spouse'].forEach((s)=>{levels.push(s['y'])});
+      return max(levels);
+    }
+
+    //Has only one spouse -> call find lastLeaf on each of their children.
+    else if (node['spouse'].length==1 ){
+      return min(node['children'].map((child)=>{return this.findLastLeaf(child);}));
+    }
+
+    //Has more than one spouse, find last Leaf of all children in these relationships
+    else if (node['spouse'].length>1 ){
+      return  min(node['spouse'].map((spouse)=>{
+        return min(spouse['children'].map((child)=>{return this.findLastLeaf(child)}));
+      }));
+    }
+  };
+
+  /**
+   *
+   * This function hides all the nodes that descend from a given starting point. .
+   *
+   * @param startIndex - y value (row number) for the starting point.
+   */
   public hideNodes(startIndex) {
 
     let Y = startIndex;
 
+    //Find the non hidden node in that row
+    let startNode = this.nodes.filter((node)=>{
+      return (node['y'] == startIndex && !node['hidden']);
+    })
+
+    console.log('start Node is ', startNode[0]['y'])
+    //Iterate down that branch to find the last index of this family.
+    let endIndex =  this.findLastLeaf(startNode[0]);
+
+    console.log('last leaf in this branch is ', endIndex);
+
     this.nodes.sort((a, b) => {
       return b['Y'] - a['Y']
     });
+
     //Assign a row for each affected case;
-	let lastNodeChecked = undefined; 
-	
-    this.nodes.forEach((node, i) => {
-      if (node['y'] <= startIndex) {  	
-	  	
+    this.nodes.forEach((node) => {
+      if (node['y'] <= startIndex && node['y'] >= endIndex) {
+
+        //If found affected case, decrease the Y value for the next non child node;
+        /*
+         if (lastNodeAffected && !node['affected']) {
+         Y = Y - 1;
+         }
+         */
+
         //non affected leaf nodes
-        if (!node['children'] && !node['affected']) {
-	        
-	      let edge = this.parentChildEdges.filter((d) => {
+        if (!node['hasChildren'] && !node['affected']) {
+
+
+          let edge = this.parentChildEdges.filter((d) => {
             return d.target == node
           });
           let ma = edge[0]['ma'];
@@ -368,154 +236,146 @@ class graphData {
             //place kid grid in the middle
             node['y'] = (ma['y'] + pa['y']) / 2
           }
-          //If only one or neither parent is affected, give the child the dad's y value.
-/*
-          else if (ma['affected'])
-          	node['y'] = pa['y'];
-          else if (pa['affected'])
-          	node['y'] = ma['y'];
-*/
-          
-          else { 
-             if (node['sex']=='M')
-	          	node['y'] = pa['y'];
-	          else
-	          	node['y'] = ma['y'];
+          //If only one or neither parent is affected,
+          else if (ma['affected']) {
+            if (node['sex'] == 'M')
+              node['y'] = ma['y'] - 0.2;
+            else
+              node['y'] = ma['y'] + .2
+          }
+          else if (pa['affected']) {
+            if (node['sex'] == 'M')
+              node['y'] = pa['y'] - 0.2;
+            else
+              node['y'] = pa['y'] + 0.2
+          }
+          else {
+            if (node['sex'] == 'M')
+              node['y'] = pa['y'];
+            else
+              node['y'] = ma['y'];
           }
 
-		  //Starting point for the kid grid
+          //Starting point for the kid grid
           if (!node['affected'])
             node['x'] = ma['x'] + 5;
-        } //end leaf nodes 
+        } //end leaf nodes
         else {
-	      if (!node['affected']){
-	          if (node['sex']=='M')
-	          	node['y'] = Y-0.2;
-	          else
-	          	node['y'] = Y+0.2;
-          }
-          else{ //affected node
-	          node['y']=Y;	          
-	          //Search for spouse and place in the right location (if not affected)
-	          let edge = this.parentParentEdges.filter((d) => {
-			  	return node['sex']=='M' ? d['pa'] == node : d['ma']==node
-	          });
-	          
-	          if (edge.length>0){
-			      let spouse; 
-		          if (node['sex']=='M')
-		          	spouse = edge[0]['ma'];
-		          else
-		          	spouse = edge[0]['pa'];
-		          	
-		          if (!spouse['affected'])
-		          	spouse['y']= Y -1 +0.2; 
-			          
-	          }
-	          
+          if (!node['affected']) {
 
-	          
-	          
+            let edge = this.parentParentEdges.filter((d) => {
+              return node['sex'] == 'M' ? d['pa'] == node : d['ma'] == node
+            });
+
+            if (edge.length > 0) {
+              let spouse;
+              if (node['sex'] == 'M')
+                spouse = edge[0]['ma'];
+              else
+                spouse = edge[0]['pa'];
+
+              if (spouse['affected']) {
+                if (node['sex'] == 'M')
+                  node['y'] = spouse['y'] - 0.2;
+                else
+                  node['y'] = spouse['y'] + 0.2;
+              }
+// 		          	node['y']= spouse['y']
+              else {
+                if (node['sex'] == 'M')
+                  node['y'] = Y - 0.2;
+                else
+                  node['y'] = Y + 0.2;
+              }
+            }
+          }
+          else { //affected node
+            node['y'] = Y;
+            //Search for spouse and place in the right location (if not affected)
+            let edge = this.parentParentEdges.filter((d) => {
+              return node['sex'] == 'M' ? d['pa'] == node : d['ma'] == node
+            });
+
+            if (edge.length > 0) {
+              let spouse;
+              if (node['sex'] == 'M')
+                spouse = edge[0]['ma'];
+              else
+                spouse = edge[0]['pa'];
+
+              if (!spouse['affected']) {
+                if (node['sex'] == 'M')
+                  spouse['y'] = Y //-0.2;
+                else
+                  spouse['y'] = Y //+0.2;
+              }
+// 		          	spouse['y']= Y //-1 +0.4;
+
+            }
           }
 
           //Place Mom and Dad Nodes on top of Each other (at the dad's x location) .
           //Iterate through parent-child edges and find the spouse
-	      this.parentParentEdges.forEach((edge) => {
-	        if (node == edge['pa'] || node==edge['ma']) {
-	          node['x'] = edge['pa']['x']
-	        }
-	      })
+          this.parentParentEdges.forEach((edge) => {
+            if (node == edge['pa'] || node == edge['ma']) {
+              node['x'] = edge['pa']['x']
+            }
+          })
 
         }
-        //If found affected case, decrease the Y value for the next non child node;
-        if (node['affected']) {
+
+        if (node['affected'])
           Y = Y - 1;
-        }
+
         else {
+
+          let edge = this.parentParentEdges.filter((d) => {
+            return node['sex'] == 'M' ? d['pa'] == node : d['ma'] == node
+          });
+          let spouse;
+
+          if (edge.length > 0) {
+            if (node['sex'] == 'M')
+              spouse = edge[0]['ma'];
+            else
+              spouse = edge[0]['pa'];
+          }
+
+
+          let children = this.parentChildEdges.filter((d) => {
+            if (node['sex'] == 'M')
+              return (d.ma == spouse && d.pa == node);
+            else
+              return (d.pa == spouse && d.ma == node);
+          });
+
+
+          let newBranch = true;
+          children.forEach((c) => {
+            newBranch = newBranch && !c['target']['hasChildren'] && !c['target']['affected']
+          })
+
+          if (newBranch) {
+            console.log('new branch')
+// 	          Y = Y - 1;
+          }
+
+
           node['hidden'] = true;
         }
+
       }
     });
 
 
     //Get rid of blank rows;
-    this.nodes.forEach((node, i) => {
-      node['y'] = node['y'] - Y;
+    this.nodes.filter((d)=>{return d.y >= endIndex}).forEach((node) => {
+      node['y'] = node['y'] - (Y - endIndex+1);
     })
   }
 
-  public restoreTree() {
-    /*
-     this.nodes.forEach((node)=>{
-     node['hidden']=false;
-     node['x']=node['X'];
-     node['y']=node'Y'];
-     })
-     */
-  }
+}
 
-  //Function that iterates through genealogy graph and removes empty rows;
-  public collapseEmptyRows(indexes) {
-
-    let minY = min(this.nodes, function (n) {
-      return +n['Y']
-    });
-    let maxY = max(this.nodes, function (n) {
-      return +n['Y']
-    });
-
-    //sort indexes and remove max since that is for the aggregate node
-    indexes.sort(function (a, b) {
-      return a - b
-    }) //; .splice(-1,1);
-
-
-    let bin = [];
-    for (let i = minY; i < maxY; i++) {
-      if (indexes.includes(i)) {
-        bin.push(1)
-      }
-      else {
-        bin.push(0)
-      }
-    }
-
-    let collapse = bin.reduce(function (r, a) {
-      if (r.length > 0)
-        a += r[r.length - 1];
-      r.push(a);
-      return r;
-    }, []);
-
-
-    this.nodes.forEach(function (d, i) {
-// 	        console.log([d['y']-minY] , ' needs to decrease' , collapse[d['y']-minY-1] , 'rows')
-      if (d['y'] >= min(indexes)) {
-
-        d['y'] = d['y'] - collapse[d['y'] - minY - 1];
-      }
-    });
-  };
-
-  //Function to re-expand aggregated nodes;
-  private expandAggregates(indexes) {
-
-    this.nodes.forEach(function (d, i) {
-// 	        console.log([d['y']-minY] , ' needs to decrease' , collapse[d['y']-minY-1] , 'rows')
-
-//             if (indexes.includes(d['y'])){
-      d['aggregated'] = false;
-      d['y'] = d['Y'];
-//             }
-      /*
-       if (d['y'] >= min(indexes)) {
-
-       d['y'] = d['y'] - collapse[d['y']-minY-1];
-       }
-       */
-    });
-  }
-};
 
 
 /**

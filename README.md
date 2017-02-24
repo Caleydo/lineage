@@ -13,11 +13,19 @@ Preconditions:
  * Have [Yeoman](http://yeoman.io/) installed.
  * Have [Docker](https://www.docker.com/) installed and running.
 
+### Make a lineage workspace
+```
+mkdir lineage-workspace
+cd lineage-workspace
+```
+
 ### Install with all dependencies
 
 ```bash
 yo phovea:setup-workspace lineage_product
 ```
+It will prompt you: `SSH clone Yes/No`. Select Yes.
+
 Next install and run the server via docker:
 ```bash
 cd lineage
@@ -45,10 +53,14 @@ npm test
 
 Building
 --------
-
+From lineage-workspace/lineage - **NOT** from lineage-workspace/lineage/lineage!
 ```
 npm run build
 ```
+
+Version Control
+--------
+Use 'git' in **lineage-workspace/lineage/lineage**.
 
 
 

@@ -21,7 +21,6 @@ export default class DataExplorations {
    *
    * Accessing datasets using various functions:
    * https://github.com/phovea/phovea_core/blob/develop/src/data.ts
-
    * The phovea table interface:
    * https://github.com/phovea/phovea_core/blob/develop/src/table.ts
    *
@@ -161,7 +160,6 @@ export default class DataExplorations {
       console.log('The categories of the fourth column:');
       // these also contain colors that can be easily used in d3.
       console.log(catVector.desc.value.categories);
-      // FIXME this doesn't contain bins?
       console.log('The histogram: BROKEN');
       console.log(await catVector.hist());
     }
@@ -174,8 +172,7 @@ export default class DataExplorations {
     if (table.col(5).desc.value.type === VALUE_TYPE_INT) {
       const numVector = <INumericalVector> table.col(5);
       console.log('3rd value from the 5th vector:' + await numVector.at(3));
-      console.log('Stats on a vector: BROKEN');
-      // FIXME: the stats in here are NAN?
+      console.log('Stats on a vector:');
       console.log(await numVector.stats());
     }
 
@@ -227,9 +224,9 @@ export default class DataExplorations {
         Promise.all([table.data(), table.cols()]).then(function (args) {
           console.log(table);
           // FIXME: this table seems to be initialized but not have any data as payload?
-          table.at(0, 0).then(value => {
+          table.at(0, 0).then((value) => {
             console.log('Accessing the Table for the first element: ' + value);
-          }).catch(err => console.log(err));
+          }).catch((err) => console.log(err));
           this.demoDatasets(table);
         });
       });
@@ -249,7 +246,6 @@ export default class DataExplorations {
 
 /**
  * Method to create a new graphData instance
-
  * @returns {graphData}
  */
 export function create() {

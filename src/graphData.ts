@@ -10,7 +10,7 @@ import {
   mean
 } from 'd3-array';
 
-class graphData {
+class GraphData {
 
   public nodes;
 
@@ -31,7 +31,6 @@ class graphData {
 
     //Initially set all nodes to visible (i.e, not hidden)  and of type 'single' (vs aggregate)
     this.nodes.forEach((d) => {
-      // d['index'] = d.id;
       d.type = 'single';
       d.hidden = false;
       d.aggregated = false;
@@ -263,7 +262,7 @@ class graphData {
           if (spouses.length > 0) { //they had at least one partner
 
             console.log('largest y for family is ', this.findLargestY(node));
-            let spouse = spouses[0];
+            const spouse = spouses[0];
             // spouses.map((spouse) => {
               //Affected Spouse
               if (spouse.affected) { //what happens if person has more than one affected spouse? where to place him/her then?
@@ -360,5 +359,5 @@ class graphData {
  * @returns {graphData}
  */
 export function create(data) {
-  return new graphData(data);
+  return new GraphData(data);
 }

@@ -308,13 +308,13 @@ class genealogyTree {
       .call(this.extremesXAxis)
 
 
-/*
+
 	  //Create temporary group for y axis
     const yaxis = svg.append("g")
       .attr("transform", "translate(" +this.margin.left + "," + (this.margin.top + Config.glyphSize) + ")")
       .attr('id', 'yaxis')
       .call(axisRight(this.y).tickFormat(format(",.1f")).tickValues(range(1,105,.5)).tickSize(this.width))
-*/
+
 
 
 
@@ -1152,11 +1152,8 @@ class genealogyTree {
         if (event.altKey) {
           //Hide node
           this.data.hideNodes(d['y']);
-
-          //Defines the attributes of rendered node.
-// 			d['hidden']=true;
+          this.update_time_axis();
           this.update_visible_nodes();
-// 			selectAll('.node').filter((e)=>{return e['id']==d['id']}).classed('phantom',true);
 
           return;
         }
@@ -1212,6 +1209,9 @@ class genealogyTree {
     let minY = this.y.invert(scrollOffset);
     let maxY = this.y.invert(divHeight + scrollOffset - 75)
 
+    select("#axis")
+      .attr("transform", "translate(" + this.margin.left + "," + (scrollOffset + this.margin.top / 1.5) + ")")
+
     //the 75 offset is the transform applied on the group
 
     //Filter data to adjust x axis to the range of nodes that are visible in the window.
@@ -1219,6 +1219,9 @@ class genealogyTree {
     let filtered_nodes = this.data.nodes.filter((d) => {
       return d['y'] >= Math.round(minY) && d['y'] <= Math.round(maxY)
     });
+
+    if (filtered_nodes.length == 0)
+      return; //no visible nodes on the screen;
 
     let filtered_domain = [min(filtered_nodes, function (d) {
       return +d['bdate'] - 5
@@ -1302,7 +1305,6 @@ class genealogyTree {
       .transition(t2)
       .call(this.visibleXAxis)
 
-
     select('#extremes_axis')
       .attr('opacity', .6);
 
@@ -1313,9 +1315,6 @@ class genealogyTree {
     select('#extremes_axis')
       .transition(t2)
       .attr('opacity', .6)
-
-    select("#axis")
-      .attr("transform", "translate(" + this.margin.left + "," + (scrollOffset + this.margin.top / 1.5) + ")")
 
     select('#visible_axis')
       .selectAll("text")

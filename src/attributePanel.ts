@@ -38,7 +38,7 @@ class attributePanel {
    */
   init(columnData) {
     console.log(columnData)
-    this.columns = await columnData.columns;
+    this.columns = columnData.columns;
 
     this.build();
     this.attachListener();

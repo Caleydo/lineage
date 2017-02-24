@@ -60,6 +60,7 @@ export default class AttributeData {
       console.log(col);
       let name = col.desc.name;
       let type = col.desc.value.type;
+
       //adding a column object that has :
       // column name, type
       this.columns.push({

@@ -23,6 +23,9 @@ export default class AttributeData {
         console.log('Error: ' + error);
       })
 
+    console.log("END OF CONSTRUCTOR")
+    console.log(this.columns);
+
     this.attachListener();
 
   }
@@ -38,13 +41,7 @@ export default class AttributeData {
   public async loadData(name:string) {
     //retrieving the desired dataset by name
     this.table = <ITable> await getFirstByName(name);
-
-    console.log('=============================');
-    console.log('RETRIEVING DATA');
-    console.log('=============================');
-    console.log(this.table);
-
-    return Promise.resolve(this.table);
+    return this.table;
   }
 
   /**
@@ -52,7 +49,7 @@ export default class AttributeData {
    * This function populate needed variables for attribute table and attribute panel
    *
    */
-  public async parseData() {
+  public parseData() {
 
       //return new Promise((resolve, reject) => {
 
@@ -61,6 +58,7 @@ export default class AttributeData {
         const  allColumns = this.table.cols();
 
         allColumns.forEach((col) => {
+          console.log('COLUMN ++++++++');
           console.log(col);
           const name = col.desc.name;
           const type = col.desc.value.type;

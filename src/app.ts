@@ -101,6 +101,8 @@ export class App {
 
 
       const attributeDataObj = attributeData.create('big-decent-clipped-38');
+      console.log('THE OBJECT RETURNED:');
+      console.log(attributeDataObj);
 
       //shared data for attributeTable and attributePanel
       const tableDataObj = tableData.create(realData, datasets[0].desc.columns);

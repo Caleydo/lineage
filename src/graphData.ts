@@ -105,9 +105,7 @@ class graphData {
         if (maNode.length === 0 || paNode.length === 0) {
           node.ma = undefined;
           node.pa = undefined;
-        }
-        // If found parents, create edges between parent and children, spouses, and add references to build tree
-        else {
+        }else{// If found parents, create edges between parent and children, spouses, and add references to build tree
           maNode = maNode[0];
           paNode = paNode[0];
 
@@ -161,19 +159,15 @@ class graphData {
    */
   public findLastLeaf(node) {
 
-    //Base case -> leaf node w/ no spouse
-    if (node['spouse'].length === 0 && !node['hasChildren']) {
-      return node['y'];
-    }
-
     //will have to add case if there are ever leaf nodes with spouses but no children. 2/23/2017
-
-    //Search through spouse and all of spouses relationships to find last child leaf
-    else {
-      return min(node['spouse'].map((spouse) => {
-        return min(spouse['spouse'].map((otherSpouse)=>{
-          return min(otherSpouse['children'].map((child) => {
-            return this.findLastLeaf(child)
+    //Base case -> leaf node w/ no spouse
+    if (node.spouse.length === 0 && !node.hasChildren) {
+      return node.y;
+    } else {//Search through spouse and all of spouses relationships to find last child leaf
+      return min(node.spouse.map((spouse) => {
+        return min(spouse.spouse.map((otherSpouse) => {
+          return min(otherSpouse.children.map((child) => {
+            return this.findLastLeaf(child);
           }));
         }));
       }));
@@ -187,14 +181,15 @@ class graphData {
    *
    * @param node - starting node.
    */
-  private findLargestY(node){
+  private findLargestY (node) {
 
     //Base Case
-    if (node.spouse['spouse'].length === 1)
-        return max([node['y'],node['spouse']['y']]);
+    if (node.spouse.length === 1) {
+      return max([node.y, node.spouse.y]);
+    } else {
+      return max([node.y].concat(node.spouse.map((s)=>{ return this.findLargestY(s)})));
+    }
 
-    else
-      return max([node['y']].concat(node['spouse'].map((s)=>{ return this.findLargestY(s)})));
 
   }
   /**
@@ -208,117 +203,108 @@ class graphData {
     let Y = startIndex;
 
     //Find the non hidden node in that row
-    let startNode = this.nodes.filter((node) => {
-      return (node['y'] === startIndex && !node['hidden']);
+    const startNode = this.nodes.filter((node) => {
+      return (node.y === startIndex && !node.hidden);
     })
 
-    if (startNode.length === 0)
-        return; //user clicked on a hidden node;
+    if (startNode.length === 0) {
+      return; //user clicked on a hidden node;
+    }
 
     //Iterate down that branch to find the last index of this family.
-    let endIndex = this.findLastLeaf(startNode[0]);
+    const endIndex = this.findLastLeaf(startNode[0]);
 
     this.nodes.sort((a, b) => {
-      return b['Y'] - a['Y']
+      return b.Y - a.Y;
     });
 
     //Assign a row for each affected case within the range to be collapsed;
     this.nodes.filter((node) => {
-      return node['y'] <= startIndex && node['y'] >= endIndex
+      return node.y <= startIndex && node.y >= endIndex;
     }).forEach((node) => {
 
       //non affected leaf nodes
-      if (!node['hasChildren'] && !node['affected']) {
+      if (!node.hasChildren && !node.affected) {
 
-        let ma = node['ma'];
-        let pa = node['pa'];
+        const ma = node.ma;
+        const pa = node.pa;
 
         //If both parents are affected
-        if (ma['affected'] && pa['affected']) {
-          //place kid grid in the middle
-          node['y'] = (ma['y'] + pa['y']) / 2
-        }
-        //Only mother is affected,
-        else if (ma['affected']) {
-          if (node['sex'] === 'M')
-            node['y'] = ma['y'] - 0.2;
-          else
-            node['y'] = ma['y'] + .2
-        }
-        //Only father is affected
-        else if (pa['affected']) {
-          if (node['sex'] === 'M')
-            node['y'] = pa['y'] - 0.2;
-          else
-            node['y'] = pa['y'] + 0.2
-        }
-        //Neither parent is affected
-        else {
-          if (node['sex'] === 'M')
-            node['y'] = pa['y'];
-          else
-            node['y'] = ma['y'];
+        if (ma.affected && pa.affected) { //place kid grid in the middle
+          node.y = (ma.y + pa.y) / 2;
+        } else if (ma.affected) { //Only mother is affected,
+          if (node.sex === 'M'){
+            node.y = ma.y - 0.2;
+          } else {
+            node.y = ma.y + .2;
+          }
+        } else if (pa.affected) { //Only father is affected
+          if (node.sex === 'M') {
+            node.y = pa.y - 0.2;
+          } else {
+            node.y = pa.y + 0.2;
+          }
+        } else {//Neither parent is affected
+          if (node.sex === 'M'){
+            node.y = pa.y;
+          } else {
+            node.y = ma.y;
+          }
         }
 
         //Starting point for the kid grid
-        node['x'] = ma['x'] + 6;
-      } //end leaf nodes
-
-      //Affected nodes and non-leaf nodes
-      else {
+        node.x = ma.x + 6;
+      } else { //Affected nodes and non-leaf nodes
         //Non-leaf and non-affected nodes
-        if (!node['affected']) {
+        if (!node.affected) {
 
-          let spouses = node['spouse'];
+          const spouses = node.spouse;
 
           if (spouses.length > 0) { //they had at least one partner
 
             console.log('largest y for family is ', this.findLargestY(node));
-            spouses.map((spouse)=>{
+            let spouse = spouses[0];
+            // spouses.map((spouse) => {
               //Affected Spouse
-              if (spouse['affected']) { //what happens if person has more than one affected spouse? where to place him/her then?
-                // node['y'] = spouse['y'];
-                if (node['sex'] === 'M')
-                  node['y'] = spouse['y'] - 0.2;
-                else
-                  node['y'] = spouse['y'] + 0.2;
+              if (spouse.affected) { //what happens if person has more than one affected spouse? where to place him/her then?
+                // node.y = spouse.y;
+                if (node.sex === 'M') {
+                  node.y = spouse.y - 0.2;
+                } else {
+                  node.y = spouse.y + 0.2;
+                }
+              } else { //Non affected Spouse
+                if (node.sex === 'M') {
+                  node.y = Y - 0.2;
+                } else {
+                  node.y = Y + 0.2;
+                }
               }
-              //Non affected Spouse
-              else {
-                if (node['sex'] === 'M')
-                  node['y'] = Y - 0.2;
-                else
-                  node['y'] = Y + 0.2;
-              }
-            })
+            // });
           }
-
-        }
-
-        //Affected Nodes
-        else {
-          node['y'] = Y;
-
-          let spouse = node['spouse'];
+        } else { //Affected Nodes
+          node.y = Y;
+          const spouse = node.spouse;
 
             if (spouse.length > 0) {
-              if (!spouse['affected']) {
-                if (node['sex'] === 'M')
-                  spouse['y'] = Y ;//-0.2;
-                else
-                  spouse['y'] = Y ; //+0.2;
+              if (!spouse.affected) {
+                if (node.sex === 'M') {
+                  spouse.y = Y;//-0.2;
+                } else {
+                  spouse.y = Y; //+0.2;
+                }
               }
             }
         }
 
         //Place Mom and Dad Nodes on top of Each other (at the dad's x location)
-        if (node['sex'] === 'F' && node['spouse'].length > 0) {
-          node['x'] = node['spouse'][0]['x']; //need to figure out how to handle multi spouse situations 2/23/2017
+        if (node.sex === 'F' && node.spouse.length > 0) {
+          node.x = node.spouse[0].x; //need to figure out how to handle multi spouse situations 2/23/2017
         }
 
       }
 
-      if (node['affected'])
+      if (node.affected)
         Y = Y - 1;
 
       else {
@@ -327,14 +313,14 @@ class graphData {
         let unaffectedLeafChildren = !this.hasAffectedChildren(node);
 
         //If current node has only unaffected leaf children and does not have any affected spouses and is not a leaf
-        let newBranch = unaffectedLeafChildren && node['hasChildren'] &&
-          node['spouse'].reduce((acc, spouse) => {return acc && !spouse['affected']}, true)
-          && node['Y'] < max(node['spouse'].map((s) => {return s['Y']}));
+        let newBranch = unaffectedLeafChildren && node.hasChildren &&
+          node.spouse.reduce((acc, spouse) => {return acc && !spouse.affected}, true)
+          && node.Y < max(node.spouse.map((s) => {return s.Y}));
 
         if (newBranch)
           Y = Y - 1;
 
-        node['hidden'] = true;
+        node.hidden = true;
       }
     });
 
@@ -344,7 +330,7 @@ class graphData {
       return d.y >= endIndex
     }).forEach((node) => {
       let offset = Y - Math.round(endIndex) + 1;
-      node['y'] = node['y'] - offset;
+      node.y = node.y - offset;
     })
   }
 
@@ -357,8 +343,8 @@ class graphData {
    * @return true/false indicating whether this node has any affected leaf children
    */
   private hasAffectedChildren(node){
-    let value = node['children'].reduce((acc, child) => {
-      return acc && !child['affected'] && !child['hasChildren']
+    let value = node.children.reduce((acc, child) => {
+      return acc && !child.affected && !child.hasChildren
     }, true)
 
     return !value;

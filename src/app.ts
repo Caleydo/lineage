@@ -116,8 +116,8 @@ export class App {
       const attributePanel = panel.create(this.$node.select('#data_selection').node());
       attributePanel.init(attributeDataObj);
 
-      // const data = dataExplorations.create();
-      // data.loadLocalData();
+       const data = dataExplorations.create();
+       data.loadLocalData();
       // data.demoDatasets(null);
       // data.demoGenealogyData();
 

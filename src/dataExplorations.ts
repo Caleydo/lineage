@@ -202,47 +202,65 @@ export default class DataExplorations {
     //   console.log(table.colData('RelativeID'));
   }
 
+
   public async loadLocalData() {
-    // Here we demonstrate how to parse a local table.
-    // To do that, put your data file and your json data description in the top-level data directory.
-    // Import the CSV's url using the import statement (see above)
-    // import * as csvUrl from 'file-loader!../data/number_one_artists.csv';
-    // The 'file-loader! is a webpack feature to load the file TODO: more background?
-
-    const loading = new Promise((resolve, reject) => {
-      tsv(csvUrl, (error, data) => {
-        if (error) {
-          reject(error);
-        }
-        resolve(data);
-      });
-    });
-    loading
-      .then(asTable)
-      .then((table: ITable) => {
-
-        Promise.all([table.data(), table.cols()]).then(function (args) {
-          console.log(table);
-          // FIXME: this table seems to be initialized but not have any data as payload?
-          table.at(0, 0).then((value) => {
-            console.log('Accessing the Table for the first element: ' + value);
-          }).catch((err) => console.log(err));
-          this.demoDatasets(table);
+    function tsvAsync(url) {
+      return new Promise<any[]>((resolve, reject) => {
+        tsv(url, (error, data) => {
+          if (error) {
+            reject(error);
+          }
+          resolve(data);
         });
       });
-    // .then((args: any[]) => {
-    //   const data: any[] = args[0];
-    //   console.log('All table data: ' + data.toString());
-    //   const cols: IAnyVector[] = args[1];
-    //   const firstColumnVector = cols[0];
-    //   firstColumnVector.data().then((vectorData) => {
-    //     console.log('Data of first Column: ' + vectorData.toString());
-    //   });
-    // });
+    }
+    const data = await tsvAsync(csvUrl);
+    const table = asTable(data);
+    this.demoDatasets(table);
+    return table;
   }
 
+//   public async loadLocalData() {
+//     // Here we demonstrate how to parse a local table.
+//     // To do that, put your data file and your json data description in the top-level data directory.
+//     // Import the CSV's url using the import statement (see above)
+//     // import * as csvUrl from 'file-loader!../data/number_one_artists.csv';
+//     // The 'file-loader! is a webpack feature to load the file TODO: more background?
+//
+//     const loading = new Promise((resolve, reject) => {
+//       tsv(csvUrl, (error, data) => {
+//         if (error) {
+//           reject(error);
+//         }
+//         resolve(data);
+//       });
+//     });
+//     loading
+//       .then(asTable)
+//       .then((table: ITable) => {
+//
+//         Promise.all([table.data(), table.cols()]).then(function (args) {
+//           console.log(table);
+//           // FIXME: this table seems to be initialized but not have any data as payload?
+//           table.at(0, 0).then((value) => {
+//             console.log('Accessing the Table for the first element: ' + value);
+//           }).catch((err) => console.log(err));
+//           this.demoDatasets(table);
+//         });
+//       });
+//     // .then((args: any[]) => {
+//     //   const data: any[] = args[0];
+//     //   console.log('All table data: ' + data.toString());
+//     //   const cols: IAnyVector[] = args[1];
+//     //   const firstColumnVector = cols[0];
+//     //   firstColumnVector.data().then((vectorData) => {
+//     //     console.log('Data of first Column: ' + vectorData.toString());
+//     //   });
+//     // });
+//   }
+//
+// }
 }
-
 
 /**
  * Method to create a new graphData instance

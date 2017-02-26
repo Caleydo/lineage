@@ -10,7 +10,7 @@ $node-color: #4f4f4d;
 
 #graph_table{
 	overflow: scroll;
-	height: 900px;
+	height: 1800px;
 }
 
 #yaxis{
@@ -135,9 +135,6 @@ rect.selected{
 .collapsed .nodeLine{
   stroke:#9b9a99;
 }
-
-
-
 
 .nodeLabel,
 .ageLabel,

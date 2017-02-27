@@ -214,8 +214,6 @@ class GraphData {
     //Iterate down that branch to find the last index of this family.
     const endIndex = this.findLastLeaf(startNode[0]);
 
-    console.log(endIndex);
-
     this.nodes.sort((a, b) => {
       return b.Y - a.Y;
     });

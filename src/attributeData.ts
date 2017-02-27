@@ -25,6 +25,7 @@ export default class AttributeData {
     this.table = <ITable> await getFirstByName(name);
     this.parseData();
     this.attachListener();
+
     return Promise.resolve(this);
 
   }
@@ -34,7 +35,7 @@ export default class AttributeData {
    * This function populate needed variables for attribute table and attribute panel
    *
    */
-  public parseData() {
+  public async parseData() {
 
       this.columns = this.table.cols();
 

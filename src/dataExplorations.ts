@@ -50,8 +50,10 @@ export default class DataExplorations {
       table = <ITable> allDatasets[0];
 
       // retrieving a dataset by name
-      table = <ITable> await getFirstByName('Artists');
-      console.log('Artists dataset retrieved by name:');
+      //table = <ITable> await getFirstByName('Artists');
+      table = <ITable> await getFirstByName('big-decent-clipped-38');
+      //console.log('artists dataset retrieved by name:');
+      console.log('big-decent-clipped-38 dataset retrieved by name:');
       console.log(table);
 
 
@@ -86,7 +88,8 @@ export default class DataExplorations {
 
     // Access the data of a vector by name:
     console.log('Accessing a the data of a column by name:');
-    console.log(await table.colData('artist'));
+    //console.log(await table.colData('artist'));
+    console.log(await table.colData('RelativeID'));
 
 
     console.log('=============================');

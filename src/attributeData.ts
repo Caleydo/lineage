@@ -9,13 +9,8 @@ import * as events from 'phovea_core/src/event';
 export default class AttributeData {
 
   table:ITable;
-  public columns = []; // This holds headers as object {name,type}
+  public columns = [] ; //:IAnyVector[]; // This holds headers as object {name,type}
   public activeAttributes = [] ; // active attribute is an attribute that is not ID. This an array of strings (column name)
-
-
-  constructor(datasetName) {
-    // load data into public variable table, after loading we can call different function that access data
-  }
 
 
   /**
@@ -29,11 +24,8 @@ export default class AttributeData {
     //retrieving the desired dataset by name
     this.table = <ITable> await getFirstByName(name);
     this.parseData();
-
-    console.log('END OF CONSTRUCTOR');
-    console.log(this.columns);
-
     this.attachListener();
+    return Promise.resolve(this);
 
   }
 
@@ -44,32 +36,19 @@ export default class AttributeData {
    */
   public parseData() {
 
-      //return new Promise((resolve, reject) => {
+      this.columns = this.table.cols();
 
-        // all_columns hold columns as TableVector
-        // we want to populate the public variable columns
-        const  allColumns = this.table.cols();
+    //populate active attribute array
+    this.columns.forEach((col) => {
+      const name = col.desc.name;
+      const type = col.desc.value.type;
 
-        allColumns.forEach((col) => {
-          console.log('COLUMN ++++++++');
-          console.log(col);
-          const name = col.desc.name;
-          const type = col.desc.value.type;
+      // if the type of the column is ID then it is not in the active list
+      if (!(type === 'idType')) {
+        this.activeAttributes.push(name);
+      }
+    });
 
-          //adding a column object that has :
-          // column name, type
-          this.columns.push({
-            name: name,
-            type: type
-          })
-
-          // if the type of the column is ID then it is not in the active list
-          if(!(type === 'idType')) {
-            this.activeAttributes.push(name);
-          }
-        });
-        //resolve();
-      //});
   }
 
   private attachListener() {
@@ -98,7 +77,7 @@ export default class AttributeData {
 
  * @returns {AttributeData}
  */
-export function create(datasetName) {
+export function create() {
 
-  return new AttributeData(datasetName);
+  return new AttributeData();
 }

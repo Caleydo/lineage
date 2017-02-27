@@ -94,18 +94,16 @@ export class App {
    * Load and initialize all necessary views
    * @returns {Promise<App>}
    */
-  private build() {
+  private async build() {
 
       const genealogyTree = tree.create(this.$node.select('#graph_table').node());
       genealogyTree.init(graphData.create(realData));
 
 
-      const attributeDataObj = attributeData.create('big-decent-clipped-38');
+      const attributeDataObj = attributeData.create();
       // This executes asynchronously, so you'll have to pass
       // back a promise and resolve that before you keep going
-      attributeDataObj.loadData('big-decent-clipped-38');
-      console.log('THE OBJECT RETURNED:');
-      console.log(attributeDataObj);
+      await attributeDataObj.loadData('big-decent-clipped-38');
 
       //shared data for attributeTable and attributePanel
       const tableDataObj = tableData.create(realData, datasets[0].desc.columns);
@@ -116,8 +114,8 @@ export class App {
       const attributePanel = panel.create(this.$node.select('#data_selection').node());
       attributePanel.init(attributeDataObj);
 
-       const data = dataExplorations.create();
-       data.loadLocalData();
+      // const data = dataExplorations.create();
+      // data.loadLocalData();
       // data.demoDatasets(null);
       // data.demoGenealogyData();
 

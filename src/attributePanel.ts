@@ -19,6 +19,7 @@ class attributePanel {
   // access to all the data in our backend
   private all_the_data;
   private columns;
+  private activeColumns;
 
 
   // attributes lists
@@ -36,10 +37,9 @@ class attributePanel {
    * that is resolved as soon the view is completely initialized.
    * @returns {Promise<FilterBar>}
    */
-  init(columnData) {
-    console.log('In Init:::');
-    console.log(columnData.columns[0]);
-    this.columns = columnData.columns;
+  init(attributeDataObj) {
+    this.columns = attributeDataObj.columns;
+    this.activeColumns = attributeDataObj.activeAttributes;
 
     this.build();
     this.attachListener();
@@ -81,8 +81,8 @@ class attributePanel {
     this.inactive_attribute_list = menu_list.append('ul')
       .attr('id', 'inactive-menu-content')
       .classed('menu-content sub-menu collapse in fade', true)
-      .html(`
-      <li class='placeholder'>DRAG AND DROP ATTRIBUTES HERE TO MAKE THEM INACTIVE</li>`);
+     // .html(`
+     // <li class='placeholder'>DRAG AND DROP ATTRIBUTES HERE TO MAKE THEM INACTIVE</li>`);
 
 
     // Active sortable list
@@ -135,7 +135,7 @@ class attributePanel {
 
     this.columns.forEach((column)=> {
       console.log('col',column)
-      this.addAttribute(column.name, column.type)
+      this.addAttribute(column.desc.name, column.desc.value.type)
     })
 
 
@@ -148,8 +148,17 @@ class attributePanel {
      */
   private addAttribute(column_name, column_desc) {
 
+
+    //if this is an active attribute then add it to the active list otherwise add it to the inactive list
+    let list = "";
+    if(this.activeColumns.indexOf(column_name) > -1){
+      list= "#active-menu-content";
+    } else {
+      list = "#inactive-menu-content";
+    }
+
     //append the header as a menu option
-    let data_attr = select('#active-menu-content').append('li')
+    let data_attr = select(list).append('li')
       .classed('collapsed active', true)
       .attr('data-target', '#' + column_name)
       .attr('data-toggle', 'collapse');
@@ -160,12 +169,14 @@ class attributePanel {
       .append('span').attr('class', column_desc)
       .html(`<div class=" attr_badges pull-right">
 <span class=" badge" >primary</span>
-<span class=" badge" >secondry</span>
+<span class=" badge" >secondary</span>
 </div>
       `);
     data_attr.on('mouseover', function () {
-      select(this).select('.sort_handle').classed('focus', true)
-      select(this).select('.attr_badges').classed('focus', true)
+      select(this).select('.sort_handle').classed('focus', true);
+      if (list === '#active-menu-content'){
+        select(this).select('.attr_badges').classed('focus', true);
+      }
     });
 
     data_attr.on('mouseout', function () {

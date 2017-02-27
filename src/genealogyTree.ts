@@ -349,7 +349,10 @@ class GenealogyTree {
    * @param parentParentEdges array of parent parent edges to update the tree with
    */
   //Function that updates the position of all edges in the genealogy tree
-  private update_edges(childParentEdges, parentParentEdges) {
+  private update_edges(filtered_childParentEdges, filtered_parentParentEdges) {
+
+    let childParentEdges = this.data.parentChildEdges;
+    let parentParentEdges = this.data.parentParentEdges;
 
     let t = transition('t').duration(500).ease(easeLinear);
 
@@ -432,7 +435,9 @@ class GenealogyTree {
    *
    * @param nodes array of nodes to update the tree with
    */
-  private update_nodes(nodes) {
+  private update_nodes(filtered_nodes) {
+
+    let nodes = this.data.nodes;
 
     //Create transition for fading nodes in and out;
     const t = transition('t').duration(500).ease(easeLinear);
@@ -494,27 +499,54 @@ class GenealogyTree {
 
     // Attach kidGrid groups
     let allKidGrids = kidGridGroup.selectAll('.kidGrid')
-      .data(nodes, function (d) {
+      .data(nodes.filter((d: any) => {
+        if (d['sex'] === 'F')
+          return false;
+        if (!d['hasChildren'])
+          return false;
+
+        let hasGrid = true; //change to false to only put kid grids on parents of leaf nodes
+        this.data.parentChildEdges.forEach((edge) => {
+          if (edge['pa'] === d && !edge['target']['hasChildren']) {
+            hasGrid = true;
+          }
+        })
+        return hasGrid;
+
+      }), function (d) {
         return d['id'];
       });
+
 
     allKidGrids.exit().transition().duration(400).style('opacity', 0).remove();
 
     const allKidGridsEnter = allKidGrids
       .enter()
-      .append('g');
+      .append('rect')
+      .classed('kidGrid',true)
+
 
     allKidGrids = allKidGridsEnter.merge(allKidGrids);
 
-    //AllNodes
-    allKidGrids
-      .classed('.kidGrid', true)
-      .classed('aggregated', (d) => {
-        return d['aggregated'];
+
+    select('#kidGrids').selectAll('.kidGrid')
+      .attr('width', (d) => {
+        let gridSize = Config.glyphSize * 2.5;
+        this.data.parentChildEdges.forEach((edge) => {
+          if (edge['pa'] === d && !edge['target']['hasChildren']) {
+            gridSize = Config.glyphSize * 4;
+          }
+        })
+        return gridSize;
       })
-      .classed('collapsed', (d) => {
-        return d['hidden'];
-      });
+      .attr('height', Config.glyphSize * 2)
+      .transition(t)
+      .attr('x',(d)=>{return this.x(d['x']);})
+      .attr('y',(d)=>{return this.yPOS(d);})
+      .style('fill', 'url(#kidGridGradient)')
+      .style('stroke', 'none')
+
+
 
 
     // Attach highlight Bars
@@ -661,6 +693,7 @@ class GenealogyTree {
     lifeRects.exit().remove();
 
     lifeRects
+      .transition(t)
       .attr('transform', (d: any) => {
         return d.sex === 'M' ? 'translate(' + (this.xPOS(d) + Config.glyphSize) + ',' +  this.yPOS(d) + ')'
           : 'translate(' + this.xPOS(d) + ',' + (this.yPOS(d) -Config.glyphSize) + ')';
@@ -755,26 +788,6 @@ class GenealogyTree {
         return (d.affected) ? 'black' : '#9e9d9b';
       })
 
-    //Add KidGrids next to Dad's glyph (if they have children)
-    allNodesEnter.filter((d: any) => {
-      if (d['sex'] === 'F')
-        return false;
-      if (!d['hasChildren'])
-        return false;
-
-      let hasGrid = true; //change to false to only put kid grids on parents of leaf nodes
-      this.data.parentChildEdges.forEach((edge) => {
-        if (edge['pa'] === d && !edge['target']['hasChildren']) {
-          hasGrid = true;
-        }
-      })
-      return hasGrid;
-
-//       return d['sex'] === 'M' && d['hasChildren'];
-    })
-      .append('g')
-      .classed('kidGrid', true)
-      .attr('visibility', 'hidden')
 
     //Add cross through lines for deceased people
     allNodesEnter.filter(function (d: any) {
@@ -855,29 +868,6 @@ class GenealogyTree {
     allNodes.selectAll('.hex')
     //             .classed('male', true)
       .classed('nodeIcon', true)
-
-
-    //Size kidGrids
-    allNodesEnter.selectAll('.kidGrid')
-      .append('rect')
-
-
-    allNodes.selectAll('.kidGrid')
-      .select('rect')
-      .attr('width', (d) => {
-
-        let gridSize = Config.glyphSize * 2.5;
-        this.data.parentChildEdges.forEach((edge) => {
-          if (edge['pa'] === d && !edge['target']['hasChildren']) {
-            gridSize = Config.glyphSize * 4;
-          }
-        })
-        return gridSize
-      })
-      .attr('height', Config.glyphSize * 2)
-      //       .attr('x',Config.glyphSize*1.7)
-      .style('fill', 'url(#kidGridGradient)')
-      .style('stroke', 'none')
 
 
     //Add couples line
@@ -1077,6 +1067,7 @@ class GenealogyTree {
     })
       .transition(tran)
       .attr('opacity', 1);
+
 
 
     allNodes.filter((d) => {

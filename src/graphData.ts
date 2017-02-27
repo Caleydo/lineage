@@ -361,7 +361,6 @@ class GraphData {
       // console.log('child', child.Y, ' affected: ', child.affected);
       return acc && !child.affected && !child.hasChildren;
     }, true);
-
   }
 
 }

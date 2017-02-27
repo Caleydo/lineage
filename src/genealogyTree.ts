@@ -821,16 +821,16 @@ class GenealogyTree {
       return d['hidden'] && !d['hasChildren']
     })
       .attr('x1', function (d: any) {
-        return d.sex === 'F' ? -Config.hiddenGlyphSize : -Config.hiddenGlyphSize / 3;
+        return d.sex === 'F' ? -Config.hiddenGlyphSize/1.5 : -Config.hiddenGlyphSize / 3;
       })
       .attr('y1', function (d: any) {
-        return d.sex === 'F' ? -Config.hiddenGlyphSize : -Config.hiddenGlyphSize / 3;
+        return d.sex === 'F' ? -Config.hiddenGlyphSize/1.5 : -Config.hiddenGlyphSize / 3;
       })
       .attr('x2', function (d: any) {
-        return d.sex === 'F' ? Config.hiddenGlyphSize : Config.hiddenGlyphSize*1.3 ;
+        return d.sex === 'F' ? Config.hiddenGlyphSize/1.5 : Config.hiddenGlyphSize*1.3 ;
       })
       .attr('y2', function (d: any) {
-        return d.sex === 'F' ? Config.hiddenGlyphSize : Config.hiddenGlyphSize*1.3 ;
+        return d.sex === 'F' ? Config.hiddenGlyphSize/1.5 : Config.hiddenGlyphSize*1.3 ;
       })
       .attr('stroke-width', 1);
 

@@ -17,7 +17,7 @@ class attributePanel {
   private $node;
 
   // access to all the data in our backend
-  private all_the_data;
+  private table;
   private columns;
   private activeColumns;
 
@@ -39,6 +39,7 @@ class attributePanel {
    * @returns {Promise<FilterBar>}
    */
   init(attributeDataObj) {
+    this.table = attributeDataObj.table;
     this.columns = attributeDataObj.columns;
     this.activeColumns = attributeDataObj.activeAttributes;
 
@@ -207,12 +208,27 @@ class attributePanel {
 
     });
 
-
+/*
     // append svgs for attributes:
     const attributeSVG = select(list).append('ul')
         .attr('id', column_name)
         .classed('sub-menu collapse fade', true)
         .append('svg')
+
+    this.populateData(attributeSVG , column_name);
+*/
+
+  }
+
+  /***
+   * This function takes an svg as an input and populate it with vis element
+   * for a specific attribute
+   *
+   */
+  private async populateData(svg , attribute){
+    console.log(attribute);
+    //console.log(await this.table.colData(attribute));
+
 
 
   }

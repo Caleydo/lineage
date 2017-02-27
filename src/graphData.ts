@@ -68,10 +68,10 @@ class GraphData {
    */
   private definePrimary(attribute, threshold) {
     this.nodes.forEach((node) => {
-      node.affected = node[attribute] === threshold;
+      // node.affected = node[attribute] === threshold;
       //node.affected = +d["affection"] === 100;
       //node.affected= 0;
-      // node.affected = Math.random() > 0.8;
+      node.affected = Math.random() > 0.8;
     });
 
   }
@@ -208,8 +208,35 @@ class GraphData {
     });
 
     if (startNode.length === 0) {
+      console.log('clicked on a hidden row')
       return; //user clicked on a hidden node;
     }
+
+    //Find the hidden nodes in that row
+    const isHidden = this.nodes.filter((node) => {
+      return (Math.round(node.y) === startIndex && node.hidden);
+    });
+
+    if (isHidden.length>0) {
+
+      const hiddenNodes = this.nodes.filter((node) => {
+        return (Math.round(node.y) === startIndex);
+      });
+
+      const startInd = 0;
+      let startNode;
+
+      hiddenNodes.forEach((n) => {
+        if (n['Y']>startInd) {
+          startNode = n;
+        }
+      });
+
+      // this.expandBranch(startNode)
+
+      return;
+    }
+
 
     //Iterate down that branch to find the last index of this family.
     const endIndex = this.findLastLeaf(startNode[0]);
@@ -348,6 +375,55 @@ class GraphData {
     });
   }
 
+
+  /**
+   *
+   * This function uncollapses a branch from a given starting node.
+   *
+   * @param startNode - startingNode.
+   *
+   */
+  private expandBranch(startNode) {
+
+    let endIndex = this.findLastLeaf(startNode);
+
+    console.log('uncollapse from ',startNode['y'] , ' to ', endIndex );
+
+    let startIndex = startNode['y'];
+
+    let toUncollapse = this.nodes.filter((node) => {
+      return node.y <= startIndex && node.y >= endIndex;
+    });
+
+    let numRows = toUncollapse.length - (Math.ceil(startIndex) - endIndex) ;
+
+    console.log('numRows is ', numRows)
+
+    const ind = 1000;
+    let endNode;
+
+    toUncollapse.forEach((n) => {
+      if (n['Y']<ind) {
+        endNode = n;
+      }
+    });
+
+    // let ydiff = endNode['Y']-endNode['y'];
+    let ydiff = 0 ;
+    console.log('end Node is ', endNode)
+    console.log('ydiff is ', ydiff);
+
+    //Get rid of blank rows;
+    this.nodes.forEach((node) => {
+      if (node['y']>startIndex ) {
+        node['y'] = node['y'] + numRows;
+      } else if (node['y'] >= endIndex){
+        node['y'] = node['Y'] - ydiff;
+        node['x'] = node['X'];
+        node['hidden'] = false;
+      }
+    });
+  };
 
   /**
    *

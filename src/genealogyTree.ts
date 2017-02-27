@@ -744,10 +744,10 @@ class GenealogyTree {
         let ageToday = Math.abs(this.x(year) - this.x(d['bdate']));
         return (+d['deceased'] === 1) ? ageAtDeath : ageToday;
       })
-      .attr('height', Config.glyphSize / 4)
+      .attr('height', Config.glyphSize / 6)
       .style('fill', (d: any) => {
         if (d.affected)
-          return 'black';
+          return '#484646';
         if (d.deceased)
           return '#9e9d9b';
         else
@@ -814,9 +814,9 @@ class GenealogyTree {
 
         return Config.glyphSize * 2;
       })
-      .attr('stroke-width', 2)
+      .attr('stroke-width', 1)
       .attr('stroke', function (d: any) {
-        return (d.affected) ? 'black' : '#9e9d9b';
+        return (d.affected) ? '#484646' : '#9e9d9b';
       })
 
 
@@ -1152,15 +1152,15 @@ class GenealogyTree {
     // .attr('visibility','hidden')
       .text(function (d: any) {
 
-        return d['hidden'] ? '' : max(d['family_ids']);
-        /*
+        // return d['hidden'] ? '' : max(d['family_ids']);
+
          let year = new Date().getFullYear();
          if (+d.ddate > 0) {
-         return Math.abs(d['ddate'] - d['bdate']);
+         return d['hidden'] ? '' : Math.abs(d['ddate'] - d['bdate']);
          }
          else
-         return Math.abs(year - d['bdate']);
-         */
+         return d['hidden'] ? '' : Math.abs(year - d['bdate']);
+
 
       })
       .attr('dx', function (d) {
@@ -1243,7 +1243,7 @@ class GenealogyTree {
       });
 
 
-    allNodes
+    allBars
       .on('contextmenu', (d) => {
 
 
@@ -1258,22 +1258,18 @@ class GenealogyTree {
 
       .on('dblclick', (d) => {
 
-        this.data.restoreTree();
-        this.update_visible_nodes();
+        // this.data.expandBranch(d['y']);
+        // this.update_visible_nodes();
 
 
-        if (d['collapsedNodes']) {
-          //clicked on an Aggregate Node
-          console.log('double clicked on an aggregate')
-          this.data.expandAggregates(d['collapsedNodes'].map((n) => {
-            return n['y']
-          }))
-          this.update_visible_nodes()
-        }
-
-// 			this.update_visible_nodes()
-
-
+        // if (d['collapsedNodes']) {
+        //   //clicked on an Aggregate Node
+        //   console.log('double clicked on an aggregate')
+        //   this.data.expandAggregates(d['collapsedNodes'].map((n) => {
+        //     return n['y']
+        //   }))
+        //   this.update_visible_nodes()
+        // }
       })
 
       //Set click callback on background bars
@@ -1284,7 +1280,10 @@ class GenealogyTree {
 
         if (event.altKey) {
           //Hide node
+
+
           this.data.hideNodes(d['y']);
+
           this.update_time_axis();
           this.update_visible_nodes();
           selectAll('.highlightBar').classed('selected', false);

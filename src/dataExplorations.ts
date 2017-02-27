@@ -12,6 +12,7 @@ export default class DataExplorations {
 
   offline: boolean = false;
   table: ITable;
+  tableArtist: ITable;
 
   /**
    *
@@ -50,9 +51,12 @@ export default class DataExplorations {
       table = <ITable> allDatasets[0];
 
       // retrieving a dataset by name
-      //table = <ITable> await getFirstByName('Artists');
+      this.tableArtist = <ITable> await getFirstByName('Artists');
       table = <ITable> await getFirstByName('big-decent-clipped-38');
       //console.log('artists dataset retrieved by name:');
+      console.log('Artist dataset retrieved by name:');
+      console.log(this.tableArtist);
+
       console.log('big-decent-clipped-38 dataset retrieved by name:');
       console.log(table);
 
@@ -72,6 +76,12 @@ export default class DataExplorations {
     // Printing the name
     console.log('Table Name: ' + table.desc.name);
 
+    console.log('Artist Table description:');
+    console.log(this.tableArtist.desc);
+    // Printing the name
+    console.log('Table Name: ' + this.tableArtist.desc.name);
+
+
 
     console.log('=============================');
     console.log('ACCESSING COLUMNS/VECTORS');
@@ -87,8 +97,10 @@ export default class DataExplorations {
     // TODO: retrieve a vector by name
 
     // Access the data of a vector by name:
-    console.log('Accessing a the data of a column by name:');
-    //console.log(await table.colData('artist'));
+    console.log('Accessing artist column by name from Artists dataset:');
+    console.log(await this.tableArtist.colData('artist'));
+
+    console.log('Accessing RelativeID column by name from big-decent-clipped-38 dataset:');
     console.log(await table.colData('RelativeID'));
 
 

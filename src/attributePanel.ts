@@ -30,6 +30,7 @@ class attributePanel {
     this.$node = select(parent)
       .append('div')
       .classed('nav-side-menu active', true);
+
   }
 
   /**
@@ -134,7 +135,6 @@ class attributePanel {
     });
 
     this.columns.forEach((column)=> {
-      console.log('col',column)
       this.addAttribute(column.desc.name, column.desc.value.type)
     })
 
@@ -164,7 +164,7 @@ class attributePanel {
       .attr('data-toggle', 'collapse');
 
     data_attr.append('a').attr('href', '#')
-      .html('<i class=\"glyphicon glyphicon-move sort_handle\"></i>')
+      .html('<i class=\"glyphicon glyphicon-chevron-right\"></i>')
       .append('strong').html(column_name)
       .append('span').attr('class', column_desc)
       .html(`<div class=" attr_badges pull-right">
@@ -184,6 +184,12 @@ class attributePanel {
       select(this).select('.attr_badges').classed('focus', false)
     });
 
+    data_attr.on('click', function () {
+      $('.glyphicon' , this).toggleClass('glyphicon-chevron-right');
+      $('.glyphicon' , this).toggleClass('glyphicon-chevron-down');
+
+    });
+
     $(document).on('click', '.badge', function () {
       let badge = $(this).text();
       let attribute = $(this).closest('strong').contents()[0];
@@ -200,6 +206,14 @@ class attributePanel {
        events.fire('attribute_selected',{attribute, badge});
 
     });
+
+
+    // append svgs for attributes:
+    const attributeSVG = select(list).append('ul')
+        .attr('id', column_name)
+        .classed('sub-menu collapse fade', true)
+        .append('svg')
+
 
   }
 

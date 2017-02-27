@@ -236,28 +236,32 @@ class GraphData {
           } else {
             node.y = max([ma.y, pa.y]) - 0.3;
           }
-        } else if (ma.affected) { //Only mother is affected,
+          //Place node at x position of youngest parent
+          node.x = max([ma.x,pa.x]);
+          } else if (ma.affected) { //Only mother is affected,
           if (node.sex === 'M') {
             node.y = ma.y - 0.2;
           } else {
             node.y = ma.y + .2;
           }
+          node.x = pa.x; //place kidGrid in front of father icon
+
         } else if (pa.affected) { //Only father is affected
           if (node.sex === 'M') {
             node.y = pa.y - 0.2;
           } else {
             node.y = pa.y + 0.2;
           }
+          node.x = ma.x; //place kidGrid in front of mother icon
         } else {//Neither parent is affected
           if (node.sex === 'M') {
             node.y = pa.y;
           } else {
             node.y = ma.y;
           }
+          node.x = pa.x; //place kid grid in front of father icon since they are both aligned
         }
 
-        //Starting point for the kid grid
-        node.x = ma.x + 6;
       } else { //Affected nodes and non-leaf nodes
         //Non-leaf and non-affected nodes
         if (!node.affected) {
@@ -277,7 +281,6 @@ class GraphData {
               } else {
                 node.y = spouse.y + 0.2;
               }
-              node.x = spouse.x + 6;
             } else { //Non affected Spouse
               if (node.sex === 'M') {
                 node.y = Y - 0.2;
@@ -299,7 +302,7 @@ class GraphData {
               } else {
                 spouse.y = Y + 0.2;
               }
-              spouse.x = node.x + 6;
+              spouse.x = node.x;
             }
           }
         }

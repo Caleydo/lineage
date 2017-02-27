@@ -523,26 +523,57 @@ class GenealogyTree {
     const allKidGridsEnter = allKidGrids
       .enter()
       .append('rect')
+      // .attr('visibility','hidden');
+
+    allKidGrids = allKidGridsEnter.merge(allKidGrids);
+
+    allKidGrids
+      .classed('collapsed', (d) => {
+      return d['hidden'];
+    })
       .classed('kidGrid',true)
 
 
-    allKidGrids = allKidGridsEnter.merge(allKidGrids);
 
 
     select('#kidGrids').selectAll('.kidGrid')
       .attr('width', (d) => {
-        let gridSize = Config.glyphSize * 2.5;
+        let gridSize = Config.glyphSize*2;
+
+
         this.data.parentChildEdges.forEach((edge) => {
           if (edge['pa'] === d && !edge['target']['hasChildren']) {
-            gridSize = Config.glyphSize * 4;
+            gridSize = Config.glyphSize * 3;
           }
         })
+
+        if (!d['affected'] && d['hidden'] && d['spouse'][0]['affected']){
+          gridSize = gridSize *2 ;
+        }
+
+        if (d['affected'] && !d['spouse'][0]['affected']){
+          gridSize = gridSize *2 ;
+        };
+
         return gridSize;
       })
       .attr('height', Config.glyphSize * 2)
       .transition(t)
-      .attr('x',(d)=>{return this.x(d['x']);})
-      .attr('y',(d)=>{return this.yPOS(d);})
+      .attr('x',(d)=>{
+        if (!d['affected'] && d['spouse'][0]['affected']){
+          return this.x(d['spouse'][0]['x']);
+        } else {
+          return this.x(d['x']);
+        }
+      })
+      .attr('y',(d)=>{
+        if (d['affected'] && d['spouse'][0]['affected']){
+          return min([this.yPOS(d),this.yPOS(d['spouse'][0])]);
+        } else {
+          return this.yPOS(d);
+        }
+
+      })
       .style('fill', 'url(#kidGridGradient)')
       .style('stroke', 'none')
 
@@ -872,7 +903,7 @@ class GenealogyTree {
 
     //Add couples line
     allNodesEnter.filter(function (d: any) {
-      return d['sex'] === 'M' && d['hasChildren'];
+      return d['hasChildren'];
     })
       .append('line')
       .attr('class', 'couplesLine')
@@ -881,17 +912,17 @@ class GenealogyTree {
 
     allNodes.selectAll('.couplesLine')
       .attr('x1', (d: any) => {
-        return Config.glyphSize * 1.3;
+        return d['sex'] === 'F' ? Config.glyphSize * 0.8 : Config.glyphSize * 1.3 ;
       })
       .attr('y1', function (d: any) {
-        return -Config.glyphSize * 0.2;
+        return d['sex'] === 'F' ? ( -Config.glyphSize*1.8) : -Config.glyphSize * 0.2 ;
       })
       .attr('x2', (d: any) => {
-        return Config.glyphSize * 1.3;
+        return d['sex'] === 'F' ? Config.glyphSize * 0.8 : Config.glyphSize * 1.3 ;
       })
       .attr('y2', function (d: any) {
 
-        return Config.glyphSize * 2.2;
+        return d['sex'] === 'F' ? Config.glyphSize*0.6: Config.glyphSize *2.2;
       })
       .attr('stroke-width', 2)
 
@@ -937,7 +968,7 @@ class GenealogyTree {
 
       })
       .attr('x', (d) => {
-        return d['sex'] === 'F' ? -Config.glyphSize * 2.4 : -Config.glyphSize * 1.5
+        return d['sex'] === 'F' ? -Config.glyphSize * 2 : -Config.glyphSize * 1
       })
       .attr('y', (d) => {
 
@@ -953,7 +984,7 @@ class GenealogyTree {
 
       })
       .attr('x', (d) => {
-        return d['sex'] === 'F' ? -Config.glyphSize * 2.4 : -Config.glyphSize * 1.5;
+        return d['sex'] === 'F' ? -Config.glyphSize * 2 : -Config.glyphSize * 1;
       })
       .attr('y', (d) => {
 
@@ -1025,7 +1056,12 @@ class GenealogyTree {
       .attr('transform', (node) => {
         let xpos = this.xPOS(node);
         let ypos = this.yPOS(node);
-        return 'translate(' + xpos + ',' + ypos + ')';
+
+        let xoffset = 0;
+        if (!node['affected'] && node['spouse'].length >0 && node['spouse'][0]['affected']){
+          xoffset = Config.glyphSize*2;
+        }
+        return 'translate(' +  (xpos + xoffset) + ',' + ypos + ')';
       })
 
 
@@ -1065,7 +1101,17 @@ class GenealogyTree {
             }
           }
         })
-        return 'translate(' + (xpos + this.kidGridXScale(xind)) + ',' + (ypos + +this.kidGridYScale(yind)) + ')';
+
+        let xoffset;
+        if (node['ma']['affected'] && node['pa']['affected']) {
+          xoffset = Config.glyphSize * 2;
+        } else if (node['ma']['affected'] || node['pa']['affected']){
+          xoffset = Config.glyphSize * 3.5 ;
+        } else {
+          xoffset = Config.glyphSize * 1.5 ;
+        }
+
+        return 'translate(' + (xpos + xoffset + this.kidGridXScale(xind)) + ',' + (ypos + +this.kidGridYScale(yind)) + ')';
 
       })
 

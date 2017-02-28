@@ -31,7 +31,7 @@ import {realData} from './data/data_38';
 // import {realData} from './data_777721'
 
 //Import data desc from datasets.ts
-import datasets from './data/datasets';
+//import datasets from './data/datasets';
 
 
 // bundle data file and get URL
@@ -106,10 +106,10 @@ export class App {
       await attributeDataObj.loadData('big-decent-clipped-38');
 
       //shared data for attributeTable and attributePanel
-      const tableDataObj = tableData.create(realData, datasets[0].desc.columns);
+      //const tableDataObj = tableData.create(realData, datasets[0].desc.columns);
 
       const attributeTable = table.create(this.$node.select('#graph_table').node());
-      attributeTable.init(tableDataObj);
+      attributeTable.init(attributeDataObj);
 
       const attributePanel = panel.create(this.$node.select('#data_selection').node());
       attributePanel.init(attributeDataObj);

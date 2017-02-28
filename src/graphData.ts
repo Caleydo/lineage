@@ -70,8 +70,8 @@ class GraphData {
     this.nodes.forEach((node) => {
       // node.affected = node[attribute] === threshold;
       //node.affected = +d["affection"] === 100;
-      //node.affected= 0;
-      node.affected = Math.random() > 0.8;
+      // node.affected= false;
+      node.affected = Math.random() > 0.6;
     });
 
   }
@@ -197,8 +197,9 @@ class GraphData {
    * This function hides all the nodes that descend from a given starting point. to the end of that branch.
    *
    * @param startIndex - y value (row number) for the starting point.
+   * @param aggregate - boolean flag to indicate whether collapsed nodes should be hidden or aggregated into their own row.
    */
-  public hideNodes(startIndex) {
+  public hideNodes(startIndex,aggregate) {
 
     let Y = startIndex;
 
@@ -248,7 +249,7 @@ class GraphData {
     //Assign a row for each affected case within the range to be collapsed;
     this.nodes.filter((node) => {
       return node.y <= startIndex && node.y >= endIndex;
-    }).forEach((node) => {
+    }).forEach((node,i) => {
 
       //non affected leaf nodes
       if (!node.hasChildren && !node.affected) {
@@ -257,27 +258,51 @@ class GraphData {
         const pa = node.pa;
 
         //If both parents are affected
-        if (ma.affected && pa.affected) { //place kid grid in the middle
-          if (node.sex === 'M') {
-            node.y = min([ma.y, pa.y]) + 0.3;
-          } else {
-            node.y = max([ma.y, pa.y]) - 0.3;
+        if (ma.affected && pa.affected) {
+          if (!aggregate) { //place kid grid in the middle
+            if (node.sex === 'M') {
+              node.y = min([ma.y, pa.y]) + 0.3;
+            } else {
+              node.y = max([ma.y, pa.y]) - 0.3;
+            }
+          } else { //aggregate mode is on
+            if (node.sex === 'M') {
+              node.y = Y - 0.2;
+            } else {
+              node.y = Y + .2;
+            }
           }
           //Place node at x position of youngest parent
           node.x = max([ma.x,pa.x]);
-          } else if (ma.affected) { //Only mother is affected,
-          if (node.sex === 'M') {
-            node.y = ma.y - 0.2;
+        } else if (ma.affected) {//Only mother is affected,
+          if (!aggregate) {
+            if (node.sex === 'M') {
+              node.y = ma.y - 0.2;
+            } else {
+              node.y = ma.y + .2;
+            }
           } else {
-            node.y = ma.y + .2;
+            if (node.sex === 'M') {
+              node.y = Y - 0.2;
+            } else {
+              node.y = Y + .2;
+            }
           }
           node.x = pa.x; //place kidGrid in front of father icon
 
         } else if (pa.affected) { //Only father is affected
-          if (node.sex === 'M') {
-            node.y = pa.y - 0.2;
+          if (!aggregate) {
+            if (node.sex === 'M') {
+              node.y = pa.y - 0.2;
+            } else {
+              node.y = pa.y + 0.2;
+            }
           } else {
-            node.y = pa.y + 0.2;
+            if (node.sex === 'M') {
+              node.y = Y - 0.2;
+            } else {
+              node.y = Y + .2;
+            }
           }
           node.x = ma.x; //place kidGrid in front of mother icon
         } else {//Neither parent is affected
@@ -297,11 +322,10 @@ class GraphData {
 
           if (spouses.length > 0) { //they had at least one partner
 
-            // console.log('largest y for family is ', this.findLargestY(node));
             const spouse = spouses[0];
             // spouses.map((spouse) => {
             //Affected Spouse
-            if (spouse.affected) { //what happens if person has more than one affected spouse? where to place him/her then?
+            if (spouse.affected && !aggregate) { //what happens if person has more than one affected spouse? where to place him/her then?
               // node.y = spouse.y;
               if (node.sex === 'M') {
                 node.y = spouse.y - 0.2;
@@ -318,12 +342,15 @@ class GraphData {
             // });
           }
         } else { //Affected Nodes
+          if (aggregate && i>0 && !this.nodes[i-1].affected) {
+            Y = Y-1;
+          };
           node.y = Y;
           const spouses = node.spouse;
 
           if (spouses.length > 0) {
             const spouse = spouses[0];
-            if (!spouse.affected) {
+            if (!spouse.affected && !aggregate) {
               if (spouse.sex === 'M') {
                 spouse.y = Y - 0.2;
               } else {

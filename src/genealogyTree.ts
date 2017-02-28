@@ -1247,7 +1247,8 @@ class GenealogyTree {
       .on('contextmenu', (d) => {
 
 
-        this.data.collapseFamilies(d['family_ids'].slice(-1))
+        this.data.hideNodes(d['y'],true);
+        // this.data.collapseFamilies(d['family_ids'].slice(-1))
         this.update_visible_nodes()
 
 
@@ -1282,7 +1283,7 @@ class GenealogyTree {
           //Hide node
 
 
-          this.data.hideNodes(d['y']);
+          this.data.hideNodes(d['y'],false);
 
           this.update_time_axis();
           this.update_visible_nodes();

@@ -3,7 +3,6 @@
     "name": "Artists",
     "path": "number_one_artists.csv",
     "separator": "\t",
-    "id": "numer-one-artists",
     "size": [
       12,
       13
@@ -177,11 +176,12 @@
     "name": "big-decent-clipped-38",
     "type": "table",
     "id": "big-decent-clipped-38",
+    "separator": ",",
     "description": "",
     "creator": "Alexander Lex",
     "path": "data_38.csv",
     "size": [
-      19,
+      102,
       24
     ],
     "idtype": "Custom",
@@ -190,28 +190,21 @@
         "column": 1,
         "name": "RelativeID",
         "value": {
-          "type": "idType",
-          "idType": "Custom"
+          "type": "string"
         }
       },
       {
         "column": 2,
         "name": "MaID",
         "value": {
-          "type": "idType",
-          "range": [
-            0,
-            60
-          ],
-          "idType": "Custom"
+          "type": "string"
         }
       },
       {
         "column": 3,
         "name": "PaID",
         "value": {
-          "type": "idType",
-          "idType": "Custom"
+          "type": "string"
         }
       },
       {
@@ -240,6 +233,10 @@
             {
               "name": "Y",
               "color": "#1f77b4"
+            },
+			{
+              "name": "N",
+              "color": "#1f77b4"
             }
           ]
         }
@@ -251,6 +248,10 @@
           "type": "categorical",
           "categories": [
             {
+              "name": "Y",
+              "color": "#1f77b4"
+            },
+			{
               "name": "N",
               "color": "#1f77b4"
             }
@@ -283,40 +284,36 @@
         "column": 9,
         "name": "OMEID",
         "value": {
-          "type": "idType",
-          "idType": "Custom"
+          "type": "string"
         }
       },
       {
         "column": 10,
         "name": "LabID",
         "value": {
-          "type": "idType",
-          "idType": "Custom"
+          "type": "string"
         }
       },
       {
         "column": 11,
         "name": "UPDBid",
         "value": {
-          "type": "idType",
-          "idType": "Custom"
+          "type": "string"
+
         }
       },
       {
         "column": 12,
         "name": "ArchivePersonID",
         "value": {
-          "type": "idType",
-          "idType": "Custom"
+          "type": "string"
         }
       },
       {
         "column": 13,
         "name": "id",
         "value": {
-          "type": "idType",
-          "idType": "Custom"
+          "type": "string"
         }
       },
       {
@@ -358,8 +355,7 @@
         "column": 17,
         "name": "spouse",
         "value": {
-          "type": "idType",
-          "idType": "Custom"
+          "type": "string"
         }
       },
       {
@@ -441,7 +437,6 @@
           "type": "string"
         }
       }
-    ],
-    "idcolumn": 0
+    ]
   }
 ]

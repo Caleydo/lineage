@@ -22,10 +22,6 @@ class attributePanel {
   private activeColumns;
 
 
-  // attributes lists
-  private active_attribute_list;
-  private inactive_attribute_list;
-
   constructor(parent:Element) {
     this.$node = select(parent)
       .append('div')
@@ -40,7 +36,7 @@ class attributePanel {
    */
   init(attributeDataObj) {
     this.table = attributeDataObj.table;
-    this.columns = attributeDataObj.columns;
+    this.columns = attributeDataObj.getColumns();
     this.activeColumns = attributeDataObj.activeAttributes;
 
     this.build();
@@ -67,7 +63,7 @@ class attributePanel {
 
     // list that holds data attribute
     // initially all attributes are active
-    this.active_attribute_list = menu_list.append('ul')
+    const active_attribute_list = menu_list.append('ul')
       .attr('id', 'active-menu-content')
       .classed('menu-content collapse in', true);
 
@@ -80,7 +76,7 @@ class attributePanel {
 
     // list that holds inactive attributes
     // a user can populate this list by dragging elements from the active list
-    this.inactive_attribute_list = menu_list.append('ul')
+    const inactive_attribute_list = menu_list.append('ul')
       .attr('id', 'inactive-menu-content')
       .classed('menu-content sub-menu collapse in fade', true)
      // .html(`

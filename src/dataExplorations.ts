@@ -88,7 +88,7 @@ export default class DataExplorations {
     console.log('=============================');
 
     // Here we retrieve the first vector from the table.
-    const vector = table.col(0);
+    const vector = this.tableArtist.col(0);
     console.log('The first vector:');
     console.log(vector);
     console.log('Length:' + vector.length);
@@ -101,7 +101,7 @@ export default class DataExplorations {
     console.log(await this.tableArtist.colData('artist'));
 
     console.log('Accessing RelativeID column by name from big-decent-clipped-38 dataset:');
-    console.log(await table.colData('RelativeID'));
+    console.log(await table.colData('sex'));
 
 
     console.log('=============================');
@@ -141,7 +141,7 @@ export default class DataExplorations {
 
     console.log('Third Element: ' + thirdElement);
     console.log('Fourth Element: ' + fourthElement);
-
+/*
     // Here we directly access the first element in the first vector:
     const firstValueOfFirstVector = await table.at(0, 0);
     console.log('Accessing the Table for the first element: ' + firstValueOfFirstVector);
@@ -190,7 +190,7 @@ export default class DataExplorations {
       console.log('Stats on a vector:');
       console.log(await numVector.stats());
     }
-
+*/
     console.log('=============================');
     console.log('VIEWS');
     console.log('=============================');
@@ -200,12 +200,15 @@ export default class DataExplorations {
     // It behaves exactly like a regular table.
 
     console.log('New view on a table that only contains the first two columns:');
-    let slicedTable = table.view('(0:-1),(0:2)');
+    let slicedTable = this.tableArtist.view('(0:-1),(0:2)');
     console.log(slicedTable);
+    console.log(slicedTable.cols());
 
     console.log('New view on a table that only contains the first two columns and the first five rows:');
-    slicedTable = table.view('(0,1,2,3,4),(0:2)');
+    slicedTable = this.tableArtist.view('(0,1,2,3,4),(3,2,1)');
     console.log(slicedTable);
+    console.log(slicedTable.cols());
+    console.log(await slicedTable.colData('artist'));
 
 
   }

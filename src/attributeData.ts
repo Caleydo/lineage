@@ -9,8 +9,10 @@ import * as events from 'phovea_core/src/event';
 export default class AttributeData {
 
   table:ITable;
-  public columns = [] ; //:IAnyVector[]; // This holds headers as object {name,type}
   public activeAttributes = [] ; // active attribute is an attribute that is not ID. This an array of strings (column name)
+  private activeRows ; // of type range
+  private activeColumns; // of type range
+  private activeView; // table view
 
 
   /**
@@ -37,10 +39,10 @@ export default class AttributeData {
    */
   public async parseData() {
 
-      this.columns = this.table.cols();
+    let columns = this.table.cols();
 
     //populate active attribute array
-    this.columns.forEach((col) => {
+    columns.forEach((col) => {
       const name = col.desc.name;
       const type = col.desc.value.type;
 
@@ -50,6 +52,18 @@ export default class AttributeData {
       }
     });
 
+  }
+
+  public getColumns(){
+    return this.table.cols();
+  }
+
+  public setActiveRows(activeRows){
+    this.activeRows = activeRows;
+  }
+
+  public getActiveRows(){
+    return this.activeRows;
   }
 
   private attachListener() {

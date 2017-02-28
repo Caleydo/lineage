@@ -181,7 +181,7 @@
     "creator": "Alexander Lex",
     "path": "data_38.csv",
     "size": [
-      12,
+      102,
       24
     ],
     "idtype": "Custom",
@@ -190,21 +190,21 @@
         "column": 1,
         "name": "RelativeID",
         "value": {
-          "type": "idtype"
+          "type": "string"
         }
       },
       {
         "column": 2,
         "name": "MaID",
         "value": {
-          "type": "idtype"
+          "type": "string"
         }
       },
       {
         "column": 3,
         "name": "PaID",
         "value": {
-          "type": "idtype"
+          "type": "string"
         }
       },
       {
@@ -284,31 +284,159 @@
         "column": 9,
         "name": "OMEID",
         "value": {
-          "type": "idtype"
+          "type": "string"
         }
       },
       {
         "column": 10,
         "name": "LabID",
         "value": {
-          "type": "idtype"
+          "type": "string"
         }
       },
       {
         "column": 11,
         "name": "UPDBid",
         "value": {
-          "type": "idtype"
+          "type": "string"
+
         }
       },
       {
         "column": 12,
         "name": "ArchivePersonID",
         "value": {
-          "type": "idtype"
+          "type": "string"
+        }
+      },
+      {
+        "column": 13,
+        "name": "id",
+        "value": {
+          "type": "string"
+        }
+      },
+      {
+        "column": 14,
+        "name": "ma",
+        "value": {
+          "type": "int",
+          "range": [
+            0,
+            60
+          ]
+        }
+      },
+      {
+        "column": 15,
+        "name": "pa",
+        "value": {
+          "type": "int",
+          "range": [
+            0,
+            62
+          ]
+        }
+      },
+      {
+        "column": 16,
+        "name": "affection",
+        "value": {
+          "type": "categorical",
+          "categories": [
+            {
+              "name": "1",
+              "color": "#1f77b4"
+            }
+          ]
+        }
+      },
+      {
+        "column": 17,
+        "name": "spouse",
+        "value": {
+          "type": "string"
+        }
+      },
+      {
+        "column": 18,
+        "name": "children",
+        "value": {
+          "type": "categorical",
+          "categories": [
+            {
+              "name": "true",
+              "color": "#1f77b4"
+            }
+          ]
+        }
+      },
+      {
+        "column": 19,
+        "name": "x",
+        "value": {
+          "type": "int",
+          "range": [
+            1811,
+            1899
+          ]
+        }
+      },
+      {
+        "column": 20,
+        "name": "y",
+        "value": {
+          "type": "int",
+          "range": [
+            12,
+            97
+          ]
+        }
+      },
+      {
+        "column": 21,
+        "name": "generation",
+        "value": {
+          "type": "int",
+          "range": [
+            1811,
+            1899
+          ]
+        }
+      },
+      {
+        "column": 22,
+        "name": "hide",
+        "value": {
+          "type": "categorical",
+          "categories": [
+            {
+              "name": "false",
+              "color": "#1f77b4"
+            }
+          ]
+        }
+      },
+      {
+        "column": 23,
+        "name": "type",
+        "value": {
+          "type": "categorical",
+          "categories": [
+            {
+              "name": "individual",
+              "color": "#1f77b4"
+            }
+          ]
+        }
+      },
+      {
+        "column": 24,
+        "name": "color",
+        "value": {
+          "type": "string"
         }
       }
-    ],
-    "idcolumn": 0
+    ]
   }
 ]

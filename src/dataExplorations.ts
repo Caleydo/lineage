@@ -1,7 +1,7 @@
 import {ITable, asTable} from 'phovea_core/src/table';
 import {IAnyVector} from 'phovea_core/src/vector';
 import {list as listData, getFirstByName, get as getById} from 'phovea_core/src/data';
-import * as csvUrl from 'file-loader!../data/number_one_artists.csv';
+//import * as csvUrl from 'file-loader!../data/number_one_artists.csv';
 import {tsv} from 'd3-request';
 import {ICategoricalVector, INumericalVector} from 'phovea_core/src/vector/IVector';
 import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT} from 'phovea_core/src/datatype';
@@ -101,7 +101,7 @@ export default class DataExplorations {
     console.log(await this.tableArtist.colData('artist'));
 
     console.log('Accessing RelativeID column by name from big-decent-clipped-38 dataset:');
-    console.log(await table.colData('sex'));
+    console.log(await table.colData('RelativeID'));
 
 
     console.log('=============================');
@@ -220,23 +220,23 @@ export default class DataExplorations {
     //   console.log(table.colData('RelativeID'));
   }
 
-
-  public async loadLocalData() {
-    function tsvAsync(url) {
-      return new Promise<any[]>((resolve, reject) => {
-        tsv(url, (error, data) => {
-          if (error) {
-            reject(error);
-          }
-          resolve(data);
-        });
-      });
-    }
-    const data = await tsvAsync(csvUrl);
-    const table = asTable(data);
-    this.demoDatasets(table);
-    return table;
-  }
+  //
+  // public async loadLocalData() {
+  //   function tsvAsync(url) {
+  //     return new Promise<any[]>((resolve, reject) => {
+  //       tsv(url, (error, data) => {
+  //         if (error) {
+  //           reject(error);
+  //         }
+  //         resolve(data);
+  //       });
+  //     });
+  //   }
+  //   const data = await tsvAsync(csvUrl);
+  //   const table = asTable(data);
+  //   this.demoDatasets(table);
+  //   return table;
+  // }
 
 //   public async loadLocalData() {
 //     // Here we demonstrate how to parse a local table.

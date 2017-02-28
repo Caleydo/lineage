@@ -1,7 +1,5 @@
 import * as events from 'phovea_core/src/event';
 import {AppConstants, ChangeTypes} from './app_constants';
-import datasets, {IDataSetSpec} from './data/datasets';
-import {csv} from 'd3-request';
 import * as Sortable from 'sortablejs';
 import * as $ from 'jquery';
 import {select, selectAll} from 'd3-selection';

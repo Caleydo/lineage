@@ -88,7 +88,7 @@ export default class DataExplorations {
     console.log('=============================');
 
     // Here we retrieve the first vector from the table.
-    const vector = this.tableArtist.col(0);
+    const vector = table.col(0);
     console.log('The first vector:');
     console.log(vector);
     console.log('Length:' + vector.length);
@@ -101,7 +101,7 @@ export default class DataExplorations {
     console.log(await this.tableArtist.colData('artist'));
 
     console.log('Accessing RelativeID column by name from big-decent-clipped-38 dataset:');
-    console.log(await table.colData('RelativeID'));
+   // console.log(await table.colData('RelativeID'));
 
 
     console.log('=============================');

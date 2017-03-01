@@ -159,7 +159,7 @@ class GraphData {
     //will have to add case if there are ever leaf nodes with spouses but no children. 2/23/2017
     //Base case -> leaf node w/ no spouse
     if (node.spouse.length === 0 && !node.hasChildren) {
-      return node.y;
+      return node.Y;
     } else {//Search through spouse and all of spouses relationships to find last child leaf
       return min(node.spouse.map((spouse) => {
         return min(spouse.spouse.map((otherSpouse) => {
@@ -199,48 +199,30 @@ class GraphData {
    * @param startIndex - y value (row number) for the starting point.
    * @param aggregate - boolean flag to indicate whether collapsed nodes should be hidden or aggregated into their own row.
    */
-  public hideNodes(startIndex,aggregate) {
+  public hideNodes(startIndex, aggregate) {
 
     let Y = startIndex;
 
-    //Find the non hidden node in that row
-    const startNode = this.nodes.filter((node) => {
-      return (node.y === startIndex && !node.hidden);
+    let startNode = this.nodes.filter((node) => {
+      return node.y === startIndex;
+    });
+    let startYIndex = max(startNode, function (n) {
+      return n['Y'];
     });
 
-    if (startNode.length === 0) {
-      console.log('clicked on a hidden row')
-      return; //user clicked on a hidden node;
-    }
+    startNode = this.nodes.filter((node) => {
+      return node.Y === startYIndex;
+    });
+    let endIndex = this.findLastLeaf(startNode[0]);
 
-    //Find the hidden nodes in that row
     const isHidden = this.nodes.filter((node) => {
-      return (Math.round(node.y) === startIndex && node.hidden);
+      return (node.Y <= startNode.Y && node.Y >= endIndex && node.hidden);
     });
 
-    if (isHidden.length>0) {
-
-      const hiddenNodes = this.nodes.filter((node) => {
-        return (Math.round(node.y) === startIndex);
-      });
-
-      const startInd = 0;
-      let startNode;
-
-      hiddenNodes.forEach((n) => {
-        if (n['Y']>startInd) {
-          startNode = n;
-        }
-      });
-
-      // this.expandBranch(startNode)
-
+    if (isHidden.length > 0) {
+      this.expandBranch(startNode);
       return;
-    }
-
-
-    //Iterate down that branch to find the last index of this family.
-    const endIndex = this.findLastLeaf(startNode[0]);
+    };
 
     this.nodes.sort((a, b) => {
       return b.Y - a.Y;
@@ -248,8 +230,8 @@ class GraphData {
 
     //Assign a row for each affected case within the range to be collapsed;
     this.nodes.filter((node) => {
-      return node.y <= startIndex && node.y >= endIndex;
-    }).forEach((node,i) => {
+      return node.Y <= startIndex && node.Y >= endIndex;
+    }).forEach((node, i) => {
 
       //non affected leaf nodes
       if (!node.hasChildren && !node.affected) {
@@ -273,7 +255,7 @@ class GraphData {
             }
           }
           //Place node at x position of youngest parent
-          node.x = max([ma.x,pa.x]);
+          node.x = max([ma.x, pa.x]);
         } else if (ma.affected) {//Only mother is affected,
           if (!aggregate) {
             if (node.sex === 'M') {
@@ -342,9 +324,10 @@ class GraphData {
             // });
           }
         } else { //Affected Nodes
-          if (aggregate && i>0 && !this.nodes[i-1].affected) {
-            Y = Y-1;
-          };
+          if (aggregate && i > 0 && !this.nodes[i - 1].affected) {
+            Y = Y - 1;
+          }
+          ;
           node.y = Y;
           const spouses = node.spouse;
 
@@ -372,7 +355,9 @@ class GraphData {
         Y = Y - 1;
       } else {
         //Check if you are at the end of a branch w/ only unaffected leaf children.
-        const unaffectedLeafChildren = !(node.spouse.reduce((acc,s) => {return GraphData.hasAffectedChildren(s) || acc;},false));
+        const unaffectedLeafChildren = !(node.spouse.reduce((acc, s) => {
+          return GraphData.hasAffectedChildren(s) || acc;
+        }, false));
 
 
         //If current node has only unaffected leaf children and does not have any affected spouses and is not a leaf
@@ -413,38 +398,45 @@ class GraphData {
   private expandBranch(startNode) {
 
     let endIndex = this.findLastLeaf(startNode);
+    let endNode;
 
-    console.log('uncollapse from ',startNode['y'] , ' to ', endIndex );
+    // // find the current y value of this node
+    // let endNode = this.nodes.filter((node) => { return node.Y === endIndex;});
+    // endIndex = endNode[0].y;
+    //
+    //
+    // console.log('uncollapse from ',startNode['y'] , ' to ', endIndex );
 
-    let startIndex = startNode['y'];
+    let startIndex = startNode['Y'];
 
+    console.log('endIndex is ', endIndex);
+    console.log('startIndex is ', startIndex);
     let toUncollapse = this.nodes.filter((node) => {
-      return node.y <= startIndex && node.y >= endIndex;
+      return node.Y <= startIndex && node.Y >= endIndex;
     });
 
-    let numRows = toUncollapse.length - (Math.ceil(startIndex) - endIndex) ;
+    let numRows = toUncollapse.length - (Math.ceil(startIndex) - endIndex);
 
     console.log('numRows is ', numRows)
 
     const ind = 1000;
-    let endNode;
 
     toUncollapse.forEach((n) => {
-      if (n['Y']<ind) {
+      if (n['Y'] < ind) {
         endNode = n;
       }
     });
 
     // let ydiff = endNode['Y']-endNode['y'];
-    let ydiff = 0 ;
+    let ydiff = 0;
     console.log('end Node is ', endNode)
     console.log('ydiff is ', ydiff);
 
     //Get rid of blank rows;
     this.nodes.forEach((node) => {
-      if (node['y']>startIndex ) {
+      if (node['Y'] > startIndex) {
         node['y'] = node['y'] + numRows;
-      } else if (node['y'] >= endIndex){
+      } else if (node['y=Y'] >= endIndex) {
         node['y'] = node['Y'] - ydiff;
         node['x'] = node['X'];
         node['hidden'] = false;

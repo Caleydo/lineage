@@ -520,12 +520,11 @@ class GenealogyTree {
 
     allKidGrids.exit().transition().duration(400).style('opacity', 0).remove();
 
-    const allKidGridsEnter = allKidGrids
-      .enter()
-      .append('rect')
-      // .attr('visibility','hidden');
-
-    allKidGrids = allKidGridsEnter.merge(allKidGrids);
+    // const allKidGridsEnter = allKidGrids
+    //   .enter()
+    //   .append('rect');
+    //
+    // allKidGrids = allKidGridsEnter.merge(allKidGrids);
 
     allKidGrids
       .classed('collapsed', (d) => {
@@ -1058,7 +1057,7 @@ class GenealogyTree {
         let ypos = this.yPOS(node);
 
         let xoffset = 0;
-        if (!node['affected'] && node['spouse'].length >0 && node['spouse'][0]['affected']){
+        if (!node['affected'] && node['spouse'].length >0 && node['spouse'][0]['affected'] && node['hidden']){
           xoffset = Config.glyphSize*2;
         }
         return 'translate(' +  (xpos + xoffset) + ',' + ypos + ')';

@@ -731,7 +731,6 @@ class GenealogyTree {
 
     //Add actual life lines
     lifeRectsEnter
-
       .append('rect');
 
     lifeRects.selectAll('rect')
@@ -743,16 +742,16 @@ class GenealogyTree {
         let ageToday = Math.abs(this.x(year) - this.x(d['bdate']));
         return (+d['deceased'] === 1) ? ageAtDeath : ageToday;
       })
-      .attr('height', Config.glyphSize / 6)
-      .style('fill', (d: any) => {
-        if (d.affected)
-          return '#484646';
-        if (d.deceased)
-          return '#9e9d9b';
-        else
-          return 'url(#gradient)'
+      .attr('height', Config.glyphSize / 8)
+      .style('fill', (d: any) => { return '#9e9d9b';
+        // if (d.affected)
+        //   return '#484646';
+        // if (d.deceased)
+        //   return '#9e9d9b';
+        // else
+        //   return 'url(#gradient)'
       })
-      .style('opacity', .8);
+      .style('opacity', .6);
     //         .style('stroke','none')
 
     //Add label to lifelines
@@ -801,22 +800,23 @@ class GenealogyTree {
 
     lifeRects.selectAll('.endOfTheLine')
       .attr('x1', (d: any) => {
-        return (Math.abs(this.x(d['ddate']) - this.x(d['bdate'])) + Config.glyphSize / 2);
+        return (Math.abs(this.x(d['ddate']) - this.x(d['bdate'])) + Config.glyphSize / 3);
       })
       .attr('y1', function (d: any) {
-        return Config.glyphSize / 2;
+        return Config.glyphSize*1.5 ;
       })
       .attr('x2', (d: any) => {
-        return Math.abs(this.x(d['ddate']) - this.x(d['bdate']) - Config.glyphSize / 2);
+        return Math.abs(this.x(d['ddate']) - this.x(d['bdate']) - Config.glyphSize / 3);
       })
       .attr('y2', function (d: any) {
 
-        return Config.glyphSize * 2;
+        return (Config.glyphSize/2) ;
       })
       .attr('stroke-width', 1)
       .attr('stroke', function (d: any) {
-        return (d.affected) ? '#484646' : '#9e9d9b';
+        return '#9e9d9b';
       })
+      .attr('opacity',.6)
 
 
     //Add cross through lines for deceased people

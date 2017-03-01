@@ -309,7 +309,7 @@ class GenealogyTree {
       .call(this.extremesXAxis)
 
 
-    //  //Create temporary group for y axis
+     //Create temporary group for y axis
     // const yaxis = svg.append('g')
     //   .attr('transform', 'translate(' +this.margin.left + ',' + (this.margin.top + Config.glyphSize) + ')')
     //   .attr('id', 'yaxis')
@@ -1276,7 +1276,7 @@ class GenealogyTree {
       allBars
       .on('click', (d) => {
 
-        console.log(d['KindredID'], console.log(d['y']))
+        console.log(d)
 
         if (event.altKey) {
           //Hide node

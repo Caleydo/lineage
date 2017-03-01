@@ -203,18 +203,28 @@ class GraphData {
 
     let Y = startIndex;
 
+    //find all nodes in that row
     let startNode = this.nodes.filter((node) => {
-      return node.y === startIndex;
+      return Math.round(node.y) === startIndex;
     });
-    let startYIndex = max(startNode, function (n) {
+
+    //find the largest original Y value
+    const startYIndex = max(startNode, function (n) {
       return n['Y'];
     });
 
+    //Find the node that has that large Y value
     startNode = this.nodes.filter((node) => {
       return node.Y === startYIndex;
-    });
-    let endIndex = this.findLastLeaf(startNode[0]);
+    })[0];
 
+    //Returns the Y value of the last leaf node in that branch
+    const endIndex = this.findLastLeaf(startNode);
+
+    let endNode = this.nodes.filter((n)=>{return n.Y === endIndex;})[0];
+
+
+    //Iterate through branch, if there are hidden nodes, uncollapse
     const isHidden = this.nodes.filter((node) => {
       return (node.Y <= startNode.Y && node.Y >= endIndex && node.hidden);
     });
@@ -224,13 +234,15 @@ class GraphData {
       return;
     };
 
+    console.log('collapsing branch starting at startNode ', startYIndex, ' and ending at ', endIndex);
+
     this.nodes.sort((a, b) => {
       return b.Y - a.Y;
     });
 
     //Assign a row for each affected case within the range to be collapsed;
     this.nodes.filter((node) => {
-      return node.Y <= startIndex && node.Y >= endIndex;
+      return node.Y <= startYIndex && node.Y >= endIndex;
     }).forEach((node, i) => {
 
       //non affected leaf nodes
@@ -377,14 +389,14 @@ class GraphData {
       }
     });
 
-
-    //Get rid of blank rows;
-    this.nodes.filter((d) => {
-      return d.y >= endIndex;
-    }).forEach((node) => {
-      const offset = Y - Math.round(endIndex) + 1;
-      node.y = node.y - offset;
-    });
+    //
+    // //Get rid of blank rows;
+    // this.nodes.filter((d) => {
+    //   return d.Y >= endIndex;
+    // }).forEach((node) => {
+    //   const offset = Y - Math.round(endNode.y) + 1;
+    //   node.y = node.y - offset;
+    // });
   }
 
 
@@ -400,24 +412,13 @@ class GraphData {
     let endIndex = this.findLastLeaf(startNode);
     let endNode;
 
-    // // find the current y value of this node
-    // let endNode = this.nodes.filter((node) => { return node.Y === endIndex;});
-    // endIndex = endNode[0].y;
-    //
-    //
-    // console.log('uncollapse from ',startNode['y'] , ' to ', endIndex );
-
     let startIndex = startNode['Y'];
 
-    console.log('endIndex is ', endIndex);
-    console.log('startIndex is ', startIndex);
     let toUncollapse = this.nodes.filter((node) => {
       return node.Y <= startIndex && node.Y >= endIndex;
     });
 
-    let numRows = toUncollapse.length - (Math.ceil(startIndex) - endIndex);
-
-    console.log('numRows is ', numRows)
+    let numRows = toUncollapse.length - (startIndex - endIndex)-1;
 
     const ind = 1000;
 
@@ -429,14 +430,11 @@ class GraphData {
 
     // let ydiff = endNode['Y']-endNode['y'];
     let ydiff = 0;
-    console.log('end Node is ', endNode)
-    console.log('ydiff is ', ydiff);
 
-    //Get rid of blank rows;
     this.nodes.forEach((node) => {
       if (node['Y'] > startIndex) {
         node['y'] = node['y'] + numRows;
-      } else if (node['y=Y'] >= endIndex) {
+      } else if (node['Y'] >= endIndex) {
         node['y'] = node['Y'] - ydiff;
         node['x'] = node['X'];
         node['hidden'] = false;

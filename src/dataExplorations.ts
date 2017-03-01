@@ -6,12 +6,22 @@ import {tsv} from 'd3-request';
 import {ICategoricalVector, INumericalVector} from 'phovea_core/src/vector/IVector';
 import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT} from 'phovea_core/src/datatype';
 
+import {listAll, IDType} from 'phovea_core/src/idtype';
 
 export default class DataExplorations {
 
 
   offline: boolean = false;
   table: ITable;
+
+  public async demoIDs()
+  {
+    const allIDTypes = await listAll();
+      console.log('All loaded id types:');
+      console.log(allIDTypes);
+
+  }
+
 
   /**
    *

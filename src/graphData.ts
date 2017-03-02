@@ -7,6 +7,7 @@
 import {
   max,
   min,
+  range,
 } from 'd3-array';
 
 class GraphData {
@@ -42,7 +43,8 @@ class GraphData {
       d.X = +d.x; //keeps track of nodes original x position - can change for kid grids on hide.
       d.family_ids = []; //keeps track of nuclear families a given node belongs to.
       d.clicked = false; //used to keep track of clicked nodes even when they are removed from the visible area. May not need if nodes are not removed and simply scroll out of view.
-
+      d.primary = undefined; //Keep track of primary attribute and what 'affected' means for this attribute data.
+      d.secondary = undefined; //Keep track of secondary attribute and what 'affected' means for this attribute data.
       //For Tree structure
       d.hasChildren = false;
       d.children = []; //Array of children
@@ -59,22 +61,40 @@ class GraphData {
   /**
    *
    * This function defined the 'affected' state based on a user defined attribute.
-   * 1) between parents and their children -> parent child edges.
-   * 2) between couples -> parent parent edges
    *
    * @param attribute attribute to be used to define 'affected' state of nodes.
-   * @param threshold threshold to apply to attribute when defining 'affected'.
+   * @param value threshold value to apply to attribute when defining 'affected'.
    * Currently has a single value that indicates true.
    */
-  private definePrimary(attribute, threshold) {
+  private definePrimary(attribute, value) {
+    console.log('calling definePrimary', attribute, value);
     this.nodes.forEach((node) => {
-      // node.affected = node[attribute] === threshold;
+      node.affected = node[attribute] == value;
+      console.log(node.affected);
       //node.affected = +d["affection"] === 100;
       // node.affected= false;
-      node.affected = Math.random() > 0.6;
+      node.primary = {'Attribute': attribute, 'Threshold': value};
+      // node.affected = Math.random() > 0.7;
     });
 
   }
+
+  /**
+   *
+   * This function defined the 'secondary attribute' state based on a user defined attribute.
+   *
+   * @param attribute attribute to be used to define 'affected' state of nodes.
+   * @param value threshold value to apply to attribute when defining 'affected'.
+   * Currently has a single value that indicates true.
+   */
+  private defineSecondary(attribute, value) {
+    this.nodes.forEach((node) => {
+      node.secondary = {'Attribute': attribute, 'Threshold': value};
+      node.affected = node[attribute] === value;
+    });
+
+  }
+
 
   /**
    *
@@ -201,46 +221,42 @@ class GraphData {
    */
   public hideNodes(startIndex, aggregate) {
 
-    let Y = startIndex;
+    let Y:number = startIndex;
 
     //find all nodes in that row
-    let startNode = this.nodes.filter((node) => {
+    const rowNodes = this.nodes.filter((node) => {
       return Math.round(node.y) === startIndex;
     });
 
     //find the largest original Y value
-    let startYIndex = max(startNode, function (n) {
+    let startYIndex:any = max(rowNodes, function (n) {
       return n['Y'];
     });
 
     //Find the node that has that large Y value
-    startNode = this.nodes.filter((node) => {
+    let startNode = this.nodes.filter((node) => {
       return node.Y === startYIndex;
     })[0];
 
     //Consider Spouse
     if (startNode.spouse.length>0){
-      //find the spouses Y value
+      //find the spouses Y values
       let spouseY = startNode.spouse.map((s)=> {return s.Y;});
 
       startYIndex = max([startYIndex].concat(spouseY));
-
-      console.log('largestY value including spouse is ', startYIndex);
 
       //Find the node that has that large Y value
       startNode = this.nodes.filter((node) => {
         return node.Y === startYIndex;
       })[0];
 
-
+      Y = startNode.y;
     }
 
-
-
     //Returns the Y value of the last leaf node in that branch
-    const endIndex = this.findLastLeaf(startNode);
+    const endIndex:any = this.findLastLeaf(startNode);
 
-    let endNode = this.nodes.filter((n) => {return n.Y === endIndex;})[0];
+    const endNode = this.nodes.filter((n) => {return n.Y === endIndex;})[0];
 
 
     //Iterate through branch, if there are hidden nodes, uncollapse
@@ -252,8 +268,6 @@ class GraphData {
       this.expandBranch(startNode);
       return;
     };
-
-    console.log('collapsing branch starting at startNode ', startYIndex, ' and ending at ', endIndex);
 
     this.nodes.sort((a, b) => {
       return b.Y - a.Y;
@@ -408,15 +422,32 @@ class GraphData {
       }
     });
 
-    //
-    // //Get rid of blank rows;
-    // this.nodes.filter((d) => {
-    //   return d.Y >= endIndex;
-    // }).forEach((node) => {
-    //   const offset = Y - Math.round(endNode.y) + 1;
-    //   node.y = node.y - offset;
-    // });
   }
+
+  /**
+   *
+   * This function removes white rows from the tree.
+   */
+  private trimTree() {
+    let toCollapse = 0;
+    range(1,this.nodes.length,1).forEach((y) => {
+
+      //find any nodes that are in that row
+      const rowNodes = this.nodes.filter((d)=> {return d.y === y;}).length;
+
+      if (rowNodes<1) { //found an empty Row
+        toCollapse = toCollapse + 1;
+      } else {
+        console.log('collapsing ' , toCollapse , 'rows');
+        this.nodes.forEach((node) => {
+          if (Math.round(node.y) >= y) {
+            node.y = node.y -toCollapse;
+          }
+        });
+        toCollapse = 0;
+      };
+    });
+  };
 
 
   /**
@@ -471,7 +502,6 @@ class GraphData {
   static hasAffectedChildren(node) {
 
     return !node.children.reduce((acc, child) => {
-      // console.log('child', child.Y, ' affected: ', child.affected);
       return acc && !child.affected && !child.hasChildren;
     }, true);
   }

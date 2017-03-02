@@ -309,7 +309,7 @@ class GenealogyTree {
       .call(this.extremesXAxis)
 
 
-     //Create temporary group for y axis
+    //  //Create temporary group for y axis
     // const yaxis = svg.append('g')
     //   .attr('transform', 'translate(' +this.margin.left + ',' + (this.margin.top + Config.glyphSize) + ')')
     //   .attr('id', 'yaxis')
@@ -337,7 +337,7 @@ class GenealogyTree {
    */
   private update_graph(nodes, childParentEdges, parentParentEdges) {
     this.update_edges(childParentEdges, parentParentEdges);
-    this.update_nodes(nodes);
+    this.update_nodes();
   }
 
 
@@ -435,7 +435,7 @@ class GenealogyTree {
    *
    * @param nodes array of nodes to update the tree with
    */
-  private update_nodes(filtered_nodes) {
+  private update_nodes() {
 
     let nodes = this.data.nodes;
 
@@ -520,11 +520,11 @@ class GenealogyTree {
 
     allKidGrids.exit().transition().duration(400).style('opacity', 0).remove();
 
-    // const allKidGridsEnter = allKidGrids
-    //   .enter()
-    //   .append('rect');
-    //
-    // allKidGrids = allKidGridsEnter.merge(allKidGrids);
+    const allKidGridsEnter = allKidGrids
+      .enter()
+      .append('rect');
+
+    allKidGrids = allKidGridsEnter.merge(allKidGrids);
 
     allKidGrids
       .classed('collapsed', (d) => {
@@ -1276,7 +1276,7 @@ class GenealogyTree {
       allBars
       .on('click', (d) => {
 
-        console.log(d)
+        // console.log(d)
 
         if (event.altKey) {
           //Hide node
@@ -1759,6 +1759,22 @@ class GenealogyTree {
         return (!wasSelected);
       })
     });
+
+    events.on('attribute_selected',(evt,item) => {
+      console.log('heard attribute_selected_event' , item.attribute.data);
+      if (item.badge === 'primary') {
+        this.data.definePrimary(item.attribute.data,'Y')
+      } else if (item.badge === 'secondary') {
+        this.data.defineSecondary(item.attribute.data,'Y')
+      }
+
+      //Uncollapse Tree
+      //Re-render tree
+      this.update_nodes();
+
+
+    });
+
 
     events.on('table_row_hover_on', (evt, item) => {
       selectAll('.highlightBar').filter((d) => {

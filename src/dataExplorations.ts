@@ -14,12 +14,10 @@ export default class DataExplorations {
   offline: boolean = false;
   table: ITable;
 
-  public async demoIDs()
-  {
+  public async demoIDs() {
     const allIDTypes = await listAll();
-      console.log('All loaded id types:');
-      console.log(allIDTypes);
-
+    console.log('All loaded id types:');
+    console.log(allIDTypes);
   }
 
 
@@ -88,7 +86,6 @@ export default class DataExplorations {
     console.log('Table Name: ' + table.desc.name);
 
 
-
     console.log('=============================');
     console.log('ACCESSING COLUMNS/VECTORS');
     console.log('=============================');
@@ -107,129 +104,135 @@ export default class DataExplorations {
     console.log('Accessing RelativeID column by name from big-decent-clipped-38 dataset:');
     console.log(await table.colData('RelativeID'));
 
-/*
-    console.log('=============================');
-    console.log('ACCESSING RAW DATA');
-    console.log('=============================');
+    console.log('Accessing RelativeID column by name from big-decent-clipped-38 dataset:');
+    console.log(await table.colData('MaID'));
+
+    console.log('Accessing RelativeID column by name from big-decent-clipped-38 dataset:');
+    console.log(await table.colData('PaID'));
+
+    /*
+     console.log('=============================');
+     console.log('ACCESSING RAW DATA');
+     console.log('=============================');
 
 
-    // whenever you access raw data, the data structures return promises, not the data directly.
-    // what you do is, you call a then function which takes a callback as a parameter.
-    // This handles the 'good' case and passes the data in.
-    // You should also handle the 'bad' case in a catch function:
-    const firstPromise = vector.at(0).then(
-      function (d) {
-        console.log('The data:');
-        console.log(d);
-        return d;
-      })
-      .catch(function (error) {
-        console.log('Error: ' + error);
-      });
+     // whenever you access raw data, the data structures return promises, not the data directly.
+     // what you do is, you call a then function which takes a callback as a parameter.
+     // This handles the 'good' case and passes the data in.
+     // You should also handle the 'bad' case in a catch function:
+     const firstPromise = vector.at(0).then(
+     function (d) {
+     console.log('The data:');
+     console.log(d);
+     return d;
+     })
+     .catch(function (error) {
+     console.log('Error: ' + error);
+     });
 
-    // Here is exactly the same code using the arrow notation, for the second element in the vector.
-    const secondPromise = vector.at(1).then((d) => d)
-      .catch((err) => console.log('Error: ' + err));
+     // Here is exactly the same code using the arrow notation, for the second element in the vector.
+     const secondPromise = vector.at(1).then((d) => d)
+     .catch((err) => console.log('Error: ' + err));
 
-    Promise.all([firstPromise, secondPromise]).then((values) => {
-      console.log('First Element: ' + values[0]);
-      console.log('Second Element: ' + values[1]);
-      // all the return values of the promises
-      console.log(values);
-    }).catch((err) => console.log(err));
-
-
-    // a new feature is the await keyword, which makes all of this a lot easier to read:
-    const thirdElement = await vector.at(2);
-    const fourthElement = await vector.at(3);
-
-    console.log('Third Element: ' + thirdElement);
-    console.log('Fourth Element: ' + fourthElement);
-
-    */
-/*
-    // Here we directly access the first element in the first vector:
-    const firstValueOfFirstVector = await table.at(0, 0);
-    console.log('Accessing the Table for the first element: ' + firstValueOfFirstVector);
-
-    console.log('=============================');
-    console.log('SLICING, SELECTIVE ACCESS');
-    console.log('=============================');
-
-    // We retrieve the columns with index 0 and one by using a range operator that we pass as a string.
-    console.log('First two columns using ranges:');
-    console.log(table.cols('0:2'));
-
-    console.log('Get the columns based on a list of indices:');
-    console.log(table.cols([1, 4, 7]));
-
-    console.log('A slice of the data of column 1 from index 7 to (not including) 12 as an array:');
-    // this array can be directly used to map to d3
-    console.log(await table.col(1).data('7:12'));
+     Promise.all([firstPromise, secondPromise]).then((values) => {
+     console.log('First Element: ' + values[0]);
+     console.log('Second Element: ' + values[1]);
+     // all the return values of the promises
+     console.log(values);
+     }).catch((err) => console.log(err));
 
 
-    console.log('=============================');
-    console.log('CATEGORICAL VECTORS & STATS');
-    console.log('=============================');
+     // a new feature is the await keyword, which makes all of this a lot easier to read:
+     const thirdElement = await vector.at(2);
+     const fourthElement = await vector.at(3);
+
+     console.log('Third Element: ' + thirdElement);
+     console.log('Fourth Element: ' + fourthElement);
+
+     */
+    /*
+     // Here we directly access the first element in the first vector:
+     const firstValueOfFirstVector = await table.at(0, 0);
+     console.log('Accessing the Table for the first element: ' + firstValueOfFirstVector);
+
+     console.log('=============================');
+     console.log('SLICING, SELECTIVE ACCESS');
+     console.log('=============================');
+
+     // We retrieve the columns with index 0 and one by using a range operator that we pass as a string.
+     console.log('First two columns using ranges:');
+     console.log(table.cols('0:2'));
+
+     console.log('Get the columns based on a list of indices:');
+     console.log(table.cols([1, 4, 7]));
+
+     console.log('A slice of the data of column 1 from index 7 to (not including) 12 as an array:');
+     // this array can be directly used to map to d3
+     console.log(await table.col(1).data('7:12'));
 
 
-    console.log('The data type of the fourth column (categories):');
-    console.log(table.col(3).desc.value.type);
-
-    if (table.col(3).desc.value.type === VALUE_TYPE_CATEGORICAL) {
-      const catVector = <ICategoricalVector> table.col(3);
-      console.log('The categories of the fourth column:');
-      // these also contain colors that can be easily used in d3.
-      console.log(catVector.desc.value.categories);
-      console.log('The histogram: BROKEN');
-      console.log(await catVector.hist());
-    }
+     console.log('=============================');
+     console.log('CATEGORICAL VECTORS & STATS');
+     console.log('=============================');
 
 
-    console.log('=============================');
-    console.log('NUMERICAL VECTORS & STATS');
-    console.log('=============================');
+     console.log('The data type of the fourth column (categories):');
+     console.log(table.col(3).desc.value.type);
 
-    if (table.col(5).desc.value.type === VALUE_TYPE_INT) {
-      const numVector = <INumericalVector> table.col(5);
-      console.log('3rd value from the 5th vector:' + await numVector.at(3));
-      console.log('Stats on a vector:');
-      console.log(await numVector.stats());
-    }
-*/
+     if (table.col(3).desc.value.type === VALUE_TYPE_CATEGORICAL) {
+     const catVector = <ICategoricalVector> table.col(3);
+     console.log('The categories of the fourth column:');
+     // these also contain colors that can be easily used in d3.
+     console.log(catVector.desc.value.categories);
+     console.log('The histogram: BROKEN');
+     console.log(await catVector.hist());
+     }
 
-   /*
-    console.log('=============================');
-    console.log('VIEWS');
-    console.log('=============================');
 
-    // A view represents a subset of a table. Subsets can be defined via rows and/or columns.
-    // So, in a 10x100 table, I can pick columns 2, 4 and rows, 2-5 and 70-90.
-    // It behaves exactly like a regular table.
+     console.log('=============================');
+     console.log('NUMERICAL VECTORS & STATS');
+     console.log('=============================');
 
-    console.log('New view on a table that only contains the first two columns:');
-    let slicedTable = table.view('(0:-1),(0:2)');
-    console.log(slicedTable);
-    console.log(slicedTable.cols());
+     if (table.col(5).desc.value.type === VALUE_TYPE_INT) {
+     const numVector = <INumericalVector> table.col(5);
+     console.log('3rd value from the 5th vector:' + await numVector.at(3));
+     console.log('Stats on a vector:');
+     console.log(await numVector.stats());
+     }
+     */
 
-    console.log('New view on a table that only contains the first two columns and the first five rows:');
-    slicedTable = table.view('(0,1,2,3,4),(3,2,1)');
-    console.log(slicedTable);
-    console.log(slicedTable.cols());
-    console.log(await slicedTable.colData('artist'));
+    /*
+     console.log('=============================');
+     console.log('VIEWS');
+     console.log('=============================');
 
-*/
+     // A view represents a subset of a table. Subsets can be defined via rows and/or columns.
+     // So, in a 10x100 table, I can pick columns 2, 4 and rows, 2-5 and 70-90.
+     // It behaves exactly like a regular table.
+
+     console.log('New view on a table that only contains the first two columns:');
+     let slicedTable = table.view('(0:-1),(0:2)');
+     console.log(slicedTable);
+     console.log(slicedTable.cols());
+
+     console.log('New view on a table that only contains the first two columns and the first five rows:');
+     slicedTable = table.view('(0,1,2,3,4),(3,2,1)');
+     console.log(slicedTable);
+     console.log(slicedTable.cols());
+     console.log(await slicedTable.colData('artist'));
+
+     */
   }
 
   /*
-  public async demoGenealogyData() {
-    const table = <ITable> await getById('big-decent-clipped-38');
-    console.log('Genealogy Data');
-    console.log(table);
-    //   console.log(table.colData('RelativeID'));
-  }
+   public async demoGenealogyData() {
+   const table = <ITable> await getById('big-decent-clipped-38');
+   console.log('Genealogy Data');
+   console.log(table);
+   //   console.log(table.colData('RelativeID'));
+   }
 
-*/
+   */
   //
   // public async loadLocalData() {
   //   function tsvAsync(url) {

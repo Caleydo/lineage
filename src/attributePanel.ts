@@ -7,6 +7,7 @@ import {keys} from 'd3-collection';
 
 import {Config} from './config';
 
+
 /**
  * Creates the attribute table view
  */
@@ -187,7 +188,8 @@ class attributePanel {
 
     });
 
-    $(document).on('click', '.badge', function () {
+    $(document).unbind().on('click', '.badge', function () {
+      console.log('badge clicked')
       let badge = $(this).text();
       let attribute = $(this).closest('strong').contents()[0];
       //reset badge dispaly for previously clicked badges

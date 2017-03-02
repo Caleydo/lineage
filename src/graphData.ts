@@ -209,7 +209,7 @@ class GraphData {
     });
 
     //find the largest original Y value
-    const startYIndex = max(startNode, function (n) {
+    let startYIndex = max(startNode, function (n) {
       return n['Y'];
     });
 
@@ -218,10 +218,29 @@ class GraphData {
       return node.Y === startYIndex;
     })[0];
 
+    //Consider Spouse
+    if (startNode.spouse.length>0){
+      //find the spouses Y value
+      let spouseY = startNode.spouse.map((s)=> {return s.Y;});
+
+      startYIndex = max([startYIndex].concat(spouseY));
+
+      console.log('largestY value including spouse is ', startYIndex);
+
+      //Find the node that has that large Y value
+      startNode = this.nodes.filter((node) => {
+        return node.Y === startYIndex;
+      })[0];
+
+
+    }
+
+
+
     //Returns the Y value of the last leaf node in that branch
     const endIndex = this.findLastLeaf(startNode);
 
-    let endNode = this.nodes.filter((n)=>{return n.Y === endIndex;})[0];
+    let endNode = this.nodes.filter((n) => {return n.Y === endIndex;})[0];
 
 
     //Iterate through branch, if there are hidden nodes, uncollapse

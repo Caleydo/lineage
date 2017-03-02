@@ -4,6 +4,7 @@ import {list as listData, getFirstByName, get as getById} from 'phovea_core/src/
 import {tsv} from 'd3-request';
 import {ICategoricalVector, INumericalVector} from 'phovea_core/src/vector/IVector';
 import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT} from 'phovea_core/src/datatype';
+import * as range from 'phovea_core/src/range';
 import * as events from 'phovea_core/src/event';
 
 export default class AttributeData {
@@ -11,8 +12,8 @@ export default class AttributeData {
   table:ITable;
   public activeAttributes = [] ; // active attribute is an attribute that is not ID. This an array of strings (column name)
   private activeRows ; // of type range
-  private activeColumns; // of type range
-  private activeView; // table view
+  private activeColumns : range.Range; // of type range
+  private activeView: range.Range; // table view
 
 
   /**
@@ -27,9 +28,7 @@ export default class AttributeData {
     this.table = <ITable> await getFirstByName(name);
     this.parseData();
     this.attachListener();
-
     return Promise.resolve(this);
-
   }
 
   /**
@@ -38,20 +37,16 @@ export default class AttributeData {
    *
    */
   public async parseData() {
-
     let columns = this.table.cols();
-
     //populate active attribute array
     columns.forEach((col) => {
       const name = col.desc.name;
       const type = col.desc.value.type;
-
       // if the type of the column is ID then it is not in the active list
       if (!(type === 'idType')) {
         this.activeAttributes.push(name);
       }
     });
-
   }
 
   public getColumns(){

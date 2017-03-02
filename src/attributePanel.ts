@@ -61,7 +61,7 @@ class attributePanel {
 
     // list that holds data attribute
     // initially all attributes are active
-    const active_attribute_list = menu_list.append('ul')
+    const active_attribute_list = menu_list.append('div')
       .attr('id', 'active-menu-content')
       .classed('menu-content collapse in', true);
 
@@ -74,11 +74,11 @@ class attributePanel {
 
     // list that holds inactive attributes
     // a user can populate this list by dragging elements from the active list
-    const inactive_attribute_list = menu_list.append('ul')
+    const inactive_attribute_list = menu_list.append('div')
       .attr('id', 'inactive-menu-content')
       .classed('menu-content sub-menu collapse in fade', true)
-     // .html(`
-     // <li class='placeholder'>DRAG AND DROP ATTRIBUTES HERE TO MAKE THEM INACTIVE</li>`);
+    // .html(`
+    // <li class='placeholder'>DRAG AND DROP ATTRIBUTES HERE TO MAKE THEM INACTIVE</li>`);
 
 
     // Active sortable list
@@ -89,7 +89,7 @@ class attributePanel {
       pull: true,
       put: true,
       onAdd: function (evt) {
-        let item  = {
+        let item = {
           name: evt.item.getElementsByTagName("strong")[0].textContent,
           newIndex: evt.newIndex
         };
@@ -97,7 +97,7 @@ class attributePanel {
 
       },
       onUpdate: function (evt) {
-        let item  = {
+        let item = {
           name: evt.item.getElementsByTagName("strong")[0].textContent,
           newIndex: evt.newIndex,
           oldIndex: evt.oldIndex
@@ -140,48 +140,50 @@ class attributePanel {
    *
    * @param column_name
    * @param column_desc
-     */
+   */
   private addAttribute(column_name, column_desc) {
 
 
     //if this is an active attribute then add it to the active list otherwise add it to the inactive list
     let list = "";
-    if(this.activeColumns.indexOf(column_name) > -1){
-      list= "#active-menu-content";
+    if (this.activeColumns.indexOf(column_name) > -1) {
+      list = "#active-menu-content";
     } else {
       list = "#inactive-menu-content";
     }
 
+    // we first add a div that holds the li and the svg
+    let attributeElm = select(list).append('div');
+
     //append the header as a menu option
-    let data_attr = select(list).append('li')
+    let attrHeader = attributeElm.append('li')
       .classed('collapsed active', true)
       .attr('data-target', '#' + column_name)
       .attr('data-toggle', 'collapse');
 
-    data_attr.append('a').attr('href', '#')
+    attrHeader.append('a').attr('href', '#')
       .html('<i class=\"glyphicon glyphicon-chevron-right\"></i>')
       .append('strong').html(column_name)
       .append('span').attr('class', column_desc)
       .html(`<div class=" attr_badges pull-right">
-<span class=" badge" >primary</span>
-<span class=" badge" >secondary</span>
-</div>
-      `);
-    data_attr.on('mouseover', function () {
+                <span class=" badge" >primary</span>
+                <span class=" badge" >secondary</span>
+              </div>`);
+    attrHeader.on('mouseover', function () {
       select(this).select('.sort_handle').classed('focus', true);
-      if (list === '#active-menu-content'){
+      if (list === '#active-menu-content') {
         select(this).select('.attr_badges').classed('focus', true);
       }
     });
 
-    data_attr.on('mouseout', function () {
+    attrHeader.on('mouseout', function () {
       select(this).select('.sort_handle').classed('focus', false)
       select(this).select('.attr_badges').classed('focus', false)
     });
 
-    data_attr.on('click', function () {
-      $('.glyphicon' , this).toggleClass('glyphicon-chevron-right');
-      $('.glyphicon' , this).toggleClass('glyphicon-chevron-down');
+    attrHeader.on('click', function () {
+      $('.glyphicon', this).toggleClass('glyphicon-chevron-right');
+      $('.glyphicon', this).toggleClass('glyphicon-chevron-down');
 
     });
 
@@ -189,28 +191,26 @@ class attributePanel {
       let badge = $(this).text();
       let attribute = $(this).closest('strong').contents()[0];
       //reset badge dispaly for previously clicked badges
-      $(".checked_"+badge).parent().css( "display", "");
-      $(".checked_"+badge).parent().children().css( "display", "");
-      $(".checked_"+badge).removeClass(".checked_"+badge);
+      $(".checked_" + badge).parent().css("display", "");
+      $(".checked_" + badge).parent().children().css("display", "");
+      $(".checked_" + badge).removeClass(".checked_" + badge);
 
-        $(this).parent().css( "display", "inline");
-        $(this).parent().children().css( "display", "none");
-        $(this).addClass( "checked_"+badge);
-        $(this).css( "display", "inline");
+      $(this).parent().css("display", "inline");
+      $(this).parent().children().css("display", "none");
+      $(this).addClass("checked_" + badge);
+      $(this).css("display", "inline");
 
-       events.fire('attribute_selected',{attribute, badge});
+      events.fire('attribute_selected', {attribute, badge});
 
     });
 
-/*
     // append svgs for attributes:
-    const attributeSVG = select(list).append('ul')
-        .attr('id', column_name)
-        .classed('sub-menu collapse fade', true)
-        .append('svg')
+    const attributeSVG = attributeElm.append('ul')
+      .attr('id', column_name)
+      .classed('sub-menu collapse fade', true)
+      .append('svg')
 
-    this.populateData(attributeSVG , column_name);
-*/
+    this.populateData(attributeSVG, column_name);
 
   }
 
@@ -219,10 +219,10 @@ class attributePanel {
    * for a specific attribute
    *
    */
-  private async populateData(svg , attribute){
-    console.log(attribute);
+  private async populateData(svg, attribute) {
     //console.log(await this.table.colData(attribute));
-
+    console.log('populateData');
+    console.log(await this.table.colData(attribute))
 
 
   }

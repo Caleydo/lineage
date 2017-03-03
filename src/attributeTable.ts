@@ -27,15 +27,7 @@ class attributeTable {
   //private margin = {top: 60, right: 20, bottom: 60, left: 40};
 
   private activeView;
-  private colData;
-  // access to all the data in our backend
-  // private all_data;
-  // private row_order;
-  // private column_order;
-  // private num_cols;
-  // private col_names;
-  // private row_data;
-  // private columns;
+  private colData;    // <- everything we need to bind
 
   private margin = Config.margin;
 
@@ -51,20 +43,33 @@ class attributeTable {
   * @returns {Promise<FilterBar>}
   */
   async init(data) {
-    // this.all_data = data;
-    // this.column_order = data.displayedColumnOrder;
-    // this.num_cols = data.numberOfColumnsDisplayed;
-    // this.col_names = data.referenceColumns;
-    //
-    // this.row_order = data.displayedRowOrder;
-    // this.row_data = data.referenceRows;
 
 
     console.log("IN TABLE VIEW");
 
 
     this.activeView = data.activeView;
-    this.colData = data.activeAttributes;
+
+
+    let colDataAccum = [];
+    for (const vector of this.activeView.cols()) {
+      const temp = await vector.data(range.all());
+      //console.log("the column's name:" + await vector.column);
+      //console.log(temp);
+      var col:any = {};
+      col.name = await vector.column;
+      col.data = temp;
+      col.ys = data.ys;
+      colDataAccum.push(col);
+    }
+
+
+    this.colData = colDataAccum;
+    console.log("this is colData:");
+    console.log(colDataAccum);
+
+    //this.ys = data.ys;
+  //  this.colData = data.activeAttributes;
 
     // console.log("can I get the objects?");
     // console.log(await this.activeView.objects());
@@ -76,14 +81,14 @@ class attributeTable {
   //  console.log("col data?");
   //  console.log(await this.activeView.colData());
 
-    for (const vector of this.activeView.cols()) {
-      console.log(await vector.data(range.all()));
-    }
+    // for (const vector of this.activeView.cols()) {
+    //   console.log(await vector.data(range.all()));
+    // }
+    //
+    // console.log("and here are the y's");
+    // console.log(data.ys);
 
-    console.log("and here are the y's");
-    console.log(data.ys);
 
-    // getting a list of names & types
 
 
     this.build();
@@ -121,15 +126,15 @@ class attributeTable {
     const lightPinkGrey = '#eae1e1';
     const darkBlueGrey = '#4b6068';
 
-    let rowData = await this.activeView.objects();
-    let colData = this.colData; //just an array so no awaiting
+  //  let rowData = await this.activeView.objects();
+  //  let colData = this.colData; //just an array so no awaiting
 
     //rendering info
     var col_widths = await this.getDisplayedColumnWidths(this.width);
     var col_xs = await this.getDisplayedColumnXs(this.width);
     var label_xs = await this.getDisplayedColumnMidpointXs(this.width);
 
-    var num_cols = colData.length;
+    var num_cols = this.colData.length;
     var displayedColNames = this.colData.map(function(elem)
       {return elem['name'];});
     var displayedColTypes = this.colData.map(function(elem)
@@ -137,9 +142,9 @@ class attributeTable {
 
     // Scales
     let x = scaleLinear().range([0 , this.width]).domain([1 ,1]);
-    let y = scaleLinear().range([0, this.height]).domain( //[1, 103]);
-    [min(rowData,
-      function(d){return +d['y']}), max(rowData,function(d){return +d['y']}) ]);
+    let y = scaleLinear().range([0, this.height]).domain([1, 98]); // TODO
+    // [min(rowData,
+    //   function(d){return +d['y']}), max(rowData,function(d){return +d['y']}) ]);
 
     const rowHeight = Config.glyphSize * 2.5 - 4;
 
@@ -154,6 +159,36 @@ class attributeTable {
     /// v row
         const table = svg.append("g")
         .attr("transform", "translate(0," + this.margin.top + ")");
+
+
+
+        // @Carolina: so here is where I'm adding the columns:
+        // I've got the code for rendering the visualizations down below
+        // (commented out for now)
+        // and I'm logging to the screen what this colData is that I'm binding in .data()
+
+        let cols = table.selectAll(".column")
+        .data(this.colData)
+        .enter()
+        .append("g")
+        .classed('dataCols', true)
+        .classed(function (col){return col.name;}, function(col){
+            return col.name === name;
+        })
+        .attr("transform", function (col) { //TODO: translate by x instead bc columns
+          return ('translate(0, ' +  y(col.y)+ ' )');
+        });
+
+
+
+
+        // for (const name of this.colData.names) {
+        //   cols.classed(name, function(col){
+        //     return col.name === name;
+        //   });
+        // }
+
+
 
         // let rows = table.selectAll(".row")
         // .data(rowData) // TODO: aggregation
@@ -601,7 +636,7 @@ class attributeTable {
     // NODE CLICK
     events.on('row_selected', (evt, row, multipleSelection)=> {
         selectAll('.boundary').classed('tablehovered', false); //don't hover
-        console.log(multipleSelection);
+      //  console.log(multipleSelection);
         selectAll('.boundary').classed('tableselected', function(a){
           // if it's the right row, toggle it
           // if it's the wrong row, leave the selection the same

@@ -219,27 +219,6 @@ class GraphData {
 
   /**
    *
-   * This function traverses finds the largestY value (increasing towards the root) for a set of parents.
-   * Used to create parent Grid;
-   *
-   * @param node - starting node.
-   */
-  private findLargestY(node) {
-
-    //Base Case
-    if (node.spouse.length === 1) {
-      return max([node.y, node.spouse.y]);
-    } else {
-      return max([node.y].concat(node.spouse.map((s) => {
-        return this.findLargestY(s);
-      })));
-    }
-
-
-  }
-
-  /**
-   *
    * This function hides all the nodes that descend from a given starting point. to the end of that branch.
    *
    * @param startIndex - y value (row number) for the starting point.

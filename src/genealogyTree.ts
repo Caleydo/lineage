@@ -1305,13 +1305,10 @@ class GenealogyTree {
       .on('contextmenu', (d) => {
 
 
-        this.data.hideNodes(d['y'],true);
+        this.data.hideNodes(Math.round(d['y']),true);
         // this.data.collapseFamilies(d['family_ids'].slice(-1))
-        this.update_visible_nodes()
-
-
+        this.update_visible_nodes();
         event.preventDefault();
-        console.log('right menu clicked')
 
       })
 

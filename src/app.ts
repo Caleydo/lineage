@@ -19,39 +19,7 @@ import * as graphData from './graphData';
 import * as tableData from './tableData';
 import * as attributeData from './attributeData';
 
-
 import * as dataExplorations from './dataExplorations';
-
-//Import Sample Data from ./sampleData
-// import {sampleData} from './sampleData'
-
-//Import Actual Data from ./sampleData
-// import {realData} from './data/data_38';
-// import {realData} from './data_149'
-// import {realData} from './data_777721'
-
-//Import data desc from datasets.ts
-//import datasets from './data/datasets';
-
-
-// bundle data file and get URL
-import * as csvUrl from 'file-loader!./data/sampleData.csv';
-
-
-//Provenance Tracking
-import {create as createCLUE} from 'phovea_clue/src/template';
-import * as header from 'phovea_ui/src/header';
-
-
-import {ProvenanceGraph, cat} from 'phovea_core/src/provenance';
-// import {createSetCLUEHelloWorldText} from './cmds';
-//import {APP_NAME} from './language';
-
-
-// mark the core to work offline - comment the next two lines out if working with a server!
-//import {init as initCore} from 'phovea_core/src';
-//initCore({offline: true});
-
 
 /**
  * The main class for the App app
@@ -61,18 +29,6 @@ export class App {
   private $node;
 
   constructor(parent:Element) {
-
-    // const clue = createCLUE(document.body, {
-    //   id: 'clue_genealogy_vis',
-    //   app: 'Genealogy VIS',
-    //   appLink: new header.AppHeaderLink('Lineage'),
-    //   thumbnails: false, //no server thumbnails
-    // });
-    //
-    // // init app
-    // clue.$main.html(`<div class="clue"></div>`);
-
-    // this.$node = select('.clue');
         this.$node = select(parent);
 
     this.$node.append('div').attr('id','data_selection');
@@ -96,14 +52,10 @@ export class App {
    */
   private async build() {
 
-
-
-
       const attributeDataObj = attributeData.create();
       // This executes asynchronously, so you'll have to pass
       // back a promise and resolve that before you keep going
       await attributeDataObj.loadData('big-decent-clipped-38');
-
       const graphDataObj = graphData.create(attributeDataObj);
       await graphDataObj.createTree();
       const genealogyTree = tree.create(this.$node.select('#graph_table').node());

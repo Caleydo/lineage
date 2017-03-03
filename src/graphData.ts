@@ -13,6 +13,7 @@ import {
 class GraphData {
 
   public nodes;
+  public table;
 
   //Array of Parent Child Edges
   public parentChildEdges = [];
@@ -20,42 +21,67 @@ class GraphData {
   //Array of Parent Parent Edges
   public parentParentEdges = [];
 
+
   constructor(data) {
-    this.nodes = data;
-    // this.uniqueID = [];
+    this.table = data.table;
+  };
 
-    //Sort nodes by y value, always starting at the founder (largest y) ;
-    this.nodes.sort(function (a, b) {
-      return b.y - a.y;
-    });
+  /**
+   * This function loads genealogy data from lineage-server
+   * and builds the genealogy tree
+   * @param: name of the dataset
+   * returns a promise of table
+   *
+   */
+  public async createTree() {
 
-    //Initially set all nodes to visible (i.e, not hidden)  and of type 'single' (vs aggregate)
-    this.nodes.forEach((d) => {
-      d.type = 'single';
-      d.hidden = false;
-      d.aggregated = false;
-      d.bdate = +d.bdate;
-      d.deceased = d.deceased === 'Y'; //transform to boolean values
-      d.generation = -1; //indicator that generation has not been set
-      d.descendant = false; //flag for blood descendants of founders - not in use yet (2/23/17)
-      d.x = +d.bdate; //set year as x attribute
-      d.Y = +d.y; //keeps track of nodes original y position
-      d.X = +d.x; //keeps track of nodes original x position - can change for kid grids on hide.
-      d.family_ids = []; //keeps track of nuclear families a given node belongs to.
-      d.clicked = false; //used to keep track of clicked nodes even when they are removed from the visible area. May not need if nodes are not removed and simply scroll out of view.
-      d.primary = undefined; //Keep track of primary attribute and what 'affected' means for this attribute data.
-      d.secondary = undefined; //Keep track of secondary attribute and what 'affected' means for this attribute data.
-      //For Tree structure
-      d.hasChildren = false;
-      d.children = []; //Array of children
-      d.spouse = []; //Array of spouses (some have more than one)
-    });
+    this.nodes = [];
+    let columns = this.table.cols();
+    let rows = await this.table.col(1).data('0:-1');
 
-    //Define attribute that defines 'affected' state
-    this.definePrimary('suicide', 'Y');
-    this.buildTree();
-    // this.computeGenerations();
-  }
+    for (let row of range(0, rows.length, 1)) {
+      let personObj = {};
+      for (let col of columns) {
+        let data = await this.table.colData(col.desc.name);
+        personObj[col.desc.name] = data[row];
+      }
+      this.nodes.push(personObj);
+    }
+
+
+  //Sort nodes by y value, always starting at the founder (largest y) ;
+  this.nodes.sort(function (a, b) {
+    return b.y - a.y;
+  });
+
+  //Initially set all nodes to visible (i.e, not hidden)  and of type 'single' (vs aggregate)
+  this.nodes.forEach((d) => {
+    d.type = 'single';
+    d.hidden = false;
+    d.aggregated = false;
+    d.bdate = +d.bdate;
+    d.deceased = d.deceased === 'Y'; //transform to boolean values
+    d.generation = -1; //indicator that generation has not been set
+    d.descendant = false; //flag for blood descendants of founders - not in use yet (2/23/17)
+    d.x = +d.bdate; //set year as x attribute
+    d.Y = +d.y; //keeps track of nodes original y position
+    d.X = +d.x; //keeps track of nodes original x position - can change for kid grids on hide.
+    d.family_ids = []; //keeps track of nuclear families a given node belongs to.
+    d.clicked = false; //used to keep track of clicked nodes even when they are removed from the visible area. May not need if nodes are not removed and simply scroll out of view.
+    d.primary = undefined; //Keep track of primary attribute and what 'affected' means for this attribute data.
+    d.secondary = undefined; //Keep track of secondary attribute and what 'affected' means for this attribute data.
+    //For Tree structure
+    d.hasChildren = false;
+    d.children = []; //Array of children
+    d.spouse = []; //Array of spouses (some have more than one)
+  });
+
+  //Define attribute that defines 'affected' state
+  this.definePrimary('suicide', 'Y');
+  this.buildTree();
+  
+  };
+
 
 
   /**
@@ -221,7 +247,7 @@ class GraphData {
    */
   public hideNodes(startIndex, aggregate) {
 
-    let Y:number = startIndex;
+    let Y: number = startIndex;
 
     //find all nodes in that row
     const rowNodes = this.nodes.filter((node) => {
@@ -229,7 +255,7 @@ class GraphData {
     });
 
     //find the largest original Y value
-    let startYIndex:any = max(rowNodes, function (n) {
+    let startYIndex: any = max(rowNodes, function (n) {
       return n['Y'];
     });
 
@@ -239,9 +265,11 @@ class GraphData {
     })[0];
 
     //Consider Spouse
-    if (startNode.spouse.length>0){
+    if (startNode.spouse.length > 0) {
       //find the spouses Y values
-      let spouseY = startNode.spouse.map((s)=> {return s.Y;});
+      let spouseY = startNode.spouse.map((s) => {
+        return s.Y;
+      });
 
       startYIndex = max([startYIndex].concat(spouseY));
 
@@ -254,9 +282,11 @@ class GraphData {
     }
 
     //Returns the Y value of the last leaf node in that branch
-    const endIndex:any = this.findLastLeaf(startNode);
+    const endIndex: any = this.findLastLeaf(startNode);
 
-    const endNode = this.nodes.filter((n) => {return n.Y === endIndex;})[0];
+    const endNode = this.nodes.filter((n) => {
+      return n.Y === endIndex;
+    })[0];
 
 
     //Iterate through branch, if there are hidden nodes, uncollapse
@@ -267,7 +297,8 @@ class GraphData {
     if (isHidden.length > 0) {
       this.expandBranch(startNode);
       return;
-    };
+    }
+    ;
 
     this.nodes.sort((a, b) => {
       return b.Y - a.Y;
@@ -430,22 +461,25 @@ class GraphData {
    */
   private trimTree() {
     let toCollapse = 0;
-    range(1,this.nodes.length,1).forEach((y) => {
+    range(1, this.nodes.length, 1).forEach((y) => {
 
       //find any nodes that are in that row
-      const rowNodes = this.nodes.filter((d)=> {return d.y === y;}).length;
+      const rowNodes = this.nodes.filter((d) => {
+        return d.y === y;
+      }).length;
 
-      if (rowNodes<1) { //found an empty Row
+      if (rowNodes < 1) { //found an empty Row
         toCollapse = toCollapse + 1;
       } else {
-        console.log('collapsing ' , toCollapse , 'rows');
+        console.log('collapsing ', toCollapse, 'rows');
         this.nodes.forEach((node) => {
           if (Math.round(node.y) >= y) {
-            node.y = node.y -toCollapse;
+            node.y = node.y - toCollapse;
           }
         });
         toCollapse = 0;
-      };
+      }
+      ;
     });
   };
 
@@ -468,7 +502,7 @@ class GraphData {
       return node.Y <= startIndex && node.Y >= endIndex;
     });
 
-    let numRows = toUncollapse.length - (startIndex - endIndex)-1;
+    let numRows = toUncollapse.length - (startIndex - endIndex) - 1;
 
     const ind = 1000;
 

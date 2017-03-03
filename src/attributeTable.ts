@@ -54,9 +54,9 @@ class attributeTable {
     this.row_data = data.referenceRows;
 
 
-    
 
-    //this.build();
+
+    // this.build();
     //this.attachListener();
 
     // return the promise directly as long there is no dynamical data to update

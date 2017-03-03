@@ -26,7 +26,7 @@ import * as dataExplorations from './dataExplorations';
 // import {sampleData} from './sampleData'
 
 //Import Actual Data from ./sampleData
-import {realData} from './data/data_38';
+// import {realData} from './data/data_38';
 // import {realData} from './data_149'
 // import {realData} from './data_777721'
 
@@ -96,14 +96,18 @@ export class App {
    */
   private async build() {
 
-      const genealogyTree = tree.create(this.$node.select('#graph_table').node());
-      genealogyTree.init(graphData.create(realData));
+
 
 
       const attributeDataObj = attributeData.create();
       // This executes asynchronously, so you'll have to pass
       // back a promise and resolve that before you keep going
       await attributeDataObj.loadData('big-decent-clipped-38');
+
+      const graphDataObj = graphData.create(attributeDataObj);
+      await graphDataObj.createTree();
+      const genealogyTree = tree.create(this.$node.select('#graph_table').node());
+      genealogyTree.init(graphDataObj);
 
       //shared data for attributeTable and attributePanel
       //const tableDataObj = tableData.create(realData, datasets[0].desc.columns);
@@ -116,8 +120,8 @@ export class App {
 
       const data = dataExplorations.create();
       //data.loadLocalData();
-      //data.demoDatasets(null);
-      data.demoIDs();
+      // data.demoDatasets(null);
+      // data.demoIDs();
       // data.demoGenealogyData();
 
 

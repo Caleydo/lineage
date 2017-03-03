@@ -56,6 +56,9 @@ export class App {
       // This executes asynchronously, so you'll have to pass
       // back a promise and resolve that before you keep going
       await attributeDataObj.loadData('big-decent-clipped-38');
+      // await attributeDataObj.loadData('family-clipped-10962');
+
+
       const graphDataObj = graphData.create(attributeDataObj);
       await graphDataObj.createTree();
       const genealogyTree = tree.create(this.$node.select('#graph_table').node());
@@ -76,13 +79,10 @@ export class App {
       // data.demoIDs();
       // data.demoGenealogyData();
 
-
     this.$node.select('h3').remove();
     this.setBusy(false);
 
     return Promise.resolve(this);
-
-
   }
 
   /**

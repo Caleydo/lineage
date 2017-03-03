@@ -9,6 +9,7 @@ import {scaleLinear} from 'd3-scale';
 import {max, min} from 'd3-array';
 import {entries} from 'd3-collection';
 import {axisTop} from 'd3-axis';
+import * as range from 'phovea_core/src/range';
 
 /**
 * Creates the attribute table view
@@ -71,10 +72,16 @@ class attributeTable {
     // console.log("can I get col names & types?");
     // console.log(this.colData);
     //
-    console.log("col names?");
-    console.log(await this.activeView.cols());
 
+  //  console.log("col data?");
+  //  console.log(await this.activeView.colData());
 
+    for (const vector of this.activeView.cols()) {
+      console.log(await vector.data(range.all()));
+    }
+
+    console.log("and here are the y's");
+    console.log(data.ys);
 
     // getting a list of names & types
 
@@ -146,78 +153,78 @@ class attributeTable {
 
     /// v row
         const table = svg.append("g")
-        .attr("transform", "translate(0," + this.margin.top + ")")
+        .attr("transform", "translate(0," + this.margin.top + ")");
 
-        let rows = table.selectAll(".row")
-        .data(rowData) // TODO: aggregation
-        .enter()
-        .append("g")
-        .attr('id', function (elem) {
-          return ('row_' +  elem.id);
-        })
-        .attr('class', 'row')
-        .attr("transform", function (elem) {
-          // console.log("this was the element: ");
-          // console.log(elem);
-          // console.log("this was the y position: " + elem.y);
-          return ('translate(0, ' +  y(elem.y)+ ' )');
-        });
-
-
-
-
-
-
-
-
-        //////////////////////
-        // monster for loop creates all vis. encodings for rows
-            const col_margin = 4;
-            for (let colIndex = 0; colIndex < num_cols; colIndex++) {
-              const curr_col_name = displayedColNames[colIndex];
-              const curr_col_type = displayedColTypes[colIndex];
-              const curr_col_width = col_widths[colIndex] - col_margin;
-
-              if( curr_col_type == 'idtype' ){
-
-                rows.append("rect")
-                .attr("width", curr_col_width)
-                .attr("height", rowHeight)
-                .attr('fill', 'lightgrey')
-                .attr('stroke', 'black')
-                .attr('stoke-width', 1)
-                .attr("transform", function () {
-                  return ('translate(' + col_xs[colIndex] + ' ,0)')
-                });
-
-                rows.append("text")
-                .text(function(elem) {
-                  const the_text = elem[curr_col_name];
-                  return the_text.toString().substring(0, 3); })
-                .attr("transform", function (row_index) {
-                  return ('translate(' + (label_xs[colIndex] - 10) + ' ,' + (rowHeight/2 + 5) + ')')
-                });
-              }
-
-              else if( curr_col_type == 'categorical'){
-                const allValues = rowData.map(function(elem){return elem[curr_col_name]});
-                const uniqueValues = Array.from(new Set(allValues));
-
-
-                uniqueValues.forEach(function(value) {
-                  rows.append("rect")
-                  .attr("width", curr_col_width)
-                  .attr("height", rowHeight)
-                  .attr('fill', function(elem){
-                    return (elem[curr_col_name] === uniqueValues[0]) ? '#666666' : 'white';
-                  })
-                  .attr('stroke', 'black')
-                  .attr('stoke-width', 1)
-                  .attr("transform", function () {
-                    return ('translate(' + col_xs[colIndex] + ' ,0)')
-                  });
-              });
-              }
+        // let rows = table.selectAll(".row")
+        // .data(rowData) // TODO: aggregation
+        // .enter()
+        // .append("g")
+        // .attr('id', function (elem) {
+        //   return ('row_' +  elem.id);
+        // })
+        // .attr('class', 'row')
+        // .attr("transform", function (elem) {
+        //   // console.log("this was the element: ");
+        //   // console.log(elem);
+        //   // console.log("this was the y position: " + elem.y);
+        //   return ('translate(0, ' +  y(elem.y)+ ' )');
+        // });
+        //
+        //
+        //
+        //
+        //
+        //
+        //
+        //
+        // //////////////////////
+        // // monster for loop creates all vis. encodings for rows
+        //     const col_margin = 4;
+        //     for (let colIndex = 0; colIndex < num_cols; colIndex++) {
+        //       const curr_col_name = displayedColNames[colIndex];
+        //       const curr_col_type = displayedColTypes[colIndex];
+        //       const curr_col_width = col_widths[colIndex] - col_margin;
+        //
+        //       if( curr_col_type == 'idtype' ){
+        //
+        //         rows.append("rect")
+        //         .attr("width", curr_col_width)
+        //         .attr("height", rowHeight)
+        //         .attr('fill', 'lightgrey')
+        //         .attr('stroke', 'black')
+        //         .attr('stoke-width', 1)
+        //         .attr("transform", function () {
+        //           return ('translate(' + col_xs[colIndex] + ' ,0)')
+        //         });
+        //
+        //         rows.append("text")
+        //         .text(function(elem) {
+        //           const the_text = elem[curr_col_name];
+        //           return the_text.toString().substring(0, 3); })
+        //         .attr("transform", function (row_index) {
+        //           return ('translate(' + (label_xs[colIndex] - 10) + ' ,' + (rowHeight/2 + 5) + ')')
+        //         });
+        //       }
+        //
+        //       else if( curr_col_type == 'categorical'){
+        //         const allValues = rowData.map(function(elem){return elem[curr_col_name]});
+        //         const uniqueValues = Array.from(new Set(allValues));
+        //
+        //
+        //         uniqueValues.forEach(function(value) {
+        //           rows.append("rect")
+        //           .attr("width", curr_col_width)
+        //           .attr("height", rowHeight)
+        //           .attr('fill', function(elem){
+        //             return (elem[curr_col_name] === uniqueValues[0]) ? '#666666' : 'white';
+        //           })
+        //           .attr('stroke', 'black')
+        //           .attr('stoke-width', 1)
+        //           .attr("transform", function () {
+        //             return ('translate(' + col_xs[colIndex] + ' ,0)')
+        //           });
+        //       });
+        //       }
 
               // else if( curr_col_type == 'int' ){
               //   // how big is the range?
@@ -535,10 +542,10 @@ class attributeTable {
     selectAll('.boundary').classed('tablehovered', false);
     events.fire('table_row_hover_off', elem.id);
   });
-  */
+
 
 }
-
+  */
   //private update(data){
 
   //}

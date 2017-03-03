@@ -15,6 +15,8 @@ export default class AttributeData {
   private activeColumns : range.Range; // of type range
   public activeView : ITable; // table view
 
+  private ys ;
+
 
 
   /**
@@ -40,16 +42,26 @@ export default class AttributeData {
   public async parseData() {
     const columns = await this.table.cols();
     const colIndexAccum = [];
+    let yIndex = 19;
+
     //populate active attribute array
     columns.forEach((col, i) => {
       const name = col.desc.name;
       const type = col.desc.value.type;
       // if the type of the column is ID then it is not in the active list
-      if (!(type === 'idtype')) {
+      if(name === 'y'){ //pay no attention to the man behind the curtain
+        yIndex = i; //for some reason can't set the member var here. js...
+      }
+      else if (!(type === 'idtype')) {
         colIndexAccum.push(i);//push the index so we can get the right view
         this.activeAttributes.push(name);
       }
     }); //end for each
+
+    const tempRequest = await this.table.col(yIndex);
+    this.ys = await tempRequest.data(range.all());
+    console.log("THIS WAS THE y COLUMN:");
+    console.log(this.ys);
 
     this.activeRows = range.all(); // all rows to start out with
     this.activeColumns = range.list(colIndexAccum);

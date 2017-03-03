@@ -79,7 +79,7 @@ class GraphData {
   //Define attribute that defines 'affected' state
   this.definePrimary('suicide', 'Y');
   this.buildTree();
-  
+
   };
 
 
@@ -95,7 +95,7 @@ class GraphData {
   private definePrimary(attribute, value) {
     console.log('calling definePrimary', attribute, value);
     this.nodes.forEach((node) => {
-      node.affected = node[attribute] == value;
+      node.affected = node[attribute] === value;
       console.log(node.affected);
       //node.affected = +d["affection"] === 100;
       // node.affected= false;

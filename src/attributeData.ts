@@ -11,9 +11,10 @@ export default class AttributeData {
 
   table:ITable;
   public activeAttributes = [] ; // active attribute is an attribute that is not ID. This an array of strings (column name)
-  private activeRows ; // of type range
+  private activeRows : range.Range;; // of type range
   private activeColumns : range.Range; // of type range
-  private activeView: range.Range; // table view
+  public activeView : ITable; // table view
+
 
 
   /**
@@ -26,7 +27,7 @@ export default class AttributeData {
   public async loadData(name:string) {
     //retrieving the desired dataset by name
     this.table = <ITable> await getFirstByName(name);
-    this.parseData();
+    await this.parseData();
     this.attachListener();
     return Promise.resolve(this);
   }
@@ -37,16 +38,28 @@ export default class AttributeData {
    *
    */
   public async parseData() {
-    let columns = this.table.cols();
+    const columns = await this.table.cols();
+    const colIndexAccum = [];
     //populate active attribute array
-    columns.forEach((col) => {
+    columns.forEach((col, i) => {
       const name = col.desc.name;
       const type = col.desc.value.type;
       // if the type of the column is ID then it is not in the active list
-      if (!(type === 'idType')) {
+      if (!(type === 'idtype')) {
+        colIndexAccum.push(i);//push the index so we can get the right view
         this.activeAttributes.push(name);
       }
-    });
+    }); //end for each
+
+    this.activeRows = range.all(); // all rows to start out with
+    this.activeColumns = range.list(colIndexAccum);
+    this.refreshActiveView(); //updates the active View
+
+  }
+
+  public async refreshActiveView(){
+    const key = range.join(this.activeRows, this.activeColumns);
+    this.activeView = await this.table.view(key);
   }
 
   public getColumns(){

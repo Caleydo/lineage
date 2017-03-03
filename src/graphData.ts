@@ -49,39 +49,129 @@ class GraphData {
     }
 
 
-  //Sort nodes by y value, always starting at the founder (largest y) ;
-  this.nodes.sort(function (a, b) {
-    return b.y - a.y;
-  });
+    //Sort nodes by y value, always starting at the founder (largest y) ;
+    this.nodes.sort(function (a, b) {
+      return b.y - a.y;
+    });
 
-  //Initially set all nodes to visible (i.e, not hidden)  and of type 'single' (vs aggregate)
-  this.nodes.forEach((d) => {
-    d.type = 'single';
-    d.hidden = false;
-    d.aggregated = false;
-    d.bdate = +d.bdate;
-    d.deceased = d.deceased === 'Y'; //transform to boolean values
-    d.generation = -1; //indicator that generation has not been set
-    d.descendant = false; //flag for blood descendants of founders - not in use yet (2/23/17)
-    d.x = +d.bdate; //set year as x attribute
-    d.Y = +d.y; //keeps track of nodes original y position
-    d.X = +d.x; //keeps track of nodes original x position - can change for kid grids on hide.
-    d.family_ids = []; //keeps track of nuclear families a given node belongs to.
-    d.clicked = false; //used to keep track of clicked nodes even when they are removed from the visible area. May not need if nodes are not removed and simply scroll out of view.
-    d.primary = undefined; //Keep track of primary attribute and what 'affected' means for this attribute data.
-    d.secondary = undefined; //Keep track of secondary attribute and what 'affected' means for this attribute data.
-    //For Tree structure
-    d.hasChildren = false;
-    d.children = []; //Array of children
-    d.spouse = []; //Array of spouses (some have more than one)
-  });
+    //Initially set all nodes to visible (i.e, not hidden)  and of type 'single' (vs aggregate)
+    this.nodes.forEach((d) => {
+      d.y = undefined;
+      d.x = +d.bdate; //set year as x attribute
+      d.type = 'single';
+      d.hidden = false;
+      d.aggregated = false;
+      d.bdate = +d.bdate;
+      d.deceased = d.deceased === 'Y'; //transform to boolean values
+      d.generation = -1; //indicator that generation has not been set
+      d.descendant = false; //flag for blood descendants of founders - not in use yet (2/23/17)
+      d.family_ids = []; //keeps track of nuclear families a given node belongs to.
+      d.clicked = false; //used to keep track of clicked nodes even when they are removed from the visible area. May not need if nodes are not removed and simply scroll out of view.
+      d.primary = undefined; //Keep track of primary attribute and what 'affected' means for this attribute data.
+      d.secondary = undefined; //Keep track of secondary attribute and what 'affected' means for this attribute data.
+      //For Tree structure
+      d.hasChildren = false;
+      d.children = []; //Array of children
+      d.spouse = []; //Array of spouses (some have more than one)
+    });
 
-  //Define attribute that defines 'affected' state
-  this.definePrimary('suicide', 'Y');
-  this.buildTree();
+    //Define attribute that defines 'affected' state
+    this.definePrimary('suicide', 'Y');
+    this.buildTree();
+
+    //Linearize Tree
+    this.assignLinearOrder();
+
+  //After linear order has been computed:
+    this.nodes.forEach((d)=> {
+      d.Y = +d.y; //keeps track of nodes original y position
+      d.X = +d.x; //keeps track of nodes original x position - can change for kid grids on hide.
+    });
+
 
   };
 
+
+  /**
+   *
+   * This function linearizes all nodes in the tree.
+   *
+   */
+
+  private assignLinearOrder() {
+
+    //Sort by increasing birth date
+    this.nodes.sort(function (a, b) {
+      return parseFloat(a.x) - parseFloat(b.x);
+    });
+
+    this.nodes[0].y = 1; //Set first y index;
+    this.nodes.forEach((node) => {
+      this.assignLinearOrderNode(node);
+    });
+
+    this.nodes.forEach((thisNode) => {
+      if (this.nodes.filter(function (n) {
+          return n.y !== undefined && n.y === thisNode.y;
+        }).length > 1) {
+        this.nodes.forEach(function (d) {
+          if (d.y > thisNode.y) {
+            d.y = d.y + 1;
+          }
+          ;
+        });
+        thisNode.y = thisNode.y + 1;
+      }
+    });
+  }
+
+
+  /**
+   *
+   * This function linearizes a single node in the tree.
+   *
+   * @param node node to be assigned an order
+   */
+
+  private assignLinearOrderNode(node) {
+
+    const ma = node.ma;
+    const pa = node.pa;
+    const spouse = node.spouse;
+
+    if (!node.y) {
+      node.y = max(this.nodes, function (d) { return d['y']; }) + 1;
+    }
+
+    //Put spouse to the left of the current node (at least in a first pass)
+    if (spouse.length > 0 && spouse[0].y === undefined) {
+      spouse[0].y = node.y;
+    } else if (spouse.length > 0 && spouse[0].y !== undefined) {
+      node.y = spouse[0].y;
+    }
+    if (ma !== undefined && pa !== undefined) {
+      if (ma.y !== undefined) {
+        if (ma.y < node.y) {
+          node.y = ma.y;
+          this.nodes.forEach(function (d) {
+            if (d.y > node.y) {
+              d.y = d.y + 1;
+            }
+          });
+          ma.y = node.y + 1;
+          pa.y = ma.y;
+        }
+      } else {
+          this.nodes.forEach(function (d) {
+            if (d.y > node.y) {
+              d.y = d.y + 1;
+            }
+          });
+          pa.y = node.y + 1;
+          ma.y = node.y + 1;
+        }
+      }
+  };
 
 
   /**
@@ -96,7 +186,6 @@ class GraphData {
     console.log('calling definePrimary', attribute, value);
     this.nodes.forEach((node) => {
       node.affected = node[attribute] === value;
-      console.log(node.affected);
       //node.affected = +d["affection"] === 100;
       // node.affected= false;
       node.primary = {'Attribute': attribute, 'Threshold': value};
@@ -450,7 +539,6 @@ class GraphData {
       if (rowNodes < 1) { //found an empty Row
         toCollapse = toCollapse + 1;
       } else {
-        console.log('collapsing ', toCollapse, 'rows');
         this.nodes.forEach((node) => {
           if (Math.round(node.y) >= y) {
             node.y = node.y - toCollapse;

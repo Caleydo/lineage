@@ -60,6 +60,7 @@ class attributeTable {
       col.name = await vector.column;
       col.data = temp;
       col.ys = data.ys;
+      col.type = await vector.valuetype.type;
       colDataAccum.push(col);
     }
 
@@ -164,7 +165,7 @@ class attributeTable {
 
     //Bind data to the col headers
     let headers = tableHeader.selectAll(".header")
-      .data(this.colData.map((d,i) => {return {'name':d.name, 'data':d, 'ind':i}}));
+      .data(this.colData.map((d,i) => {return {'name':d.name, 'data':d, 'ind':i, 'type':d.type}}));
 
     const headerEnter = headers
       .enter()
@@ -189,7 +190,7 @@ class attributeTable {
 
     //Bind data to the col groups
     let cols = table.selectAll(".column")
-      .data(this.colData.map((d,i) => {return {'name':d.name, 'data':d.data, 'ind':i, 'ys':d.ys}}));
+      .data(this.colData.map((d,i) => {return {'name':d.name, 'data':d.data, 'ind':i, 'ys':d.ys, 'type':d.type}}));
 
     const colsEnter = cols.enter()
       .append('g')
@@ -202,10 +203,15 @@ class attributeTable {
     let cells = cols.selectAll('.cell')
       .data((d) => {
         return d.data.map((e, i) => {
-          return {'name': d.name, 'data': e, 'y': d.ys[i]}
+          return {'name': d.name, 'data': e, 'y': d.ys[i], 'type':d.type}
         })
       });
+    //  .enter();
     //.data((d) => {return d.data}) //Also works but then you don't retain the 'name' and 'y value' for each cell.
+
+
+
+
 
     //Append cells to the enter() selection
     const cellsEnter = cells
@@ -222,6 +228,19 @@ class attributeTable {
       .attr('fill', 'lightgrey')
       .attr('stroke', 'black')
       .attr('stoke-width', 1)
+
+
+      cells.filter(true) /*function(cell){
+        if(cell.type === 'categorical'){
+          console.log(cell.name + " was categorical");
+          return true;
+        }
+        return false;
+      })*/
+    //  .append('rect')
+      .attr('width', 25)
+      .attr('height', 20)
+      .attr('fill', 'blue');
 
 
     //Move cells to their correct y position

@@ -216,8 +216,10 @@ class attributePanel {
       .attr('id', column_name)
       .classed('sub-menu collapse fade', true)
       .append('svg')
+      .attr('id', column_name+'_svg')
+      .classed('atrribute_svg', true);
 
-    this.populateData(attributeSVG, column_name,column_desc);
+    this.populateData(this.$node.select('#'+column_name+'_svg').node(), column_name,column_desc);
 
   }
 

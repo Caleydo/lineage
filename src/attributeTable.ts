@@ -159,25 +159,58 @@ class attributeTable {
     /// v row
         const table = svg.append("g")
         .attr("transform", "translate(0," + this.margin.top + ")");
-
-
-
+    
         // @Carolina: so here is where I'm adding the columns:
         // I've got the code for rendering the visualizations down below
         // (commented out for now)
         // and I'm logging to the screen what this colData is that I'm binding in .data()
 
+        //Bind data to the col groups
         let cols = table.selectAll(".column")
-        .data(this.colData)
-        .enter()
-        .append("g")
+        .data(this.colData);
+
+        const colsEnter = cols.enter()
+        .append('g')
         .classed('dataCols', true)
-        .classed(function (col){return col.name;}, function(col){
-            return col.name === name;
-        })
-        .attr("transform", function (col) { //TODO: translate by x instead bc columns
-          return ('translate(0, ' +  y(col.y)+ ' )');
+
+        cols = colsEnter.merge(cols);
+
+        //Bind data to the cells
+        let cells = cols.selectAll('.cell')
+          .data((d) => {console.log(d.ys); return d.data.map((e,i) => {return {'name':d.name, 'data':e, 'y':d.ys[i]}})});
+          //.data((d) => {return d.data}) //Also works but then you don't retain the 'name' and 'y value' for each cell.
+
+        //Append cells to the enter() selection
+        const cellsEnter = cells
+          .enter()
+          .append('rect')
+          .classed('cell','true');
+
+        cells = cells.merge(cellsEnter);
+
+        //Style all cells
+        cells
+          .attr('width', 50)
+          .attr('height', 20)
+          .attr('fill', 'lightgrey')
+          .attr('stroke', 'black')
+          .attr('stoke-width', 1)
+
+
+        //Move cells to their correct y position
+        selectAll('.cell')
+        .attr("transform", function (col) {
+           return ('translate(0, ' +  y(col['y']) + ' )'); //the x translation is taken care of by the group this cell is nested in.
         });
+
+
+
+
+
+
+
+
+
 
 
 

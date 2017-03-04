@@ -1,5 +1,6 @@
 import {select, selectAll} from 'd3-selection';
 import {scaleLinear, scaleBand} from 'd3-scale';
+import {nest} from 'd3-collection';
 import {ICategoricalVector, INumericalVector} from 'phovea_core/src/vector/IVector';
 import {IAnyVector} from 'phovea_core/src/vector';
 
@@ -52,7 +53,13 @@ class Histogram {
    * This function aggregiate the sum of elements for each category
    * to populate the histogram data variable histData
    */
-  private prepData(){
+  private async prepData() {
+    for(const cat of this.categories) {
+      const fdata =  await this.dataVec.filter(function(c){
+        return c === cat.name;
+      });
+      console.log(await fdata.data());
+    }
 
     return Promise.resolve(this);
   }

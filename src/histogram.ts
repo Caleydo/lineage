@@ -31,7 +31,6 @@ class Histogram {
 
   constructor(parent:Element) {
     this.$node = select(parent);
-    console.log(this.$node)
   }
 
   /**

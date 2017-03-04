@@ -176,7 +176,7 @@
   font-size: 14px;
 }
 
-.nav-side-menu li :not(collapsed) .idType:before {
+.nav-side-menu li :not(collapsed) .idtype:before {
   font-family: FontAwesome;
   /*content: "\f078";*/
   content: "\F084";
@@ -320,7 +320,7 @@
 .attribut_svg{
   margin-left: -20;
 }
-.attribut_svg .bar{
+.attribut_svg .bar:hover{
   fill: rgb(127,134,134);
 }
 

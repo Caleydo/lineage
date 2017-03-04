@@ -13,7 +13,7 @@ export class Config {
   public static hiddenGlyphSize = 4;
   public static spaceBetweenGenerations = 4;
 
-
+  public static svgHeight = 600;
   public static margin = {
         axisTop: 80,
         top: 150,

@@ -170,7 +170,9 @@ class GenealogyTree {
     const nodes = this.data.nodes;
 
     this.width = 600 - this.margin.left - this.margin.right
-    this.height = Config.glyphSize * 3 * nodes.length - this.margin.top - this.margin.bottom;
+    // this.height = Config.glyphSize * 3 * nodes.length - this.margin.top - this.margin.bottom;
+
+    this.height = 2506;
 
     // Y scale. Xscale range and domain are defined in update_time_axis;
     this.y.range([0, this.height]).domain([min(nodes, function (d) {

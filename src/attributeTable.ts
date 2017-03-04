@@ -223,26 +223,28 @@ class attributeTable {
 
     cells = cells.merge(cellsEnter);
 
-    //Style all cells
-    cells
+
+
+      const categoricals = selectAll('.cell').filter(function(d:any){
+        return (d.type === 'categorical');})
       .attr('width', 25)
       .attr('height', 20)
-      .attr('fill', 'lightgrey')
       .attr('stroke', 'black')
       .attr('stoke-width', 1)
+      .attr('fill', 'blue');
 
 
-      cells.filter(true) /*function(cell){
-        if(cell.type === 'categorical'){
-          console.log(cell.name + " was categorical");
-          return true;
-        }
-        return false;
-      })*/
-    //  .append('rect')
+      const quantatives = selectAll('.cell').filter(function(d:any){
+        console.log(d.type);
+        return (d.type === 'int');})
       .attr('width', 25)
       .attr('height', 20)
-      .attr('fill', 'blue');
+      .attr('stroke', 'black')
+      .attr('stoke-width', 1)
+      .attr('fill', 'red');
+
+
+
 
 
     //Move cells to their correct y position

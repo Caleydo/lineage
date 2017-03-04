@@ -52,7 +52,7 @@ export default class AttributeData {
       if(name === 'y'){ //pay no attention to the man behind the curtain
         yIndex = i; //for some reason can't set the member var here. js...
       }
-      else if (!(type === 'idtype')) {
+      else if (!(type === 'idtype' || name === 'x') ) {
         colIndexAccum.push(i);//push the index so we can get the right view
         this.activeAttributes.push(name);
       }

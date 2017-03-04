@@ -4,6 +4,11 @@ import * as Sortable from 'sortablejs';
 import * as $ from 'jquery';
 import {select, selectAll} from 'd3-selection';
 import {keys} from 'd3-collection';
+import {IAnyVector} from 'phovea_core/src/vector';
+import {ICategoricalVector, INumericalVector} from 'phovea_core/src/vector/IVector';
+import * as histogram from './histogram';
+import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT} from 'phovea_core/src/datatype';
+
 
 import {Config} from './config';
 
@@ -188,14 +193,14 @@ class attributePanel {
 
     });
 
-    $(document).unbind().on('click', '.badge', function () {
+    selectAll('.badge').on('click', function () {
       console.log('badge clicked')
       let badge = $(this).text();
       let attribute = $(this).closest('strong').contents()[0];
       //reset badge dispaly for previously clicked badges
-      $(".checked_" + badge).parent().css("display", "");
-      $(".checked_" + badge).parent().children().css("display", "");
-      $(".checked_" + badge).removeClass(".checked_" + badge);
+      $('.checked_' + badge).parent().css("display", "");
+      $('.checked_' + badge).parent().children().css("display", "");
+      $('.checked_' + badge).removeClass(".checked_" + badge);
 
       $(this).parent().css("display", "inline");
       $(this).parent().children().css("display", "none");
@@ -212,7 +217,7 @@ class attributePanel {
       .classed('sub-menu collapse fade', true)
       .append('svg')
 
-    this.populateData(attributeSVG, column_name);
+    this.populateData(attributeSVG, column_name,column_desc);
 
   }
 
@@ -221,10 +226,53 @@ class attributePanel {
    * for a specific attribute
    *
    */
-  private async populateData(svg, attribute) {
+  private async populateData(svg, attributeName, attributeType) {
     //console.log(await this.table.colData(attribute));
     console.log('populateData');
-    console.log(await this.table.colData(attribute))
+    let dataVec:IAnyVector;
+    // getting data as IVector for attributeName
+    // we need to use col(index) so we can get IVector object
+    // since we don't have indices for columns, we are iterating though
+    // columns and get the matched one
+    for(const col in this.columns) {
+      if(this.columns[col].desc.name === attributeName) {
+        dataVec = await this.table.col(col);
+      }
+    }
+
+    if (attributeType === 'categorical') {
+      const catVector = <ICategoricalVector> dataVec;
+      const attributeHistogram = histogram.create(svg);
+      await attributeHistogram.init(dataVec);
+    } else {
+      const numVector = <INumericalVector> dataVec;
+      //console.log('Stats on a vector:');
+      //console.log(await numVector.stats());
+    }
+
+/*
+
+    const dataVec = await this.table.colData(attributeName);
+    if(attributeType === 'categorical'){
+      //catVector = <ICategoricalVector> this.table.colData(4);
+      //console.log('The histogram:');
+      //console.log(await catVector.hist());
+    } else {
+      /*numVector = <INumericalVector> this.table.colData(attributeName);
+      console.log('Stats on a vector:');
+      console.log(await numVector.stats());
+    }
+
+    if(attributeType === VALUE_TYPE_INT) {
+     // const attributeHistogram = histogram.create(svg);
+     // attributeHistogram.init(dataVec);
+
+      const numVector = <INumericalVector> this.table.col(5);
+      console.log('3rd value from the 5th vector:' + await numVector.at(3));
+      console.log('Stats on a vector:');
+      console.log(await numVector.stats());
+    }
+*/
 
 
   }

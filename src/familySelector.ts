@@ -9,11 +9,12 @@ import {Config} from './config';
 
 
 /**
- * Creates the attribute table view
+ * Creates the family selector view
  */
-class attributePanel {
+class familySelector {
 
   private $node;
+
 
   // access to all the data in our backend
   private table;
@@ -22,28 +23,15 @@ class attributePanel {
 
 
   constructor(parent:Element) {
-
-    select(parent)
-      .append('div')
-      .attr('id','familySelector')
-
-    this.$node = select(parent)
-      .append('div')
-      .classed('nav-side-menu active', true);
-
-
+    this.$node = select(parent);
   }
 
   /**
    * Initialize the view and return a promise
    * that is resolved as soon the view is completely initialized.
-   * @returns {Promise<FilterBar>}
+   * @returns {Promise<familySelector>}
    */
-  init(attributeDataObj) {
-    this.table = attributeDataObj.table;
-    this.columns = attributeDataObj.getColumns();
-    this.activeColumns = attributeDataObj.activeAttributes;
-
+  init() {
     this.build();
     this.attachListener();
 
@@ -57,91 +45,47 @@ class attributePanel {
    */
   private build() {
 
-    // menu container container
-    const menu_list = this.$node.append('div')
-      .classed('menu-list', true)
-      .html(` <ul >
-            <li class="brand" data-toggle="collapse"> <i class=""></i> <strong>Data Selection</strong>
-             <span class="toggle-btn"><i class="glyphicon glyphicon-menu-hamburger"></i></span></li>
-               </ul>`);
+    const table = select("#familySelector").append("table")
+        .attr("style", "margin-top: 30px,  margin-left: 10px,  margin-right: 10px");
 
+    const thead = table.append("thead");
+    const tbody = table.append("tbody");
 
-    // list that holds data attribute
-    // initially all attributes are active
-    const active_attribute_list = menu_list.append('div')
-      .attr('id', 'active-menu-content')
-      .classed('menu-content collapse in', true);
-
-    menu_list.append('ul')
-      .html(`
-       <li class="inactive collapsed active" data-target="#inactive-menu-content" data-toggle="collapse">
-                                  <i class=""></i><strong>Inactive attributes</strong> <span class="arrow"></span>
-                                </li>`);
-
-
-    // list that holds inactive attributes
-    // a user can populate this list by dragging elements from the active list
-    const inactive_attribute_list = menu_list.append('div')
-      .attr('id', 'inactive-menu-content')
-      .classed('menu-content sub-menu collapse in fade', true)
-    // .html(`
-    // <li class='placeholder'>DRAG AND DROP ATTRIBUTES HERE TO MAKE THEM INACTIVE</li>`);
-
-
-    // Active sortable list
-    Sortable.create(document.getElementById('active-menu-content'), {
-      group: 'menu-content',
-      ghostClass: 'ghost',
-      animation: 150,
-      pull: true,
-      put: true,
-      onAdd: function (evt) {
-        let item = {
-          name: evt.item.getElementsByTagName("strong")[0].textContent,
-          newIndex: evt.newIndex
-        };
-        events.fire('attribute_added', item);
-
-      },
-      onUpdate: function (evt) {
-        let item = {
-          name: evt.item.getElementsByTagName("strong")[0].textContent,
-          newIndex: evt.newIndex,
-          oldIndex: evt.oldIndex
-        };
-        events.fire('attribute_reordered', item);
-      },
-
-    });
-
-    //inactive sortable list
-    Sortable.create(document.getElementById('inactive-menu-content'), {
-      group: 'menu-content',
-      ghostClass: 'ghost',
-      animation: 150,
-      pull: true,
-      put: true,
-      onAdd: function (evt) {
-        let item = {
-          name: evt.item.getElementsByTagName("strong")[0].textContent,
-          newIndex: evt.newIndex,
-          oldIndex: evt.oldIndex
-        };
-
-        select('.placeholder')
-          .style('display', 'none');
-
-        events.fire('attribute_removed', item);
-      },
-
-    });
-
-    this.columns.forEach((column)=> {
-      this.addAttribute(column.desc.name, column.desc.value.type)
-    })
-
-
+    // append the header row
+    thead.append("tr")
+      .selectAll("th")
+      .data(['FamilyID','# People','% Cases'])
+      .enter()
+      .append("th")
+      .text(function(column) { return column; });
   }
+
+  /**
+   * Build the table and populate with list of families.
+   */
+  private  updateTable(data) {
+
+
+  // create a row for each object in the data
+  var rows = select('tbody').selectAll("tr")
+    .data(data)
+    .enter()
+    .append("tr");
+  //
+  // // create a cell in each row for each column
+  // var cells = rows.selectAll("td")
+  //   .data(function(row) {
+  //     return columns.map(function(column) {
+  //       return {column: column, value: row[column]};
+  //     });
+  //   })
+  //   .enter()
+  //   .append("td")
+  //   .attr("style", "font-family: Courier") // sets the font style
+  //   .html(function(d) { return d.value; });
+
+
+}
 
   /***
    *
@@ -229,8 +173,8 @@ class attributePanel {
    */
   private async populateData(svg, attribute) {
     //console.log(await this.table.colData(attribute));
-    // console.log('populateData');
-    // console.log(await this.table.colData(attribute))
+    console.log('populateData');
+    console.log(await this.table.colData(attribute))
 
 
   }
@@ -256,5 +200,5 @@ class attributePanel {
  * @returns {attributePanel}
  */
 export function create(parent:Element) {
-  return new attributePanel(parent);
+  return new familySelector(parent);
 }

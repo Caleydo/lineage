@@ -178,8 +178,6 @@ class attributeTable {
 
       // .attr('x',(d) => {return x(d['ind'])})
 
-
-
     const table = svg.append("g")
       .attr("transform", "translate(0," + this.margin.top + ")");
 

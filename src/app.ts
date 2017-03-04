@@ -9,6 +9,7 @@ import {select, selectAll} from 'd3-selection';
 import * as tree from './genealogyTree';
 import * as table from './attributeTable';
 import * as panel from './attributePanel';
+import * as familySelector from './familySelector';
 
 
 import {csv} from 'd3-request';
@@ -55,9 +56,8 @@ export class App {
       const attributeDataObj = attributeData.create();
       // This executes asynchronously, so you'll have to pass
       // back a promise and resolve that before you keep going
-      await attributeDataObj.loadData('big-decent-clipped-38');
-      // await attributeDataObj.loadData('family-clipped-10962');
-
+      // await attributeDataObj.loadData('big-decent-clipped-38');
+      await attributeDataObj.loadData('SmallDescend');
 
       const graphDataObj = graphData.create(attributeDataObj);
       await graphDataObj.createTree();
@@ -68,11 +68,14 @@ export class App {
       //const tableDataObj = tableData.create(realData, datasets[0].desc.columns);
 
       const attributeTable = table.create(this.$node.select('#graph_table').node());
-      attributeTable.init(attributeDataObj);
+     // attributeTable.init(attributeDataObj);
 
       const attributePanel = panel.create(this.$node.select('#data_selection').node());
       attributePanel.init(attributeDataObj);
 
+      const familySelectorView = familySelector.create(this.$node.select('#familySelector').node());
+
+    familySelectorView.init();
       const data = dataExplorations.create();
       //data.loadLocalData();
       // data.demoDatasets(null);

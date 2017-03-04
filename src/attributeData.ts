@@ -28,6 +28,7 @@ export default class AttributeData {
    */
   public async loadData(name:string) {
     //retrieving the desired dataset by name
+    console.log('name',name)
     this.table = <ITable> await getFirstByName(name);
     await this.parseData();
     this.attachListener();
@@ -41,8 +42,10 @@ export default class AttributeData {
    */
   public async parseData() {
     const columns = await this.table.cols();
+
+    console.log('cols', columns);
     const colIndexAccum = [];
-    let yIndex = 19;
+    let yIndex; //No need to set a value if you're going to override it in line 53.
 
     //populate active attribute array
     columns.forEach((col, i) => {
@@ -50,7 +53,7 @@ export default class AttributeData {
       const type = col.desc.value.type;
       // if the type of the column is ID then it is not in the active list
       if(name === 'y'){ //pay no attention to the man behind the curtain
-        yIndex = i; //for some reason can't set the member var here. js...
+        yIndex = i; //for some reason can't set the member var here. js...  //That' because you're inside an if statement. The variable wouldn't exist outside of this if statement.
       }
       else if (!(type === 'idtype')) {
         colIndexAccum.push(i);//push the index so we can get the right view
@@ -58,10 +61,10 @@ export default class AttributeData {
       }
     }); //end for each
 
-    const tempRequest = await this.table.col(yIndex);
-    this.ys = await tempRequest.data(range.all());
-    console.log("THIS WAS THE y COLUMN:");
-    console.log(this.ys);
+    // const tempRequest = await this.table.col(yIndex);
+    // this.ys = await tempRequest.data(range.all());
+    // console.log("THIS WAS THE y COLUMN:");
+    // console.log(this.ys);
 
     this.activeRows = range.all(); // all rows to start out with
     this.activeColumns = range.list(colIndexAccum);

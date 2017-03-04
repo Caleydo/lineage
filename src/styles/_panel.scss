@@ -317,6 +317,13 @@
   transition: all 1s ease;
 }
 
+.attribut_svg{
+  margin-left: -20;
+}
+.attribut_svg .bar{
+  fill: rgb(127,134,134);
+}
+
 @media (max-width: 767px) {
   .nav-side-menu {
     position: relative;

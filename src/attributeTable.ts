@@ -60,9 +60,9 @@ class attributeTable {
       col.ys = data.ys;
       col.type = await vector.valuetype.type;
       if(col.type === 'categorical')
-        col.categories = Array.from(new Set(col.data));
+        col.cats = Array.from(new Set(col.data));
       else
-        col.categories = []; //hacky, I know. Real way would be to prbly use a union but that's too much overhead atm.
+        col.cats = []; //hacky, I know. Real way would be to prbly use a union but that's too much overhead atm.
       colDataAccum.push(col);
     }
 
@@ -122,7 +122,7 @@ class attributeTable {
 
     //Bind data to the col headers
     let headers = tableHeader.selectAll(".header")
-      .data(this.colData.map((d,i) => {return {'name':d.name, 'data':d, 'ind':i, 'type':d.type, 'cats':d.categories}}));
+      .data(this.colData.map((d,i) => {return {'name':d.name, 'data':d, 'ind':i, 'type':d.type, 'cats':d.cats}}));
 
     const headerEnter = headers
       .enter()
@@ -143,7 +143,7 @@ class attributeTable {
 
     //Bind data to the col groups
     let cols = table.selectAll(".column")
-      .data(this.colData.map((d,i) => {return {'name':d.name, 'data':d.data, 'ind':i, 'ys':d.ys, 'type':d.type, 'cats':d.categories}}));
+      .data(this.colData.map((d,i) => {return {'name':d.name, 'data':d.data, 'ind':i, 'ys':d.ys, 'type':d.type, 'cats':d.cats}}));
 
     const colsEnter = cols.enter()
       .append('g')
@@ -158,7 +158,7 @@ class attributeTable {
     let cells = cols.selectAll('.cell')
       .data((d) => {
         return d.data.map((e, i) => {
-          return {'name': d.name, 'data': e, 'y': d.ys[i], 'type':d.type, 'cats':d.categories } //, 'ind':i}
+          return {'name': d.name, 'data': e, 'y': d.ys[i], 'type':d.type, 'cats':d.cats } //, 'ind':i}
         })
       })
       .enter()
@@ -175,7 +175,17 @@ class attributeTable {
 
       categoricals
       .append('rect')
-      .attr('width', 25)
+      .attr('width', (d)=> {
+        console.log("categories was: ");
+        console.log(d);
+        const totalColWidth = col_widths.find(x => x.name === d.name).width;
+        if(d.type === 'categorical')
+            return totalColWidth/(d.cats.length);
+          else
+            return totalColWidth;
+        })
+
+      //25)
       // (d)=>{console.log(col_xs[d['ind']]);
       //   return (col_xs[d['ind']]);}) //25
       .attr('height', 20)
@@ -607,7 +617,7 @@ class attributeTable {
 	      return 3;
 	    else if(data_elem.type === 'categorical'){ //make sure to account for # cols
         const cat_weight = 1; //seperated out for adjustment later
-	      return data_elem.categories.length * cat_weight;
+	      return data_elem.cats.length * cat_weight;
       }
 	    return 2;
 	  }
@@ -620,14 +630,18 @@ class attributeTable {
 	}
 
 
+// returns a function that takes a column name & returns the width of that column (single category width for cat columns)
 	  private getDisplayedColumnWidths(width){
 	      const totalWeight = this.getTotalWeights();
         const getWeightHandle = this.getWeight;
 	      const toReturn = this.colData.map(function(elem, index){
-	          return getWeightHandle(elem) * width / totalWeight;
+	          const elemWidth = getWeightHandle(elem) * width / totalWeight;
+            return {'name':elem['name'], 'width':elemWidth}
 	      });
         console.log("these are the col widths: ");
         console.log(toReturn);
+        console.log("this is the col width for sex");
+        console.log(toReturn.find(x => x.name === 'sex').width);
         return toReturn;
 	  }
 

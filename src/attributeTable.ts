@@ -59,11 +59,8 @@ class attributeTable {
       col.data = temp;
       col.ys = data.ys;
       col.type = await vector.valuetype.type;
-      if(col.type === 'categorical'){
+      if(col.type === 'categorical')
         col.categories = Array.from(new Set(col.data));
-        console.log("column categories! for column " + col.name);
-        console.log(col.categories);
-      }
       else
         col.categories = []; //hacky, I know. Real way would be to prbly use a union but that's too much overhead atm.
       colDataAccum.push(col);
@@ -131,7 +128,10 @@ class attributeTable {
       .enter()
       .append('text')
       .classed('header', 'true')
+      //.attr("transform", (d) => {return 'translate(' + label_xs[d['ind']] + ',0) rotate(-45)';});
       .attr("transform", (d) => {return 'translate(' + x(d['ind']) + ',0) rotate(-45)';});
+
+
 
     selectAll('.header')
       .text((d) => {return d['name']})
@@ -148,7 +148,9 @@ class attributeTable {
     const colsEnter = cols.enter()
       .append('g')
       .classed('dataCols', true)
+    //  .attr("transform", (d) => {return 'translate(' + col_xs[d['ind']] + ',0)';});
       .attr("transform", (d) => {return 'translate(' + x(d['ind']) + ',0)';});
+
 
     cols = colsEnter.merge(cols);
 
@@ -156,7 +158,7 @@ class attributeTable {
     let cells = cols.selectAll('.cell')
       .data((d) => {
         return d.data.map((e, i) => {
-          return {'name': d.name, 'data': e, 'y': d.ys[i], 'type':d.type, 'cats':d.categories}
+          return {'name': d.name, 'data': e, 'y': d.ys[i], 'type':d.type, 'cats':d.categories } //, 'ind':i}
         })
       })
       .enter()
@@ -174,6 +176,8 @@ class attributeTable {
       categoricals
       .append('rect')
       .attr('width', 25)
+      // (d)=>{console.log(col_xs[d['ind']]);
+      //   return (col_xs[d['ind']]);}) //25
       .attr('height', 20)
       .attr('stroke', 'black')
       .attr('stoke-width', 1)
@@ -182,7 +186,8 @@ class attributeTable {
 
       quantatives
       .append('rect')
-      .attr('width', 25)
+      .attr('width',25)// (d) => {return col_widths[d['ind']];})
+      //(d)=>{return col_xs[d['ind']];}) //25
       .attr('height', 20)
       .attr('stroke', 'black')
       .attr('stoke-width', 1)
@@ -597,18 +602,20 @@ class attributeTable {
   //}
 
 
-  private getWeight(type){
-	    if(type === 'int')
+  private getWeight(data_elem){
+	    if(data_elem.type === 'int')
 	      return 3;
-	    else if(type === 'categorical')
-	      return 1;
+	    else if(data_elem.type === 'categorical'){ //make sure to account for # cols
+        const cat_weight = 1; //seperated out for adjustment later
+	      return data_elem.categories.length * cat_weight;
+      }
 	    return 2;
 	  }
 
  private getTotalWeights(){
       const getWeightHandle = this.getWeight;
 	    const weights = this.colData.map(function(elem)
-	    { return getWeightHandle(elem['type']);});
+	    { return getWeightHandle(elem);});
 	    return weights.reduce(function(a, b) { return a + b; }, 0);
 	}
 
@@ -616,9 +623,12 @@ class attributeTable {
 	  private getDisplayedColumnWidths(width){
 	      const totalWeight = this.getTotalWeights();
         const getWeightHandle = this.getWeight;
-	      return this.colData.map(function(elem, index){
-	          return getWeightHandle(elem['type']) * width / totalWeight;
+	      const toReturn = this.colData.map(function(elem, index){
+	          return getWeightHandle(elem) * width / totalWeight;
 	      });
+        console.log("these are the col widths: ");
+        console.log(toReturn);
+        return toReturn;
 	  }
 
 	  private getDisplayedColumnXs(width){
@@ -627,7 +637,7 @@ class attributeTable {
 	    return this.colData.map(function(elem, index){
 	        var x_dist = 0;
 	        for (let i = 0; i < index; i++) {
-	          const accum = getWeightHandle(elem['type']) * width / totalWeight;
+	          const accum = getWeightHandle(elem) * width / totalWeight;
 	          x_dist += accum;
 	        }
 	        return x_dist;

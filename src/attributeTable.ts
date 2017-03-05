@@ -33,8 +33,6 @@ class attributeTable {
 
   constructor(parent: Element) {
     this.$node = select(parent)
-    // .append('div')
-    // .classed('attributeTable', true);
   }
 
   /**
@@ -61,6 +59,13 @@ class attributeTable {
       col.data = temp;
       col.ys = data.ys;
       col.type = await vector.valuetype.type;
+      if(col.type === 'categorical'){
+        col.categories = Array.from(new Set(col.data));
+        console.log("column categories! for column " + col.name);
+        console.log(col.categories);
+      }
+      else
+        col.categories = []; //hacky, I know. Real way would be to prbly use a union but that's too much overhead atm.
       colDataAccum.push(col);
     }
 
@@ -68,27 +73,6 @@ class attributeTable {
     this.colData = colDataAccum;
     console.log("this is colData:");
     console.log(colDataAccum);
-
-    //this.ys = data.ys;
-    //  this.colData = data.activeAttributes;
-
-    // console.log("can I get the objects?");
-    // console.log(await this.activeView.objects());
-    //
-    // console.log("can I get col names & types?");
-    // console.log(this.colData);
-    //
-
-    //  console.log("col data?");
-    //  console.log(await this.activeView.colData());
-
-    // for (const vector of this.activeView.cols()) {
-    //   console.log(await vector.data(range.all()));
-    // }
-    //
-    // console.log("and here are the y's");
-    // console.log(data.ys);
-
 
     this.build();
     this.attachListener();
@@ -105,20 +89,8 @@ class attributeTable {
    */
   private async build() {
 
-
-    // returns a list of column-based data
-    // this.activeView.cols().map(function(col){
-    //       return this.activeView.colData[col.desc.name];
-    //     })
-
-    //list with 1 object
-    // let fakeData = [{id:"John", y:"2", ddate:1993, bdate:1900},
-    //                 {id:"Alice", y:"4", ddate:1973, bdate:1900}];
-
-
     this.width = 450 - this.margin.left - this.margin.right
     // this.height = Config.glyphSize * 3 * this.activeView.nrow - this.margin.top - this.margin.bottom;
-
     this.height = 2504;
 
     const darkGrey = '#4d4d4d';
@@ -127,21 +99,12 @@ class attributeTable {
     const lightPinkGrey = '#eae1e1';
     const darkBlueGrey = '#4b6068';
 
-    //  let rowData = await this.activeView.objects();
-    //  let colData = this.colData; //just an array so no awaiting
 
     //rendering info
-    var col_widths = await this.getDisplayedColumnWidths(this.width);
-    var col_xs = await this.getDisplayedColumnXs(this.width);
-    var label_xs = await this.getDisplayedColumnMidpointXs(this.width);
+    var col_widths = this.getDisplayedColumnWidths(this.width);
+    var col_xs = this.getDisplayedColumnXs(this.width);
+    var label_xs = this.getDisplayedColumnMidpointXs(this.width);
 
-    var num_cols = this.colData.length;
-    var displayedColNames = this.colData.map(function (elem) {
-      return elem['name'];
-    });
-    var displayedColTypes = this.colData.map(function (elem) {
-      return elem['type'];
-    });
 
     // Scales
     let x = scaleLinear().range([0, this.width]).domain([0, 13]);
@@ -156,16 +119,13 @@ class attributeTable {
       .attr("height", this.height + this.margin.top + this.margin.bottom)
 
 
-//COLUMNS GO HERE
-
-
-    /// v row
+//HEADERS
     const tableHeader = svg.append("g")
       .attr("transform", "translate(0," + this.margin.top / 2 + ")");
 
     //Bind data to the col headers
     let headers = tableHeader.selectAll(".header")
-      .data(this.colData.map((d,i) => {return {'name':d.name, 'data':d, 'ind':i, 'type':d.type}}));
+      .data(this.colData.map((d,i) => {return {'name':d.name, 'data':d, 'ind':i, 'type':d.type, 'cats':d.categories}}));
 
     const headerEnter = headers
       .enter()
@@ -177,22 +137,13 @@ class attributeTable {
       .text((d) => {return d['name']})
 
 
-      // .attr('x',(d) => {return x(d['ind'])})
-
-
-
+// TABLE
     const table = svg.append("g")
       .attr("transform", "translate(0," + this.margin.top + ")");
 
-
-    // @Carolina: so here is where I'm adding the columns:
-    // I've got the code for rendering the visualizations down below
-    // (commented out for now)
-    // and I'm logging to the screen what this colData is that I'm binding in .data()
-
     //Bind data to the col groups
     let cols = table.selectAll(".column")
-      .data(this.colData.map((d,i) => {return {'name':d.name, 'data':d.data, 'ind':i, 'ys':d.ys, 'type':d.type}}));
+      .data(this.colData.map((d,i) => {return {'name':d.name, 'data':d.data, 'ind':i, 'ys':d.ys, 'type':d.type, 'cats':d.categories}}));
 
     const colsEnter = cols.enter()
       .append('g')
@@ -205,7 +156,7 @@ class attributeTable {
     let cells = cols.selectAll('.cell')
       .data((d) => {
         return d.data.map((e, i) => {
-          return {'name': d.name, 'data': e, 'y': d.ys[i], 'type':d.type}
+          return {'name': d.name, 'data': e, 'y': d.ys[i], 'type':d.type, 'cats':d.categories}
         })
       })
       .enter()
@@ -213,8 +164,12 @@ class attributeTable {
       .attr('class', 'cell');
 
 
-      const categoricals = cells.filter((e)=>{return (e.type === 'categorical')});
-      const quantatives = cells.filter((e)=>{return (e.type === 'int')});
+      const categoricals = cells.filter((e)=>{return (e.type === 'categorical')})
+                            .attr('classed', 'categorical');
+      const quantatives  = cells.filter((e)=>{return (e.type === 'int')})
+                            .attr('classed', 'quantitative');
+      const idCells      = cells.filter((e)=>{return (e.type === 'idtype')})
+                            .attr('classed', 'idtype');
 
       categoricals
       .append('rect')
@@ -232,6 +187,9 @@ class attributeTable {
       .attr('stroke', 'black')
       .attr('stoke-width', 1)
       .attr('fill', 'red');
+
+
+
 
 
 

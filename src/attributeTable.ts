@@ -52,18 +52,29 @@ class attributeTable {
     let colDataAccum = [];
     for (const vector of this.activeView.cols()) {
       const temp = await vector.data(range.all());
-      //console.log("the column's name:" + await vector.column);
-      //console.log(temp);
-      var col: any = {};
-      col.name = await vector.column;
-      col.data = temp;
-      col.ys = data.ys;
-      col.type = await vector.valuetype.type;
-      if(col.type === 'categorical')
-        col.cats = Array.from(new Set(col.data));
-      else
-        col.cats = []; //hacky, I know. Real way would be to prbly use a union but that's too much overhead atm.
-      colDataAccum.push(col);
+      const type = await vector.valuetype.type;
+      if(type === 'categorical'){
+        const categories = Array.from(new Set(temp));
+        for(const cat of categories){
+          var col: any = {};
+          const base_name = await vector.column;
+          col.name = base_name + '_' + cat;
+          col.data = temp.map(
+            (d)=>{if(d === cat) return d;
+                  else return undefined;});
+          col.ys = data.ys;
+          col.type = type;
+          colDataAccum.push(col);
+        }
+      }
+      else{
+        var col: any = {};
+        col.name = await vector.column;
+        col.data = temp;
+        col.ys = data.ys;
+        col.type = type;
+        colDataAccum.push(col);
+      }
     }
 
 
@@ -122,7 +133,7 @@ class attributeTable {
 
     //Bind data to the col headers
     let headers = tableHeader.selectAll(".header")
-      .data(this.colData.map((d,i) => {return {'name':d.name, 'data':d, 'ind':i, 'type':d.type, 'cats':d.cats}}));
+      .data(this.colData.map((d,i) => {return {'name':d.name, 'data':d, 'ind':i, 'type':d.type}}));
 
     const headerEnter = headers
       .enter()
@@ -143,7 +154,7 @@ class attributeTable {
 
     //Bind data to the col groups
     let cols = table.selectAll(".column")
-      .data(this.colData.map((d,i) => {return {'name':d.name, 'data':d.data, 'ind':i, 'ys':d.ys, 'type':d.type, 'cats':d.cats}}));
+      .data(this.colData.map((d,i) => {return {'name':d.name, 'data':d.data, 'ind':i, 'ys':d.ys, 'type':d.type}}));
 
     const colsEnter = cols.enter()
       .append('g')
@@ -158,7 +169,7 @@ class attributeTable {
     let cells = cols.selectAll('.cell')
       .data((d) => {
         return d.data.map((e, i) => {
-          return {'name': d.name, 'data': e, 'y': d.ys[i], 'type':d.type, 'cats':d.cats } //, 'ind':i}
+          return {'name': d.name, 'data': e, 'y': d.ys[i], 'type':d.type} //, 'ind':i}
         })
       })
       .enter()
@@ -173,6 +184,9 @@ class attributeTable {
       const idCells      = cells.filter((e)=>{return (e.type === 'idtype')})
                             .attr('classed', 'idtype');
 
+
+    //  for (const category ) {
+
       categoricals
       .append('rect')
       .attr('width', (d)=> {return col_widths.find(x => x.name === d.name).width;})
@@ -180,6 +194,7 @@ class attributeTable {
       .attr('stroke', 'black')
       .attr('stoke-width', 1)
       .attr('fill', 'blue');
+
 
 
       quantatives
@@ -603,8 +618,7 @@ class attributeTable {
 	    if(data_elem.type === 'int')
 	      return 3;
 	    else if(data_elem.type === 'categorical'){ //make sure to account for # cols
-        const cat_weight = 1; //seperated out for adjustment later
-	      return data_elem.cats.length * cat_weight;
+        return 1;
       }
 	    return 2;
 	  }
@@ -622,16 +636,13 @@ class attributeTable {
 	      const totalWeight = this.getTotalWeights();
         const getWeightHandle = this.getWeight;
 	      const toReturn = this.colData.map(function(elem, index){
-	          let elemWidth = getWeightHandle(elem) * width / totalWeight;
-            if(elem.type === 'categorical')
-                elemWidth = elemWidth/(elem.cats.length);
+	          const elemWidth = getWeightHandle(elem) * width / totalWeight;
             return {'name':elem['name'], 'width':elemWidth}
-
 	      });
         console.log("these are the col widths: ");
         console.log(toReturn);
         console.log("this is the col width for sex");
-        console.log(toReturn.find(x => x.name === 'sex').width);
+        console.log(toReturn.find(x => x.name === 'sex_M').width);
         return toReturn;
 	  }
 

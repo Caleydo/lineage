@@ -159,8 +159,11 @@ class attributeTable {
     const colsEnter = cols.enter()
       .append('g')
       .classed('dataCols', true)
-    //  .attr("transform", (d) => {return 'translate(' + col_xs[d['ind']] + ',0)';});
-      .attr("transform", (d) => {return 'translate(' + x(d['ind']) + ',0)';});
+      .attr("transform", (d) => {
+        const x_translation = col_xs.find(x => x.name === d.name).x;
+        return 'translate(' + x_translation + ',0)';});
+      //.attr("transform", (d) => {return 'translate(' + col_xs[d['ind']] + ',0)';});
+      //.attr("transform", (d) => {return 'translate(' + x(d['ind']) + ',0)';});
 
 
     cols = colsEnter.merge(cols);
@@ -197,6 +200,10 @@ class attributeTable {
 
 
 
+
+
+
+
       quantatives
       .append('rect')
       .attr('width', (d)=> {return col_widths.find(x => x.name === d.name).width;})
@@ -204,6 +211,8 @@ class attributeTable {
       .attr('stroke', 'black')
       .attr('stoke-width', 1)
       .attr('fill', 'red');
+
+
 
 
 
@@ -627,36 +636,62 @@ class attributeTable {
       const getWeightHandle = this.getWeight;
 	    const weights = this.colData.map(function(elem)
 	    { return getWeightHandle(elem);});
-	    return weights.reduce(function(a, b) { return a + b; }, 0);
+	    //const toReturn =
+      return weights.reduce(function(a, b) { return a + b; }, 0);
+      //
+      // console.log("all weights:");
+      // console.log(weights);
+      // console.log("sum:");
+      // console.log(toReturn);
 	}
 
 
 // returns a function that takes a column name & returns the width of that column (single category width for cat columns)
 	  private getDisplayedColumnWidths(width){
-	      const totalWeight = this.getTotalWeights();
+	      const totalWeight = this.getTotalWeights(); //21
         const getWeightHandle = this.getWeight;
+
+      //  console.log("totalWeight : " + totalWeight);
+
+
 	      const toReturn = this.colData.map(function(elem, index){
 	          const elemWidth = getWeightHandle(elem) * width / totalWeight;
+        //    console.log("ELEM WIDTH! " + elemWidth);
             return {'name':elem['name'], 'width':elemWidth}
 	      });
-        console.log("these are the col widths: ");
-        console.log(toReturn);
-        console.log("this is the col width for sex");
-        console.log(toReturn.find(x => x.name === 'sex_M').width);
+        // console.log("these are the col widths: ");
+        // console.log(toReturn);
+        // console.log("this is the col width for sex");
+        // console.log(toReturn.find(x => x.name === 'sex_M').width);
         return toReturn;
 	  }
 
 	  private getDisplayedColumnXs(width){
 	    const totalWeight = this.getTotalWeights();
-      const getWeightHandle = this.getWeight;
-	    return this.colData.map(function(elem, index){
-	        var x_dist = 0;
-	        for (let i = 0; i < index; i++) {
-	          const accum = getWeightHandle(elem) * width / totalWeight;
-	          x_dist += accum;
-	        }
-	        return x_dist;
-	      });
+      const colWidths = this.getDisplayedColumnWidths(width);
+      console.log("Displayed x!");
+      return colWidths.map(function(elem, index){
+        var x_dist = 0;
+        for(let i = 0; i < index; i++){
+          x_dist += colWidths[i].width;
+        }
+        console.log(x_dist);
+        return {'name':elem['name'], 'x':x_dist};
+      });
+
+
+
+	    // return this.colData.map(function(elem, index){
+	    //     var x_dist = 0;
+	    //     for (let i = 0; i < index; i++) {
+      //       console.log("index! " + i);
+	    //       const accum = colWidths[i] * width / totalWeight;
+      //       console.log("accumulator: " + accum);
+	    //       x_dist += accum;
+	    //     }
+      //     console.log(x_dist);
+	    //     return {'name':elem['name'], 'x':x_dist};
+	    //   });
 	  }
 
 
@@ -665,7 +700,9 @@ class attributeTable {
 	    const colXs = this.getDisplayedColumnXs(width);
       const getWeightHandle = this.getWeight;
 	    return this.colData.map(function(elem, index){
-	        return colXs[index] + (getWeightHandle(elem['type']) * width / totalWeight)/2;
+          const thisX = colXs.find(x => x.name === elem.name).width;
+	        const midPoint = colXs[index] + (getWeightHandle(elem['type']) * width / totalWeight)/2;
+          return {'name':elem['name'], 'midpoint':midPoint};
 	    });
 
 	  }

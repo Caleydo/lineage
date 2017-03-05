@@ -210,19 +210,11 @@ class attributeTable {
       })
       .enter()
       .append("g")
-      .attr('class', 'cell')
-      .attr("transform", function (col) {
-        return ('translate(0, ' + y(col['y']) + ' )'); //the x translation is taken care of by the group this cell is nested in.
-      });
+      .attr('class', 'cell');
 
 
-
-      const categoricals = cells.filter((e)=>{return (e.type === 'categorical')})
-                            .attr('classed', 'categorical');
-      const quantatives  = cells.filter((e)=>{return (e.type === 'int')})
-                            .attr('classed', 'quantitative');
-      const idCells      = cells.filter((e)=>{return (e.type === 'idtype')})
-                            .attr('classed', 'idtype');
+      const categoricals = cells.filter((e)=>{return (e.type === 'categorical')});
+      const quantatives = cells.filter((e)=>{return (e.type === 'int')});
 
       categoricals
       .append('rect')
@@ -245,9 +237,36 @@ class attributeTable {
 
 
 
+    //Move cells to their correct y position
+    selectAll('.cell')
+      .attr("transform", function (col) {
+        return ('translate(0, ' + y(col['y']) + ' )'); //the x translation is taken care of by the group this cell is nested in.
+      });
 
 
+    // for (const name of this.colData.names) {
+    //   cols.classed(name, function(col){
+    //     return col.name === name;
+    //   });
+    // }
 
+
+    // let rows = table.selectAll(".row")
+    // .data(rowData) // TODO: aggregation
+    // .enter()
+    // .append("g")
+    // .attr('id', function (elem) {
+    //   return ('row_' +  elem.id);
+    // })
+    // .attr('class', 'row')
+    // .attr("transform", function (elem) {
+    //   // console.log("this was the element: ");
+    //   // console.log(elem);
+    //   // console.log("this was the y position: " + elem.y);
+    //   return ('translate(0, ' +  y(elem.y)+ ' )');
+    // });
+    //
+    //
     //
     //
     //
@@ -620,26 +639,54 @@ class attributeTable {
   //}
 
 
-  private getDisplayedColumnWidths(width) {
-    var displayedColNames = this.colData.map(function (elem) {
-      return elem['name'];
-    });
-    var displayedColTypes = this.colData.map(function (elem) {
-      return elem['type'];
-    });
+  private getWeight(type){
+	    if(type === 'int')
+	      return 3;
+	    else if(type === 'categorical')
+	      return 1;
+	    return 2;
+	  }
 
-    //console.log("how many cols?? " + this.colData.length);
+ private getTotalWeights(){
+      const getWeightHandle = this.getWeight;
+	    const weights = this.colData.map(function(elem)
+	    { return getWeightHandle(elem['type']);});
+	    return weights.reduce(function(a, b) { return a + b; }, 0);
+	}
 
-    return [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240];
-  }
 
-  private getDisplayedColumnXs(width) {
-    return [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240];
-  }
+	  private getDisplayedColumnWidths(width){
+	      const totalWeight = this.getTotalWeights();
+        const getWeightHandle = this.getWeight;
+	      return this.colData.map(function(elem, index){
+	          return getWeightHandle(elem['type']) * width / totalWeight;
+	      });
+	  }
 
-  private getDisplayedColumnMidpointXs(width) {
-    return [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240];
-  }
+	  private getDisplayedColumnXs(width){
+	    const totalWeight = this.getTotalWeights();
+      const getWeightHandle = this.getWeight;
+	    return this.colData.map(function(elem, index){
+	        var x_dist = 0;
+	        for (let i = 0; i < index; i++) {
+	          const accum = getWeightHandle(elem['type']) * width / totalWeight;
+	          x_dist += accum;
+	        }
+	        return x_dist;
+	      });
+	  }
+
+
+	  private getDisplayedColumnMidpointXs(width){
+	    const totalWeight = this.getTotalWeights();
+	    const colXs = this.getDisplayedColumnXs(width);
+      const getWeightHandle = this.getWeight;
+	    return this.colData.map(function(elem, index){
+	        return colXs[index] + (getWeightHandle(elem['type']) * width / totalWeight)/2;
+	    });
+
+	  }
+
 
 
   // console.log("can I get the objects?");

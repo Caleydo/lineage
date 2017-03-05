@@ -28,7 +28,6 @@ export default class AttributeData {
    */
   public async loadData(name:string) {
     //retrieving the desired dataset by name
-    console.log('name',name)
     this.table = <ITable> await getFirstByName(name);
     await this.parseData();
     this.attachListener();

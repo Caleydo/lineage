@@ -176,7 +176,7 @@
   font-size: 14px;
 }
 
-.nav-side-menu li :not(collapsed) .idType:before {
+.nav-side-menu li :not(collapsed) .idtype:before {
   font-family: FontAwesome;
   /*content: "\f078";*/
   content: "\F084";
@@ -315,6 +315,13 @@
   -o-transition: all 1s ease;
   -ms-transition: all 1s ease;
   transition: all 1s ease;
+}
+
+.attribut_svg{
+  margin-left: -20;
+}
+.attribut_svg .bar:hover{
+  fill: rgb(127,134,134);
 }
 
 @media (max-width: 767px) {

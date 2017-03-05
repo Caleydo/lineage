@@ -11,7 +11,7 @@ export default class AttributeData {
 
   table:ITable;
   public activeAttributes = [] ; // active attribute is an attribute that is not ID. This an array of strings (column name)
-  private activeRows : range.Range;; // of type range
+  private activeRows : range.Range; // of type range
   private activeColumns : range.Range; // of type range
   public activeView : ITable; // table view
 
@@ -51,19 +51,21 @@ export default class AttributeData {
       const name = col.desc.name;
       const type = col.desc.value.type;
       // if the type of the column is ID then it is not in the active list
+
       if(name === 'y'){ //pay no attention to the man behind the curtain
         yIndex = i; //for some reason can't set the member var here. js...  //That' because you're inside an if statement. The variable wouldn't exist outside of this if statement.
+
       }
-      else if (!(type === 'idtype')) {
+      else if (!(type === 'idtype' || name === 'x') ) {
         colIndexAccum.push(i);//push the index so we can get the right view
         this.activeAttributes.push(name);
       }
     }); //end for each
 
-    // const tempRequest = await this.table.col(yIndex);
-    // this.ys = await tempRequest.data(range.all());
-    // console.log("THIS WAS THE y COLUMN:");
-    // console.log(this.ys);
+    const tempRequest = await this.table.col(yIndex);
+    this.ys = await tempRequest.data(range.all());
+    console.log("THIS WAS THE y COLUMN:");
+    console.log(this.ys);
 
     this.activeRows = range.all(); // all rows to start out with
     this.activeColumns = range.list(colIndexAccum);

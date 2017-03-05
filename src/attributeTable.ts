@@ -207,26 +207,17 @@ class attributeTable {
         return d.data.map((e, i) => {
           return {'name': d.name, 'data': e, 'y': d.ys[i], 'type':d.type}
         })
-      });
-    //  .enter();
-    //.data((d) => {return d.data}) //Also works but then you don't retain the 'name' and 'y value' for each cell.
-
-
-
-
-
-    //Append cells to the enter() selection
-    const cellsEnter = cells
+      })
       .enter()
+      .append("g")
+      .attr('class', 'cell');
+
+
+      const categoricals = cells.filter((e)=>{return (e.type === 'categorical')});
+      const quantatives = cells.filter((e)=>{return (e.type === 'int')});
+
+      categoricals
       .append('rect')
-      .classed('cell', 'true');
-
-    cells = cells.merge(cellsEnter);
-
-
-
-      const categoricals = selectAll('.cell').filter(function(d:any){
-        return (d.type === 'categorical');})
       .attr('width', 25)
       .attr('height', 20)
       .attr('stroke', 'black')
@@ -234,9 +225,8 @@ class attributeTable {
       .attr('fill', 'blue');
 
 
-      const quantatives = selectAll('.cell').filter(function(d:any){
-        console.log(d.type);
-        return (d.type === 'int');})
+      quantatives
+      .append('rect')
       .attr('width', 25)
       .attr('height', 20)
       .attr('stroke', 'black')

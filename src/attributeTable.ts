@@ -175,19 +175,7 @@ class attributeTable {
 
       categoricals
       .append('rect')
-      .attr('width', (d)=> {
-        console.log("categories was: ");
-        console.log(d);
-        const totalColWidth = col_widths.find(x => x.name === d.name).width;
-        if(d.type === 'categorical')
-            return totalColWidth/(d.cats.length);
-          else
-            return totalColWidth;
-        })
-
-      //25)
-      // (d)=>{console.log(col_xs[d['ind']]);
-      //   return (col_xs[d['ind']]);}) //25
+      .attr('width', (d)=> {return col_widths.find(x => x.name === d.name).width;})
       .attr('height', 20)
       .attr('stroke', 'black')
       .attr('stoke-width', 1)
@@ -196,8 +184,7 @@ class attributeTable {
 
       quantatives
       .append('rect')
-      .attr('width',25)// (d) => {return col_widths[d['ind']];})
-      //(d)=>{return col_xs[d['ind']];}) //25
+      .attr('width', (d)=> {return col_widths.find(x => x.name === d.name).width;})
       .attr('height', 20)
       .attr('stroke', 'black')
       .attr('stoke-width', 1)
@@ -635,8 +622,11 @@ class attributeTable {
 	      const totalWeight = this.getTotalWeights();
         const getWeightHandle = this.getWeight;
 	      const toReturn = this.colData.map(function(elem, index){
-	          const elemWidth = getWeightHandle(elem) * width / totalWeight;
+	          let elemWidth = getWeightHandle(elem) * width / totalWeight;
+            if(elem.type === 'categorical')
+                elemWidth = elemWidth/(elem.cats.length);
             return {'name':elem['name'], 'width':elemWidth}
+
 	      });
         console.log("these are the col widths: ");
         console.log(toReturn);

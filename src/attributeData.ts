@@ -4,15 +4,19 @@ import {list as listData, getFirstByName, get as getById} from 'phovea_core/src/
 import {tsv} from 'd3-request';
 import {ICategoricalVector, INumericalVector} from 'phovea_core/src/vector/IVector';
 import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT} from 'phovea_core/src/datatype';
+import * as range from 'phovea_core/src/range';
 import * as events from 'phovea_core/src/event';
 
 export default class AttributeData {
 
   table:ITable;
   public activeAttributes = [] ; // active attribute is an attribute that is not ID. This an array of strings (column name)
-  private activeRows ; // of type range
-  private activeColumns; // of type range
-  private activeView; // table view
+  private activeRows : range.Range; // of type range
+  private activeColumns : range.Range; // of type range
+  public activeView : ITable; // table view
+
+  private ys ;
+
 
 
   /**
@@ -25,11 +29,9 @@ export default class AttributeData {
   public async loadData(name:string) {
     //retrieving the desired dataset by name
     this.table = <ITable> await getFirstByName(name);
-    this.parseData();
+    await this.parseData();
     this.attachListener();
-
     return Promise.resolve(this);
-
   }
 
   /**
@@ -38,20 +40,39 @@ export default class AttributeData {
    *
    */
   public async parseData() {
-
-    let columns = this.table.cols();
+    const columns = await this.table.cols();
+    const colIndexAccum = [];
+    let yIndex = 19;
 
     //populate active attribute array
-    columns.forEach((col) => {
+    columns.forEach((col, i) => {
       const name = col.desc.name;
       const type = col.desc.value.type;
-
       // if the type of the column is ID then it is not in the active list
-      if (!(type === 'idType')) {
+      if(name === 'y') { //pay no attention to the man behind the curtain
+        yIndex = i; //for some reason can't set the member var here. js...
+      }
+      else if (!(type === 'idtype' || name === 'x') ) {
+        colIndexAccum.push(i);//push the index so we can get the right view
         this.activeAttributes.push(name);
       }
-    });
+    }); //end for each
 
+
+    const tempRequest = await this.table.col(yIndex);
+    this.ys = await tempRequest.data(range.all());
+    console.log("THIS WAS THE y COLUMN:");
+    console.log(this.ys);
+
+    this.activeRows = range.all(); // all rows to start out with
+    this.activeColumns = range.list(colIndexAccum);
+    this.refreshActiveView(); //updates the active View
+
+  }
+
+  public async refreshActiveView(){
+    const key = range.join(this.activeRows, this.activeColumns);
+    this.activeView = await this.table.view(key);
   }
 
   public getColumns(){

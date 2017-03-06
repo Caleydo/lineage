@@ -673,10 +673,8 @@ class attributeTable {
 	    const colXs = this.getDisplayedColumnXs(width);
       const colWidths = this.getDisplayedColumnWidths(width);
 	    return this.colData.map(function(elem, index){
-	        const midPoint = colXs[index].x + (colWidths[index].width * width / totalWeight)/2 + 40; //TODO WHY
-          const pos = midPoint - (width / 2);
-          console.log("MIDPOINT! " + pos);
-          return {'name':elem['name'], 'x':pos};
+	        const midPoint = colXs[index].x + (colWidths[index].width/2) ;//+ 40; //TODO WHY
+          return {'name':elem['name'], 'x':midPoint};
 	    });
 
 	  }

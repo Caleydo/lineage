@@ -181,7 +181,7 @@ class attributeTable {
                             .attr('classed', 'idtype');
 
 
-    //  for (const category ) {
+////////// RENDER CATEGORICAL COLS /////////////////////////////////////////////
 
       categoricals
       .append('rect')
@@ -195,19 +195,86 @@ class attributeTable {
         return '#d9dbdb'; //light grey
       });
 
-
-
-
-
+////////// RENDER QUANT COLS /////////////////////////////////////////////
 
 
       quantatives
       .append('rect')
       .attr('width', (d)=> {return col_widths.find(x => x.name === d.name).width;})
       .attr('height', 20)
+      .attr('fill', '#eef2f2') //VERY light grey //'transparent')
       .attr('stroke', 'black')
-      .attr('stoke-width', 1)
-      .attr('fill', 'red');
+      .attr('stoke-width', 1);
+
+const radius = 2;
+
+      quantatives
+      .append("ellipse")
+        .attr("cx", 10)
+        // function(elem){
+        //   return Math.floor((elem[curr_col_name]-min) * scaledRange);})
+        .attr("cy", 20 / 2)
+        .attr("rx", radius)
+        .attr("ry", radius)
+        .attr('stroke', '#474747')
+        .attr('stroke-width', 1)
+        .attr('fill', '#d9d9d9');
+        // .attr("transform", function () { //yikes these shifts!
+        //   return ('translate(' + (col_xs[colIndex]+radius) + ' ,0)');
+        // });
+
+        // stick on the median
+        quantatives
+        .append("rect") //sneaky line is a rectangle
+        .attr("width", 2)
+        .attr("height", 20)
+        .attr("fill", 'black')
+        .attr("transform", function () {
+          return ('translate(' + 30 +
+          // + (Math.floor((avg-min) * scaledRange)
+          // + col_xs[colIndex] - col_margin) +
+           ',0)');
+        });
+
+
+
+
+
+
+      //rows.append("ellipse")
+      //   .attr("cx", function(elem){
+      //     return Math.floor((elem[curr_col_name]-min) * scaledRange);})
+      //   .attr("cy", rowHeight / 2)
+      //   .attr("rx", radius)
+      //   .attr("ry", radius)
+      //   .attr('stroke', 'black')
+      //   .attr('stroke-width', 1)
+      //   .attr('fill', '#d9d9d9')
+      //   .attr("transform", function () { //yikes these shifts!
+      //     return ('translate(' + (col_xs[colIndex]+radius) + ' ,0)');
+      //   });
+      //
+      //   // and a boundary
+      //   rows.append("rect")
+      //   .attr("width", curr_col_width)
+      //   .attr("height", rowHeight)
+      //   .attr('fill', 'transparent')
+      //   .attr('stroke', 'black')
+      //   .attr('stoke-width', 1)
+      //   .attr("transform", function () {
+      //     return ('translate(' + col_xs[colIndex] + ' ,0)');
+      //   });
+      //   // stick on the median
+      //   rows.append("rect") //sneaky line is a rectangle
+      //   .attr("width", 2)
+      //   .attr("height", rowHeight)
+      //   .attr("fill", 'black')
+      //   .attr("transform", function () {
+      //     return ('translate(' + (Math.floor((avg-min) * scaledRange)
+      //     + col_xs[colIndex] - col_margin) + ',0)');
+      //   });
+      // }
+
 
 
 

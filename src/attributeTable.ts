@@ -202,51 +202,29 @@ class attributeTable {
       });
 
 ////////// RENDER QUANT COLS /////////////////////////////////////////////
-
-//   // how big is the range?
-//   //find min, find max
-  // const allValues = rowData.map(function(elem){return elem[curr_col_name]}).filter(function(x){return x.length != 0;});
-  //
-  // // complicated min/max to avoid unspecified (zero) entries
-  // // const min = [].reduce.call(allValues, function(acc, x) {
-  // //   //console.log("in min, x is: " + x +", x.length is: " + x.length);
-  // //   return x.length == 0 ? acc : Math.min(x, acc); });
-  // const min = Math.min( ...allValues );
-  // const max = Math.max( ...allValues );
-  // const avg = allValues.reduce(function(acc, x) {
-  //   return parseInt(acc) + parseInt(x);}) / (allValues.length);
-  //
-  // // only rows that have data
-  // rows.filter((elem)=>{return elem[curr_col_name].toString().length > 0;})
-  //
-  //
-
-
-
       const radius = 2;
 
       quantatives
       .append('rect')
       .attr('width', (d)=> {return col_widths.find(x => x.name === d.name).width;})
       .attr('height', 20)
-      .attr('fill', '#eef2f2') //VERY light grey //'transparent')
+      .attr('fill', '#eef2f2') //VERY light grey
       .attr('stroke', 'black')
       .attr('stoke-width', 1);
 
       quantatives
       .append("ellipse")
-        .attr("cx", 10)
-        // function(elem){
-        //   return Math.floor((elem[curr_col_name]-min) * scaledRange);})
+        .attr("cx",
+        function(d){
+          const width = col_widths.find(x => x.name === d.name).width;
+          const scaledRange = (width-2*radius) / (d.max - d.min);
+          return Math.floor((d.data-d.min) * scaledRange);})
         .attr("cy", 20 / 2)
         .attr("rx", radius)
         .attr("ry", radius)
         .attr('stroke', '#474747')
         .attr('stroke-width', 1)
-        .attr('fill', '#d9d9d9');
-        // .attr("transform", function () { //yikes these shifts!
-        //   return ('translate(' + (col_xs[colIndex]+radius) + ' ,0)');
-        // });
+        .attr('fill', '#d9d9d9'); // TODO: translate off of boundaries
 
         // stick on the median
         quantatives
@@ -254,19 +232,11 @@ class attributeTable {
         .attr("width", 2)
         .attr("height", 20)
         .attr("fill", 'black')
-        .attr("transform", function () {
-          return ('translate(' + 30 +
-          // + (Math.floor((avg-min) * scaledRange)
-          // + col_xs[colIndex] - col_margin) +
-           ',0)');
+        .attr("transform", function (d) {
+          const width = col_widths.find(x => x.name === d.name).width;
+          const scaledRange = (width-2*radius) / (d.max - d.min);
+          return ('translate(' + ((d.mean -d.min) * scaledRange) + ',0)');
         });
-
-
-
-
-
-
-
 
 
 
@@ -276,348 +246,8 @@ class attributeTable {
         return ('translate(0, ' + y(col['y']) + ' )'); //the x translation is taken care of by the group this cell is nested in.
       });
 
-
-    // for (const name of this.colData.names) {
-    //   cols.classed(name, function(col){
-    //     return col.name === name;
-    //   });
-    // }
-
-
-    // let rows = table.selectAll(".row")
-    // .data(rowData) // TODO: aggregation
-    // .enter()
-    // .append("g")
-    // .attr('id', function (elem) {
-    //   return ('row_' +  elem.id);
-    // })
-    // .attr('class', 'row')
-    // .attr("transform", function (elem) {
-    //   // console.log("this was the element: ");
-    //   // console.log(elem);
-    //   // console.log("this was the y position: " + elem.y);
-    //   return ('translate(0, ' +  y(elem.y)+ ' )');
-    // });
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    // //////////////////////
-    // // monster for loop creates all vis. encodings for rows
-    //     const col_margin = 4;
-    //     for (let colIndex = 0; colIndex < num_cols; colIndex++) {
-    //       const curr_col_name = displayedColNames[colIndex];
-    //       const curr_col_type = displayedColTypes[colIndex];
-    //       const curr_col_width = col_widths[colIndex] - col_margin;
-    //
-    //       if( curr_col_type == 'idtype' ){
-    //
-    //         rows.append("rect")
-    //         .attr("width", curr_col_width)
-    //         .attr("height", rowHeight)
-    //         .attr('fill', 'lightgrey')
-    //         .attr('stroke', 'black')
-    //         .attr('stoke-width', 1)
-    //         .attr("transform", function () {
-    //           return ('translate(' + col_xs[colIndex] + ' ,0)')
-    //         });
-    //
-    //         rows.append("text")
-    //         .text(function(elem) {
-    //           const the_text = elem[curr_col_name];
-    //           return the_text.toString().substring(0, 3); })
-    //         .attr("transform", function (row_index) {
-    //           return ('translate(' + (label_xs[colIndex] - 10) + ' ,' + (rowHeight/2 + 5) + ')')
-    //         });
-    //       }
-    //
-    //       else if( curr_col_type == 'categorical'){
-    //         const allValues = rowData.map(function(elem){return elem[curr_col_name]});
-    //         const uniqueValues = Array.from(new Set(allValues));
-    //
-    //
-    //         uniqueValues.forEach(function(value) {
-    //           rows.append("rect")
-    //           .attr("width", curr_col_width)
-    //           .attr("height", rowHeight)
-    //           .attr('fill', function(elem){
-    //             return (elem[curr_col_name] === uniqueValues[0]) ? '#666666' : 'white';
-    //           })
-    //           .attr('stroke', 'black')
-    //           .attr('stoke-width', 1)
-    //           .attr("transform", function () {
-    //             return ('translate(' + col_xs[colIndex] + ' ,0)')
-    //           });
-    //       });
-    //       }
-
-    // else if( curr_col_type == 'int' ){
-    //   // how big is the range?
-    //   //find min, find max
-    //   const allValues = rowData.map(function(elem){return elem[curr_col_name]}).filter(function(x){return x.length != 0;});
-    //
-    //   // complicated min/max to avoid unspecified (zero) entries
-    //   // const min = [].reduce.call(allValues, function(acc, x) {
-    //   //   //console.log("in min, x is: " + x +", x.length is: " + x.length);
-    //   //   return x.length == 0 ? acc : Math.min(x, acc); });
-    //   const min = Math.min( ...allValues );
-    //   const max = Math.max( ...allValues );
-    //   const avg = allValues.reduce(function(acc, x) {
-    //     return parseInt(acc) + parseInt(x);}) / (allValues.length);
-    //
-    //   // only rows that have data
-    //   rows.filter((elem)=>{return elem[curr_col_name].toString().length > 0;})
-    //
-    //
-    //   const radius = 2;
-    //   const scaledRange = (curr_col_width-2*radius) / (max - min);
-    //
-    //   rows.append("ellipse")
-    //   .attr("cx", function(elem){
-    //     return Math.floor((elem[curr_col_name]-min) * scaledRange);})
-    //   .attr("cy", rowHeight / 2)
-    //   .attr("rx", radius)
-    //   .attr("ry", radius)
-    //   .attr('stroke', 'black')
-    //   .attr('stroke-width', 1)
-    //   .attr('fill', '#d9d9d9')
-    //   .attr("transform", function () { //yikes these shifts!
-    //     return ('translate(' + (col_xs[colIndex]+radius) + ' ,0)');
-    //   });
-    //
-    //   // and a boundary
-    //   rows.append("rect")
-    //   .attr("width", curr_col_width)
-    //   .attr("height", rowHeight)
-    //   .attr('fill', 'transparent')
-    //   .attr('stroke', 'black')
-    //   .attr('stoke-width', 1)
-    //   .attr("transform", function () {
-    //     return ('translate(' + col_xs[colIndex] + ' ,0)');
-    //   });
-    //   // stick on the median
-    //   rows.append("rect") //sneaky line is a rectangle
-    //   .attr("width", 2)
-    //   .attr("height", rowHeight)
-    //   .attr("fill", 'black')
-    //   .attr("transform", function () {
-    //     return ('translate(' + (Math.floor((avg-min) * scaledRange)
-    //     + col_xs[colIndex] - col_margin) + ',0)');
-    //   });
-    // }
-    // else
-    //   console.log("oh no, what type is this: " + curr_col_type );
-
-  }
-
-  // end for loop
-
-
-  /*
-   let tableAxis = axisTop(x).tickFormat(format("d"));
-   const rowHeight = Config.glyphSize * 2.5 - 4;
-   const svg = this.$node.append('svg')
-   .attr('width', this.width + this.margin.left + this.margin.right)
-   .attr("height", this.height + this.margin.top + this.margin.bottom)
-   const axis = svg.append("g")
-   .attr("transform", "translate(" + this.margin.left + "," + this.margin.axisTop / 1.5 + ")")
-   .attr('id', 'axis')
-   const TEMP_LEFT_FIX = 35; //TODO: what's going on here?
-   // todo: refactor so each column *knows* these things about itself
-   var col_widths = this.getDisplayedColumnWidths(this.width);
-   var col_xs = this.getDisplayedColumnXs(this.width);
-   var label_xs = this.getDisplayedColumnMidpointXs(this.width);
-   var num_cols = this.getNumberDisplayedColumns();
-   var displayedColNames = this.getDisplayedColumnNames();
-   var displayedColTypes = this.getDisplayedColumnTypes();
-   //  var displayedColOrder = this.all_data.getDisplayedColumnOrder();
-   let colNames = await this.activeView.cols().map(function(col){
-   return col.desc.name;
-   });
-   console.log("colNames: ");
-   console.log(colNames);
-   // this.colData
-   // ^^ UPDATE THOSE ON EVENTS- IS THIS A BAD DESIGN?
-   const table_header = axis.selectAll(".table_header")
-   .data(colNames)
-   .enter();
-   table_header.append("text")
-   .text(["a", "b"])//function(colName) { return colName;})
-   .attr('fill', 'black')
-   .attr('class', 'b')
-   .attr("transform", function (name, index) { // the 5 is to bump slight left
-   //return "translate(" + (label_xs[index] - 5 - TEMP_LEFT_FIX) + ", 0) rotate(-45)";
-   return "translate(" + (index*10 - 5 - TEMP_LEFT_FIX) + ", 0) rotate(-45)";
-   });
-   */
-
-
-//  throw "I got this";
-
-  /*
-   const loremIpsum = ["", "", "", "M", "T", "T", "   ...", "   ..."];
-   table_header.append("text")
-   // did someone say stand in text?
-   .text(function(index) { return loremIpsum[index]; })
-   .attr('fill', 'black')
-   .attr("transform", function (index) {
-   return "translate(" + (col_xs[index] - TEMP_LEFT_FIX) + ", 20)";
-   });
-   const wholeWidth = this.width; //binding here bc "this" mess
-   axis.append("rect")
-   .attr('width', wholeWidth)
-   .attr('height', 1)
-   .attr('fill', 'black')
-   .attr("transform", function (index) { //TODO: what's up with the shift?
-   return "translate(" + (-1*TEMP_LEFT_FIX - 5) + ", 5)";
-   })
-   // TODO: to sort the table by attribute
-   table_header.append("rect")
-   .attr('width', function(index){ return col_widths[index];})
-   .attr('height', 40)
-   .attr('fill', 'transparent')
-   .attr("transform", function (index) { //TODO: what's up with the shift?
-   return "translate(" + (col_xs[index] - TEMP_LEFT_FIX - 5) + ", 0)";
-   })
-   // CLICK
-   .on('click', function(d) {
-   //1. sort attributes, keep a hold of some row id - add row DS
-   //2. update row display order
-   })
-   */
-/// ^ columns
-  /*
-   /// v row
-   const table = svg.append("g")
-   .attr("transform", "translate(0," + this.margin.top + ")")
-   let rows = table.selectAll(".row")
-   .data(await this.activeView.objects("(0:-1)"))
-   .enter();
-   // .attr('id', function (elem) {
-   //   return ('row_' +  elem.id);
-   // })
-   //.attr('class', 'row');
-   // .attr("transform", function (elem) {
-   //   return ('translate(0, ' +  y(elem.y)+ ' )');
-   // });
-   rows.append("rect")
-   .attr("width", 30)
-   .attr("height", rowHeight)
-   .attr('fill', 'lightgrey')
-   .attr('stroke', 'black')
-   .attr('stoke-width', 1);
-   */
-
-  /*
-   let rows = table.selectAll(".row")
-   .data(betterData) // TODO: aggregation
-   .enter()
-   .append("g")
-   .attr('id', function (elem) {
-   return ('row_' +  elem.id);
-   })
-   .attr('class', 'row')
-   .attr("transform", function (elem) {
-   return ('translate(0, ' +  y(elem.y)+ ' )');
-   });
-   //////////////////////
-   // monster for loop creates all vis. encodings for rows
-   const col_margin = 4;
-   for (let colIndex = 0; colIndex < num_cols; colIndex++) {
-   const curr_col_name = displayedColNames[colIndex];
-   const curr_col_type = displayedColTypes[colIndex];
-   const curr_col_width = col_widths[colIndex] - col_margin;
-   if( curr_col_type == 'idType' ){
-   rows.append("rect")
-   .attr("width", curr_col_width)
-   .attr("height", rowHeight)
-   .attr('fill', 'lightgrey')
-   .attr('stroke', 'black')
-   .attr('stoke-width', 1)
-   .attr("transform", function () {
-   return ('translate(' + col_xs[colIndex] + ' ,0)')
-   });
-   rows.append("text")
-   .text(function(elem) {
-   const the_text = elem[curr_col_name];
-   return the_text.toString().substring(0, 3); })
-   .attr("transform", function (row_index) {
-   return ('translate(' + (label_xs[colIndex] - 10) + ' ,' + (rowHeight/2 + 5) + ')')
-   });
-   }
-   else if( curr_col_type == 'categorical'){
-   const allValues = betterData.map(function(elem){return elem[curr_col_name]});
-   const uniqueValues = Array.from(new Set(allValues));
-   uniqueValues.forEach(function(value) {
-   rows.append("rect")
-   .attr("width", curr_col_width)
-   .attr("height", rowHeight)
-   .attr('fill', function(elem){
-   return (elem[curr_col_name] === uniqueValues[0]) ? '#666666' : 'white';
-   })
-   .attr('stroke', 'black')
-   .attr('stoke-width', 1)
-   .attr("transform", function () {
-   return ('translate(' + col_xs[colIndex] + ' ,0)')
-   });
-   });
-   }
-   else if( curr_col_type == 'int' ){
-   // how big is the range?
-   //find min, find max
-   const allValues = betterData.map(function(elem){return elem[curr_col_name]}).filter(function(x){return x.length != 0;});
-   // complicated min/max to avoid unspecified (zero) entries
-   // const min = [].reduce.call(allValues, function(acc, x) {
-   //   //console.log("in min, x is: " + x +", x.length is: " + x.length);
-   //   return x.length == 0 ? acc : Math.min(x, acc); });
-   const min = Math.min( ...allValues );
-   const max = Math.max( ...allValues );
-   const avg = allValues.reduce(function(acc, x) {
-   return parseInt(acc) + parseInt(x);}) / (allValues.length);
-   // only rows that have data
-   rows.filter((elem)=>{return elem[curr_col_name].toString().length > 0;})
-   const radius = 2;
-   const scaledRange = (curr_col_width-2*radius) / (max - min);
-   rows.append("ellipse")
-   .attr("cx", function(elem){
-   return Math.floor((elem[curr_col_name]-min) * scaledRange);})
-   .attr("cy", rowHeight / 2)
-   .attr("rx", radius)
-   .attr("ry", radius)
-   .attr('stroke', 'black')
-   .attr('stroke-width', 1)
-   .attr('fill', '#d9d9d9')
-   .attr("transform", function () { //yikes these shifts!
-   return ('translate(' + (col_xs[colIndex]+radius) + ' ,0)');
-   });
-   // and a boundary
-   rows.append("rect")
-   .attr("width", curr_col_width)
-   .attr("height", rowHeight)
-   .attr('fill', 'transparent')
-   .attr('stroke', 'black')
-   .attr('stoke-width', 1)
-   .attr("transform", function () {
-   return ('translate(' + col_xs[colIndex] + ' ,0)');
-   });
-   // stick on the median
-   rows.append("rect") //sneaky line is a rectangle
-   .attr("width", 2)
-   .attr("height", rowHeight)
-   .attr("fill", 'black')
-   .attr("transform", function () {
-   return ('translate(' + (Math.floor((avg-min) * scaledRange)
-   + col_xs[colIndex] - col_margin) + ',0)');
-   });
-   }
-   else
-   console.log("oh no, what type is this: " + curr_col_type );
-   }
-   // end for loop
+}
+/*
    const boundary = rows
    .append("rect")
    .attr("class", "boundary")

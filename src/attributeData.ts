@@ -12,8 +12,11 @@ export default class AttributeData {
   table:ITable;
   public activeAttributes = [] ; // active attribute is an attribute that is not ID. This an array of strings (column name)
   private activeRows : range.Range; // of type range
+  private familyRange: range.Range;
+  private attributeRange: range.Range;
   private activeColumns : range.Range; // of type range
   public activeView : ITable; // table view
+  public graphView : ITable; // table view
 
   private ys ;
 
@@ -42,22 +45,22 @@ export default class AttributeData {
   public async parseData() {
     const columns = await this.table.cols();
 
+    const  familyIDs = await this.table.colData('KindredID');
+    const uniqueFamilyIDs = familyIDs.filter((x, i, a) => a.indexOf(x) === i);
 
-    // const familyRange=[];
-    // const  familyIDs = await this.table.colData('KindredID');
-    //
-    // familyIDs.filter((p,i) => {
-    //   if (p === 38) { familyRange.push(i);}
-    //   return (p === 38);
-    // });
-    //
-    // console.log(familyRange.length);
-    //
-    // // console.log(range.all().filter(columns));
-    //
-    // // console.log(range.parse(familyIDs)); //these two are equivalent
-    // let familyRangeString = range.parse(familyIDs.toString()); //these two are equivalent
-    // console.log(familyRangeString)
+
+    const familyRanges = [];
+    const coldata = await this.table.col(0); //get vector for Kindred IDs
+    for (const f of uniqueFamilyIDs) {
+      const u: IAnyVector = await coldata.filter((x)=> {return x === f;});
+      const id = await u.ids();
+      if (id.size()[0] >= 1) {
+        familyRanges.push(id);
+        //  console.log(f, await coldata.data(), id.dim(0).asList());
+      }
+    }
+    console.log(familyRanges)
+
 
     const colIndexAccum = [];
     let yIndex; //No need to set a value if you're going to override it in line 53.
@@ -79,10 +82,14 @@ export default class AttributeData {
     }); //end for each
 
 
+    console.log(colIndexAccum)
     // const tempRequest = await this.table.col(yIndex);
     // this.ys = await tempRequest.data(range.all());
 
-    this.activeRows = range.all(); // all rows to start out with
+    // this.activeRows = range.all(); // all rows to start out with
+    this.activeRows = familyRanges[1];
+    console.log(this.activeRows);
+    // this.activeRows = range.list([2,5,6,8,12])
     this.activeColumns = range.list(colIndexAccum);
     this.refreshActiveView(); //updates the active View
 
@@ -91,6 +98,7 @@ export default class AttributeData {
   public async refreshActiveView(){
     const key = range.join(this.activeRows, this.activeColumns);
     this.activeView = await this.table.view(key);
+    this.graphView = await this.table.view(range.join(this.activeRows, range.all()));
   }
 
   public getColumns(){
@@ -103,6 +111,10 @@ export default class AttributeData {
 
   public getActiveRows(){
     return this.activeRows;
+  }
+
+  private filterCat(aVal, bval) {
+    return aVal === bval; //Also include undefined empty strings and null values.
   }
 
   private attachListener() {

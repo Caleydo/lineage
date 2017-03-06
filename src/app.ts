@@ -43,7 +43,6 @@ export class App {
    * @returns {Promise<App>}
    */
   init() {
-
     return this.build();
   }
 
@@ -61,6 +60,7 @@ export class App {
 
       const graphDataObj = graphData.create(attributeDataObj);
       await graphDataObj.createTree();
+
       const genealogyTree = tree.create(this.$node.select('#graph_table').node());
       genealogyTree.init(graphDataObj);
 

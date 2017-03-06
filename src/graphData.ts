@@ -23,7 +23,7 @@ class GraphData {
 
 
   constructor(data) {
-    this.table = data.table;
+    this.table = data.graphView;
   };
 
   /**
@@ -37,19 +37,23 @@ class GraphData {
 
     this.nodes = [];
     let columns = this.table.cols();
-    let nrow = this.table.ncol;
+    let nrow = this.table.nrow;
 
     console.log('Table is of size', this.table.size())
 
     for (let row of range(0, nrow, 1)) {
       let personObj = {};
       for (let col of columns) {
-        let data = await this.table.colData(col.desc.name);
+        let data = await col.data();
+        // console.log(col.id())
         personObj[col.desc.name] = data[row];
       }
-      this.nodes.push(personObj);
-    }
-
+      // personObj['id'] =columns[0].id();
+      if (+personObj['bdate']) { //Only add people with a birthDate
+        this.nodes.push(personObj);
+        console.log(personObj)
+      }
+    };
 
     //Sort nodes by y value, always starting at the founder (largest y) ;
     this.nodes.sort(function (a, b) {
@@ -242,6 +246,8 @@ class GraphData {
         } else { //If found parents, create edges between parent and children, spouses, and add references to build tree
           maNode = maNode[0];
           paNode = paNode[0];
+          console.log('manode is ', maNode.id)
+          console.log('panode is ', paNode.id)
 
           //Replace ma and pa fields with reference to actual ma/pa nodes
           node.ma = maNode;

@@ -1047,7 +1047,6 @@ class GenealogyTree {
         return d['sex'] === 'F' ? -Config.glyphSize * 2 : -Config.glyphSize * 1;
       })
       .attr('y', (d) => {
-
         // return d['sex'] === 'F' ? (this.attributeBarY(1) - Config.glyphSize) : this.attributeBarY(1)
 
 	      return d['sex']=='F'? (this.attributeBarY(+d['bdate'] % 100)-Config.glyphSize) : this.attributeBarY(+d['bdate'] % 100);

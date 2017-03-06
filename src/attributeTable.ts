@@ -32,7 +32,7 @@ class attributeTable {
   private margin = Config.margin;
 
   constructor(parent: Element) {
-    this.$node = select(parent)
+    this.$node = select(parent);
   }
 
   /**
@@ -43,7 +43,6 @@ class attributeTable {
   async init(data) {
 
     this.activeView = data.activeView;
-
 
     let colDataAccum = [];
     for (const vector of this.activeView.cols()) {
@@ -119,7 +118,7 @@ class attributeTable {
     // [min(rowData,
     //   function(d){return +d['y']}), max(rowData,function(d){return +d['y']}) ]);
 
-    const rowHeight = Config.glyphSize * 2.5 - 4;
+    const rowHeight = Config.glyphSize*2 // * 2.5 - 4;
 
     const svg = this.$node.append('svg')
       .attr('width', this.width + this.margin.left + this.margin.right)
@@ -191,7 +190,7 @@ class attributeTable {
       categoricals
       .append('rect')
       .attr('width', (d)=> {return col_widths.find(x => x.name === d.name).width;})
-      .attr('height', 20)
+      .attr('height', rowHeight)
       .attr('stroke', 'black')
       .attr('stoke-width', 1)
       .attr('fill', (d)=>{
@@ -206,7 +205,7 @@ class attributeTable {
       quantatives
       .append('rect')
       .attr('width', (d)=> {return col_widths.find(x => x.name === d.name).width;})
-      .attr('height', 20)
+      .attr('height', rowHeight)
       .attr('fill', '#eef2f2') //VERY light grey
       .attr('stroke', 'black')
       .attr('stoke-width', 1);
@@ -229,7 +228,7 @@ class attributeTable {
         quantatives
         .append("rect") //sneaky line is a rectangle
         .attr("width", 2)
-        .attr("height", 20)
+        .attr("height", rowHeight)
         .attr("fill", 'black')
         .attr("transform", function (d) {
           const width = col_widths.find(x => x.name === d.name).width;

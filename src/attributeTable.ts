@@ -113,13 +113,6 @@ class attributeTable {
     var col_xs = this.getDisplayedColumnXs(this.width);
     var label_xs = this.getDisplayedColumnMidpointXs(this.width);
 
-    console.log("are these the y's?");
-    console.log(this.colData[0]['ys']);
-
-
-    console.log("THIS IS MIN Y");
-  //  const filteredYs = this.colData.filter((d)=>{return d.length != 0;});
-    console.log(Math.min( ...this.colData[0]['ys']));
 
 
     // Scales
@@ -128,7 +121,7 @@ class attributeTable {
     [Math.min( ...this.colData[0]['ys']), Math.max( ...this.colData[0]['ys'])]);
 
 
-    const rowHeight = Config.glyphSize * 2.5 - 4;// - 10;
+    const rowHeight = Config.glyphSize * 2.5 - 4;
 
     const svg = this.$node.append('svg')
       .attr('width', this.width + this.margin.left + this.margin.right)
@@ -148,7 +141,6 @@ class attributeTable {
       .enter()
       .append('text')
       .classed('header', 'true')
-    //.attr("transform", (d) => {return 'translate(' + x(d['ind']) + ',0) rotate(-45)';});
     .attr("transform",(d) => {
       const x_translation = label_xs.find(x => x.name === d.name).x;
       return 'translate(' + x_translation + ',0) rotate(-45)';});
@@ -191,12 +183,8 @@ class attributeTable {
 
       //Add rectangle for highlighting...
       const boundary = cells
-      // .filter((d)=> //only append onto the first cell of each row
-      // { return col_xs.find(x => x.name === d['name']).x === 0;})
       .append('rect')
       .classed("boundary", true)
-      .classed('tablehovered', false) //TODO maybe get rid of?
-      .classed('tableselected', false)
       .attr("row_pos", (d)=>{return d["y"];})
       .attr('width', (d)=> {return (col_widths.find(x => x.name === d.name).width + 4);})
       .attr('height', rowHeight + this.buffer)

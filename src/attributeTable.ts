@@ -42,10 +42,6 @@ class attributeTable {
    */
   async init(data) {
 
-
-    console.log("IN TABLE VIEW");
-
-
     this.activeView = data.activeView;
 
 
@@ -79,13 +75,10 @@ class attributeTable {
 
 
     this.colData = colDataAccum;
-    console.log("this is colData:");
-    console.log(colDataAccum);
 
     this.build();
     this.attachListener();
 
-    console.log("LEAVING TABLE VIEW");
 
     // return the promise directly as long there is no dynamical data to update
     return Promise.resolve(this);
@@ -196,7 +189,11 @@ class attributeTable {
       .attr('height', 20)
       .attr('stroke', 'black')
       .attr('stoke-width', 1)
-      .attr('fill', 'blue');
+      .attr('fill', (d)=>{
+        if(d.data !== undefined)
+          return '#474747'; //dark grey
+        return '#d9dbdb'; //light grey
+      });
 
 
 

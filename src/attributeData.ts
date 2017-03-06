@@ -61,8 +61,6 @@ export default class AttributeData {
 
     const tempRequest = await this.table.col(yIndex);
     this.ys = await tempRequest.data(range.all());
-    console.log("THIS WAS THE y COLUMN:");
-    console.log(this.ys);
 
     this.activeRows = range.all(); // all rows to start out with
     this.activeColumns = range.list(colIndexAccum);

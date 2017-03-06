@@ -37,9 +37,11 @@ class GraphData {
 
     this.nodes = [];
     let columns = this.table.cols();
-    let rows = await this.table.col(1).data('0:-1');
+    let nrow = this.table.ncol;
 
-    for (let row of range(0, rows.length, 1)) {
+    console.log('Table is of size', this.table.size())
+
+    for (let row of range(0, nrow, 1)) {
       let personObj = {};
       for (let col of columns) {
         let data = await this.table.colData(col.desc.name);

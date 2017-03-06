@@ -105,9 +105,7 @@ class attributeTable {
 
     const darkGrey = '#4d4d4d';
     const lightGrey = '#d9d9d9';
-    const mediumGrey = '#bfbfbf';
-    const lightPinkGrey = '#eae1e1';
-    const darkBlueGrey = '#4b6068';
+    const mediumGrey = '#7e7e7e';
 
 
     //rendering info
@@ -226,8 +224,8 @@ class attributeTable {
       .attr('stoke-width', 1)
       .attr('fill', (d)=>{
         if(d.data !== undefined)
-          return '#474747'; //dark grey
-        return '#d9dbdb'; //light grey
+          return darkGrey;
+        return lightGrey;
       });
 
 ////////// RENDER QUANT COLS /////////////////////////////////////////////
@@ -237,7 +235,7 @@ class attributeTable {
       .append('rect')
       .attr('width', (d)=> {return col_widths.find(x => x.name === d.name).width;})
       .attr('height', rowHeight)
-      .attr('fill', '#eef2f2') //VERY light grey
+      .attr('fill', lightGrey)
       .attr('stroke', 'black')
       .attr('stoke-width', 1);
 
@@ -251,14 +249,14 @@ class attributeTable {
         .attr("cy", rowHeight / 2)
         .attr("rx", radius)
         .attr("ry", radius)
-        .attr('stroke', '#474747')
+        .attr('stroke', 'black')
         .attr('stroke-width', 1)
-        .attr('fill', '#d9d9d9'); // TODO: translate off of boundaries
+        .attr('fill', darkGrey); // TODO: translate off of boundaries
 
         // stick on the median
         quantatives
         .append("rect") //sneaky line is a rectangle
-        .attr("width", 2)
+        .attr("width", 1.2)
         .attr("height", rowHeight)
         .attr("fill", 'black')
         .attr("transform", function (d) {

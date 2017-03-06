@@ -179,6 +179,21 @@ class attributeTable {
       .attr('class', 'cell');
 
 
+
+      //Add rectangle for highlighting...
+      const boundary = cells.filter((d)=> //only append onto the first cell of each row
+      { return col_xs.find(x => x.name === d['name']).x === 0;})
+      .append('rect')
+      .attr("classed", "boundary") //TODO! add attr for communication
+      .attr("row_pos", (d)=>{return d["y"];})
+      .attr('width', this.width + 2) //the whole width - BUG IN HERE not long enough!
+      .attr('height', 20 + 4)
+      .attr('fill', 'pink')//'transparent')
+      .attr("transform", function (d) {
+        return ('translate(' + -2 + ',' + (-2) + ')');
+      });
+
+
       const categoricals = cells.filter((e)=>{return (e.type === 'categorical')})
                             .attr('classed', 'categorical');
       const quantatives  = cells.filter((e)=>{return (e.type === 'int')})
@@ -239,64 +254,60 @@ class attributeTable {
         });
 
 
-
     //Move cells to their correct y position
     selectAll('.cell')
       .attr("transform", function (col) {
         return ('translate(0, ' + y(col['y']) + ' )'); //the x translation is taken care of by the group this cell is nested in.
       });
 
-}
-/*
-   const boundary = rows
-   .append("rect")
-   .attr("class", "boundary")
-   .attr('row_pos', function (elem) {
-   return elem.y;
-   })
-   .attr("width", this.width-col_margin)
-   .attr("height", rowHeight)
-   .attr('stroke', 'transparent')
-   .attr('stroke-width', 1)
-   .attr('fill', 'none');
-   const eventListener = rows.append('rect').attr("height", rowHeight).attr("width", this.width).attr("fill", "transparent")
+
+
+
+
    // CLICK
-   .on('click', function(elem) {
-   selectAll('.boundary').classed('tablehovered', false);
-   if (!event.metaKey){ //unless we pressed shift, unselect everything
-   selectAll('.boundary').classed('tableselected',false);
-   }
-   selectAll('.boundary').classed('tableselected', function(){
-   const rightRow = (select(this).attr('row_pos') == elem.y);
-   if(rightRow)
-   return (!select(this).classed('tableselected')); //toggle it
-   return select(this).classed('tableselected'); //leave it be
-   });
-   if(event.metaKey)
-   events.fire('table_row_selected', elem.id, 'multiple');
-   else
-   events.fire('table_row_selected', elem.id, 'singular');
-   })
-   // MOUSE ON
-   .on('mouseover', function(elem) {
-   selectAll('.boundary').classed('tablehovered', function(){
-   const rightRow = (select(this).attr('row_pos') == elem.y);
-   if(rightRow){ //don't hover if it's selected
-   return !select(this).classed('tableselected');
-   }
-   return false; //otherwise don't hover
-   });
-   events.fire('table_row_hover_on', elem.id);
-   })
-   // MOUSE OFF
-   .on('mouseout', function(elem) {
-   selectAll('.boundary').classed('tablehovered', false);
-   events.fire('table_row_hover_off', elem.id);
-   });
+
+   const listener =
+   boundary.on('click', function(elem) {
+     console.log(elem);
+     selectAll('.boundary').classed('tablehovered', false);
+     if (!event.metaKey){ //unless we pressed shift, unselect everything
+       selectAll('.boundary').classed('tableselected',false);
+     }
+     console.log("live");
+     selectAll('.boundary').classed('tableselected', function(){
+       console.log("select(this).attr('row_pos')");
+       console.log(select(this).attr('row_pos'));
+       const rightRow = (select(this).attr('row_pos') === elem['y']);
+       if(rightRow)
+          return (!select(this).classed('tableselected')); //toggle it
+       return select(this).classed('tableselected'); //leave it be
+     });
+     console.log("still live?");
+     if(event.metaKey)
+        events.fire('table_row_selected', elem['y'], 'multiple');
+     else
+        events.fire('table_row_selected', elem['y'], 'singular');
+     })
+     // MOUSE ON
+     .on('mouseover', function(elem) {
+        selectAll('.boundary').classed('tablehovered', function(){
+          const rightRow = (select(this).attr('row_pos') === elem['y']);
+          if(rightRow){ //don't hover if it's selected
+            return !select(this).classed('tableselected');
+          }
+          return false; //otherwise don't hover
+     });
+     events.fire('table_row_hover_on', elem['y']);
+     })
+     // MOUSE OFF
+     .on('mouseout', function(elem) {
+       selectAll('.boundary').classed('tablehovered', false);
+       events.fire('table_row_hover_off', elem['y']);
+     });
 
 
-   }
-   */
+ }
+
   //private update(data){
 
   //}
@@ -324,9 +335,9 @@ class attributeTable {
         const buffer = 4;
 	      const totalWeight = this.getTotalWeights();
         const getWeightHandle = this.getWeight;
-        const availableWidth = width - (2 * this.colData.length);
+        const availableWidth = width - (buffer * this.colData.length);
 	      const toReturn = this.colData.map(function(elem, index){
-	          const elemWidth = getWeightHandle(elem) * width / totalWeight;
+	          const elemWidth = getWeightHandle(elem) * availableWidth / totalWeight;
             return {'name':elem['name'], 'width':elemWidth}
 	      });
         return toReturn;

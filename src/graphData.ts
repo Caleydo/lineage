@@ -45,10 +45,13 @@ class GraphData {
       let personObj = {};
       for (let col of columns) {
         let data = await col.data();
-        // console.log(col.id())
+
         personObj[col.desc.name] = data[row];
       }
-      // personObj['id'] =columns[0].id();
+
+      let ids =await columns[0].names();
+      personObj['id'] = +ids[row];
+
       if (+personObj['bdate']) { //Only add people with a birthDate
         this.nodes.push(personObj);
         console.log(personObj)
@@ -65,6 +68,8 @@ class GraphData {
       d.y = undefined;
       d.x = +d.bdate; //set year as x attribute
       d.type = 'single';
+      d.MaID = +d.MaID;
+      d.PaID = +d.PaID;
       d.hidden = false;
       d.aggregated = false;
       d.bdate = +d.bdate;
@@ -233,10 +238,10 @@ class GraphData {
       .forEach((node) => {
         //Check if there are mother and father nodes in this family (founder won't have them for example)
         let maNode = this.nodes.filter((d) => {
-          return d.id === node.ma;
+          return d.id === node.MaID;
         });
         let paNode = this.nodes.filter((d) => {
-          return d.id === node.pa;
+          return d.id === node.PaID;
         });
 
         //No parents found
@@ -246,8 +251,8 @@ class GraphData {
         } else { //If found parents, create edges between parent and children, spouses, and add references to build tree
           maNode = maNode[0];
           paNode = paNode[0];
-          console.log('manode is ', maNode.id)
-          console.log('panode is ', paNode.id)
+          console.log('manode is ', maNode)
+          console.log('panode is ', paNode)
 
           //Replace ma and pa fields with reference to actual ma/pa nodes
           node.ma = maNode;
@@ -289,6 +294,8 @@ class GraphData {
           });
         }
       });
+
+    // console.log(parentChildEdges)
   };
 
   /**

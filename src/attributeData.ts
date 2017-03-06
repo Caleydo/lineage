@@ -49,17 +49,37 @@ export default class AttributeData {
     const uniqueFamilyIDs = familyIDs.filter((x, i, a) => a.indexOf(x) === i);
 
 
-    const familyRanges = [];
+    const familyRanges = []; //for .ids() approach
+    const familyRanges2 = []; // for brute force index approach
+
+    //.ids() approach
     const coldata = await this.table.col(0); //get vector for Kindred IDs
+
     for (const f of uniqueFamilyIDs) {
-      const u: IAnyVector = await coldata.filter((x)=> {return x === f;});
+      const u: IAnyVector = await coldata.filter(this.filterCat.bind(this, f));
+
       const id = await u.ids();
       if (id.size()[0] >= 1) {
         familyRanges.push(id);
-        //  console.log(f, await coldata.data(), id.dim(0).asList());
+        // console.log(f, await coldata.data(),  await u.data(), id.dim(0).asList());
       }
     }
+
+    //for brute force approach
+    for (const f of uniqueFamilyIDs) {
+      let fam =[];
+      familyIDs.forEach((d,i)=>{
+        if (d === f) {
+          fam.push(i);
+        }
+      });
+      familyRanges2.push(fam);
+    }
+
+
     console.log(familyRanges)
+
+
 
 
     const colIndexAccum = [];
@@ -81,16 +101,15 @@ export default class AttributeData {
       }
     }); //end for each
 
-
-    console.log(colIndexAccum)
     // const tempRequest = await this.table.col(yIndex);
     // this.ys = await tempRequest.data(range.all());
 
     // this.activeRows = range.all(); // all rows to start out with
-    this.activeRows = familyRanges[1];
-    console.log(this.activeRows);
-    // this.activeRows = range.list([2,5,6,8,12])
+    // this.activeRows = familyRanges[1];
+    this.activeRows = range.list(familyRanges2[0])
     this.activeColumns = range.list(colIndexAccum);
+    // const newView = await this.table.idView(familyRanges[1]);
+
     this.refreshActiveView(); //updates the active View
 
   }
@@ -98,6 +117,8 @@ export default class AttributeData {
   public async refreshActiveView(){
     const key = range.join(this.activeRows, this.activeColumns);
     this.activeView = await this.table.view(key);
+
+    // console.log(this.activeView);
     this.graphView = await this.table.view(range.join(this.activeRows, range.all()));
   }
 

@@ -1333,7 +1333,7 @@ class GenealogyTree {
     selectAll('.bars')
       .on('click', (d) => {
 
-        // console.log(d)
+        console.log(d)
 
         if (event.altKey) {
           //Hide node

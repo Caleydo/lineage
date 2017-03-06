@@ -39,11 +39,19 @@ class GraphData {
     let columns = this.table.cols();
     let nrow = this.table.nrow;
 
+    for (let col of columns) {
+      if (col.desc.name === 'KindredID')
+        console.log('col : ', col.desc.name, '  ' ,  await col.data());
+    }
+
+
+
     console.log('Table is of size', this.table.size())
 
     for (let row of range(0, nrow, 1)) {
       let personObj = {};
       for (let col of columns) {
+
         let data = await col.data();
 
         personObj[col.desc.name] = data[row];
@@ -52,10 +60,9 @@ class GraphData {
       let ids =await columns[0].names();
       personObj['id'] = +ids[row];
 
-      if (+personObj['bdate']) { //Only add people with a birthDate
+      // if (+personObj['bdate']) { //Only add people with a birthDate
         this.nodes.push(personObj);
-        console.log(personObj)
-      }
+      // }
     };
 
     //Sort nodes by y value, always starting at the founder (largest y) ;
@@ -84,6 +91,7 @@ class GraphData {
       d.hasChildren = false;
       d.children = []; //Array of children
       d.spouse = []; //Array of spouses (some have more than one)
+      // console.log(d.KindredID)
     });
 
     //Define attribute that defines 'affected' state
@@ -251,8 +259,6 @@ class GraphData {
         } else { //If found parents, create edges between parent and children, spouses, and add references to build tree
           maNode = maNode[0];
           paNode = paNode[0];
-          console.log('manode is ', maNode)
-          console.log('panode is ', paNode)
 
           //Replace ma and pa fields with reference to actual ma/pa nodes
           node.ma = maNode;

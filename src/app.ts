@@ -78,6 +78,7 @@ export class App {
     familySelectorView.init();
       const data = dataExplorations.create();
       //data.loadLocalData();
+
       // data.demoDatasets(null);
       // data.demoIDs();
       // data.demoGenealogyData();

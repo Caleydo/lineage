@@ -43,21 +43,21 @@ export default class AttributeData {
     const columns = await this.table.cols();
 
 
-    const familyRange=[];
-    const  familyIDs = await this.table.colData('KindredID');
-
-    familyIDs.filter((p,i) => {
-      if (p === 38) { familyRange.push(i);}
-      return (p === 38);
-    });
-
-    console.log(familyRange.length);
-
-    // console.log(range.all().filter(columns));
-
-    // console.log(range.parse(familyIDs)); //these two are equivalent
-    let familyRangeString = range.parse(familyIDs.toString()); //these two are equivalent
-    console.log(familyRangeString)
+    // const familyRange=[];
+    // const  familyIDs = await this.table.colData('KindredID');
+    //
+    // familyIDs.filter((p,i) => {
+    //   if (p === 38) { familyRange.push(i);}
+    //   return (p === 38);
+    // });
+    //
+    // console.log(familyRange.length);
+    //
+    // // console.log(range.all().filter(columns));
+    //
+    // // console.log(range.parse(familyIDs)); //these two are equivalent
+    // let familyRangeString = range.parse(familyIDs.toString()); //these two are equivalent
+    // console.log(familyRangeString)
 
     const colIndexAccum = [];
     let yIndex; //No need to set a value if you're going to override it in line 53.
@@ -78,10 +78,9 @@ export default class AttributeData {
       }
     }); //end for each
 
+
     // const tempRequest = await this.table.col(yIndex);
     // this.ys = await tempRequest.data(range.all());
-    // console.log("THIS WAS THE y COLUMN:");
-    // console.log(this.ys);
 
     this.activeRows = range.all(); // all rows to start out with
     this.activeColumns = range.list(colIndexAccum);

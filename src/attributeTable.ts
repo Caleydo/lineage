@@ -33,8 +33,6 @@ class attributeTable {
 
   constructor(parent: Element) {
     this.$node = select(parent)
-    // .append('div')
-    // .classed('attributeTable', true);
   }
 
   /**
@@ -44,56 +42,49 @@ class attributeTable {
    */
   async init(data) {
 
-
-    console.log("IN TABLE VIEW");
-
-
     this.activeView = data.activeView;
 
 
     let colDataAccum = [];
     for (const vector of this.activeView.cols()) {
       const temp = await vector.data(range.all());
-      //console.log("the column's name:" + await vector.column);
-      //console.log(temp);
-      var col: any = {};
-      col.name = await vector.column;
-      col.data = temp;
-      col.ys = data.ys;
-      col.type = await vector.valuetype.type;
-      colDataAccum.push(col);
+      const type = await vector.valuetype.type;
+      if(type === 'categorical'){
+        const categories = Array.from(new Set(temp));
+        for(const cat of categories){
+          var col: any = {};
+          const base_name = await vector.column;
+          col.name = base_name + '_' + cat;
+          col.data = temp.map(
+            (d)=>{if(d === cat) return d;
+                  else return undefined;});
+          col.ys = data.ys;
+          col.type = type;
+          colDataAccum.push(col);
+        }
+      }
+      else{ //quant
+        var col: any = {};
+        col.name = await vector.column;
+        col.data = temp;
+        col.ys = data.ys;
+        col.type = type;
+        //compute some stats, but first get rid of non-entries
+        const filteredData = temp.filter((d)=>{return d.length != 0;});
+        col.min = Math.min( ...filteredData );
+        col.max = Math.max( ...filteredData );     //parse bc otherwise might be a string because parsing is hard
+        col.mean = filteredData.reduce(function(a, b) { return parseInt(a) + parseInt(b); }) / filteredData.length;
+
+        colDataAccum.push(col);
+      }
     }
 
 
     this.colData = colDataAccum;
-    console.log("this is colData:");
-    console.log(colDataAccum);
-
-    //this.ys = data.ys;
-    //  this.colData = data.activeAttributes;
-
-    // console.log("can I get the objects?");
-    // console.log(await this.activeView.objects());
-    //
-    // console.log("can I get col names & types?");
-    // console.log(this.colData);
-    //
-
-    //  console.log("col data?");
-    //  console.log(await this.activeView.colData());
-
-    // for (const vector of this.activeView.cols()) {
-    //   console.log(await vector.data(range.all()));
-    // }
-    //
-    // console.log("and here are the y's");
-    // console.log(data.ys);
-
 
     this.build();
     this.attachListener();
 
-    console.log("LEAVING TABLE VIEW");
 
     // return the promise directly as long there is no dynamical data to update
     return Promise.resolve(this);
@@ -105,20 +96,8 @@ class attributeTable {
    */
   private async build() {
 
-
-    // returns a list of column-based data
-    // this.activeView.cols().map(function(col){
-    //       return this.activeView.colData[col.desc.name];
-    //     })
-
-    //list with 1 object
-    // let fakeData = [{id:"John", y:"2", ddate:1993, bdate:1900},
-    //                 {id:"Alice", y:"4", ddate:1973, bdate:1900}];
-
-
     this.width = 450 - this.margin.left - this.margin.right
     // this.height = Config.glyphSize * 3 * this.activeView.nrow - this.margin.top - this.margin.bottom;
-
     this.height = 2504;
 
     const darkGrey = '#4d4d4d';
@@ -127,21 +106,12 @@ class attributeTable {
     const lightPinkGrey = '#eae1e1';
     const darkBlueGrey = '#4b6068';
 
-    //  let rowData = await this.activeView.objects();
-    //  let colData = this.colData; //just an array so no awaiting
 
     //rendering info
-    var col_widths = await this.getDisplayedColumnWidths(this.width);
-    var col_xs = await this.getDisplayedColumnXs(this.width);
-    var label_xs = await this.getDisplayedColumnMidpointXs(this.width);
+    var col_widths = this.getDisplayedColumnWidths(this.width);
+    var col_xs = this.getDisplayedColumnXs(this.width);
+    var label_xs = this.getDisplayedColumnMidpointXs(this.width);
 
-    var num_cols = this.colData.length;
-    var displayedColNames = this.colData.map(function (elem) {
-      return elem['name'];
-    });
-    var displayedColTypes = this.colData.map(function (elem) {
-      return elem['type'];
-    });
 
     // Scales
     let x = scaleLinear().range([0, this.width]).domain([0, 13]);
@@ -156,92 +126,116 @@ class attributeTable {
       .attr("height", this.height + this.margin.top + this.margin.bottom)
 
 
-//COLUMNS GO HERE
-
-
-    /// v row
+//HEADERS
     const tableHeader = svg.append("g")
       .attr("transform", "translate(0," + this.margin.top / 2 + ")");
 
     //Bind data to the col headers
     let headers = tableHeader.selectAll(".header")
-      .data(this.colData.map((d,i) => {return {'name':d.name, 'data':d, 'ind':i, 'type':d.type}}));
+      .data(this.colData.map((d,i) => {return {'name':d.name, 'data':d, 'ind':i, 'type':d.type,
+                                               'max':d.max, 'min':d.min, 'mean':d.mean}}));
 
     const headerEnter = headers
       .enter()
       .append('text')
       .classed('header', 'true')
-      .attr("transform", (d) => {return 'translate(' + x(d['ind']) + ',0) rotate(-45)';});
+    //.attr("transform", (d) => {return 'translate(' + x(d['ind']) + ',0) rotate(-45)';});
+    .attr("transform",(d) => {
+      const x_translation = label_xs.find(x => x.name === d.name).x;
+      return 'translate(' + x_translation + ',0) rotate(-45)';});
+
 
     selectAll('.header')
       .text((d) => {return d['name']})
 
 
-      // .attr('x',(d) => {return x(d['ind'])})
-
+// TABLE
     const table = svg.append("g")
       .attr("transform", "translate(0," + this.margin.top + ")");
 
-
-    // @Carolina: so here is where I'm adding the columns:
-    // I've got the code for rendering the visualizations down below
-    // (commented out for now)
-    // and I'm logging to the screen what this colData is that I'm binding in .data()
-
     //Bind data to the col groups
     let cols = table.selectAll(".column")
-      .data(this.colData.map((d,i) => {return {'name':d.name, 'data':d.data, 'ind':i, 'ys':d.ys, 'type':d.type}}));
+      .data(this.colData.map((d,i) => {return {'name':d.name, 'data':d.data, 'ind':i, 'ys':d.ys, 'type':d.type,
+                                               'max':d.max, 'min':d.min, 'mean':d.mean}}));
 
     const colsEnter = cols.enter()
       .append('g')
       .classed('dataCols', true)
-      .attr("transform", (d) => {return 'translate(' + x(d['ind']) + ',0)';});
+      .attr("transform", (d) => {
+        const x_translation = col_xs.find(x => x.name === d.name).x;
+        return 'translate(' + x_translation + ',0)';});
+
 
     cols = colsEnter.merge(cols);
 
     //Bind data to the cells
     let cells = cols.selectAll('.cell')
       .data((d) => {
-        return d.data.map((e, i) => {
-          return {'name': d.name, 'data': e, 'y': d.ys[i], 'type':d.type}
-        })
-      });
-    //  .enter();
-    //.data((d) => {return d.data}) //Also works but then you don't retain the 'name' and 'y value' for each cell.
-
-
-
-
-
-    //Append cells to the enter() selection
-    const cellsEnter = cells
+        return d.data.map((e, i) => {return {'name': d.name, 'data': e, 'y': d.ys[i], 'type':d.type,
+                                              'max':d.max, 'min':d.min, 'mean':d.mean}})})
       .enter()
+      .append("g")
+      .attr('class', 'cell');
+
+
+      const categoricals = cells.filter((e)=>{return (e.type === 'categorical')})
+                            .attr('classed', 'categorical');
+      const quantatives  = cells.filter((e)=>{return (e.type === 'int')})
+                            .attr('classed', 'quantitative');
+      const idCells      = cells.filter((e)=>{return (e.type === 'idtype')})
+                            .attr('classed', 'idtype');
+
+
+////////// RENDER CATEGORICAL COLS /////////////////////////////////////////////
+
+      categoricals
       .append('rect')
-      .classed('cell', 'true');
-
-    cells = cells.merge(cellsEnter);
-
-
-
-      const categoricals = selectAll('.cell').filter(function(d:any){
-        return (d.type === 'categorical');})
-      .attr('width', 25)
+      .attr('width', (d)=> {return col_widths.find(x => x.name === d.name).width;})
       .attr('height', 20)
       .attr('stroke', 'black')
       .attr('stoke-width', 1)
-      .attr('fill', 'blue');
+      .attr('fill', (d)=>{
+        if(d.data !== undefined)
+          return '#474747'; //dark grey
+        return '#d9dbdb'; //light grey
+      });
 
+////////// RENDER QUANT COLS /////////////////////////////////////////////
+      const radius = 2;
 
-      const quantatives = selectAll('.cell').filter(function(d:any){
-        console.log(d.type);
-        return (d.type === 'int');})
-      .attr('width', 25)
+      quantatives
+      .append('rect')
+      .attr('width', (d)=> {return col_widths.find(x => x.name === d.name).width;})
       .attr('height', 20)
+      .attr('fill', '#eef2f2') //VERY light grey
       .attr('stroke', 'black')
-      .attr('stoke-width', 1)
-      .attr('fill', 'red');
+      .attr('stoke-width', 1);
 
+      quantatives
+      .append("ellipse")
+        .attr("cx",
+        function(d){
+          const width = col_widths.find(x => x.name === d.name).width;
+          const scaledRange = (width-2*radius) / (d.max - d.min);
+          return Math.floor((d.data-d.min) * scaledRange);})
+        .attr("cy", 20 / 2)
+        .attr("rx", radius)
+        .attr("ry", radius)
+        .attr('stroke', '#474747')
+        .attr('stroke-width', 1)
+        .attr('fill', '#d9d9d9'); // TODO: translate off of boundaries
 
+        // stick on the median
+        quantatives
+        .append("rect") //sneaky line is a rectangle
+        .attr("width", 2)
+        .attr("height", 20)
+        .attr("fill", 'black')
+        .attr("transform", function (d) {
+          const width = col_widths.find(x => x.name === d.name).width;
+          const scaledRange = (width-2*radius) / (d.max - d.min);
+          return ('translate(' + ((d.mean -d.min) * scaledRange) + ',0)');
+        });
 
 
 
@@ -251,348 +245,8 @@ class attributeTable {
         return ('translate(0, ' + y(col['y']) + ' )'); //the x translation is taken care of by the group this cell is nested in.
       });
 
-
-    // for (const name of this.colData.names) {
-    //   cols.classed(name, function(col){
-    //     return col.name === name;
-    //   });
-    // }
-
-
-    // let rows = table.selectAll(".row")
-    // .data(rowData) // TODO: aggregation
-    // .enter()
-    // .append("g")
-    // .attr('id', function (elem) {
-    //   return ('row_' +  elem.id);
-    // })
-    // .attr('class', 'row')
-    // .attr("transform", function (elem) {
-    //   // console.log("this was the element: ");
-    //   // console.log(elem);
-    //   // console.log("this was the y position: " + elem.y);
-    //   return ('translate(0, ' +  y(elem.y)+ ' )');
-    // });
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    // //////////////////////
-    // // monster for loop creates all vis. encodings for rows
-    //     const col_margin = 4;
-    //     for (let colIndex = 0; colIndex < num_cols; colIndex++) {
-    //       const curr_col_name = displayedColNames[colIndex];
-    //       const curr_col_type = displayedColTypes[colIndex];
-    //       const curr_col_width = col_widths[colIndex] - col_margin;
-    //
-    //       if( curr_col_type == 'idtype' ){
-    //
-    //         rows.append("rect")
-    //         .attr("width", curr_col_width)
-    //         .attr("height", rowHeight)
-    //         .attr('fill', 'lightgrey')
-    //         .attr('stroke', 'black')
-    //         .attr('stoke-width', 1)
-    //         .attr("transform", function () {
-    //           return ('translate(' + col_xs[colIndex] + ' ,0)')
-    //         });
-    //
-    //         rows.append("text")
-    //         .text(function(elem) {
-    //           const the_text = elem[curr_col_name];
-    //           return the_text.toString().substring(0, 3); })
-    //         .attr("transform", function (row_index) {
-    //           return ('translate(' + (label_xs[colIndex] - 10) + ' ,' + (rowHeight/2 + 5) + ')')
-    //         });
-    //       }
-    //
-    //       else if( curr_col_type == 'categorical'){
-    //         const allValues = rowData.map(function(elem){return elem[curr_col_name]});
-    //         const uniqueValues = Array.from(new Set(allValues));
-    //
-    //
-    //         uniqueValues.forEach(function(value) {
-    //           rows.append("rect")
-    //           .attr("width", curr_col_width)
-    //           .attr("height", rowHeight)
-    //           .attr('fill', function(elem){
-    //             return (elem[curr_col_name] === uniqueValues[0]) ? '#666666' : 'white';
-    //           })
-    //           .attr('stroke', 'black')
-    //           .attr('stoke-width', 1)
-    //           .attr("transform", function () {
-    //             return ('translate(' + col_xs[colIndex] + ' ,0)')
-    //           });
-    //       });
-    //       }
-
-    // else if( curr_col_type == 'int' ){
-    //   // how big is the range?
-    //   //find min, find max
-    //   const allValues = rowData.map(function(elem){return elem[curr_col_name]}).filter(function(x){return x.length != 0;});
-    //
-    //   // complicated min/max to avoid unspecified (zero) entries
-    //   // const min = [].reduce.call(allValues, function(acc, x) {
-    //   //   //console.log("in min, x is: " + x +", x.length is: " + x.length);
-    //   //   return x.length == 0 ? acc : Math.min(x, acc); });
-    //   const min = Math.min( ...allValues );
-    //   const max = Math.max( ...allValues );
-    //   const avg = allValues.reduce(function(acc, x) {
-    //     return parseInt(acc) + parseInt(x);}) / (allValues.length);
-    //
-    //   // only rows that have data
-    //   rows.filter((elem)=>{return elem[curr_col_name].toString().length > 0;})
-    //
-    //
-    //   const radius = 2;
-    //   const scaledRange = (curr_col_width-2*radius) / (max - min);
-    //
-    //   rows.append("ellipse")
-    //   .attr("cx", function(elem){
-    //     return Math.floor((elem[curr_col_name]-min) * scaledRange);})
-    //   .attr("cy", rowHeight / 2)
-    //   .attr("rx", radius)
-    //   .attr("ry", radius)
-    //   .attr('stroke', 'black')
-    //   .attr('stroke-width', 1)
-    //   .attr('fill', '#d9d9d9')
-    //   .attr("transform", function () { //yikes these shifts!
-    //     return ('translate(' + (col_xs[colIndex]+radius) + ' ,0)');
-    //   });
-    //
-    //   // and a boundary
-    //   rows.append("rect")
-    //   .attr("width", curr_col_width)
-    //   .attr("height", rowHeight)
-    //   .attr('fill', 'transparent')
-    //   .attr('stroke', 'black')
-    //   .attr('stoke-width', 1)
-    //   .attr("transform", function () {
-    //     return ('translate(' + col_xs[colIndex] + ' ,0)');
-    //   });
-    //   // stick on the median
-    //   rows.append("rect") //sneaky line is a rectangle
-    //   .attr("width", 2)
-    //   .attr("height", rowHeight)
-    //   .attr("fill", 'black')
-    //   .attr("transform", function () {
-    //     return ('translate(' + (Math.floor((avg-min) * scaledRange)
-    //     + col_xs[colIndex] - col_margin) + ',0)');
-    //   });
-    // }
-    // else
-    //   console.log("oh no, what type is this: " + curr_col_type );
-
-  }
-
-  // end for loop
-
-
-  /*
-   let tableAxis = axisTop(x).tickFormat(format("d"));
-   const rowHeight = Config.glyphSize * 2.5 - 4;
-   const svg = this.$node.append('svg')
-   .attr('width', this.width + this.margin.left + this.margin.right)
-   .attr("height", this.height + this.margin.top + this.margin.bottom)
-   const axis = svg.append("g")
-   .attr("transform", "translate(" + this.margin.left + "," + this.margin.axisTop / 1.5 + ")")
-   .attr('id', 'axis')
-   const TEMP_LEFT_FIX = 35; //TODO: what's going on here?
-   // todo: refactor so each column *knows* these things about itself
-   var col_widths = this.getDisplayedColumnWidths(this.width);
-   var col_xs = this.getDisplayedColumnXs(this.width);
-   var label_xs = this.getDisplayedColumnMidpointXs(this.width);
-   var num_cols = this.getNumberDisplayedColumns();
-   var displayedColNames = this.getDisplayedColumnNames();
-   var displayedColTypes = this.getDisplayedColumnTypes();
-   //  var displayedColOrder = this.all_data.getDisplayedColumnOrder();
-   let colNames = await this.activeView.cols().map(function(col){
-   return col.desc.name;
-   });
-   console.log("colNames: ");
-   console.log(colNames);
-   // this.colData
-   // ^^ UPDATE THOSE ON EVENTS- IS THIS A BAD DESIGN?
-   const table_header = axis.selectAll(".table_header")
-   .data(colNames)
-   .enter();
-   table_header.append("text")
-   .text(["a", "b"])//function(colName) { return colName;})
-   .attr('fill', 'black')
-   .attr('class', 'b')
-   .attr("transform", function (name, index) { // the 5 is to bump slight left
-   //return "translate(" + (label_xs[index] - 5 - TEMP_LEFT_FIX) + ", 0) rotate(-45)";
-   return "translate(" + (index*10 - 5 - TEMP_LEFT_FIX) + ", 0) rotate(-45)";
-   });
-   */
-
-
-//  throw "I got this";
-
-  /*
-   const loremIpsum = ["", "", "", "M", "T", "T", "   ...", "   ..."];
-   table_header.append("text")
-   // did someone say stand in text?
-   .text(function(index) { return loremIpsum[index]; })
-   .attr('fill', 'black')
-   .attr("transform", function (index) {
-   return "translate(" + (col_xs[index] - TEMP_LEFT_FIX) + ", 20)";
-   });
-   const wholeWidth = this.width; //binding here bc "this" mess
-   axis.append("rect")
-   .attr('width', wholeWidth)
-   .attr('height', 1)
-   .attr('fill', 'black')
-   .attr("transform", function (index) { //TODO: what's up with the shift?
-   return "translate(" + (-1*TEMP_LEFT_FIX - 5) + ", 5)";
-   })
-   // TODO: to sort the table by attribute
-   table_header.append("rect")
-   .attr('width', function(index){ return col_widths[index];})
-   .attr('height', 40)
-   .attr('fill', 'transparent')
-   .attr("transform", function (index) { //TODO: what's up with the shift?
-   return "translate(" + (col_xs[index] - TEMP_LEFT_FIX - 5) + ", 0)";
-   })
-   // CLICK
-   .on('click', function(d) {
-   //1. sort attributes, keep a hold of some row id - add row DS
-   //2. update row display order
-   })
-   */
-/// ^ columns
-  /*
-   /// v row
-   const table = svg.append("g")
-   .attr("transform", "translate(0," + this.margin.top + ")")
-   let rows = table.selectAll(".row")
-   .data(await this.activeView.objects("(0:-1)"))
-   .enter();
-   // .attr('id', function (elem) {
-   //   return ('row_' +  elem.id);
-   // })
-   //.attr('class', 'row');
-   // .attr("transform", function (elem) {
-   //   return ('translate(0, ' +  y(elem.y)+ ' )');
-   // });
-   rows.append("rect")
-   .attr("width", 30)
-   .attr("height", rowHeight)
-   .attr('fill', 'lightgrey')
-   .attr('stroke', 'black')
-   .attr('stoke-width', 1);
-   */
-
-  /*
-   let rows = table.selectAll(".row")
-   .data(betterData) // TODO: aggregation
-   .enter()
-   .append("g")
-   .attr('id', function (elem) {
-   return ('row_' +  elem.id);
-   })
-   .attr('class', 'row')
-   .attr("transform", function (elem) {
-   return ('translate(0, ' +  y(elem.y)+ ' )');
-   });
-   //////////////////////
-   // monster for loop creates all vis. encodings for rows
-   const col_margin = 4;
-   for (let colIndex = 0; colIndex < num_cols; colIndex++) {
-   const curr_col_name = displayedColNames[colIndex];
-   const curr_col_type = displayedColTypes[colIndex];
-   const curr_col_width = col_widths[colIndex] - col_margin;
-   if( curr_col_type == 'idType' ){
-   rows.append("rect")
-   .attr("width", curr_col_width)
-   .attr("height", rowHeight)
-   .attr('fill', 'lightgrey')
-   .attr('stroke', 'black')
-   .attr('stoke-width', 1)
-   .attr("transform", function () {
-   return ('translate(' + col_xs[colIndex] + ' ,0)')
-   });
-   rows.append("text")
-   .text(function(elem) {
-   const the_text = elem[curr_col_name];
-   return the_text.toString().substring(0, 3); })
-   .attr("transform", function (row_index) {
-   return ('translate(' + (label_xs[colIndex] - 10) + ' ,' + (rowHeight/2 + 5) + ')')
-   });
-   }
-   else if( curr_col_type == 'categorical'){
-   const allValues = betterData.map(function(elem){return elem[curr_col_name]});
-   const uniqueValues = Array.from(new Set(allValues));
-   uniqueValues.forEach(function(value) {
-   rows.append("rect")
-   .attr("width", curr_col_width)
-   .attr("height", rowHeight)
-   .attr('fill', function(elem){
-   return (elem[curr_col_name] === uniqueValues[0]) ? '#666666' : 'white';
-   })
-   .attr('stroke', 'black')
-   .attr('stoke-width', 1)
-   .attr("transform", function () {
-   return ('translate(' + col_xs[colIndex] + ' ,0)')
-   });
-   });
-   }
-   else if( curr_col_type == 'int' ){
-   // how big is the range?
-   //find min, find max
-   const allValues = betterData.map(function(elem){return elem[curr_col_name]}).filter(function(x){return x.length != 0;});
-   // complicated min/max to avoid unspecified (zero) entries
-   // const min = [].reduce.call(allValues, function(acc, x) {
-   //   //console.log("in min, x is: " + x +", x.length is: " + x.length);
-   //   return x.length == 0 ? acc : Math.min(x, acc); });
-   const min = Math.min( ...allValues );
-   const max = Math.max( ...allValues );
-   const avg = allValues.reduce(function(acc, x) {
-   return parseInt(acc) + parseInt(x);}) / (allValues.length);
-   // only rows that have data
-   rows.filter((elem)=>{return elem[curr_col_name].toString().length > 0;})
-   const radius = 2;
-   const scaledRange = (curr_col_width-2*radius) / (max - min);
-   rows.append("ellipse")
-   .attr("cx", function(elem){
-   return Math.floor((elem[curr_col_name]-min) * scaledRange);})
-   .attr("cy", rowHeight / 2)
-   .attr("rx", radius)
-   .attr("ry", radius)
-   .attr('stroke', 'black')
-   .attr('stroke-width', 1)
-   .attr('fill', '#d9d9d9')
-   .attr("transform", function () { //yikes these shifts!
-   return ('translate(' + (col_xs[colIndex]+radius) + ' ,0)');
-   });
-   // and a boundary
-   rows.append("rect")
-   .attr("width", curr_col_width)
-   .attr("height", rowHeight)
-   .attr('fill', 'transparent')
-   .attr('stroke', 'black')
-   .attr('stoke-width', 1)
-   .attr("transform", function () {
-   return ('translate(' + col_xs[colIndex] + ' ,0)');
-   });
-   // stick on the median
-   rows.append("rect") //sneaky line is a rectangle
-   .attr("width", 2)
-   .attr("height", rowHeight)
-   .attr("fill", 'black')
-   .attr("transform", function () {
-   return ('translate(' + (Math.floor((avg-min) * scaledRange)
-   + col_xs[colIndex] - col_margin) + ',0)');
-   });
-   }
-   else
-   console.log("oh no, what type is this: " + curr_col_type );
-   }
-   // end for loop
+}
+/*
    const boundary = rows
    .append("rect")
    .attr("class", "boundary")
@@ -647,36 +301,61 @@ class attributeTable {
   //}
 
 
-  private getDisplayedColumnWidths(width) {
-    var displayedColNames = this.colData.map(function (elem) {
-      return elem['name'];
-    });
-    var displayedColTypes = this.colData.map(function (elem) {
-      return elem['type'];
-    });
+  private getWeight(data_elem){
+	    if(data_elem.type === 'int')
+	      return 3;
+	    else if(data_elem.type === 'categorical'){ //make sure to account for # cols
+        return 1;
+      }
+	    return 2;
+	  }
 
-    //console.log("how many cols?? " + this.colData.length);
-
-    return [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240];
-  }
-
-  private getDisplayedColumnXs(width) {
-    return [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240];
-  }
-
-  private getDisplayedColumnMidpointXs(width) {
-    return [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240];
-  }
+ private getTotalWeights(){
+      const getWeightHandle = this.getWeight;
+	    const weights = this.colData.map(function(elem)
+	    { return getWeightHandle(elem);});
+      return weights.reduce(function(a, b) { return a + b; }, 0);
+	}
 
 
-  // console.log("can I get the objects?");
-  // console.log(await this.activeView.objects());
-  //
-  // console.log("can I get col names & types?");
-  // console.log(this.colData);
-  //
-  // console.log("col names?");
-  // console.log(await this.activeView.cols());
+// returns a function that takes a column name & returns the width of that column (single category width for cat columns)
+	  private getDisplayedColumnWidths(width){
+        const buffer = 4;
+	      const totalWeight = this.getTotalWeights();
+        const getWeightHandle = this.getWeight;
+        const availableWidth = width - (2 * this.colData.length);
+	      const toReturn = this.colData.map(function(elem, index){
+	          const elemWidth = getWeightHandle(elem) * width / totalWeight;
+            return {'name':elem['name'], 'width':elemWidth}
+	      });
+        return toReturn;
+	  }
+
+	  private getDisplayedColumnXs(width){
+      const buffer = 4;
+	    const totalWeight = this.getTotalWeights();
+      const colWidths = this.getDisplayedColumnWidths(width);
+      return colWidths.map(function(elem, index){
+        var x_dist = 0;
+        for(let i = 0; i < index; i++){
+          x_dist += colWidths[i].width + buffer;
+        }
+        return {'name':elem['name'], 'x':x_dist};
+      });
+	  }
+
+
+	  private getDisplayedColumnMidpointXs(width){
+      const buffer = 6;
+	    const totalWeight = this.getTotalWeights();
+	    const colXs = this.getDisplayedColumnXs(width);
+      const colWidths = this.getDisplayedColumnWidths(width);
+	    return this.colData.map(function(elem, index){
+	        const midPoint = colXs[index].x + (colWidths[index].width/2) ;//+ 40; //TODO WHY
+          return {'name':elem['name'], 'x':midPoint};
+	    });
+
+	  }
 
 
   private attachListener() {

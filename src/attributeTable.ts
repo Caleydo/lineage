@@ -20,6 +20,7 @@ class attributeTable {
 
   private width;
   private height;
+  private buffer; //pixel dist between columns
 
   private tableAxis;
 
@@ -82,6 +83,8 @@ class attributeTable {
 
     this.colData = colDataAccum;
 
+    this.buffer = 4;
+
     this.build();
     this.attachListener();
 
@@ -112,14 +115,22 @@ class attributeTable {
     var col_xs = this.getDisplayedColumnXs(this.width);
     var label_xs = this.getDisplayedColumnMidpointXs(this.width);
 
+    console.log("are these the y's?");
+    console.log(this.colData[0]['ys']);
+
+
+    console.log("THIS IS MIN Y");
+  //  const filteredYs = this.colData.filter((d)=>{return d.length != 0;});
+    console.log(Math.min( ...this.colData[0]['ys']));
+
 
     // Scales
     let x = scaleLinear().range([0, this.width]).domain([0, 13]);
-    let y = scaleLinear().range([0, this.height]).domain([1, 98]); // TODO
-    // [min(rowData,
-    //   function(d){return +d['y']}), max(rowData,function(d){return +d['y']}) ]);
+    let y = scaleLinear().range([0, this.height]).domain(
+    [Math.min( ...this.colData[0]['ys']), Math.max( ...this.colData[0]['ys'])]);
 
-    const rowHeight = Config.glyphSize * 2.5 - 4;
+
+    const rowHeight = Config.glyphSize * 2.5 - 4;// - 10;
 
     const svg = this.$node.append('svg')
       .attr('width', this.width + this.margin.left + this.margin.right)
@@ -190,7 +201,7 @@ class attributeTable {
       .classed('tableselected', false)
       .attr("row_pos", (d)=>{return d["y"];})
       .attr('width', (d)=> {return (col_widths.find(x => x.name === d.name).width + 4);})
-      .attr('height', 20 + 4)
+      .attr('height', rowHeight + this.buffer)
       .attr('fill', 'transparent')
       .attr("transform", function (d) {
         return ('translate(' + -2 + ',' + (-2) + ')');
@@ -210,7 +221,7 @@ class attributeTable {
       categoricals
       .append('rect')
       .attr('width', (d)=> {return col_widths.find(x => x.name === d.name).width;})
-      .attr('height', 20)
+      .attr('height', rowHeight)
       .attr('stroke', 'black')
       .attr('stoke-width', 1)
       .attr('fill', (d)=>{
@@ -225,7 +236,7 @@ class attributeTable {
       quantatives
       .append('rect')
       .attr('width', (d)=> {return col_widths.find(x => x.name === d.name).width;})
-      .attr('height', 20)
+      .attr('height', rowHeight)
       .attr('fill', '#eef2f2') //VERY light grey
       .attr('stroke', 'black')
       .attr('stoke-width', 1);
@@ -237,7 +248,7 @@ class attributeTable {
           const width = col_widths.find(x => x.name === d.name).width;
           const scaledRange = (width-2*radius) / (d.max - d.min);
           return Math.floor((d.data-d.min) * scaledRange);})
-        .attr("cy", 20 / 2)
+        .attr("cy", rowHeight / 2)
         .attr("rx", radius)
         .attr("ry", radius)
         .attr('stroke', '#474747')
@@ -248,7 +259,7 @@ class attributeTable {
         quantatives
         .append("rect") //sneaky line is a rectangle
         .attr("width", 2)
-        .attr("height", 20)
+        .attr("height", rowHeight)
         .attr("fill", 'black')
         .attr("transform", function (d) {
           const width = col_widths.find(x => x.name === d.name).width;
@@ -262,13 +273,6 @@ class attributeTable {
       .attr("transform", function (col) {
         return ('translate(0, ' + y(col['y']) + ' )'); //the x translation is taken care of by the group this cell is nested in.
       });
-
-
-    // selection.prototype.moveToFront = function() {
-    //   return this.each(function(){
-    //     this.parentNode.appendChild(this);
-    //   });
-    // };
 
 
 ////////////// EVENT HANDLERS! /////////////////////////////////////////////
@@ -315,7 +319,7 @@ class attributeTable {
 
   //}
 
-
+////////////// RENDERING FUNCTIONS! /////////////////////////////////////////////
   private getWeight(data_elem){
 	    if(data_elem.type === 'int')
 	      return 3;
@@ -332,45 +336,43 @@ class attributeTable {
       return weights.reduce(function(a, b) { return a + b; }, 0);
 	}
 
-
-// returns a function that takes a column name & returns the width of that column (single category width for cat columns)
-	  private getDisplayedColumnWidths(width){
-        const buffer = 4;
-	      const totalWeight = this.getTotalWeights();
-        const getWeightHandle = this.getWeight;
-        const availableWidth = width - (buffer * this.colData.length);
-	      const toReturn = this.colData.map(function(elem, index){
-	          const elemWidth = getWeightHandle(elem) * availableWidth / totalWeight;
-            return {'name':elem['name'], 'width':elemWidth}
-	      });
-        return toReturn;
-	  }
-
-	  private getDisplayedColumnXs(width){
-      const buffer = 4;
-	    const totalWeight = this.getTotalWeights();
-      const colWidths = this.getDisplayedColumnWidths(width);
-      return colWidths.map(function(elem, index){
-        var x_dist = 0;
-        for(let i = 0; i < index; i++){
-          x_dist += colWidths[i].width + buffer;
-        }
-        return {'name':elem['name'], 'x':x_dist};
+  private getDisplayedColumnWidths(width){
+      const buffer = this.buffer;
+      const totalWeight = this.getTotalWeights();
+      const getWeightHandle = this.getWeight;
+      const availableWidth = width - (buffer * this.colData.length);
+      const toReturn = this.colData.map(function(elem, index){
+          const elemWidth = getWeightHandle(elem) * availableWidth / totalWeight;
+          return {'name':elem['name'], 'width':elemWidth}
       });
-	  }
+      return toReturn;
+  }
+
+  private getDisplayedColumnXs(width){
+    const buffer = this.buffer;
+    const totalWeight = this.getTotalWeights();
+    const colWidths = this.getDisplayedColumnWidths(width);
+    return colWidths.map(function(elem, index){
+      var x_dist = 0;
+      for(let i = 0; i < index; i++){
+        x_dist += colWidths[i].width + buffer;
+      }
+      return {'name':elem['name'], 'x':x_dist};
+    });
+  }
 
 
-	  private getDisplayedColumnMidpointXs(width){
-      const buffer = 6;
-	    const totalWeight = this.getTotalWeights();
-	    const colXs = this.getDisplayedColumnXs(width);
-      const colWidths = this.getDisplayedColumnWidths(width);
-	    return this.colData.map(function(elem, index){
-	        const midPoint = colXs[index].x + (colWidths[index].width/2) ;//+ 40; //TODO WHY
-          return {'name':elem['name'], 'x':midPoint};
-	    });
+  private getDisplayedColumnMidpointXs(width){
+    const buffer = this.buffer + 2;
+    const totalWeight = this.getTotalWeights();
+    const colXs = this.getDisplayedColumnXs(width);
+    const colWidths = this.getDisplayedColumnWidths(width);
+    return this.colData.map(function(elem, index){
+        const midPoint = colXs[index].x + (colWidths[index].width/2) ;//+ 40; //TODO WHY
+        return {'name':elem['name'], 'x':midPoint};
+    });
 
-	  }
+  }
 
 
   private attachListener() {

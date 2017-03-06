@@ -63,12 +63,18 @@ class attributeTable {
           colDataAccum.push(col);
         }
       }
-      else{
+      else{ //quant
         var col: any = {};
         col.name = await vector.column;
         col.data = temp;
         col.ys = data.ys;
         col.type = type;
+        //compute some stats, but first get rid of non-entries
+        const filteredData = temp.filter((d)=>{return d.length != 0;});
+        col.min = Math.min( ...filteredData );
+        col.max = Math.max( ...filteredData );     //parse bc otherwise might be a string because parsing is hard
+        col.mean = filteredData.reduce(function(a, b) { return parseInt(a) + parseInt(b); }) / filteredData.length;
+
         colDataAccum.push(col);
       }
     }
@@ -126,7 +132,8 @@ class attributeTable {
 
     //Bind data to the col headers
     let headers = tableHeader.selectAll(".header")
-      .data(this.colData.map((d,i) => {return {'name':d.name, 'data':d, 'ind':i, 'type':d.type}}));
+      .data(this.colData.map((d,i) => {return {'name':d.name, 'data':d, 'ind':i, 'type':d.type,
+                                               'max':d.max, 'min':d.min, 'mean':d.mean}}));
 
     const headerEnter = headers
       .enter()
@@ -149,7 +156,8 @@ class attributeTable {
 
     //Bind data to the col groups
     let cols = table.selectAll(".column")
-      .data(this.colData.map((d,i) => {return {'name':d.name, 'data':d.data, 'ind':i, 'ys':d.ys, 'type':d.type}}));
+      .data(this.colData.map((d,i) => {return {'name':d.name, 'data':d.data, 'ind':i, 'ys':d.ys, 'type':d.type,
+                                               'max':d.max, 'min':d.min, 'mean':d.mean}}));
 
     const colsEnter = cols.enter()
       .append('g')
@@ -164,10 +172,8 @@ class attributeTable {
     //Bind data to the cells
     let cells = cols.selectAll('.cell')
       .data((d) => {
-        return d.data.map((e, i) => {
-          return {'name': d.name, 'data': e, 'y': d.ys[i], 'type':d.type} //, 'ind':i}
-        })
-      })
+        return d.data.map((e, i) => {return {'name': d.name, 'data': e, 'y': d.ys[i], 'type':d.type,
+                                              'max':d.max, 'min':d.min, 'mean':d.mean}})})
       .enter()
       .append("g")
       .attr('class', 'cell');
@@ -197,6 +203,27 @@ class attributeTable {
 
 ////////// RENDER QUANT COLS /////////////////////////////////////////////
 
+//   // how big is the range?
+//   //find min, find max
+  // const allValues = rowData.map(function(elem){return elem[curr_col_name]}).filter(function(x){return x.length != 0;});
+  //
+  // // complicated min/max to avoid unspecified (zero) entries
+  // // const min = [].reduce.call(allValues, function(acc, x) {
+  // //   //console.log("in min, x is: " + x +", x.length is: " + x.length);
+  // //   return x.length == 0 ? acc : Math.min(x, acc); });
+  // const min = Math.min( ...allValues );
+  // const max = Math.max( ...allValues );
+  // const avg = allValues.reduce(function(acc, x) {
+  //   return parseInt(acc) + parseInt(x);}) / (allValues.length);
+  //
+  // // only rows that have data
+  // rows.filter((elem)=>{return elem[curr_col_name].toString().length > 0;})
+  //
+  //
+
+
+
+      const radius = 2;
 
       quantatives
       .append('rect')
@@ -205,8 +232,6 @@ class attributeTable {
       .attr('fill', '#eef2f2') //VERY light grey //'transparent')
       .attr('stroke', 'black')
       .attr('stoke-width', 1);
-
-const radius = 2;
 
       quantatives
       .append("ellipse")
@@ -235,46 +260,6 @@ const radius = 2;
           // + col_xs[colIndex] - col_margin) +
            ',0)');
         });
-
-
-
-
-
-
-      //rows.append("ellipse")
-      //   .attr("cx", function(elem){
-      //     return Math.floor((elem[curr_col_name]-min) * scaledRange);})
-      //   .attr("cy", rowHeight / 2)
-      //   .attr("rx", radius)
-      //   .attr("ry", radius)
-      //   .attr('stroke', 'black')
-      //   .attr('stroke-width', 1)
-      //   .attr('fill', '#d9d9d9')
-      //   .attr("transform", function () { //yikes these shifts!
-      //     return ('translate(' + (col_xs[colIndex]+radius) + ' ,0)');
-      //   });
-      //
-      //   // and a boundary
-      //   rows.append("rect")
-      //   .attr("width", curr_col_width)
-      //   .attr("height", rowHeight)
-      //   .attr('fill', 'transparent')
-      //   .attr('stroke', 'black')
-      //   .attr('stoke-width', 1)
-      //   .attr("transform", function () {
-      //     return ('translate(' + col_xs[colIndex] + ' ,0)');
-      //   });
-      //   // stick on the median
-      //   rows.append("rect") //sneaky line is a rectangle
-      //   .attr("width", 2)
-      //   .attr("height", rowHeight)
-      //   .attr("fill", 'black')
-      //   .attr("transform", function () {
-      //     return ('translate(' + (Math.floor((avg-min) * scaledRange)
-      //     + col_xs[colIndex] - col_margin) + ',0)');
-      //   });
-      // }
-
 
 
 

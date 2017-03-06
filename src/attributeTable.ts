@@ -181,16 +181,17 @@ class attributeTable {
 
 
       //Add rectangle for highlighting...
-      const boundary = cells.filter((d)=> //only append onto the first cell of each row
-      { return col_xs.find(x => x.name === d['name']).x === 0;})
+      const boundary = cells
+      // .filter((d)=> //only append onto the first cell of each row
+      // { return col_xs.find(x => x.name === d['name']).x === 0;})
       .append('rect')
-      .attr("classed", "boundary")
+      .classed("boundary", true)
       .classed('tablehovered', false) //TODO maybe get rid of?
-      .classed('tableselected',false)
+      .classed('tableselected', false)
       .attr("row_pos", (d)=>{return d["y"];})
-      .attr('width', this.width + 2)
+      .attr('width', (d)=> {return (col_widths.find(x => x.name === d.name).width + 4);})
       .attr('height', 20 + 4)
-      .attr('fill', 'pink')//'transparent')
+      .attr('fill', 'transparent')
       .attr("transform", function (d) {
         return ('translate(' + -2 + ',' + (-2) + ')');
       });
@@ -263,11 +264,11 @@ class attributeTable {
       });
 
 
-    selection.prototype.moveToFront = function() {
-      return this.each(function(){
-        this.parentNode.appendChild(this);
-      });
-    };
+    // selection.prototype.moveToFront = function() {
+    //   return this.each(function(){
+    //     this.parentNode.appendChild(this);
+    //   });
+    // };
 
 
    // CLICK
@@ -278,33 +279,23 @@ class attributeTable {
   //  });
 
    cells.on('click', function(elem) {
-     console.log("REGISTERED CLICK!!");
      selectAll('.boundary').classed('tablehovered', false);
      if (!event.metaKey){ //unless we pressed shift, unselect everything
        selectAll('.boundary').classed('tableselected',false);
      }
-
-     console.log("all boundary?")
-     console.log(selectAll('.boundary'))
-
-     console.log("live");
-     selectAll('.boundary').classed('tableselected', function(){
-       console.log("IN THE FIRST BOUNDARY THING");
-       console.log("select(this).attr('row_pos')");
-       console.log(select(this).attr('row_pos'));
-       const rightRow = (select(this).attr('row_pos') === elem['y']);
-       if(rightRow)
-          return (!select(this).classed('tableselected')); //toggle it
-       return select(this).classed('tableselected'); //leave it be
-     });
-     console.log("still live?");
+     selectAll('.boundary')
+      .classed('tableselected', function(){
+         const rightRow = (parseInt(select(this).attr('row_pos')) === elem['y']);
+         if(rightRow){
+            return (!select(this).classed('tableselected')); //toggle it
+          }
+         return select(this).classed('tableselected'); //leave it be
+       });
      if(event.metaKey)
         events.fire('table_row_selected', elem['y'], 'multiple');
      else
         events.fire('table_row_selected', elem['y'], 'singular');
      });
-
-     console.log("made it out");
 
 
 

@@ -271,12 +271,7 @@ class attributeTable {
     // };
 
 
-   // CLICK
-
-  // const listener =
-  //  boundary.on('click', function(elem) {
-  //    console.log("REGISTERED CLICK!!");
-  //  });
+////////////// EVENT HANDLERS! /////////////////////////////////////////////
 
    cells.on('click', function(elem) {
      selectAll('.boundary').classed('tablehovered', false);
@@ -295,26 +290,23 @@ class attributeTable {
         events.fire('table_row_selected', elem['y'], 'multiple');
      else
         events.fire('table_row_selected', elem['y'], 'singular');
+     })
+     // MOUSE ON
+     .on('mouseover', function(elem) {
+        selectAll('.boundary').classed('tablehovered', function(){
+          const rightRow = (select(this).attr('row_pos') == elem['y']); //== OR parseInt. Not sure which is more canonical.
+          if(rightRow){ //don't hover if it's selected
+            return !select(this).classed('tableselected');
+          }
+          return false; //otherwise don't hover
      });
-
-
-
-    //  // MOUSE ON
-    //  .on('mouseover', function(elem) {
-    //     selectAll('.boundary').classed('tablehovered', function(){
-    //       const rightRow = (select(this).attr('row_pos') === elem['y']);
-    //       if(rightRow){ //don't hover if it's selected
-    //         return !select(this).classed('tableselected');
-    //       }
-    //       return false; //otherwise don't hover
-    //  });
-    //  events.fire('table_row_hover_on', elem['y']);
-    //  })
-    //  // MOUSE OFF
-    //  .on('mouseout', function(elem) {
-    //    selectAll('.boundary').classed('tablehovered', false);
-    //    events.fire('table_row_hover_off', elem['y']);
-    //  });
+     events.fire('table_row_hover_on', elem['y']);
+     })
+     // MOUSE OFF
+     .on('mouseout', function(elem) {
+       selectAll('.boundary').classed('tablehovered', false);
+       events.fire('table_row_hover_off', elem['y']);
+     });
 
 
  }

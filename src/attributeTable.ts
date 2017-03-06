@@ -3,7 +3,7 @@ import {AppConstants, ChangeTypes} from './app_constants';
 // import * as d3 from 'd3';
 import {Config} from './config';
 
-import {select, selectAll, mouse, event} from 'd3-selection';
+import {select, selection, selectAll, mouse, event} from 'd3-selection';
 import {format} from 'd3-format';
 import {scaleLinear} from 'd3-scale';
 import {max, min} from 'd3-array';
@@ -184,9 +184,11 @@ class attributeTable {
       const boundary = cells.filter((d)=> //only append onto the first cell of each row
       { return col_xs.find(x => x.name === d['name']).x === 0;})
       .append('rect')
-      .attr("classed", "boundary") //TODO! add attr for communication
+      .attr("classed", "boundary")
+      .classed('tablehovered', false) //TODO maybe get rid of?
+      .classed('tableselected',false)
       .attr("row_pos", (d)=>{return d["y"];})
-      .attr('width', this.width + 2) //the whole width - BUG IN HERE not long enough!
+      .attr('width', this.width + 2)
       .attr('height', 20 + 4)
       .attr('fill', 'pink')//'transparent')
       .attr("transform", function (d) {
@@ -261,20 +263,33 @@ class attributeTable {
       });
 
 
-
+    selection.prototype.moveToFront = function() {
+      return this.each(function(){
+        this.parentNode.appendChild(this);
+      });
+    };
 
 
    // CLICK
 
-   const listener =
-   boundary.on('click', function(elem) {
-     console.log(elem);
+  // const listener =
+  //  boundary.on('click', function(elem) {
+  //    console.log("REGISTERED CLICK!!");
+  //  });
+
+   cells.on('click', function(elem) {
+     console.log("REGISTERED CLICK!!");
      selectAll('.boundary').classed('tablehovered', false);
      if (!event.metaKey){ //unless we pressed shift, unselect everything
        selectAll('.boundary').classed('tableselected',false);
      }
+
+     console.log("all boundary?")
+     console.log(selectAll('.boundary'))
+
      console.log("live");
      selectAll('.boundary').classed('tableselected', function(){
+       console.log("IN THE FIRST BOUNDARY THING");
        console.log("select(this).attr('row_pos')");
        console.log(select(this).attr('row_pos'));
        const rightRow = (select(this).attr('row_pos') === elem['y']);
@@ -287,23 +302,28 @@ class attributeTable {
         events.fire('table_row_selected', elem['y'], 'multiple');
      else
         events.fire('table_row_selected', elem['y'], 'singular');
-     })
-     // MOUSE ON
-     .on('mouseover', function(elem) {
-        selectAll('.boundary').classed('tablehovered', function(){
-          const rightRow = (select(this).attr('row_pos') === elem['y']);
-          if(rightRow){ //don't hover if it's selected
-            return !select(this).classed('tableselected');
-          }
-          return false; //otherwise don't hover
      });
-     events.fire('table_row_hover_on', elem['y']);
-     })
-     // MOUSE OFF
-     .on('mouseout', function(elem) {
-       selectAll('.boundary').classed('tablehovered', false);
-       events.fire('table_row_hover_off', elem['y']);
-     });
+
+     console.log("made it out");
+
+
+
+    //  // MOUSE ON
+    //  .on('mouseover', function(elem) {
+    //     selectAll('.boundary').classed('tablehovered', function(){
+    //       const rightRow = (select(this).attr('row_pos') === elem['y']);
+    //       if(rightRow){ //don't hover if it's selected
+    //         return !select(this).classed('tableselected');
+    //       }
+    //       return false; //otherwise don't hover
+    //  });
+    //  events.fire('table_row_hover_on', elem['y']);
+    //  })
+    //  // MOUSE OFF
+    //  .on('mouseout', function(elem) {
+    //    selectAll('.boundary').classed('tablehovered', false);
+    //    events.fire('table_row_hover_off', elem['y']);
+    //  });
 
 
  }

@@ -61,6 +61,8 @@ export class App {
       const graphDataObj = graphData.create(attributeDataObj);
       await graphDataObj.createTree();
 
+      attributeDataObj.ys = graphDataObj.assignLinearOrder();
+
       const genealogyTree = tree.create(this.$node.select('#graph_table').node());
       genealogyTree.init(graphDataObj);
 
@@ -68,10 +70,10 @@ export class App {
       //const tableDataObj = tableData.create(realData, datasets[0].desc.columns);
 
       const attributeTable = table.create(this.$node.select('#graph_table').node());
-     // attributeTable.init(attributeDataObj);
+     attributeTable.init(attributeDataObj);
 
-      // const attributePanel = panel.create(this.$node.select('#data_selection').node());
-      // attributePanel.init(attributeDataObj);
+      const attributePanel = panel.create(this.$node.select('#data_selection').node());
+      attributePanel.init(attributeDataObj);
 
       // const familySelectorView = familySelector.create(this.$node.select('#familySelector').node());
 

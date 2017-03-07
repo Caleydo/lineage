@@ -112,7 +112,7 @@ class GraphData {
    *
    */
 
-  private assignLinearOrder() {
+  public assignLinearOrder() {
 
     //Sort by increasing birth date
     this.nodes.sort(function (a, b) {
@@ -137,6 +137,11 @@ class GraphData {
         thisNode.y = thisNode.y + 1;
       }
     });
+
+    let ys = [];
+    this.nodes.forEach ((node)=>{ys.push(node.y)});
+
+    return ys;
   }
 
 

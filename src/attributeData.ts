@@ -9,17 +9,16 @@ import * as events from 'phovea_core/src/event';
 
 export default class AttributeData {
 
-  table:ITable;
-  public activeAttributes = [] ; // active attribute is an attribute that is not ID. This an array of strings (column name)
-  private activeRows : range.Range; // of type range
+  table: ITable;
+  public activeAttributes = []; // active attribute is an attribute that is not ID. This an array of strings (column name)
+  private activeRows: range.Range; // of type range
   private familyRange: range.Range;
   private attributeRange: range.Range;
-  private activeColumns : range.Range; // of type range
-  public activeView : ITable; // table view
-  public graphView : ITable; // table view
+  private activeColumns: range.Range; // of type range
+  public activeView: ITable; // table view
+  public graphView: ITable; // table view
 
-  private ys ;
-
+  public ys;
 
 
   /**
@@ -29,7 +28,7 @@ export default class AttributeData {
    * returns a promise of table
    *
    */
-  public async loadData(name:string) {
+  public async loadData(name: string) {
     //retrieving the desired dataset by name
     this.table = <ITable> await getFirstByName(name);
     await this.parseData();
@@ -45,7 +44,7 @@ export default class AttributeData {
   public async parseData() {
     const columns = await this.table.cols();
 
-    const  familyIDs = await this.table.colData('KindredID');
+    const familyIDs = await this.table.colData('KindredID');
     const uniqueFamilyIDs = familyIDs.filter((x, i, a) => a.indexOf(x) === i);
 
 
@@ -67,8 +66,8 @@ export default class AttributeData {
 
     //for brute force approach
     for (const f of uniqueFamilyIDs) {
-      let fam =[];
-      familyIDs.forEach((d,i)=>{
+      let fam = [];
+      familyIDs.forEach((d, i) => {
         if (d === f) {
           fam.push(i);
         }
@@ -80,8 +79,6 @@ export default class AttributeData {
     console.log(familyRanges)
 
 
-
-
     const colIndexAccum = [];
     let yIndex; //No need to set a value if you're going to override it in line 53.
 
@@ -91,11 +88,11 @@ export default class AttributeData {
       const type = col.desc.value.type;
       // if the type of the column is ID then it is not in the active list
 
-      if(name === 'y'){ //pay no attention to the man behind the curtain
+      if (name === 'y') { //pay no attention to the man behind the curtain
         yIndex = i; //for some reason can't set the member var here. js...  //That' because you're inside an if statement. The variable wouldn't exist outside of this if statement.
 
       }
-      else if (!(type === 'idtype' || name === 'x') ) {
+      else if (!(type === 'idtype' || name === 'x')) {
         colIndexAccum.push(i);//push the index so we can get the right view
         this.activeAttributes.push(name);
       }
@@ -106,7 +103,7 @@ export default class AttributeData {
 
     // this.activeRows = range.all(); // all rows to start out with
     // this.activeRows = familyRanges[1];
-    this.activeRows = range.list(familyRanges2[1])
+    this.activeRows = range.list(familyRanges2[0])
     this.activeColumns = range.list(colIndexAccum);
     // const newView = await this.table.idView(familyRanges[1]);
 
@@ -114,53 +111,21 @@ export default class AttributeData {
 
   }
 
-  public async refreshActiveView(){
+  public async refreshActiveView() {
     const key = range.join(this.activeRows, this.activeColumns);
     this.activeView = await this.table.view(key);
     this.graphView = await this.table.view(range.join(this.activeRows, range.all()));
-
-
-    // console.log(this.graphView.dim);
-    //
-    // console.log('first col', await this.graphView.cols()[0].data(new range.Range()));
-    //
-    // let columns = this.graphView.cols();
-    //
-    // console.log('-----------');
-    // console.log('A table with all columns and three rows:');
-    // console.log('-----------');
-    // console.log('A range based on lists:');
-    // const listRange = range.list([0, 1, 2]);
-    // const allRange = range.all();
-    // //
-    // // // We join two ranges so that we can create a TableView following the convention, columns first, rows second
-    // // // Here we define that we want to keep all columns but only the rows 0, 1, 2
-    // const mutiDimRange = range.join(listRange, allRange);
-    //
-    // console.log('This is supposed to slice the table by preserving ALL columns and the rows 0,1,2:');
-    // const slicedTable = this.table.view(mutiDimRange);
-    //
-    // let allCols = slicedTable.cols();
-    //
-    // for (let col of allCols) {
-    //   console.log('This works: col : ', col.desc.name, '  ' ,  await slicedTable.colData(col.desc.name));
-    //   console.log('This does not: col : ', col.desc.name, '  ' ,  await col.data());
-    // }
-
-
-
-
   }
 
-  public getColumns(){
+  public getColumns() {
     return this.table.cols();
   }
 
-  public setActiveRows(activeRows){
+  public setActiveRows(activeRows) {
     this.activeRows = activeRows;
   }
 
-  public getActiveRows(){
+  public getActiveRows() {
     return this.activeRows;
   }
 

@@ -10,6 +10,9 @@ import {
   range,
 } from 'd3-array';
 
+import {list, join, Range, Range1D, all} from 'phovea_core/src/range';
+
+
 class GraphData {
 
   public nodes;
@@ -39,31 +42,23 @@ class GraphData {
     let columns = this.table.cols();
     let nrow = this.table.nrow;
 
-    for (let col of columns) {
-      if (col.desc.name === 'KindredID')
-        console.log('col : ', col.desc.name, '  ' ,  await col.data());
+    console.log('Table is of size', this.table.dim)
+
+    for (let row of range(0,nrow,1)){
+      let personObj = {};
+      this.nodes.push(personObj);
     }
 
-
-
-    console.log('Table is of size', this.table.size())
-
-    for (let row of range(0, nrow, 1)) {
-      let personObj = {};
-      for (let col of columns) {
-
-        let data = await col.data();
-
-        personObj[col.desc.name] = data[row];
-      }
-
       let ids =await columns[0].names();
-      personObj['id'] = +ids[row];
 
-      // if (+personObj['bdate']) { //Only add people with a birthDate
-        this.nodes.push(personObj);
-      // }
-    };
+      for (let col of columns) {
+        let data = await this.table.colData(col.desc.name);
+        for (let row of range(0, nrow, 1)) {
+          let personObj = this.nodes[row];
+          personObj['id'] = +ids[row];
+          personObj[col.desc.name] = data[row];
+        };
+      }
 
     //Sort nodes by y value, always starting at the founder (largest y) ;
     this.nodes.sort(function (a, b) {

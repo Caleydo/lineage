@@ -70,12 +70,12 @@ export class App {
       const attributeTable = table.create(this.$node.select('#graph_table').node());
      // attributeTable.init(attributeDataObj);
 
-      const attributePanel = panel.create(this.$node.select('#data_selection').node());
-      attributePanel.init(attributeDataObj);
+      // const attributePanel = panel.create(this.$node.select('#data_selection').node());
+      // attributePanel.init(attributeDataObj);
 
-      const familySelectorView = familySelector.create(this.$node.select('#familySelector').node());
+      // const familySelectorView = familySelector.create(this.$node.select('#familySelector').node());
 
-    familySelectorView.init();
+    // familySelectorView.init();
       const data = dataExplorations.create();
       //data.loadLocalData();
 

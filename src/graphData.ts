@@ -251,7 +251,9 @@ class GraphData {
         if (maNode.length === 0 || paNode.length === 0) {
           node.ma = undefined;
           node.pa = undefined;
+          // console.log('no parents :( ')
         } else { //If found parents, create edges between parent and children, spouses, and add references to build tree
+          // console.log('found parents :) ')
           maNode = maNode[0];
           paNode = paNode[0];
 

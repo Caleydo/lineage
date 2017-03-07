@@ -106,7 +106,7 @@ export default class AttributeData {
 
     // this.activeRows = range.all(); // all rows to start out with
     // this.activeRows = familyRanges[1];
-    this.activeRows = range.list(familyRanges2[1])
+    this.activeRows = range.list(familyRanges2[0])
     this.activeColumns = range.list(colIndexAccum);
     // const newView = await this.table.idView(familyRanges[1]);
 
@@ -118,6 +118,8 @@ export default class AttributeData {
     const key = range.join(this.activeRows, this.activeColumns);
     this.activeView = await this.table.view(key);
     this.graphView = await this.table.view(range.join(this.activeRows, range.all()));
+
+
     // console.log(this.graphView.dim);
     //
     // console.log('first col', await this.graphView.cols()[0].data(new range.Range()));
@@ -128,30 +130,22 @@ export default class AttributeData {
     // console.log('A table with all columns and three rows:');
     // console.log('-----------');
     // console.log('A range based on lists:');
-    // const listRange = range.list([0, 1, 2]);
-    // console.log(listRange);
-    //
-    // const allRange = range.all();
-    // console.log(allRange);
+    const listRange = range.list([0, 1, 2]);
+    const allRange = range.all();
     //
     // // We join two ranges so that we can create a TableView following the convention, columns first, rows second
     // // Here we define that we want to keep all columns but only the rows 0, 1, 2
-    // const mutiDimRange = range.join(listRange, allRange);
-    // console.log('The multidimensional range, rows first, column second:');
-    // console.log(mutiDimRange);
-    //
-    // console.log('This is supposed to slice the table by preserving ALL columns and the rows 0,1,2:');
-    // const slicedTable = this.table.view(mutiDimRange);
-    // console.log(slicedTable);
-    //
-    // console.log(await slicedTable.colData('KindredID'));
-    //
-    // let allCols = slicedTable.cols();
-    //
-    // for (let col of allCols) {
-    //   console.log('This works: col : ', col.desc.name, '  ' ,  await slicedTable.colData(col.desc.name));
-    //   console.log('This does not: col : ', col.desc.name, '  ' ,  await col.data());
-    // }
+    const mutiDimRange = range.join(listRange, allRange);
+
+    console.log('This is supposed to slice the table by preserving ALL columns and the rows 0,1,2:');
+    const slicedTable = this.table.view(mutiDimRange);
+
+    let allCols = slicedTable.cols();
+
+    for (let col of allCols) {
+      console.log('This works: col : ', col.desc.name, '  ' ,  await slicedTable.colData(col.desc.name));
+      console.log('This does not: col : ', col.desc.name, '  ' ,  await col.data());
+    }
 
 
 

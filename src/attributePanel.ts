@@ -217,7 +217,7 @@ class attributePanel {
       .classed('sub-menu collapse fade', true)
       .append('svg')
       .attr('id', column_name+'_svg')
-      .classed('atrribute_svg', true);
+      .classed('attribute_svg', true);
 
     this.populateData(this.$node.select('#'+column_name+'_svg').node(), column_name,column_desc);
 
@@ -245,7 +245,7 @@ class attributePanel {
     if (attributeType === 'categorical') {
       const catVector = <ICategoricalVector> dataVec;
       const attributeHistogram = histogram.create(svg);
-      await attributeHistogram.init(dataVec);
+      await attributeHistogram.init(attributeName, dataVec);
     } else {
       const numVector = <INumericalVector> dataVec;
       //console.log('Stats on a vector:');

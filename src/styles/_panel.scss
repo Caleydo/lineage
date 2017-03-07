@@ -320,8 +320,15 @@
 .attribut_svg{
   margin-left: -20;
 }
-.attribut_svg .bar:hover{
+
+.attribute_svg rect:hover {
+  cursor: pointer;
   fill: rgb(127,134,134);
+}
+
+.attribute_svg  rect.picked {
+  fill: rgb(127,134,134);
+
 }
 
 @media (max-width: 767px) {

@@ -52,7 +52,7 @@ class GraphData {
       let ids =await columns[0].names();
 
       for (let col of columns) {
-        let data = await this.table.colData(col.desc.name);
+        let data = await col.data();
         for (let row of range(0, nrow, 1)) {
           let personObj = this.nodes[row];
           personObj['id'] = +ids[row];

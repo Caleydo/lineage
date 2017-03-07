@@ -106,7 +106,7 @@ export default class AttributeData {
 
     // this.activeRows = range.all(); // all rows to start out with
     // this.activeRows = familyRanges[1];
-    this.activeRows = range.list(familyRanges2[0])
+    this.activeRows = range.list(familyRanges2[1])
     this.activeColumns = range.list(colIndexAccum);
     // const newView = await this.table.idView(familyRanges[1]);
 
@@ -130,22 +130,22 @@ export default class AttributeData {
     // console.log('A table with all columns and three rows:');
     // console.log('-----------');
     // console.log('A range based on lists:');
-    const listRange = range.list([0, 1, 2]);
-    const allRange = range.all();
+    // const listRange = range.list([0, 1, 2]);
+    // const allRange = range.all();
+    // //
+    // // // We join two ranges so that we can create a TableView following the convention, columns first, rows second
+    // // // Here we define that we want to keep all columns but only the rows 0, 1, 2
+    // const mutiDimRange = range.join(listRange, allRange);
     //
-    // // We join two ranges so that we can create a TableView following the convention, columns first, rows second
-    // // Here we define that we want to keep all columns but only the rows 0, 1, 2
-    const mutiDimRange = range.join(listRange, allRange);
-
-    console.log('This is supposed to slice the table by preserving ALL columns and the rows 0,1,2:');
-    const slicedTable = this.table.view(mutiDimRange);
-
-    let allCols = slicedTable.cols();
-
-    for (let col of allCols) {
-      console.log('This works: col : ', col.desc.name, '  ' ,  await slicedTable.colData(col.desc.name));
-      console.log('This does not: col : ', col.desc.name, '  ' ,  await col.data());
-    }
+    // console.log('This is supposed to slice the table by preserving ALL columns and the rows 0,1,2:');
+    // const slicedTable = this.table.view(mutiDimRange);
+    //
+    // let allCols = slicedTable.cols();
+    //
+    // for (let col of allCols) {
+    //   console.log('This works: col : ', col.desc.name, '  ' ,  await slicedTable.colData(col.desc.name));
+    //   console.log('This does not: col : ', col.desc.name, '  ' ,  await col.data());
+    // }
 
 
 

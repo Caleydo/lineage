@@ -18,6 +18,18 @@ export default class AttributeData {
   private ys ;
 
 
+// FOR TESTING ONLY!  vvvvvvv
+///////////////////////////////////////////////////////////////////////////////
+
+public async anniesTestUpdate(){
+  this.activeRows = range.list([1, 2]);
+  await this.refreshActiveView();
+  return this.activeView;
+}
+// FOR TESTING ONLY!  ^^^^^
+///////////////////////////////////////////////////////////////////////////////
+
+
 
   /**
    * This function load genealogy data from lineage-server
@@ -64,7 +76,7 @@ export default class AttributeData {
 
     this.activeRows = range.all(); // all rows to start out with
     this.activeColumns = range.list(colIndexAccum);
-    this.refreshActiveView(); //updates the active View
+    await this.refreshActiveView(); //updates the active View
 
   }
 

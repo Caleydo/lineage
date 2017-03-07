@@ -27,7 +27,8 @@ class attributeTable {
 
   //private margin = {top: 60, right: 20, bottom: 60, left: 40};
 
-  private activeView;
+  private activeView;  // FOR DEBUG ONLY!
+  private attributeData; //FOR DEBUG ONLY!
   private colData;    // <- everything we need to bind
 
   private margin = Config.margin;
@@ -44,6 +45,7 @@ class attributeTable {
   async init(data) {
 
     this.activeView = data.activeView;
+    this.attributeData = data; // JANKY ONLY FOR DEV
 
 
     let colDataAccum = [];
@@ -88,6 +90,9 @@ class attributeTable {
     this.build();
     this.attachListener();
 
+    console.log("IN INIT, THIS IS ACTIVE VIEW: ");
+    console.log(this.activeView);
+
 
     // return the promise directly as long there is no dynamical data to update
     return Promise.resolve(this);
@@ -98,6 +103,9 @@ class attributeTable {
    * Build the basic DOM elements and binds the change function
    */
   private async build() {
+
+    console.log("IN BUILD, THIS IS ACTIVE VIEW: ");
+    console.log(this.activeView);
 
     this.width = 450 - this.margin.left - this.margin.right
     // this.height = Config.glyphSize * 3 * this.activeView.nrow - this.margin.top - this.margin.bottom;
@@ -130,7 +138,7 @@ class attributeTable {
 
 //HEADERS
     const tableHeader = svg.append("g")
-      .attr("transform", "translate(0," + this.margin.top / 2 + ")");
+      .attr("transform", "translate(0," + this.margin.axisTop / 2 + ")");
 
     //Bind data to the col headers
     let headers = tableHeader.selectAll(".header")
@@ -263,40 +271,53 @@ class attributeTable {
 
 ////////////// EVENT HANDLERS! /////////////////////////////////////////////
 
-   cells.on('click', function(elem) {
-     selectAll('.boundary').classed('tablehovered', false);
-     if (!event.metaKey){ //unless we pressed shift, unselect everything
-       selectAll('.boundary').classed('tableselected',false);
-     }
-     selectAll('.boundary')
-      .classed('tableselected', function(){
-         const rightRow = (parseInt(select(this).attr('row_pos')) === elem['y']);
-         if(rightRow){
-            return (!select(this).classed('tableselected')); //toggle it
-          }
-         return select(this).classed('tableselected'); //leave it be
-       });
-     if(event.metaKey)
-        events.fire('table_row_selected', elem['y'], 'multiple');
-     else
-        events.fire('table_row_selected', elem['y'], 'singular');
-     })
-     // MOUSE ON
-     .on('mouseover', function(elem) {
-        selectAll('.boundary').classed('tablehovered', function(){
-          const rightRow = (select(this).attr('row_pos') == elem['y']); //== OR parseInt. Not sure which is more canonical.
-          if(rightRow){ //don't hover if it's selected
-            return !select(this).classed('tableselected');
-          }
-          return false; //otherwise don't hover
-     });
-     events.fire('table_row_hover_on', elem['y']);
-     })
-     // MOUSE OFF
-     .on('mouseout', function(elem) {
-       selectAll('.boundary').classed('tablehovered', false);
-       events.fire('table_row_hover_off', elem['y']);
-     });
+  const jankyAData = this.attributeData; ///auuughhh javascript why
+
+  cells.on('click', async function(elem) {
+  //  console.log("REGISTERED CLICK");
+    //update the dataset & re-render
+    const newView = await jankyAData.anniesTestUpdate();
+    console.log("NEW VIEW!");
+    console.log(newView.cols()[0]);
+
+  });
+
+
+
+  //  cells.on('click', function(elem) {
+  //    selectAll('.boundary').classed('tablehovered', false);
+  //    if (!event.metaKey){ //unless we pressed shift, unselect everything
+  //      selectAll('.boundary').classed('tableselected',false);
+  //    }
+  //    selectAll('.boundary')
+  //     .classed('tableselected', function(){
+  //        const rightRow = (parseInt(select(this).attr('row_pos')) === elem['y']);
+  //        if(rightRow){
+  //           return (!select(this).classed('tableselected')); //toggle it
+  //         }
+  //        return select(this).classed('tableselected'); //leave it be
+  //      });
+  //    if(event.metaKey)
+  //       events.fire('table_row_selected', elem['y'], 'multiple');
+  //    else
+  //       events.fire('table_row_selected', elem['y'], 'singular');
+  //    })
+  //    // MOUSE ON
+  //    .on('mouseover', function(elem) {
+  //       selectAll('.boundary').classed('tablehovered', function(){
+  //         const rightRow = (select(this).attr('row_pos') == elem['y']); //== OR parseInt. Not sure which is more canonical.
+  //         if(rightRow){ //don't hover if it's selected
+  //           return !select(this).classed('tableselected');
+  //         }
+  //         return false; //otherwise don't hover
+  //    });
+  //    events.fire('table_row_hover_on', elem['y']);
+  //    })
+  //    // MOUSE OFF
+  //    .on('mouseout', function(elem) {
+  //      selectAll('.boundary').classed('tablehovered', false);
+  //      events.fire('table_row_hover_off', elem['y']);
+  //    });
 
 
  }

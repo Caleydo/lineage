@@ -106,7 +106,7 @@ export default class AttributeData {
 
     // this.activeRows = range.all(); // all rows to start out with
     // this.activeRows = familyRanges[1];
-    this.activeRows = range.list(familyRanges2[0])
+    this.activeRows = range.list(familyRanges2[1])
     this.activeColumns = range.list(colIndexAccum);
     // const newView = await this.table.idView(familyRanges[1]);
 

@@ -1211,14 +1211,15 @@ class GenealogyTree {
     // .attr('visibility','hidden')
       .text(function (d: any) {
 
+        return d.KindredID;
         // return d['hidden'] ? '' : max(d['family_ids']);
 
-         let year = new Date().getFullYear();
-         if (+d.ddate > 0) {
-         return d['hidden'] ? '' : Math.abs(d['ddate'] - d['bdate']);
-         }
-         else
-         return d['hidden'] ? '' : Math.abs(year - d['bdate']);
+         // let year = new Date().getFullYear();
+         // if (+d.ddate > 0) {
+         // return d['hidden'] ? '' : Math.abs(d['ddate'] - d['bdate']);
+         // }
+         // else
+         // return d['hidden'] ? '' : Math.abs(year - d['bdate']);
 
 
       })

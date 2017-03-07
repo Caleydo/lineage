@@ -10,6 +10,9 @@ import {
   range,
 } from 'd3-array';
 
+import {list, join, Range, Range1D, all} from 'phovea_core/src/range';
+
+
 class GraphData {
 
   public nodes;
@@ -23,7 +26,7 @@ class GraphData {
 
 
   constructor(data) {
-    this.table = data.table;
+    this.table = data.graphView;
   };
 
   /**
@@ -37,17 +40,25 @@ class GraphData {
 
     this.nodes = [];
     let columns = this.table.cols();
-    let rows = await this.table.col(1).data('0:-1');
+    let nrow = this.table.nrow;
 
-    for (let row of range(0, rows.length, 1)) {
+    console.log('Table is of size', this.table.dim)
+
+    for (let row of range(0,nrow,1)){
       let personObj = {};
-      for (let col of columns) {
-        let data = await this.table.colData(col.desc.name);
-        personObj[col.desc.name] = data[row];
-      }
       this.nodes.push(personObj);
     }
 
+      let ids =await columns[0].names();
+
+      for (let col of columns) {
+        let data = await col.data();
+        for (let row of range(0, nrow, 1)) {
+          let personObj = this.nodes[row];
+          personObj['id'] = +ids[row];
+          personObj[col.desc.name] = data[row];
+        };
+      }
 
     //Sort nodes by y value, always starting at the founder (largest y) ;
     this.nodes.sort(function (a, b) {
@@ -59,6 +70,8 @@ class GraphData {
       d.y = undefined;
       d.x = +d.bdate; //set year as x attribute
       d.type = 'single';
+      d.MaID = +d.MaID;
+      d.PaID = +d.PaID;
       d.hidden = false;
       d.aggregated = false;
       d.bdate = +d.bdate;
@@ -73,6 +86,7 @@ class GraphData {
       d.hasChildren = false;
       d.children = []; //Array of children
       d.spouse = []; //Array of spouses (some have more than one)
+      // console.log(d.KindredID)
     });
 
     //Define attribute that defines 'affected' state
@@ -227,17 +241,19 @@ class GraphData {
       .forEach((node) => {
         //Check if there are mother and father nodes in this family (founder won't have them for example)
         let maNode = this.nodes.filter((d) => {
-          return d.id === node.ma;
+          return d.id === node.MaID;
         });
         let paNode = this.nodes.filter((d) => {
-          return d.id === node.pa;
+          return d.id === node.PaID;
         });
 
         //No parents found
         if (maNode.length === 0 || paNode.length === 0) {
           node.ma = undefined;
           node.pa = undefined;
+          // console.log('no parents :( ')
         } else { //If found parents, create edges between parent and children, spouses, and add references to build tree
+          // console.log('found parents :) ')
           maNode = maNode[0];
           paNode = paNode[0];
 
@@ -281,6 +297,8 @@ class GraphData {
           });
         }
       });
+
+    // console.log(parentChildEdges)
   };
 
   /**

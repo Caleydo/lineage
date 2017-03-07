@@ -33,7 +33,7 @@ class attributeTable {
   private margin = Config.margin;
 
   constructor(parent: Element) {
-    this.$node = select(parent)
+    this.$node = select(parent);
   }
 
   /**
@@ -44,7 +44,6 @@ class attributeTable {
   async init(data) {
 
     this.activeView = data.activeView;
-
 
     let colDataAccum = [];
     for (const vector of this.activeView.cols()) {
@@ -132,6 +131,7 @@ class attributeTable {
 
     const rowHeight = Config.glyphSize * 2.5 - 4;// - 10;
 
+
     const svg = this.$node.append('svg')
       .attr('width', this.width + this.margin.left + this.margin.right)
       .attr("height", this.height + this.margin.top + this.margin.bottom)
@@ -154,7 +154,6 @@ class attributeTable {
     .attr("transform",(d) => {
       const x_translation = label_xs.find(x => x.name === d.name).x;
       return 'translate(' + x_translation + ',0) rotate(-45)';});
-
 
 
     selectAll('.header')

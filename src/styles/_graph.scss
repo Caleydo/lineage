@@ -1,6 +1,26 @@
 $edge-color: #4f4f4d;
 $node-color: #4f4f4d;
 
+.well {
+  padding-top: 0px;
+  padding-bottom: 0px;
+  width: 500px;
+}
+table {
+  font-size: 20px;
+  line-height: 20px;
+  width: 100%;
+  margin-top: 20px;
+  margin-left: 10px;
+  margin-right: 10px;
+}
+td, th {
+  width: 33.3%;
+}
+label {
+  margin-bottom: 10px;
+}
+
 
 .line {
     fill: none;

@@ -1047,7 +1047,6 @@ class GenealogyTree {
         return d['sex'] === 'F' ? -Config.glyphSize * 2 : -Config.glyphSize * 1;
       })
       .attr('y', (d) => {
-
         // return d['sex'] === 'F' ? (this.attributeBarY(1) - Config.glyphSize) : this.attributeBarY(1)
 
 	      return d['sex']=='F'? (this.attributeBarY(+d['bdate'] % 100)-Config.glyphSize) : this.attributeBarY(+d['bdate'] % 100);
@@ -1212,14 +1211,15 @@ class GenealogyTree {
     // .attr('visibility','hidden')
       .text(function (d: any) {
 
+        return d.KindredID;
         // return d['hidden'] ? '' : max(d['family_ids']);
 
-         let year = new Date().getFullYear();
-         if (+d.ddate > 0) {
-         return d['hidden'] ? '' : Math.abs(d['ddate'] - d['bdate']);
-         }
-         else
-         return d['hidden'] ? '' : Math.abs(year - d['bdate']);
+         // let year = new Date().getFullYear();
+         // if (+d.ddate > 0) {
+         // return d['hidden'] ? '' : Math.abs(d['ddate'] - d['bdate']);
+         // }
+         // else
+         // return d['hidden'] ? '' : Math.abs(year - d['bdate']);
 
 
       })
@@ -1334,7 +1334,7 @@ class GenealogyTree {
     selectAll('.bars')
       .on('click', (d) => {
 
-        // console.log(d)
+        console.log(d)
 
         if (event.altKey) {
           //Hide node

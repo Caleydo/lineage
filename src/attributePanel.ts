@@ -7,7 +7,7 @@ import {keys} from 'd3-collection';
 import {IAnyVector} from 'phovea_core/src/vector';
 import {ICategoricalVector, INumericalVector} from 'phovea_core/src/vector/IVector';
 import * as histogram from './histogram';
-import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT} from 'phovea_core/src/datatype';
+import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL} from 'phovea_core/src/datatype';
 
 
 import {Config} from './config';
@@ -16,7 +16,7 @@ import {Config} from './config';
 /**
  * Creates the attribute table view
  */
-class attributePanel {
+class AttributePanel {
 
   private $node;
 
@@ -66,27 +66,27 @@ class attributePanel {
     const menu_list = this.$node.append('div')
       .classed('menu-list', true)
       .html(` <ul >
-            <li class="brand" data-toggle="collapse"> <i class=""></i> <strong>Data Selection</strong>
-             <span class="toggle-btn"><i class="glyphicon glyphicon-menu-hamburger"></i></span></li>
+            <li class='brand' data-toggle='collapse'> <i class=''></i> <strong>Data Selection</strong>
+             <span class='toggle-btn'><i class='glyphicon glyphicon-menu-hamburger'></i></span></li>
                </ul>`);
 
 
     // list that holds data attribute
     // initially all attributes are active
-    const active_attribute_list = menu_list.append('div')
+    const activeAttributeList = menu_list.append('div')
       .attr('id', 'active-menu-content')
       .classed('menu-content collapse in', true);
 
     menu_list.append('ul')
       .html(`
-       <li class="inactive collapsed active" data-target="#inactive-menu-content" data-toggle="collapse">
-                                  <i class=""></i><strong>Inactive attributes</strong> <span class="arrow"></span>
+       <li class='inactive collapsed active' data-target='#inactive-menu-content' data-toggle='collapse'>
+                                  <i class=''></i><strong>Inactive attributes</strong> <span class='arrow'></span>
                                 </li>`);
 
 
     // list that holds inactive attributes
     // a user can populate this list by dragging elements from the active list
-    const inactive_attribute_list = menu_list.append('div')
+    const inactiveAttributeList = menu_list.append('div')
       .attr('id', 'inactive-menu-content')
       .classed('menu-content sub-menu collapse in fade', true)
     // .html(`
@@ -102,7 +102,7 @@ class attributePanel {
       put: true,
       onAdd: function (evt) {
         let item = {
-          name: evt.item.getElementsByTagName("strong")[0].textContent,
+          name: evt.item.getElementsByTagName('strong')[0].textContent,
           newIndex: evt.newIndex
         };
         events.fire('attribute_added', item);
@@ -110,7 +110,7 @@ class attributePanel {
       },
       onUpdate: function (evt) {
         let item = {
-          name: evt.item.getElementsByTagName("strong")[0].textContent,
+          name: evt.item.getElementsByTagName('strong')[0].textContent,
           newIndex: evt.newIndex,
           oldIndex: evt.oldIndex
         };
@@ -128,7 +128,7 @@ class attributePanel {
       put: true,
       onAdd: function (evt) {
         let item = {
-          name: evt.item.getElementsByTagName("strong")[0].textContent,
+          name: evt.item.getElementsByTagName('strong')[0].textContent,
           newIndex: evt.newIndex,
           oldIndex: evt.oldIndex
         };
@@ -157,11 +157,11 @@ class attributePanel {
 
 
     //if this is an active attribute then add it to the active list otherwise add it to the inactive list
-    let list = "";
+    let list = '';
     if (this.activeColumns.indexOf(column_name) > -1) {
-      list = "#active-menu-content";
+      list = '#active-menu-content';
     } else {
-      list = "#inactive-menu-content";
+      list = '#inactive-menu-content';
     }
 
     // we first add a div that holds the li and the svg
@@ -174,12 +174,12 @@ class attributePanel {
       .attr('data-toggle', 'collapse');
 
     attrHeader.append('a').attr('href', '#')
-      .html('<i class=\"glyphicon glyphicon-chevron-right\"></i>')
+      .html('<i class=\'glyphicon glyphicon-chevron-right\'></i>')
       .append('strong').html(column_name)
       .append('span').attr('class', column_desc)
-      .html(`<div class=" attr_badges pull-right">
-                <span class=" badge" >primary</span>
-                <span class=" badge" >secondary</span>
+      .html(`<div class=' attr_badges pull-right'>
+                <span class=' badge' >primary</span>
+                <span class=' badge' >secondary</span>
               </div>`);
     attrHeader.on('mouseover', function () {
       select(this).select('.sort_handle').classed('focus', true);
@@ -201,17 +201,17 @@ class attributePanel {
 
     selectAll('.badge').on('click', function () {
       console.log('badge clicked')
-      let badge = $(this).text();
-      let attribute = $(this).closest('strong').contents()[0];
+      const badge = $(this).text();
+      const attribute = $(this).closest('strong').contents()[0];
       //reset badge dispaly for previously clicked badges
-      $('.checked_' + badge).parent().css("display", "");
-      $('.checked_' + badge).parent().children().css("display", "");
-      $('.checked_' + badge).removeClass(".checked_" + badge);
+      $('.checked_' + badge).parent().css('display', '');
+      $('.checked_' + badge).parent().children().css('display', '');
+      $('.checked_' + badge).removeClass('.checked_' + badge);
 
-      $(this).parent().css("display", "inline");
-      $(this).parent().children().css("display", "none");
-      $(this).addClass("checked_" + badge);
-      $(this).css("display", "inline");
+      $(this).parent().css('display', 'inline');
+      $(this).parent().children().css('display', 'none');
+      $(this).addClass('checked_' + badge);
+      $(this).css('display', 'inline');
 
       events.fire('attribute_selected', {attribute, badge});
 
@@ -249,14 +249,20 @@ class attributePanel {
       }
     }
 
-    if (attributeType === 'categorical') {
+    if (dataVec.desc.value.type === VALUE_TYPE_CATEGORICAL) {
       const catVector = <ICategoricalVector> dataVec;
+      console.log(catVector);
+      console.log('HISTOGRAAAAAAAAAAAAAAAAAAAM');
+      console.log(catVector.desc.value.categories);
+      console.log(await catVector.hist());
+      console.log('DONE HISTOGRAAAAAAAAAAAAAAAAAAAM');
       const attributeHistogram = histogram.create(svg);
       await attributeHistogram.init(dataVec);
-    } else {
+
+    } else if (dataVec.desc.value.type === VALUE_TYPE_INT || dataVec.desc.value.type === VALUE_TYPE_REAL) {
       const numVector = <INumericalVector> dataVec;
-      //console.log('Stats on a vector:');
-      //console.log(await numVector.stats());
+      console.log('Stats on a vector:');
+      console.log(await numVector.stats());
     }
 
 /*
@@ -265,7 +271,7 @@ class attributePanel {
     if(attributeType === 'categorical'){
       //catVector = <ICategoricalVector> this.table.colData(4);
       //console.log('The histogram:');
-      //console.log(await catVector.hist());
+      console.log(await catVector.hist());
     } else {
       /*numVector = <INumericalVector> this.table.colData(attributeName);
       console.log('Stats on a vector:');
@@ -307,5 +313,5 @@ class attributePanel {
  * @returns {attributePanel}
  */
 export function create(parent:Element) {
-  return new attributePanel(parent);
+  return new AttributePanel(parent);
 }

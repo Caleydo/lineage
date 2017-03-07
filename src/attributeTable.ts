@@ -53,7 +53,7 @@ class attributeTable {
         const categories = Array.from(new Set(temp));
         for(const cat of categories){
           var col: any = {};
-          const base_name = await vector.column;
+          const base_name = await vector.desc.name;
           col.name = base_name + '_' + cat;
           col.data = temp.map(
             (d)=>{if(d === cat) return d;

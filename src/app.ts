@@ -75,9 +75,9 @@ export class App {
       const attributePanel = panel.create(this.$node.select('#data_selection').node());
       attributePanel.init(attributeDataObj);
 
-      // const familySelectorView = familySelector.create(this.$node.select('#familySelector').node());
+      const familySelectorView = familySelector.create(this.$node.select('#familySelector').node());
 
-    // familySelectorView.init();
+      familySelectorView.init();
       const data = dataExplorations.create();
       //data.loadLocalData();
 

@@ -88,19 +88,6 @@ class familySelector {
 }
 
 
-  /***
-   * This function takes an svg as an input and populate it with vis element
-   * for a specific attribute
-   *
-   */
-  private async populateData(svg, attribute) {
-    //console.log(await this.table.colData(attribute));
-    console.log('populateData');
-    console.log(await this.table.colData(attribute))
-
-
-  }
-
 
   private attachListener() {
 

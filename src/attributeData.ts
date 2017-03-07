@@ -12,11 +12,15 @@ export default class AttributeData {
   table: ITable;
   public activeAttributes = []; // active attribute is an attribute that is not ID. This an array of strings (column name)
   private activeRows: range.Range; // of type range
-  private familyRange: range.Range;
-  private attributeRange: range.Range;
+  private familyActiveRows: range.Range;
+  private attributeActiveRows: range.Range;
   private activeColumns: range.Range; // of type range
   public activeView: ITable; // table view
   public graphView: ITable; // table view
+
+  //Store all families in this table;
+  private allFamilyIDs;
+  private uniqeuFamilyIDs;
 
   public ys;
 
@@ -37,47 +41,36 @@ export default class AttributeData {
   }
 
   /**
+   * This function changes the range of rows to display on the selected family.
+   *
+   *@param chosenFamilyID the numeric value of the familyID
+   */
+  public async selectFamily(chosenFamilyID) {
+
+    //Array to store the ranges for the selected family
+    const familyRange = [];
+
+      this.allFamilyIDs.forEach((d, i) => {
+        if (d === chosenFamilyID) {
+          familyRange.push(i);
+        }
+      });
+
+    this.familyActiveRows = range.list(familyRange)
+    this.refreshActiveViews(); //updates the active View
+  }
+  /**
    * This function is called after loadData.
    * This function populate needed variables for attribute table and attribute panel
    *
    */
   public async parseData() {
+
     const columns = await this.table.cols();
 
-    const familyIDs = await this.table.colData('KindredID');
-    const uniqueFamilyIDs = familyIDs.filter((x, i, a) => a.indexOf(x) === i);
+    this.allFamilyIDs = await this.table.col(0).data(); //Assumes kindredID is the first col. Not ideal.
 
-
-    const familyRanges = []; //for .ids() approach
-    const familyRanges2 = []; // for brute force index approach
-
-    //.ids() approach
-    const coldata = await this.table.col(0); //get vector for Kindred IDs
-
-    for (const f of uniqueFamilyIDs) {
-      const u: IAnyVector = await coldata.filter(this.filterCat.bind(this, f));
-
-      const id = await u.ids();
-      if (id.size()[0] >= 1) {
-        familyRanges.push(id);
-        // console.log(f, await coldata.data(),  await u.data(), id.dim(0).asList());
-      }
-    }
-
-    //for brute force approach
-    for (const f of uniqueFamilyIDs) {
-      let fam = [];
-      familyIDs.forEach((d, i) => {
-        if (d === f) {
-          fam.push(i);
-        }
-      });
-      familyRanges2.push(fam);
-    }
-
-
-    console.log(familyRanges)
-
+    this.uniqeuFamilyIDs = this.allFamilyIDs.filter((x, i, a) => a.indexOf(x) === i);
 
     const colIndexAccum = [];
     let yIndex; //No need to set a value if you're going to override it in line 53.
@@ -86,8 +79,8 @@ export default class AttributeData {
     columns.forEach((col, i) => {
       const name = col.desc.name;
       const type = col.desc.value.type;
-      // if the type of the column is ID then it is not in the active list
 
+      // if the type of the column is ID then it is not in the active list
       if (name === 'y') { //pay no attention to the man behind the curtain
         yIndex = i; //for some reason can't set the member var here. js...  //That' because you're inside an if statement. The variable wouldn't exist outside of this if statement.
 
@@ -96,25 +89,19 @@ export default class AttributeData {
         colIndexAccum.push(i);//push the index so we can get the right view
         this.activeAttributes.push(name);
       }
-    }); //end for each
+    });
 
-    // const tempRequest = await this.table.col(yIndex);
-    // this.ys = await tempRequest.data(range.all());
-
-    // this.activeRows = range.all(); // all rows to start out with
-    // this.activeRows = familyRanges[1];
-    this.activeRows = range.list(familyRanges2[0])
+    this.activeRows = range.all();
     this.activeColumns = range.list(colIndexAccum);
-    // const newView = await this.table.idView(familyRanges[1]);
 
-    this.refreshActiveView(); //updates the active View
+    this.selectFamily(38);
 
   }
 
-  public async refreshActiveView() {
-    const key = range.join(this.activeRows, this.activeColumns);
+  public async refreshActiveViews() {
+    const key = range.join(this.familyActiveRows, this.activeColumns);
     this.activeView = await this.table.view(key);
-    this.graphView = await this.table.view(range.join(this.activeRows, range.all()));
+    this.graphView = await this.table.view(range.join(this.familyActiveRows, range.all()));
   }
 
   public getColumns() {

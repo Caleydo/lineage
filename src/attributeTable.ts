@@ -3,7 +3,7 @@ import {AppConstants, ChangeTypes} from './app_constants';
 // import * as d3 from 'd3';
 import {Config} from './config';
 
-import {select, selectAll, mouse, event} from 'd3-selection';
+import {select, selection, selectAll, mouse, event} from 'd3-selection';
 import {format} from 'd3-format';
 import {scaleLinear} from 'd3-scale';
 import {max, min} from 'd3-array';
@@ -20,6 +20,7 @@ class attributeTable {
 
   private width;
   private height;
+  private buffer; //pixel dist between columns
 
   private tableAxis;
 
@@ -81,6 +82,8 @@ class attributeTable {
 
     this.colData = colDataAccum;
 
+    this.buffer = 4;
+
     this.build();
     this.attachListener();
 
@@ -111,14 +114,23 @@ class attributeTable {
     var col_xs = this.getDisplayedColumnXs(this.width);
     var label_xs = this.getDisplayedColumnMidpointXs(this.width);
 
+    console.log("are these the y's?");
+    console.log(this.colData[0]['ys']);
+
+
+    console.log("THIS IS MIN Y");
+  //  const filteredYs = this.colData.filter((d)=>{return d.length != 0;});
+    console.log(Math.min( ...this.colData[0]['ys']));
+
 
     // Scales
     let x = scaleLinear().range([0, this.width]).domain([0, 13]);
-    let y = scaleLinear().range([0, this.height]).domain([1, 98]); // TODO
-    // [min(rowData,
-    //   function(d){return +d['y']}), max(rowData,function(d){return +d['y']}) ]);
+    let y = scaleLinear().range([0, this.height]).domain(
+    [Math.min( ...this.colData[0]['ys']), Math.max( ...this.colData[0]['ys'])]);
 
-    const rowHeight = Config.glyphSize*2 // * 2.5 - 4;
+
+    const rowHeight = Config.glyphSize * 2.5 - 4;// - 10;
+
 
     const svg = this.$node.append('svg')
       .attr('width', this.width + this.margin.left + this.margin.right)
@@ -177,6 +189,24 @@ class attributeTable {
       .attr('class', 'cell');
 
 
+
+      //Add rectangle for highlighting...
+      const boundary = cells
+      // .filter((d)=> //only append onto the first cell of each row
+      // { return col_xs.find(x => x.name === d['name']).x === 0;})
+      .append('rect')
+      .classed("boundary", true)
+      .classed('tablehovered', false) //TODO maybe get rid of?
+      .classed('tableselected', false)
+      .attr("row_pos", (d)=>{return d["y"];})
+      .attr('width', (d)=> {return (col_widths.find(x => x.name === d.name).width + 4);})
+      .attr('height', rowHeight + this.buffer)
+      .attr('fill', 'transparent')
+      .attr("transform", function (d) {
+        return ('translate(' + -2 + ',' + (-2) + ')');
+      });
+
+
       const categoricals = cells.filter((e)=>{return (e.type === 'categorical')})
                             .attr('classed', 'categorical');
       const quantatives  = cells.filter((e)=>{return (e.type === 'int')})
@@ -217,7 +247,7 @@ class attributeTable {
           const width = col_widths.find(x => x.name === d.name).width;
           const scaledRange = (width-2*radius) / (d.max - d.min);
           return Math.floor((d.data-d.min) * scaledRange);})
-        .attr("cy", 20 / 2)
+        .attr("cy", rowHeight / 2)
         .attr("rx", radius)
         .attr("ry", radius)
         .attr('stroke', '#474747')
@@ -237,69 +267,58 @@ class attributeTable {
         });
 
 
-
     //Move cells to their correct y position
     selectAll('.cell')
       .attr("transform", function (col) {
         return ('translate(0, ' + y(col['y']) + ' )'); //the x translation is taken care of by the group this cell is nested in.
       });
 
-}
-/*
-   const boundary = rows
-   .append("rect")
-   .attr("class", "boundary")
-   .attr('row_pos', function (elem) {
-   return elem.y;
-   })
-   .attr("width", this.width-col_margin)
-   .attr("height", rowHeight)
-   .attr('stroke', 'transparent')
-   .attr('stroke-width', 1)
-   .attr('fill', 'none');
-   const eventListener = rows.append('rect').attr("height", rowHeight).attr("width", this.width).attr("fill", "transparent")
-   // CLICK
-   .on('click', function(elem) {
-   selectAll('.boundary').classed('tablehovered', false);
-   if (!event.metaKey){ //unless we pressed shift, unselect everything
-   selectAll('.boundary').classed('tableselected',false);
-   }
-   selectAll('.boundary').classed('tableselected', function(){
-   const rightRow = (select(this).attr('row_pos') == elem.y);
-   if(rightRow)
-   return (!select(this).classed('tableselected')); //toggle it
-   return select(this).classed('tableselected'); //leave it be
-   });
-   if(event.metaKey)
-   events.fire('table_row_selected', elem.id, 'multiple');
-   else
-   events.fire('table_row_selected', elem.id, 'singular');
-   })
-   // MOUSE ON
-   .on('mouseover', function(elem) {
-   selectAll('.boundary').classed('tablehovered', function(){
-   const rightRow = (select(this).attr('row_pos') == elem.y);
-   if(rightRow){ //don't hover if it's selected
-   return !select(this).classed('tableselected');
-   }
-   return false; //otherwise don't hover
-   });
-   events.fire('table_row_hover_on', elem.id);
-   })
-   // MOUSE OFF
-   .on('mouseout', function(elem) {
-   selectAll('.boundary').classed('tablehovered', false);
-   events.fire('table_row_hover_off', elem.id);
-   });
+
+////////////// EVENT HANDLERS! /////////////////////////////////////////////
+
+   cells.on('click', function(elem) {
+     selectAll('.boundary').classed('tablehovered', false);
+     if (!event.metaKey){ //unless we pressed shift, unselect everything
+       selectAll('.boundary').classed('tableselected',false);
+     }
+     selectAll('.boundary')
+      .classed('tableselected', function(){
+         const rightRow = (parseInt(select(this).attr('row_pos')) === elem['y']);
+         if(rightRow){
+            return (!select(this).classed('tableselected')); //toggle it
+          }
+         return select(this).classed('tableselected'); //leave it be
+       });
+     if(event.metaKey)
+        events.fire('table_row_selected', elem['y'], 'multiple');
+     else
+        events.fire('table_row_selected', elem['y'], 'singular');
+     })
+     // MOUSE ON
+     .on('mouseover', function(elem) {
+        selectAll('.boundary').classed('tablehovered', function(){
+          const rightRow = (select(this).attr('row_pos') == elem['y']); //== OR parseInt. Not sure which is more canonical.
+          if(rightRow){ //don't hover if it's selected
+            return !select(this).classed('tableselected');
+          }
+          return false; //otherwise don't hover
+     });
+     events.fire('table_row_hover_on', elem['y']);
+     })
+     // MOUSE OFF
+     .on('mouseout', function(elem) {
+       selectAll('.boundary').classed('tablehovered', false);
+       events.fire('table_row_hover_off', elem['y']);
+     });
 
 
-   }
-   */
+ }
+
   //private update(data){
 
   //}
 
-
+////////////// RENDERING FUNCTIONS! /////////////////////////////////////////////
   private getWeight(data_elem){
 	    if(data_elem.type === 'int')
 	      return 3;
@@ -316,45 +335,43 @@ class attributeTable {
       return weights.reduce(function(a, b) { return a + b; }, 0);
 	}
 
-
-// returns a function that takes a column name & returns the width of that column (single category width for cat columns)
-	  private getDisplayedColumnWidths(width){
-        const buffer = 4;
-	      const totalWeight = this.getTotalWeights();
-        const getWeightHandle = this.getWeight;
-        const availableWidth = width - (2 * this.colData.length);
-	      const toReturn = this.colData.map(function(elem, index){
-	          const elemWidth = getWeightHandle(elem) * width / totalWeight;
-            return {'name':elem['name'], 'width':elemWidth}
-	      });
-        return toReturn;
-	  }
-
-	  private getDisplayedColumnXs(width){
-      const buffer = 4;
-	    const totalWeight = this.getTotalWeights();
-      const colWidths = this.getDisplayedColumnWidths(width);
-      return colWidths.map(function(elem, index){
-        var x_dist = 0;
-        for(let i = 0; i < index; i++){
-          x_dist += colWidths[i].width + buffer;
-        }
-        return {'name':elem['name'], 'x':x_dist};
+  private getDisplayedColumnWidths(width){
+      const buffer = this.buffer;
+      const totalWeight = this.getTotalWeights();
+      const getWeightHandle = this.getWeight;
+      const availableWidth = width - (buffer * this.colData.length);
+      const toReturn = this.colData.map(function(elem, index){
+          const elemWidth = getWeightHandle(elem) * availableWidth / totalWeight;
+          return {'name':elem['name'], 'width':elemWidth}
       });
-	  }
+      return toReturn;
+  }
+
+  private getDisplayedColumnXs(width){
+    const buffer = this.buffer;
+    const totalWeight = this.getTotalWeights();
+    const colWidths = this.getDisplayedColumnWidths(width);
+    return colWidths.map(function(elem, index){
+      var x_dist = 0;
+      for(let i = 0; i < index; i++){
+        x_dist += colWidths[i].width + buffer;
+      }
+      return {'name':elem['name'], 'x':x_dist};
+    });
+  }
 
 
-	  private getDisplayedColumnMidpointXs(width){
-      const buffer = 6;
-	    const totalWeight = this.getTotalWeights();
-	    const colXs = this.getDisplayedColumnXs(width);
-      const colWidths = this.getDisplayedColumnWidths(width);
-	    return this.colData.map(function(elem, index){
-	        const midPoint = colXs[index].x + (colWidths[index].width/2) ;//+ 40; //TODO WHY
-          return {'name':elem['name'], 'x':midPoint};
-	    });
+  private getDisplayedColumnMidpointXs(width){
+    const buffer = this.buffer + 2;
+    const totalWeight = this.getTotalWeights();
+    const colXs = this.getDisplayedColumnXs(width);
+    const colWidths = this.getDisplayedColumnWidths(width);
+    return this.colData.map(function(elem, index){
+        const midPoint = colXs[index].x + (colWidths[index].width/2) ;//+ 40; //TODO WHY
+        return {'name':elem['name'], 'x':midPoint};
+    });
 
-	  }
+  }
 
 
   private attachListener() {

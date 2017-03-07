@@ -69,6 +69,7 @@ export default class DataExplorations {
       console.log('The Table as passed via parameter:');
       console.log(table);
     }
+    /*
 
     console.log('=============================');
     console.log('ACCESSING METADATA');
@@ -109,6 +110,11 @@ export default class DataExplorations {
 
     console.log('Accessing RelativeID column by name from big-decent-clipped-38 dataset:');
     console.log(await table.colData('PaID'));
+    */
+
+    // Waiting for the pull request to be merged
+    // console.log('Retreiving a column/vector by name:')
+    // console.log(table.getCol('PaID'));
 
     /*
      console.log('=============================');

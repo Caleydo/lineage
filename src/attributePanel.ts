@@ -223,7 +223,7 @@ class AttributePanel {
       .classed('sub-menu collapse fade', true)
       .append('svg')
       .attr('id', column_name+'_svg')
-      .classed('atrribute_svg', true);
+      .classed('attribute_svg', true);
 
     this.populateData(this.$node.select('#'+column_name+'_svg').node(), column_name,column_desc);
 
@@ -257,9 +257,8 @@ class AttributePanel {
       console.log(await catVector.hist());
       console.log('DONE HISTOGRAAAAAAAAAAAAAAAAAAAM');
       const attributeHistogram = histogram.create(svg);
-      await attributeHistogram.init(dataVec);
-
-    } else if (dataVec.desc.value.type === VALUE_TYPE_INT || dataVec.desc.value.type === VALUE_TYPE_REAL) {
+      await attributeHistogram.init(attributeName, dataVec);
+    } else {
       const numVector = <INumericalVector> dataVec;
       console.log('Stats on a vector:');
       console.log(await numVector.stats());

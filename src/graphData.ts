@@ -111,8 +111,8 @@ class GraphData {
     this.definePrimary('suicide', 'Y');
     this.buildTree();
 
-    //Linearize Tree
-    this.assignLinearOrder();
+    //Linearize Tree and pass y values to the attributeData Object
+    this.data.ys = this.assignLinearOrder();
 
   //After linear order has been computed:
     this.nodes.forEach((d)=> {

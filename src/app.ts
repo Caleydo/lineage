@@ -61,8 +61,6 @@ export class App {
       const graphDataObj = graphData.create(attributeDataObj);
       await graphDataObj.createTree();
 
-      attributeDataObj.ys = graphDataObj.assignLinearOrder();
-
       const genealogyTree = tree.create(this.$node.select('#graph_table').node());
       genealogyTree.init(graphDataObj);
 

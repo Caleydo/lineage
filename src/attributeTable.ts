@@ -99,8 +99,8 @@ class attributeTable {
   private async build() {
 
     this.width = 450 - this.margin.left - this.margin.right
-    // this.height = Config.glyphSize * 3 * this.activeView.nrow - this.margin.top - this.margin.bottom;
-    this.height = 2504;
+    this.height = Config.glyphSize * 3 * this.activeView.nrow - this.margin.top - this.margin.bottom;
+
 
     const darkGrey = '#4d4d4d';
     const lightGrey = '#d9d9d9';

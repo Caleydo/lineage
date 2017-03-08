@@ -111,19 +111,25 @@ class GraphData {
     this.definePrimary('suicide', 'Y');
     this.buildTree();
 
+    //Create fake birthdays for people w/o a bdate.
+    this.nodes.forEach((n)=>{
+      if (n.bdate <100) {//random number
+      //subtract 20 from the age of the first kid
+        if (n.hasChildren){
+          console.log('setting bdate to ', n.children[0].bdate-20)
+          n.bdate = n.children[0].bdate-20;
+        }
+      }
+    });
+
     //Linearize Tree and pass y values to the attributeData Object
     this.linearizeTree();
-
-    this.nodes.forEach((n:any)=>{if (n.y === undefined){n.y = max(this.nodes,(n:any)=>{return n.y});}+1 });
 
     let ys = [];
     this.nodes.forEach((n)=>{ys.push(n.y)});
 
+    //Assign y values to the tableManager object
     this.data.ys = ys;
-
-    // this.nodes = this.nodes.filter ((n)=>{return n.y !== undefined})
-    // this.parentParentEdges = this.parentParentEdges.filter ((n)=>{return n.ma.y !== undefined && n.pa.y !== undefined})
-    // this.parentChildEdges = this.parentChildEdges.filter ((n)=>{return n.ma.y !== undefined && n.pa.y !== undefined && n.target.y !== undefined})
 
   //After linear order has been computed:
     this.nodes.forEach((d)=> {
@@ -140,15 +146,17 @@ class GraphData {
    *
    */
   private linearizeTree(){
+    //Only look at nodes who have not yet been assigned a y value
     let nodeList = this.nodes.filter((n)=>{return n.y === undefined});
     if (nodeList.length === 0)
       return;
 
+    //Find oldest person in this set of nodes and set as founder
     let founder = nodeList.reduce((a,b)=> {return +a.bdate < +b.bdate? a : b});
     founder.y = nodeList.length; //Set first y index;
-    console.log('founder', founder)
     this.linearizeHelper(founder);
 
+    //Recursively call linearizeTree to handle any nodes that were not assigned a y value.
     this.linearizeTree();
   }
 
@@ -159,13 +167,13 @@ class GraphData {
    *
    */
   private linearizeHelper(node){
-    console.log ('looking at ', node)
     if (node.y == undefined)
       node.y = min(this.nodes,(n:any)=>{return n.y})+(-1);
 
     //sort children by age to minimize edge crossings
     node.children.sort((a,b)=>{return b.bdate - a.bdate});
 
+    //Assign y position of all spouses.
     if (node.spouse.length>0)
     // node.spouse[0].y = min(this.nodes,(n:any)=>{return n.y})+(-1)
     node.spouse.forEach((s)=>{
@@ -176,12 +184,6 @@ class GraphData {
         if (ss.y === undefined){
           ss.y = min(this.nodes,(n:any)=>{return n.y})+(-1)
         }
-        // //sort children by age to minimize edge crossings
-        // s.children.sort((a,b)=>{return b.bdate - a.bdate});
-        // s.children
-        //   .filter((c)=>{return (c.ma === ss && c.pa === s) || (c.pa === ss && c.ma === s)})
-        //   .map((c:any) => {this.linearizeHelper(c)})
-
       })
     });
 
@@ -189,7 +191,17 @@ class GraphData {
       // .filter((c)=>{return (c.ma === node && c.pa === s) || (c.pa === node && c.ma === s)})
       .map((c:any) => {this.linearizeHelper(c)})
 
+    node.spouse.forEach((s)=>{
+      s.spouse.forEach((ss)=> {
+        //sort children by age to minimize edge crossings
+        s.children.sort((a,b)=>{return b.bdate - a.bdate});
+        s.children
+          .filter((c)=>{return (c.ma === ss && c.pa === s) || (c.pa === ss && c.ma === s)})
+          .map((c:any) => {this.linearizeHelper(c)});
+      })
+    })
 
+    //Base case are leaf nodes. Reached end of this branch.
     if(!node.hasChildren){
       return;
     }

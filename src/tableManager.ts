@@ -11,7 +11,6 @@ interface IFamilyInfo {
   affected: number;
 }
 
-
 export const VIEW_CHANGED_EVENT = 'view_changed_event';
 export const TABLE_VIS_ROWS_CHANGED_EVENT = 'table_vis_rows_changed_event';
 
@@ -62,17 +61,6 @@ export default class TableManager {
 
 // FOR TESTING ONLY!  ^^^^^
 ///////////////////////////////////////////////////////////////////////////////
-
-
-  /**
-   * Updates the active rows for the table visualization, creates a new table view and fires a {TABLE_VIS_ROWS_CHANGED} event.
-   * @param newRows
-   */
-  set activeTableRows(newRows: range.Range) {
-    this._activeTableRows = newRows;
-    this.tableTable = this.table.view(range.join(this._activeTableRows, this.activeTableColumns));
-    events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);
-  }
 
   /**
    * Loads the data form the server and stores it in the public table variable
@@ -162,7 +150,7 @@ export default class TableManager {
   }
 
   /**
-   * Uses the active rows and cols to create new table and graph tables and fires a view_changed event when done.
+   * Uses the active rows and cols to create new table and graph tables and fires a {VIEW_CHANGED_EVENT} event when done.
    * @return {Promise<void>}
    */
   public async refreshActiveViews() {
@@ -171,6 +159,17 @@ export default class TableManager {
     this.graphTable = await this.table.view(range.join(this.activeGraphRows, range.all()));
     events.fire(VIEW_CHANGED_EVENT);
   }
+
+    /**
+   * Updates the active rows for the table visualization, creates a new table view and fires a {TABLE_VIS_ROWS_CHANGED} event.
+   * @param newRows
+   */
+  set activeTableRows(newRows: range.Range) {
+    this._activeTableRows = newRows;
+    this.tableTable = this.table.view(range.join(this._activeTableRows, this.activeTableColumns));
+    events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);
+  }
+
 
   public getColumns() {
     return this.table.cols();
@@ -192,10 +191,7 @@ export default class TableManager {
   //
   //   });
   // }
-
-
 }
-
 
 /**
  * Method to create a new TableManager instance

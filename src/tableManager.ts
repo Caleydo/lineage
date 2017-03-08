@@ -82,17 +82,21 @@ export default class TableManager {
 
   /**
    * This function changes the range of rows to display on the selected family.
-   * @param chosenFamilyID the numeric value of the familyID
+   * @param chosenFamilyID the numeric value of the familyID, uses the first family ID when none is specified
    */
-  public async selectFamily(chosenFamilyID) {
-    const family = this.familyInfo.filter((family) => {
-      return family.id === chosenFamilyID;
-    })[0];
+  public async selectFamily(chosenFamilyID?: number) {
+    let family;
+    console.log(chosenFamilyID);
+    if (chosenFamilyID == null) {
+      family = this.familyInfo[0];
+    } else {
+      family = this.familyInfo.filter((family) => {
+        return family.id === chosenFamilyID;
+      })[0];
+    }
     this.activeGraphRows = range.list(family.range);
     this.activeTableRows = this.activeGraphRows;
     await this.refreshActiveViews();
-    events.fire('view_changed');
-
   }
 
   /**
@@ -145,28 +149,22 @@ export default class TableManager {
 
     this.activeTableRows = range.all();
     this.activeTableColumns = range.list(colIndexAccum);
-
-    this.selectFamily(38);
-
-
+    await this.selectFamily();
   }
 
+  /**
+   * Uses the active rows and cols to create new table and graph tables and fires a view_changed event when done.
+   * @return {Promise<void>}
+   */
   public async refreshActiveViews() {
     const key = range.join(this.activeTableRows, this.activeTableColumns);
     this.tableTable = await this.table.view(key);
     this.graphTable = await this.table.view(range.join(this.activeGraphRows, range.all()));
+    events.fire('view_changed');
   }
 
   public getColumns() {
     return this.table.cols();
-  }
-
-  public setActiveRows(activeRows) {
-    this.activeTableRows = activeRows;
-  }
-
-  public getActiveRows() {
-    return this.activeTableRows;
   }
 
   // private attachListener() {

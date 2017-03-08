@@ -20,7 +20,6 @@ import * as graphData from './graphData';
 import * as tableData from './tableData';
 import * as attributeData from './attributeData';
 
-import * as dataExplorations from './dataExplorations';
 
 /**
  * The main class for the App app
@@ -29,11 +28,11 @@ export class App {
 
   private $node;
 
-  constructor(parent:Element) {
-        this.$node = select(parent);
+  constructor(parent: Element) {
+    this.$node = select(parent);
 
-    this.$node.append('div').attr('id','data_selection');
-    this.$node.append('div').attr('id','graph_table');
+    this.$node.append('div').attr('id', 'data_selection');
+    this.$node.append('div').attr('id', 'graph_table');
 
   }
 
@@ -52,39 +51,31 @@ export class App {
    */
   private async build() {
 
-      const attributeDataObj = attributeData.create();
-      // This executes asynchronously, so you'll have to pass
-      // back a promise and resolve that before you keep going
-      // await attributeDataObj.loadData('big-decent-clipped-38');
-      await attributeDataObj.loadData('SmallDescend');
+    const attributeDataObj = attributeData.create();
+    // This executes asynchronously, so you'll have to pass
+    // back a promise and resolve that before you keep going
+    // await attributeDataObj.loadData('big-decent-clipped-38');
+    await attributeDataObj.loadData('SmallDescend');
 
-      const graphDataObj = graphData.create(attributeDataObj);
-      await graphDataObj.createTree();
+    const graphDataObj = graphData.create(attributeDataObj);
+    await graphDataObj.createTree();
 
-      attributeDataObj.ys = graphDataObj.assignLinearOrder();
+    attributeDataObj.ys = graphDataObj.assignLinearOrder();
 
-      const genealogyTree = tree.create(this.$node.select('#graph_table').node());
-      genealogyTree.init(graphDataObj);
+    const genealogyTree = tree.create(this.$node.select('#graph_table').node());
+    genealogyTree.init(graphDataObj);
 
-      //shared data for attributeTable and attributePanel
-      //const tableDataObj = tableData.create(realData, datasets[0].desc.columns);
+    //shared data for attributeTable and attributePanel
+    //const tableDataObj = tableData.create(realData, datasets[0].desc.columns);
 
-      const attributeTable = table.create(this.$node.select('#graph_table').node());
-     attributeTable.init(attributeDataObj);
+    const attributeTable = table.create(this.$node.select('#graph_table').node());
+    attributeTable.init(attributeDataObj);
 
-      const attributePanel = panel.create(this.$node.select('#data_selection').node());
-      attributePanel.init(attributeDataObj);
+    const attributePanel = panel.create(this.$node.select('#data_selection').node());
+    attributePanel.init(attributeDataObj);
 
-      const familySelectorView = familySelector.create(this.$node.select('#familySelector').node());
-      familySelectorView.init(attributeDataObj);
-
-
-      const data = dataExplorations.create();
-      //data.loadLocalData();
-
-      // data.demoDatasets(null);
-      // data.demoIDs();
-      // data.demoGenealogyData();
+    const familySelectorView = familySelector.create(this.$node.select('#familySelector').node());
+    familySelectorView.init(attributeDataObj);
 
     this.$node.select('h3').remove();
     this.setBusy(false);
@@ -107,6 +98,6 @@ export class App {
  * @param parent
  * @returns {App}
  */
-export function create(parent:Element) {
+export function create(parent: Element) {
   return new App(parent);
 }

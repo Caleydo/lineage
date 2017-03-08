@@ -8,14 +8,16 @@ $node-color: #4f4f4d;
 }
 table {
   font-size: 14px !important;
+  font-weight:200;
+  margin-top:15px;
   //line-height: 10px;
   //width: 100%;
   margin-bottom: 20px;
-  margin-top: 10px;
   color: #0e2231 !important;
   //margin-left: 10px;
   //margin-right: 10px;
   width:100%;
+
 }
 td, th {
   width: 33.3%;
@@ -41,8 +43,10 @@ th{
   height:40%;
   background-color: #4f4f4f;
   color: white;
+}
 
-
+tr{
+  height:20%;
 }
 
 

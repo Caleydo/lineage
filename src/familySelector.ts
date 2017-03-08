@@ -52,7 +52,7 @@ class familySelector {
   private build() {
 
     const table = select("#familySelector").append("table")
-      .classed('nav-side-menu',true)
+      // .classed('nav-side-menu',true)
       .classed('sticky-header',true);
         // .attr("style", "margin-top: 30px,  margin-left: 10px,  margin-right: 10px");
 

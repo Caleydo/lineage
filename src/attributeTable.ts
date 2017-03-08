@@ -47,14 +47,12 @@ class attributeTable {
     this.activeView = data.tableTable;
     this.attributeData = data; // JANKY ONLY FOR DEV
 
-//<<<<<<< HEAD
-    await this.initData(this.activeView, data.ys);
 
     this.buffer = 4;
 
-    this.build();
-    this.attachListener();
+    await this.update(this.activeView, data.ys);
 
+    this.attachListener();
 
 
     // return the promise directly as long there is no dynamical data to update
@@ -63,19 +61,17 @@ class attributeTable {
 
 
 
-  async initData(activeView, ys){
-    // console.log("active view's cols was:");
-    // console.log(await tableTable.cols());
-    // console.log("ys were:");
-    // console.log(ys);
+  public async update(activeView, ys){
+    await this.initData(activeView, ys);
+    this.render();
+  }
 
-//=======
-//()>>>>>>> 57552ec17e04ab3ea15e4f3b7e4d3a2f591c46f0
+
+
+  public async initData(activeView, ys){
     let colDataAccum = [];
     for (const vector of activeView.cols()) {
       const temp = await vector.data(range.all());
-      // console.log("THE DATA WAS: ");
-      // console.log(temp);
       const type = await vector.valuetype.type;
       if(type === 'categorical'){
         const categories = Array.from(new Set(temp));
@@ -115,7 +111,7 @@ class attributeTable {
   /**
    * Build the basic DOM elements and binds the change function
    */
-  private async build() {
+  private async render() {
 
     this.width = 450 - this.margin.left - this.margin.right
     this.height = Config.glyphSize * 3 * this.activeView.nrow - this.margin.top - this.margin.bottom;
@@ -164,6 +160,8 @@ class attributeTable {
       const x_translation = label_xs.find(x => x.name === d.name).x;
       return 'translate(' + x_translation + ',0) rotate(-45)';});
 
+    headers.exit().remove(); // should remove on col remove
+
 
     selectAll('.header')
       .text((d) => {return d['name']})
@@ -188,6 +186,8 @@ class attributeTable {
 
     cols = colsEnter.merge(cols);
 
+    cols.exit().remove(); // should remove on col remove
+
     //Bind data to the cells
     let cells = cols.selectAll('.cell')
       .data((d) => {
@@ -196,6 +196,9 @@ class attributeTable {
       .enter()
       .append("g")
       .attr('class', 'cell');
+
+
+      cells.exit().remove();
 
 
 

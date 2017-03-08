@@ -1,11 +1,15 @@
-import {ITable, asTable} from 'phovea_core/src/table';
-import {IAnyVector} from 'phovea_core/src/vector';
+import {ITable} from 'phovea_core/src/table';
 import {list as listData, getFirstByName, get as getById} from 'phovea_core/src/data';
-import {tsv} from 'd3-request';
-import {ICategoricalVector, INumericalVector} from 'phovea_core/src/vector/IVector';
 import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT} from 'phovea_core/src/datatype';
 import * as range from 'phovea_core/src/range';
 import * as events from 'phovea_core/src/event';
+
+interface IFamilyInfo {
+  id: number;
+  range: number[];
+  size: number;
+  affected: number;
+}
 
 /**
  * This class manages the data structure for the graph, the table visualization and the attribute selection panel.
@@ -35,9 +39,11 @@ export default class TableManager {
 
   // Each family has a unique ID. This stores all of those that are in the dataset.
   // TODO typing
-  private familyIDs;
+  // private familyIDs;
+
+
 // TODO what is this?
-  public readonly familyInfo = [];
+  public readonly familyInfo: IFamilyInfo[] = [];
   // TODO what is this?
   public ys;
 
@@ -69,27 +75,22 @@ export default class TableManager {
     this.table = <ITable> await getFirstByName(name);
     await this.parseData();
     // TODO what is the purpose of attachListener?
-    this.attachListener();
+    //this.attachListener();
     return Promise.resolve(this);
   }
 
 
-
-
   /**
    * This function changes the range of rows to display on the selected family.
-   *
-   *@param chosenFamilyID the numeric value of the familyID
+   * @param chosenFamilyID the numeric value of the familyID
    */
   public async selectFamily(chosenFamilyID) {
-
-    let family = this.familyInfo.filter((family) => {
-      return family.id === chosenFamilyID
-    })[0]
-    this.activeGraphRows = range.list(family['range']);
+    const family = this.familyInfo.filter((family) => {
+      return family.id === chosenFamilyID;
+    })[0];
+    this.activeGraphRows = range.list(family.range);
     this.activeTableRows = this.activeGraphRows;
-    await this.refreshActiveViews(); //updates the active views
-    console.log('view changed')
+    await this.refreshActiveViews();
     events.fire('view_changed');
 
   }
@@ -103,18 +104,17 @@ export default class TableManager {
 
     const columns = await this.table.cols();
 
-    this.familyIDs = await this.table.col(0).data(); //Assumes kindredID is the first col. Not ideal.
-    let suicideCol = await this.table.colData('suicide'); //Will have to access attribute table in the future
+    const familyIDs: number[] = <number[]> await this.table.col(0).data(); //Assumes kindredID is the first col. Not ideal.
+    const suicideCol = await this.table.colData('suicide');
 
-    let uniqueFamilyIDs = this.familyIDs.filter((x, i, a) => a.indexOf(x) === i);
+    const uniqueFamilyIDs = Array.from(new Set(familyIDs));
 
-    for (let i in uniqueFamilyIDs) {
-      let id = uniqueFamilyIDs[i];
+    for (const id of uniqueFamilyIDs) {
       //Array to store the ranges for the selected family
       const familyRange = [];
       let affected = 0;
 
-      this.familyIDs.forEach((d, i) => {
+      familyIDs.forEach((d, i) => {
         if (d === id) {
           familyRange.push(i);
           if (suicideCol[i] === 'Y') {
@@ -123,7 +123,7 @@ export default class TableManager {
         }
       });
 
-      this.familyInfo.push({'id': id, 'range': familyRange, 'size': familyRange.length, 'affected': affected});
+      this.familyInfo.push({id, range: familyRange, size: familyRange.length, affected});
     }
 
     const colIndexAccum = [];
@@ -137,9 +137,7 @@ export default class TableManager {
       // if the type of the column is ID then it is not in the active list
       if (name === 'y') { //pay no attention to the man behind the curtain
         yIndex = i; //for some reason can't set the member var here. js...  //That' because you're inside an if statement. The variable wouldn't exist outside of this if statement.
-
-      }
-      else if (!(type === 'idtype' || name === 'x')) {
+      } else if (!(type === 'idtype' || name === 'x')) {
         colIndexAccum.push(i);//push the index so we can get the right view
         this.activeAttributes.push(name);
       }
@@ -171,34 +169,29 @@ export default class TableManager {
     return this.activeTableRows;
   }
 
-  private filterCat(aVal, bval) {
-    return aVal === bval; //Also include undefined empty strings and null values.
-  }
-
-  private attachListener() {
-
-    //Set listener for added attribute to the active list
-    events.on('attribute_added', (evt, item) => {
-
-    });
-
-    //Set listener for removed attribute from the active list
-    events.on('attribute_reordered', (evt, item) => {
-
-    });
-    //Set listener for reordering attribute within the active list
-    events.on('attribute_removed', (evt, item) => {
-
-    });
-  }
+  // private attachListener() {
+  //
+  //   //Set listener for added attribute to the active list
+  //   events.on('attribute_added', (evt, item) => {
+  //
+  //   });
+  //
+  //   //Set listener for removed attribute from the active list
+  //   events.on('attribute_reordered', (evt, item) => {
+  //
+  //   });
+  //   //Set listener for reordering attribute within the active list
+  //   events.on('attribute_removed', (evt, item) => {
+  //
+  //   });
+  // }
 
 
 }
 
 
 /**
- * Method to create a new AttributeData instance
-
+ * Method to create a new TableManager instance
  * @returns {TableManager}
  */
 export function create() {

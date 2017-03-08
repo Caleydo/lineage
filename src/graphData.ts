@@ -188,6 +188,13 @@ class GraphData {
       })
     });
 
+    //If person has two spouses, put this one in the middle.
+    if (node.spouse.length === 2){
+      let ys = [node.y].concat(node.spouse.map((s)=>{return s.y}));
+      ys.sort();
+      node.y = ys[1]; node.spouse[0].y = ys[0]; node.spouse[1].y = ys[2];
+    }
+
     node.children
       // .filter((c)=>{return (c.ma === node && c.pa === s) || (c.pa === node && c.ma === s)})
       .map((c:any) => {this.linearizeHelper(c)})

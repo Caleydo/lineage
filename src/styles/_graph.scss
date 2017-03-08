@@ -19,11 +19,16 @@ td, th {
   width: 33.3%;
   padding:10px;
   cursor: pointer;
-  text-align: center;
+  //text-align: center;
+}
+
+td rect{
+  fill: #364e74;
+
 }
 
 tr.selected{
-  background-color: rgba(255, 0, 0, 0.2);
+  background-color: rgba(92, 145, 120, 0.44);
 }
 
 //tr:nth-child(even) {background-color: #f2f2f2}

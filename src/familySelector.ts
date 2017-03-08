@@ -7,6 +7,15 @@ import {keys} from 'd3-collection';
 
 import {Config} from './config';
 
+import {
+  scaleLinear,
+} from 'd3-scale';
+
+import {
+  max,
+  min
+} from 'd3-array';
+
 
 /**
  * Creates the family selector view
@@ -15,12 +24,9 @@ class familySelector {
 
   private $node;
 
+  private peopleScale = scaleLinear();  //yscale for # of people
 
-  // access to all the data in our backend
-  private table;
-  private columns;
-  private activeColumns;
-
+  private casesScale = scaleLinear();  //yscale for cases
 
   constructor(parent:Element) {
     this.$node = select(parent);
@@ -34,7 +40,6 @@ class familySelector {
   init(dataObject) {
     this.build();
     this.updateTable(dataObject)
-    this.attachListener();
 
     // return the promise directly as long there is no dynamical data to update
     return Promise.resolve(this);
@@ -59,12 +64,35 @@ class familySelector {
       .enter()
       .append("th")
       .text(function(column) { return column; });
+
+
+
   }
 
   /**
    * Build the table and populate with list of families.
    */
   private updateTable(data) {
+
+    this.peopleScale
+      .range([0,70])
+      .domain([0,800])
+
+
+    // let minValue = min(data.familyInfo,(d:any)=>{return +d.size});
+    // let maxValue = max(data.familyInfo,(d:any)=>{return +d.size});
+    //
+    // this.peopleScale
+    //   .range([0,50])
+    //   .domain([minValue,maxValue])
+    //
+    // minValue = min(data.familyInfo,(d:any)=>{return +d.affected});
+    // maxValue = max(data.familyInfo,(d:any)=>{return +d.affected});
+
+
+    // this.casesScale
+    //   .range([0,50])
+    //   .domain([minValue,maxValue]);
 
   // create a row for each object in the data
   var rows = select('tbody').selectAll("tr")
@@ -74,13 +102,42 @@ class familySelector {
   //
   // create a cell in each row for each column
   var cells = rows.selectAll("td")
-    .data((d)=>{return [{'id':d['id'], 'value':d['id']}, {'id':d['id'], 'value':d['size']}, {'id':d['id'], 'value':d['affected']}]})
+    .data((d)=>{return [{'id':d['id'], 'value':d['id'], 'type':'id'}, {'id':d['id'], 'value':d['size'], 'type':'size'}, {'id':d['id'], 'value':d['affected'], 'type':'cases'}]})
     .enter()
     .append("td")
-    .html((d) => {
-      return d.value.toString();
 
-    });
+
+  selectAll('td').filter((c:any)=>{return c.type === 'size' || c.type === 'cases'})
+    .append('svg')
+    .attr('width',(d:any) => { return this.peopleScale.range()[1] })
+    .attr('height',30)
+    .append('rect')
+    .attr('width',(d:any) => { return this.peopleScale(d.value)})
+    .attr('height',30)
+
+    selectAll('td').selectAll('svg').filter((c:any)=>{return c.type === 'size' || c.type === 'cases'})
+      .append('text')
+      .attr('dy', 20)
+      .attr('dx', (d:any) => {
+        return this.peopleScale(d.value)})
+      .text((d:any) => {
+        return d.value.toString();
+      })
+      // .attr('fill', 'white')
+      // .style('font-weight', 'bold')
+      // .attr('text-anchor', 'end')
+
+
+
+
+    cells.filter((c:any)=>{return c.type === 'id'})
+    // cells
+      .attr('text-align','center')
+      .html((d:any) => {
+      return d.value.toString();
+    })
+
+
   selectAll('td').on('click',(d) => {
     select('tbody').selectAll('tr').classed('selected',false);
     select('tbody').selectAll('tr').filter((row)=>{return row['id'] === d['id']}).classed('selected',true);
@@ -90,17 +147,6 @@ class familySelector {
     select('tbody').selectAll('tr').filter((row)=>{return row['id'] === 38}).classed('selected',true);
 }
 
-
-
-  private attachListener() {
-
-    //Set listener for click event on corresponding node that changes the color of that row to red
-    events.on('node_clicked', (evt, item)=> {
-      selectAll('.row').classed('selected', function (d) {
-        return select(this).attr('id') === 'row_' + item;
-      });
-    });
-  }
 
 }
 

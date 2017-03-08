@@ -29,14 +29,15 @@ class GraphData {
   constructor(data) {
     this.table = data.graphTable;
     this.data = data;
-    this.set_listeners();
+    this.setListeners();
   };
 
-  private async set_listeners(){
+  private setListeners(){
 
   events.on(VIEW_CHANGED_EVENT, () => {
     this.table = this.data.graphTable;
 
+    //Once tree has been created for the new family, fire redraw tree event.
     this.createTree().then(
       () => {events.fire('redraw_tree',this)}
     ).catch(function (error) {
@@ -62,10 +63,9 @@ class GraphData {
 
     console.log('Table is of size', this.table.dim)
 
-    for (let row of range(0,nrow,1)){
-      let personObj = {};
-      this.nodes.push(personObj);
-    }
+    range(0,nrow,1).forEach(()=>{
+      this.nodes.push({});
+    })
 
       let ids =await columns[0].names();
 
@@ -111,8 +111,26 @@ class GraphData {
     this.definePrimary('suicide', 'Y');
     this.buildTree();
 
+
     //Linearize Tree and pass y values to the attributeData Object
-    this.data.ys = this.assignLinearOrder();
+    this.linearizeTree();
+
+    //Create fake birthdays for people w/o a bdate.
+    this.nodes.forEach((n)=>{
+      if (+n.bdate === 0 ) {//random number
+        //subtract 20 from the age of the first kid
+        if (n.hasChildren){
+          console.log('setting bdate to ', n.children[0].bdate-20)
+          n.bdate = (+n.children[0].bdate) - 20;
+        }
+      }
+    });
+
+    let ys = [];
+    this.nodes.forEach((n)=>{ys.push(n.y)});
+
+    //Assign y values to the tableManager object
+    this.data.ys = ys;
 
   //After linear order has been computed:
     this.nodes.forEach((d)=> {
@@ -123,92 +141,72 @@ class GraphData {
 
   };
 
-
   /**
    *
    * This function linearizes all nodes in the tree.
    *
    */
+  private linearizeTree(){
+    //Only look at nodes who have not yet been assigned a y value
+    let nodeList = this.nodes.filter((n)=>{return n.y === undefined});
+    if (nodeList.length === 0)
+      return;
 
-  public assignLinearOrder() {
+    //Find oldest person in this set of nodes and set as founder
+    let founder = nodeList.reduce((a,b)=> {return +a.bdate < +b.bdate? a : b});
+    founder.y = nodeList.length; //Set first y index;
+    this.linearizeHelper(founder);
 
-    //Sort by increasing birth date
-    this.nodes.sort(function (a, b) {
-      return parseFloat(a.x) - parseFloat(b.x);
-    });
-
-    this.nodes[0].y = 1; //Set first y index;
-    this.nodes.forEach((node) => {
-      this.assignLinearOrderNode(node);
-    });
-
-    this.nodes.forEach((thisNode) => {
-      if (this.nodes.filter(function (n) {
-          return n.y !== undefined && n.y === thisNode.y;
-        }).length > 1) {
-        this.nodes.forEach(function (d) {
-          if (d.y > thisNode.y) {
-            d.y = d.y + 1;
-          }
-          ;
-        });
-        thisNode.y = thisNode.y + 1;
-      }
-    });
-
-    let ys = [];
-    this.nodes.forEach ((node)=>{ys.push(node.y)});
-
-    return ys;
+    //Recursively call linearizeTree to handle any nodes that were not assigned a y value.
+    this.linearizeTree();
   }
-
 
   /**
    *
-   * This function linearizes a single node in the tree.
+   * This is a recursive helper function for linearizeTree()
+   * @param node - node at the start of branch that needs to be linearized;
    *
-   * @param node node to be assigned an order
    */
+  private linearizeHelper(node){
+    if (node.y == undefined)
+      node.y = min(this.nodes,(n:any)=>{return n.y})+(-1);
 
-  private assignLinearOrderNode(node) {
+    //sort children by age to minimize edge crossings
+    node.children.sort((a,b)=>{return b.bdate - a.bdate});
 
-    const ma = node.ma;
-    const pa = node.pa;
-    const spouse = node.spouse;
-
-    if (!node.y) {
-      node.y = max(this.nodes, function (d) { return d['y']; }) + 1;
-    }
-
-    //Put spouse to the left of the current node (at least in a first pass)
-    if (spouse.length > 0 && spouse[0].y === undefined) {
-      spouse[0].y = node.y;
-    } else if (spouse.length > 0 && spouse[0].y !== undefined) {
-      node.y = spouse[0].y;
-    }
-    if (ma !== undefined && pa !== undefined) {
-      if (ma.y !== undefined) {
-        if (ma.y < node.y) {
-          node.y = ma.y;
-          this.nodes.forEach(function (d) {
-            if (d.y > node.y) {
-              d.y = d.y + 1;
-            }
-          });
-          ma.y = node.y + 1;
-          pa.y = ma.y;
-        }
-      } else {
-          this.nodes.forEach(function (d) {
-            if (d.y > node.y) {
-              d.y = d.y + 1;
-            }
-          });
-          pa.y = node.y + 1;
-          ma.y = node.y + 1;
-        }
+    //Assign y position of all spouses.
+    if (node.spouse.length>0)
+    // node.spouse[0].y = min(this.nodes,(n:any)=>{return n.y})+(-1)
+    node.spouse.forEach((s)=>{
+      if (s.y === undefined){
+        s.y = min(this.nodes,(n:any)=>{return n.y})+(-1)
       }
-  };
+      s.spouse.forEach((ss)=>{
+        if (ss.y === undefined){
+          ss.y = min(this.nodes,(n:any)=>{return n.y})+(-1)
+        }
+      })
+    });
+
+    node.children
+      // .filter((c)=>{return (c.ma === node && c.pa === s) || (c.pa === node && c.ma === s)})
+      .map((c:any) => {this.linearizeHelper(c)})
+
+    node.spouse.forEach((s)=>{
+      s.spouse.forEach((ss)=> {
+        //sort children by age to minimize edge crossings
+        s.children.sort((a,b)=>{return b.bdate - a.bdate});
+        s.children
+          .filter((c)=>{return (c.ma === ss && c.pa === s) || (c.pa === ss && c.ma === s)})
+          .map((c:any) => {this.linearizeHelper(c)});
+      })
+    })
+
+    //Base case are leaf nodes. Reached end of this branch.
+    if(!node.hasChildren){
+      return;
+    }
+  }
 
 
   /**
@@ -289,10 +287,10 @@ class GraphData {
 
           //relationship node. Used to build parent child edges
           const rnode = {
-            'ma': maNode,
-            'pa': paNode,
-            'type': 'parent',
-            'id': Math.random() //Create random id or each parentParent Edge.
+            ma: maNode,
+            pa: paNode,
+            type: 'parent',
+            id: Math.random() //Create random id or each parentParent Edge.
           };
 
           //Only add parent parent Edge if it's not already there;

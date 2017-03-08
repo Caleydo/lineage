@@ -11,6 +11,7 @@ import {
 } from 'd3-array';
 
 import * as events from 'phovea_core/src/event';
+import {VIEW_CHANGED_EVENT} from './tableManager';
 
 class GraphData {
 
@@ -33,9 +34,8 @@ class GraphData {
 
   private async set_listeners(){
 
-  events.on('view_changed', () => {
+  events.on(VIEW_CHANGED_EVENT, () => {
     this.table = this.data.graphTable;
-
 
     this.createTree().then(
       () => {events.fire('redraw_tree',this)}

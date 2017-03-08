@@ -65,7 +65,7 @@ export default class TableManager {
 
 
   /**
-   * Updates the active rows for the table visualizatio, creates a new table view and fires a {TABLE_VIS_ROWS_CHANGED} event.
+   * Updates the active rows for the table visualization, creates a new table view and fires a {TABLE_VIS_ROWS_CHANGED} event.
    * @param newRows
    */
   set activeTableRows(newRows: range.Range) {
@@ -169,7 +169,7 @@ export default class TableManager {
     const key = range.join(this._activeTableRows, this.activeTableColumns);
     this.tableTable = await this.table.view(key);
     this.graphTable = await this.table.view(range.join(this.activeGraphRows, range.all()));
-    events.fire('view_changed');
+    events.fire(VIEW_CHANGED_EVENT);
   }
 
   public getColumns() {

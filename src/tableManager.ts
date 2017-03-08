@@ -36,15 +36,9 @@ export default class TableManager {
     // TODO do we really need this?
   public activeAttributes = [];
 
-
-  // Each family has a unique ID. This stores all of those that are in the dataset.
-  // TODO typing
-  // private familyIDs;
-
-
-// TODO what is this?
+  /** Basic information about all the loaded families */
   public readonly familyInfo: IFamilyInfo[] = [];
-  // TODO what is this?
+  // TODO what is this? Should this be in this class?
   public ys;
 
 // FOR TESTING ONLY!  vvvvvvv
@@ -109,6 +103,7 @@ export default class TableManager {
     const columns = await this.table.cols();
 
     const familyIDs: number[] = <number[]> await this.table.col(0).data(); //Assumes kindredID is the first col. Not ideal.
+    // FIXME this is a strong assumption on the data. We should move this stuff to a configuration object
     const suicideCol = await this.table.colData('suicide');
 
     const uniqueFamilyIDs = Array.from(new Set(familyIDs));

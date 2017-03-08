@@ -7,21 +7,38 @@ import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT} from 'phovea_core/src/datatype';
 import * as range from 'phovea_core/src/range';
 import * as events from 'phovea_core/src/event';
 
-export default class AttributeData {
+/**
+ * This class manages the data structure for the graph, the table visualization and the attribute selection panel.
+ */
+export default class TableManager {
 
+  /** The master table that contains the graph and some attribute information */
   table: ITable;
-  public activeAttributes = []; // active attribute is an attribute that is not ID. This an array of strings (column name)
-  private activeRows: range.Range; // of type range
-  private familyActiveRows: range.Range;
-  private attributeActiveRows: range.Range;
-  private activeColumns: range.Range; // of type range
-  public activeView: ITable; // table view
-  public graphView: ITable; // table view
 
-  //Store all families in this table;
-  private allFamilyIDs;
+  /** The table view used in the table visualization */
+  public tableTable: ITable; // table view
+  /** The columns currently displayed in the table */
+  private activeTableColumns: range.Range;
+  /** The rows currently shown in the table, a subset of the activeGraphRows */
+  private activeTableRows: range.Range;
+
+
+  /** The table view used for the graph */
+  public graphTable: ITable; // table view
+  /** All rows that are used in the graph - corresponds to a family */
+  private activeGraphRows: range.Range;
+
+  /** Active attribute is an attribute that is not ID. This an array of strings (column name) */
+    // TODO do we really need this?
+  public activeAttributes = [];
+
+
+  // Each family has a unique ID. This stores all of those that are in the dataset.
+  // TODO typing
+  private familyIDs;
+// TODO what is this?
   public familyInfo = [];
-
+  // TODO what is this?
   public ys;
 
 // FOR TESTING ONLY!  vvvvvvv
@@ -29,14 +46,14 @@ export default class AttributeData {
 
   public async anniesTestUpdate() {
 
-    this.activeRows = range.list([1, 2]);
+    this.activeTableRows = range.list([1, 2]);
     await this.refreshActiveViews();
     console.log('DID  Update');
-    console.log(this.activeView.dim);
+    console.log(this.tableTable.dim);
     console.log('Here\'s the filtered table:');
-    console.log(await this.activeView.data());
+    console.log(await this.tableTable.data());
     console.log('-----------');
-    return this.activeView;
+    return this.tableTable;
   }
 
 // FOR TESTING ONLY!  ^^^^^
@@ -44,11 +61,8 @@ export default class AttributeData {
 
 
   /**
-   * This function load genealogy data from lineage-server
-   * and store it in the public table variable
+   * Loads the data form the server and stores it in the public table variable
    * @param: name of the dataset
-   * returns a promise of table
-   *
    */
   public async loadData(name: string) {
     //retrieving the desired dataset by name
@@ -77,8 +91,8 @@ export default class AttributeData {
     let family = this.familyInfo.filter((family) => {
       return family.id === chosenFamilyID
     })[0]
-    this.familyActiveRows = range.list(family['range']);
-    this.activeRows = this.familyActiveRows;
+    this.activeGraphRows = range.list(family['range']);
+    this.activeTableRows = this.activeGraphRows;
     await this.refreshActiveViews(); //updates the active views
     console.log('view changed')
     events.fire('view_changed');
@@ -94,10 +108,10 @@ export default class AttributeData {
 
     const columns = await this.table.cols();
 
-    this.allFamilyIDs = await this.table.col(0).data(); //Assumes kindredID is the first col. Not ideal.
+    this.familyIDs = await this.table.col(0).data(); //Assumes kindredID is the first col. Not ideal.
     let suicideCol = await this.table.colData('suicide'); //Will have to access attribute table in the future
 
-    let uniqueFamilyIDs = this.allFamilyIDs.filter((x, i, a) => a.indexOf(x) === i);
+    let uniqueFamilyIDs = this.familyIDs.filter((x, i, a) => a.indexOf(x) === i);
 
     for (let i in uniqueFamilyIDs) {
       let id = uniqueFamilyIDs[i];
@@ -105,7 +119,7 @@ export default class AttributeData {
       const familyRange = [];
       let affected = 0;
 
-      this.allFamilyIDs.forEach((d, i) => {
+      this.familyIDs.forEach((d, i) => {
         if (d === id) {
           familyRange.push(i);
           if (suicideCol[i] === 'Y') {
@@ -136,8 +150,8 @@ export default class AttributeData {
       }
     });
 
-    this.activeRows = range.all();
-    this.activeColumns = range.list(colIndexAccum);
+    this.activeTableRows = range.all();
+    this.activeTableColumns = range.list(colIndexAccum);
 
     this.selectFamily(38);
 
@@ -145,9 +159,9 @@ export default class AttributeData {
   }
 
   public async refreshActiveViews() {
-    const key = range.join(this.activeRows, this.activeColumns);
-    this.activeView = await this.table.view(key);
-    this.graphView = await this.table.view(range.join(this.familyActiveRows, range.all()));
+    const key = range.join(this.activeTableRows, this.activeTableColumns);
+    this.tableTable = await this.table.view(key);
+    this.graphTable = await this.table.view(range.join(this.activeGraphRows, range.all()));
   }
 
   public getColumns() {
@@ -155,11 +169,11 @@ export default class AttributeData {
   }
 
   public setActiveRows(activeRows) {
-    this.activeRows = activeRows;
+    this.activeTableRows = activeRows;
   }
 
   public getActiveRows() {
-    return this.activeRows;
+    return this.activeTableRows;
   }
 
   private filterCat(aVal, bval) {
@@ -190,9 +204,9 @@ export default class AttributeData {
 /**
  * Method to create a new AttributeData instance
 
- * @returns {AttributeData}
+ * @returns {TableManager}
  */
 export function create() {
 
-  return new AttributeData();
+  return new TableManager();
 }

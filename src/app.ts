@@ -18,7 +18,7 @@ import {csv} from 'd3-request';
 
 import * as graphData from './graphData';
 import * as tableData from './tableData';
-import * as attributeData from './attributeData';
+import * as attributeData from './tableManager';
 
 
 /**

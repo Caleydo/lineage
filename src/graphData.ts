@@ -26,7 +26,7 @@ class GraphData {
 
 
   constructor(data) {
-    this.table = data.graphView;
+    this.table = data.graphTable;
     this.data = data;
     this.set_listeners();
   };
@@ -34,7 +34,7 @@ class GraphData {
   private async set_listeners(){
 
   events.on('view_changed', () => {
-    this.table = this.data.graphView;
+    this.table = this.data.graphTable;
 
 
     this.createTree().then(

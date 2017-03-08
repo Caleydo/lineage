@@ -120,8 +120,8 @@ class GraphData {
       if (+n.bdate === 0 ) {//random number
         //subtract 20 from the age of the first kid
         if (n.hasChildren){
-          console.log('setting bdate to ', n.children[0].bdate-20)
-          n.bdate = (+n.children[0].bdate) - 20;
+          n.bdate = n.children[0].bdate - 20;
+          n.x = n.bdate;
         }
       }
     });

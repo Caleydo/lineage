@@ -63,12 +63,16 @@ class attributeTable {
 
 
   async initData(activeView, ys){
-    console.log("THIS?");
-    console.log(this);
+    console.log("active view's cols was:");
+    console.log(await activeView.cols());
+    console.log("ys were:");
+    console.log(ys);
 
     let colDataAccum = [];
     for (const vector of activeView.cols()) {
       const temp = await vector.data(range.all());
+      console.log("THE DATA WAS: ");
+      console.log(temp);
       const type = await vector.valuetype.type;
       if(type === 'categorical'){
         const categories = Array.from(new Set(temp));

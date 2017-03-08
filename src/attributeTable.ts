@@ -47,9 +47,27 @@ class attributeTable {
     this.activeView = data.activeView;
     this.attributeData = data; // JANKY ONLY FOR DEV
 
+    await this.initData(this.activeView, data.ys);
+
+    this.buffer = 4;
+
+    this.build();
+    this.attachListener();
+
+
+
+    // return the promise directly as long there is no dynamical data to update
+    return Promise.resolve(this);
+  }
+
+
+
+  async initData(activeView, ys){
+    console.log("THIS?");
+    console.log(this);
 
     let colDataAccum = [];
-    for (const vector of this.activeView.cols()) {
+    for (const vector of activeView.cols()) {
       const temp = await vector.data(range.all());
       const type = await vector.valuetype.type;
       if(type === 'categorical'){
@@ -61,7 +79,7 @@ class attributeTable {
           col.data = temp.map(
             (d)=>{if(d === cat) return d;
                   else return undefined;});
-          col.ys = data.ys;
+          col.ys = ys;
           col.type = type;
           colDataAccum.push(col);
         }
@@ -70,7 +88,7 @@ class attributeTable {
         var col: any = {};
         col.name = await vector.column;
         col.data = temp;
-        col.ys = data.ys;
+        col.ys = ys;
         col.type = type;
         //compute some stats, but first get rid of non-entries
         const filteredData = temp.filter((d)=>{return d.length != 0;});
@@ -81,21 +99,9 @@ class attributeTable {
         colDataAccum.push(col);
       }
     }
-
-
+    console.log("this is the col data accum:");
+    console.log(colDataAccum);
     this.colData = colDataAccum;
-
-    this.buffer = 4;
-
-    this.build();
-    this.attachListener();
-
-    console.log("IN INIT, THIS IS ACTIVE VIEW: ");
-    console.log(this.activeView);
-
-
-    // return the promise directly as long there is no dynamical data to update
-    return Promise.resolve(this);
   }
 
 
@@ -103,9 +109,6 @@ class attributeTable {
    * Build the basic DOM elements and binds the change function
    */
   private async build() {
-
-    console.log("IN BUILD, THIS IS ACTIVE VIEW: ");
-    console.log(this.activeView);
 
     this.width = 450 - this.margin.left - this.margin.right
     // this.height = Config.glyphSize * 3 * this.activeView.nrow - this.margin.top - this.margin.bottom;
@@ -272,13 +275,17 @@ class attributeTable {
 ////////////// EVENT HANDLERS! /////////////////////////////////////////////
 
   const jankyAData = this.attributeData; ///auuughhh javascript why
+  const jankyInitHandle = this.initData; ///whywhywhywhy
+  let self = this;
 
   cells.on('click', async function(elem) {
   //  console.log("REGISTERED CLICK");
     //update the dataset & re-render
+
     const newView = await jankyAData.anniesTestUpdate();
-    console.log("NEW VIEW!");
-    console.log(newView.cols()[0]);
+    self.initData(newView, [1, 2]);
+    // console.log("NEW VIEW!");
+    // console.log(newView.cols()[0]);
 
   });
 

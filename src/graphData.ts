@@ -115,6 +115,12 @@ class GraphData {
 
     this.linearizeTree();
 
+    // this.nodes.forEach((n:any)=>{if (n.y === undefined){n.y = max(this.nodes,(n:any)=>{return n.y});}+1 });
+
+    this.nodes = this.nodes.filter ((n)=>{return n.y !== undefined})
+    this.parentParentEdges = this.parentParentEdges.filter ((n)=>{return n.ma.y !== undefined && n.pa.y !== undefined})
+    this.parentChildEdges = this.parentChildEdges.filter ((n)=>{return n.ma.y !== undefined && n.pa.y !== undefined && n.target.y !== undefined})
+
   //After linear order has been computed:
     this.nodes.forEach((d)=> {
       d.Y = +d.y; //keeps track of nodes original y position
@@ -132,6 +138,8 @@ class GraphData {
   private linearizeTree(){
 
     let founder = this.nodes.reduce((a,b)=> {return +a.bdate < +b.bdate? a : b});
+
+    console.log('founder', founder)
     founder.y = this.nodes.length; //Set first y index;
 
     this.linearizeHelper(founder);
@@ -149,13 +157,32 @@ class GraphData {
     if (node.y == undefined)
       node.y = min(this.nodes,(n:any)=>{return n.y})+(-1);
 
+    //sort children by age to minimize edge crossings
+    node.children.sort((a,b)=>{return b.bdate - a.bdate});
+
+    if (node.spouse.length>0)
+    // node.spouse[0].y = min(this.nodes,(n:any)=>{return n.y})+(-1)
     node.spouse.forEach((s)=>{
-      if (s.y === undefined){
+      // if (s.y === undefined){
         s.y = min(this.nodes,(n:any)=>{return n.y})+(-1)
-      }
+      // }
+      s.spouse.forEach((ss)=>{
+        // if (ss.y === undefined){
+          ss.y = min(this.nodes,(n:any)=>{return n.y})+(-1)
+        // }
+        // //sort children by age to minimize edge crossings
+        // s.children.sort((a,b)=>{return b.bdate - a.bdate});
+        // s.children
+        //   .filter((c)=>{return (c.ma === ss && c.pa === s) || (c.pa === ss && c.ma === s)})
+        //   .map((c:any) => {this.linearizeHelper(c)})
+
+      })
     });
 
-    node.children.map((c:any) => {this.linearizeHelper(c)})
+    node.children
+      // .filter((c)=>{return (c.ma === node && c.pa === s) || (c.pa === node && c.ma === s)})
+      .map((c:any) => {this.linearizeHelper(c)})
+
 
     if(!node.hasChildren){
       return;
@@ -333,10 +360,10 @@ class GraphData {
 
           //relationship node. Used to build parent child edges
           const rnode = {
-            'ma': maNode,
-            'pa': paNode,
-            'type': 'parent',
-            'id': Math.random() //Create random id or each parentParent Edge.
+            ma: maNode,
+            pa: paNode,
+            type: 'parent',
+            id: Math.random() //Create random id or each parentParent Edge.
           };
 
           //Only add parent parent Edge if it's not already there;

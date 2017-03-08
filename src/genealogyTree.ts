@@ -1213,9 +1213,10 @@ class GenealogyTree {
 
     allNodes.selectAll('.nodeLabel')
     // .attr('visibility','hidden')
-      .text(function (d: any) {
+      .text((d: any) => {
 
-        return ''
+      return '';
+        // return d.id
         // return d['hidden'] ? '' : max(d['family_ids']);
 
          // let year = new Date().getFullYear();

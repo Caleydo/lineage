@@ -107,11 +107,6 @@ class attributeTable {
         colDataAccum.push(col);
       }
     }
-    console.log("this is the col data accum:");
-    console.log(colDataAccum);
-
-    console.log("THESE ARE THE COLUMN NAMES!");
-    console.log(colDataAccum.map((d)=> {console.log(d.name);}))
     this.colData = colDataAccum;
   }
 
@@ -187,13 +182,13 @@ class attributeTable {
 
     const colsEnter = cols.enter()
       .append('g')
-      .classed('dataCols', true)
-      .attr("transform", (d) => {
-        const x_translation = col_xs.find(x => x.name === d.name).x;
-        return 'translate(' + x_translation + ',0)';});
+      .classed('dataCols', true);
 
 
-    cols = colsEnter.merge(cols);
+    cols = colsEnter.merge(cols)//;
+    .attr("transform", (d) => {
+      const x_translation = col_xs.find(x => x.name === d.name).x;
+      return 'translate(' + x_translation + ',0)';});
 
     //Bind data to the cells
     let cells = cols.selectAll('.cell')
@@ -204,12 +199,12 @@ class attributeTable {
 
     let cellsEnter = cells.enter()
       .append("g")
-      .attr('class', 'cell')
-      .attr("transform", function (col) {
-        return ('translate(0, ' + y(col['y']) + ' )'); //the x translation is taken care of by the group this cell is nested in.
-      });
+      .attr('class', 'cell');
 
-    cells = cellsEnter.merge(cells);
+    cells = cellsEnter.merge(cells)
+        .attr("transform", function (col) {
+          return ('translate(0, ' + y(col['y']) + ' )'); //the x translation is taken care of by the group this cell is nested in.
+        });
 
 
 
@@ -220,7 +215,8 @@ class attributeTable {
     .append('rect')
     .classed("boundary", true)
     .attr("row_pos", (d)=>{return d["y"];})
-    .attr('width', (d)=> {return (col_widths.find(x => x.name === d.name).width + 4);})
+    .attr('width', (d)=> {console.log("calculating width of b. cell!");
+      return (col_widths.find(x => x.name === d.name).width + 4);})
     .attr('height', rowHeight + this.buffer)
     .attr('fill', 'transparent')
     .attr("transform", function (d) {
@@ -362,7 +358,7 @@ class attributeTable {
  private getTotalWeights(){
       const getWeightHandle = this.getWeight;
 	    const weights = this.colData.map(function(elem)
-	    { return getWeightHandle(elem);});
+	    {return getWeightHandle(elem);});
       return weights.reduce(function(a, b) { return a + b; }, 0);
 	}
 
@@ -382,13 +378,22 @@ class attributeTable {
     const buffer = this.buffer;
     const totalWeight = this.getTotalWeights();
     const colWidths = this.getDisplayedColumnWidths(width);
-    return colWidths.map(function(elem, index){
+    const toReturn = colWidths.map(function(elem, index){
       var x_dist = 0;
       for(let i = 0; i < index; i++){
         x_dist += colWidths[i].width + buffer;
       }
       return {'name':elem['name'], 'x':x_dist};
     });
+    // 
+    // console.log("Full width was: " + width);
+    // console.log("this.colData: ");
+    // console.log(this.colData);
+    // colWidths.map((d, i)=>{
+    //   console.log("col width: " + colWidths[i]['width'] + ", col x: " + toReturn[i]['x']);
+    // })
+
+    return toReturn;
   }
 
 

@@ -10,13 +10,13 @@ import {
   range,
 } from 'd3-array';
 
-import {list, join, Range, Range1D, all} from 'phovea_core/src/range';
-
+import * as events from 'phovea_core/src/event';
 
 class GraphData {
 
   public nodes;
   public table;
+  private data;
 
   //Array of Parent Child Edges
   public parentChildEdges = [];
@@ -27,7 +27,25 @@ class GraphData {
 
   constructor(data) {
     this.table = data.graphView;
+    this.data = data;
+    this.set_listeners();
   };
+
+  private async set_listeners(){
+
+  events.on('view_changed', () => {
+    this.table = this.data.graphView;
+
+
+    this.createTree().then(
+      () => {events.fire('redraw_tree',this)}
+    ).catch(function (error) {
+      console.log('Error: ' + error);
+    });
+
+  });
+
+}
 
   /**
    * This function loads genealogy data from lineage-server
@@ -241,6 +259,9 @@ class GraphData {
    */
 
   private buildTree() {
+
+    this.parentChildEdges=[];
+    this.parentParentEdges=[];
 
     this.nodes
       .forEach((node) => {

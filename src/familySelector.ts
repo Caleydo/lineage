@@ -31,8 +31,9 @@ class familySelector {
    * that is resolved as soon the view is completely initialized.
    * @returns {Promise<familySelector>}
    */
-  init() {
+  init(dataObject) {
     this.build();
+    this.updateTable(dataObject)
     this.attachListener();
 
     // return the promise directly as long there is no dynamical data to update
@@ -54,7 +55,7 @@ class familySelector {
     // append the header row
     thead.append("tr")
       .selectAll("th")
-      .data(['FamilyID','# People','% Cases'])
+      .data(['FamilyID','# People','# Cases'])
       .enter()
       .append("th")
       .text(function(column) { return column; });
@@ -63,28 +64,30 @@ class familySelector {
   /**
    * Build the table and populate with list of families.
    */
-  private  updateTable(data) {
-
+  private updateTable(data) {
 
   // create a row for each object in the data
   var rows = select('tbody').selectAll("tr")
-    .data(data)
+    .data(data.getFamilyInfo())
     .enter()
     .append("tr");
   //
-  // // create a cell in each row for each column
-  // var cells = rows.selectAll("td")
-  //   .data(function(row) {
-  //     return columns.map(function(column) {
-  //       return {column: column, value: row[column]};
-  //     });
-  //   })
-  //   .enter()
-  //   .append("td")
-  //   .attr("style", "font-family: Courier") // sets the font style
-  //   .html(function(d) { return d.value; });
+  // create a cell in each row for each column
+  var cells = rows.selectAll("td")
+    .data((d)=>{return [{'id':d['id'], 'value':d['id']}, {'id':d['id'], 'value':d['size']}, {'id':d['id'], 'value':d['affected']}]})
+    .enter()
+    .append("td")
+    .html((d) => {
+      return d.value.toString();
 
+    });
+  selectAll('td').on('click',(d) => {
+    select('tbody').selectAll('tr').classed('selected',false);
+    select('tbody').selectAll('tr').filter((row)=>{return row['id'] === d['id']}).classed('selected',true);
+    data.selectFamily(d['id'])});
 
+    //default to 38
+    select('tbody').selectAll('tr').filter((row)=>{return row['id'] === 38}).classed('selected',true);
 }
 
 

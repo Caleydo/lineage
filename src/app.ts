@@ -76,8 +76,9 @@ export class App {
       attributePanel.init(attributeDataObj);
 
       const familySelectorView = familySelector.create(this.$node.select('#familySelector').node());
+      familySelectorView.init(attributeDataObj);
 
-      familySelectorView.init();
+
       const data = dataExplorations.create();
       //data.loadLocalData();
 

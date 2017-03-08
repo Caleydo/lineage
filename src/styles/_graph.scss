@@ -9,14 +9,36 @@ $node-color: #4f4f4d;
 table {
   font-size: 20px;
   line-height: 20px;
-  width: 100%;
-  margin-top: 20px;
-  margin-left: 10px;
-  margin-right: 10px;
+  //width: 100%;
+  margin-bottom: 20px;
+  margin-top: 10px;
+  //margin-left: 10px;
+  //margin-right: 10px;
 }
 td, th {
   width: 33.3%;
+  padding:10px;
+  cursor: pointer;
+  text-align: center;
 }
+
+tr.selected{
+  background-color: rgba(255, 0, 0, 0.2);
+}
+
+//tr:nth-child(even) {background-color: #f2f2f2}
+//tr:hover {background-color: #f5f5f5}
+
+
+th{
+  height:20%;
+  background-color: #364e74;
+  color: white;
+
+
+}
+
+
 label {
   margin-bottom: 10px;
 }

@@ -68,7 +68,7 @@ class familySelector {
 
   // create a row for each object in the data
   var rows = select('tbody').selectAll("tr")
-    .data(data.getFamilyInfo())
+    .data(data.familyInfo)
     .enter()
     .append("tr");
   //

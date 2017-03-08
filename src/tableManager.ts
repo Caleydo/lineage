@@ -37,7 +37,7 @@ export default class TableManager {
   // TODO typing
   private familyIDs;
 // TODO what is this?
-  public familyInfo = [];
+  public readonly familyInfo = [];
   // TODO what is this?
   public ys;
 
@@ -68,17 +68,12 @@ export default class TableManager {
     //retrieving the desired dataset by name
     this.table = <ITable> await getFirstByName(name);
     await this.parseData();
+    // TODO what is the purpose of attachListener?
     this.attachListener();
     return Promise.resolve(this);
   }
 
 
-  /**
-   * This function get the array of familyInfo to populate the familySelector interface.
-   */
-  public getFamilyInfo() {
-    return this.familyInfo;
-  }
 
 
   /**

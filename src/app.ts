@@ -55,7 +55,7 @@ export class App {
     // This executes asynchronously, so you'll have to pass
     // back a promise and resolve that before you keep going
     // await attributeDataObj.loadData('big-decent-clipped-38');
-    await attributeDataObj.loadData('BigDescend');
+    await attributeDataObj.loadData('SmallDescend');
 
     const graphDataObj = graphData.create(attributeDataObj);
     await graphDataObj.createTree();

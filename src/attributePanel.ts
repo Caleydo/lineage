@@ -26,11 +26,11 @@ class AttributePanel {
   private activeColumns;
 
 
-  constructor(parent:Element) {
+  constructor(parent: Element) {
 
     select(parent)
       .append('div')
-      .attr('id','familySelector')
+      .attr('id', 'familySelector');
 
     this.$node = select(parent)
       .append('div')
@@ -63,7 +63,7 @@ class AttributePanel {
   private build() {
 
     // menu container container
-    const menu_list = this.$node.append('div')
+    const menuList = this.$node.append('div')
       .classed('menu-list', true)
       .html(` <ul >
             <li class='brand' data-toggle='collapse'> <i class=''></i> <strong>Data Selection</strong>
@@ -73,11 +73,11 @@ class AttributePanel {
 
     // list that holds data attribute
     // initially all attributes are active
-    const activeAttributeList = menu_list.append('div')
+    const activeAttributeList = menuList.append('div')
       .attr('id', 'active-menu-content')
       .classed('menu-content collapse in', true);
 
-    menu_list.append('ul')
+    menuList.append('ul')
       .html(`
        <li class='inactive collapsed active' data-target='#inactive-menu-content' data-toggle='collapse'>
                                   <i class=''></i><strong>Inactive attributes</strong> <span class='arrow'></span>
@@ -86,9 +86,9 @@ class AttributePanel {
 
     // list that holds inactive attributes
     // a user can populate this list by dragging elements from the active list
-    const inactiveAttributeList = menu_list.append('div')
+    const inactiveAttributeList = menuList.append('div')
       .attr('id', 'inactive-menu-content')
-      .classed('menu-content sub-menu collapse in fade', true)
+      .classed('menu-content sub-menu collapse in fade', true);
     // .html(`
     // <li class='placeholder'>DRAG AND DROP ATTRIBUTES HERE TO MAKE THEM INACTIVE</li>`);
 
@@ -100,16 +100,16 @@ class AttributePanel {
       animation: 150,
       pull: true,
       put: true,
-      onAdd: function (evt) {
-        let item = {
+      onAdd(evt) {
+        const item = {
           name: evt.item.getElementsByTagName('strong')[0].textContent,
           newIndex: evt.newIndex
         };
         events.fire('attribute_added', item);
 
       },
-      onUpdate: function (evt) {
-        let item = {
+      onUpdate(evt) {
+        const item = {
           name: evt.item.getElementsByTagName('strong')[0].textContent,
           newIndex: evt.newIndex,
           oldIndex: evt.oldIndex
@@ -126,8 +126,8 @@ class AttributePanel {
       animation: 150,
       pull: true,
       put: true,
-      onAdd: function (evt) {
-        let item = {
+      onAdd(evt) {
+        const item = {
           name: evt.item.getElementsByTagName('strong')[0].textContent,
           newIndex: evt.newIndex,
           oldIndex: evt.oldIndex
@@ -141,42 +141,42 @@ class AttributePanel {
 
     });
 
-    this.columns.forEach((column)=> {
-      this.addAttribute(column.desc.name, column.desc.value.type)
-    })
+    this.columns.forEach((column) => {
+      this.addAttribute(column.desc.name, column.desc.value.type);
+    });
 
 
   }
 
   /***
    *
-   * @param column_name
-   * @param column_desc
+   * @param columnName
+   * @param columnDesc
    */
-  private addAttribute(column_name, column_desc) {
+  private addAttribute(columnName, columnDesc) {
 
 
     //if this is an active attribute then add it to the active list otherwise add it to the inactive list
     let list = '';
-    if (this.activeColumns.indexOf(column_name) > -1) {
+    if (this.activeColumns.indexOf(columnName) > -1) {
       list = '#active-menu-content';
     } else {
       list = '#inactive-menu-content';
     }
 
     // we first add a div that holds the li and the svg
-    let attributeElm = select(list).append('div');
+    const attributeElm = select(list).append('div');
 
     //append the header as a menu option
-    let attrHeader = attributeElm.append('li')
+    const attrHeader = attributeElm.append('li')
       .classed('collapsed active', true)
-      .attr('data-target', '#' + column_name)
+      .attr('data-target', '#' + columnName)
       .attr('data-toggle', 'collapse');
 
     attrHeader.append('a').attr('href', '#')
       .html('<i class=\'glyphicon glyphicon-chevron-right\'></i>')
-      .append('strong').html(column_name)
-      .append('span').attr('class', column_desc)
+      .append('strong').html(columnName)
+      .append('span').attr('class', columnDesc)
       .html(`<div class=' attr_badges pull-right'>
                 <span class=' badge' >primary</span>
                 <span class=' badge' >secondary</span>
@@ -189,8 +189,8 @@ class AttributePanel {
     });
 
     attrHeader.on('mouseout', function () {
-      select(this).select('.sort_handle').classed('focus', false)
-      select(this).select('.attr_badges').classed('focus', false)
+      select(this).select('.sort_handle').classed('focus', false);
+      select(this).select('.attr_badges').classed('focus', false);
     });
 
     attrHeader.on('click', function () {
@@ -200,7 +200,7 @@ class AttributePanel {
     });
 
     selectAll('.badge').on('click', function () {
-      console.log('badge clicked')
+      console.log('badge clicked');
       const badge = $(this).text();
       const attribute = $(this).closest('strong').contents()[0];
       //reset badge dispaly for previously clicked badges
@@ -219,13 +219,13 @@ class AttributePanel {
 
     // append svgs for attributes:
     const attributeSVG = attributeElm.append('ul')
-      .attr('id', column_name)
+      .attr('id', columnName)
       .classed('sub-menu collapse fade', true)
       .append('svg')
-      .attr('id', column_name+'_svg')
+      .attr('id', columnName + '_svg')
       .classed('attribute_svg', true);
 
-    this.populateData(this.$node.select('#'+column_name+'_svg').node(), column_name,column_desc);
+    this.populateData(this.$node.select('#' + columnName + '_svg').node(), columnName, columnDesc);
 
   }
 
@@ -238,24 +238,19 @@ class AttributePanel {
     //console.log(await this.table.colData(attribute));
 
     console.log('populateData');
-    let dataVec:IAnyVector;
+    let dataVec: IAnyVector;
     // getting data as IVector for attributeName
     // we need to use col(index) so we can get IVector object
     // since we don't have indices for columns, we are iterating though
     // columns and get the matched one
-    for(const col in this.columns) {
-      if(this.columns[col].desc.name === attributeName) {
+    for (const col in this.columns) {
+      if (this.columns[col].desc.name === attributeName) {
         dataVec = await this.table.col(col);
       }
     }
 
     if (dataVec.desc.value.type === VALUE_TYPE_CATEGORICAL) {
       const catVector = <ICategoricalVector> dataVec;
-      console.log(catVector);
-      console.log('HISTOGRAAAAAAAAAAAAAAAAAAAM');
-      console.log(catVector.desc.value.categories);
-      console.log(await catVector.hist());
-      console.log('DONE HISTOGRAAAAAAAAAAAAAAAAAAAM');
       const attributeHistogram = histogram.create(svg);
       await attributeHistogram.init(attributeName, dataVec);
     } else {
@@ -264,29 +259,29 @@ class AttributePanel {
       console.log(await numVector.stats());
     }
 
-/*
+    /*
 
-    const dataVec = await this.table.colData(attributeName);
-    if(attributeType === 'categorical'){
-      //catVector = <ICategoricalVector> this.table.colData(4);
-      //console.log('The histogram:');
-      console.log(await catVector.hist());
-    } else {
-      /*numVector = <INumericalVector> this.table.colData(attributeName);
-      console.log('Stats on a vector:');
-      console.log(await numVector.stats());
-    }
+     const dataVec = await this.table.colData(attributeName);
+     if(attributeType === 'categorical'){
+     //catVector = <ICategoricalVector> this.table.colData(4);
+     //console.log('The histogram:');
+     console.log(await catVector.hist());
+     } else {
+     /*numVector = <INumericalVector> this.table.colData(attributeName);
+     console.log('Stats on a vector:');
+     console.log(await numVector.stats());
+     }
 
-    if(attributeType === VALUE_TYPE_INT) {
+     if(attributeType === VALUE_TYPE_INT) {
      // const attributeHistogram = histogram.create(svg);
      // attributeHistogram.init(dataVec);
 
-      const numVector = <INumericalVector> this.table.col(5);
-      console.log('3rd value from the 5th vector:' + await numVector.at(3));
-      console.log('Stats on a vector:');
-      console.log(await numVector.stats());
-    }
-*/
+     const numVector = <INumericalVector> this.table.col(5);
+     console.log('3rd value from the 5th vector:' + await numVector.at(3));
+     console.log('Stats on a vector:');
+     console.log(await numVector.stats());
+     }
+     */
 
 
   }
@@ -295,7 +290,7 @@ class AttributePanel {
   private attachListener() {
 
     //Set listener for click event on corresponding node that changes the color of that row to red
-    events.on('node_clicked', (evt, item)=> {
+    events.on('node_clicked', (evt, item) => {
       selectAll('.row').classed('selected', function (d) {
         return select(this).attr('id') === 'row_' + item;
       });
@@ -309,8 +304,8 @@ class AttributePanel {
  * Factory method to create a new instance of the attributePanel
  * @param parent
  * @param options
- * @returns {attributePanel}
+ * @returns {AttributePanel}
  */
-export function create(parent:Element) {
+export function create(parent: Element) {
   return new AttributePanel(parent);
 }

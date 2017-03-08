@@ -55,7 +55,7 @@ export class App {
     // This executes asynchronously, so you'll have to pass
     // back a promise and resolve that before you keep going
     // await attributeDataObj.loadData('big-decent-clipped-38');
-    await attributeDataObj.loadData('SmallDescend');
+    await attributeDataObj.loadData('BigDescend');
 
     const graphDataObj = graphData.create(attributeDataObj);
     await graphDataObj.createTree();
@@ -68,8 +68,8 @@ export class App {
     //shared data for attributeTable and attributePanel
     //const tableDataObj = tableData.create(realData, datasets[0].desc.columns);
 
-    const attributeTable = table.create(this.$node.select('#graph_table').node());
-    attributeTable.init(attributeDataObj);
+    // const attributeTable = table.create(this.$node.select('#graph_table').node());
+    // attributeTable.init(attributeDataObj);
 
     const attributePanel = panel.create(this.$node.select('#data_selection').node());
     attributePanel.init(attributeDataObj);

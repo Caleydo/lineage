@@ -7,6 +7,15 @@ import {keys} from 'd3-collection';
 
 import {Config} from './config';
 
+import {
+  scaleLinear,
+} from 'd3-scale';
+
+import {
+  max,
+  min
+} from 'd3-array';
+
 
 /**
  * Creates the family selector view
@@ -15,12 +24,7 @@ class familySelector {
 
   private $node;
 
-
-  // access to all the data in our backend
-  private table;
-  private columns;
-  private activeColumns;
-
+  private yscale = scaleLinear();  //yscale for rectangles
 
   constructor(parent:Element) {
     this.$node = select(parent);
@@ -59,12 +63,20 @@ class familySelector {
       .enter()
       .append("th")
       .text(function(column) { return column; });
+
+
+
   }
 
   /**
    * Build the table and populate with list of families.
    */
   private updateTable(data) {
+
+    this.yscale
+      .range([0,70])
+      .domain([0,800])
+      // .domain([min(data.getFamilyInfo(),(d:any)=>{return d.size}),max(data.getFamilyInfo(),(d:any)=>{return d.size})])
 
   // create a row for each object in the data
   var rows = select('tbody').selectAll("tr")
@@ -74,13 +86,42 @@ class familySelector {
   //
   // create a cell in each row for each column
   var cells = rows.selectAll("td")
-    .data((d)=>{return [{'id':d['id'], 'value':d['id']}, {'id':d['id'], 'value':d['size']}, {'id':d['id'], 'value':d['affected']}]})
+    .data((d)=>{return [{'id':d['id'], 'value':d['id'], 'type':'id'}, {'id':d['id'], 'value':d['size'], 'type':'size'}, {'id':d['id'], 'value':d['affected'], 'type':'cases'}]})
     .enter()
     .append("td")
-    .html((d) => {
-      return d.value.toString();
 
-    });
+
+  selectAll('td').filter((c:any)=>{return c.type === 'size' || c.type === 'cases'})
+    .append('svg')
+    .attr('width',(d:any) => { return this.yscale.range()[1]})
+    .attr('height',30)
+    .append('rect')
+    .attr('width',(d:any) => { return this.yscale(d.value)})
+    .attr('height',30)
+
+    selectAll('td').selectAll('svg').filter((c:any)=>{return c.type === 'size' || c.type === 'cases'})
+      .append('text')
+      .attr('dy', 20)
+      .attr('dx', (d:any) => {
+        return this.yscale(d.value)})
+      .text((d:any) => {
+        return d.value.toString();
+      })
+      // .attr('fill', 'white')
+      // .style('font-weight', 'bold')
+      // .attr('text-anchor', 'end')
+
+
+
+
+    cells.filter((c:any)=>{return c.type === 'id'})
+    // cells
+      .attr('text-align','center')
+      .html((d:any) => {
+      return d.value.toString();
+    })
+
+
   selectAll('td').on('click',(d) => {
     select('tbody').selectAll('tr').classed('selected',false);
     select('tbody').selectAll('tr').filter((row)=>{return row['id'] === d['id']}).classed('selected',true);

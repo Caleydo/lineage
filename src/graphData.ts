@@ -28,15 +28,15 @@ class GraphData {
   constructor(data) {
     this.table = data.graphView;
     this.data = data;
-    this.set_listeners();
+    this.setListeners();
   };
 
-  private async set_listeners(){
+  private setListeners(){
 
   events.on('view_changed', () => {
     this.table = this.data.graphView;
 
-
+    //Once tree has been created for the new family, fire redraw tree event.
     this.createTree().then(
       () => {events.fire('redraw_tree',this)}
     ).catch(function (error) {
@@ -62,10 +62,9 @@ class GraphData {
 
     console.log('Table is of size', this.table.dim)
 
-    for (let row of range(0,nrow,1)){
-      let personObj = {};
-      this.nodes.push(personObj);
-    }
+    range(0,nrow,1).forEach(()=>{
+      this.nodes.push({});
+    })
 
       let ids =await columns[0].names();
 
@@ -112,7 +111,9 @@ class GraphData {
     this.buildTree();
 
     //Linearize Tree and pass y values to the attributeData Object
-    this.data.ys = this.assignLinearOrder();
+    // this.data.ys = this.assignLinearOrder();
+
+    this.linearizeTree();
 
   //After linear order has been computed:
     this.nodes.forEach((d)=> {
@@ -122,6 +123,45 @@ class GraphData {
 
 
   };
+
+  /**
+   *
+   * This function linearizes all nodes in the tree.
+   *
+   */
+  private linearizeTree(){
+
+    let founder = this.nodes.reduce((a,b)=> {return +a.bdate < +b.bdate? a : b});
+    founder.y = this.nodes.length; //Set first y index;
+
+    this.linearizeHelper(founder);
+
+  }
+
+  /**
+   *
+   * This is a recursive helper function for linearizeTree()
+   * @param node - node at the start of branch that needs to be linearized;
+   *
+   */
+  private linearizeHelper(node){
+
+    if (node.y == undefined)
+      node.y = min(this.nodes,(n:any)=>{return n.y})+(-1);
+
+    node.spouse.forEach((s)=>{
+      if (s.y === undefined){
+        s.y = min(this.nodes,(n:any)=>{return n.y})+(-1)
+      }
+    });
+
+    node.children.map((c:any) => {this.linearizeHelper(c)})
+
+    if(!node.hasChildren){
+      return;
+    }
+  }
+
 
 
   /**
@@ -209,6 +249,10 @@ class GraphData {
         }
       }
   };
+
+
+
+
 
 
   /**

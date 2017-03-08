@@ -1215,7 +1215,7 @@ class GenealogyTree {
     // .attr('visibility','hidden')
       .text(function (d: any) {
 
-        return d.KindredID;
+        return ''
         // return d['hidden'] ? '' : max(d['family_ids']);
 
          // let year = new Date().getFullYear();
@@ -1394,12 +1394,8 @@ class GenealogyTree {
 
   private update_time_axis() {
 
-
     let scrollOffset = document.getElementById('graph_table').scrollTop;
     let divHeight = document.getElementById('graph_table').offsetHeight;
-
-    console.log('soffset is ', scrollOffset)
-    console.log('yoffset is', (scrollOffset + this.margin.axisTop / 1.5));
 
     // 	          console.log(divHeight, this.y(65),this.y(72), (divHeight + scrollOffset) - 75)
 

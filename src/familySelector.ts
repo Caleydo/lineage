@@ -38,7 +38,6 @@ class familySelector {
   init(dataObject) {
     this.build();
     this.updateTable(dataObject)
-    this.attachListener();
 
     // return the promise directly as long there is no dynamical data to update
     return Promise.resolve(this);
@@ -131,17 +130,6 @@ class familySelector {
     select('tbody').selectAll('tr').filter((row)=>{return row['id'] === 38}).classed('selected',true);
 }
 
-
-
-  private attachListener() {
-
-    //Set listener for click event on corresponding node that changes the color of that row to red
-    events.on('node_clicked', (evt, item)=> {
-      selectAll('.row').classed('selected', function (d) {
-        return select(this).attr('id') === 'row_' + item;
-      });
-    });
-  }
 
 }
 

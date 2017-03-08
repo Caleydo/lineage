@@ -112,15 +112,18 @@ class GraphData {
     this.buildTree();
 
     //Linearize Tree and pass y values to the attributeData Object
-    // this.data.ys = this.assignLinearOrder();
-
     this.linearizeTree();
 
-    // this.nodes.forEach((n:any)=>{if (n.y === undefined){n.y = max(this.nodes,(n:any)=>{return n.y});}+1 });
+    this.nodes.forEach((n:any)=>{if (n.y === undefined){n.y = max(this.nodes,(n:any)=>{return n.y});}+1 });
 
-    this.nodes = this.nodes.filter ((n)=>{return n.y !== undefined})
-    this.parentParentEdges = this.parentParentEdges.filter ((n)=>{return n.ma.y !== undefined && n.pa.y !== undefined})
-    this.parentChildEdges = this.parentChildEdges.filter ((n)=>{return n.ma.y !== undefined && n.pa.y !== undefined && n.target.y !== undefined})
+    let ys = [];
+    this.nodes.forEach((n)=>{ys.push(n.y)});
+
+    this.data.ys = ys;
+
+    // this.nodes = this.nodes.filter ((n)=>{return n.y !== undefined})
+    // this.parentParentEdges = this.parentParentEdges.filter ((n)=>{return n.ma.y !== undefined && n.pa.y !== undefined})
+    // this.parentChildEdges = this.parentChildEdges.filter ((n)=>{return n.ma.y !== undefined && n.pa.y !== undefined && n.target.y !== undefined})
 
   //After linear order has been computed:
     this.nodes.forEach((d)=> {
@@ -137,14 +140,16 @@ class GraphData {
    *
    */
   private linearizeTree(){
+    let nodeList = this.nodes.filter((n)=>{return n.y === undefined});
+    if (nodeList.length === 0)
+      return;
 
-    let founder = this.nodes.reduce((a,b)=> {return +a.bdate < +b.bdate? a : b});
-
+    let founder = nodeList.reduce((a,b)=> {return +a.bdate < +b.bdate? a : b});
+    founder.y = nodeList.length; //Set first y index;
     console.log('founder', founder)
-    founder.y = this.nodes.length; //Set first y index;
-
     this.linearizeHelper(founder);
 
+    this.linearizeTree();
   }
 
   /**
@@ -154,7 +159,7 @@ class GraphData {
    *
    */
   private linearizeHelper(node){
-
+    console.log ('looking at ', node)
     if (node.y == undefined)
       node.y = min(this.nodes,(n:any)=>{return n.y})+(-1);
 
@@ -164,13 +169,13 @@ class GraphData {
     if (node.spouse.length>0)
     // node.spouse[0].y = min(this.nodes,(n:any)=>{return n.y})+(-1)
     node.spouse.forEach((s)=>{
-      // if (s.y === undefined){
+      if (s.y === undefined){
         s.y = min(this.nodes,(n:any)=>{return n.y})+(-1)
-      // }
+      }
       s.spouse.forEach((ss)=>{
-        // if (ss.y === undefined){
+        if (ss.y === undefined){
           ss.y = min(this.nodes,(n:any)=>{return n.y})+(-1)
-        // }
+        }
         // //sort children by age to minimize edge crossings
         // s.children.sort((a,b)=>{return b.bdate - a.bdate});
         // s.children
@@ -189,98 +194,6 @@ class GraphData {
       return;
     }
   }
-
-
-
-  /**
-   *
-   * This function linearizes all nodes in the tree.
-   *
-   */
-
-  public assignLinearOrder() {
-
-    //Sort by increasing birth date
-    this.nodes.sort(function (a, b) {
-      return parseFloat(a.x) - parseFloat(b.x);
-    });
-
-    this.nodes[0].y = 1; //Set first y index;
-    this.nodes.forEach((node) => {
-      this.assignLinearOrderNode(node);
-    });
-
-    this.nodes.forEach((thisNode) => {
-      if (this.nodes.filter(function (n) {
-          return n.y !== undefined && n.y === thisNode.y;
-        }).length > 1) {
-        this.nodes.forEach(function (d) {
-          if (d.y > thisNode.y) {
-            d.y = d.y + 1;
-          }
-          ;
-        });
-        thisNode.y = thisNode.y + 1;
-      }
-    });
-
-    let ys = [];
-    this.nodes.forEach ((node)=>{ys.push(node.y)});
-
-    return ys;
-  }
-
-
-  /**
-   *
-   * This function linearizes a single node in the tree.
-   *
-   * @param node node to be assigned an order
-   */
-
-  private assignLinearOrderNode(node) {
-
-    const ma = node.ma;
-    const pa = node.pa;
-    const spouse = node.spouse;
-
-    if (!node.y) {
-      node.y = max(this.nodes, function (d) { return d['y']; }) + 1;
-    }
-
-    //Put spouse to the left of the current node (at least in a first pass)
-    if (spouse.length > 0 && spouse[0].y === undefined) {
-      spouse[0].y = node.y;
-    } else if (spouse.length > 0 && spouse[0].y !== undefined) {
-      node.y = spouse[0].y;
-    }
-    if (ma !== undefined && pa !== undefined) {
-      if (ma.y !== undefined) {
-        if (ma.y < node.y) {
-          node.y = ma.y;
-          this.nodes.forEach(function (d) {
-            if (d.y > node.y) {
-              d.y = d.y + 1;
-            }
-          });
-          ma.y = node.y + 1;
-          pa.y = ma.y;
-        }
-      } else {
-          this.nodes.forEach(function (d) {
-            if (d.y > node.y) {
-              d.y = d.y + 1;
-            }
-          });
-          pa.y = node.y + 1;
-          ma.y = node.y + 1;
-        }
-      }
-  };
-
-
-
-
 
 
   /**

@@ -61,12 +61,8 @@ export class App {
     await graphDataObj.createTree();
 
 
-      const genealogyTree = tree.create(this.$node.select('#graph_table').node());
-      genealogyTree.init(graphDataObj);
-
-
-    //shared data for attributeTable and attributePanel
-    //const tableDataObj = tableData.create(realData, datasets[0].desc.columns);
+    const genealogyTree = tree.create(this.$node.select('#graph_table').node());
+    genealogyTree.init(graphDataObj);
 
     // const attributeTable = table.create(this.$node.select('#graph_table').node());
     // attributeTable.init(attributeDataObj);

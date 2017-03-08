@@ -11,6 +11,7 @@ import {
 } from 'd3-array';
 
 import * as events from 'phovea_core/src/event';
+import {VIEW_CHANGED_EVENT} from './tableManager';
 
 class GraphData {
 
@@ -33,7 +34,7 @@ class GraphData {
 
   private setListeners(){
 
-  events.on('view_changed', () => {
+  events.on(VIEW_CHANGED_EVENT, () => {
     this.table = this.data.graphTable;
 
     //Once tree has been created for the new family, fire redraw tree event.

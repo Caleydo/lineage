@@ -20,26 +20,29 @@ export default class AttributeData {
 
   //Store all families in this table;
   private allFamilyIDs;
-  public familyInfo =[];
+  public familyInfo = [];
 
   public ys;
 
-//<<<<<<< HEAD
 // FOR TESTING ONLY!  vvvvvvv
 ///////////////////////////////////////////////////////////////////////////////
 
-public async anniesTestUpdate(){
-  this.activeRows = range.list([1, 2]);
-  await this.refreshActiveViews();
-  return this.activeView;
-}
+  public async anniesTestUpdate() {
+
+    this.activeRows = range.list([1, 2]);
+    await this.refreshActiveViews();
+    console.log('DID  Update');
+    console.log(this.activeView.dim);
+    console.log('Here\'s the filtered table:');
+    console.log(await this.activeView.data());
+    console.log('-----------');
+    return this.activeView;
+  }
+
 // FOR TESTING ONLY!  ^^^^^
 ///////////////////////////////////////////////////////////////////////////////
 
 
-
-//=======
-//>>>>>>> 0460b7c83ebf938b6030815822ea80b7f23ae772
   /**
    * This function load genealogy data from lineage-server
    * and store it in the public table variable
@@ -60,7 +63,7 @@ public async anniesTestUpdate(){
    * This function get the array of familyInfo to populate the familySelector interface.
    */
   public getFamilyInfo() {
-   return this.familyInfo;
+    return this.familyInfo;
   }
 
 
@@ -71,13 +74,17 @@ public async anniesTestUpdate(){
    */
   public async selectFamily(chosenFamilyID) {
 
-    let family = this.familyInfo.filter((family) => {return family.id === chosenFamilyID})[0]
+    let family = this.familyInfo.filter((family) => {
+      return family.id === chosenFamilyID
+    })[0]
     this.familyActiveRows = range.list(family['range']);
+    this.activeRows = this.familyActiveRows;
     await this.refreshActiveViews(); //updates the active views
     console.log('view changed')
     events.fire('view_changed');
 
   }
+
   /**
    * This function is called after loadData.
    * This function populate needed variables for attribute table and attribute panel
@@ -92,7 +99,7 @@ public async anniesTestUpdate(){
 
     let uniqueFamilyIDs = this.allFamilyIDs.filter((x, i, a) => a.indexOf(x) === i);
 
-    for (let i in uniqueFamilyIDs){
+    for (let i in uniqueFamilyIDs) {
       let id = uniqueFamilyIDs[i];
       //Array to store the ranges for the selected family
       const familyRange = [];
@@ -101,13 +108,13 @@ public async anniesTestUpdate(){
       this.allFamilyIDs.forEach((d, i) => {
         if (d === id) {
           familyRange.push(i);
-           if (suicideCol[i] === 'Y' ){
-             affected = affected + 1;
-           }
+          if (suicideCol[i] === 'Y') {
+            affected = affected + 1;
+          }
         }
       });
 
-      this.familyInfo.push({'id':id, 'range':familyRange, 'size': familyRange.length, 'affected':affected});
+      this.familyInfo.push({'id': id, 'range': familyRange, 'size': familyRange.length, 'affected': affected});
     }
 
     const colIndexAccum = [];
@@ -131,17 +138,14 @@ public async anniesTestUpdate(){
 
     this.activeRows = range.all();
     this.activeColumns = range.list(colIndexAccum);
-//<<<<<<< HEAD
-//    await this.refreshActiveView(); //updates the active View/
-//=======
 
     this.selectFamily(38);
-//>>>>>>> 57552ec17e04ab3ea15e4f3b7e4d3a2f591c46f0
+
 
   }
 
   public async refreshActiveViews() {
-    const key = range.join(this.familyActiveRows, this.activeColumns);
+    const key = range.join(this.activeRows, this.activeColumns);
     this.activeView = await this.table.view(key);
     this.graphView = await this.table.view(range.join(this.familyActiveRows, range.all()));
   }

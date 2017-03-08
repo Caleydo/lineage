@@ -44,7 +44,7 @@ class attributeTable {
    */
   async init(data) {
 
-    this.activeView = data.activeView;
+    this.activeView = data.tableTable;
     this.attributeData = data; // JANKY ONLY FOR DEV
 
 //<<<<<<< HEAD
@@ -65,7 +65,7 @@ class attributeTable {
 
   async initData(activeView, ys){
     // console.log("active view's cols was:");
-    // console.log(await activeView.cols());
+    // console.log(await tableTable.cols());
     // console.log("ys were:");
     // console.log(ys);
 

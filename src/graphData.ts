@@ -26,7 +26,7 @@ class GraphData {
 
 
   constructor(data) {
-    this.table = data.graphView;
+    this.table = data.graphTable;
     this.data = data;
     this.setListeners();
   };
@@ -34,7 +34,7 @@ class GraphData {
   private setListeners(){
 
   events.on('view_changed', () => {
-    this.table = this.data.graphView;
+    this.table = this.data.graphTable;
 
     //Once tree has been created for the new family, fire redraw tree event.
     this.createTree().then(

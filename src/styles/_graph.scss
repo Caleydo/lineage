@@ -7,37 +7,39 @@ $node-color: #4f4f4d;
   width: 500px;
 }
 table {
-  font-size: 20px;
-  line-height: 20px;
+  font-size: 14px !important;
+  //line-height: 10px;
   //width: 100%;
   margin-bottom: 20px;
   margin-top: 10px;
+  color: #0e2231 !important;
   //margin-left: 10px;
   //margin-right: 10px;
+  width:100%;
 }
 td, th {
   width: 33.3%;
-  padding:10px;
+  padding:2px;
   cursor: pointer;
   //text-align: center;
 }
 
 td rect{
-  fill: #364e74;
+  fill: #636363;
 
 }
 
 tr.selected{
-  background-color: rgba(92, 145, 120, 0.44);
+  background-color: rgba(255, 100, 0, 0.44) !important;
 }
 
 //tr:nth-child(even) {background-color: #f2f2f2}
-//tr:hover {background-color: #f5f5f5}
+tr:hover {background-color: #f5f5f5}
 
 
 th{
-  height:20%;
-  background-color: #364e74;
+  height:40%;
+  background-color: #4f4f4f;
   color: white;
 
 
@@ -57,8 +59,15 @@ label {
 
 #graph_table{
 	overflow: scroll;
-	height: 1000px;
+	height: 100%;
 }
+
+
+#familySelector{
+  height:200px;
+  border-bottom: solid lightgray;
+}
+
 
 #yaxis{
   opacity:.2;
@@ -93,6 +102,10 @@ label {
 
 #graphDiv{
     overflow-x:scroll;
+}
+
+#familySelector{
+  overflow-x: scroll;
 }
 
 .edges.selected{

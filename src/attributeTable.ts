@@ -27,7 +27,8 @@ class attributeTable {
 
   //private margin = {top: 60, right: 20, bottom: 60, left: 40};
 
-  private activeView;
+  private activeView;  // FOR DEBUG ONLY!
+  private attributeData; //FOR DEBUG ONLY!
   private colData;    // <- everything we need to bind
 
   private margin = Config.margin;
@@ -44,10 +45,37 @@ class attributeTable {
   async init(data) {
 
     this.activeView = data.activeView;
+    this.attributeData = data; // JANKY ONLY FOR DEV
 
+//<<<<<<< HEAD
+    await this.initData(this.activeView, data.ys);
+
+    this.buffer = 4;
+
+    this.build();
+    this.attachListener();
+
+
+
+    // return the promise directly as long there is no dynamical data to update
+    return Promise.resolve(this);
+  }
+
+
+
+  async initData(activeView, ys){
+    // console.log("active view's cols was:");
+    // console.log(await activeView.cols());
+    // console.log("ys were:");
+    // console.log(ys);
+
+//=======
+//()>>>>>>> 57552ec17e04ab3ea15e4f3b7e4d3a2f591c46f0
     let colDataAccum = [];
-    for (const vector of this.activeView.cols()) {
+    for (const vector of activeView.cols()) {
       const temp = await vector.data(range.all());
+      // console.log("THE DATA WAS: ");
+      // console.log(temp);
       const type = await vector.valuetype.type;
       if(type === 'categorical'){
         const categories = Array.from(new Set(temp));
@@ -58,7 +86,7 @@ class attributeTable {
           col.data = temp.map(
             (d)=>{if(d === cat) return d;
                   else return undefined;});
-          col.ys = data.ys;
+          col.ys = ys;
           col.type = type;
           colDataAccum.push(col);
         }
@@ -67,7 +95,7 @@ class attributeTable {
         var col: any = {};
         col.name = await vector.column;
         col.data = temp;
-        col.ys = data.ys;
+        col.ys = ys;
         col.type = type;
         //compute some stats, but first get rid of non-entries
         const filteredData = temp.filter((d)=>{return d.length != 0;});
@@ -78,18 +106,9 @@ class attributeTable {
         colDataAccum.push(col);
       }
     }
-
-
+    console.log("this is the col data accum:");
+    console.log(colDataAccum);
     this.colData = colDataAccum;
-
-    this.buffer = 4;
-
-    this.build();
-    this.attachListener();
-
-
-    // return the promise directly as long there is no dynamical data to update
-    return Promise.resolve(this);
   }
 
 
@@ -104,9 +123,7 @@ class attributeTable {
 
     const darkGrey = '#4d4d4d';
     const lightGrey = '#d9d9d9';
-    const mediumGrey = '#bfbfbf';
-    const lightPinkGrey = '#eae1e1';
-    const darkBlueGrey = '#4b6068';
+    const mediumGrey = '#7e7e7e';
 
 
     //rendering info
@@ -114,13 +131,6 @@ class attributeTable {
     var col_xs = this.getDisplayedColumnXs(this.width);
     var label_xs = this.getDisplayedColumnMidpointXs(this.width);
 
-    console.log("are these the y's?");
-    console.log(this.colData[0]['ys']);
-
-
-    console.log("THIS IS MIN Y");
-  //  const filteredYs = this.colData.filter((d)=>{return d.length != 0;});
-    console.log(Math.min( ...this.colData[0]['ys']));
 
 
     // Scales
@@ -129,7 +139,7 @@ class attributeTable {
     [Math.min( ...this.colData[0]['ys']), Math.max( ...this.colData[0]['ys'])]);
 
 
-    const rowHeight = Config.glyphSize * 2.5 - 4;// - 10;
+    const rowHeight = Config.glyphSize * 2.5 - 4;
 
 
     const svg = this.$node.append('svg')
@@ -139,7 +149,7 @@ class attributeTable {
 
 //HEADERS
     const tableHeader = svg.append("g")
-      .attr("transform", "translate(0," + this.margin.top / 2 + ")");
+      .attr("transform", "translate(0," + this.margin.axisTop / 2 + ")");
 
     //Bind data to the col headers
     let headers = tableHeader.selectAll(".header")
@@ -150,7 +160,6 @@ class attributeTable {
       .enter()
       .append('text')
       .classed('header', 'true')
-    //.attr("transform", (d) => {return 'translate(' + x(d['ind']) + ',0) rotate(-45)';});
     .attr("transform",(d) => {
       const x_translation = label_xs.find(x => x.name === d.name).x;
       return 'translate(' + x_translation + ',0) rotate(-45)';});
@@ -192,12 +201,8 @@ class attributeTable {
 
       //Add rectangle for highlighting...
       const boundary = cells
-      // .filter((d)=> //only append onto the first cell of each row
-      // { return col_xs.find(x => x.name === d['name']).x === 0;})
       .append('rect')
       .classed("boundary", true)
-      .classed('tablehovered', false) //TODO maybe get rid of?
-      .classed('tableselected', false)
       .attr("row_pos", (d)=>{return d["y"];})
       .attr('width', (d)=> {return (col_widths.find(x => x.name === d.name).width + 4);})
       .attr('height', rowHeight + this.buffer)
@@ -225,8 +230,8 @@ class attributeTable {
       .attr('stoke-width', 1)
       .attr('fill', (d)=>{
         if(d.data !== undefined)
-          return '#474747'; //dark grey
-        return '#d9dbdb'; //light grey
+          return darkGrey;
+        return lightGrey;
       });
 
 ////////// RENDER QUANT COLS /////////////////////////////////////////////
@@ -236,7 +241,7 @@ class attributeTable {
       .append('rect')
       .attr('width', (d)=> {return col_widths.find(x => x.name === d.name).width;})
       .attr('height', rowHeight)
-      .attr('fill', '#eef2f2') //VERY light grey
+      .attr('fill', lightGrey)
       .attr('stroke', 'black')
       .attr('stoke-width', 1);
 
@@ -250,14 +255,14 @@ class attributeTable {
         .attr("cy", rowHeight / 2)
         .attr("rx", radius)
         .attr("ry", radius)
-        .attr('stroke', '#474747')
+        .attr('stroke', 'black')
         .attr('stroke-width', 1)
-        .attr('fill', '#d9d9d9'); // TODO: translate off of boundaries
+        .attr('fill', darkGrey); // TODO: translate off of boundaries
 
         // stick on the median
         quantatives
         .append("rect") //sneaky line is a rectangle
-        .attr("width", 2)
+        .attr("width", 1.2)
         .attr("height", rowHeight)
         .attr("fill", 'black')
         .attr("transform", function (d) {
@@ -276,40 +281,57 @@ class attributeTable {
 
 ////////////// EVENT HANDLERS! /////////////////////////////////////////////
 
-   cells.on('click', function(elem) {
-     selectAll('.boundary').classed('tablehovered', false);
-     if (!event.metaKey){ //unless we pressed shift, unselect everything
-       selectAll('.boundary').classed('tableselected',false);
-     }
-     selectAll('.boundary')
-      .classed('tableselected', function(){
-         const rightRow = (parseInt(select(this).attr('row_pos')) === elem['y']);
-         if(rightRow){
-            return (!select(this).classed('tableselected')); //toggle it
-          }
-         return select(this).classed('tableselected'); //leave it be
-       });
-     if(event.metaKey)
-        events.fire('table_row_selected', elem['y'], 'multiple');
-     else
-        events.fire('table_row_selected', elem['y'], 'singular');
-     })
-     // MOUSE ON
-     .on('mouseover', function(elem) {
-        selectAll('.boundary').classed('tablehovered', function(){
-          const rightRow = (select(this).attr('row_pos') == elem['y']); //== OR parseInt. Not sure which is more canonical.
-          if(rightRow){ //don't hover if it's selected
-            return !select(this).classed('tableselected');
-          }
-          return false; //otherwise don't hover
-     });
-     events.fire('table_row_hover_on', elem['y']);
-     })
-     // MOUSE OFF
-     .on('mouseout', function(elem) {
-       selectAll('.boundary').classed('tablehovered', false);
-       events.fire('table_row_hover_off', elem['y']);
-     });
+  const jankyAData = this.attributeData; ///auuughhh javascript why
+  const jankyInitHandle = this.initData; ///whywhywhywhy
+  let self = this;
+
+  cells.on('click', async function(elem) {
+  //  console.log("REGISTERED CLICK");
+    //update the dataset & re-render
+
+    const newView = await jankyAData.anniesTestUpdate();
+    self.initData(newView, [1, 2]);
+    // console.log("NEW VIEW!");
+    // console.log(newView.cols()[0]);
+
+  });
+
+
+
+  //  cells.on('click', function(elem) {
+  //    selectAll('.boundary').classed('tablehovered', false);
+  //    if (!event.metaKey){ //unless we pressed shift, unselect everything
+  //      selectAll('.boundary').classed('tableselected',false);
+  //    }
+  //    selectAll('.boundary')
+  //     .classed('tableselected', function(){
+  //        const rightRow = (parseInt(select(this).attr('row_pos')) === elem['y']);
+  //        if(rightRow){
+  //           return (!select(this).classed('tableselected')); //toggle it
+  //         }
+  //        return select(this).classed('tableselected'); //leave it be
+  //      });
+  //    if(event.metaKey)
+  //       events.fire('table_row_selected', elem['y'], 'multiple');
+  //    else
+  //       events.fire('table_row_selected', elem['y'], 'singular');
+  //    })
+  //    // MOUSE ON
+  //    .on('mouseover', function(elem) {
+  //       selectAll('.boundary').classed('tablehovered', function(){
+  //         const rightRow = (select(this).attr('row_pos') == elem['y']); //== OR parseInt. Not sure which is more canonical.
+  //         if(rightRow){ //don't hover if it's selected
+  //           return !select(this).classed('tableselected');
+  //         }
+  //         return false; //otherwise don't hover
+  //    });
+  //    events.fire('table_row_hover_on', elem['y']);
+  //    })
+  //    // MOUSE OFF
+  //    .on('mouseout', function(elem) {
+  //      selectAll('.boundary').classed('tablehovered', false);
+  //      events.fire('table_row_hover_off', elem['y']);
+  //    });
 
 
  }

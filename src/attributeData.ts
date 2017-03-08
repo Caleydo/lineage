@@ -24,6 +24,22 @@ export default class AttributeData {
 
   public ys;
 
+//<<<<<<< HEAD
+// FOR TESTING ONLY!  vvvvvvv
+///////////////////////////////////////////////////////////////////////////////
+
+public async anniesTestUpdate(){
+  this.activeRows = range.list([1, 2]);
+  await this.refreshActiveViews();
+  return this.activeView;
+}
+// FOR TESTING ONLY!  ^^^^^
+///////////////////////////////////////////////////////////////////////////////
+
+
+
+//=======
+//>>>>>>> 0460b7c83ebf938b6030815822ea80b7f23ae772
   /**
    * This function load genealogy data from lineage-server
    * and store it in the public table variable
@@ -115,8 +131,12 @@ export default class AttributeData {
 
     this.activeRows = range.all();
     this.activeColumns = range.list(colIndexAccum);
+//<<<<<<< HEAD
+//    await this.refreshActiveView(); //updates the active View/
+//=======
 
     this.selectFamily(38);
+//>>>>>>> 57552ec17e04ab3ea15e4f3b7e4d3a2f591c46f0
 
   }
 

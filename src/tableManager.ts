@@ -11,6 +11,10 @@ interface IFamilyInfo {
   affected: number;
 }
 
+
+export const VIEW_CHANGED_EVENT = 'view_changed_event';
+export const TABLE_VIS_ROWS_CHANGED_EVENT = 'table_vis_rows_changed_event';
+
 /**
  * This class manages the data structure for the graph, the table visualization and the attribute selection panel.
  */
@@ -24,7 +28,7 @@ export default class TableManager {
   /** The columns currently displayed in the table */
   private activeTableColumns: range.Range;
   /** The rows currently shown in the table, a subset of the activeGraphRows */
-  private activeTableRows: range.Range;
+  private _activeTableRows: range.Range;
 
 
   /** The table view used for the graph */
@@ -46,7 +50,7 @@ export default class TableManager {
 
   public async anniesTestUpdate() {
 
-    this.activeTableRows = range.list([1, 2]);
+    this._activeTableRows = range.list([1, 2]);
     await this.refreshActiveViews();
     console.log('DID  Update');
     console.log(this.tableTable.dim);
@@ -59,6 +63,16 @@ export default class TableManager {
 // FOR TESTING ONLY!  ^^^^^
 ///////////////////////////////////////////////////////////////////////////////
 
+
+  /**
+   * Updates the active rows for the table visualizatio, creates a new table view and fires a {TABLE_VIS_ROWS_CHANGED} event.
+   * @param newRows
+   */
+  set activeTableRows(newRows: range.Range) {
+    this._activeTableRows = newRows;
+    this.tableTable = this.table.view(range.join(this._activeTableRows, this.activeTableColumns));
+    events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);
+  }
 
   /**
    * Loads the data form the server and stores it in the public table variable
@@ -89,7 +103,7 @@ export default class TableManager {
       })[0];
     }
     this.activeGraphRows = range.list(family.range);
-    this.activeTableRows = this.activeGraphRows;
+    this._activeTableRows = this.activeGraphRows;
     await this.refreshActiveViews();
   }
 
@@ -142,7 +156,7 @@ export default class TableManager {
       }
     });
 
-    this.activeTableRows = range.all();
+    this._activeTableRows = range.all();
     this.activeTableColumns = range.list(colIndexAccum);
     await this.selectFamily();
   }
@@ -152,7 +166,7 @@ export default class TableManager {
    * @return {Promise<void>}
    */
   public async refreshActiveViews() {
-    const key = range.join(this.activeTableRows, this.activeTableColumns);
+    const key = range.join(this._activeTableRows, this.activeTableColumns);
     this.tableTable = await this.table.view(key);
     this.graphTable = await this.table.view(range.join(this.activeGraphRows, range.all()));
     events.fire('view_changed');

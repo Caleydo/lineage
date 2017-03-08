@@ -9,21 +9,27 @@ import * as events from 'phovea_core/src/event';
 
 export default class AttributeData {
 
-  table:ITable;
-  public activeAttributes = [] ; // active attribute is an attribute that is not ID. This an array of strings (column name)
-  private activeRows : range.Range; // of type range
-  private activeColumns : range.Range; // of type range
-  public activeView : ITable; // table view
+  table: ITable;
+  public activeAttributes = []; // active attribute is an attribute that is not ID. This an array of strings (column name)
+  private activeRows: range.Range; // of type range
+  private familyActiveRows: range.Range;
+  private attributeActiveRows: range.Range;
+  private activeColumns: range.Range; // of type range
+  public activeView: ITable; // table view
+  public graphView: ITable; // table view
 
-  private ys ;
+  //Store all families in this table;
+  private allFamilyIDs;
+  private uniqeuFamilyIDs;
 
+  public ys;
 
 // FOR TESTING ONLY!  vvvvvvv
 ///////////////////////////////////////////////////////////////////////////////
 
 public async anniesTestUpdate(){
   this.activeRows = range.list([1, 2]);
-  await this.refreshActiveView();
+  await this.refreshActiveViews();
   return this.activeView;
 }
 // FOR TESTING ONLY!  ^^^^^
@@ -38,7 +44,7 @@ public async anniesTestUpdate(){
    * returns a promise of table
    *
    */
-  public async loadData(name:string) {
+  public async loadData(name: string) {
     //retrieving the desired dataset by name
     this.table = <ITable> await getFirstByName(name);
     await this.parseData();
@@ -47,54 +53,87 @@ public async anniesTestUpdate(){
   }
 
   /**
+   * This function changes the range of rows to display on the selected family.
+   *
+   *@param chosenFamilyID the numeric value of the familyID
+   */
+  public async selectFamily(chosenFamilyID) {
+
+    //Array to store the ranges for the selected family
+    const familyRange = [];
+
+      this.allFamilyIDs.forEach((d, i) => {
+        if (d === chosenFamilyID) {
+          familyRange.push(i);
+        }
+      });
+
+    this.familyActiveRows = range.list(familyRange)
+    this.refreshActiveViews(); //updates the active View
+  }
+  /**
    * This function is called after loadData.
    * This function populate needed variables for attribute table and attribute panel
    *
    */
   public async parseData() {
+
     const columns = await this.table.cols();
+
+    this.allFamilyIDs = await this.table.col(0).data(); //Assumes kindredID is the first col. Not ideal.
+
+    this.uniqeuFamilyIDs = this.allFamilyIDs.filter((x, i, a) => a.indexOf(x) === i);
+
     const colIndexAccum = [];
-    let yIndex = 19;
+    let yIndex; //No need to set a value if you're going to override it in line 53.
 
     //populate active attribute array
     columns.forEach((col, i) => {
       const name = col.desc.name;
       const type = col.desc.value.type;
+
       // if the type of the column is ID then it is not in the active list
-      if(name === 'y') { //pay no attention to the man behind the curtain
-        yIndex = i; //for some reason can't set the member var here. js...
+      if (name === 'y') { //pay no attention to the man behind the curtain
+        yIndex = i; //for some reason can't set the member var here. js...  //That' because you're inside an if statement. The variable wouldn't exist outside of this if statement.
+
       }
-      else if (!(type === 'idtype' || name === 'x') ) {
+      else if (!(type === 'idtype' || name === 'x')) {
         colIndexAccum.push(i);//push the index so we can get the right view
         this.activeAttributes.push(name);
       }
-    }); //end for each
+    });
 
-
-    const tempRequest = await this.table.col(yIndex);
-    this.ys = await tempRequest.data(range.all());
-
-    this.activeRows = range.all(); // all rows to start out with
+    this.activeRows = range.all();
     this.activeColumns = range.list(colIndexAccum);
-    await this.refreshActiveView(); //updates the active View
+//<<<<<<< HEAD
+//    await this.refreshActiveView(); //updates the active View/
+//=======
+
+    this.selectFamily(38);
+//>>>>>>> 57552ec17e04ab3ea15e4f3b7e4d3a2f591c46f0
 
   }
 
-  public async refreshActiveView(){
-    const key = range.join(this.activeRows, this.activeColumns);
+  public async refreshActiveViews() {
+    const key = range.join(this.familyActiveRows, this.activeColumns);
     this.activeView = await this.table.view(key);
+    this.graphView = await this.table.view(range.join(this.familyActiveRows, range.all()));
   }
 
-  public getColumns(){
+  public getColumns() {
     return this.table.cols();
   }
 
-  public setActiveRows(activeRows){
+  public setActiveRows(activeRows) {
     this.activeRows = activeRows;
   }
 
-  public getActiveRows(){
+  public getActiveRows() {
     return this.activeRows;
+  }
+
+  private filterCat(aVal, bval) {
+    return aVal === bval; //Also include undefined empty strings and null values.
   }
 
   private attachListener() {

@@ -34,7 +34,7 @@ class attributeTable {
   private margin = Config.margin;
 
   constructor(parent: Element) {
-    this.$node = select(parent)
+    this.$node = select(parent);
   }
 
   /**
@@ -47,6 +47,7 @@ class attributeTable {
     this.activeView = data.activeView;
     this.attributeData = data; // JANKY ONLY FOR DEV
 
+//<<<<<<< HEAD
     await this.initData(this.activeView, data.ys);
 
     this.buffer = 4;
@@ -68,6 +69,8 @@ class attributeTable {
     console.log("ys were:");
     console.log(ys);
 
+//=======
+//>>>>>>> 57552ec17e04ab3ea15e4f3b7e4d3a2f591c46f0
     let colDataAccum = [];
     for (const vector of activeView.cols()) {
       const temp = await vector.data(range.all());
@@ -78,7 +81,7 @@ class attributeTable {
         const categories = Array.from(new Set(temp));
         for(const cat of categories){
           var col: any = {};
-          const base_name = await vector.column;
+          const base_name = await vector.desc.name;
           col.name = base_name + '_' + cat;
           col.data = temp.map(
             (d)=>{if(d === cat) return d;
@@ -138,6 +141,7 @@ class attributeTable {
 
     const rowHeight = Config.glyphSize * 2.5 - 4;
 
+
     const svg = this.$node.append('svg')
       .attr('width', this.width + this.margin.left + this.margin.right)
       .attr("height", this.height + this.margin.top + this.margin.bottom)
@@ -159,7 +163,6 @@ class attributeTable {
     .attr("transform",(d) => {
       const x_translation = label_xs.find(x => x.name === d.name).x;
       return 'translate(' + x_translation + ',0) rotate(-45)';});
-
 
 
     selectAll('.header')

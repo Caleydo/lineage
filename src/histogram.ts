@@ -141,7 +141,7 @@ class Histogram {
       select(this).classed('picked', true);
       const item = {
           name: select(this).attr('attribute'),
-          value: d.key
+          value: d['key']
         };
         events.fire('attribute_cat_picked', item);
     });

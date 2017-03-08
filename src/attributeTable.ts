@@ -109,6 +109,9 @@ class attributeTable {
     }
     console.log("this is the col data accum:");
     console.log(colDataAccum);
+
+    console.log("THESE ARE THE COLUMN NAMES!");
+    console.log(colDataAccum.map((d)=> {console.log(d.name);}))
     this.colData = colDataAccum;
   }
 
@@ -237,9 +240,7 @@ class attributeTable {
 
     categoricals
     .append('rect')
-    .attr('width', (d)=> {console.log("I AM A CELL");
-    console.log(d.name);
-      return col_widths.find(x => x.name === d.name).width;})
+    .attr('width', (d)=> {return col_widths.find(x => x.name === d.name).width;})
     .attr('height', rowHeight)
     .attr('stroke', 'black')
     .attr('stoke-width', 1)
@@ -285,14 +286,6 @@ class attributeTable {
         const scaledRange = (width-2*radius) / (d.max - d.min);
         return ('translate(' + ((d.mean -d.min) * scaledRange) + ',0)');
       });
-
-
-
-    //Move cells to their correct y position
-    // selectAll('.cell')
-    //   .attr("transform", function (col) {
-    //     return ('translate(0, ' + y(col['y']) + ' )'); //the x translation is taken care of by the group this cell is nested in.
-    //   });
 
 
 ////////////// EVENT HANDLERS! /////////////////////////////////////////////

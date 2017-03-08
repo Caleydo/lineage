@@ -94,7 +94,7 @@ class attributeTable {
       }
       else{ //quant
         var col: any = {};
-        col.name = await vector.column;
+        col.name = await vector.desc.name;
         col.data = temp;
         col.ys = ys;
         col.type = type;

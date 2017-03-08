@@ -111,19 +111,20 @@ class GraphData {
     this.definePrimary('suicide', 'Y');
     this.buildTree();
 
-    //Create fake birthdays for people w/o a bdate.
-    this.nodes.forEach((n)=>{
-      if (n.bdate <100) {//random number
-      //subtract 20 from the age of the first kid
-        if (n.hasChildren){
-          console.log('setting bdate to ', n.children[0].bdate-20)
-          n.bdate = n.children[0].bdate-20;
-        }
-      }
-    });
 
     //Linearize Tree and pass y values to the attributeData Object
     this.linearizeTree();
+
+    //Create fake birthdays for people w/o a bdate.
+    this.nodes.forEach((n)=>{
+      if (+n.bdate === 0 ) {//random number
+        //subtract 20 from the age of the first kid
+        if (n.hasChildren){
+          console.log('setting bdate to ', n.children[0].bdate-20)
+          n.bdate = (+n.children[0].bdate) - 20;
+        }
+      }
+    });
 
     let ys = [];
     this.nodes.forEach((n)=>{ys.push(n.y)});

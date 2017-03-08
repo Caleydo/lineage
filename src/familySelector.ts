@@ -24,7 +24,9 @@ class familySelector {
 
   private $node;
 
-  private yscale = scaleLinear();  //yscale for rectangles
+  private peopleScale = scaleLinear();  //yscale for # of people
+
+  private casesScale = scaleLinear();  //yscale for cases
 
   constructor(parent:Element) {
     this.$node = select(parent);
@@ -72,10 +74,25 @@ class familySelector {
    */
   private updateTable(data) {
 
-    this.yscale
+    this.peopleScale
       .range([0,70])
       .domain([0,800])
-      // .domain([min(data.getFamilyInfo(),(d:any)=>{return d.size}),max(data.getFamilyInfo(),(d:any)=>{return d.size})])
+
+
+    // let minValue = min(data.familyInfo,(d:any)=>{return +d.size});
+    // let maxValue = max(data.familyInfo,(d:any)=>{return +d.size});
+    //
+    // this.peopleScale
+    //   .range([0,50])
+    //   .domain([minValue,maxValue])
+    //
+    // minValue = min(data.familyInfo,(d:any)=>{return +d.affected});
+    // maxValue = max(data.familyInfo,(d:any)=>{return +d.affected});
+
+
+    // this.casesScale
+    //   .range([0,50])
+    //   .domain([minValue,maxValue]);
 
   // create a row for each object in the data
   var rows = select('tbody').selectAll("tr")
@@ -92,17 +109,17 @@ class familySelector {
 
   selectAll('td').filter((c:any)=>{return c.type === 'size' || c.type === 'cases'})
     .append('svg')
-    .attr('width',(d:any) => { return this.yscale.range()[1]})
+    .attr('width',(d:any) => { return this.peopleScale.range()[1] })
     .attr('height',30)
     .append('rect')
-    .attr('width',(d:any) => { return this.yscale(d.value)})
+    .attr('width',(d:any) => { return this.peopleScale(d.value)})
     .attr('height',30)
 
     selectAll('td').selectAll('svg').filter((c:any)=>{return c.type === 'size' || c.type === 'cases'})
       .append('text')
       .attr('dy', 20)
       .attr('dx', (d:any) => {
-        return this.yscale(d.value)})
+        return this.peopleScale(d.value)})
       .text((d:any) => {
         return d.value.toString();
       })

@@ -165,8 +165,7 @@ class attributeTable {
       .append('text')
       .classed('header', 'true');
 
-
-    headers = headerEnter.merge(headers) //selectAll('.header') //"update"
+    headers = headerEnter.merge(headers)
       .text((d) => {return d['name']})
       .attr("transform",(d) => {
         const x_translation = label_xs.find(x => x.name === d['name']).x;
@@ -216,8 +215,7 @@ class attributeTable {
     .append('rect')
     .classed("boundary", true)
     .attr("row_pos", (d)=>{return d["y"];})
-    .attr('width', (d)=> {console.log("calculating width of b. cell!");
-      return (col_widths.find(x => x.name === d.name).width + 4);})
+    .attr('width', (d)=> {return (col_widths.find(x => x.name === d.name).width + 4);})
     .attr('height', rowHeight + this.buffer)
     .attr('fill', 'transparent')
     .attr("transform", function (d) {
@@ -447,18 +445,40 @@ class attributeTable {
       });
     });
 
-
-    //TODO
-    events.on('rows_aggregated', (evt, item) => {
-      //this.all_the_data.aggregateRows();
-
-      // Things that need to happen here:
-      // change rows to be joined w. the displayRows instead of displayData- then we have to index each time for every attribute.
-      // update the displayedRows datastructure
-      //
+  const self = this;
+  const VIEW_CHANGED_EVENT = 'view_changed_event';
+  const TABLE_VIS_ROWS_CHANGED_EVENT = 'table_vis_rows_changed_event';
 
 
-    });
+
+    events.on(VIEW_CHANGED_EVENT, () => {
+      //self.ys = self.attributeData.ys; //regrab the y's
+  //    console.log("registered event!!");
+      self.update(self.attributeData.tableTable, self.attributeData.ys);
+
+      });
+
+    events.on(TABLE_VIS_ROWS_CHANGED_EVENT, () => {
+      //self.ys = self.attributeData.ys; //regrab the y's
+    //  console.log("registered event!!");
+      self.update(self.attributeData.tableTable, self.attributeData.ys);
+
+      });
+
+
+//
+
+    // //TODO
+    // events.on('rows_aggregated', (evt, item) => {
+    //   //this.all_the_data.aggregateRows();
+    //
+    //   // Things that need to happen here:
+    //   // change rows to be joined w. the displayRows instead of displayData- then we have to index each time for every attribute.
+    //   // update the displayedRows datastructure
+    //   //
+    //
+    //
+    // });
 
 
   }

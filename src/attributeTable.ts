@@ -163,13 +163,14 @@ class attributeTable {
     const headerEnter = headers
       .enter()
       .append('text')
-      .classed('header', 'true')
-    .attr("transform",(d) => {
-      const x_translation = label_xs.find(x => x.name === d.name).x;
-      return 'translate(' + x_translation + ',0) rotate(-45)';});
+      .classed('header', 'true');
 
-    selectAll('.header')
+
+    headers = headerEnter.merge(headers) //selectAll('.header') //"update"
       .text((d) => {return d['name']})
+      .attr("transform",(d) => {
+        const x_translation = label_xs.find(x => x.name === d['name']).x;
+        return 'translate(' + x_translation + ',0) rotate(-45)';});
 
 
 // TABLE
@@ -385,7 +386,7 @@ class attributeTable {
       }
       return {'name':elem['name'], 'x':x_dist};
     });
-    // 
+    //
     // console.log("Full width was: " + width);
     // console.log("this.colData: ");
     // console.log(this.colData);

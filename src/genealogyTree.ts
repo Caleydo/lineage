@@ -156,20 +156,19 @@ class GenealogyTree {
   init(data) {
     this.data = data;
     this.build();
+    this.update();
     this.attachListeners();
     // return the promise directly as long there is no dynamical data to update
     return Promise.resolve(this);
   }
 
-
   /**
-   * Build the basic DOM elements and binds the change function
+   * Updates the view when the input data changes
    */
-  private build() {
+
+  private update(){
 
     const nodes = this.data.nodes;
-
-    this.width = 600 - this.margin.left - this.margin.right
     // this.height = Config.glyphSize * 3 * nodes.length - this.margin.top - this.margin.bottom;
 
     this.height = 2506;
@@ -181,14 +180,32 @@ class GenealogyTree {
       return +d['y'];
     })])
 
+    this.interGenerationScale.range([.75, .25]).domain([2, nodes.length]);
+
+    select('#graph')
+      .attr('height', this.height + this.margin.top + this.margin.bottom)
+
+  //Filter data to only render what is visible in the current window
+  this.update_time_axis();
+
+  //Call function that updates the position of all elements in the tree
+  this.update_graph();
+
+  }
+
+
+  /**
+   * Build the basic DOM elements and binds the change function
+   */
+  private build() {
+
+    this.width = 600 - this.margin.left - this.margin.right
+
     this.visibleXAxis = axisTop(this.x).tickFormat(format('d'))
     this.extremesXAxis = axisTop(this.x2)
 
-    this.interGenerationScale.range([.75, .25]).domain([2, nodes.length]);
-
     const svg = this.$node.append('svg')
       .attr('width', this.width + this.margin.left + this.margin.right)
-      .attr('height', this.height + this.margin.top + this.margin.bottom)
       .attr('id', 'graph')
 
     //Create gradients for fading life lines and kidGrids
@@ -326,13 +343,6 @@ class GenealogyTree {
     //   .attr('transform', 'translate(' +this.margin.left + ',' + (this.margin.top + Config.glyphSize) + ')')
     //   .attr('id', 'yaxis')
     //   .call(axisRight(this.y).tickFormat(format(',.1f')).tickValues(range(1,105,.5)).tickSize(this.width))
-
-
-    //Filter data to only render what is visible in the current window
-    this.update_time_axis();
-
-    //Call function that updates the position of all elements in the tree
-    this.update_graph(this.data.nodes, this.data.parentChildEdges, this.data.parentParentEdges);
   }
 
   //End of Build Function
@@ -347,8 +357,8 @@ class GenealogyTree {
    * @param childParentEdges array of child parent edges to update the tree with
    * @param parentParentEdges array of parent parent edges to update the tree with
    */
-  private update_graph(nodes, childParentEdges, parentParentEdges) {
-    this.update_edges(childParentEdges, parentParentEdges);
+  private update_graph() {
+    this.update_edges();
     this.update_nodes();
   }
 
@@ -361,7 +371,7 @@ class GenealogyTree {
    * @param parentParentEdges array of parent parent edges to update the tree with
    */
   //Function that updates the position of all edges in the genealogy tree
-  private update_edges(filtered_childParentEdges, filtered_parentParentEdges) {
+  private update_edges() {
 
     let childParentEdges = this.data.parentChildEdges;
     let parentParentEdges = this.data.parentParentEdges;
@@ -448,7 +458,6 @@ class GenealogyTree {
    * @param nodes array of nodes to update the tree with
    */
   private update_nodes() {
-
     let nodes = this.data.nodes;
 
     //Create transition for fading nodes in and out;
@@ -631,7 +640,6 @@ class GenealogyTree {
       .data(nodes.filter((n) => {return !n.hidden}), function (d) {
         return d['id'];
       });
-
 
     allBars.exit().transition().duration(400).style('opacity', 0).remove();
 
@@ -1277,7 +1285,7 @@ class GenealogyTree {
         this.update_pos_row('.row_' + Math.round(this.startYPos))
 
         //Call function that updates the position of all elements in the tree
-        this.update_edges(this.data.parentChildEdges, this.data.parentParentEdges)
+        this.update_edges()
 // 				event.stopPropagation()
       })
 
@@ -1540,8 +1548,7 @@ class GenealogyTree {
 
 
     //Call function that updates the position of all elements in the tree
-//     this.update_graph(this.data.nodes, this.data.parentParentEdges, this.data.parentChildEdges)
-    this.update_graph(filtered_nodes, filtered_parentChildEdges, filtered_parentParentEdges)
+    this.update_graph()
 
 
   }
@@ -1816,6 +1823,13 @@ class GenealogyTree {
       }).classed('selected', function () {
         return (!wasSelected);
       })
+    });
+
+    events.on('redraw_tree', (evt,item) => {
+      console.log('redrawing tree!')
+      console.log(item.nodes.length)
+      this.data = item;
+      this.update();
     });
 
     events.on('attribute_selected',(evt,item) => {

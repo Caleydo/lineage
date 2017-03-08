@@ -64,18 +64,18 @@ class attributeTable {
 
 
   async initData(activeView, ys){
-    console.log("active view's cols was:");
-    console.log(await activeView.cols());
-    console.log("ys were:");
-    console.log(ys);
+    // console.log("active view's cols was:");
+    // console.log(await activeView.cols());
+    // console.log("ys were:");
+    // console.log(ys);
 
 //=======
-//>>>>>>> 57552ec17e04ab3ea15e4f3b7e4d3a2f591c46f0
+//()>>>>>>> 57552ec17e04ab3ea15e4f3b7e4d3a2f591c46f0
     let colDataAccum = [];
     for (const vector of activeView.cols()) {
       const temp = await vector.data(range.all());
-      console.log("THE DATA WAS: ");
-      console.log(temp);
+      // console.log("THE DATA WAS: ");
+      // console.log(temp);
       const type = await vector.valuetype.type;
       if(type === 'categorical'){
         const categories = Array.from(new Set(temp));

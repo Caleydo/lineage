@@ -20,10 +20,11 @@ export default class AttributeData {
 
   //Store all families in this table;
   private allFamilyIDs;
-  private uniqeuFamilyIDs;
+  public familyInfo =[];
 
   public ys;
 
+//<<<<<<< HEAD
 // FOR TESTING ONLY!  vvvvvvv
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -37,6 +38,8 @@ public async anniesTestUpdate(){
 
 
 
+//=======
+//>>>>>>> 0460b7c83ebf938b6030815822ea80b7f23ae772
   /**
    * This function load genealogy data from lineage-server
    * and store it in the public table variable
@@ -52,6 +55,15 @@ public async anniesTestUpdate(){
     return Promise.resolve(this);
   }
 
+
+  /**
+   * This function get the array of familyInfo to populate the familySelector interface.
+   */
+  public getFamilyInfo() {
+   return this.familyInfo;
+  }
+
+
   /**
    * This function changes the range of rows to display on the selected family.
    *
@@ -59,17 +71,12 @@ public async anniesTestUpdate(){
    */
   public async selectFamily(chosenFamilyID) {
 
-    //Array to store the ranges for the selected family
-    const familyRange = [];
+    let family = this.familyInfo.filter((family) => {return family.id === chosenFamilyID})[0]
+    this.familyActiveRows = range.list(family['range']);
+    await this.refreshActiveViews(); //updates the active views
+    console.log('view changed')
+    events.fire('view_changed');
 
-      this.allFamilyIDs.forEach((d, i) => {
-        if (d === chosenFamilyID) {
-          familyRange.push(i);
-        }
-      });
-
-    this.familyActiveRows = range.list(familyRange)
-    this.refreshActiveViews(); //updates the active View
   }
   /**
    * This function is called after loadData.
@@ -81,8 +88,27 @@ public async anniesTestUpdate(){
     const columns = await this.table.cols();
 
     this.allFamilyIDs = await this.table.col(0).data(); //Assumes kindredID is the first col. Not ideal.
+    let suicideCol = await this.table.colData('suicide'); //Will have to access attribute table in the future
 
-    this.uniqeuFamilyIDs = this.allFamilyIDs.filter((x, i, a) => a.indexOf(x) === i);
+    let uniqueFamilyIDs = this.allFamilyIDs.filter((x, i, a) => a.indexOf(x) === i);
+
+    for (let i in uniqueFamilyIDs){
+      let id = uniqueFamilyIDs[i];
+      //Array to store the ranges for the selected family
+      const familyRange = [];
+      let affected = 0;
+
+      this.allFamilyIDs.forEach((d, i) => {
+        if (d === id) {
+          familyRange.push(i);
+           if (suicideCol[i] === 'Y' ){
+             affected = affected + 1;
+           }
+        }
+      });
+
+      this.familyInfo.push({'id':id, 'range':familyRange, 'size': familyRange.length, 'affected':affected});
+    }
 
     const colIndexAccum = [];
     let yIndex; //No need to set a value if you're going to override it in line 53.

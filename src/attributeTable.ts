@@ -25,6 +25,11 @@ class attributeTable {
   private tableAxis;
 
 
+// RENDERING THINGS
+  private table;
+  private tableHeader;
+
+
   //private margin = {top: 60, right: 20, bottom: 60, left: 40};
 
   private activeView;  // FOR DEBUG ONLY!
@@ -46,14 +51,14 @@ class attributeTable {
 
     this.activeView = data.tableTable;
     this.attributeData = data; // JANKY ONLY FOR DEV
-
-
     this.buffer = 4;
 
+    this.build(); //builds the DOM
+
+    // sets up the data & binds it to svg groups
     await this.update(this.activeView, data.ys);
 
     this.attachListener();
-
 
     // return the promise directly as long there is no dynamical data to update
     return Promise.resolve(this);
@@ -111,46 +116,51 @@ class attributeTable {
   /**
    * Build the basic DOM elements and binds the change function
    */
-  private async render() {
-
+  private async build(){
     this.width = 450 - this.margin.left - this.margin.right
     this.height = Config.glyphSize * 3 * this.activeView.nrow - this.margin.top - this.margin.bottom;
 
+    const svg = this.$node.append('svg')
+      .attr('width', this.width + this.margin.left + this.margin.right)
+      .attr("height", this.height + this.margin.top + this.margin.bottom)
 
-    const darkGrey = '#4d4d4d';
+//HEADERS
+    this.tableHeader = svg.append("g")
+      .attr("transform", "translate(0," + this.margin.axisTop / 2 + ")");
+
+// TABLE
+    this.table = svg.append("g")
+      .attr("transform", "translate(0," + this.margin.top + ")");
+  }
+
+  //renders the DOM elements
+  private async render() {
+    const darkGrey = '#4d4d4d'; //todo clearly
     const lightGrey = '#d9d9d9';
     const mediumGrey = '#7e7e7e';
-
 
     //rendering info
     var col_widths = this.getDisplayedColumnWidths(this.width);
     var col_xs = this.getDisplayedColumnXs(this.width);
     var label_xs = this.getDisplayedColumnMidpointXs(this.width);
 
-
-
     // Scales
     let x = scaleLinear().range([0, this.width]).domain([0, 13]);
     let y = scaleLinear().range([0, this.height]).domain(
     [Math.min( ...this.colData[0]['ys']), Math.max( ...this.colData[0]['ys'])]);
 
-
     const rowHeight = Config.glyphSize * 2.5 - 4;
 
 
-    const svg = this.$node.append('svg')
-      .attr('width', this.width + this.margin.left + this.margin.right)
-      .attr("height", this.height + this.margin.top + this.margin.bottom)
 
 
 //HEADERS
-    const tableHeader = svg.append("g")
-      .attr("transform", "translate(0," + this.margin.axisTop / 2 + ")");
-
     //Bind data to the col headers
-    let headers = tableHeader.selectAll(".header")
+    let headers = this.tableHeader.selectAll(".header")
       .data(this.colData.map((d,i) => {return {'name':d.name, 'data':d, 'ind':i, 'type':d.type,
                                                'max':d.max, 'min':d.min, 'mean':d.mean}}));
+
+    headers.exit().remove(); // should remove headers of removed col's
 
     const headerEnter = headers
       .enter()
@@ -160,21 +170,17 @@ class attributeTable {
       const x_translation = label_xs.find(x => x.name === d.name).x;
       return 'translate(' + x_translation + ',0) rotate(-45)';});
 
-    headers.exit().remove(); // should remove on col remove
-
-
     selectAll('.header')
       .text((d) => {return d['name']})
 
 
 // TABLE
-    const table = svg.append("g")
-      .attr("transform", "translate(0," + this.margin.top + ")");
-
     //Bind data to the col groups
-    let cols = table.selectAll(".column")
+    let cols = this.table.selectAll(".dataCols")
       .data(this.colData.map((d,i) => {return {'name':d.name, 'data':d.data, 'ind':i, 'ys':d.ys, 'type':d.type,
                                                'max':d.max, 'min':d.min, 'mean':d.mean}}));
+
+    cols.exit().remove(); // should remove on col remove
 
     const colsEnter = cols.enter()
       .append('g')
@@ -186,100 +192,107 @@ class attributeTable {
 
     cols = colsEnter.merge(cols);
 
-    cols.exit().remove(); // should remove on col remove
-
     //Bind data to the cells
     let cells = cols.selectAll('.cell')
       .data((d) => {
         return d.data.map((e, i) => {return {'name': d.name, 'data': e, 'y': d.ys[i], 'type':d.type,
-                                              'max':d.max, 'min':d.min, 'mean':d.mean}})})
-      .enter()
+                                              'max':d.max, 'min':d.min, 'mean':d.mean}})});
+    cells.exit().remove();
+
+    let cellsEnter = cells.enter()
       .append("g")
-      .attr('class', 'cell');
-
-
-      cells.exit().remove();
-
-
-
-      //Add rectangle for highlighting...
-      const boundary = cells
-      .append('rect')
-      .classed("boundary", true)
-      .attr("row_pos", (d)=>{return d["y"];})
-      .attr('width', (d)=> {return (col_widths.find(x => x.name === d.name).width + 4);})
-      .attr('height', rowHeight + this.buffer)
-      .attr('fill', 'transparent')
-      .attr("transform", function (d) {
-        return ('translate(' + -2 + ',' + (-2) + ')');
+      .attr('class', 'cell')
+      .attr("transform", function (col) {
+        return ('translate(0, ' + y(col['y']) + ' )'); //the x translation is taken care of by the group this cell is nested in.
       });
 
+    cells = cellsEnter.merge(cells);
 
-      const categoricals = cells.filter((e)=>{return (e.type === 'categorical')})
-                            .attr('classed', 'categorical');
-      const quantatives  = cells.filter((e)=>{return (e.type === 'int')})
-                            .attr('classed', 'quantitative');
-      const idCells      = cells.filter((e)=>{return (e.type === 'idtype')})
-                            .attr('classed', 'idtype');
+
+
+//////////// RENDERING ////////////////////////////////////////////////////
+
+    //Add rectangle for highlighting...
+    const boundary = cells
+    .append('rect')
+    .classed("boundary", true)
+    .attr("row_pos", (d)=>{return d["y"];})
+    .attr('width', (d)=> {return (col_widths.find(x => x.name === d.name).width + 4);})
+    .attr('height', rowHeight + this.buffer)
+    .attr('fill', 'transparent')
+    .attr("transform", function (d) {
+      return ('translate(' + -2 + ',' + (-2) + ')');
+    });
+
+
+    const categoricals = cells.filter((e)=>{return (e.type === 'categorical')})
+                          .attr('classed', 'categorical');
+    const quantatives  = cells.filter((e)=>{return (e.type === 'int')})
+                          .attr('classed', 'quantitative');
+    const idCells      = cells.filter((e)=>{return (e.type === 'idtype')})
+                          .attr('classed', 'idtype');
 
 
 ////////// RENDER CATEGORICAL COLS /////////////////////////////////////////////
 
-      categoricals
-      .append('rect')
-      .attr('width', (d)=> {return col_widths.find(x => x.name === d.name).width;})
-      .attr('height', rowHeight)
-      .attr('stroke', 'black')
-      .attr('stoke-width', 1)
-      .attr('fill', (d)=>{
-        if(d.data !== undefined)
-          return darkGrey;
-        return lightGrey;
-      });
+    categoricals
+    .append('rect')
+    .attr('width', (d)=> {console.log("I AM A CELL");
+    console.log(d.name);
+      return col_widths.find(x => x.name === d.name).width;})
+    .attr('height', rowHeight)
+    .attr('stroke', 'black')
+    .attr('stoke-width', 1)
+    .attr('fill', (d)=>{
+      if(d.data !== undefined)
+        return darkGrey;
+      return lightGrey;
+    });
 
 ////////// RENDER QUANT COLS /////////////////////////////////////////////
-      const radius = 2;
+    const radius = 2;
 
-      quantatives
-      .append('rect')
-      .attr('width', (d)=> {return col_widths.find(x => x.name === d.name).width;})
-      .attr('height', rowHeight)
-      .attr('fill', lightGrey)
+    quantatives
+    .append('rect')
+    .attr('width', (d)=> {return col_widths.find(x => x.name === d.name).width;})
+    .attr('height', rowHeight)
+    .attr('fill', lightGrey)
+    .attr('stroke', 'black')
+    .attr('stoke-width', 1);
+
+    quantatives
+    .append("ellipse")
+      .attr("cx",
+      function(d){
+        const width = col_widths.find(x => x.name === d.name).width;
+        const scaledRange = (width-2*radius) / (d.max - d.min);
+        return Math.floor((d.data-d.min) * scaledRange);})
+      .attr("cy", rowHeight / 2)
+      .attr("rx", radius)
+      .attr("ry", radius)
       .attr('stroke', 'black')
-      .attr('stoke-width', 1);
+      .attr('stroke-width', 1)
+      .attr('fill', darkGrey); // TODO: translate off of boundaries
 
+      // stick on the median
       quantatives
-      .append("ellipse")
-        .attr("cx",
-        function(d){
-          const width = col_widths.find(x => x.name === d.name).width;
-          const scaledRange = (width-2*radius) / (d.max - d.min);
-          return Math.floor((d.data-d.min) * scaledRange);})
-        .attr("cy", rowHeight / 2)
-        .attr("rx", radius)
-        .attr("ry", radius)
-        .attr('stroke', 'black')
-        .attr('stroke-width', 1)
-        .attr('fill', darkGrey); // TODO: translate off of boundaries
+      .append("rect") //sneaky line is a rectangle
+      .attr("width", 1.2)
+      .attr("height", rowHeight)
+      .attr("fill", 'black')
+      .attr("transform", function (d) {
+        const width = col_widths.find(x => x.name === d.name).width;
+        const scaledRange = (width-2*radius) / (d.max - d.min);
+        return ('translate(' + ((d.mean -d.min) * scaledRange) + ',0)');
+      });
 
-        // stick on the median
-        quantatives
-        .append("rect") //sneaky line is a rectangle
-        .attr("width", 1.2)
-        .attr("height", rowHeight)
-        .attr("fill", 'black')
-        .attr("transform", function (d) {
-          const width = col_widths.find(x => x.name === d.name).width;
-          const scaledRange = (width-2*radius) / (d.max - d.min);
-          return ('translate(' + ((d.mean -d.min) * scaledRange) + ',0)');
-        });
 
 
     //Move cells to their correct y position
-    selectAll('.cell')
-      .attr("transform", function (col) {
-        return ('translate(0, ' + y(col['y']) + ' )'); //the x translation is taken care of by the group this cell is nested in.
-      });
+    // selectAll('.cell')
+    //   .attr("transform", function (col) {
+    //     return ('translate(0, ' + y(col['y']) + ' )'); //the x translation is taken care of by the group this cell is nested in.
+    //   });
 
 
 ////////////// EVENT HANDLERS! /////////////////////////////////////////////
@@ -293,7 +306,7 @@ class attributeTable {
     //update the dataset & re-render
 
     const newView = await jankyAData.anniesTestUpdate();
-    self.initData(newView, [1, 2]);
+    self.update(newView, [1, 2]);
     // console.log("NEW VIEW!");
     // console.log(newView.cols()[0]);
 

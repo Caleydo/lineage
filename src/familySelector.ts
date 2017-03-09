@@ -51,6 +51,13 @@ class familySelector {
    */
   private build() {
 
+    // this.$node.append('div')
+    //   .classed('menu-list', true)
+    //   .html(` <ul >
+    //         <li class='brand' data-toggle='collapse'> <i class=''></i> <strong>Family Selection</strong>
+    //          <span class='  toggle-btn'><i class='glyphicon glyphicon-menu-hamburger'></i></span></li>
+    //            </ul>`);
+
     const table = select("#familySelector").append("table")
       // .classed('nav-side-menu',true)
       .classed('sticky-header',true);

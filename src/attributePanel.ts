@@ -35,8 +35,6 @@ class AttributePanel {
     this.$node = select(parent)
       .append('div')
       .classed('nav-side-menu active', true);
-
-
   }
 
   /**

@@ -411,7 +411,8 @@ class GraphData {
       return (node.Y <= startNode.Y && node.Y >= endIndex && node.hidden);
     });
 
-    if (isHidden.length > 0) {
+    if (isHidden.length > 0) {console.log('expanding branch')
+
       this.expandBranch(startNode);
       return;
     }
@@ -570,6 +571,7 @@ class GraphData {
       }
     });
 
+    this.trimTree();
   }
 
   /**
@@ -582,15 +584,17 @@ class GraphData {
 
       //find any nodes that are in that row
       const rowNodes = this.nodes.filter((d) => {
-        return d.y === y;
+        return Math.round(d.y) === y;
       }).length;
 
       if (rowNodes < 1) { //found an empty Row
         toCollapse = toCollapse + 1;
-      } else {
+      } else if (toCollapse>0) {
+        console.log('collapsing ', toCollapse ,  'rows')
         this.nodes.forEach((node) => {
           if (Math.round(node.y) >= y) {
             node.y = node.y - toCollapse;
+
           }
         });
         toCollapse = 0;
@@ -618,8 +622,10 @@ class GraphData {
       return node.Y <= startIndex && node.Y >= endIndex;
     });
 
-    let numRows = toUncollapse.length - (startIndex - endIndex) - 1;
-
+    console.log('startInd is ', startIndex)
+    console.log('endInd is ', endIndex)
+    let numRows = toUncollapse.length -1;
+   console.log('numRows is ', numRows)
     const ind = 1000;
 
     toUncollapse.forEach((n) => {
@@ -628,8 +634,7 @@ class GraphData {
       }
     });
 
-    // let ydiff = endNode['Y']-endNode['y'];
-    let ydiff = 0;
+    let ydiff = Math.round(endNode['Y']-endNode['y']);
 
     this.nodes.forEach((node) => {
       if (node['Y'] > startIndex) {

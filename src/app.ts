@@ -55,19 +55,22 @@ export class App {
     // This executes asynchronously, so you'll have to pass
     // back a promise and resolve that before you keep going
     // await attributeDataObj.loadData('big-decent-clipped-38');
+
+    //Load in Attribute Data
+    await attributeDataObj.loadAttributeData('Attributes');
+
+    //Load in Genealogy Data
     await attributeDataObj.loadData('BigDescend');
 
-    await attributeDataObj.loadAttributeData('Attributes');
 
     const graphDataObj = graphData.create(attributeDataObj);
     await graphDataObj.createTree();
 
-
     const genealogyTree = tree.create(this.$node.select('#graph_table').node());
     genealogyTree.init(graphDataObj);
 
-    // const attributeTable = table.create(this.$node.select('#graph_table').node());
-    // attributeTable.init(attributeDataObj);
+    const attributeTable = table.create(this.$node.select('#graph_table').node());
+    attributeTable.init(attributeDataObj);
 
     const attributePanel = panel.create(this.$node.select('#data_selection').node());
     attributePanel.init(attributeDataObj);

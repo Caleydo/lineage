@@ -87,7 +87,7 @@ class attributeTable {
           col.data = temp.map(
             (d)=>{if(d === cat) return d;
                   else return undefined;});
-          col.ys = ys;
+          col.ys = ys //.slice(0,col.data.length);
           col.type = type;
           colDataAccum.push(col);
         }
@@ -96,7 +96,7 @@ class attributeTable {
         var col: any = {};
         col.name = await vector.desc.name;
         col.data = temp;
-        col.ys = ys;
+        col.ys = ys //.slice(0,col.data.length);
         col.type = type;
         //compute some stats, but first get rid of non-entries
         const filteredData = temp.filter((d)=>{return d.length != 0;});
@@ -108,7 +108,11 @@ class attributeTable {
       }
     }
     this.colData = colDataAccum;
+
+    console.log(this.colData);
   }
+
+
 
 
   /**
@@ -193,7 +197,7 @@ class attributeTable {
     //Bind data to the cells
     let cells = cols.selectAll('.cell')
       .data((d) => {
-        return d.data.map((e, i) => {return {'name': d.name, 'data': e, 'y': d.ys[i], 'type':d.type,
+        return d.data.map((e, i) => {return {'name': d.name, 'data': +e, 'y': d.ys[i], 'type':d.type,
                                               'max':d.max, 'min':d.min, 'mean':d.mean}})});
     cells.exit().remove();
 
@@ -223,13 +227,14 @@ class attributeTable {
     });
 
 
-    const categoricals = cells.filter((e)=>{return (e.type === 'categorical')})
+    const categoricals = cells.filter((e)=>{return (e.type === 'categorical' && !isNaN(e.data))})
                           .attr('classed', 'categorical');
-    const quantatives  = cells.filter((e)=>{return (e.type === 'int')})
+    const quantatives  = cells.filter((e)=>{return (e.type === 'int' && !isNaN(e.data))})
                           .attr('classed', 'quantitative');
-    const idCells      = cells.filter((e)=>{return (e.type === 'idtype')})
+    const idCells      = cells.filter((e)=>{return (e.type === 'idtype' && !isNaN(e.data))})
                           .attr('classed', 'idtype');
 
+    console.log(categoricals.size())
 
 ////////// RENDER CATEGORICAL COLS /////////////////////////////////////////////
 
@@ -259,7 +264,7 @@ class attributeTable {
     quantatives
     .append("ellipse")
       .attr("cx",
-      function(d){
+      function(d){ console.log(d);
         const width = col_widths.find(x => x.name === d.name).width;
         const scaledRange = (width-2*radius) / (d.max - d.min);
         return Math.floor((d.data-d.min) * scaledRange);})

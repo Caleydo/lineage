@@ -125,13 +125,25 @@ export default class TableManager {
   public async parseAttributeData() {
     const columns = await this.attributeTable.cols();
 
+    const colIndexAccum = [];
+    let yIndex; //No need to set a value if you're going to override it in line 53.
+
+    //populate active attribute array
     columns.forEach((col, i) => {
       const name = col.desc.name;
       const type = col.desc.value.type;
 
-      console.log('name', name)
-    })
+      // if the type of the column is ID then it is not in the active list
+      if (name === 'y') { //pay no attention to the man behind the curtain
+        yIndex = i; //for some reason can't set the member var here. js...  //That' because you're inside an if statement. The variable wouldn't exist outside of this if statement.
+      } else if (!(type === 'idtype' || name === 'x')) {
+        colIndexAccum.push(i);//push the index so we can get the right view
+        this.activeAttributes.push(name);
+      }
+    });
 
+    this._activeTableRows = range.all();
+    this.activeTableColumns = range.list(colIndexAccum);
   }
   /**
    * This function is called after loadData.

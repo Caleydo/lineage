@@ -10,6 +10,7 @@ import {max, min} from 'd3-array';
 import {entries} from 'd3-collection';
 import {axisTop} from 'd3-axis';
 import * as range from 'phovea_core/src/range';
+import {isNullOrUndefined} from 'util';
 
 /**
  * Creates the attribute table view
@@ -99,10 +100,20 @@ class attributeTable {
         col.ys = ys //.slice(0,col.data.length);
         col.type = type;
         //compute some stats, but first get rid of non-entries
-        const filteredData = temp.filter((d)=>{return d.length != 0;});
+        const filteredData = temp.filter((d)=>{return d.length != 0 && !isNaN(d)});
+        console.log(filteredData);
         col.min = Math.min( ...filteredData );
         col.max = Math.max( ...filteredData );     //parse bc otherwise might be a string because parsing is hard
-        col.mean = filteredData.reduce(function(a, b) { return parseInt(a) + parseInt(b); }) / filteredData.length;
+        if (filteredData.length>0) {
+          col.mean = filteredData.reduce(function (a, b) {
+              return parseInt(a) + parseInt(b);
+            }) / filteredData.length;
+        } else {
+          col.min = 0;
+          col.max = 0;
+          col.mean=0;
+        }
+
 
         colDataAccum.push(col);
       }
@@ -227,11 +238,11 @@ class attributeTable {
     });
 
 
-    const categoricals = cells.filter((e)=>{return (e.type === 'categorical' && !isNaN(e.data))})
+    const categoricals = cells.filter((e)=>{return (e.type === 'categorical' && !isNaN(e.data) && !isNullOrUndefined(e) )})
                           .attr('classed', 'categorical');
-    const quantatives  = cells.filter((e)=>{return (e.type === 'int' && !isNaN(e.data))})
+    const quantatives  = cells.filter((e)=>{return (e.type === 'int' && !isNaN(e.data) && !isNullOrUndefined(e) && e.data !==0 )})
                           .attr('classed', 'quantitative');
-    const idCells      = cells.filter((e)=>{return (e.type === 'idtype' && !isNaN(e.data))})
+    const idCells      = cells.filter((e)=>{return (e.type === 'idtype' && !isNaN(e.data) && !isNullOrUndefined(e) && e.data !==0  )})
                           .attr('classed', 'idtype');
 
     console.log(categoricals.size())
@@ -264,7 +275,7 @@ class attributeTable {
     quantatives
     .append("ellipse")
       .attr("cx",
-      function(d){ console.log(d);
+      function(d){console.log(d.data,d.min)
         const width = col_widths.find(x => x.name === d.name).width;
         const scaledRange = (width-2*radius) / (d.max - d.min);
         return Math.floor((d.data-d.min) * scaledRange);})

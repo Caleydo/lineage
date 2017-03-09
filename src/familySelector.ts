@@ -58,10 +58,10 @@ class familySelector {
     //          <span class='  toggle-btn'><i class='glyphicon glyphicon-menu-hamburger'></i></span></li>
     //            </ul>`);
 
+
+
     const table = select("#familySelector").append("table")
       .classed('fixed_headers',true)
-      .classed('sticky-header',true);
-        // .attr("style", "margin-top: 30px,  margin-left: 10px,  margin-right: 10px");
 
     const thead = table.append("thead");
     const tbody = table.append("tbody");

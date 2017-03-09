@@ -47,8 +47,9 @@ export default class TableManager {
 
   /** Basic information about all the loaded families */
   public readonly familyInfo: IFamilyInfo[] = [];
+
   // TODO what is this? Should this be in this class?
-  public ys;
+  public yValues;
 
 // FOR TESTING ONLY!  vvvvvvv
 ///////////////////////////////////////////////////////////////////////////////

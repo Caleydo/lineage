@@ -138,7 +138,7 @@ class GraphData {
     })
 
     //Assign y values to the tableManager object
-    this.tableManager.ys = dict;
+    this.tableManager.yValues = dict;
 
   //After linear order has been computed:
     this.nodes.forEach((d)=> {

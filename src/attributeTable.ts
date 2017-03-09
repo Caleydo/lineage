@@ -12,6 +12,7 @@ import {axisTop} from 'd3-axis';
 import * as range from 'phovea_core/src/range';
 import {isNullOrUndefined} from 'util';
 import {active} from 'd3-transition';
+import {ICategoricalVector, INumericalVector} from 'phovea_core/src/vector/IVector';
 
 /**
  * Creates the attribute table view
@@ -34,8 +35,7 @@ class attributeTable {
 
   //private margin = {top: 60, right: 20, bottom: 60, left: 40};
 
-  private activeView;  // FOR DEBUG ONLY!
-  private tableManager; //FOR DEBUG ONLY!
+  private tableManager;
   private colData;    // <- everything we need to bind
 
   private margin = Config.margin;
@@ -51,14 +51,13 @@ class attributeTable {
    */
   async init(data) {
 
-    this.activeView = data.tableTable;
-    this.tableManager = data; // JANKY ONLY FOR DEV
+    this.tableManager = data;
     this.buffer = 4;
 
     this.build(); //builds the DOM
 
     // sets up the data & binds it to svg groups
-    await this.update(this.activeView, data.ys);
+    await this.update();
 
     this.attachListener();
 
@@ -68,70 +67,64 @@ class attributeTable {
 
 
 
-  public async update(activeView, ys){
-    await this.initData(activeView, ys);
+  public async update(){
+    await this.initData();
     this.render();
   }
 
 
 
-  public async initData(activeView, yDict){
+  public async initData(){
 
+    let activeView = await this.tableManager.graphTable
     //Exctract y values from dict.
     let peopleIDs = await activeView.col(0).names();
 
     let ys=[];
+    let yDict = this.tableManager.yValues;
 
     peopleIDs.forEach((person) => {
       ys.push(yDict[person]);
     })
 
+    console.log(activeView.cols());
     let colDataAccum = [];
     for (const vector of activeView.cols()) {
-      const temp = await vector.data(range.all());
+      const data = await vector.data(range.all());
       const type = await vector.valuetype.type;
       if(type === 'categorical'){
-        const categories = Array.from(new Set(temp));
+        const categories = Array.from(new Set(data));
         for(const cat of categories){
           var col: any = {};
           const base_name = await vector.desc.name;
           col.name = base_name + '_' + cat;
-          col.data = temp.map(
+          col.data = data.map(
             (d)=>{if(d === cat) return d;
                   else return undefined;});
-          col.ys = ys //.slice(0,col.data.length);
+          col.ys = ys
           col.type = type;
           colDataAccum.push(col);
         }
       }
-      else{ //quant
+      else  if (type !== 'idtype'){ //quant
+        console.log('type',type)
         var col: any = {};
+
+        // let numVector = <INumericalVector> vector;
+        let stats = await vector.stats();
+
         col.name = await vector.desc.name;
-        col.data = temp;
+        col.data = data;
         col.ys = ys //.slice(0,col.data.length);
         col.type = type;
-        //compute some stats, but first get rid of non-entries
-        const filteredData = temp.filter((d)=>{return d.length != 0 && !isNaN(d)});
-        console.log(filteredData);
-        col.min = Math.min( ...filteredData );
-        col.max = Math.max( ...filteredData );     //parse bc otherwise might be a string because parsing is hard
-        if (filteredData.length>0) {
-          col.mean = filteredData.reduce(function (a, b) {
-              return parseInt(a) + parseInt(b);
-            }) / filteredData.length;
-        } else {
-          col.min = 0;
-          col.max = 0;
-          col.mean=0;
-        }
+        col.stats = stats;
 
-
+        console.log(stats);
         colDataAccum.push(col);
       }
     }
     this.colData = colDataAccum;
 
-    console.log(this.colData);
   }
 
 
@@ -197,7 +190,9 @@ class attributeTable {
       .append('text')
       .classed('header', 'true');
 
-    headers = headerEnter.merge(headers)
+    headers = headerEnter.merge(headers);
+
+    headers
       .text((d) => {return d['name']})
       .attr("transform",(d) => {
         const x_translation = label_xs.find(x => x.name === d['name']).x;
@@ -252,6 +247,7 @@ class attributeTable {
     .attr("row_pos", (d)=>{return d["y"];})
     .attr('width', (d)=> {return (col_widths.find(x => x.name === d.name).width + 4);})
     .attr('height', rowHeight + this.buffer)
+      .attr('stroke','black')
     .attr('fill', 'none')
     // .attr("transform", function (d) {
     //   return ('translate(' + -2 + ',' + (-2) + ')');
@@ -507,14 +503,14 @@ class attributeTable {
     events.on(VIEW_CHANGED_EVENT, () => {
       //self.ys = self.tableManager.ys; //regrab the y's
   //    console.log("registered event!!");
-      self.update(self.tableManager.tableTable, self.tableManager.ys);
+      self.update();
 
       });
 
     events.on(TABLE_VIS_ROWS_CHANGED_EVENT, () => {
       //self.ys = self.tableManager.ys; //regrab the y's
     //  console.log("registered event!!");
-      self.update(self.tableManager.tableTable, self.tableManager.ys);
+      self.update();
 
       });
 

@@ -22,18 +22,24 @@ export default class TableManager {
   /** The master table that contains the graph and some attribute information */
   table: ITable;
 
-  /** The table view used in the table visualization */
+  /** The table that contains attribute information */
+  attributeTable: ITable;
+
+  /** The table view (of attributeTable) used in the table visualization */
   public tableTable: ITable; // table view
   /** The columns currently displayed in the table */
-  private activeTableColumns: range.Range;
+  private activeTableColumns: range.Range = range.all(); //default value;;
   /** The rows currently shown in the table, a subset of the activeGraphRows */
-  private _activeTableRows: range.Range;
+  private _activeTableRows: range.Range = range.all(); //default value;
 
 
-  /** The table view used for the graph */
+  /** The table view (of table) used for the graph */
   public graphTable: ITable; // table view
   /** All rows that are used in the graph - corresponds to a family */
   private activeGraphRows: range.Range;
+  /** The columns currently displayed in the table */
+  private activeGraphColumns: range.Range;
+
 
   /** Active attribute is an attribute that is not ID. This an array of strings (column name) */
     // TODO do we really need this?
@@ -75,6 +81,21 @@ export default class TableManager {
     return Promise.resolve(this);
   }
 
+  /**
+   * Loads the data form the server and stores it in the public attributeTable variable
+   * @param: name of the dataset
+   */
+  public async loadAttributeData(name: string) {
+    //retrieving the desired dataset by name
+    this.attributeTable = <ITable> await getFirstByName(name);
+    await this.parseAttributeData();
+    // TODO what is the purpose of attachListener?
+    //this.attachListener();
+    return Promise.resolve(this);
+  }
+
+
+
 
   /**
    * This function changes the range of rows to display on the selected family.
@@ -95,14 +116,41 @@ export default class TableManager {
     await this.refreshActiveViews();
   }
 
+
   /**
    * This function is called after loadData.
    * This function populate needed variables for attribute table and attribute panel
    *
    */
-  public async parseData() {
+  public async parseAttributeData() {
+    const columns = await this.attributeTable.cols();
 
-    const columns = await this.table.cols();
+    const colIndexAccum = [];
+    let yIndex; //No need to set a value if you're going to override it in line 53.
+
+    //populate active attribute array
+    columns.forEach((col, i) => {
+      const name = col.desc.name;
+      const type = col.desc.value.type;
+
+      // if the type of the column is ID then it is not in the active list
+      if (name === 'y') { //pay no attention to the man behind the curtain
+        yIndex = i; //for some reason can't set the member var here. js...  //That' because you're inside an if statement. The variable wouldn't exist outside of this if statement.
+      } else if (!(type === 'idtype' || name === 'x')) {
+        colIndexAccum.push(i);//push the index so we can get the right view
+        this.activeAttributes.push(name);
+      }
+    });
+
+    this._activeTableRows = range.all();
+    this.activeTableColumns = range.list(colIndexAccum);
+  }
+  /**
+   * This function is called after loadData.
+   * This function populates needed variables for family selector
+   *
+   */
+  public async parseData() {
 
     const familyIDs: number[] = <number[]> await this.table.col(0).data(); //Assumes kindredID is the first col. Not ideal.
     // FIXME this is a strong assumption on the data. We should move this stuff to a configuration object
@@ -126,26 +174,6 @@ export default class TableManager {
 
       this.familyInfo.push({id, range: familyRange, size: familyRange.length, affected});
     }
-
-    const colIndexAccum = [];
-    let yIndex; //No need to set a value if you're going to override it in line 53.
-
-    //populate active attribute array
-    columns.forEach((col, i) => {
-      const name = col.desc.name;
-      const type = col.desc.value.type;
-
-      // if the type of the column is ID then it is not in the active list
-      if (name === 'y') { //pay no attention to the man behind the curtain
-        yIndex = i; //for some reason can't set the member var here. js...  //That' because you're inside an if statement. The variable wouldn't exist outside of this if statement.
-      } else if (!(type === 'idtype' || name === 'x')) {
-        colIndexAccum.push(i);//push the index so we can get the right view
-        this.activeAttributes.push(name);
-      }
-    });
-
-    this._activeTableRows = range.all();
-    this.activeTableColumns = range.list(colIndexAccum);
     await this.selectFamily();
   }
 
@@ -155,7 +183,7 @@ export default class TableManager {
    */
   public async refreshActiveViews() {
     const key = range.join(this._activeTableRows, this.activeTableColumns);
-    this.tableTable = await this.table.view(key);
+    this.tableTable = await this.attributeTable.view(key);
     this.graphTable = await this.table.view(range.join(this.activeGraphRows, range.all()));
     events.fire(VIEW_CHANGED_EVENT);
   }

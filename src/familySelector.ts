@@ -51,8 +51,17 @@ class familySelector {
    */
   private build() {
 
+    // this.$node.append('div')
+    //   .classed('menu-list', true)
+    //   .html(` <ul >
+    //         <li class='brand' data-toggle='collapse'> <i class=''></i> <strong>Family Selection</strong>
+    //          <span class='  toggle-btn'><i class='glyphicon glyphicon-menu-hamburger'></i></span></li>
+    //            </ul>`);
+
+
+
     const table = select("#familySelector").append("table")
-        .attr("style", "margin-top: 30px,  margin-left: 10px,  margin-right: 10px");
+      .classed('fixed_headers',true)
 
     const thead = table.append("thead");
     const tbody = table.append("tbody");
@@ -63,9 +72,7 @@ class familySelector {
       .data(['FamilyID','# People','# Cases'])
       .enter()
       .append("th")
-      .text(function(column) { return column; });
-
-
+      .text(function(column) { return column; })
 
   }
 
@@ -75,7 +82,7 @@ class familySelector {
   private updateTable(data) {
 
     this.peopleScale
-      .range([0,70])
+      .range([0,140])
       .domain([0,800])
 
 
@@ -110,16 +117,16 @@ class familySelector {
   selectAll('td').filter((c:any)=>{return c.type === 'size' || c.type === 'cases'})
     .append('svg')
     .attr('width',(d:any) => { return this.peopleScale.range()[1] })
-    .attr('height',30)
+    .attr('height',10)
     .append('rect')
     .attr('width',(d:any) => { return this.peopleScale(d.value)})
-    .attr('height',30)
+    .attr('height',10)
 
     selectAll('td').selectAll('svg').filter((c:any)=>{return c.type === 'size' || c.type === 'cases'})
       .append('text')
-      .attr('dy', 20)
+      .attr('dy', 10)
       .attr('dx', (d:any) => {
-        return this.peopleScale(d.value)})
+        return this.peopleScale(d.value) +4})
       .text((d:any) => {
         return d.value.toString();
       })
@@ -132,10 +139,10 @@ class familySelector {
 
     cells.filter((c:any)=>{return c.type === 'id'})
     // cells
-      .attr('text-align','center')
       .html((d:any) => {
       return d.value.toString();
     })
+      .style('text-align','center')
 
 
   selectAll('td').on('click',(d) => {
@@ -145,6 +152,11 @@ class familySelector {
 
     //default to 38
     select('tbody').selectAll('tr').filter((row)=>{return row['id'] === 38}).classed('selected',true);
+
+    // var $table = $('table.sticky-header');
+    // // let $container =  $('#familySelector');
+    // $table.floatThead();
+
 }
 
 

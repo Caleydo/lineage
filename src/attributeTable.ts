@@ -10,6 +10,8 @@ import {max, min} from 'd3-array';
 import {entries} from 'd3-collection';
 import {axisTop} from 'd3-axis';
 import * as range from 'phovea_core/src/range';
+import {isNullOrUndefined} from 'util';
+import {active} from 'd3-transition';
 
 /**
  * Creates the attribute table view
@@ -28,13 +30,12 @@ class attributeTable {
 // RENDERING THINGS
   private table;
   private tableHeader;
-  private originalTableInfo;
 
 
   //private margin = {top: 60, right: 20, bottom: 60, left: 40};
 
   private activeView;  // FOR DEBUG ONLY!
-  private attributeData; //FOR DEBUG ONLY!
+  private tableManager; //FOR DEBUG ONLY!
   private colData;    // <- everything we need to bind
 
   private margin = Config.margin;
@@ -51,15 +52,13 @@ class attributeTable {
   async init(data) {
 
     this.activeView = data.tableTable;
-    this.attributeData = data; // JANKY ONLY FOR DEV
+    this.tableManager = data; // JANKY ONLY FOR DEV
     this.buffer = 4;
 
     this.build(); //builds the DOM
 
     // sets up the data & binds it to svg groups
-    //await this.update(this.activeView, data.ys);
-    await this.initDataFirstTimeOnly(this.activeView, data.ys);
-    this.render();
+    await this.update(this.activeView, data.ys);
 
     this.attachListener();
 
@@ -76,10 +75,19 @@ class attributeTable {
 
 
 
-  public async initDataFirstTimeOnly(activeView, ys){
+  public async initData(activeView, yDict){
+
+    //Exctract y values from dict.
+    let peopleIDs = await activeView.col(0).names();
+
+    let ys=[];
+
+    peopleIDs.forEach((person) => {
+      console.log('person ', person , yDict[person] )
+      ys.push(yDict[person]);
+    })
+
     let colDataAccum = [];
-    // console.log("THIS IS THE ACTIVE VIEW'S COLS!");
-    // console.log(activeView.cols());
     for (const vector of activeView.cols()) {
       const temp = await vector.data(range.all());
       const type = await vector.valuetype.type;
@@ -92,7 +100,7 @@ class attributeTable {
           col.data = temp.map(
             (d)=>{if(d === cat) return d;
                   else return undefined;});
-          col.ys = ys;
+          col.ys = ys //.slice(0,col.data.length);
           col.type = type;
           colDataAccum.push(col);
         }
@@ -101,62 +109,33 @@ class attributeTable {
         var col: any = {};
         col.name = await vector.desc.name;
         col.data = temp;
-        col.ys = ys;
+        col.ys = ys //.slice(0,col.data.length);
         col.type = type;
         //compute some stats, but first get rid of non-entries
-        const filteredData = temp.filter((d)=>{return d.length != 0;});
+        const filteredData = temp.filter((d)=>{return d.length != 0 && !isNaN(d)});
+        console.log(filteredData);
         col.min = Math.min( ...filteredData );
         col.max = Math.max( ...filteredData );     //parse bc otherwise might be a string because parsing is hard
-        col.mean = filteredData.reduce(function(a, b) { return parseInt(a) + parseInt(b); }) / filteredData.length;
-
-        colDataAccum.push(col);
-      }
-    }
-    this.colData = colDataAccum;
-  }
-
-
-
-
-
-  public async initData(activeView, ys){
-    let colDataAccum = [];
-    // console.log("THIS IS THE ACTIVE VIEW'S COLS!");
-    // console.log(activeView.cols());
-    for (const vector of activeView.cols()) {
-      const temp = await vector.data(range.all());
-      const type = await vector.valuetype.type;
-      if(type === 'categorical'){
-        const categories = Array.from(new Set(temp));
-        for(const cat of categories){
-          var col: any = {};
-          const base_name = await vector.desc.name;
-          col.name = base_name + '_' + cat;
-          col.data = temp.map(
-            (d)=>{if(d === cat) return d;
-                  else return undefined;});
-          col.ys = ys;
-          col.type = type;
-          colDataAccum.push(col);
+        if (filteredData.length>0) {
+          col.mean = filteredData.reduce(function (a, b) {
+              return parseInt(a) + parseInt(b);
+            }) / filteredData.length;
+        } else {
+          col.min = 0;
+          col.max = 0;
+          col.mean=0;
         }
-      }
-      else{ //quant
-        var col: any = {};
-        col.name = await vector.desc.name;
-        col.data = temp;
-        col.ys = ys;
-        col.type = type;
-        //compute some stats, but first get rid of non-entries
-        const filteredData = temp.filter((d)=>{return d.length != 0;});
-        col.min = Math.min( ...filteredData );
-        col.max = Math.max( ...filteredData );     //parse bc otherwise might be a string because parsing is hard
-        col.mean = filteredData.reduce(function(a, b) { return parseInt(a) + parseInt(b); }) / filteredData.length;
+
 
         colDataAccum.push(col);
       }
     }
     this.colData = colDataAccum;
+
+    console.log(this.colData);
   }
+
+
 
 
   /**
@@ -164,7 +143,7 @@ class attributeTable {
    */
   private async build(){
     this.width = 450 - this.margin.left - this.margin.right
-    this.height = Config.glyphSize * 3 * this.activeView.nrow - this.margin.top - this.margin.bottom;
+    this.height = Config.glyphSize * 3 * this.tableManager.graphTable.nrow - this.margin.top - this.margin.bottom;
 
     const svg = this.$node.append('svg')
       .attr('width', this.width + this.margin.left + this.margin.right)
@@ -190,10 +169,16 @@ class attributeTable {
     var col_xs = this.getDisplayedColumnXs(this.width);
     var label_xs = this.getDisplayedColumnMidpointXs(this.width);
 
+    let allys =[];
+    for (var key in this.tableManager.ys){
+      allys.push(+this.tableManager.ys[key])
+    }
+
     // Scales
     let x = scaleLinear().range([0, this.width]).domain([0, 13]);
     let y = scaleLinear().range([0, this.height]).domain(
-    [Math.min( ...this.colData[0]['ys']), Math.max( ...this.colData[0]['ys'])]);
+    // [Math.min( ...this.colData[0]['ys']), Math.max( ...this.colData[0]['ys'])]);
+    [Math.min(...allys), Math.max(...allys)]);
 
     const rowHeight = Config.glyphSize * 2.5 - 4;
 
@@ -241,7 +226,7 @@ class attributeTable {
     //Bind data to the cells
     let cells = cols.selectAll('.cell')
       .data((d) => {
-        return d.data.map((e, i) => {return {'name': d.name, 'data': e, 'y': d.ys[i], 'type':d.type,
+        return d.data.map((e, i) => {return {'name': d.name, 'data': +e, 'y': d.ys[i], 'type':d.type,
                                               'max':d.max, 'min':d.min, 'mean':d.mean}})});
     cells.exit().remove();
 
@@ -271,13 +256,14 @@ class attributeTable {
     });
 
 
-    const categoricals = cells.filter((e)=>{return (e.type === 'categorical')})
+    const categoricals = cells.filter((e)=>{return (e.type === 'categorical' && !isNaN(e.data) && !isNullOrUndefined(e) )})
                           .attr('classed', 'categorical');
-    const quantatives  = cells.filter((e)=>{return (e.type === 'int')})
+    const quantatives  = cells.filter((e)=>{return (e.type === 'int' && !isNaN(e.data) && !isNullOrUndefined(e) && e.data !==0 )})
                           .attr('classed', 'quantitative');
-    const idCells      = cells.filter((e)=>{return (e.type === 'idtype')})
+    const idCells      = cells.filter((e)=>{return (e.type === 'idtype' && !isNaN(e.data) && !isNullOrUndefined(e) && e.data !==0  )})
                           .attr('classed', 'idtype');
 
+    console.log(categoricals.size())
 
 ////////// RENDER CATEGORICAL COLS /////////////////////////////////////////////
 
@@ -333,7 +319,7 @@ class attributeTable {
 
 ////////////// EVENT HANDLERS! /////////////////////////////////////////////
 
-  const jankyAData = this.attributeData; ///auuughhh javascript why
+  const jankyAData = this.tableManager; ///auuughhh javascript why
   const jankyInitHandle = this.initData; ///whywhywhywhy
   let self = this;
 
@@ -343,12 +329,6 @@ class attributeTable {
 
     const newView = await jankyAData.anniesTestUpdate();
     self.update(newView, [1, 2]);
-
-    console.log('DID  Update FROM TABLEVIEW');
-    console.log(newView.dim);
-    console.log('Here\'s the filtered table FROM TABLEVIEW:');
-    console.log(await this.tableTable.data());
-
     // console.log("NEW VIEW!");
     // console.log(newView.cols()[0]);
 
@@ -506,18 +486,16 @@ class attributeTable {
 
 
     events.on(VIEW_CHANGED_EVENT, () => {
-      //console.log("registered event A!!");
-      console.log("the table before is how big?");
-      console.log(self.activeView.dim);
-      console.log("the table after  is how big?");
-      console.log(self.attributeData.tableTable);
-      self.update(self.attributeData.tableTable, self.attributeData.ys);
+      //self.ys = self.tableManager.ys; //regrab the y's
+  //    console.log("registered event!!");
+      self.update(self.tableManager.tableTable, self.tableManager.ys);
 
       });
 
     events.on(TABLE_VIS_ROWS_CHANGED_EVENT, () => {
-      //console.log("registered event B!!");
-      self.update(self.attributeData.tableTable, self.attributeData.ys);
+      //self.ys = self.tableManager.ys; //regrab the y's
+    //  console.log("registered event!!");
+      self.update(self.tableManager.tableTable, self.tableManager.ys);
 
       });
 

@@ -204,6 +204,8 @@ class GenealogyTree {
     this.visibleXAxis = axisTop(this.x).tickFormat(format('d'))
     this.extremesXAxis = axisTop(this.x2)
 
+    // window.onscroll = (e:any)=>{console.log(e,'user scrolled')}
+
     const svg = this.$node.append('svg')
       .attr('width', this.width + this.margin.left + this.margin.right)
       .attr('id', 'graph')

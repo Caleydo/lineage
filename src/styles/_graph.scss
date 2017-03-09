@@ -6,41 +6,66 @@ $node-color: #4f4f4d;
   padding-bottom: 0px;
   width: 500px;
 }
-table {
-  font-size: 20px;
-  line-height: 20px;
-  //width: 100%;
+.fixed_headers {
+  font-size: 14px !important;
+  font-weight: 200;
+  margin-top: 15px;
   margin-bottom: 20px;
-  margin-top: 10px;
-  //margin-left: 10px;
-  //margin-right: 10px;
-}
-td, th {
-  width: 33.3%;
-  padding:10px;
-  cursor: pointer;
-  //text-align: center;
+  color: #0e2231 !important;
 }
 
+
 td rect{
-  fill: #364e74;
+  fill: #636363;
 
 }
 
 tr.selected{
-  background-color: rgba(92, 145, 120, 0.44);
+  background-color: rgba(255, 100, 0, 0.44) !important;
 }
 
-//tr:nth-child(even) {background-color: #f2f2f2}
-//tr:hover {background-color: #f5f5f5}
-
+////tr:nth-child(even) {background-color: #f2f2f2}
+tr:hover {background-color: #f5f5f5}
 
 th{
-  height:20%;
-  background-color: #364e74;
+  height:40%;
+  background-color: #4f4f4f;
   color: white;
+}
 
+.fixed_headers {
+  width: 300px;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
 
+.fixed_headers th,
+.fixed_headers td {
+  padding: 5px;
+  text-align: left;
+}
+.fixed_headers td:nth-child(1),
+.fixed_headers th:nth-child(1) {
+  min-width: 60px;
+}
+.fixed_headers td:nth-child(2),
+.fixed_headers th:nth-child(2) {
+  min-width: 150px;
+}
+.fixed_headers td:nth-child(3),
+.fixed_headers th:nth-child(3) {
+  width: 90px;
+}
+
+.fixed_headers thead tr {
+  display: block;
+  position: relative;
+}
+.fixed_headers tbody {
+  display: block;
+  overflow: auto;
+  width: 100%;
+  height: 300px;
 }
 
 
@@ -57,8 +82,15 @@ label {
 
 #graph_table{
 	overflow: scroll;
-	height: 1000px;
+	height: 100vh;
 }
+
+
+#familySelector{
+  height:200px;
+  border-bottom: solid lightgray;
+}
+
 
 #yaxis{
   opacity:.2;
@@ -93,6 +125,10 @@ label {
 
 #graphDiv{
     overflow-x:scroll;
+}
+
+#familySelector{
+  overflow-x: scroll;
 }
 
 .edges.selected{

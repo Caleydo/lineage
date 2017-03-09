@@ -16,8 +16,9 @@ import {VIEW_CHANGED_EVENT} from './tableManager';
 class GraphData {
 
   public nodes;
-  public table;
-  private data;
+  public graphTable;
+  public attributeTable;
+  private tableManager;
 
   //Array of Parent Child Edges
   public parentChildEdges = [];
@@ -27,15 +28,15 @@ class GraphData {
 
 
   constructor(data) {
-    this.table = data.graphTable;
-    this.data = data;
+    this.graphTable = data.graphTable;
+    this.tableManager = data;
     this.setListeners();
   };
 
   private setListeners(){
 
   events.on(VIEW_CHANGED_EVENT, () => {
-    this.table = this.data.graphTable;
+    this.graphTable = this.tableManager.graphTable;
 
     //Once tree has been created for the new family, fire redraw tree event.
     this.createTree().then(
@@ -58,10 +59,10 @@ class GraphData {
   public async createTree() {
 
     this.nodes = [];
-    let columns = this.table.cols();
-    let nrow = this.table.nrow;
+    let columns = this.graphTable.cols();
+    let nrow = this.graphTable.nrow;
 
-    console.log('Table is of size', this.table.dim)
+    console.log('Table is of size', this.graphTable.dim)
 
     range(0,nrow,1).forEach(()=>{
       this.nodes.push({});
@@ -120,8 +121,8 @@ class GraphData {
       if (+n.bdate === 0 ) {//random number
         //subtract 20 from the age of the first kid
         if (n.hasChildren){
-          console.log('setting bdate to ', n.children[0].bdate-20)
-          n.bdate = (+n.children[0].bdate) - 20;
+          n.bdate = n.children[0].bdate - 20;
+          n.x = n.bdate;
         }
       }
     });
@@ -129,8 +130,16 @@ class GraphData {
     let ys = [];
     this.nodes.forEach((n)=>{ys.push(n.y)});
 
+    //Create hashmap of personID to y value;
+    let dict = {};
+
+    this.nodes.forEach((node) => {
+      console.log(node.id, node.y)
+      dict[node.id] = node.y;
+    })
+
     //Assign y values to the tableManager object
-    this.data.ys = ys;
+    this.tableManager.ys = dict;
 
   //After linear order has been computed:
     this.nodes.forEach((d)=> {
@@ -187,6 +196,13 @@ class GraphData {
         }
       })
     });
+
+    //If person has two spouses, put this one in the middle.
+    if (node.spouse.length === 2){
+      let ys = [node.y].concat(node.spouse.map((s)=>{return s.y}));
+      ys.sort();
+      node.y = ys[1]; node.spouse[0].y = ys[0]; node.spouse[1].y = ys[2];
+    }
 
     node.children
       // .filter((c)=>{return (c.ma === node && c.pa === s) || (c.pa === node && c.ma === s)})
@@ -404,7 +420,8 @@ class GraphData {
       return (node.Y <= startNode.Y && node.Y >= endIndex && node.hidden);
     });
 
-    if (isHidden.length > 0) {
+    if (isHidden.length > 0) {console.log('expanding branch')
+
       this.expandBranch(startNode);
       return;
     }
@@ -563,6 +580,7 @@ class GraphData {
       }
     });
 
+    this.trimTree();
   }
 
   /**
@@ -575,15 +593,17 @@ class GraphData {
 
       //find any nodes that are in that row
       const rowNodes = this.nodes.filter((d) => {
-        return d.y === y;
+        return Math.round(d.y) === y;
       }).length;
 
       if (rowNodes < 1) { //found an empty Row
         toCollapse = toCollapse + 1;
-      } else {
+      } else if (toCollapse>0) {
+        console.log('collapsing ', toCollapse ,  'rows')
         this.nodes.forEach((node) => {
           if (Math.round(node.y) >= y) {
             node.y = node.y - toCollapse;
+
           }
         });
         toCollapse = 0;
@@ -611,8 +631,10 @@ class GraphData {
       return node.Y <= startIndex && node.Y >= endIndex;
     });
 
-    let numRows = toUncollapse.length - (startIndex - endIndex) - 1;
-
+    console.log('startInd is ', startIndex)
+    console.log('endInd is ', endIndex)
+    let numRows = toUncollapse.length -1;
+   console.log('numRows is ', numRows)
     const ind = 1000;
 
     toUncollapse.forEach((n) => {
@@ -621,8 +643,7 @@ class GraphData {
       }
     });
 
-    // let ydiff = endNode['Y']-endNode['y'];
-    let ydiff = 0;
+    let ydiff = Math.round(endNode['Y']-endNode['y']);
 
     this.nodes.forEach((node) => {
       if (node['Y'] > startIndex) {

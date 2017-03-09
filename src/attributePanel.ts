@@ -35,8 +35,6 @@ class AttributePanel {
     this.$node = select(parent)
       .append('div')
       .classed('nav-side-menu active', true);
-
-
   }
 
   /**
@@ -45,8 +43,8 @@ class AttributePanel {
    * @returns {Promise<FilterBar>}
    */
   init(attributeDataObj) {
-    this.table = attributeDataObj.table;
-    this.columns = attributeDataObj.getColumns();
+    this.table = attributeDataObj.attributeTable;
+    this.columns = this.table.cols();
     this.activeColumns = attributeDataObj.activeAttributes;
 
     this.build();

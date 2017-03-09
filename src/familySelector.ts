@@ -59,7 +59,7 @@ class familySelector {
     //            </ul>`);
 
     const table = select("#familySelector").append("table")
-      // .classed('nav-side-menu',true)
+      .classed('fixed_headers',true)
       .classed('sticky-header',true);
         // .attr("style", "margin-top: 30px,  margin-left: 10px,  margin-right: 10px");
 
@@ -73,7 +73,7 @@ class familySelector {
       .enter()
       .append("th")
       .text(function(column) { return column; })
-      .style('text-align','center')
+
   }
 
   /**
@@ -82,7 +82,7 @@ class familySelector {
   private updateTable(data) {
 
     this.peopleScale
-      .range([0,70])
+      .range([0,140])
       .domain([0,800])
 
 
@@ -126,7 +126,7 @@ class familySelector {
       .append('text')
       .attr('dy', 10)
       .attr('dx', (d:any) => {
-        return this.peopleScale(d.value)})
+        return this.peopleScale(d.value) +4})
       .text((d:any) => {
         return d.value.toString();
       })

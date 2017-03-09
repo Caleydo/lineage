@@ -6,7 +6,8 @@ $node-color: #4f4f4d;
   padding-bottom: 0px;
   width: 500px;
 }
-table {
+.fixed_headers {
+  table-layout: fixed;
   font-size: 14px !important;
   font-weight:200;
   margin-top:15px;
@@ -17,10 +18,14 @@ table {
   //margin-left: 10px;
   //margin-right: 10px;
   width:100%;
-
 }
+
+td:nth-child(1), th:nth-child(1) { width: 20% }
+td:nth-child(2), th:nth-child(2) { min-width: 50% }
+td:nth-child(3), th:nth-child(3) { width: 30% }
+
 td, th {
-  width: 33.3%;
+  //width: 33.3%;
   padding:2px;
   cursor: pointer;
   //text-align: center;

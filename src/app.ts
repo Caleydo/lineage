@@ -57,6 +57,8 @@ export class App {
     // await attributeDataObj.loadData('big-decent-clipped-38');
     await attributeDataObj.loadData('BigDescend');
 
+    await attributeDataObj.loadAttributeData('Attributes');
+
     const graphDataObj = graphData.create(attributeDataObj);
     await graphDataObj.createTree();
 

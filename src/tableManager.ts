@@ -22,7 +22,10 @@ export default class TableManager {
   /** The master table that contains the graph and some attribute information */
   table: ITable;
 
-  /** The table view used in the table visualization */
+  /** The table that contains attribute information */
+  attributeTable: ITable;
+
+  /** The table view (of attributeTable) used in the table visualization */
   public tableTable: ITable; // table view
   /** The columns currently displayed in the table */
   private activeTableColumns: range.Range;
@@ -30,10 +33,13 @@ export default class TableManager {
   private _activeTableRows: range.Range;
 
 
-  /** The table view used for the graph */
+  /** The table view (of table) used for the graph */
   public graphTable: ITable; // table view
   /** All rows that are used in the graph - corresponds to a family */
   private activeGraphRows: range.Range;
+  /** The columns currently displayed in the table */
+  private activeGraphColumns: range.Range;
+
 
   /** Active attribute is an attribute that is not ID. This an array of strings (column name) */
     // TODO do we really need this?
@@ -75,6 +81,21 @@ export default class TableManager {
     return Promise.resolve(this);
   }
 
+  /**
+   * Loads the data form the server and stores it in the public table variable
+   * @param: name of the dataset
+   */
+  public async loadAttributeData(name: string) {
+    //retrieving the desired dataset by name
+    this.attributeTable = <ITable> await getFirstByName(name);
+    await this.parseAttributeData();
+    // TODO what is the purpose of attachListener?
+    //this.attachListener();
+    return Promise.resolve(this);
+  }
+
+
+
 
   /**
    * This function changes the range of rows to display on the selected family.
@@ -95,6 +116,23 @@ export default class TableManager {
     await this.refreshActiveViews();
   }
 
+
+  /**
+   * This function is called after loadData.
+   * This function populate needed variables for attribute table and attribute panel
+   *
+   */
+  public async parseAttributeData() {
+    const columns = await this.attributeTable.cols();
+
+    columns.forEach((col, i) => {
+      const name = col.desc.name;
+      const type = col.desc.value.type;
+
+      console.log('name', name)
+    })
+
+  }
   /**
    * This function is called after loadData.
    * This function populate needed variables for attribute table and attribute panel

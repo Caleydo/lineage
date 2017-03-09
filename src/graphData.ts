@@ -16,8 +16,9 @@ import {VIEW_CHANGED_EVENT} from './tableManager';
 class GraphData {
 
   public nodes;
-  public table;
-  private data;
+  public graphTable;
+  public attributeTable;
+  private tableManager;
 
   //Array of Parent Child Edges
   public parentChildEdges = [];
@@ -27,15 +28,15 @@ class GraphData {
 
 
   constructor(data) {
-    this.table = data.graphTable;
-    this.data = data;
+    this.graphTable = data.graphTable;
+    this.tableManager = data;
     this.setListeners();
   };
 
   private setListeners(){
 
   events.on(VIEW_CHANGED_EVENT, () => {
-    this.table = this.data.graphTable;
+    this.graphTable = this.tableManager.graphTable;
 
     //Once tree has been created for the new family, fire redraw tree event.
     this.createTree().then(
@@ -58,10 +59,10 @@ class GraphData {
   public async createTree() {
 
     this.nodes = [];
-    let columns = this.table.cols();
-    let nrow = this.table.nrow;
+    let columns = this.graphTable.cols();
+    let nrow = this.graphTable.nrow;
 
-    console.log('Table is of size', this.table.dim)
+    console.log('Table is of size', this.graphTable.dim)
 
     range(0,nrow,1).forEach(()=>{
       this.nodes.push({});
@@ -130,7 +131,7 @@ class GraphData {
     this.nodes.forEach((n)=>{ys.push(n.y)});
 
     //Assign y values to the tableManager object
-    this.data.ys = ys;
+    this.tableManager.ys = ys;
 
   //After linear order has been computed:
     this.nodes.forEach((d)=> {

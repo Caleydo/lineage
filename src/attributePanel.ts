@@ -251,7 +251,7 @@ class AttributePanel {
       const catVector = <ICategoricalVector> dataVec;
       const attributeHistogram = histogram.create(svg);
       await attributeHistogram.init(attributeName, dataVec);
-    } else {
+    } else if (dataVec.desc.value.type !== 'idtype'){
       const numVector = <INumericalVector> dataVec;
       console.log('Stats on a vector:');
       console.log(await numVector.stats());

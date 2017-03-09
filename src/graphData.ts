@@ -11,6 +11,7 @@ import {
 } from 'd3-array';
 
 import * as events from 'phovea_core/src/event';
+import * as Range from 'phovea_core/src/range';
 import {VIEW_CHANGED_EVENT} from './tableManager';
 
 class GraphData {
@@ -19,6 +20,7 @@ class GraphData {
   public graphTable;
   public attributeTable;
   private tableManager;
+  private ids; //unique identifier for each person. Is used to create new range on graphView
 
   //Array of Parent Child Edges
   public parentChildEdges = [];
@@ -68,13 +70,13 @@ class GraphData {
       this.nodes.push({});
     })
 
-      let ids =await columns[0].names();
+    this.ids =await columns[0].names();
 
       for (let col of columns) {
         let data = await col.data();
         for (let row of range(0, nrow, 1)) {
           let personObj = this.nodes[row];
-          personObj['id'] = +ids[row];
+          personObj['id'] = +this.ids[row];
           personObj[col.desc.name] = data[row];
         };
       }
@@ -419,9 +421,12 @@ class GraphData {
       return (node.Y <= startNode.Y && node.Y >= endIndex && node.hidden);
     });
 
-    if (isHidden.length > 0) {console.log('expanding branch')
+    if (isHidden.length > 0) {
+      console.log('expanding branch')
 
       this.expandBranch(startNode);
+
+      // activeTableRows(newRows: range.Range)
       return;
     }
     ;
@@ -580,7 +585,18 @@ class GraphData {
     });
 
     this.trimTree();
-  }
+
+    let new_range = [];
+    this.nodes.forEach((n: any) => {
+      if (!n.hidden) {
+        let ind: number = this.ids.indexOf(n.id);
+        new_range.push(ind);
+      }
+      ;
+
+      this.tableManager.activeTableRows(Range.list(new_range))
+    });
+  };
 
   /**
    *

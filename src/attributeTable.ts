@@ -12,7 +12,8 @@ import {axisTop} from 'd3-axis';
 import * as range from 'phovea_core/src/range';
 import {isNullOrUndefined} from 'util';
 import {active} from 'd3-transition';
-import {ICategoricalVector, INumericalVector} from 'phovea_core/src/vector/IVector';
+
+import {range as d3Range} from 'd3-array';
 
 /**
  * Creates the attribute table view
@@ -76,22 +77,29 @@ class attributeTable {
 
   public async initData(){
 
-    let activeView = await this.tableManager.graphTable
-    //Exctract y values from dict.
-    let peopleIDs = await activeView.col(0).names();
+    let graphView = await this.tableManager.graphTable;
+    let attributeView = await this.tableManager.tableTable;
 
-    let ys=[];
-    let yDict = this.tableManager.yValues;
 
-    peopleIDs.forEach((person) => {
-      ys.push(yDict[person]);
-    })
 
-    console.log(activeView.cols());
     let colDataAccum = [];
-    for (const vector of activeView.cols()) {
+
+    let allCols = graphView.cols().concat(attributeView.cols());
+
+    for (const vector of allCols) {
       const data = await vector.data(range.all());
       const type = await vector.valuetype.type;
+
+      //Exctract y values from dict.
+      let peopleIDs = await vector.names();
+
+      let ys=[];
+      let yDict = this.tableManager.yValues;
+
+      peopleIDs.forEach((person) => {
+        ys.push(yDict[person]);
+      })
+
       if(type === 'categorical'){
         const categories = Array.from(new Set(data));
         for(const cat of categories){
@@ -107,10 +115,8 @@ class attributeTable {
         }
       }
       else  if (type !== 'idtype'){ //quant
-        console.log('type',type)
         var col: any = {};
 
-        // let numVector = <INumericalVector> vector;
         let stats = await vector.stats();
 
         col.name = await vector.desc.name;
@@ -119,7 +125,6 @@ class attributeTable {
         col.type = type;
         col.stats = stats;
 
-        console.log(stats);
         colDataAccum.push(col);
       }
     }
@@ -168,11 +173,10 @@ class attributeTable {
 
     // Scales
     let x = scaleLinear().range([0, this.width]).domain([0, 13]);
-    let y = scaleLinear().range([0, this.height]).domain(
+    let y = scaleLinear().range([0, this.height]).domain([1,this.tableManager.graphTable.nrow]);
     // [Math.min( ...this.colData[0]['ys']), Math.max( ...this.colData[0]['ys'])]);
-    [Math.min(...allys), Math.max(...allys)]);
-
     const rowHeight = Config.glyphSize * 2.5 - 4;
+
 
 
 
@@ -220,7 +224,7 @@ class attributeTable {
     //Bind data to the cells
     let cells = cols.selectAll('.cell')
       .data((d) => {
-        return d.data.map((e, i) => {return {'name': d.name, 'data': +e, 'y': d.ys[i], 'type':d.type,
+        return d.data.map((e, i) => { return {'name': d.name, 'data': +e, 'y': d.ys[i], 'type':d.type,
                                               'max':d.max, 'min':d.min, 'mean':d.mean}})});
     cells.exit().remove();
 
@@ -231,8 +235,8 @@ class attributeTable {
     cells = cellsEnter.merge(cells);
 
     cells
-        .attr("transform", function (col) {
-          return ('translate(0, ' + y(col['y']) + ' )'); //the x translation is taken care of by the group this cell is nested in.
+        .attr("transform", function (col:any) {
+          return ('translate(0, ' + y(col.y) + ' )'); //the x translation is taken care of by the group this cell is nested in.
         });
 
 //////////// RENDERING ////////////////////////////////////////////////////
@@ -247,7 +251,7 @@ class attributeTable {
     .attr("row_pos", (d)=>{return d["y"];})
     .attr('width', (d)=> {return (col_widths.find(x => x.name === d.name).width + 4);})
     .attr('height', rowHeight + this.buffer)
-      .attr('stroke','black')
+      // .attr('stroke','black')
     .attr('fill', 'none')
     // .attr("transform", function (d) {
     //   return ('translate(' + -2 + ',' + (-2) + ')');

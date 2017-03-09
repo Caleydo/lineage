@@ -77,8 +77,6 @@ export default class TableManager {
     //retrieving the desired dataset by name
     this.table = <ITable> await getFirstByName(name);
     await this.parseData();
-    // TODO what is the purpose of attachListener?
-    //this.attachListener();
     return Promise.resolve(this);
   }
 
@@ -90,8 +88,6 @@ export default class TableManager {
     //retrieving the desired dataset by name
     this.attributeTable = <ITable> await getFirstByName(name);
     await this.parseAttributeData();
-    // TODO what is the purpose of attachListener?
-    //this.attachListener();
     return Promise.resolve(this);
   }
 
@@ -104,7 +100,7 @@ export default class TableManager {
    */
   public async selectFamily(chosenFamilyID?: number) {
     let family;
-    console.log(chosenFamilyID);
+
     if (chosenFamilyID == null) {
       family = this.familyInfo[0];
     } else {

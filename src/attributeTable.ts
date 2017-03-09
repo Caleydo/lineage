@@ -28,6 +28,7 @@ class attributeTable {
 // RENDERING THINGS
   private table;
   private tableHeader;
+  private originalTableInfo;
 
 
   //private margin = {top: 60, right: 20, bottom: 60, left: 40};
@@ -56,7 +57,9 @@ class attributeTable {
     this.build(); //builds the DOM
 
     // sets up the data & binds it to svg groups
-    await this.update(this.activeView, data.ys);
+    //await this.update(this.activeView, data.ys);
+    await this.initDataFirstTimeOnly(this.activeView, data.ys);
+    this.render();
 
     this.attachListener();
 
@@ -73,8 +76,53 @@ class attributeTable {
 
 
 
+  public async initDataFirstTimeOnly(activeView, ys){
+    let colDataAccum = [];
+    // console.log("THIS IS THE ACTIVE VIEW'S COLS!");
+    // console.log(activeView.cols());
+    for (const vector of activeView.cols()) {
+      const temp = await vector.data(range.all());
+      const type = await vector.valuetype.type;
+      if(type === 'categorical'){
+        const categories = Array.from(new Set(temp));
+        for(const cat of categories){
+          var col: any = {};
+          const base_name = await vector.desc.name;
+          col.name = base_name + '_' + cat;
+          col.data = temp.map(
+            (d)=>{if(d === cat) return d;
+                  else return undefined;});
+          col.ys = ys;
+          col.type = type;
+          colDataAccum.push(col);
+        }
+      }
+      else{ //quant
+        var col: any = {};
+        col.name = await vector.desc.name;
+        col.data = temp;
+        col.ys = ys;
+        col.type = type;
+        //compute some stats, but first get rid of non-entries
+        const filteredData = temp.filter((d)=>{return d.length != 0;});
+        col.min = Math.min( ...filteredData );
+        col.max = Math.max( ...filteredData );     //parse bc otherwise might be a string because parsing is hard
+        col.mean = filteredData.reduce(function(a, b) { return parseInt(a) + parseInt(b); }) / filteredData.length;
+
+        colDataAccum.push(col);
+      }
+    }
+    this.colData = colDataAccum;
+  }
+
+
+
+
+
   public async initData(activeView, ys){
     let colDataAccum = [];
+    // console.log("THIS IS THE ACTIVE VIEW'S COLS!");
+    // console.log(activeView.cols());
     for (const vector of activeView.cols()) {
       const temp = await vector.data(range.all());
       const type = await vector.valuetype.type;
@@ -295,6 +343,12 @@ class attributeTable {
 
     const newView = await jankyAData.anniesTestUpdate();
     self.update(newView, [1, 2]);
+
+    console.log('DID  Update FROM TABLEVIEW');
+    console.log(newView.dim);
+    console.log('Here\'s the filtered table FROM TABLEVIEW:');
+    console.log(await this.tableTable.data());
+
     // console.log("NEW VIEW!");
     // console.log(newView.cols()[0]);
 
@@ -452,15 +506,17 @@ class attributeTable {
 
 
     events.on(VIEW_CHANGED_EVENT, () => {
-      //self.ys = self.attributeData.ys; //regrab the y's
-  //    console.log("registered event!!");
+      //console.log("registered event A!!");
+      console.log("the table before is how big?");
+      console.log(self.activeView.dim);
+      console.log("the table after  is how big?");
+      console.log(self.attributeData.tableTable);
       self.update(self.attributeData.tableTable, self.attributeData.ys);
 
       });
 
     events.on(TABLE_VIS_ROWS_CHANGED_EVENT, () => {
-      //self.ys = self.attributeData.ys; //regrab the y's
-    //  console.log("registered event!!");
+      //console.log("registered event B!!");
       self.update(self.attributeData.tableTable, self.attributeData.ys);
 
       });

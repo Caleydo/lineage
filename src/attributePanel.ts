@@ -25,12 +25,10 @@ class AttributePanel {
   private columns;
   private activeColumns;
 
+  private collapsed = false;
+
 
   constructor(parent: Element) {
-
-    select(parent)
-      .append('div')
-      .attr('id', 'familySelector');
 
     this.$node = select(parent)
       .append('div')
@@ -60,26 +58,34 @@ class AttributePanel {
    */
   private build() {
 
-    // menu container container
-    const menuList = this.$node.append('div')
+    // family selector
+    const familySelector = this.$node.append('div')
+      .attr('id','familySelector')
       .classed('menu-list', true)
       .html(` <ul >
-            <li class='brand' data-toggle='collapse'> <i class=''></i> <strong>Data Selection</strong>
+            <li class='brand' data-toggle='collapse'> <i class=''></i> <strong>Family and Data Selection</strong>
              <span class='toggle-btn'><i class='glyphicon glyphicon-menu-hamburger'></i></span></li>
                </ul>`);
+
+
+    // menu container container
+    const menuList = this.$node.append('div')
+      .classed('menu-list', true);
+
+
+    menuList.append('ul').html(`<li class='inactive collapsed active' data-target='#active-menu-content' data-toggle='collapse'>
+    <strong>Data Selection</strong><span class='arrow'></span></li>`);
 
 
     // list that holds data attribute
     // initially all attributes are active
     const activeAttributeList = menuList.append('div')
       .attr('id', 'active-menu-content')
-      .classed('menu-content collapse in', true);
+      .classed('menu-content sub-menu collapse in fade', true);
 
     menuList.append('ul')
-      .html(`
-       <li class='inactive collapsed active' data-target='#inactive-menu-content' data-toggle='collapse'>
-                                  <i class=''></i><strong>Inactive attributes</strong> <span class='arrow'></span>
-                                </li>`);
+      .html(`<li class='inactive collapsed active' data-target='#inactive-menu-content' data-toggle='collapse'>
+       <strong>Inactive attributes</strong> <span class='arrow'></span></li>`);
 
 
     // list that holds inactive attributes
@@ -87,8 +93,6 @@ class AttributePanel {
     const inactiveAttributeList = menuList.append('div')
       .attr('id', 'inactive-menu-content')
       .classed('menu-content sub-menu collapse in fade', true);
-    // .html(`
-    // <li class='placeholder'>DRAG AND DROP ATTRIBUTES HERE TO MAKE THEM INACTIVE</li>`);
 
 
     // Active sortable list
@@ -254,7 +258,7 @@ class AttributePanel {
     } else {
       const numVector = <INumericalVector> dataVec;
       console.log('Stats on a vector:');
-      console.log(await numVector.stats());
+      //console.log(await numVector.stats());
     }
 
     /*
@@ -284,8 +288,34 @@ class AttributePanel {
 
   }
 
+  private toggle() {
+    const sidePanel = document.getElementById('data_selection');
+    const sidePanelContent = document.getElementById('data_selection').children;
+    const graphNtable = document.getElementById('graph_table');
+
+    // if the attribute panel is expanded
+    if(!this.collapsed) {
+      // collapse attribute panel
+      sidePanel.style.width = '30px';
+      // resize graph div
+      graphNtable.style.width = '800px';
+      //update flag value
+      this.collapsed = true;
+    } else {
+      // expand attribute panel
+      sidePanel.style.width = '400px';
+      // resize graph div
+      graphNtable.style.width = '600px';
+      //update flag value
+      this.collapsed = false;
+    }
+  }
 
   private attachListener() {
+    // listen to toggle panel event
+    select('.toggle-btn').on('click', ()=> {
+      this.toggle();
+    })
 
     //Set listener for click event on corresponding node that changes the color of that row to red
     events.on('node_clicked', (evt, item) => {

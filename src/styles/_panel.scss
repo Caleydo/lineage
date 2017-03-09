@@ -1,4 +1,5 @@
 #data_selection {
+  float: left;
   height: 100vh;
   border-right: solid lightgrey;
   margin-left: 10px;
@@ -132,7 +133,13 @@
   background-color: lightgrey;
 }
 
-.nav-side-menu menu-list,
+.nav-side-menu .menu-list ul{
+  -webkit-padding-start: 5px;
+  padding-right: -20px;
+  margin-top: 10px;
+}
+
+
 .nav-side-menu li {
   list-style: none;
   padding: 0px;
@@ -158,8 +165,8 @@
 
 .nav-side-menu ul a > strong,
 .nav-side-menu li > a > strong {
-  font-size: 1.5em;
-  font-weight: 400;
+  font-size: 1.2em;
+  font-weight: 300;
   vertical-align: middle;
 }
 
@@ -302,7 +309,7 @@
 
 .nav-side-menu li a i {
   display: inline-block;
-  margin-right: 5px;
+
   vertical-align: middle;
   width: 32px;
 }

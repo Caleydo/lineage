@@ -60,7 +60,7 @@ export class App {
     await attributeDataObj.loadAttributeData('Attributes');
 
     //Load in Genealogy Data
-    await attributeDataObj.loadData('BigDescend');
+    await attributeDataObj.loadData('SmallDescend');
 
 
     const graphDataObj = graphData.create(attributeDataObj);

@@ -32,10 +32,15 @@ class attributeTable {
   private tableHeader;
 
 
+  // holding on the the original data context
+  private catColsForThisFamily;
+  private intColsForThisFamily;
+
+
   //private margin = {top: 60, right: 20, bottom: 60, left: 40};
 
-  private activeView;  // FOR DEBUG ONLY!
-  private tableManager; //FOR DEBUG ONLY!
+  private activeView;
+  private tableManager;
   private colData;    // <- everything we need to bind
 
   private margin = Config.margin;
@@ -58,7 +63,10 @@ class attributeTable {
     this.build(); //builds the DOM
 
     // sets up the data & binds it to svg groups
-    await this.update(this.activeView, data.ys);
+    await this.initDataNewFamily(this.activeView, data.ys);
+    this.render();
+
+
 
     this.attachListener();
 
@@ -74,16 +82,19 @@ class attributeTable {
   }
 
 
+  public async initDataNewFamily(activeView, yDict){
+    console.log("this is the active view: ");
+    console.log(activeView);
 
-  public async initData(activeView, yDict){
-
-    //Exctract y values from dict.
+    //Extract y values from dict.
     let peopleIDs = await activeView.col(0).names();
 
     let ys=[];
+    let catAccum = [];
+    let intAccum = [];
 
     peopleIDs.forEach((person) => {
-      console.log('person ', person , yDict[person] )
+  //    console.log('person ', person , yDict[person] )
       ys.push(yDict[person]);
     })
 
@@ -92,6 +103,86 @@ class attributeTable {
       const temp = await vector.data(range.all());
       const type = await vector.valuetype.type;
       if(type === 'categorical'){
+        const categories = Array.from(new Set(temp));
+        for(const cat of categories){
+          var col: any = {};
+          const base_name = await vector.desc.name;
+          col.name = base_name + '_' + cat;
+          col.data = temp.map(
+            (d)=>{if(d === cat) return d;
+                  else return undefined;});
+          col.ys = ys //.slice(0,col.data.length);
+          col.type = type;
+          col.cat = cat; //this is redundant but it'll make rerendering easier
+          colDataAccum.push(col);
+          catAccum.push(col);
+        }
+      }
+      else{ //quant
+        var col: any = {};
+        col.name = await vector.desc.name;
+        col.data = temp;
+        col.ys = ys //.slice(0,col.data.length);
+        col.type = type;
+        //compute some stats, but first get rid of non-entries
+        const filteredData = temp.filter((d)=>{return d.length != 0 && !isNaN(d)});
+        console.log(filteredData);
+        col.min = Math.min( ...filteredData );
+        col.max = Math.max( ...filteredData );     //parse bc otherwise might be a string because parsing is hard
+        if (filteredData.length>0) {
+          col.mean = filteredData.reduce(function (a, b) {
+              return parseInt(a) + parseInt(b);
+            }) / filteredData.length;
+        } else {
+          col.min = 0;
+          col.max = 0;
+          col.mean=0;
+        }
+        colDataAccum.push(col);
+        intAccum.push(col);
+      }
+    }
+    this.colData = colDataAccum;
+    this.catColsForThisFamily = catAccum;
+    this.intColsForThisFamily = intAccum;
+
+    console.log("THIS IS CAT COLS:");
+    console.log(catAccum);
+    console.log("THIS IS INT COLS:");
+    console.log(intAccum);
+
+    console.log(this.colData);
+  }
+
+
+
+
+
+  public async initData(activeView, yDict){
+
+    console.log("this is the active view: ");
+    console.log(activeView);
+
+    //Extract y values from dict.
+    let peopleIDs = await activeView.col(0).names();
+
+    let ys=[];
+
+    peopleIDs.forEach((person) => {
+  //    console.log('person ', person , yDict[person] )
+      ys.push(yDict[person]);
+    })
+
+
+    let colDataAccum = [];
+    for (const vector of activeView.cols()) {
+      const temp = await vector.data(range.all());
+      const type = await vector.valuetype.type;
+      if(type === 'categorical'){
+        //figure out which category we are
+
+
+
         const categories = Array.from(new Set(temp));
         for(const cat of categories){
           var col: any = {};

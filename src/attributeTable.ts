@@ -11,6 +11,7 @@ import {entries} from 'd3-collection';
 import {axisTop} from 'd3-axis';
 import * as range from 'phovea_core/src/range';
 import {isNullOrUndefined} from 'util';
+import {active} from 'd3-transition';
 
 /**
  * Creates the attribute table view
@@ -34,7 +35,7 @@ class attributeTable {
   //private margin = {top: 60, right: 20, bottom: 60, left: 40};
 
   private activeView;  // FOR DEBUG ONLY!
-  private attributeData; //FOR DEBUG ONLY!
+  private tableManager; //FOR DEBUG ONLY!
   private colData;    // <- everything we need to bind
 
   private margin = Config.margin;
@@ -51,7 +52,7 @@ class attributeTable {
   async init(data) {
 
     this.activeView = data.tableTable;
-    this.attributeData = data; // JANKY ONLY FOR DEV
+    this.tableManager = data; // JANKY ONLY FOR DEV
     this.buffer = 4;
 
     this.build(); //builds the DOM
@@ -74,7 +75,18 @@ class attributeTable {
 
 
 
-  public async initData(activeView, ys){
+  public async initData(activeView, yDict){
+
+    //Exctract y values from dict.
+    let peopleIDs = await activeView.col(0).names();
+
+    let ys=[];
+
+    peopleIDs.forEach((person) => {
+      console.log('person ', person , yDict[person] )
+      ys.push(yDict[person]);
+    })
+
     let colDataAccum = [];
     for (const vector of activeView.cols()) {
       const temp = await vector.data(range.all());
@@ -131,7 +143,7 @@ class attributeTable {
    */
   private async build(){
     this.width = 450 - this.margin.left - this.margin.right
-    this.height = Config.glyphSize * 3 * this.activeView.nrow - this.margin.top - this.margin.bottom;
+    this.height = Config.glyphSize * 3 * this.tableManager.graphTable.nrow - this.margin.top - this.margin.bottom;
 
     const svg = this.$node.append('svg')
       .attr('width', this.width + this.margin.left + this.margin.right)
@@ -157,10 +169,16 @@ class attributeTable {
     var col_xs = this.getDisplayedColumnXs(this.width);
     var label_xs = this.getDisplayedColumnMidpointXs(this.width);
 
+    let allys =[];
+    for (var key in this.tableManager.ys){
+      allys.push(+this.tableManager.ys[key])
+    }
+
     // Scales
     let x = scaleLinear().range([0, this.width]).domain([0, 13]);
     let y = scaleLinear().range([0, this.height]).domain(
-    [Math.min( ...this.colData[0]['ys']), Math.max( ...this.colData[0]['ys'])]);
+    // [Math.min( ...this.colData[0]['ys']), Math.max( ...this.colData[0]['ys'])]);
+    [Math.min(...allys), Math.max(...allys)]);
 
     const rowHeight = Config.glyphSize * 2.5 - 4;
 
@@ -275,7 +293,7 @@ class attributeTable {
     quantatives
     .append("ellipse")
       .attr("cx",
-      function(d){console.log(d.data,d.min)
+      function(d){
         const width = col_widths.find(x => x.name === d.name).width;
         const scaledRange = (width-2*radius) / (d.max - d.min);
         return Math.floor((d.data-d.min) * scaledRange);})
@@ -301,7 +319,7 @@ class attributeTable {
 
 ////////////// EVENT HANDLERS! /////////////////////////////////////////////
 
-  const jankyAData = this.attributeData; ///auuughhh javascript why
+  const jankyAData = this.tableManager; ///auuughhh javascript why
   const jankyInitHandle = this.initData; ///whywhywhywhy
   let self = this;
 
@@ -468,16 +486,16 @@ class attributeTable {
 
 
     events.on(VIEW_CHANGED_EVENT, () => {
-      //self.ys = self.attributeData.ys; //regrab the y's
+      //self.ys = self.tableManager.ys; //regrab the y's
   //    console.log("registered event!!");
-      self.update(self.attributeData.tableTable, self.attributeData.ys);
+      self.update(self.tableManager.tableTable, self.tableManager.ys);
 
       });
 
     events.on(TABLE_VIS_ROWS_CHANGED_EVENT, () => {
-      //self.ys = self.attributeData.ys; //regrab the y's
+      //self.ys = self.tableManager.ys; //regrab the y's
     //  console.log("registered event!!");
-      self.update(self.attributeData.tableTable, self.attributeData.ys);
+      self.update(self.tableManager.tableTable, self.tableManager.ys);
 
       });
 

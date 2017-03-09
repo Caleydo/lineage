@@ -130,8 +130,16 @@ class GraphData {
     let ys = [];
     this.nodes.forEach((n)=>{ys.push(n.y)});
 
+    //Create hashmap of personID to y value;
+    let dict = {};
+
+    this.nodes.forEach((node) => {
+      console.log(node.id, node.y)
+      dict[node.id] = node.y;
+    })
+
     //Assign y values to the tableManager object
-    this.tableManager.ys = ys;
+    this.tableManager.ys = dict;
 
   //After linear order has been computed:
     this.nodes.forEach((d)=> {

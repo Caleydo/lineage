@@ -83,7 +83,6 @@ class attributeTable {
     let ys=[];
 
     peopleIDs.forEach((person) => {
-      console.log('person ', person , yDict[person] )
       ys.push(yDict[person]);
     })
 
@@ -234,41 +233,48 @@ class attributeTable {
       .append("g")
       .attr('class', 'cell');
 
-    cells = cellsEnter.merge(cells)
+    cells = cellsEnter.merge(cells);
+
+    cells
         .attr("transform", function (col) {
           return ('translate(0, ' + y(col['y']) + ' )'); //the x translation is taken care of by the group this cell is nested in.
         });
 
-
-
 //////////// RENDERING ////////////////////////////////////////////////////
 
     //Add rectangle for highlighting...
-    const boundary = cells
+   cellsEnter
     .append('rect')
-    .classed("boundary", true)
+    .classed("boundary", true);
+
+    //Position all highlighting rectangles
+    cells.selectAll('.boundary')
     .attr("row_pos", (d)=>{return d["y"];})
     .attr('width', (d)=> {return (col_widths.find(x => x.name === d.name).width + 4);})
     .attr('height', rowHeight + this.buffer)
-    .attr('fill', 'transparent')
-    .attr("transform", function (d) {
-      return ('translate(' + -2 + ',' + (-2) + ')');
-    });
+    .attr('fill', 'none')
+    // .attr("transform", function (d) {
+    //   return ('translate(' + -2 + ',' + (-2) + ')');
+    // });
 
 
-    const categoricals = cells.filter((e)=>{return (e.type === 'categorical' && !isNaN(e.data) && !isNullOrUndefined(e) )})
+    const categoricals = cellsEnter.filter((e)=>{return (e.type === 'categorical' && !isNaN(e.data) && !isNullOrUndefined(e) )})
                           .attr('classed', 'categorical');
-    const quantatives  = cells.filter((e)=>{return (e.type === 'int' && !isNaN(e.data) && !isNullOrUndefined(e) && e.data !==0 )})
+    const quantatives  = cellsEnter.filter((e)=>{return (e.type === 'int' && !isNaN(e.data) && !isNullOrUndefined(e) && e.data !==0 )})
                           .attr('classed', 'quantitative');
-    const idCells      = cells.filter((e)=>{return (e.type === 'idtype' && !isNaN(e.data) && !isNullOrUndefined(e) && e.data !==0  )})
+    const idCells      = cellsEnter.filter((e)=>{return (e.type === 'idtype' && !isNaN(e.data) && !isNullOrUndefined(e) && e.data !==0  )})
                           .attr('classed', 'idtype');
-
-    console.log(categoricals.size())
 
 ////////// RENDER CATEGORICAL COLS /////////////////////////////////////////////
 
     categoricals
     .append('rect')
+      .classed('categorical', true)
+
+  console.log(categoricals.size())
+
+    cells
+      .selectAll('.categorical')
     .attr('width', (d)=> {return col_widths.find(x => x.name === d.name).width;})
     .attr('height', rowHeight)
     .attr('stroke', 'black')
@@ -283,7 +289,11 @@ class attributeTable {
     const radius = 2;
 
     quantatives
-    .append('rect')
+      .append('rect')
+      .classed('quant',true)
+
+    cells
+      .selectAll('.quant')
     .attr('width', (d)=> {return col_widths.find(x => x.name === d.name).width;})
     .attr('height', rowHeight)
     .attr('fill', lightGrey)
@@ -292,6 +302,10 @@ class attributeTable {
 
     quantatives
     .append("ellipse")
+      .classed('quant_ellipse',true)
+
+    cells
+      .selectAll('.quant_ellipse')
       .attr("cx",
       function(d){
         const width = col_widths.find(x => x.name === d.name).width;
@@ -305,8 +319,13 @@ class attributeTable {
       .attr('fill', darkGrey); // TODO: translate off of boundaries
 
       // stick on the median
-      quantatives
+      quantatives.enter()
       .append("rect") //sneaky line is a rectangle
+        .attr('class','medianLine');
+
+    cells
+      .selectAll('.quantitative')
+      .selectAll('.medianLine')
       .attr("width", 1.2)
       .attr("height", rowHeight)
       .attr("fill", 'black')
@@ -327,8 +346,8 @@ class attributeTable {
   //  console.log("REGISTERED CLICK");
     //update the dataset & re-render
 
-    const newView = await jankyAData.anniesTestUpdate();
-    self.update(newView, [1, 2]);
+    // const newView = await jankyAData.anniesTestUpdate();
+    // self.update(newView, [1, 2]);
     // console.log("NEW VIEW!");
     // console.log(newView.cols()[0]);
 

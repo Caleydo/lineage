@@ -1,7 +1,5 @@
 import * as events from 'phovea_core/src/event';
 import {AppConstants, ChangeTypes} from './app_constants';
-import * as Sortable from 'sortablejs';
-import * as $ from 'jquery';
 import {select, selectAll} from 'd3-selection';
 import {keys} from 'd3-collection';
 
@@ -153,9 +151,6 @@ class familySelector {
     //default to 38
     select('tbody').selectAll('tr').filter((row)=>{return row['id'] === 38}).classed('selected',true);
 
-    // var $table = $('table.sticky-header');
-    // // let $container =  $('#familySelector');
-    // $table.floatThead();
 
 }
 

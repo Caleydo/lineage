@@ -98,11 +98,11 @@ class attributeTable {
 
 //HEADERS
     this.tableHeader = svg.append("g")
-      .attr("transform", "translate(0," + this.margin.axisTop / 2 + ")");
+      .attr("transform", "translate(2," + this.margin.axisTop / 2 + ")");
 
 // TABLE
     this.table = svg.append("g")
-      .attr("transform", "translate(0," + this.margin.top + ")");
+      .attr("transform", "translate(2," + this.margin.top + ")");
   }
 
 
@@ -113,10 +113,6 @@ class attributeTable {
 
     console.log('graph has ', graphView.nrow)
     console.log('table Height is ', this.height)
-
-    // this.height = Config.glyphSize * 3 * graphView.nrow - this.margin.top - this.margin.bottom;
-    // select('.tableSVG').attr("height", this.height + this.margin.top + this.margin.bottom)
-
 
     let colDataAccum = [];
 
@@ -135,8 +131,6 @@ class attributeTable {
       peopleIDs.forEach((person) => {
         ys.push(yDict[person]);
       })
-
-
 
       if (type === 'categorical') {
         const categories = Array.from(new Set(data));
@@ -197,8 +191,9 @@ class attributeTable {
     let t = transition('t').duration(500).ease(easeLinear);
 
     const darkGrey = '#4d4d4d'; //todo clearly
-    const lightGrey = '#d9d9d9';
-    const mediumGrey = '#7e7e7e';
+    // const lightGrey = '#d9d9d9';
+    const lightGrey = '#e9e9e9';
+    const mediumGrey = '#e0e0e0';
 
     //rendering info
     var col_widths = this.getDisplayedColumnWidths(this.width);
@@ -290,9 +285,16 @@ class attributeTable {
       .append("g")
       .attr('class', 'cell');
 
-    cells = cellsEnter.merge(cells);
+
 
     cells.exit().transition(t).attr('opacity',0).remove();
+
+    //Add rectangle for highlighting...
+    cellsEnter
+      .append('rect')
+      .classed("boundary", true);
+
+    cells = cellsEnter.merge(cells);
 
     cells
       .transition(t)
@@ -302,10 +304,6 @@ class attributeTable {
 
 //////////// RENDERING ////////////////////////////////////////////////////
 
-    //Add rectangle for highlighting...
-    cellsEnter
-      .append('rect')
-      .classed("boundary", true);
 
     //Position all highlighting rectangles
     cells.selectAll('.boundary')
@@ -316,11 +314,11 @@ class attributeTable {
         return (col_widths.find(x => x.name === d.name).width + 4);
       })
       .attr('height', rowHeight + this.buffer)
-      .attr('stroke',lightGrey)
+      .attr('stroke',mediumGrey)
       .attr('fill', 'none')
-    // .attr("transform", function (d) {
-    //   return ('translate(' + -2 + ',' + (-2) + ')');
-    // });
+    .attr("transform", function (d) {
+      return ('translate(' + -2 + ',' + (-2) + ')');
+    });
 
 
     const categoricals = cellsEnter.filter((e) => {
@@ -359,7 +357,7 @@ class attributeTable {
       });
 
 ////////// RENDER QUANT COLS /////////////////////////////////////////////
-    const radius = 2;
+    const radius = 3.5;
 
     quantitative
       .append('rect')
@@ -392,15 +390,15 @@ class attributeTable {
       .attr("ry", radius)
       .attr('stroke', 'black')
       .attr('stroke-width', 1)
-      .attr('fill', darkGrey); // TODO: translate off of boundaries
+      .attr('fill', darkGrey) // TODO: translate off of boundaries
+      .attr('opacity',.8)
 
     // stick on the median
-    quantitative.enter()
+    quantitative
       .append("rect") //sneaky line is a rectangle
       .attr('class', 'medianLine');
 
     cells
-      .selectAll('.quantitative')
       .selectAll('.medianLine')
       .attr("width", 1.2)
       .attr("height", rowHeight)
@@ -410,6 +408,8 @@ class attributeTable {
         const scaledRange = (width - 2 * radius) / (d.stats.max - d.stats.min);
         return ('translate(' + ((d.stats.mean - d.stats.min) * scaledRange) + ',0)');
       });
+
+    cells.selectAll('rect').on('click',(c) => {console.log(c);})
 
 
 ////////////// EVENT HANDLERS! /////////////////////////////////////////////
@@ -544,9 +544,9 @@ class attributeTable {
   private attachListener() {
     //NODE BEGIN HOVER
     events.on('row_mouseover', (evt, item) => {
-      selectAll('.boundary').classed('tablehovered', function (d) {
-        return (!select(this).classed('tablehovered') && !select(this).classed('tableselected') &&
-        select(this).attr('row_pos') == item);
+      selectAll('.boundary').classed('tablehovered', function (d:any) {return (d.y === item);
+        // !select(this).classed('tablehovered') && !select(this).classed('tableselected') &&
+        // select(this).attr('row_pos') == item);
       });
     });
 

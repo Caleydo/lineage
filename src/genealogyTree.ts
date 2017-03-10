@@ -363,8 +363,6 @@ class GenealogyTree {
    * @param parentParentEdges array of parent parent edges to update the tree with
    */
   private update_graph() {
-    console.log('graph height is ', this.height)
-    console.log('graph y range is ', this.y.range())
     this.update_edges();
     this.update_nodes();
   }

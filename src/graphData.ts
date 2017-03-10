@@ -693,7 +693,7 @@ class GraphData {
 
     this.exportYValues();
     this.tableManager.activeGraphRows = Range.list(new_range)
-    
+
   };
 
   /**

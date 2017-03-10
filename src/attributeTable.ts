@@ -90,7 +90,6 @@ class attributeTable {
 
 
     //Exctract y values from dict.
-    let peopleIDs = await activeView.col(0).names();
     const svg = this.$node.append('svg')
       .classed('tableSVG',true)
       .attr('width', this.width + this.margin.left + this.margin.right)

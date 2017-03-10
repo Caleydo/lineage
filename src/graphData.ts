@@ -134,7 +134,7 @@ class GraphData {
     let dict = {};
 
     this.nodes.forEach((node) => {
-      console.log(node.id, node.y)
+      //console.log(node.id, node.y)
       dict[node.id] = node.y;
     })
 

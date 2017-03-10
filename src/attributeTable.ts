@@ -79,6 +79,8 @@ class attributeTable {
 
     //Exctract y values from dict.
     let peopleIDs = await activeView.col(0).names();
+    console.log('peopleIDs');
+    console.log(peopleIDs);
 
     let ys=[];
 

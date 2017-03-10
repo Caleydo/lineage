@@ -30,8 +30,16 @@ class AttributePanel {
 
   constructor(parent: Element) {
 
+    //toggle btn
+    select(parent).append('span')
+      .attr('id','toggle-btn')
+      .append('i')
+      .classed('glyphicon glyphicon-menu-hamburger',true);
+
+
     this.$node = select(parent)
       .append('div')
+      .attr('id','panelContent')
       .classed('nav-side-menu active', true);
   }
 
@@ -57,16 +65,15 @@ class AttributePanel {
    * Build the basic DOM elements and binds the change function
    */
   private build() {
-
     // family selector
     const familySelector = this.$node.append('div')
       .attr('id','familySelector')
       .classed('menu-list', true)
       .html(` <ul >
-            <li class='brand' data-toggle='collapse'> <i class=''></i> <strong>Family and Data Selection</strong>
-             <span class='toggle-btn'><i class='glyphicon glyphicon-menu-hamburger'></i></span></li>
+            <li class='brand' data-toggle='collapse'> <i class=''></i> <strong>Family and Data Selection</strong></li>
                </ul>`);
 
+    //<span class='toggle-btn'><i class='glyphicon glyphicon-menu-hamburger'></i></span>
 
     // menu container container
     const menuList = this.$node.append('div')
@@ -290,13 +297,16 @@ class AttributePanel {
 
   private toggle() {
     const sidePanel = document.getElementById('data_selection');
-    const sidePanelContent = document.getElementById('data_selection').children;
+    const sidePanelContent = document.getElementById('panelContent');
     const graphNtable = document.getElementById('graph_table');
+    const toggleBtn = document.getElementsByClassName('toggle-btn');
 
     // if the attribute panel is expanded
     if(!this.collapsed) {
       // collapse attribute panel
       sidePanel.style.width = '30px';
+      //Hide attribute panel content
+      sidePanelContent.style.display = 'none';
       // resize graph div
       graphNtable.style.width = '800px';
       //update flag value
@@ -304,6 +314,8 @@ class AttributePanel {
     } else {
       // expand attribute panel
       sidePanel.style.width = '400px';
+      // show attribute panel content
+      sidePanelContent.style.display = 'inline';
       // resize graph div
       graphNtable.style.width = '600px';
       //update flag value
@@ -313,7 +325,7 @@ class AttributePanel {
 
   private attachListener() {
     // listen to toggle panel event
-    select('.toggle-btn').on('click', ()=> {
+    select('#toggle-btn').on('click', ()=> {
       this.toggle();
     })
 

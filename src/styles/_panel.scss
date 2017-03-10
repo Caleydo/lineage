@@ -1,8 +1,9 @@
+$darkgray-color: #4f4f4d;
+
 #data_selection {
   float: left;
   height: 100vh;
   border-right: solid lightgrey;
-  margin-left: 10px;
   width: 300px;
 }
 
@@ -14,6 +15,7 @@
   top: 0px;
   height: 100%;
   color: #e1ffff;
+  display: inline;
   margin-top: 15px;
 }
 
@@ -43,17 +45,19 @@
   margin-top: 15px;
 }
 
-.nav-side-menu .toggle-btn {
+ #toggle-btn {
   font-family: FontAwesome;
   /*content: "\f078";*/
   content: "\f107";
-  display: inline-block;
+  display: inline !important;
+   padding-top: 15px;
   padding-left: 10px;
   padding-right: 10px;
   vertical-align: middle;
   float: right;
   font-size: 18px;
   cursor: pointer;
+   color: $darkgray-color;
 }
 
 .ghost {

@@ -28,6 +28,8 @@ class attributeTable {
 
   private tableAxis;
 
+  private y;
+
 
 // RENDERING THINGS
   private table;
@@ -81,10 +83,15 @@ class attributeTable {
     this.width = 700 - this.margin.left - this.margin.right
     this.height = Config.glyphSize * 3 * this.tableManager.graphTable.nrow - this.margin.top - this.margin.bottom;
 
+    //Remove any existing svgs;
+    select('.tableSVG').exit().remove();
+    
     const svg = this.$node.append('svg')
       .classed('tableSVG',true)
       .attr('width', this.width + this.margin.left + this.margin.right)
       .attr("height", this.height + this.margin.top + this.margin.bottom)
+
+    this.y = scaleLinear().range([0, this.height]).domain([1, this.tableManager.graphTable.nrow]);
 
 //HEADERS
     this.tableHeader = svg.append("g")
@@ -100,8 +107,6 @@ class attributeTable {
 
     let graphView = await this.tableManager.graphTable;
     let attributeView = await this.tableManager.tableTable;
-
-    this.height = Config.glyphSize * 3 * graphView.nrow - this.margin.bottom - this.margin.top;
 
     console.log('graph has ', graphView.nrow)
     console.log('table Height is ', this.height)
@@ -169,7 +174,6 @@ class attributeTable {
     }
     this.colData = colDataAccum;
 
-    console.log(this.colData);
   }
 
 
@@ -192,7 +196,8 @@ class attributeTable {
 
     // Scales
     let x = scaleLinear().range([0, this.width]).domain([0, 13]);
-    let y = scaleLinear().range([0, this.height]).domain([1, this.tableManager.graphTable.nrow]);
+    let y = this.y;
+
     // [Math.min( ...this.colData[0]['ys']), Math.max( ...this.colData[0]['ys'])]);
     const rowHeight = Config.glyphSize * 2.5 - 4;
 

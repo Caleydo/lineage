@@ -171,7 +171,7 @@ class GenealogyTree {
     const nodes = this.data.nodes;
     this.height = Config.glyphSize * 3 * nodes.filter((n)=>{return !n.hidden}).length - this.margin.top - this.margin.bottom;
 
-    console.log('graph height is ', this.height)
+
     // this.height = 2506;
 
     // Y scale. Xscale range and domain are defined in update_time_axis;
@@ -181,7 +181,7 @@ class GenealogyTree {
       return +d['y'];
     })])
 
-    console.log('graph y range is ', this.y.range())
+
 
     this.interGenerationScale.range([.75, .25]).domain([2, nodes.length]);
 
@@ -363,6 +363,8 @@ class GenealogyTree {
    * @param parentParentEdges array of parent parent edges to update the tree with
    */
   private update_graph() {
+    console.log('graph height is ', this.height)
+    console.log('graph y range is ', this.y.range())
     this.update_edges();
     this.update_nodes();
   }

@@ -71,12 +71,13 @@ class GraphData {
     })
 
     this.ids =await columns[0].names();
+    this.ids = this.ids.map(Number); //covert array to numbers
 
       for (let col of columns) {
         let data = await col.data();
         for (let row of range(0, nrow, 1)) {
           let personObj = this.nodes[row];
-          personObj['id'] = +this.ids[row];
+          personObj['id'] = this.ids[row];
           personObj[col.desc.name] = data[row];
         };
       }
@@ -129,8 +130,29 @@ class GraphData {
       }
     });
 
+    this.exportYValues();
+
+
+  //After linear order has been computed:
+    this.nodes.forEach((d)=> {
+      d.Y = +d.y; //keeps track of nodes original y position
+      d.X = +d.x; //keeps track of nodes original x position - can change for kid grids on hide.
+    });
+
+
+  };
+
+
+  /**
+   *
+   * This function passes the newly computed y values to the tableManager
+   *
+   */
+  private exportYValues() {
     let ys = [];
-    this.nodes.forEach((n)=>{ys.push(n.y)});
+    this.nodes.forEach((n) => {
+      ys.push(n.y)
+    });
 
     //Create hashmap of personID to y value;
     let dict = {};
@@ -141,15 +163,7 @@ class GraphData {
 
     //Assign y values to the tableManager object
     this.tableManager.yValues = dict;
-
-  //After linear order has been computed:
-    this.nodes.forEach((d)=> {
-      d.Y = +d.y; //keeps track of nodes original y position
-      d.X = +d.x; //keeps track of nodes original x position - can change for kid grids on hide.
-    });
-
-
-  };
+  }
 
   /**
    *
@@ -373,6 +387,7 @@ class GraphData {
    * @param aggregate - boolean flag to indicate whether collapsed nodes should be hidden or aggregated into their own row.
    */
   public hideNodes(startIndex, aggregate) {
+    console.log('called hideNodes')
 
     let Y: number = startIndex;
 
@@ -591,11 +606,11 @@ class GraphData {
       if (!n.hidden) {
         let ind: number = this.ids.indexOf(n.id);
         new_range.push(ind);
-      }
-      ;
-
-      this.tableManager.activeTableRows(Range.list(new_range))
+      };
     });
+
+    this.exportYValues();
+    this.tableManager.activeGraphRows = Range.list(new_range)
   };
 
   /**

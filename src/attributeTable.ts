@@ -308,7 +308,7 @@ class attributeTable {
         return d.data.map((e, i) => {
           return {'id':d.ids[i], 'name': d.name, 'data':e, 'y': d.ys[i], 'type': d.type, 'stats': d.stats}
         })
-      },(d:any)=>{return +d.id});
+      },(d:any)=>{return +d.id[0]});
 
     cells.exit().transition(t).remove();
 
@@ -406,7 +406,7 @@ class attributeTable {
       .attr('stoke-width', 1);
 
     quantitative
-      // .data((d)=>{console.log(d); return [d]})
+      .data((d.map)=>{console.log(d); return [d]})
       .append("ellipse")
       .classed('quant_ellipse', true)
 
@@ -415,9 +415,11 @@ class attributeTable {
       .selectAll('.quant_ellipse')
       .attr("cx",
         function (d: any) {
-          const width = col_widths.find(x => x.name === d.name).width;
-          const scaledRange = (width - 2 * radius) / (d.stats.max - d.stats.min);
-          return Math.floor((d.data[0] - d.stats.min) * scaledRange);
+          return d.data.map((dd)=> {
+            const width = col_widths.find(x => x.name === d.name).width;
+            const scaledRange = (width - 2 * radius) / (d.stats.max - d.stats.min);
+            return Math.floor((dd - d.stats.min) * scaledRange);
+          });
         })
       .attr("cy", rowHeight / 2)
       .attr("rx", radius)

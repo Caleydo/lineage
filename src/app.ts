@@ -81,6 +81,7 @@ export class App {
     this.$node.select('h3').remove();
     this.setBusy(false);
 
+
     return Promise.resolve(this);
   }
 

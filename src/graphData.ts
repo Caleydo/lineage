@@ -399,7 +399,6 @@ class GraphData {
    * @param aggregate - boolean flag to indicate whether collapsed nodes should be hidden or aggregated into their own row.
    */
   public hideNodes(startIndex, aggregate) {
-    console.log('called hideNodes')
 
     let Y: number = startIndex;
 
@@ -444,13 +443,12 @@ class GraphData {
 
 
     //Iterate through branch, if there are hidden nodes, uncollapse
-    const isHidden = this.nodes.filter((node) => {
-      return (node.Y <= startNode.Y && node.Y >= endIndex && node.hidden);
+    const isNotHidden = this.nodes.filter((node) => {
+      return (node.Y <= startNode.Y && node.Y >= endIndex && !node.hidden && !node.affected);
     });
 
-    if (isHidden.length > 0) {
-      console.log('expanding branch')
-
+    if (isNotHidden.length === 0) {
+      console.log('calling expandBranch')
       this.expandBranch(startNode);
       return;
     }

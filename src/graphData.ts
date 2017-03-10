@@ -440,8 +440,6 @@ class GraphData {
       console.log('expanding branch')
 
       this.expandBranch(startNode);
-
-      // activeTableRows(newRows: range.Range)
       return;
     }
     ;
@@ -684,6 +682,18 @@ class GraphData {
         node['hidden'] = false;
       }
     });
+
+    let new_range = [];
+    this.nodes.forEach((n: any) => {
+      if (!n.hidden) {
+        let ind: number = this.ids.indexOf(n.id);
+        new_range.push(ind);
+      };
+    });
+
+    this.exportYValues();
+    this.tableManager.activeGraphRows = Range.list(new_range)
+    
   };
 
   /**

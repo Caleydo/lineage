@@ -12,6 +12,8 @@ import {axisTop} from 'd3-axis';
 import * as range from 'phovea_core/src/range';
 import {isNullOrUndefined} from 'util';
 import {active} from 'd3-transition';
+import {transition} from 'd3-transition';
+import {easeLinear} from 'd3-ease';
 
 import {range as d3Range} from 'd3-array';
 
@@ -83,9 +85,10 @@ class attributeTable {
     this.width = 700 - this.margin.left - this.margin.right
     this.height = Config.glyphSize * 3 * this.tableManager.graphTable.nrow - this.margin.top - this.margin.bottom;
 
+    let t = transition('t').duration(500).ease(easeLinear);
     //Remove any existing svgs;
-    select('.tableSVG').exit().remove();
-    
+    select('.tableSVG').exit().transition(t).remove();
+
     const svg = this.$node.append('svg')
       .classed('tableSVG',true)
       .attr('width', this.width + this.margin.left + this.margin.right)
@@ -133,13 +136,20 @@ class attributeTable {
         ys.push(yDict[person]);
       })
 
+
+
       if (type === 'categorical') {
         const categories = Array.from(new Set(data));
         for (const cat of categories) {
-          var col: any = {};
+
+          let col: any = {};
+          col.ids = peopleIDs.filter((id) => {
+            return id in yDict
+          }); //keep track of personID to use as a key function for the cell
+
+
           const base_name = await vector.desc.name;
           col.name = base_name + '_' + cat;
-
           col.data = data
             .filter((d, i) => {
               return peopleIDs[i] in yDict
@@ -159,13 +169,17 @@ class attributeTable {
         }
       }
       else if (type !== 'idtype') { //quant
-        var col: any = {};
+
+        let col: any = {};
+        col.ids = peopleIDs.filter((id) => {
+          return id in yDict
+        }); //keep track of personID to use as a key function for the cell
 
         let stats = await vector.stats();
 
         col.name = await vector.desc.name;
         col.data = data;
-        col.ys = ys //.slice(0,col.data.length);
+        col.ys = ys;
         col.type = type;
         col.stats = stats;
 
@@ -179,6 +193,8 @@ class attributeTable {
 
   //renders the DOM elements
   private async render() {
+
+    let t = transition('t').duration(500).ease(easeLinear);
 
     const darkGrey = '#4d4d4d'; //todo clearly
     const lightGrey = '#d9d9d9';
@@ -214,7 +230,7 @@ class attributeTable {
         }
       }));
 
-    headers.exit().remove(); // should remove headers of removed col's
+    headers.exit().transition(t).attr('opacity',0).remove(); // should remove headers of removed col's
 
     const headerEnter = headers
       .enter()
@@ -227,6 +243,7 @@ class attributeTable {
       .text((d) => {
         return d['name']
       })
+
       .attr("transform", (d) => {
         const x_translation = label_xs.find(x => x.name === d['name']).x;
         return 'translate(' + x_translation + ',0) rotate(-45)';
@@ -239,11 +256,11 @@ class attributeTable {
       .data(this.colData.map((d, i) => {
         return {
           'name': d.name, 'data': d.data, 'ind': i, 'ys': d.ys, 'type': d.type,
-          'stats': d.stats
+          'ids': d.ids, 'stats': d.stats
         }
       }));
 
-    cols.exit().remove(); // should remove on col remove
+    cols.exit().transition(t).attr('opacity',0).remove(); // should remove on col remove
 
     const colsEnter = cols.enter()
       .append('g')
@@ -251,6 +268,8 @@ class attributeTable {
 
 
     cols = colsEnter.merge(cols)//;
+
+      cols.transition(t)
       .attr("transform", (d) => {
         const x_translation = col_xs.find(x => x.name === d.name).x;
         return 'translate(' + x_translation + ',0)';
@@ -260,12 +279,12 @@ class attributeTable {
     let cells = cols.selectAll('.cell')
       .data((d) => {
         return d.data.map((e, i) => {
-          return {'name': d.name, 'data': +e, 'y': d.ys[i], 'type': d.type, 'stats': d.stats}
+          return {'id':d.ids[i], 'name': d.name, 'data': +e, 'y': d.ys[i], 'type': d.type, 'stats': d.stats}
         })
-      });
+      },(d:any)=>{return +d.id});
 
     console.log('going to remove ' , cells.exit().size() , ' rows')
-    cells.exit().remove();
+    cells.exit().transition(t).remove();
 
     let cellsEnter = cells.enter()
       .append("g")
@@ -273,9 +292,10 @@ class attributeTable {
 
     cells = cellsEnter.merge(cells);
 
-    cells.exit().remove();
+    cells.exit().transition(t).attr('opacity',0).remove();
 
     cells
+      .transition(t)
       .attr("transform", function (col: any) {
         return ('translate(0, ' + y(col.y) + ' )'); //the x translation is taken care of by the group this cell is nested in.
       });

@@ -11,6 +11,7 @@ import {
 } from 'd3-array';
 
 import * as events from 'phovea_core/src/event';
+import * as Range from 'phovea_core/src/range';
 import {VIEW_CHANGED_EVENT} from './tableManager';
 
 class GraphData {
@@ -19,6 +20,7 @@ class GraphData {
   public graphTable;
   public attributeTable;
   private tableManager;
+  private ids; //unique identifier for each person. Is used to create new range on graphView
 
   //Array of Parent Child Edges
   public parentChildEdges = [];
@@ -68,13 +70,14 @@ class GraphData {
       this.nodes.push({});
     })
 
-      let ids =await columns[0].names();
+    this.ids =await columns[0].names();
+    this.ids = this.ids.map(Number); //covert array to numbers
 
       for (let col of columns) {
         let data = await col.data();
         for (let row of range(0, nrow, 1)) {
           let personObj = this.nodes[row];
-          personObj['id'] = +ids[row];
+          personObj['id'] = this.ids[row];
           personObj[col.desc.name] = data[row];
         };
       }
@@ -127,8 +130,8 @@ class GraphData {
       }
     });
 
-    let ys = [];
-    this.nodes.forEach((n)=>{ys.push(n.y)});
+    this.exportYValues();
+
 
     //Create hashmap of personID to y value;
     let dict = {};
@@ -141,6 +144,7 @@ class GraphData {
     //Assign y values to the tableManager object
     this.tableManager.ys = dict;
 
+
   //After linear order has been computed:
     this.nodes.forEach((d)=> {
       d.Y = +d.y; //keeps track of nodes original y position
@@ -149,6 +153,29 @@ class GraphData {
 
 
   };
+
+
+  /**
+   *
+   * This function passes the newly computed y values to the tableManager
+   *
+   */
+  private exportYValues() {
+    let ys = [];
+    this.nodes.forEach((n) => {
+      ys.push(n.y)
+    });
+
+    //Create hashmap of personID to y value;
+    let dict = {};
+
+    this.nodes.forEach((node) => {
+      dict[node.id] = node.y;
+    })
+
+    //Assign y values to the tableManager object
+    this.tableManager.yValues = dict;
+  }
 
   /**
    *
@@ -372,6 +399,7 @@ class GraphData {
    * @param aggregate - boolean flag to indicate whether collapsed nodes should be hidden or aggregated into their own row.
    */
   public hideNodes(startIndex, aggregate) {
+    console.log('called hideNodes')
 
     let Y: number = startIndex;
 
@@ -420,7 +448,8 @@ class GraphData {
       return (node.Y <= startNode.Y && node.Y >= endIndex && node.hidden);
     });
 
-    if (isHidden.length > 0) {console.log('expanding branch')
+    if (isHidden.length > 0) {
+      console.log('expanding branch')
 
       this.expandBranch(startNode);
       return;
@@ -581,7 +610,18 @@ class GraphData {
     });
 
     this.trimTree();
-  }
+
+    let new_range = [];
+    this.nodes.forEach((n: any) => {
+      if (!n.hidden) {
+        let ind: number = this.ids.indexOf(n.id);
+        new_range.push(ind);
+      };
+    });
+
+    this.exportYValues();
+    this.tableManager.activeGraphRows = Range.list(new_range)
+  };
 
   /**
    *
@@ -654,6 +694,18 @@ class GraphData {
         node['hidden'] = false;
       }
     });
+
+    let new_range = [];
+    this.nodes.forEach((n: any) => {
+      if (!n.hidden) {
+        let ind: number = this.ids.indexOf(n.id);
+        new_range.push(ind);
+      };
+    });
+
+    this.exportYValues();
+    this.tableManager.activeGraphRows = Range.list(new_range)
+
   };
 
   /**

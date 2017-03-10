@@ -246,7 +246,7 @@ class AttributePanel {
   private async populateData(svg, attributeName, attributeType) {
     //console.log(await this.table.colData(attribute));
 
-    console.log('populateData');
+    // console.log('populateData');
     let dataVec: IAnyVector;
     // getting data as IVector for attributeName
     // we need to use col(index) so we can get IVector object
@@ -262,10 +262,11 @@ class AttributePanel {
       const catVector = <ICategoricalVector> dataVec;
       const attributeHistogram = histogram.create(svg);
       await attributeHistogram.init(attributeName, dataVec);
-    } else {
+    } else if (dataVec.desc.value.type !== 'idtype'){
       const numVector = <INumericalVector> dataVec;
       console.log('Stats on a vector:');
       //console.log(await numVector.stats());
+
     }
 
     /*

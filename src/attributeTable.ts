@@ -12,6 +12,10 @@ import {axisTop} from 'd3-axis';
 import * as range from 'phovea_core/src/range';
 import {isNullOrUndefined} from 'util';
 import {active} from 'd3-transition';
+import {transition} from 'd3-transition';
+import {easeLinear} from 'd3-ease';
+
+import {range as d3Range} from 'd3-array';
 
 /**
  * Creates the attribute table view
@@ -26,6 +30,8 @@ class attributeTable {
 
   private tableAxis;
 
+  private y;
+
 
 // RENDERING THINGS
   private table;
@@ -34,8 +40,7 @@ class attributeTable {
 
   //private margin = {top: 60, right: 20, bottom: 60, left: 40};
 
-  private activeView;  // FOR DEBUG ONLY!
-  private tableManager; //FOR DEBUG ONLY!
+  private tableManager;
   private colData;    // <- everything we need to bind
 
   private margin = Config.margin;
@@ -51,14 +56,12 @@ class attributeTable {
    */
   async init(data) {
 
-    this.activeView = data.tableTable;
-    this.tableManager = data; // JANKY ONLY FOR DEV
-    this.buffer = 4;
+    this.tableManager = data;
 
     this.build(); //builds the DOM
 
     // sets up the data & binds it to svg groups
-    await this.update(this.activeView, data.ys);
+    await this.update();
 
     this.attachListener();
 
@@ -67,153 +70,201 @@ class attributeTable {
   }
 
 
-
-  public async update(activeView, ys){
-    await this.initData(activeView, ys);
+  public async update() {
+    await this.initData();
     this.render();
   }
 
+  /**
+   * Build the basic DOM elements and binds the change function
+   */
+  private async build() {
 
+    //Height is a function of the current view and so is set in initData();
+    this.width = 700 - this.margin.left - this.margin.right
+    this.height = Config.glyphSize * 3 * this.tableManager.graphTable.nrow - this.margin.top - this.margin.bottom;
 
-  public async initData(activeView, yDict){
+    let t = transition('t').duration(500).ease(easeLinear);
+    //Remove any existing svgs;
+    select('.tableSVG').exit().transition(t).remove();
+
 
     //Exctract y values from dict.
     let peopleIDs = await activeView.col(0).names();
-    console.log('peopleIDs');
-    console.log(peopleIDs);
+    const svg = this.$node.append('svg')
+      .classed('tableSVG',true)
+      .attr('width', this.width + this.margin.left + this.margin.right)
+      .attr("height", this.height + this.margin.top + this.margin.bottom)
 
-    let ys=[];
 
-    peopleIDs.forEach((person) => {
-      console.log('person ', person , yDict[person] )
-      ys.push(yDict[person]);
-    })
+    this.y = scaleLinear().range([0, this.height]).domain([1, this.tableManager.graphTable.nrow]);
+
+//HEADERS
+    this.tableHeader = svg.append("g")
+      .attr("transform", "translate(2," + this.margin.axisTop / 2 + ")");
+
+// TABLE
+    this.table = svg.append("g")
+      .attr("transform", "translate(2," + this.margin.top + ")");
+  }
+
+
+  public async initData() {
+
+    this.buffer = 8;
+
+    let graphView = await this.tableManager.graphTable;
+    let attributeView = await this.tableManager.tableTable;
+
+    console.log('graph has ', graphView.nrow)
+    console.log('table Height is ', this.height)
 
     let colDataAccum = [];
-    for (const vector of activeView.cols()) {
-      const temp = await vector.data(range.all());
+
+    let allCols = graphView.cols().concat(attributeView.cols());
+
+    //This are the rows that every col in the table should have;
+    let graphIDs = await graphView.col(0).names();
+
+    for (const vector of allCols) {
+      const data = await vector.data(range.all());
       const type = await vector.valuetype.type;
-      if(type === 'categorical'){
-        const categories = Array.from(new Set(temp));
-        for(const cat of categories){
-          var col: any = {};
+
+      //Exctract y values from dict.
+      let peopleIDs = await vector.names();
+
+      let ys = [];
+      let yDict = this.tableManager.yValues;
+
+      peopleIDs.forEach((person) => {
+        ys.push(yDict[person]);
+      })
+
+      if (type === 'categorical') {
+        const categories = Array.from(new Set(data));
+        for (const cat of categories) {
+          // console.log('category', cat);
+          let col: any = {};
+          col.ids = graphIDs;
           const base_name = await vector.desc.name;
           col.name = base_name + '_' + cat;
-          col.data = temp.map(
-            (d)=>{if(d === cat) return d;
-                  else return undefined;});
-          col.ys = ys //.slice(0,col.data.length);
+          //Ensure there is an element for every person in the graph, even if empty
+          col.data = graphIDs.map((person) => {
+            let ind = peopleIDs.lastIndexOf(person) //find this person in the attribute data
+            // console.log(data[ind],cat)
+            if (ind>-1 && data[ind] === cat){
+              // console.log('found')
+              return data[ind]
+            } else {
+              return undefined;
+            }
+          });
+          col.ys = graphIDs.map((person) => {return yDict[person]});
           col.type = type;
           colDataAccum.push(col);
-        }
-      }
-      else{ //quant
-        var col: any = {};
-        col.name = await vector.desc.name;
-        col.data = temp;
-        col.ys = ys //.slice(0,col.data.length);
-        col.type = type;
-        //compute some stats, but first get rid of non-entries
-        const filteredData = temp.filter((d)=>{return d.length != 0 && !isNaN(d)});
-        console.log(filteredData);
-        col.min = Math.min( ...filteredData );
-        col.max = Math.max( ...filteredData );     //parse bc otherwise might be a string because parsing is hard
-        if (filteredData.length>0) {
-          col.mean = filteredData.reduce(function (a, b) {
-              return parseInt(a) + parseInt(b);
-            }) / filteredData.length;
-        } else {
-          col.min = 0;
-          col.max = 0;
-          col.mean=0;
+          // console.log(cat, col.data)
         }
 
+      }
+      else if (type !== 'idtype') { //quant
+
+        let col: any = {};
+        col.ids = graphIDs;
+
+        let stats = await vector.stats();
+
+        col.name = await vector.desc.name;
+        col.data = graphIDs.map((person) => {
+          let ind = peopleIDs.lastIndexOf(person) //find this person in the attribute data
+          if (ind>-1){
+            return data[ind]
+          } else {
+            return undefined;
+          }
+        });
+        col.ys = graphIDs.map((person) => {return yDict[person]});
+        col.type = type;
+        col.stats = stats;
 
         colDataAccum.push(col);
       }
     }
     this.colData = colDataAccum;
 
-    console.log(this.colData);
   }
 
-
-
-
-  /**
-   * Build the basic DOM elements and binds the change function
-   */
-  private async build(){
-    this.width = 450 - this.margin.left - this.margin.right
-    this.height = Config.glyphSize * 3 * this.tableManager.graphTable.nrow - this.margin.top - this.margin.bottom;
-
-    const svg = this.$node.append('svg')
-      .attr('width', this.width + this.margin.left + this.margin.right)
-      .attr("height", this.height + this.margin.top + this.margin.bottom)
-
-//HEADERS
-    this.tableHeader = svg.append("g")
-      .attr("transform", "translate(0," + this.margin.axisTop / 2 + ")");
-
-// TABLE
-    this.table = svg.append("g")
-      .attr("transform", "translate(0," + this.margin.top + ")");
-  }
 
   //renders the DOM elements
   private async render() {
+
+    let t = transition('t').duration(500).ease(easeLinear);
+
     const darkGrey = '#4d4d4d'; //todo clearly
-    const lightGrey = '#d9d9d9';
-    const mediumGrey = '#7e7e7e';
+    // const lightGrey = '#d9d9d9';
+    const lightGrey = '#e9e9e9';
+    const mediumGrey = '#e0e0e0';
 
     //rendering info
     var col_widths = this.getDisplayedColumnWidths(this.width);
     var col_xs = this.getDisplayedColumnXs(this.width);
     var label_xs = this.getDisplayedColumnMidpointXs(this.width);
 
-    let allys =[];
-    for (var key in this.tableManager.ys){
+    let allys = [];
+    for (var key in this.tableManager.ys) {
       allys.push(+this.tableManager.ys[key])
     }
 
     // Scales
     let x = scaleLinear().range([0, this.width]).domain([0, 13]);
-    let y = scaleLinear().range([0, this.height]).domain(
-    // [Math.min( ...this.colData[0]['ys']), Math.max( ...this.colData[0]['ys'])]);
-    [Math.min(...allys), Math.max(...allys)]);
+    let y = this.y;
 
+    // [Math.min( ...this.colData[0]['ys']), Math.max( ...this.colData[0]['ys'])]);
     const rowHeight = Config.glyphSize * 2.5 - 4;
 
-
+    console.log('yrange for table is ', y.range())
 
 
 //HEADERS
     //Bind data to the col headers
     let headers = this.tableHeader.selectAll(".header")
-      .data(this.colData.map((d,i) => {return {'name':d.name, 'data':d, 'ind':i, 'type':d.type,
-                                               'max':d.max, 'min':d.min, 'mean':d.mean}}));
+      .data(this.colData.map((d, i) => {
+        return {
+          'name': d.name, 'data': d, 'ind': i, 'type': d.type,
+          'max': d.max, 'min': d.min, 'mean': d.mean
+        }
+      }));
 
-    headers.exit().remove(); // should remove headers of removed col's
+    headers.exit().transition(t).attr('opacity',0).remove(); // should remove headers of removed col's
 
     const headerEnter = headers
       .enter()
       .append('text')
       .classed('header', 'true');
 
-    headers = headerEnter.merge(headers)
-      .text((d) => {return d['name']})
-      .attr("transform",(d) => {
+    headers = headerEnter.merge(headers);
+
+    headers
+      .text((d) => {
+        return d['name']
+      })
+
+      .attr("transform", (d) => {
         const x_translation = label_xs.find(x => x.name === d['name']).x;
-        return 'translate(' + x_translation + ',0) rotate(-45)';});
+        return 'translate(' + x_translation + ',0) rotate(-45)';
+      });
 
 
 // TABLE
     //Bind data to the col groups
     let cols = this.table.selectAll(".dataCols")
-      .data(this.colData.map((d,i) => {return {'name':d.name, 'data':d.data, 'ind':i, 'ys':d.ys, 'type':d.type,
-                                               'max':d.max, 'min':d.min, 'mean':d.mean}}));
+      .data(this.colData.map((d, i) => {
+        return {
+          'name': d.name, 'data': d.data, 'ind': i, 'ys': d.ys, 'type': d.type,
+          'ids': d.ids, 'stats': d.stats
+        }
+      }));
 
-    cols.exit().remove(); // should remove on col remove
+    cols.exit().transition(t).attr('opacity',0).remove(); // should remove on col remove
 
     const colsEnter = cols.enter()
       .append('g')
@@ -221,204 +272,262 @@ class attributeTable {
 
 
     cols = colsEnter.merge(cols)//;
-    .attr("transform", (d) => {
-      const x_translation = col_xs.find(x => x.name === d.name).x;
-      return 'translate(' + x_translation + ',0)';});
+
+      cols.transition(t)
+      .attr("transform", (d) => {
+        const x_translation = col_xs.find(x => x.name === d.name).x;
+        return 'translate(' + x_translation + ',0)';
+      });
 
     //Bind data to the cells
     let cells = cols.selectAll('.cell')
       .data((d) => {
-        return d.data.map((e, i) => {return {'name': d.name, 'data': +e, 'y': d.ys[i], 'type':d.type,
-                                              'max':d.max, 'min':d.min, 'mean':d.mean}})});
-    cells.exit().remove();
+        return d.data.map((e, i) => {
+          return {'id':d.ids[i], 'name': d.name, 'data':e, 'y': d.ys[i], 'type': d.type, 'stats': d.stats}
+        })
+      },(d:any)=>{return +d.id});
+
+    console.log('going to remove ' , cells.exit().size() , ' rows')
+    cells.exit().transition(t).remove();
 
     let cellsEnter = cells.enter()
       .append("g")
       .attr('class', 'cell');
 
-    cells = cellsEnter.merge(cells)
-        .attr("transform", function (col) {
-          return ('translate(0, ' + y(col['y']) + ' )'); //the x translation is taken care of by the group this cell is nested in.
-        });
+
+
+    cells.exit().transition(t).attr('opacity',0).remove();
+
+    //Add rectangle for highlighting...
+    cellsEnter
+      .append('rect')
+      .classed("boundary", true);
+
+    cells = cellsEnter.merge(cells);
+
+    cellsEnter.attr('opacity',0);
+
+    cells
+      .transition(t)
+      .attr("transform", function (col: any) {
+        return ('translate(0, ' + y(col.y) + ' )'); //the x translation is taken care of by the group this cell is nested in.
+      })
+
+    cellsEnter.attr('opacity',1)
 
 
 
 //////////// RENDERING ////////////////////////////////////////////////////
 
-    //Add rectangle for highlighting...
-    const boundary = cells
-    .append('rect')
-    .classed("boundary", true)
-    .attr("row_pos", (d)=>{return d["y"];})
-    .attr('width', (d)=> {return (col_widths.find(x => x.name === d.name).width + 4);})
-    .attr('height', rowHeight + this.buffer)
-    .attr('fill', 'transparent')
-    .attr("transform", function (d) {
-      return ('translate(' + -2 + ',' + (-2) + ')');
+
+    //Position all highlighting rectangles
+    cells.selectAll('.boundary')
+      .attr("row_pos", (d) => {
+        return d["y"];
+      })
+      .attr('width', (d) => {
+        return (col_widths.find(x => x.name === d.name).width + 4);
+      })
+      .attr('height', rowHeight + this.buffer)
+      .attr('stroke',mediumGrey)
+      .attr('fill', 'none')
+    .attr("transform", function () {
+      return ('translate(' + (-2) + ',' + (-4) + ')');
     });
 
 
-    const categoricals = cells.filter((e)=>{return (e.type === 'categorical' && !isNaN(e.data) && !isNullOrUndefined(e) )})
-                          .attr('classed', 'categorical');
-    const quantatives  = cells.filter((e)=>{return (e.type === 'int' && !isNaN(e.data) && !isNullOrUndefined(e) && e.data !==0 )})
-                          .attr('classed', 'quantitative');
-    const idCells      = cells.filter((e)=>{return (e.type === 'idtype' && !isNaN(e.data) && !isNullOrUndefined(e) && e.data !==0  )})
-                          .attr('classed', 'idtype');
-
-    console.log(categoricals.size())
+    const categoricals = cellsEnter.filter((e) => {
+      return (e.type === 'categorical' && !isNullOrUndefined(e.data))
+    })
+      .attr('classed', 'categorical');
+    const quantitative = cellsEnter.filter((e) => {
+      return (e.type === 'int' && !isNullOrUndefined(e.data))
+    })
+      .attr('classed', 'quantitative');
+    const idCells = cellsEnter.filter((e) => {
+      return (e.type === 'idtype' && !isNullOrUndefined(e.data)  )
+    })
+      .attr('classed', 'idtype');
 
 ////////// RENDER CATEGORICAL COLS /////////////////////////////////////////////
 
     categoricals
-    .append('rect')
-    .attr('width', (d)=> {return col_widths.find(x => x.name === d.name).width;})
-    .attr('height', rowHeight)
-    .attr('stroke', 'black')
-    .attr('stoke-width', 1)
-    .attr('fill', (d)=>{
-      if(d.data !== undefined)
+      .append('rect')
+      .classed('categorical', true)
+
+    cells
+      .selectAll('.categorical')
+      .attr('width', (d) => {
+        return col_widths.find(x => x.name === d.name).width;
+      })
+      .attr('height', rowHeight)
+      .attr('stroke', 'black')
+      .attr('stoke-width', 1)
+      .attr('fill', (d) => {
+        if (d.data === undefined)
+          return 'white';
         return darkGrey;
-      return lightGrey;
-    });
+      });
 
 ////////// RENDER QUANT COLS /////////////////////////////////////////////
-    const radius = 2;
+    const radius = 3.5;
 
-    quantatives
-    .append('rect')
-    .attr('width', (d)=> {return col_widths.find(x => x.name === d.name).width;})
-    .attr('height', rowHeight)
-    .attr('fill', lightGrey)
-    .attr('stroke', 'black')
-    .attr('stoke-width', 1);
+    quantitative
+      .append('rect')
+      .classed('quant', true)
 
-    quantatives
-    .append("ellipse")
+    cells
+      .selectAll('.quant')
+      .attr('width', (d) => {
+        return col_widths.find(x => x.name === d.name).width;
+      })
+      .attr('height', rowHeight)
+      .attr('fill', lightGrey)
+      .attr('stroke', 'black')
+      .attr('stoke-width', 1);
+
+    quantitative
+      .append("ellipse")
+      .classed('quant_ellipse', true)
+
+    cells
+      .selectAll('.quant_ellipse')
       .attr("cx",
-      function(d){
-        const width = col_widths.find(x => x.name === d.name).width;
-        const scaledRange = (width-2*radius) / (d.max - d.min);
-        return Math.floor((d.data-d.min) * scaledRange);})
+        function (d: any) {
+          const width = col_widths.find(x => x.name === d.name).width;
+          const scaledRange = (width - 2 * radius) / (d.stats.max - d.stats.min);
+          return Math.floor((d.data - d.stats.min) * scaledRange);
+        })
       .attr("cy", rowHeight / 2)
       .attr("rx", radius)
       .attr("ry", radius)
       .attr('stroke', 'black')
       .attr('stroke-width', 1)
-      .attr('fill', darkGrey); // TODO: translate off of boundaries
+      .attr('fill', darkGrey) // TODO: translate off of boundaries
+      .attr('opacity',.8)
 
-      // stick on the median
-      quantatives
+    // stick on the median
+    quantitative
       .append("rect") //sneaky line is a rectangle
+      .attr('class', 'medianLine');
+
+    cells
+      .selectAll('.medianLine')
       .attr("width", 1.2)
       .attr("height", rowHeight)
       .attr("fill", 'black')
       .attr("transform", function (d) {
         const width = col_widths.find(x => x.name === d.name).width;
-        const scaledRange = (width-2*radius) / (d.max - d.min);
-        return ('translate(' + ((d.mean -d.min) * scaledRange) + ',0)');
+        const scaledRange = (width - 2 * radius) / (d.stats.max - d.stats.min);
+        return ('translate(' + ((d.stats.mean - d.stats.min) * scaledRange) + ',0)');
       });
+
+    cells.selectAll('rect').on('click',(c) => {console.log(c);})
 
 
 ////////////// EVENT HANDLERS! /////////////////////////////////////////////
 
-  const jankyAData = this.tableManager; ///auuughhh javascript why
-  const jankyInitHandle = this.initData; ///whywhywhywhy
-  let self = this;
+    const jankyAData = this.tableManager; ///auuughhh javascript why
+    const jankyInitHandle = this.initData; ///whywhywhywhy
+    let self = this;
 
-  cells.on('click', async function(elem) {
-  //  console.log("REGISTERED CLICK");
-    //update the dataset & re-render
+    cells.on('click', async function (elem) {
+      //  console.log("REGISTERED CLICK");
+      //update the dataset & re-render
 
-    const newView = await jankyAData.anniesTestUpdate();
-    self.update(newView, [1, 2]);
-    // console.log("NEW VIEW!");
-    // console.log(newView.cols()[0]);
+      // const newView = await jankyAData.anniesTestUpdate();
+      // self.update(newView, [1, 2]);
+      // console.log("NEW VIEW!");
+      // console.log(newView.cols()[0]);
 
-  });
-
-
-
-  //  cells.on('click', function(elem) {
-  //    selectAll('.boundary').classed('tablehovered', false);
-  //    if (!event.metaKey){ //unless we pressed shift, unselect everything
-  //      selectAll('.boundary').classed('tableselected',false);
-  //    }
-  //    selectAll('.boundary')
-  //     .classed('tableselected', function(){
-  //        const rightRow = (parseInt(select(this).attr('row_pos')) === elem['y']);
-  //        if(rightRow){
-  //           return (!select(this).classed('tableselected')); //toggle it
-  //         }
-  //        return select(this).classed('tableselected'); //leave it be
-  //      });
-  //    if(event.metaKey)
-  //       events.fire('table_row_selected', elem['y'], 'multiple');
-  //    else
-  //       events.fire('table_row_selected', elem['y'], 'singular');
-  //    })
-  //    // MOUSE ON
-  //    .on('mouseover', function(elem) {
-  //       selectAll('.boundary').classed('tablehovered', function(){
-  //         const rightRow = (select(this).attr('row_pos') == elem['y']); //== OR parseInt. Not sure which is more canonical.
-  //         if(rightRow){ //don't hover if it's selected
-  //           return !select(this).classed('tableselected');
-  //         }
-  //         return false; //otherwise don't hover
-  //    });
-  //    events.fire('table_row_hover_on', elem['y']);
-  //    })
-  //    // MOUSE OFF
-  //    .on('mouseout', function(elem) {
-  //      selectAll('.boundary').classed('tablehovered', false);
-  //      events.fire('table_row_hover_off', elem['y']);
-  //    });
+    });
 
 
- }
+    //  cells.on('click', function(elem) {
+    //    selectAll('.boundary').classed('tablehovered', false);
+    //    if (!event.metaKey){ //unless we pressed shift, unselect everything
+    //      selectAll('.boundary').classed('tableselected',false);
+    //    }
+    //    selectAll('.boundary')
+    //     .classed('tableselected', function(){
+    //        const rightRow = (parseInt(select(this).attr('row_pos')) === elem['y']);
+    //        if(rightRow){
+    //           return (!select(this).classed('tableselected')); //toggle it
+    //         }
+    //        return select(this).classed('tableselected'); //leave it be
+    //      });
+    //    if(event.metaKey)
+    //       events.fire('table_row_selected', elem['y'], 'multiple');
+    //    else
+    //       events.fire('table_row_selected', elem['y'], 'singular');
+    //    })
+    //    // MOUSE ON
+    //    .on('mouseover', function(elem) {
+    //       selectAll('.boundary').classed('tablehovered', function(){
+    //         const rightRow = (select(this).attr('row_pos') == elem['y']); //== OR parseInt. Not sure which is more canonical.
+    //         if(rightRow){ //don't hover if it's selected
+    //           return !select(this).classed('tableselected');
+    //         }
+    //         return false; //otherwise don't hover
+    //    });
+    //    events.fire('table_row_hover_on', elem['y']);
+    //    })
+    //    // MOUSE OFF
+    //    .on('mouseout', function(elem) {
+    //      selectAll('.boundary').classed('tablehovered', false);
+    //      events.fire('table_row_hover_off', elem['y']);
+    //    });
+
+    console.log('done rendering')
+
+  }
 
   //private update(data){
 
   //}
 
 ////////////// RENDERING FUNCTIONS! /////////////////////////////////////////////
-  private getWeight(data_elem){
-	    if(data_elem.type === 'int')
-	      return 3;
-	    else if(data_elem.type === 'categorical'){ //make sure to account for # cols
-        return 1;
-      }
-	    return 2;
-	  }
-
- private getTotalWeights(){
-      const getWeightHandle = this.getWeight;
-	    const weights = this.colData.map(function(elem)
-	    {return getWeightHandle(elem);});
-      return weights.reduce(function(a, b) { return a + b; }, 0);
-	}
-
-  private getDisplayedColumnWidths(width){
-      const buffer = this.buffer;
-      const totalWeight = this.getTotalWeights();
-      const getWeightHandle = this.getWeight;
-      const availableWidth = width - (buffer * this.colData.length);
-      const toReturn = this.colData.map(function(elem, index){
-          const elemWidth = getWeightHandle(elem) * availableWidth / totalWeight;
-          return {'name':elem['name'], 'width':elemWidth}
-      });
-      return toReturn;
+  private getWeight(data_elem) {
+    if (data_elem.type === 'int')
+      return 3;
+    else if (data_elem.type === 'categorical') { //make sure to account for # cols
+      return 1;
+    }
+    return 2;
   }
 
-  private getDisplayedColumnXs(width){
+  private getTotalWeights() {
+    const getWeightHandle = this.getWeight;
+    const weights = this.colData.map(function (elem) {
+      return getWeightHandle(elem);
+    });
+    return weights.reduce(function (a, b) {
+      return a + b;
+    }, 0);
+  }
+
+  private getDisplayedColumnWidths(width) {
+    const buffer = this.buffer;
+    const totalWeight = this.getTotalWeights();
+    const getWeightHandle = this.getWeight;
+    const availableWidth = width - (buffer * this.colData.length);
+    const toReturn = this.colData.map(function (elem, index) {
+      const elemWidth = getWeightHandle(elem) * availableWidth / totalWeight;
+      return {'name': elem['name'], 'width': elemWidth}
+    });
+    return toReturn;
+  }
+
+  private getDisplayedColumnXs(width) {
     const buffer = this.buffer;
     const totalWeight = this.getTotalWeights();
     const colWidths = this.getDisplayedColumnWidths(width);
-    const toReturn = colWidths.map(function(elem, index){
+    const toReturn = colWidths.map(function (elem, index) {
       var x_dist = 0;
-      for(let i = 0; i < index; i++){
+      for (let i = 0; i < index; i++) {
         x_dist += colWidths[i].width + buffer;
       }
-      return {'name':elem['name'], 'x':x_dist};
+      return {'name': elem['name'], 'x': x_dist};
     });
     //
     // console.log("Full width was: " + width);
@@ -432,14 +541,14 @@ class attributeTable {
   }
 
 
-  private getDisplayedColumnMidpointXs(width){
+  private getDisplayedColumnMidpointXs(width) {
     const buffer = this.buffer + 2;
     const totalWeight = this.getTotalWeights();
     const colXs = this.getDisplayedColumnXs(width);
     const colWidths = this.getDisplayedColumnWidths(width);
-    return this.colData.map(function(elem, index){
-        const midPoint = colXs[index].x + (colWidths[index].width/2) ;//+ 40; //TODO WHY
-        return {'name':elem['name'], 'x':midPoint};
+    return this.colData.map(function (elem, index) {
+      const midPoint = colXs[index].x + (colWidths[index].width / 2);//+ 40; //TODO WHY
+      return {'name': elem['name'], 'x': midPoint};
     });
 
   }
@@ -448,9 +557,9 @@ class attributeTable {
   private attachListener() {
     //NODE BEGIN HOVER
     events.on('row_mouseover', (evt, item) => {
-      selectAll('.boundary').classed('tablehovered', function (d) {
-        return (!select(this).classed('tablehovered') && !select(this).classed('tableselected') &&
-        select(this).attr('row_pos') == item);
+      selectAll('.boundary').classed('tablehovered', function (d:any) {return (d.y === item);
+        // !select(this).classed('tablehovered') && !select(this).classed('tableselected') &&
+        // select(this).attr('row_pos') == item);
       });
     });
 
@@ -481,25 +590,26 @@ class attributeTable {
       });
     });
 
-  const self = this;
-  const VIEW_CHANGED_EVENT = 'view_changed_event';
-  const TABLE_VIS_ROWS_CHANGED_EVENT = 'table_vis_rows_changed_event';
-
+    const self = this;
+    const VIEW_CHANGED_EVENT = 'view_changed_event';
+    const TABLE_VIS_ROWS_CHANGED_EVENT = 'table_vis_rows_changed_event';
 
 
     events.on(VIEW_CHANGED_EVENT, () => {
       //self.ys = self.tableManager.ys; //regrab the y's
-  //    console.log("registered event!!");
-      self.update(self.tableManager.tableTable, self.tableManager.ys);
+      //    console.log("registered event!!");
+      console.log('calling update from VIEW CHANGED EVENT')
+      self.update();
 
-      });
+    });
 
     events.on(TABLE_VIS_ROWS_CHANGED_EVENT, () => {
       //self.ys = self.tableManager.ys; //regrab the y's
-    //  console.log("registered event!!");
-      self.update(self.tableManager.tableTable, self.tableManager.ys);
+      //  console.log("registered event!!");
+      console.log('calling update from TABLE_VIS_ROWS_CHANGED EVENT')
+      self.update();
 
-      });
+    });
 
 
 //

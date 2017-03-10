@@ -169,7 +169,8 @@ class GenealogyTree {
   private update(){
 
     const nodes = this.data.nodes;
-    this.height = Config.glyphSize * 3 * nodes.length - this.margin.top - this.margin.bottom;
+    this.height = Config.glyphSize * 3 * nodes.filter((n)=>{return !n.hidden}).length - this.margin.top - this.margin.bottom;
+
 
     // this.height = 2506;
 
@@ -179,6 +180,8 @@ class GenealogyTree {
     }), max(nodes, function (d) {
       return +d['y'];
     })])
+
+
 
     this.interGenerationScale.range([.75, .25]).domain([2, nodes.length]);
 
@@ -424,8 +427,8 @@ class GenealogyTree {
     let parentEdgePaths = edgeGroup.selectAll('.parentEdges')// only draw parent parent edges if neither parent is aggregated
       .data(parentParentEdges.filter(function (d) {
         return !d['ma']['aggregated'] || !d['pa']['aggregated']
-      }), function (d) {
-        return d['id'];
+      }), function (d:any) {
+        return d.id;
       });
 
     parentEdgePaths.exit().transition().duration(400).style('opacity', 0).remove();

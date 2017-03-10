@@ -36,8 +36,8 @@ export default class TableManager {
   /** The table view (of table) used for the graph */
   public graphTable: ITable; // table view
   /** All rows that are used in the graph - corresponds to a family */
-  private activeGraphRows: range.Range;
-  /** The columns currently displayed in the table */
+  private _activeGraphRows: range.Range = range.all() ;
+  /** The columns currently displayed in the graph  */
   private activeGraphColumns: range.Range;
 
 
@@ -47,50 +47,29 @@ export default class TableManager {
 
   /** Basic information about all the loaded families */
   public readonly familyInfo: IFamilyInfo[] = [];
+
   // TODO what is this? Should this be in this class?
-  public ys;
-
-// FOR TESTING ONLY!  vvvvvvv
-///////////////////////////////////////////////////////////////////////////////
-
-  public async anniesTestUpdate() {
-
-    this._activeTableRows = range.list([1, 2]);
-    await this.refreshActiveViews();
-    console.log('DID  Update');
-    console.log(this.tableTable.dim);
-    console.log('Here\'s the filtered table:');
-    console.log(await this.tableTable.data());
-    console.log('-----------');
-    return this.tableTable;
-  }
-
-// FOR TESTING ONLY!  ^^^^^
-///////////////////////////////////////////////////////////////////////////////
+  public yValues;
 
   /**
-   * Loads the data form the server and stores it in the public table variable
+   * Loads the graph data from the server and stores it in the public table variable
    * @param: name of the dataset
    */
   public async loadData(name: string) {
     //retrieving the desired dataset by name
     this.table = <ITable> await getFirstByName(name);
     await this.parseData();
-    // TODO what is the purpose of attachListener?
-    //this.attachListener();
     return Promise.resolve(this);
   }
 
   /**
-   * Loads the data form the server and stores it in the public attributeTable variable
+   * Loads the attribute data from the server and stores it in the public attributeTable variable
    * @param: name of the dataset
    */
   public async loadAttributeData(name: string) {
     //retrieving the desired dataset by name
     this.attributeTable = <ITable> await getFirstByName(name);
     await this.parseAttributeData();
-    // TODO what is the purpose of attachListener?
-    //this.attachListener();
     return Promise.resolve(this);
   }
 
@@ -103,7 +82,7 @@ export default class TableManager {
    */
   public async selectFamily(chosenFamilyID?: number) {
     let family;
-    console.log(chosenFamilyID);
+
     if (chosenFamilyID == null) {
       family = this.familyInfo[0];
     } else {
@@ -111,15 +90,15 @@ export default class TableManager {
         return family.id === chosenFamilyID;
       })[0];
     }
-    this.activeGraphRows = range.list(family.range);
-    this._activeTableRows = this.activeGraphRows;
+    this._activeGraphRows = range.list(family.range);
+    this._activeTableRows = this._activeGraphRows;
     await this.refreshActiveViews();
   }
 
 
   /**
    * This function is called after loadData.
-   * This function populate needed variables for attribute table and attribute panel
+   * This function populates needed variables for attribute table and attribute panel
    *
    */
   public async parseAttributeData() {
@@ -184,7 +163,7 @@ export default class TableManager {
   public async refreshActiveViews() {
     const key = range.join(this._activeTableRows, this.activeTableColumns);
     this.tableTable = await this.attributeTable.view(key);
-    this.graphTable = await this.table.view(range.join(this.activeGraphRows, range.all()));
+    this.graphTable = await this.table.view(range.join(this._activeGraphRows, range.all()));
     events.fire(VIEW_CHANGED_EVENT);
   }
 
@@ -197,6 +176,18 @@ export default class TableManager {
     this.tableTable = this.table.view(range.join(this._activeTableRows, this.activeTableColumns));
     events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);
   }
+
+  /**
+   * Updates the active rows for the table visualization, creates a new table view and fires a {TABLE_VIS_ROWS_CHANGED} event.
+   * @param newRows
+   */
+  set activeGraphRows(newRows: range.Range) {
+    this._activeGraphRows = newRows;
+    this.graphTable = this.table.view(range.join(this._activeGraphRows, range.all()));
+    events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);
+  }
+
+
 
 
   public getColumns() {

@@ -388,7 +388,7 @@ class GenealogyTree {
     //Only draw parentedges if target node is not
     let edgePaths = edgeGroup.selectAll('.edges')
       .data(childParentEdges.filter(function (d) {
-        return (!d['target']['aggregated'] && !(d['target']['hidden'] && !d['target']['hasChildren']))
+        return (!(d['target']['hidden'] && !d['target']['hasChildren']))
       }), function (d) {
         return d['id'];
       });
@@ -425,9 +425,11 @@ class GenealogyTree {
       .attr('stroke-width', Config.glyphSize / 5)
 
     let parentEdgePaths = edgeGroup.selectAll('.parentEdges')// only draw parent parent edges if neither parent is aggregated
-      .data(parentParentEdges.filter(function (d) {
-        return !d['ma']['aggregated'] || !d['pa']['aggregated']
-      }), function (d:any) {
+      .data(parentParentEdges
+      //   .filter(function (d) {
+      //   return !d['ma']['aggregated'] || !d['pa']['aggregated']
+      // })
+        , function (d:any) {
         return d.id;
       });
 
@@ -625,17 +627,19 @@ class GenealogyTree {
       .classed('bars', true);
 
     //Attach background rectangle to all rows and set to invisible with css (will be used to capture mouse events)
-    hiddenBarsEnter.filter((d) => {
-      return !d['aggregated']
-    })
+    hiddenBarsEnter
+    //   .filter((d) => {
+    //   return !d['aggregated']
+    // })
       .append('rect')
       .classed('backgroundBar', true);
 
 
     //Attach highlight rectangle to all unhidden rows and set to invisible (will be set to visible on hover over backgroundBar)
-    hiddenBarsEnter.filter((d) => {
-      return !d['aggregated']
-    })
+    hiddenBarsEnter
+    //   .filter((d) => {
+    //   return !d['aggregated']
+    // })
       .append('rect')
       .classed('highlightBar', true);
 
@@ -747,15 +751,15 @@ class GenealogyTree {
           return !d['aggregated'] && !d['hidden']
         }).select('.lifeRect').select('.ageLabel').attr('visibility', 'visible');
 
-        //For aggregated nodes, show all the nodes that went into the aggregate
-        selectAll('.node').filter((e) => {
-          return e === d;
-        }).filter('.aggregated').attr('opacity', 1)
-
-        //Hide the aggregate node itself
-        selectAll('.node').filter((e) => {
-          return e === d;
-        }).select('.hex').attr('opacity', 0)
+        // //For aggregated nodes, show all the nodes that went into the aggregate
+        // selectAll('.node').filter((e) => {
+        //   return e === d;
+        // }).filter('.aggregated').attr('opacity', 1)
+        //
+        // //Hide the aggregate node itself
+        // selectAll('.node').filter((e) => {
+        //   return e === d;
+        // }).select('.hex').attr('opacity', 0)
 
         events.fire('row_mouseover', d['y']);
       })
@@ -767,13 +771,13 @@ class GenealogyTree {
         //Hide all the age labels on the lifeLines
         selectAll('.ageLabel').attr('visibility', 'hidden');
 
-        //Hide all nodes that were aggregated
-        selectAll('.aggregated').attr('opacity', 0);
+        // //Hide all nodes that were aggregated
+        // selectAll('.aggregated').attr('opacity', 0);
 
         //Set the opacity of any aggregate icons back to 1;
-        selectAll('.node').filter((e) => {
-          return e === d;
-        }).select('.hex').attr('opacity', 1);
+        // selectAll('.node').filter((e) => {
+        //   return e === d;
+        // }).select('.hex').attr('opacity', 1);
 
         events.fire('row_mouseout', d['y']);
       })
@@ -1197,19 +1201,20 @@ class GenealogyTree {
       })
 
     let tran = t.transition().ease(easeLinear);
-    allNodes.filter((d) => {
-      return !d['aggregated']
-    })
+    allNodes
+    //   .filter((d) => {
+    //   return !d['aggregated']
+    // })
       .transition(tran)
       .attr('opacity', 1);
 
 
 
-    allNodes.filter((d) => {
-      return d['aggregated']
-    })
-      .transition(tran.duration(100))
-      .attr('opacity', 0);
+    // allNodes.filter((d) => {
+    //   return d['aggregated']
+    // })
+    //   .transition(tran.duration(100))
+    //   .attr('opacity', 0);
 
 
     allNodesEnter

@@ -448,7 +448,6 @@ class GraphData {
     });
 
     if (isNotHidden.length === 0) {
-      console.log('calling expandBranch')
       this.expandBranch(startNode);
       return;
     }
@@ -604,6 +603,7 @@ class GraphData {
         }
 
         node.hidden = true;
+        node.aggregated = aggregate; //set aggregate status according to input parameter of to aggregate (true) or not (false);
       }
     });
 
@@ -690,6 +690,7 @@ class GraphData {
         node['y'] = node['Y'] - ydiff;
         node['x'] = node['X'];
         node['hidden'] = false;
+        node['aggregated']=false;
       }
     });
 

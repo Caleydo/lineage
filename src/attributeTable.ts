@@ -118,6 +118,9 @@ class attributeTable {
 
     let allCols = graphView.cols().concat(attributeView.cols());
 
+    //This are the rows that every col in the table should have;
+    let graphIDs = await graphView.col(0).names();
+
     for (const vector of allCols) {
       const data = await vector.data(range.all());
       const type = await vector.valuetype.type;
@@ -137,27 +140,19 @@ class attributeTable {
         for (const cat of categories) {
 
           let col: any = {};
-          col.ids = peopleIDs.filter((id) => {
-            return id in yDict
-          }); //keep track of personID to use as a key function for the cell
-
-
+          col.ids = graphIDs;
           const base_name = await vector.desc.name;
           col.name = base_name + '_' + cat;
-          col.data = data
-            .filter((d, i) => {
-              return peopleIDs[i] in yDict
-            }) //filter out any people not in the graph view
-            .map((d) => {
-              if (d === cat) {
-                return d;
-              } else {
-                return undefined;
-              }
-            });
-          col.ys = ys.filter((d, i) => {
-            return peopleIDs[i] in yDict
-          }) //filter out any people not in the graph view
+          //Ensure there is an element for every person in the graph, even if empty
+          col.data = graphIDs.map((person) => {
+            let ind = peopleIDs.lastIndexOf(person) //find this person in the attribute data
+            if (ind>-1 && data[ind] === cat){
+              return data[ind]
+            } else {
+              return undefined;
+            }
+          });
+          col.ys = graphIDs.map((person) => {return yDict[person]});
           col.type = type;
           colDataAccum.push(col);
         }
@@ -165,15 +160,20 @@ class attributeTable {
       else if (type !== 'idtype') { //quant
 
         let col: any = {};
-        col.ids = peopleIDs.filter((id) => {
-          return id in yDict
-        }); //keep track of personID to use as a key function for the cell
+        col.ids = graphIDs;
 
         let stats = await vector.stats();
 
         col.name = await vector.desc.name;
-        col.data = data;
-        col.ys = ys;
+        col.data = graphIDs.map((person) => {
+          let ind = peopleIDs.lastIndexOf(person) //find this person in the attribute data
+          if (ind>-1){
+            return data[ind]
+          } else {
+            return undefined;
+          }
+        });
+        col.ys = graphIDs.map((person) => {return yDict[person]});
         col.type = type;
         col.stats = stats;
 

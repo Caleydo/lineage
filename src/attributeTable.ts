@@ -57,7 +57,6 @@ class attributeTable {
   async init(data) {
 
     this.tableManager = data;
-    this.buffer = 4;
 
     this.build(); //builds the DOM
 
@@ -108,6 +107,8 @@ class attributeTable {
 
   public async initData() {
 
+    this.buffer = 8;
+
     let graphView = await this.tableManager.graphTable;
     let attributeView = await this.tableManager.tableTable;
 
@@ -138,7 +139,7 @@ class attributeTable {
       if (type === 'categorical') {
         const categories = Array.from(new Set(data));
         for (const cat of categories) {
-
+          // console.log('category', cat);
           let col: any = {};
           col.ids = graphIDs;
           const base_name = await vector.desc.name;
@@ -146,7 +147,9 @@ class attributeTable {
           //Ensure there is an element for every person in the graph, even if empty
           col.data = graphIDs.map((person) => {
             let ind = peopleIDs.lastIndexOf(person) //find this person in the attribute data
+            // console.log(data[ind],cat)
             if (ind>-1 && data[ind] === cat){
+              // console.log('found')
               return data[ind]
             } else {
               return undefined;
@@ -155,7 +158,9 @@ class attributeTable {
           col.ys = graphIDs.map((person) => {return yDict[person]});
           col.type = type;
           colDataAccum.push(col);
+          // console.log(cat, col.data)
         }
+
       }
       else if (type !== 'idtype') { //quant
 
@@ -274,7 +279,7 @@ class attributeTable {
     let cells = cols.selectAll('.cell')
       .data((d) => {
         return d.data.map((e, i) => {
-          return {'id':d.ids[i], 'name': d.name, 'data': +e, 'y': d.ys[i], 'type': d.type, 'stats': d.stats}
+          return {'id':d.ids[i], 'name': d.name, 'data':e, 'y': d.ys[i], 'type': d.type, 'stats': d.stats}
         })
       },(d:any)=>{return +d.id});
 
@@ -296,11 +301,17 @@ class attributeTable {
 
     cells = cellsEnter.merge(cells);
 
+    cellsEnter.attr('opacity',0);
+
     cells
       .transition(t)
       .attr("transform", function (col: any) {
         return ('translate(0, ' + y(col.y) + ' )'); //the x translation is taken care of by the group this cell is nested in.
-      });
+      })
+
+    cellsEnter.attr('opacity',1)
+
+
 
 //////////// RENDERING ////////////////////////////////////////////////////
 
@@ -316,21 +327,21 @@ class attributeTable {
       .attr('height', rowHeight + this.buffer)
       .attr('stroke',mediumGrey)
       .attr('fill', 'none')
-    .attr("transform", function (d) {
-      return ('translate(' + -2 + ',' + (-2) + ')');
+    .attr("transform", function () {
+      return ('translate(' + (-2) + ',' + (-4) + ')');
     });
 
 
     const categoricals = cellsEnter.filter((e) => {
-      return (e.type === 'categorical' && !isNaN(e.data) && !isNullOrUndefined(e) )
+      return (e.type === 'categorical' && !isNullOrUndefined(e.data))
     })
       .attr('classed', 'categorical');
     const quantitative = cellsEnter.filter((e) => {
-      return (e.type === 'int' && !isNaN(e.data) && !isNullOrUndefined(e) && e.data !== 0 )
+      return (e.type === 'int' && !isNullOrUndefined(e.data))
     })
       .attr('classed', 'quantitative');
     const idCells = cellsEnter.filter((e) => {
-      return (e.type === 'idtype' && !isNaN(e.data) && !isNullOrUndefined(e) && e.data !== 0  )
+      return (e.type === 'idtype' && !isNullOrUndefined(e.data)  )
     })
       .attr('classed', 'idtype');
 
@@ -339,8 +350,6 @@ class attributeTable {
     categoricals
       .append('rect')
       .classed('categorical', true)
-
-    console.log(categoricals.size())
 
     cells
       .selectAll('.categorical')
@@ -351,9 +360,9 @@ class attributeTable {
       .attr('stroke', 'black')
       .attr('stoke-width', 1)
       .attr('fill', (d) => {
-        if (d.data !== undefined)
-          return darkGrey;
-        return lightGrey;
+        if (d.data === undefined)
+          return 'white';
+        return darkGrey;
       });
 
 ////////// RENDER QUANT COLS /////////////////////////////////////////////

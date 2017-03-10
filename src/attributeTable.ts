@@ -16,6 +16,7 @@ import {transition} from 'd3-transition';
 import {easeLinear} from 'd3-ease';
 
 import {range as d3Range} from 'd3-array';
+import {isUndefined} from 'util';
 
 /**
  * Creates the attribute table view
@@ -100,7 +101,7 @@ class attributeTable {
 
 //HEADERS
     this.tableHeader = svg.append("g")
-      .attr("transform", "translate(2," + this.margin.axisTop / 2 + ")");
+      .attr("transform", "translate(2," + this.margin.axisTop + ")");
 
 // TABLE
     this.table = svg.append("g")
@@ -118,12 +119,28 @@ class attributeTable {
     console.log('graph has ', graphView.nrow)
     console.log('table Height is ', this.height)
 
+
     let colDataAccum = [];
 
     let allCols = graphView.cols().concat(attributeView.cols());
 
     //This are the rows that every col in the table should have;
     let graphIDs = await graphView.col(0).names();
+
+    //Create a dictionary of y value to people
+    let y2personDict={};
+    let yDict = this.tableManager.yValues;
+
+    graphIDs.forEach((person) => {
+      if (yDict[person] in y2personDict){
+        y2personDict[yDict[person]].push(person);
+      } else {
+        y2personDict[yDict[person]] =[person];
+      }
+    })
+
+    //Find y indexes of all rows
+    let allRows = Object.keys(y2personDict).map(Number);
 
     for (const vector of allCols) {
       const data = await vector.data(range.all());
@@ -132,38 +149,40 @@ class attributeTable {
       //Exctract y values from dict.
       let peopleIDs = await vector.names();
 
-      let ys = [];
-      let yDict = this.tableManager.yValues;
-
-      peopleIDs.forEach((person) => {
-        ys.push(yDict[person]);
-      })
-
       if (type === 'categorical') {
         const categories = Array.from(new Set(data));
-        for (const cat of categories) {
+
+
+
+        for (let cat of categories){
           // console.log('category', cat);
           let col: any = {};
-          col.ids = graphIDs;
+          col.ids = allRows.map((row) => {
+            return y2personDict[row]
+          });
+
           const base_name = await vector.desc.name;
           col.name = base_name + '_' + cat;
           //Ensure there is an element for every person in the graph, even if empty
-          col.data = graphIDs.map((person) => {
-            let ind = peopleIDs.lastIndexOf(person) //find this person in the attribute data
-            // console.log(data[ind],cat)
-            if (ind>-1 && data[ind] === cat){
-              // console.log('found')
-              return data[ind]
-            } else {
-              return undefined;
-            }
+          col.data = allRows.map((row) => {
+            let colData = [];
+            let people = y2personDict[row];
+            people.map((person) => {
+              let ind = peopleIDs.lastIndexOf(person) //find this person in the attribute data
+              if (ind > -1 && data[ind] === cat) {
+                colData.push(data[ind])
+              } else {
+                colData.push(undefined);
+              }
+            });
+            return colData;
           });
-          col.ys = graphIDs.map((person) => {return yDict[person]});
+          col.ys = allRows;
           col.type = type;
-          colDataAccum.push(col);
-          // console.log(cat, col.data)
-        }
-
+          if (categories.length > 2 || cat === 'M' || cat === 'Y') {
+            colDataAccum.push(col);
+          }
+        };
       }
       else if (type !== 'idtype') { //quant
 
@@ -173,15 +192,20 @@ class attributeTable {
         let stats = await vector.stats();
 
         col.name = await vector.desc.name;
-        col.data = graphIDs.map((person) => {
-          let ind = peopleIDs.lastIndexOf(person) //find this person in the attribute data
-          if (ind>-1){
-            return data[ind]
-          } else {
-            return undefined;
-          }
+        col.data = allRows.map((row) => {
+          let colData =[];
+          let people = y2personDict[row];
+          people.map((person) => {
+            let ind = peopleIDs.lastIndexOf(person) //find this person in the attribute data
+            if (ind>-1){
+              colData.push(data[ind])
+            } else {
+              colData.push(undefined);
+            }
+          });
+          return colData;
         });
-        col.ys = graphIDs.map((person) => {return yDict[person]});
+        col.ys = allRows
         col.type = type;
         col.stats = stats;
 
@@ -249,7 +273,7 @@ class attributeTable {
 
       .attr("transform", (d) => {
         const x_translation = label_xs.find(x => x.name === d['name']).x;
-        return 'translate(' + x_translation + ',0) rotate(-45)';
+        return 'translate(' + x_translation + ',0) rotate(-25)';
       });
 
 
@@ -286,14 +310,11 @@ class attributeTable {
         })
       },(d:any)=>{return +d.id});
 
-    console.log('going to remove ' , cells.exit().size() , ' rows')
     cells.exit().transition(t).remove();
 
     let cellsEnter = cells.enter()
       .append("g")
       .attr('class', 'cell');
-
-
 
     cells.exit().transition(t).attr('opacity',0).remove();
 
@@ -315,7 +336,6 @@ class attributeTable {
     cellsEnter.attr('opacity',1)
 
 
-
 //////////// RENDERING ////////////////////////////////////////////////////
 
 
@@ -324,7 +344,7 @@ class attributeTable {
       .attr("row_pos", (d) => {
         return d["y"];
       })
-      .attr('width', (d) => {
+      .attr('width', (d) => { //, col_widths.find(x => x.name === d.name))
         return (col_widths.find(x => x.name === d.name).width + 4);
       })
       .attr('height', rowHeight + this.buffer)
@@ -336,15 +356,15 @@ class attributeTable {
 
 
     const categoricals = cellsEnter.filter((e) => {
-      return (e.type === 'categorical' && !isNullOrUndefined(e.data))
+      return (e.type === 'categorical' && !e.data.every((a)=>{return isNullOrUndefined(a)}))
     })
       .attr('classed', 'categorical');
     const quantitative = cellsEnter.filter((e) => {
-      return (e.type === 'int' && !isNullOrUndefined(e.data))
+      return (e.type === 'int' && !e.data.every((a)=>{return isNullOrUndefined(a)}))
     })
       .attr('classed', 'quantitative');
     const idCells = cellsEnter.filter((e) => {
-      return (e.type === 'idtype' && !isNullOrUndefined(e.data)  )
+      return (e.type === 'idtype' && !e.data.every((a)=>{return isNullOrUndefined(a)}))
     })
       .attr('classed', 'idtype');
 
@@ -363,7 +383,7 @@ class attributeTable {
       .attr('stroke', 'black')
       .attr('stoke-width', 1)
       .attr('fill', (d) => {
-        if (d.data === undefined)
+        if (d.data[0] === undefined)
           return 'white';
         return darkGrey;
       });
@@ -386,16 +406,18 @@ class attributeTable {
       .attr('stoke-width', 1);
 
     quantitative
+      // .data((d)=>{console.log(d); return [d]})
       .append("ellipse")
       .classed('quant_ellipse', true)
 
+    console.log('new call')
     cells
       .selectAll('.quant_ellipse')
       .attr("cx",
         function (d: any) {
           const width = col_widths.find(x => x.name === d.name).width;
           const scaledRange = (width - 2 * radius) / (d.stats.max - d.stats.min);
-          return Math.floor((d.data - d.stats.min) * scaledRange);
+          return Math.floor((d.data[0] - d.stats.min) * scaledRange);
         })
       .attr("cy", rowHeight / 2)
       .attr("rx", radius)

@@ -388,7 +388,7 @@ class attributeTable {
       .attr('height', yScale(cellData.data.reduce((a, v) => v ? a + 1 : a, 0)))
       .attr('stroke', 'black')
       .attr('stoke-width', 1)
-      .attr('fill', 'red');
+      // .attr('fill', 'red');
   }
   private renderIntCell(element, cellData) {
 
@@ -441,7 +441,7 @@ class attributeTable {
       .attr("ry", radius)
       .attr('stroke', 'black')
       .attr('stroke-width', 1)
-      .attr('fill', 'red') // TODO: translate off of boundaries
+      // .attr('fill', 'red') // TODO: translate off of boundaries
       .attr('opacity',.8)
 
   }

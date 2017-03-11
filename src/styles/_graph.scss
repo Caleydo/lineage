@@ -20,6 +20,10 @@ td rect{
 
 }
 
+.cell{
+  fill: $node-color;
+}
+
 tr.selected{
   background-color: rgba(255, 100, 0, 0.44) !important;
 }

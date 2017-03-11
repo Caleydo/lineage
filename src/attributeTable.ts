@@ -370,6 +370,8 @@ class attributeTable {
 
     let numValues = cellData.data.reduce((a, v) => v ? a + 1 : a, 0);
 
+    element.selectAll('.categorical').remove(); //Hack. don't know why the height of the rects isn' being updated.
+
     // console.log(numValues)
     if (numValues === 0){
       return;

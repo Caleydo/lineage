@@ -33,6 +33,8 @@ class attributeTable {
 
   private y;
 
+  private yScale =scaleLinear();
+  private xScale = scaleLinear();
 
 // RENDERING THINGS
   private table;
@@ -146,9 +148,8 @@ class attributeTable {
       const data = await vector.data(range.all());
       const type = await vector.valuetype.type;
 
-      //Exctract y values from dict.
       let peopleIDs = await vector.names();
-
+      console.log(vector.desc.name, peopleIDs.length);
 
       if (type === 'categorical') {
         const categories = Array.from(new Set(data));
@@ -200,6 +201,7 @@ class attributeTable {
           people.map((person) => {
             let ind = peopleIDs.lastIndexOf(person) //find this person in the attribute data
             if (ind > -1) {
+              console.log('found data for ', col.name )
               colData.push(data[ind])
             } else {
               colData.push(undefined);
@@ -210,7 +212,8 @@ class attributeTable {
         col.ys = allRows
         col.type = type;
         col.stats = stats;
-
+        // console.log('pushing data for ', col.name)
+        // console.log(col.data);
         colDataAccum.push(col);
       }
     }
@@ -354,9 +357,10 @@ class attributeTable {
       if (cell.type === 'categorical') {
         self.renderCategoricalCell(select(this), cell);
       }
-      // else if (cell.type === 'int') {
-      //   self.renderIntCell(select(this), cell);
-      // } else if (cell.type === 'string') {
+      else if (cell.type === 'int') {
+        self.renderIntCell(select(this), cell);
+      }
+      // else if (cell.type === 'string') {
       //   self.renderStringCell(select(this), cell);
       // }
     });
@@ -373,7 +377,7 @@ class attributeTable {
         .classed('categorical', true)
     }
 
-    let yScale = scaleLinear()
+    this.yScale
       .domain([0, cellData.data.length])
       .range([0,rowHeight]);
 
@@ -383,7 +387,7 @@ class attributeTable {
 
         return col_widths.find(x => x.name === d.name).width;
       })
-      .attr('height', yScale(cellData.data.reduce((a, v) => v ? a + 1 : a, 0)))
+      .attr('height', this.yScale(cellData.data.reduce((a, v) => v ? a + 1 : a, 0)))
       .attr('stroke', 'black')
       .attr('stoke-width', 1)
       // .attr('fill', 'red');
@@ -395,12 +399,19 @@ class attributeTable {
     const rowHeight = Config.glyphSize * 2.5 - 4;
     const radius = 3.5;
 
-    let xScale = scaleLinear()
+
+    this.xScale
       .domain([cellData.stats.min, cellData.stats.max])
       .range([col_width*0.1,col_width*0.9]);
 
-    console.log(cellData.stats, xScale.domain(), xScale.range())
+    // console.log(cellData.name, cellData.stats, this.xScale.domain(), this.xScale.range())
 
+    //No of non-undefined elements in this array
+    let numValues = cellData.data.reduce((a, v) => v ? a + 1 : a, 0);
+
+    if (numValues === 0){
+      return;
+    }
 
     if (element.selectAll('.quant').size()===0){
       element
@@ -417,13 +428,16 @@ class attributeTable {
       .attr('stroke', 'black')
       .attr('stoke-width', 1);
 
+    element.selectAll('.quant_ellipse').remove(); //Hack. don't know why ellipsis.exit().remove() isn' removing the extra ones.
 
     let ellipses =element
-      .selectAll('ellipse')
+      .selectAll('.quant_ellipse')
       .data((d)=>{
-        return cellData.data.filter((f)=>{return !isNullOrUndefined((f))})
-          .map((e)=>{return {'name':d.name, 'stats':d.stats, 'value':e}})
-      });
+        let cellArray = cellData.data.filter((f)=>{return !isNullOrUndefined((f))})
+          .map((e,i)=>{return {'id':d.id[i],'name':d.name, 'stats':d.stats, 'value':e}})
+      console.log('ellipse data for ', d.id , ' has ', cellArray.length , 'values');
+        return cellArray
+    });
 
     let ellipsesEnter = ellipses.enter()
       .append("ellipse")
@@ -431,13 +445,15 @@ class attributeTable {
 
     ellipses = ellipsesEnter.merge(ellipses);
 
+    if (ellipses.exit().size() > 0)
+      console.log('there are ' , ellipses.exit().size() ,  ' ellipses to remove');
     ellipses.exit().remove();
 
 
-    selectAll('.quant_ellipse')
+    element.selectAll('.quant_ellipse')
       .attr("cx",
-        function (d: any) {
-          return xScale(d.value);
+         (d: any) => {
+          return this.xScale(d.value);
           ;
         })
       .attr("cy", rowHeight / 2)

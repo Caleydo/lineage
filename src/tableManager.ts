@@ -119,10 +119,7 @@ export default class TableManager {
       const name = col.desc.name;
       const type = col.desc.value.type;
 
-      // if the type of the column is ID then it is not in the active list
-      if (name === 'y') { //pay no attention to the man behind the curtain
-        yIndex = i; //for some reason can't set the member var here. js...  //That' because you're inside an if statement. The variable wouldn't exist outside of this if statement.
-      } else if (!(type === 'idtype' || name === 'x')) {
+    if (type !== 'idtype') {
         colIndexAccum.push(i);//push the index so we can get the right view
         this.activeAttributes.push(name);
       }
@@ -168,8 +165,10 @@ export default class TableManager {
    * @return {Promise<void>}
    */
   public async refreshActiveViews() {
-    const key = range.join(this._activeTableRows, this.activeTableColumns);
-    this.tableTable = await this.attributeTable.view(key);
+    // const key = range.join(range.all(), this.activeTableColumns);
+    const key = range.join(range.all(), range.list([0,1,2,3,4,5,6,7,8,9,10,11]));
+
+    this.tableTable = await this.attributeTable.view(key); //view on attribute table
     this.graphTable = await this.table.view(range.join(this._activeGraphRows, range.all()));
     events.fire(VIEW_CHANGED_EVENT);
   }

@@ -761,7 +761,7 @@ class GenealogyTree {
         //   return e === d;
         // }).select('.hex').attr('opacity', 0)
 
-        events.fire('row_mouseover', d['y']);
+        events.fire('row_mouseover', Math.round(d['y']));
       })
       .on('mouseout', (d) => {
 

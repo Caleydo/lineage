@@ -1,5 +1,5 @@
 $edge-color: #4f4f4d;
-$node-color: #7b8282;
+$node-color: #d2dddd;
 
 .well {
   padding-top: 0px;
@@ -24,6 +24,10 @@ td rect{
   fill: $node-color;
 }
 
+.boundary{
+  stroke:$node-color;
+
+}
 .quant{
   fill: #ececec
 }

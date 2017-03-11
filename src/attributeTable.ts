@@ -304,7 +304,6 @@ class attributeTable {
         return 'translate(' + x_translation + ',0)';
       });
 
-    console.log('binding data to cells')
     //Bind data to the cells
     let cells = cols.selectAll('.cell')
       .data((d) => {
@@ -330,9 +329,6 @@ class attributeTable {
 
     //Position all highlighting rectangles
     cells.selectAll('.boundary')
-      .attr("row_pos", (d) => {
-        return d["y"];
-      })
       .attr('width', (d) => { //, col_widths.find(x => x.name === d.name))
         return (col_widths.find(x => x.name === d.name).width + 4);
       })
@@ -354,15 +350,16 @@ class attributeTable {
     cellsEnter.attr('opacity',1);
 
     let self = this;
-    // cells.each(function (cell) {
-    //   if (cell.type === 'categorical') {
-    //     // self.renderCategoricalCell(select(this), cell);
-    //   } else if (cell.type === 'int') {
-    //     // self.renderIntCell(select(this), cell);
-    //   } else if (cell.type === 'string') {
-    //     // self.renderStringCell(select(this), cell);
-    //   }
-    // });
+    cells.each(function (cell) {
+      if (cell.type === 'categorical') {
+        self.renderCategoricalCell(select(this), cell);
+      }
+      // else if (cell.type === 'int') {
+      //   self.renderIntCell(select(this), cell);
+      // } else if (cell.type === 'string') {
+      //   self.renderStringCell(select(this), cell);
+      // }
+    });
 
 
   }
@@ -378,7 +375,7 @@ class attributeTable {
 
     let yScale = scaleLinear()
       .domain([0, cellData.data.length])
-      .range([rowHeight, 0]);
+      .range([0,rowHeight]);
 
     element
       .select('.categorical')
@@ -609,11 +606,9 @@ class attributeTable {
   private attachListener() {
     //NODE BEGIN HOVER
     events.on('row_mouseover', (evt, item) => {
-      selectAll('.boundary').classed('tablehovered', function (d: any) {
-        return (d.y === item);
-        // !select(this).classed('tablehovered') && !select(this).classed('tableselected') &&
-        // select(this).attr('row_pos') == item);
-      });
+      let cell = selectAll('.cell').filter((d:any)=> {return d.y === item}).select('.boundary')
+        // .classed('tablehovered', function (d: any) {return (d.y === item);});
+        .classed('tablehovered', true);
     });
 
     //NODE END HOVER

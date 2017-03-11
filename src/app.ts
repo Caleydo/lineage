@@ -57,10 +57,10 @@ export class App {
     // await attributeDataObj.loadData('big-decent-clipped-38');
 
     //Load in Attribute Data
-    await attributeDataObj.loadAttributeData('Attributes');
+    await attributeDataObj.loadAttributeData('allAttributes');
 
     //Load in Genealogy Data
-    await attributeDataObj.loadData('BigDescend');
+    await attributeDataObj.loadData('SmallDescend');
 
 
     const graphDataObj = graphData.create(attributeDataObj);

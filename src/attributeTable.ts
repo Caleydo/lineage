@@ -92,7 +92,7 @@ class attributeTable {
 
     //Exctract y values from dict.
     const svg = this.$node.append('svg')
-      .classed('tableSVG',true)
+      .classed('tableSVG', true)
       .attr('width', this.width + this.margin.left + this.margin.right)
       .attr("height", this.height + this.margin.top + this.margin.bottom)
 
@@ -128,14 +128,14 @@ class attributeTable {
     let graphIDs = await graphView.col(0).names();
 
     //Create a dictionary of y value to people
-    let y2personDict={};
+    let y2personDict = {};
     let yDict = this.tableManager.yValues;
 
     graphIDs.forEach((person) => {
-      if (yDict[person] in y2personDict){
+      if (yDict[person] in y2personDict) {
         y2personDict[yDict[person]].push(person);
       } else {
-        y2personDict[yDict[person]] =[person];
+        y2personDict[yDict[person]] = [person];
       }
     })
 
@@ -149,12 +149,12 @@ class attributeTable {
       //Exctract y values from dict.
       let peopleIDs = await vector.names();
 
+
       if (type === 'categorical') {
         const categories = Array.from(new Set(data));
 
 
-
-        for (let cat of categories){
+        for (let cat of categories) {
           // console.log('category', cat);
           let col: any = {};
           col.ids = allRows.map((row) => {
@@ -182,9 +182,9 @@ class attributeTable {
           if (categories.length > 2 || cat === 'M' || cat === 'Y') {
             colDataAccum.push(col);
           }
-        };
+        }
       }
-      else if (type !== 'idtype') { //quant
+      else if (type === 'int') { //quant
 
         let col: any = {};
         col.ids = graphIDs;
@@ -193,11 +193,11 @@ class attributeTable {
 
         col.name = await vector.desc.name;
         col.data = allRows.map((row) => {
-          let colData =[];
+          let colData = [];
           let people = y2personDict[row];
           people.map((person) => {
             let ind = peopleIDs.lastIndexOf(person) //find this person in the attribute data
-            if (ind>-1){
+            if (ind > -1) {
               colData.push(data[ind])
             } else {
               colData.push(undefined);
@@ -257,7 +257,7 @@ class attributeTable {
         }
       }));
 
-    headers.exit().transition(t).attr('opacity',0).remove(); // should remove headers of removed col's
+    headers.exit().transition(t).attr('opacity', 0).remove(); // should remove headers of removed col's
 
     const headerEnter = headers
       .enter()
@@ -287,7 +287,7 @@ class attributeTable {
         }
       }));
 
-    cols.exit().transition(t).attr('opacity',0).remove(); // should remove on col remove
+    cols.exit().transition(t).attr('opacity', 0).remove(); // should remove on col remove
 
     const colsEnter = cols.enter()
       .append('g')
@@ -296,7 +296,7 @@ class attributeTable {
 
     cols = colsEnter.merge(cols)//;
 
-      cols.transition(t)
+    cols.transition(t)
       .attr("transform", (d) => {
         const x_translation = col_xs.find(x => x.name === d.name).x;
         return 'translate(' + x_translation + ',0)';
@@ -306,9 +306,12 @@ class attributeTable {
     let cells = cols.selectAll('.cell')
       .data((d) => {
         return d.data.map((e, i) => {
-          return {'id':d.ids[i], 'name': d.name, 'data':e, 'y': d.ys[i], 'type': d.type, 'stats': d.stats}
+          return {'id': d.ids[i], 'name': d.name, 'data': e, 'y': d.ys[i], 'type': d.type, 'stats': d.stats}
+
         })
-      },(d:any)=>{return +d.id});
+      }, (d: any) => {
+        return +d.id
+      });
 
     cells.exit().transition(t).remove();
 
@@ -316,7 +319,7 @@ class attributeTable {
       .append("g")
       .attr('class', 'cell');
 
-    cells.exit().transition(t).attr('opacity',0).remove();
+    cells.exit().transition(t).attr('opacity', 0).remove();
 
     //Add rectangle for highlighting...
     cellsEnter
@@ -325,7 +328,7 @@ class attributeTable {
 
     cells = cellsEnter.merge(cells);
 
-    cellsEnter.attr('opacity',0);
+    cellsEnter.attr('opacity', 0);
 
     cells
       .transition(t)
@@ -333,7 +336,7 @@ class attributeTable {
         return ('translate(0, ' + y(col.y) + ' )'); //the x translation is taken care of by the group this cell is nested in.
       })
 
-    cellsEnter.attr('opacity',1)
+    cellsEnter.attr('opacity', 1)
 
 
 //////////// RENDERING ////////////////////////////////////////////////////
@@ -348,23 +351,29 @@ class attributeTable {
         return (col_widths.find(x => x.name === d.name).width + 4);
       })
       .attr('height', rowHeight + this.buffer)
-      .attr('stroke',mediumGrey)
+      .attr('stroke', mediumGrey)
       .attr('fill', 'none')
-    .attr("transform", function () {
-      return ('translate(' + (-2) + ',' + (-4) + ')');
-    });
+      .attr("transform", function () {
+        return ('translate(' + (-2) + ',' + (-4) + ')');
+      });
 
 
     const categoricals = cellsEnter.filter((e) => {
-      return (e.type === 'categorical' && !e.data.every((a)=>{return isNullOrUndefined(a)}))
+      return (e.type === 'categorical' && !e.data.every((a) => {
+        return isNullOrUndefined(a)
+      }))
     })
       .attr('classed', 'categorical');
     const quantitative = cellsEnter.filter((e) => {
-      return (e.type === 'int' && !e.data.every((a)=>{return isNullOrUndefined(a)}))
+      return (e.type === 'int' && !e.data.every((a) => {
+        return isNullOrUndefined(a)
+      }))
     })
       .attr('classed', 'quantitative');
     const idCells = cellsEnter.filter((e) => {
-      return (e.type === 'idtype' && !e.data.every((a)=>{return isNullOrUndefined(a)}))
+      return (e.type === 'idtype' && !e.data.every((a) => {
+        return isNullOrUndefined(a)
+      }))
     })
       .attr('classed', 'idtype');
 
@@ -377,6 +386,7 @@ class attributeTable {
     cells
       .selectAll('.categorical')
       .attr('width', (d) => {
+
         return col_widths.find(x => x.name === d.name).width;
       })
       .attr('height', rowHeight)
@@ -406,7 +416,7 @@ class attributeTable {
       .attr('stoke-width', 1);
 
     quantitative
-      // .data((d)=>{console.log(d); return [d]})
+    // .data((d)=>{console.log(d); return [d]})
       .append("ellipse")
       .classed('quant_ellipse', true)
 
@@ -415,6 +425,7 @@ class attributeTable {
       .selectAll('.quant_ellipse')
       .attr("cx",
         function (d: any) {
+          console.log(d);
           const width = col_widths.find(x => x.name === d.name).width;
           const scaledRange = (width - 2 * radius) / (d.stats.max - d.stats.min);
           return Math.floor((d.data[0] - d.stats.min) * scaledRange);
@@ -425,7 +436,7 @@ class attributeTable {
       .attr('stroke', 'black')
       .attr('stroke-width', 1)
       .attr('fill', darkGrey) // TODO: translate off of boundaries
-      .attr('opacity',.8)
+      .attr('opacity', .8)
 
     // stick on the median
     quantitative
@@ -443,7 +454,9 @@ class attributeTable {
         return ('translate(' + ((d.stats.mean - d.stats.min) * scaledRange) + ',0)');
       });
 
-    cells.selectAll('rect').on('click',(c) => {console.log(c);})
+    cells.selectAll('rect').on('click', (c) => {
+      console.log(c);
+    })
 
 
 ////////////// EVENT HANDLERS! /////////////////////////////////////////////
@@ -578,7 +591,8 @@ class attributeTable {
   private attachListener() {
     //NODE BEGIN HOVER
     events.on('row_mouseover', (evt, item) => {
-      selectAll('.boundary').classed('tablehovered', function (d:any) {return (d.y === item);
+      selectAll('.boundary').classed('tablehovered', function (d: any) {
+        return (d.y === item);
         // !select(this).classed('tablehovered') && !select(this).classed('tableselected') &&
         // select(this).attr('row_pos') == item);
       });

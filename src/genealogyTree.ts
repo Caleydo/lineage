@@ -181,8 +181,6 @@ class GenealogyTree {
       return +d['y'];
     })])
 
-
-
     this.interGenerationScale.range([.75, .25]).domain([2, nodes.length]);
 
     select('#graph')
@@ -1647,48 +1645,6 @@ class GenealogyTree {
 
   private xPOS(node) {
 
-    //Check for hidden nodes with no children to place in the kid grid;
-
-    /*
-     if (node['hidden'] && !node['hasChildren']){
-
-     let childCount = 0;
-     //Find ma and pa
-     let edge = this.data.parentChildEdges.filter((d) => {
-     return d.target === node
-     });
-
-     let ma = edge[0]['ma'];
-     let pa = edge[0]['pa'];
-
-
-     this.data.parentChildEdges.forEach((d,i)=>{
-
-     if (d.ma === ma && d.pa === pa ){
-     //Only count unaffected children so as to avoid gaps in the kid Grid
-     if (!d.target.affected)
-     childCount = childCount +1
-     if (d.target === node){
-
-     let xpos = childCount % this.kidGridSize;
-     if (xpos === 0)
-     xpos = this.kidGridSize
-
-
-     let ans  = this.x(node.x) + this.kidGridScale(xpos)
-
-     console.log('Family ' , max(node['family_ids']) ,   ' has ', childCount  , ' kids. child has node.x ', node.x , ' and xpos is ' , ans)
-     return ans;
-
-     }
-
-     }
-
-     })
-     }
-     */
-
-
     if (node['sex'] === 'M') {
       if (node['hidden'] && node['hasChildren'])
         return this.x(node.x) - Config.hiddenGlyphSize
@@ -1702,41 +1658,6 @@ class GenealogyTree {
   }
 
   private yPOS(node) {
-    /*
-
-     if (node['hidden'] && !node['hasChildren']){
-
-     let childCount = 0;
-     //Find ma and pa
-     let edge = this.data.parentChildEdges.filter((d) => {
-     return d.target === node
-     });
-
-     let ma = edge[0]['ma'];
-     let pa = edge[0]['pa'];
-
-
-     this.data.parentChildEdges.forEach((d,i)=>{
-
-     if (d.ma === ma && d.pa === pa){
-     //Only count unaffected children so as to avoid gaps in the kid Grid
-     if (!d.target.affected)
-     childCount = childCount +1
-     if (d.target === node){
-     let ypos = this.y(node.y) + this.kidGridScale(Math.ceil(childCount / this.kidGridSize))
-     console.log('child has node.y ', node.y , ' and ypos is ' , ypos)
-     return ypos;
-     }
-
-     }
-
-
-     })
-     }
-     */
-
-
-//       return (node['hidden'] && node['hasChildren']) ? this.y(node.y) - Config.hiddenGlyphSize : this.y(node.y) - Config.glyphSize;
     if (node['sex'] === 'M') {
       if (node['hidden'] && node['hasChildren'])
         return this.y(node.y) - Config.hiddenGlyphSize
@@ -1833,7 +1754,6 @@ class GenealogyTree {
 
     events.on('redraw_tree', (evt,item) => {
       console.log('redrawing tree!')
-      console.log(item.nodes.length)
       this.data = item;
       this.update();
     });

@@ -166,10 +166,11 @@ export default class TableManager {
    */
   public async refreshActiveViews() {
     // const key = range.join(range.all(), this.activeTableColumns);
-    const key = range.join(range.all(), range.list([0,1,2,3,4,5,6,7,8,9,10,11]));
+    const key = range.join(range.all(), range.list([0,1,2,3,4,5,6,7,8,9,10,11])); //temporary to debug table
 
     this.tableTable = await this.attributeTable.view(key); //view on attribute table
     this.graphTable = await this.table.view(range.join(this._activeGraphRows, range.all()));
+
     events.fire(VIEW_CHANGED_EVENT);
   }
 
@@ -188,8 +189,9 @@ export default class TableManager {
    * @param newRows
    */
   set activeGraphRows(newRows: range.Range) {
-    this._activeGraphRows = newRows;
-    this.graphTable = this.table.view(range.join(this._activeGraphRows, range.all()));
+    // this._activeGraphRows = newRows;
+    let familyView = this.table.view(range.join(this._activeGraphRows, range.all()))
+    this.graphTable = familyView.view(range.join(newRows, range.all()));
     events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);
   }
 

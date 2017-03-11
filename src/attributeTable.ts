@@ -31,8 +31,10 @@ class attributeTable {
 
   private tableAxis;
 
-  private y;
+  //for entire Table
+  private y = scaleLinear();
 
+  //for Cell Renderers
   private yScale =scaleLinear();
   private xScale = scaleLinear();
 
@@ -88,9 +90,6 @@ class attributeTable {
     this.height = Config.glyphSize * 3 * this.tableManager.graphTable.nrow - this.margin.top - this.margin.bottom;
 
     let t = transition('t').duration(500).ease(easeLinear);
-    //Remove any existing svgs;
-    // select('.tableSVG').exit().transition(t).remove();
-
 
     //Exctract y values from dict.
     const svg = this.$node.append('svg')
@@ -98,8 +97,6 @@ class attributeTable {
       .attr('width', this.width + this.margin.left + this.margin.right)
       .attr("height", this.height + this.margin.top + this.margin.bottom)
 
-
-    this.y = scaleLinear().range([0, this.height]).domain([1, this.tableManager.graphTable.nrow]);
 
 //HEADERS
     this.tableHeader = svg.append("g")
@@ -115,12 +112,12 @@ class attributeTable {
 
     this.buffer = 8;
 
+
+
     let graphView = await this.tableManager.graphTable;
     let attributeView = await this.tableManager.tableTable;
 
-    console.log('graph has ', graphView.nrow)
-    console.log('table Height is ', this.height)
-
+    this.y.range([0, this.height]).domain([1, graphView.nrow]);
 
     let colDataAccum = [];
 
@@ -129,9 +126,11 @@ class attributeTable {
     //This are the rows that every col in the table should have;
     let graphIDs = await graphView.col(0).names();
 
+
     //Create a dictionary of y value to people
     let y2personDict = {};
     let yDict = this.tableManager.yValues;
+
 
     graphIDs.forEach((person) => {
       if (yDict[person] in y2personDict) {
@@ -149,7 +148,7 @@ class attributeTable {
       const type = await vector.valuetype.type;
 
       let peopleIDs = await vector.names();
-      console.log(vector.desc.name, peopleIDs.length);
+      // console.log(vector.desc.name, peopleIDs.length);
 
       if (type === 'categorical') {
         const categories = Array.from(new Set(data));
@@ -249,7 +248,6 @@ class attributeTable {
     // [Math.min( ...this.colData[0]['ys']), Math.max( ...this.colData[0]['ys'])]);
     const rowHeight = Config.glyphSize * 2.5 - 4;
 
-    console.log('yrange for table is ', y.range())
 
 
 //HEADERS
@@ -431,11 +429,11 @@ class attributeTable {
     element.selectAll('.quant_ellipse').remove(); //Hack. don't know why ellipsis.exit().remove() isn' removing the extra ones.
 
     let ellipses =element
-      .selectAll('.quant_ellipse')
+      .selectAll('ellipse')
       .data((d)=>{
         let cellArray = cellData.data.filter((f)=>{return !isNullOrUndefined((f))})
           .map((e,i)=>{return {'id':d.id[i],'name':d.name, 'stats':d.stats, 'value':e}})
-      console.log('ellipse data for ', d.id , ' has ', cellArray.length , 'values');
+      // console.log('ellipse data for ', d.id , ' has ', cellArray.length , 'values');
         return cellArray
     });
 
@@ -445,9 +443,9 @@ class attributeTable {
 
     ellipses = ellipsesEnter.merge(ellipses);
 
-    if (ellipses.exit().size() > 0)
-      console.log('there are ' , ellipses.exit().size() ,  ' ellipses to remove');
-    ellipses.exit().remove();
+    // if (ellipses.exit().size() > 0)
+    //   console.log('there are ' , ellipses.exit().size() ,  ' ellipses to remove');
+    ellipses.exit().remove(); //Dont'know why these is not removing ellipses. :-/
 
 
     element.selectAll('.quant_ellipse')
@@ -658,11 +656,10 @@ class attributeTable {
     const VIEW_CHANGED_EVENT = 'view_changed_event';
     const TABLE_VIS_ROWS_CHANGED_EVENT = 'table_vis_rows_changed_event';
 
-
-    events.on(VIEW_CHANGED_EVENT, () => {
-      //self.ys = self.tableManager.ys; //regrab the y's
-      //    console.log("registered event!!");
-      console.log('calling update from VIEW CHANGED EVENT')
+    //
+    events.on('redraw_tree', () => {
+      this.height = Config.glyphSize * 3 * this.tableManager.graphTable.nrow - this.margin.top - this.margin.bottom;
+      select('.tableSVG').attr("height", this.height + this.margin.top + this.margin.bottom)
       self.update();
 
     });

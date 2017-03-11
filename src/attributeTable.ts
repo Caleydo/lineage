@@ -87,12 +87,12 @@ class attributeTable {
 
     let t = transition('t').duration(500).ease(easeLinear);
     //Remove any existing svgs;
-    select('.tableSVG').exit().transition(t).remove();
+    // select('.tableSVG').exit().transition(t).remove();
 
 
     //Exctract y values from dict.
     const svg = this.$node.append('svg')
-      .classed('tableSVG',true)
+      .classed('tableSVG', true)
       .attr('width', this.width + this.margin.left + this.margin.right)
       .attr("height", this.height + this.margin.top + this.margin.bottom)
 
@@ -128,14 +128,14 @@ class attributeTable {
     let graphIDs = await graphView.col(0).names();
 
     //Create a dictionary of y value to people
-    let y2personDict={};
+    let y2personDict = {};
     let yDict = this.tableManager.yValues;
 
     graphIDs.forEach((person) => {
-      if (yDict[person] in y2personDict){
+      if (yDict[person] in y2personDict) {
         y2personDict[yDict[person]].push(person);
       } else {
-        y2personDict[yDict[person]] =[person];
+        y2personDict[yDict[person]] = [person];
       }
     })
 
@@ -149,12 +149,12 @@ class attributeTable {
       //Exctract y values from dict.
       let peopleIDs = await vector.names();
 
+
       if (type === 'categorical') {
         const categories = Array.from(new Set(data));
 
 
-
-        for (let cat of categories){
+        for (let cat of categories) {
           // console.log('category', cat);
           let col: any = {};
           col.ids = allRows.map((row) => {
@@ -182,22 +182,24 @@ class attributeTable {
           if (categories.length > 2 || cat === 'M' || cat === 'Y') {
             colDataAccum.push(col);
           }
-        };
+        }
       }
-      else if (type !== 'idtype') { //quant
+      else if (type === 'int') { //quant
 
         let col: any = {};
-        col.ids = graphIDs;
+        col.ids = allRows.map((row) => {
+          return y2personDict[row]
+        });
 
         let stats = await vector.stats();
 
         col.name = await vector.desc.name;
         col.data = allRows.map((row) => {
-          let colData =[];
+          let colData = [];
           let people = y2personDict[row];
           people.map((person) => {
             let ind = peopleIDs.lastIndexOf(person) //find this person in the attribute data
-            if (ind>-1){
+            if (ind > -1) {
               colData.push(data[ind])
             } else {
               colData.push(undefined);
@@ -302,15 +304,14 @@ class attributeTable {
         return 'translate(' + x_translation + ',0)';
       });
 
+    console.log('binding data to cells')
     //Bind data to the cells
     let cells = cols.selectAll('.cell')
       .data((d) => {
         return d.data.map((e, i) => {
           return {'id': d.ids[i], 'name': d.name, 'data': e, 'y': d.ys[i], 'type': d.type, 'stats': d.stats}
         })
-      }, (d: any) => {
-        return d.id[0]
-      });
+      }, (d: any) => {return +d.id[0]});
 
     cells.exit().remove();
 
@@ -319,13 +320,13 @@ class attributeTable {
       .attr('class', 'cell');
 
 
-
     //Add rectangle for highlighting...
     cellsEnter
       .append('rect')
       .classed("boundary", true);
 
     cells = cellsEnter.merge(cells);
+
 
     //Position all highlighting rectangles
     cells.selectAll('.boundary')
@@ -336,7 +337,7 @@ class attributeTable {
         return (col_widths.find(x => x.name === d.name).width + 4);
       })
       .attr('height', rowHeight + this.buffer)
-      .attr('stroke',mediumGrey)
+      .attr('stroke', mediumGrey)
       .attr('fill', 'none')
       .attr("transform", function () {
         return ('translate(' + (-2) + ',' + (-4) + ')');
@@ -353,20 +354,19 @@ class attributeTable {
     cellsEnter.attr('opacity',1);
 
     let self = this;
-    cells.each(function (cell) {
-      if (cell.type === 'categorical') {
-        self.renderCategoricalCell(select(this), cell);
-      } else if (cell.type === 'int') {
-        self.renderIntCell(select(this), cell);
-      } else if (cell.type === 'string') {
-        self.renderStringCell(select(this), cell);
-      }
-    });
+    // cells.each(function (cell) {
+    //   if (cell.type === 'categorical') {
+    //     // self.renderCategoricalCell(select(this), cell);
+    //   } else if (cell.type === 'int') {
+    //     // self.renderIntCell(select(this), cell);
+    //   } else if (cell.type === 'string') {
+    //     // self.renderStringCell(select(this), cell);
+    //   }
+    // });
 
 
   }
   private renderCategoricalCell(element, cellData) {
-
     let col_widths = this.getDisplayedColumnWidths(this.width)
     const rowHeight = Config.glyphSize * 2.5 - 4;
 
@@ -378,11 +378,12 @@ class attributeTable {
 
     let yScale = scaleLinear()
       .domain([0, cellData.data.length])
-      .range([0, rowHeight]);
+      .range([rowHeight, 0]);
 
     element
       .select('.categorical')
       .attr('width', (d) => {
+
         return col_widths.find(x => x.name === d.name).width;
       })
       .attr('height', yScale(cellData.data.reduce((a, v) => v ? a + 1 : a, 0)))
@@ -392,9 +393,17 @@ class attributeTable {
   }
   private renderIntCell(element, cellData) {
 
-    let col_widths = this.getDisplayedColumnWidths(this.width)
+
+    let col_width = this.getDisplayedColumnWidths(this.width).find(x => x.name === cellData.name).width
     const rowHeight = Config.glyphSize * 2.5 - 4;
     const radius = 3.5;
+
+    let xScale = scaleLinear()
+      .domain([cellData.stats.min, cellData.stats.max])
+      .range([col_width*0.1,col_width*0.9]);
+
+    console.log(cellData.stats, xScale.domain(), xScale.range())
+
 
     if (element.selectAll('.quant').size()===0){
       element
@@ -405,12 +414,12 @@ class attributeTable {
     element
       .select('.quant')
       .attr('width', (d) => {
-        return col_widths.find(x => x.name === d.name).width;
+        return col_width
       })
       .attr('height', rowHeight)
-      .attr('fill', '#e9e9e9')
       .attr('stroke', 'black')
       .attr('stoke-width', 1);
+
 
     let ellipses =element
       .selectAll('ellipse')
@@ -431,24 +440,22 @@ class attributeTable {
     selectAll('.quant_ellipse')
       .attr("cx",
         function (d: any) {
-          const width = col_widths.find(x => x.name === d.name).width;
-          const scaledRange = (width - 2 * radius) / (d.stats.max - d.stats.min);
-          return Math.floor((d.value - d.stats.min) * scaledRange);
+          return xScale(d.value);
           ;
         })
       .attr("cy", rowHeight / 2)
       .attr("rx", radius)
       .attr("ry", radius)
       .attr('stroke', 'black')
+      .attr('opacity',.7)
       .attr('stroke-width', 1)
-      // .attr('fill', 'red') // TODO: translate off of boundaries
+      .attr('fill', 'none') // TODO: translate off of boundaries
       .attr('opacity',.8)
 
   }
   private renderStringCell(element, cellData) {
     // TODO
   }
-
 
 //
 //     // stick on the median
@@ -602,7 +609,8 @@ class attributeTable {
   private attachListener() {
     //NODE BEGIN HOVER
     events.on('row_mouseover', (evt, item) => {
-      selectAll('.boundary').classed('tablehovered', function (d:any) {return (d.y === item);
+      selectAll('.boundary').classed('tablehovered', function (d: any) {
+        return (d.y === item);
         // !select(this).classed('tablehovered') && !select(this).classed('tableselected') &&
         // select(this).attr('row_pos') == item);
       });

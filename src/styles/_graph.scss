@@ -24,6 +24,10 @@ td rect{
   fill: $node-color;
 }
 
+.quant{
+  fill: #ececec
+}
+
 tr.selected{
   background-color: rgba(255, 100, 0, 0.44) !important;
 }

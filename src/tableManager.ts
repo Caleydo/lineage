@@ -104,6 +104,13 @@ export default class TableManager {
   public async parseAttributeData() {
     const columns = await this.attributeTable.cols();
 
+    // console.log(this.attributeTable);
+    // console.log(await this.attributeTable.data());
+    //
+    // for(const col of await this.attributeTable.cols())
+    // {
+    //   console.log(await col.data());
+    // }
     const colIndexAccum = [];
     let yIndex; //No need to set a value if you're going to override it in line 53.
 

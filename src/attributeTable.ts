@@ -257,7 +257,7 @@ class attributeTable {
         }
       }));
 
-    headers.exit().transition(t).attr('opacity',0).remove(); // should remove headers of removed col's
+    headers.exit().transition(t).attr('opacity', 0).remove(); // should remove headers of removed col's
 
     const headerEnter = headers
       .enter()
@@ -287,7 +287,7 @@ class attributeTable {
         }
       }));
 
-    cols.exit().transition(t).attr('opacity',0).remove(); // should remove on col remove
+    cols.exit().transition(t).attr('opacity', 0).remove(); // should remove on col remove
 
     const colsEnter = cols.enter()
       .append('g')
@@ -296,7 +296,7 @@ class attributeTable {
 
     cols = colsEnter.merge(cols)//;
 
-      cols.transition(t)
+    cols.transition(t)
       .attr("transform", (d) => {
         const x_translation = col_xs.find(x => x.name === d.name).x;
         return 'translate(' + x_translation + ',0)';
@@ -306,17 +306,19 @@ class attributeTable {
     let cells = cols.selectAll('.cell')
       .data((d) => {
         return d.data.map((e, i) => {
-          return {'id':d.ids[i], 'name': d.name, 'data':e, 'y': d.ys[i], 'type': d.type, 'stats': d.stats}
+          return {'id': d.ids[i], 'name': d.name, 'data': e, 'y': d.ys[i], 'type': d.type, 'stats': d.stats}
         })
-      },(d:any)=>{return +d.id[0]});
+      }, (d: any) => {
+        return d.id[0]
+      });
 
-    cells.exit().transition(t).remove();
+    cells.exit().remove();
 
     let cellsEnter = cells.enter()
       .append("g")
       .attr('class', 'cell');
 
-    cells.exit().transition(t).attr('opacity',0).remove();
+
 
     //Add rectangle for highlighting...
     cellsEnter
@@ -324,20 +326,6 @@ class attributeTable {
       .classed("boundary", true);
 
     cells = cellsEnter.merge(cells);
-
-    cellsEnter.attr('opacity',0);
-
-    cells
-      .transition(t)
-      .attr("transform", function (col: any) {
-        return ('translate(0, ' + y(col.y) + ' )'); //the x translation is taken care of by the group this cell is nested in.
-      })
-
-    cellsEnter.attr('opacity',1)
-
-
-//////////// RENDERING ////////////////////////////////////////////////////
-
 
     //Position all highlighting rectangles
     cells.selectAll('.boundary')
@@ -350,160 +338,194 @@ class attributeTable {
       .attr('height', rowHeight + this.buffer)
       .attr('stroke',mediumGrey)
       .attr('fill', 'none')
-    .attr("transform", function () {
-      return ('translate(' + (-2) + ',' + (-4) + ')');
+      .attr("transform", function () {
+        return ('translate(' + (-2) + ',' + (-4) + ')');
+      });
+
+    cellsEnter.attr('opacity',0);
+
+    cells
+      .transition(t)
+      .attr("transform", function (col: any) {
+        return ('translate(0, ' + y(col.y) + ' )'); //the x translation is taken care of by the group this cell is nested in.
+      });
+
+    cellsEnter.attr('opacity',1);
+
+    let self = this;
+    cells.each(function (cell) {
+      if (cell.type === 'categorical') {
+        self.renderCategoricalCell(select(this), cell);
+      } else if (cell.type === 'int') {
+        self.renderIntCell(select(this), cell);
+      } else if (cell.type === 'string') {
+        self.renderStringCell(select(this), cell);
+      }
     });
 
 
-    const categoricals = cellsEnter.filter((e) => {
-      return (e.type === 'categorical' && !e.data.every((a)=>{return isNullOrUndefined(a)}))
-    })
-      .attr('classed', 'categorical');
-    const quantitative = cellsEnter.filter((e) => {
-      return (e.type === 'int' && !e.data.every((a)=>{return isNullOrUndefined(a)}))
-    })
-      .attr('classed', 'quantitative');
-    const idCells = cellsEnter.filter((e) => {
-      return (e.type === 'idtype' && !e.data.every((a)=>{return isNullOrUndefined(a)}))
-    })
-      .attr('classed', 'idtype');
+  }
+  private renderCategoricalCell(element, cellData) {
 
-////////// RENDER CATEGORICAL COLS /////////////////////////////////////////////
+    let col_widths = this.getDisplayedColumnWidths(this.width)
+    const rowHeight = Config.glyphSize * 2.5 - 4;
 
-    categoricals
-      .append('rect')
-      .classed('categorical', true)
+    if (element.selectAll('.categorical').size()===0){
+      element
+        .append('rect')
+        .classed('categorical', true)
+    }
 
-    cells
-      .selectAll('.categorical')
+    let yScale = scaleLinear()
+      .domain([0, cellData.data.length])
+      .range([0, rowHeight]);
+
+    element
+      .select('.categorical')
       .attr('width', (d) => {
         return col_widths.find(x => x.name === d.name).width;
       })
-      .attr('height', rowHeight)
+      .attr('height', yScale(cellData.data.reduce((a, v) => v ? a + 1 : a, 0)))
       .attr('stroke', 'black')
       .attr('stoke-width', 1)
-      .attr('fill', (d) => {
-        if (d.data[0] === undefined)
-          return 'white';
-        return darkGrey;
-      });
+      .attr('fill', 'red');
+  }
+  private renderIntCell(element, cellData) {
 
-////////// RENDER QUANT COLS /////////////////////////////////////////////
+    let col_widths = this.getDisplayedColumnWidths(this.width)
+    const rowHeight = Config.glyphSize * 2.5 - 4;
     const radius = 3.5;
 
-    quantitative
-      .append('rect')
-      .classed('quant', true)
+    if (element.selectAll('.quant').size()===0){
+      element
+        .append('rect')
+        .classed('quant', true)
+    }
 
-    cells
-      .selectAll('.quant')
+    element
+      .select('.quant')
       .attr('width', (d) => {
         return col_widths.find(x => x.name === d.name).width;
       })
       .attr('height', rowHeight)
-      .attr('fill', lightGrey)
+      .attr('fill', '#e9e9e9')
       .attr('stroke', 'black')
       .attr('stoke-width', 1);
 
-    quantitative
-      .data((d.map)=>{console.log(d); return [d]})
+    let ellipses =element
+      .selectAll('ellipse')
+      .data((d)=>{
+        return cellData.data.filter((f)=>{return !isNullOrUndefined((f))})
+          .map((e)=>{return {'name':d.name, 'stats':d.stats, 'value':e}})
+      });
+
+    let ellipsesEnter = ellipses.enter()
       .append("ellipse")
       .classed('quant_ellipse', true)
 
-    console.log('new call')
-    cells
-      .selectAll('.quant_ellipse')
+    ellipses = ellipsesEnter.merge(ellipses);
+
+    ellipses.exit().remove();
+
+
+    selectAll('.quant_ellipse')
       .attr("cx",
         function (d: any) {
-          return d.data.map((dd)=> {
-            const width = col_widths.find(x => x.name === d.name).width;
-            const scaledRange = (width - 2 * radius) / (d.stats.max - d.stats.min);
-            return Math.floor((dd - d.stats.min) * scaledRange);
-          });
+          const width = col_widths.find(x => x.name === d.name).width;
+          const scaledRange = (width - 2 * radius) / (d.stats.max - d.stats.min);
+          return Math.floor((d.value - d.stats.min) * scaledRange);
+          ;
         })
       .attr("cy", rowHeight / 2)
       .attr("rx", radius)
       .attr("ry", radius)
       .attr('stroke', 'black')
       .attr('stroke-width', 1)
-      .attr('fill', darkGrey) // TODO: translate off of boundaries
+      .attr('fill', 'red') // TODO: translate off of boundaries
       .attr('opacity',.8)
 
-    // stick on the median
-    quantitative
-      .append("rect") //sneaky line is a rectangle
-      .attr('class', 'medianLine');
-
-    cells
-      .selectAll('.medianLine')
-      .attr("width", 1.2)
-      .attr("height", rowHeight)
-      .attr("fill", 'black')
-      .attr("transform", function (d) {
-        const width = col_widths.find(x => x.name === d.name).width;
-        const scaledRange = (width - 2 * radius) / (d.stats.max - d.stats.min);
-        return ('translate(' + ((d.stats.mean - d.stats.min) * scaledRange) + ',0)');
-      });
-
-    cells.selectAll('rect').on('click',(c) => {console.log(c);})
-
-
-////////////// EVENT HANDLERS! /////////////////////////////////////////////
-
-    const jankyAData = this.tableManager; ///auuughhh javascript why
-    const jankyInitHandle = this.initData; ///whywhywhywhy
-    let self = this;
-
-    cells.on('click', async function (elem) {
-      //  console.log("REGISTERED CLICK");
-      //update the dataset & re-render
-
-      // const newView = await jankyAData.anniesTestUpdate();
-      // self.update(newView, [1, 2]);
-      // console.log("NEW VIEW!");
-      // console.log(newView.cols()[0]);
-
-    });
-
-
-    //  cells.on('click', function(elem) {
-    //    selectAll('.boundary').classed('tablehovered', false);
-    //    if (!event.metaKey){ //unless we pressed shift, unselect everything
-    //      selectAll('.boundary').classed('tableselected',false);
-    //    }
-    //    selectAll('.boundary')
-    //     .classed('tableselected', function(){
-    //        const rightRow = (parseInt(select(this).attr('row_pos')) === elem['y']);
-    //        if(rightRow){
-    //           return (!select(this).classed('tableselected')); //toggle it
-    //         }
-    //        return select(this).classed('tableselected'); //leave it be
-    //      });
-    //    if(event.metaKey)
-    //       events.fire('table_row_selected', elem['y'], 'multiple');
-    //    else
-    //       events.fire('table_row_selected', elem['y'], 'singular');
-    //    })
-    //    // MOUSE ON
-    //    .on('mouseover', function(elem) {
-    //       selectAll('.boundary').classed('tablehovered', function(){
-    //         const rightRow = (select(this).attr('row_pos') == elem['y']); //== OR parseInt. Not sure which is more canonical.
-    //         if(rightRow){ //don't hover if it's selected
-    //           return !select(this).classed('tableselected');
-    //         }
-    //         return false; //otherwise don't hover
-    //    });
-    //    events.fire('table_row_hover_on', elem['y']);
-    //    })
-    //    // MOUSE OFF
-    //    .on('mouseout', function(elem) {
-    //      selectAll('.boundary').classed('tablehovered', false);
-    //      events.fire('table_row_hover_off', elem['y']);
-    //    });
-
-    console.log('done rendering')
-
   }
+  private renderStringCell(element, cellData) {
+    // TODO
+  }
+
+
+//
+//     // stick on the median
+//     quantitative
+//       .append("rect") //sneaky line is a rectangle
+//       .attr('class', 'medianLine');
+//
+//     cells
+//       .selectAll('.medianLine')
+//       .attr("width", 1.2)
+//       .attr("height", rowHeight)
+//       .attr("fill", 'black')
+//       .attr("transform", function (d) {
+//         const width = col_widths.find(x => x.name === d.name).width;
+//         const scaledRange = (width - 2 * radius) / (d.stats.max - d.stats.min);
+//         return ('translate(' + ((d.stats.mean - d.stats.min) * scaledRange) + ',0)');
+//       });
+
+//     cells.selectAll('rect').on('click',(c) => {console.log(c);})
+//
+//
+// ////////////// EVENT HANDLERS! /////////////////////////////////////////////
+//
+//     const jankyAData = this.tableManager; ///auuughhh javascript why
+//     const jankyInitHandle = this.initData; ///whywhywhywhy
+//     let self = this;
+//
+//     cells.on('click', async function (elem) {
+//       //  console.log("REGISTERED CLICK");
+//       //update the dataset & re-render
+//
+//       // const newView = await jankyAData.anniesTestUpdate();
+//       // self.update(newView, [1, 2]);
+//       // console.log("NEW VIEW!");
+//       // console.log(newView.cols()[0]);
+//
+//     });
+//
+//
+//     //  cells.on('click', function(elem) {
+//     //    selectAll('.boundary').classed('tablehovered', false);
+//     //    if (!event.metaKey){ //unless we pressed shift, unselect everything
+//     //      selectAll('.boundary').classed('tableselected',false);
+//     //    }
+//     //    selectAll('.boundary')
+//     //     .classed('tableselected', function(){
+//     //        const rightRow = (parseInt(select(this).attr('row_pos')) === elem['y']);
+//     //        if(rightRow){
+//     //           return (!select(this).classed('tableselected')); //toggle it
+//     //         }
+//     //        return select(this).classed('tableselected'); //leave it be
+//     //      });
+//     //    if(event.metaKey)
+//     //       events.fire('table_row_selected', elem['y'], 'multiple');
+//     //    else
+//     //       events.fire('table_row_selected', elem['y'], 'singular');
+//     //    })
+//     //    // MOUSE ON
+//     //    .on('mouseover', function(elem) {
+//     //       selectAll('.boundary').classed('tablehovered', function(){
+//     //         const rightRow = (select(this).attr('row_pos') == elem['y']); //== OR parseInt. Not sure which is more canonical.
+//     //         if(rightRow){ //don't hover if it's selected
+//     //           return !select(this).classed('tableselected');
+//     //         }
+//     //         return false; //otherwise don't hover
+//     //    });
+//     //    events.fire('table_row_hover_on', elem['y']);
+//     //    })
+//     //    // MOUSE OFF
+//     //    .on('mouseout', function(elem) {
+//     //      selectAll('.boundary').classed('tablehovered', false);
+//     //      events.fire('table_row_hover_off', elem['y']);
+//     //    });
+//
+//     console.log('done rendering')
+//
+//   }
 
   //private update(data){
 

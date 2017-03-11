@@ -370,6 +370,12 @@ class attributeTable {
 
     let numValues = cellData.data.reduce((a, v) => v ? a + 1 : a, 0);
 
+    // console.log(numValues)
+    if (numValues === 0){
+      return;
+    }
+
+    // console.log('got here')
     if (element.selectAll('.categorical').size()===0){
       element
         .append('rect')
@@ -386,8 +392,8 @@ class attributeTable {
 
         return col_widths.find(x => x.name === d.name).width;
       })
-      .attr('height', rowHeight - this.yScale(numValues))
-      .attr('y',this.yScale(numValues))
+      .attr('height', this.yScale(numValues))
+      .attr('y',(rowHeight - this.yScale(numValues)))
       .attr('stroke', 'black')
       .attr('stoke-width', 1)
 

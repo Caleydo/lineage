@@ -200,7 +200,6 @@ class attributeTable {
           people.map((person) => {
             let ind = peopleIDs.lastIndexOf(person) //find this person in the attribute data
             if (ind > -1) {
-              console.log('found data for ', col.name )
               colData.push(data[ind])
             } else {
               colData.push(undefined);
@@ -369,6 +368,8 @@ class attributeTable {
     let col_widths = this.getDisplayedColumnWidths(this.width)
     const rowHeight = Config.glyphSize * 2.5 - 4;
 
+    let numValues = cellData.data.reduce((a, v) => v ? a + 1 : a, 0);
+
     if (element.selectAll('.categorical').size()===0){
       element
         .append('rect')
@@ -385,24 +386,23 @@ class attributeTable {
 
         return col_widths.find(x => x.name === d.name).width;
       })
-      .attr('height', this.yScale(cellData.data.reduce((a, v) => v ? a + 1 : a, 0)))
+      .attr('height', rowHeight - this.yScale(numValues))
+      .attr('y',this.yScale(numValues))
       .attr('stroke', 'black')
       .attr('stoke-width', 1)
-      // .attr('fill', 'red');
+
+
+
   }
+
   private renderIntCell(element, cellData) {
-
-
     let col_width = this.getDisplayedColumnWidths(this.width).find(x => x.name === cellData.name).width
     const rowHeight = Config.glyphSize * 2.5 - 4;
     const radius = 3.5;
 
-
     this.xScale
       .domain([cellData.stats.min, cellData.stats.max])
       .range([col_width*0.1,col_width*0.9]);
-
-    // console.log(cellData.name, cellData.stats, this.xScale.domain(), this.xScale.range())
 
     //No of non-undefined elements in this array
     let numValues = cellData.data.reduce((a, v) => v ? a + 1 : a, 0);

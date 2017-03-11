@@ -64,8 +64,6 @@ class GraphData {
     let columns = this.graphTable.cols();
     let nrow = this.graphTable.nrow;
 
-    console.log('Table is of size', this.graphTable.dim)
-
     range(0,nrow,1).forEach(()=>{
       this.nodes.push({});
     })
@@ -257,7 +255,6 @@ class GraphData {
    * Currently has a single value that indicates true.
    */
   private definePrimary(attribute, value) {
-    console.log('calling definePrimary', attribute, value);
     this.nodes.forEach((node) => {
       node.affected = node[attribute] === value;
       //node.affected = +d["affection"] === 100;

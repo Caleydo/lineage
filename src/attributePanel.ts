@@ -264,7 +264,7 @@ class AttributePanel {
       await attributeHistogram.init(attributeName, dataVec);
     } else if (dataVec.desc.value.type !== 'idtype'){
       const numVector = <INumericalVector> dataVec;
-      console.log('Stats on a vector:');
+      // console.log('Stats on a vector:');
       //console.log(await numVector.stats());
 
     }

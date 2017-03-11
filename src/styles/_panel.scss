@@ -3,9 +3,10 @@ $darkgray-color: #4f4f4d;
 #data_selection {
   float: left;
   height: 100vh;
-  border-right: solid lightgrey;
+  overflow: scroll;
+  border-right: solid;
+  border-color: lightgrey;
   width: 300px;
-  margin-left: 15px;
 }
 
 .nav-side-menu {
@@ -51,6 +52,7 @@ $darkgray-color: #4f4f4d;
   /*content: "\f078";*/
   content: "\f107";
   display: inline !important;
+   margin-left: -30px;
    padding-top: 15px;
   padding-left: 10px;
   padding-right: 10px;

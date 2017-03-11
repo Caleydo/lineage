@@ -300,25 +300,30 @@ class AttributePanel {
     const sidePanel = document.getElementById('data_selection');
     const sidePanelContent = document.getElementById('panelContent');
     const graphNtable = document.getElementById('graph_table');
-    const toggleBtn = document.getElementsByClassName('toggle-btn');
+    const toggleBtn = document.getElementById('toggle-btn');
 
     // if the attribute panel is expanded
     if(!this.collapsed) {
       // collapse attribute panel
-      sidePanel.style.width = '30px';
+      sidePanel.style.width = Config.colPanelWidth;
+      sidePanel.style.border = 'none';
+      toggleBtn.style.marginRight = '-10px';
       //Hide attribute panel content
       sidePanelContent.style.display = 'none';
+
       // resize graph div
-      graphNtable.style.width = '800px';
+      graphNtable.style.width = Config.expGraphTableWidth;
       //update flag value
       this.collapsed = true;
     } else {
       // expand attribute panel
-      sidePanel.style.width = '400px';
+      sidePanel.style.width = Config.expPanelWidth;
+      sidePanel.style.borderRight = 'solid lightgrey';
+      toggleBtn.style.marginLeft = '-30px';
       // show attribute panel content
       sidePanelContent.style.display = 'inline';
       // resize graph div
-      graphNtable.style.width = '600px';
+      graphNtable.style.width = Config.colGraphTableWidth;
       //update flag value
       this.collapsed = false;
     }
@@ -327,7 +332,7 @@ class AttributePanel {
   private attachListener() {
     // listen to toggle panel event
     select('#toggle-btn').on('click', ()=> {
-      this.toggle();
+     this.toggle();
     })
 
     //Set listener for click event on corresponding node that changes the color of that row to red

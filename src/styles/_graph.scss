@@ -24,8 +24,10 @@ td rect{
   fill: $node-color;
 }
 
+
 .cell text{
   fill: #484848;
+  cursor: pointer;
 }
 
 .boundary{

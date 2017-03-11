@@ -24,6 +24,10 @@ td rect{
   fill: $node-color;
 }
 
+.cell text{
+  fill: #484848;
+}
+
 .boundary{
   stroke:$node-color;
 

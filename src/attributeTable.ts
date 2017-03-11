@@ -183,8 +183,7 @@ class attributeTable {
             colDataAccum.push(col);
           }
         }
-      }
-      else if (type === 'int') { //quant
+      } if (type === 'int') { //quant
 
         let col: any = {};
         col.ids = allRows.map((row) => {
@@ -214,6 +213,32 @@ class attributeTable {
         // console.log(col.data);
         colDataAccum.push(col);
       }
+      if (type === 'string') { //quant
+
+        let col: any = {};
+        col.ids = allRows.map((row) => {
+          return y2personDict[row]
+        });
+
+        col.name = await vector.desc.name;
+        col.data = allRows.map((row) => {
+          let colData = [];
+          let people = y2personDict[row];
+          people.map((person) => {
+            let ind = peopleIDs.lastIndexOf(person) //find this person in the attribute data
+            if (ind > -1) {
+              colData.push(data[ind])
+            } else {
+              colData.push(undefined);
+            }
+          });
+          return colData;
+        });
+        col.ys = allRows
+        col.type = type;
+        colDataAccum.push(col);
+      }
+
     }
     this.colData = colDataAccum;
 
@@ -357,9 +382,9 @@ class attributeTable {
       else if (cell.type === 'int') {
         self.renderIntCell(select(this), cell);
       }
-      // else if (cell.type === 'string') {
-      //   self.renderStringCell(select(this), cell);
-      // }
+      else if (cell.type === 'string') {
+        self.renderStringCell(select(this), cell);
+      }
     });
 
 
@@ -377,7 +402,6 @@ class attributeTable {
       return;
     }
 
-    // console.log('got here')
     if (element.selectAll('.categorical').size()===0){
       element
         .append('rect')
@@ -473,7 +497,73 @@ class attributeTable {
 
   }
   private renderStringCell(element, cellData) {
-    // TODO
+
+    let col_widths = this.getDisplayedColumnWidths(this.width)
+    const rowHeight = Config.glyphSize * 2.5 - 4;
+
+    let numValues = cellData.data.reduce((a, v) => v ? a + 1 : a, 0);
+
+    // console.log(numValues)
+    if (numValues === 0){
+      return;
+    }
+
+    if (element.selectAll('.string').size()===0){
+      element
+        .append('text')
+        .classed('string', true)
+    }
+
+    let textLabel = cellData.data[0].toLowerCase().slice(0,4).concat(['...']);
+    if (numValues > 1){ //aggregate Row
+      textLabel = '...'
+    }
+    element
+      .select('.string')
+      .text(textLabel)
+      .attr('dy',rowHeight*0.9)
+      // .call(getBB);
+
+    // function getBB(selection) {
+    //   selection.each(function(d){d.bbox = this.getBBox();})
+    // }
+    //
+    // element.insert("rect","text")
+    //   .attr("width", function(d){return d.bbox.width})
+    //   .attr("height", function(d){return d.bbox.height*0.9})
+    //   .style("fill", "white")
+      .style('stroke','none')
+
+    //set Hover to show entire text
+    element
+      .on('mouseover',function(d){
+
+        select(this).select('.string')
+          .text(d.data[0].toLowerCase())
+        //   .call(getBB);
+        //
+        // select(this).append('rect')
+        //   .attr("width", function(d:any){return d.bbox.width})
+        //   .attr("height", function(d:any){return d.bbox.height*0.9})
+        //   .style("fill", "white")
+        //   .style('stroke','none')
+
+
+      })
+      .on('mouseout',function(d){
+        let textLabel = cellData.data[0].toLowerCase().slice(0,4).concat(['...']);
+        if (numValues > 1){ //aggregate Row
+          textLabel = '...'
+        }
+        select(this).select('.string').text(textLabel)
+        //   .call(getBB);
+        //
+        // select(this).select('rect')
+        //   .attr("width", function(d:any){return d.bbox.width})
+        //   .attr("height", function(d:any){return d.bbox.height*0.9})
+        //   .style("fill", "white")
+        //   .style('stroke','none')
+        });
   }
 
 //

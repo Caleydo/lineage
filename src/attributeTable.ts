@@ -27,7 +27,7 @@ class attributeTable {
 
   private width;
   private height;
-  private buffer; //pixel dist between columns
+  private buffer = 10; //pixel dist between columns
 
   private tableAxis;
 
@@ -47,6 +47,13 @@ class attributeTable {
 
   private tableManager;
   private colData;    // <- everything we need to bind
+
+  private rowHeight = Config.glyphSize * 2.5 - 4;
+  private colWidths = {'cat':this.rowHeight, 'quant':this.rowHeight*4, 'str':this.rowHeight*8};
+
+  private colOffsets = [0];
+
+
 
   private margin = Config.margin;
 
@@ -86,7 +93,7 @@ class attributeTable {
   private async build() {
 
     //Height is a function of the current view and so is set in initData();
-    this.width = 700 - this.margin.left - this.margin.right
+    this.width = 1000 - this.margin.left - this.margin.right
     this.height = Config.glyphSize * 3 * this.tableManager.graphTable.nrow - this.margin.top - this.margin.bottom;
 
     let t = transition('t').duration(500).ease(easeLinear);
@@ -109,10 +116,6 @@ class attributeTable {
 
 
   public async initData() {
-
-    this.buffer = 8;
-
-
 
     let graphView = await this.tableManager.graphTable;
     let attributeView = await this.tableManager.tableTable;
@@ -148,11 +151,15 @@ class attributeTable {
       const type = await vector.valuetype.type;
 
       let peopleIDs = await vector.names();
+      // peopleIDs = peopleIDs.map(Number);
       // console.log(vector.desc.name, peopleIDs.length);
 
-      if (type === 'categorical') {
-        const categories = Array.from(new Set(data));
 
+
+      if (type === 'categorical') {
+        //Build col offsets array ;
+
+        const categories = Array.from(new Set(data));
 
         for (let cat of categories) {
           // console.log('category', cat);
@@ -172,6 +179,7 @@ class attributeTable {
               if (ind > -1 && data[ind] === cat) {
                 colData.push(data[ind])
               } else {
+                // console.log('could not find person ', person , ' in ' , peopleIDs)
                 colData.push(undefined);
               }
             });
@@ -180,10 +188,18 @@ class attributeTable {
           col.ys = allRows;
           col.type = type;
           if (categories.length > 2 || cat === 'M' || cat === 'Y') {
+
+            let maxOffset = max(this.colOffsets);
+            this.colOffsets.push(maxOffset + this.buffer*2 + this.colWidths.cat);
+
             colDataAccum.push(col);
           }
         }
-      } if (type === 'int') { //quant
+      } else if (type === 'int') { //quant
+
+        let maxOffset = max(this.colOffsets);
+        this.colOffsets.push(maxOffset + this.buffer + this.colWidths.quant);
+
 
         let col: any = {};
         col.ids = allRows.map((row) => {
@@ -209,11 +225,11 @@ class attributeTable {
         col.ys = allRows
         col.type = type;
         col.stats = stats;
-        // console.log('pushing data for ', col.name)
-        // console.log(col.data);
         colDataAccum.push(col);
-      }
-      if (type === 'string') { //quant
+      } else if (type === 'string') {
+
+        let maxOffset = max(this.colOffsets);
+        this.colOffsets.push(maxOffset + this.buffer + this.colWidths.str);
 
         let col: any = {};
         col.ids = allRows.map((row) => {
@@ -247,13 +263,7 @@ class attributeTable {
 
   //renders the DOM elements
   private async render() {
-
     let t = transition('t').duration(500).ease(easeLinear);
-
-    const darkGrey = '#4d4d4d'; //todo clearly
-    // const lightGrey = '#d9d9d9';
-    const lightGrey = '#e9e9e9';
-    const mediumGrey = '#e0e0e0';
 
     //rendering info
     var col_widths = this.getDisplayedColumnWidths(this.width);
@@ -268,11 +278,6 @@ class attributeTable {
     // Scales
     let x = scaleLinear().range([0, this.width]).domain([0, 13]);
     let y = this.y;
-
-    // [Math.min( ...this.colData[0]['ys']), Math.max( ...this.colData[0]['ys'])]);
-    const rowHeight = Config.glyphSize * 2.5 - 4;
-
-
 
 //HEADERS
     //Bind data to the col headers
@@ -323,10 +328,12 @@ class attributeTable {
 
     cols = colsEnter.merge(cols)//;
 
+    //translate columns horizontally to their position;
     cols.transition(t)
-      .attr("transform", (d) => {
-        const x_translation = col_xs.find(x => x.name === d.name).x;
-        return 'translate(' + x_translation + ',0)';
+      .attr("transform", (d,i) => {
+        let offset = this.colOffsets[i];
+        // const x_translation = col_xs.find(x => x.name === d.name).x;
+        return 'translate(' + offset + ',0)';
       });
 
     //Bind data to the cells
@@ -350,19 +357,6 @@ class attributeTable {
       .classed("boundary", true);
 
     cells = cellsEnter.merge(cells);
-
-
-    //Position all highlighting rectangles
-    cells.selectAll('.boundary')
-      .attr('width', (d) => { //, col_widths.find(x => x.name === d.name))
-        return (col_widths.find(x => x.name === d.name).width + 4);
-      })
-      .attr('height', rowHeight + this.buffer)
-      .attr('stroke', mediumGrey)
-      .attr('fill', 'none')
-      .attr("transform", function () {
-        return ('translate(' + (-2) + ',' + (-4) + ')');
-      });
 
     cellsEnter.attr('opacity',0);
 
@@ -390,14 +384,23 @@ class attributeTable {
 
   }
   private renderCategoricalCell(element, cellData) {
-    let col_widths = this.getDisplayedColumnWidths(this.width)
-    const rowHeight = Config.glyphSize * 2.5 - 4;
+
+    let col_width = this.colWidths.cat;
+    let rowHeight = this.rowHeight;
+
+    if (element.selectAll('.boundary').size()===0){
+      element.append('rect')
+        .classed('boundary',true);
+    }
+
+    element.select('.boundary')
+      .attr('width', col_width)
+      .attr('height', rowHeight)
 
     let numValues = cellData.data.reduce((a, v) => v ? a + 1 : a, 0);
 
     element.selectAll('.categorical').remove(); //Hack. don't know why the height of the rects isn' being updated.
 
-    // console.log(numValues)
     if (numValues === 0){
       return;
     }
@@ -414,23 +417,25 @@ class attributeTable {
 
     element
       .select('.categorical')
-      .attr('width', (d) => {
-
-        return col_widths.find(x => x.name === d.name).width;
-      })
+      .attr('width', rowHeight)
       .attr('height', this.yScale(numValues))
       .attr('y',(rowHeight - this.yScale(numValues)))
-      .attr('stroke', 'black')
-      .attr('stoke-width', 1)
-
-
-
+      .classed('aggregate',()=>{return numValues >1})
   }
 
   private renderIntCell(element, cellData) {
-    let col_width = this.getDisplayedColumnWidths(this.width).find(x => x.name === cellData.name).width
-    const rowHeight = Config.glyphSize * 2.5 - 4;
+    let col_width = this.colWidths.quant; //this.getDisplayedColumnWidths(this.width).find(x => x.name === cellData.name).width
+    let rowHeight = this.rowHeight;
     const radius = 3.5;
+
+    if (element.selectAll('.boundary').size()===0){
+      element.append('rect')
+        .classed('boundary',true);
+    }
+
+    element.select('.boundary')
+      .attr('width', col_width)
+      .attr('height', rowHeight)
 
     this.xScale
       .domain([cellData.stats.min, cellData.stats.max])
@@ -439,7 +444,24 @@ class attributeTable {
     //No of non-undefined elements in this array
     let numValues = cellData.data.reduce((a, v) => v ? a + 1 : a, 0);
 
+
     if (numValues === 0){
+      //Add a faint cross out to indicate no data here;
+      if (element.selectAll('.cross_out').size()===0){
+        element
+          .append('line')
+          .attr('class', 'cross_out')
+      }
+
+      element.select('.cross_out')
+        .attr('x1', 0)
+        .attr('y1', 0)
+        .attr('x2', col_width)
+        .attr('y2', rowHeight)
+        .attr('stroke-width', 1)
+        .attr('stroke', '#9e9d9b')
+        .attr('opacity',.4)
+
       return;
     }
 
@@ -455,8 +477,8 @@ class attributeTable {
         return col_width
       })
       .attr('height', rowHeight)
-      .attr('stroke', 'black')
-      .attr('stoke-width', 1);
+      // .attr('stroke', 'black')
+      // .attr('stoke-width', 1);
 
     element.selectAll('.quant_ellipse').remove(); //Hack. don't know why ellipsis.exit().remove() isn' removing the extra ones.
 
@@ -498,13 +520,37 @@ class attributeTable {
   }
   private renderStringCell(element, cellData) {
 
-    let col_widths = this.getDisplayedColumnWidths(this.width)
-    const rowHeight = Config.glyphSize * 2.5 - 4;
+    let col_width = this.colWidths.str; //this.getDisplayedColumnWidths(this.width).find(x => x.name === cellData.name).width
+    let rowHeight = this.rowHeight;
+
+    if (element.selectAll('.boundary').size()===0){
+      element.append('rect')
+        .classed('boundary',true);
+    }
+
+    element.select('.boundary')
+      .attr('width', col_width)
+      .attr('height', rowHeight)
 
     let numValues = cellData.data.reduce((a, v) => v ? a + 1 : a, 0);
 
-    // console.log(numValues)
     if (numValues === 0){
+      //Add a faint cross out to indicate no data here;
+      if (element.selectAll('.cross_out').size()===0){
+        element
+          .append('line')
+          .attr('class', 'cross_out')
+      }
+
+      element.select('.cross_out')
+        .attr('x1', 0)
+        .attr('y1', 0)
+        .attr('x2', col_width)
+        .attr('y2', rowHeight)
+        .attr('stroke-width', 1)
+        .attr('stroke', '#9e9d9b')
+        .attr('opacity',.4)
+
       return;
     }
 
@@ -522,16 +568,6 @@ class attributeTable {
       .select('.string')
       .text(textLabel)
       .attr('dy',rowHeight*0.9)
-      // .call(getBB);
-
-    // function getBB(selection) {
-    //   selection.each(function(d){d.bbox = this.getBBox();})
-    // }
-    //
-    // element.insert("rect","text")
-    //   .attr("width", function(d){return d.bbox.width})
-    //   .attr("height", function(d){return d.bbox.height*0.9})
-    //   .style("fill", "white")
       .style('stroke','none')
 
     //set Hover to show entire text

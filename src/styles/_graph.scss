@@ -1,5 +1,5 @@
 $edge-color: #4f4f4d;
-$node-color: #d2dddd;
+$node-color: #9ba1a1;
 
 .well {
   padding-top: 0px;
@@ -24,6 +24,10 @@ td rect{
   fill: $node-color;
 }
 
+.cell .aggregate{
+  fill: #686c6c;
+}
+
 
 .cell text{
   fill: #484848;
@@ -32,6 +36,7 @@ td rect{
 
 .boundary{
   stroke:$node-color;
+  fill:none;
 
 }
 .quant{

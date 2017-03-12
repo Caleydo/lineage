@@ -166,7 +166,7 @@ export default class TableManager {
    */
   public async refreshActiveViews() {
     // const key = range.join(range.all(), this.activeTableColumns);
-    const key = range.join(range.all(), range.list([0,1,2,3,4,5,6,7,8,9,10,11])); //temporary to debug table
+    const key = range.join(range.all(), range.list([0,1,2,3,4,5,6,7,8,10,11])); //temporary to debug table
 
     this.tableTable = await this.attributeTable.view(key); //view on attribute table
     this.graphTable = await this.table.view(range.join(this._activeGraphRows, range.all()));

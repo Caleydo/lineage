@@ -632,7 +632,7 @@ class attributeTable {
 
     let numValues = cellData.data.reduce((a, v) => v ? a + 1 : a, 0);
 
-    element.selectAll('.categorical').remove(); //Hack. don't know why the height of the rects isn' being updated.
+    element.selectAll('rect').remove(); //Hack. don't know why the height of the rects isn' being updated.
 
     if (numValues === 0){
       return;
@@ -641,12 +641,22 @@ class attributeTable {
     if (element.selectAll('.categorical').size()===0){
       element
         .append('rect')
-        .classed('categorical', true)
+        .classed('frame', true)
+
+      element.append('rect')
+        .classed('categorical',true)
     }
 
     this.yScale
       .domain([0, cellData.data.length])
       .range([0,rowHeight]);
+
+    element
+      .select('.frame')
+      .attr('width', rowHeight)
+      .attr('height', rowHeight)
+      .attr('y',0)
+      .classed('aggregate',()=>{return cellData.data.length >1})
 
     element
       .select('.categorical')

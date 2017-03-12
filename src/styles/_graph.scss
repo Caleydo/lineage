@@ -45,6 +45,12 @@ td rect{
   fill: #5f6262;
 }
 
+.frame{
+  fill: none;
+  stroke:#545757;
+  stroke-width: 1px;
+}
+
 text.header{
   font-weight:bold;
   text-anchor: middle;
@@ -61,7 +67,7 @@ text.header{
   fill: $node-color;
 }
 
-.cell .aggregate{
+.cell .categorical.aggregate{
   fill: #545757;
 }
 

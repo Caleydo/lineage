@@ -450,6 +450,10 @@ class attributeTable {
     let rowHeight = this.rowHeight;
     const radius = 3.5;
 
+    let jitterScale =  scaleLinear()
+      .domain([0,1])
+      .range([rowHeight*0.3, rowHeight*0.7]);
+
     if (element.selectAll('.boundary').size()===0){
       element.append('rect')
         .classed('boundary',true);
@@ -519,8 +523,6 @@ class attributeTable {
 
     ellipses = ellipsesEnter.merge(ellipses);
 
-    // if (ellipses.exit().size() > 0)
-    //   console.log('there are ' , ellipses.exit().size() ,  ' ellipses to remove');
     ellipses.exit().remove(); //Dont'know why these is not removing ellipses. :-/
 
 
@@ -530,7 +532,7 @@ class attributeTable {
           return this.xScale(d.value);
           ;
         })
-      .attr("cy", rowHeight / 2)
+      .attr("cy", ()=>{ return numValues>1 ? jitterScale(Math.random()) : rowHeight/2}) //introduce jitter in the y position for multiple ellipses.
       .attr("rx", radius)
       .attr("ry", radius)
 
@@ -538,7 +540,7 @@ class attributeTable {
   }
   private renderStringCell(element, cellData) {
 
-    let col_width = this.colWidths.string; //this.getDisplayedColumnWidths(this.width).find(x => x.name === cellData.name).width
+    let col_width = this.colWidths.string;
     let rowHeight = this.rowHeight;
 
     if (element.selectAll('.boundary').size()===0){

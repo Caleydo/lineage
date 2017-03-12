@@ -83,6 +83,7 @@ export default class TableManager {
   public async selectFamily(chosenFamilyID?: number) {
     let family;
 
+
     if (chosenFamilyID == null) {
       family = this.familyInfo[0];
     } else {
@@ -91,8 +92,28 @@ export default class TableManager {
       })[0];
     }
     this._activeGraphRows = range.list(family.range);
-    this._activeTableRows = this._activeGraphRows;
+
+
     await this.refreshActiveViews();
+
+    //Update the activeAttributeRows. This ensure that vector.stats() returns the correct values in the table.
+
+    let familyMembers = await this.graphTable.col(0).names();
+    let attributeMembers = await this.attributeTable.col(0).names();
+
+    let attributeRows =[];
+
+    attributeMembers.forEach((member,i)=>{
+      if (familyMembers.indexOf(member)>-1){
+        attributeRows.push(i)
+      }
+
+    })
+    this._activeTableRows = range.list(attributeRows);
+
+    await this.refreshActiveViews();
+
+    events.fire(VIEW_CHANGED_EVENT);
   }
 
 
@@ -166,12 +187,12 @@ export default class TableManager {
    */
   public async refreshActiveViews() {
     // const key = range.join(range.all(), this.activeTableColumns);
-    const key = range.join(range.all(), range.list([0,1,2,3,4,5,6,7,8,10,11])); //temporary to debug table
+    const key = range.join(this._activeTableRows, range.list([0,1,2,3,4,5,6,7,8,10,11])); //temporary since there are too many attributes in the table
 
     this.tableTable = await this.attributeTable.view(key); //view on attribute table
     this.graphTable = await this.table.view(range.join(this._activeGraphRows, range.all()));
 
-    events.fire(VIEW_CHANGED_EVENT);
+    // events.fire(VIEW_CHANGED_EVENT);
   }
 
     /**

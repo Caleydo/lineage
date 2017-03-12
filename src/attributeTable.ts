@@ -15,6 +15,8 @@ import {active} from 'd3-transition';
 import {transition} from 'd3-transition';
 import {easeLinear} from 'd3-ease';
 
+import {line} from 'd3-shape';
+
 import {range as d3Range} from 'd3-array';
 import {isUndefined} from 'util';
 
@@ -126,7 +128,6 @@ class attributeTable {
     let graphView = await this.tableManager.graphTable;
     let attributeView = await this.tableManager.tableTable;
 
-
     let colDataAccum = [];
 
     let allCols = graphView.cols().concat(attributeView.cols());
@@ -222,7 +223,10 @@ class attributeTable {
 
         let stats = await vector.stats();
 
+
         col.name = await vector.desc.name;
+
+        // console.log('comparing Mins for ',  col.name, stats.min, data.filter((d)=>{console.log(d); return +d>0}).map(Number), min(data.map(Number)))
         col.data = allRows.map((row) => {
           let colData = [];
           let people = y2personDict[row];
@@ -239,6 +243,8 @@ class attributeTable {
         col.ys = allRows
         col.type = type;
         col.stats = stats;
+        col.stats.min = min(data.filter((d)=>{return +d>0}).map(Number)) //temporary fix since vector.stats() returns 0 for empty values;
+        // col.stats.max = max(data.filter((d)=>{return +d>0}).map(Number)) //temporary fix since vector.stats() returns 0 for empty values;
         colDataAccum.push(col);
       } else if (type === 'string') {
 
@@ -320,7 +326,8 @@ class attributeTable {
 
       .attr("transform", (d,i) => {
       let offset = this.colOffsets[i] ; //+ (this.colWidths[d.type]/2);
-        return 'translate(' + offset + ',0) rotate(-25)';
+
+        return d.type === 'categorical' ? 'translate(' + offset + ',0) rotate(-25)' : 'translate(' + offset + ',0)' ;
       });
 
 
@@ -336,9 +343,9 @@ class attributeTable {
       if (cell.type === 'categorical') {
         self.renderCategoricalHeader(select(this), cell);
       }
-      // else if (cell.type === 'int') {
-      //   self.renderIntHeader(select(this), cell);
-      // }
+      else if (cell.type === 'int') {
+        self.renderIntHeader(select(this), cell);
+      }
       // else if (cell.type === 'string') {
       //   self.renderStringHeader(select(this), cell);
       // }
@@ -487,6 +494,65 @@ class attributeTable {
 
 
   };
+
+  /**
+   *
+   * This function renders the column header of Quantitative columns in the Table View.
+   *
+   * @param element d3 selection of the current column header element.
+   * @param cellData the data bound to the column header element being passed in.
+   */
+  private renderIntHeader(element, headerData){
+
+    let col_width = this.colWidths.int;
+    let height = this.rowHeight*2.5;
+
+
+    let allValues =[];
+
+    headerData.data.map((singleRow)=>{singleRow.map((element)=>{if (+element >0) {allValues.push(+element)}})});
+
+    allValues = allValues.sort((a,b)=>{return b-a});
+
+    let xScale = scaleLinear().range([col_width*0.2,col_width*0.8]).domain([0,allValues.length])
+    let yScale = scaleLinear().range([height*0.1,height*0.75]).domain([headerData.stats.min,headerData.stats.max])
+
+    var lineFcn = line()
+      .x(function(d:any,i:any) {return xScale(i); })
+      .y(function(d:any) {return yScale(d); });
+
+    if (element.selectAll('.sparkLine').size()===0){
+      element
+        .append('path')
+        .classed('sparkLine',true)
+
+      element.append('text').classed('minValue',true);
+      element.append('text').classed('maxValue',true);
+    }
+
+    element.select('.sparkLine')
+      .datum(allValues)
+      .transition(transition('t').duration(500).ease(easeLinear))
+      .attr('d',lineFcn)
+
+    element.select('.minValue')
+      .text(Math.round(min(allValues)))
+      .attr('x',col_width*0.2)
+      .attr('y',height)
+      .attr('text-anchor','end')
+
+    element.select('.maxValue')
+      .text(Math.round(max(allValues)))
+      .attr('x',col_width*0.8)
+      .attr('y',0)
+      .attr('text-anchor','end')
+
+
+
+
+  };
+
+
 
   /**
    *

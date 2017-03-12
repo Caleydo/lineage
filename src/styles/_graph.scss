@@ -20,12 +20,19 @@ td rect{
 
 }
 
+.quant_ellipse{
+  stroke: #686c6c;
+  stroke-width: 1px;
+  opacity:.6;
+  //fill:none;
+}
+
 .cell{
   fill: $node-color;
 }
 
 .cell .aggregate{
-  fill: #686c6c;
+  fill: #545757;
 }
 
 
@@ -35,8 +42,9 @@ td rect{
 }
 
 .boundary{
-  stroke:$node-color;
+  //stroke:$node-color;
   fill:none;
+  stroke:none;
 
 }
 .quant{

@@ -276,7 +276,7 @@ class attributeTable {
     }
 
     // Scales
-    let x = scaleLinear().range([0, this.width]).domain([0, 13]);
+    // let x = scaleLinear().range([0, this.width]).domain([0, 13]);
     let y = this.y;
 
 //HEADERS
@@ -303,8 +303,8 @@ class attributeTable {
         return d['name']
       })
 
-      .attr("transform", (d,i) => { console.log(d,i);
-      let offset = this.colOffsets[i] + (this.colWidths[d.type]/2);
+      .attr("transform", (d,i) => {
+      let offset = this.colOffsets[i] ; //+ (this.colWidths[d.type]/2);
         return 'translate(' + offset + ',0) rotate(-25)';
       });
 
@@ -332,9 +332,31 @@ class attributeTable {
     cols.transition(t)
       .attr("transform", (d,i) => {
         let offset = this.colOffsets[i];
-        // const x_translation = col_xs.find(x => x.name === d.name).x;
         return 'translate(' + offset + ',0)';
       });
+
+    //create table Lines
+
+    // //Bind data to the cells
+    let rowLines = this.table.selectAll('.rowLine')
+      .data(this.colData[0].ys, (d: any) => {return d});
+
+    rowLines.exit().remove();
+
+    let rowLinesEnter = rowLines.enter().append('line').classed('rowLine', true);
+
+    rowLines = rowLinesEnter.merge(rowLines)
+
+    selectAll('.rowLine')
+      .attr('x1',0 )
+      .attr('y1',(d:any)=>{return this.y(d)+this.rowHeight})
+      .attr('x2',max(this.colOffsets))
+      .attr('y2',(d:any)=>{return this.y(d)+this.rowHeight})
+      .attr('stroke','black')
+      .attr('stroke-width', 1)
+      .attr('stroke', '#9e9d9b')
+      .attr('opacity',.4)
+
 
     //Bind data to the cells
     let cells = cols.selectAll('.cell')
@@ -420,7 +442,7 @@ class attributeTable {
       .attr('width', rowHeight)
       .attr('height', this.yScale(numValues))
       .attr('y',(rowHeight - this.yScale(numValues)))
-      .classed('aggregate',()=>{return numValues >1})
+      .classed('aggregate',()=>{return cellData.data.length >1})
   }
 
   private renderIntCell(element, cellData) {
@@ -454,13 +476,13 @@ class attributeTable {
       }
 
       element.select('.cross_out')
-        .attr('x1', 0)
-        .attr('y1', 0)
-        .attr('x2', col_width)
-        .attr('y2', rowHeight)
-        .attr('stroke-width', 1)
+        .attr('x1', col_width*0.3)
+        .attr('y1', rowHeight/2)
+        .attr('x2', col_width*0.6)
+        .attr('y2', rowHeight/2)
+        .attr('stroke-width', 2)
         .attr('stroke', '#9e9d9b')
-        .attr('opacity',.4)
+        .attr('opacity',.6)
 
       return;
     }
@@ -511,11 +533,7 @@ class attributeTable {
       .attr("cy", rowHeight / 2)
       .attr("rx", radius)
       .attr("ry", radius)
-      .attr('stroke', 'black')
-      .attr('opacity',.7)
-      .attr('stroke-width', 1)
-      .attr('fill', 'none') // TODO: translate off of boundaries
-      .attr('opacity',.8)
+
 
   }
   private renderStringCell(element, cellData) {
@@ -535,22 +553,6 @@ class attributeTable {
     let numValues = cellData.data.reduce((a, v) => v ? a + 1 : a, 0);
 
     if (numValues === 0){
-      //Add a faint cross out to indicate no data here;
-      if (element.selectAll('.cross_out').size()===0){
-        element
-          .append('line')
-          .attr('class', 'cross_out')
-      }
-
-      element.select('.cross_out')
-        .attr('x1', 0)
-        .attr('y1', 0)
-        .attr('x2', col_width)
-        .attr('y2', rowHeight)
-        .attr('stroke-width', 1)
-        .attr('stroke', '#9e9d9b')
-        .attr('opacity',.4)
-
       return;
     }
 
@@ -560,10 +562,15 @@ class attributeTable {
         .classed('string', true)
     }
 
-    let textLabel = cellData.data[0].toLowerCase().slice(0,4).concat(['...']);
+    let textLabel = cellData.data[0].toLowerCase().slice(0,14);
+    if (cellData.data[0].length>14){
+      textLabel = textLabel.concat(['...']);
+    }
+
     if (numValues > 1){ //aggregate Row
       textLabel = '...'
     }
+
     element
       .select('.string')
       .text(textLabel)
@@ -576,18 +583,14 @@ class attributeTable {
 
         select(this).select('.string')
           .text(d.data[0].toLowerCase())
-        //   .call(getBB);
-        //
-        // select(this).append('rect')
-        //   .attr("width", function(d:any){return d.bbox.width})
-        //   .attr("height", function(d:any){return d.bbox.height*0.9})
-        //   .style("fill", "white")
-        //   .style('stroke','none')
-
-
       })
       .on('mouseout',function(d){
-        let textLabel = cellData.data[0].toLowerCase().slice(0,4).concat(['...']);
+        let textLabel = cellData.data[0].toLowerCase().slice(0,14);
+
+        if (cellData.data[0].length>14){
+          textLabel = textLabel.concat(['...']);
+        }
+
         if (numValues > 1){ //aggregate Row
           textLabel = '...'
         }

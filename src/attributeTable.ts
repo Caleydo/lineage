@@ -52,7 +52,7 @@ class attributeTable {
   private colData;    // <- everything we need to bind
 
   private rowHeight = Config.glyphSize * 2.5 - 4;
-  private colWidths = {'categorical':this.rowHeight, 'int':this.rowHeight*4, 'string':this.rowHeight*6};
+  private colWidths = {'categorical':this.rowHeight, 'int':this.rowHeight*4, 'string':this.rowHeight*6, 'id':this.rowHeight*4};
 
   private colOffsets = [0];
 
@@ -128,14 +128,12 @@ class attributeTable {
     let graphView = await this.tableManager.graphTable;
     let attributeView = await this.tableManager.tableTable;
 
-    let colDataAccum = [];
+
 
     let allCols = graphView.cols().concat(attributeView.cols());
 
     //This are the rows that every col in the table should have;
     let graphIDs = await graphView.col(0).names();
-
-
 
     //Create a dictionary of y value to people
     let y2personDict = {};
@@ -152,6 +150,25 @@ class attributeTable {
 
     //Find y indexes of all rows
     let allRows = Object.keys(y2personDict).map(Number);
+
+    //set up first column. can't seem to get an ivector for the first col from the table
+    let col: any = {};
+    col.data=[];
+    col.name = 'personID';
+    col.ys = allRows;
+    col.type = 'string';
+    col.stats=[];
+
+    for (let key of allRows){
+      col.data.push(y2personDict[key]);
+    }
+
+    col.ids = col.data;
+
+    let maxOffset = max(this.colOffsets);
+    this.colOffsets.push(maxOffset + this.buffer*2 + this.colWidths.id);
+
+    let colDataAccum = [col];
 
     this.height = Config.glyphSize * 3 * (max(allRows) - min(allRows) + 1);
     // console.log('table height is ', this.height)
@@ -173,7 +190,6 @@ class attributeTable {
 
       if (type === 'categorical') {
         //Build col offsets array ;
-
         const categories = Array.from(new Set(data));
 
         for (let cat of categories) {
@@ -195,7 +211,6 @@ class attributeTable {
               if (ind > -1 && data[ind] === cat) {
                 colData.push(data[ind])
               } else {
-                // console.log('could not find person ', person , ' in ' , peopleIDs)
                 colData.push(undefined);
               }
             });
@@ -352,9 +367,9 @@ class attributeTable {
       else if (cell.type === 'int') {
         self.renderIntHeader(select(this), cell);
       }
-      // else if (cell.type === 'string') {
-      //   self.renderStringHeader(select(this), cell);
-      // }
+      else if (cell.type === 'string') {
+        self.renderStringHeader(select(this), cell);
+      }
     });
 
     colSummaries.transition(t)
@@ -464,6 +479,23 @@ class attributeTable {
 
   /**
    *
+   * This function renders the column header of String columns in the Table View.
+   *
+   * @param element d3 selection of the current column header element.
+   * @param cellData the data bound to the column header element being passed in.
+   */
+  private renderStringHeader(element, headerData){
+
+    element.selectAll('rect').remove();
+    element.selectAll('text').remove();
+    element.selectAll('circle').remove();
+  };
+
+
+
+
+  /**
+   *
    * This function renders the column header of Categorical columns in the Table View.
    *
    * @param element d3 selection of the current column header element.
@@ -476,7 +508,6 @@ class attributeTable {
 
     let numPositiveValues = headerData.data.map((singleRow)=>{return singleRow.reduce((a, v) => {return v ? a + 1 : a}, 0) }).reduce((a, v) => {return v + a}, 0);
     let totalValues = headerData.data.map((singleRow)=>{return singleRow.length}).reduce((a,v) => {return a+v},0);
-
 
     let summaryScale = scaleLinear().range([0,height]).domain([0,totalValues])
 
@@ -508,9 +539,6 @@ class attributeTable {
       .attr('y',(height - summaryScale(numPositiveValues) - 2))
       .attr('opacity',1)
 
-
-
-
   };
 
   /**
@@ -526,7 +554,6 @@ class attributeTable {
     let height = this.rowHeight*2.5;
 
     let t = transition('t').duration(500).ease(easeLinear);
-
 
     let allValues =[];
 
@@ -575,11 +602,6 @@ class attributeTable {
       .attr('cx',col_width/2) //need to change to find the closest point in the read data to this value
       .attr('cy',yScale(headerData.stats.mean))
       .attr('r',3)
-
-
-
-
-
 
   };
 

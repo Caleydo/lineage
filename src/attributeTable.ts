@@ -49,7 +49,7 @@ class attributeTable {
   private colData;    // <- everything we need to bind
 
   private rowHeight = Config.glyphSize * 2.5 - 4;
-  private colWidths = {'cat':this.rowHeight, 'quant':this.rowHeight*4, 'str':this.rowHeight*8};
+  private colWidths = {'categorical':this.rowHeight, 'int':this.rowHeight*4, 'string':this.rowHeight*8};
 
   private colOffsets = [0];
 
@@ -190,7 +190,7 @@ class attributeTable {
           if (categories.length > 2 || cat === 'M' || cat === 'Y') {
 
             let maxOffset = max(this.colOffsets);
-            this.colOffsets.push(maxOffset + this.buffer*2 + this.colWidths.cat);
+            this.colOffsets.push(maxOffset + this.buffer*2 + this.colWidths.categorical);
 
             colDataAccum.push(col);
           }
@@ -198,7 +198,7 @@ class attributeTable {
       } else if (type === 'int') { //quant
 
         let maxOffset = max(this.colOffsets);
-        this.colOffsets.push(maxOffset + this.buffer + this.colWidths.quant);
+        this.colOffsets.push(maxOffset + this.buffer + this.colWidths.int);
 
 
         let col: any = {};
@@ -229,7 +229,7 @@ class attributeTable {
       } else if (type === 'string') {
 
         let maxOffset = max(this.colOffsets);
-        this.colOffsets.push(maxOffset + this.buffer + this.colWidths.str);
+        this.colOffsets.push(maxOffset + this.buffer + this.colWidths.string);
 
         let col: any = {};
         col.ids = allRows.map((row) => {
@@ -303,9 +303,9 @@ class attributeTable {
         return d['name']
       })
 
-      .attr("transform", (d) => {
-        const x_translation = label_xs.find(x => x.name === d['name']).x;
-        return 'translate(' + x_translation + ',0) rotate(-25)';
+      .attr("transform", (d,i) => { console.log(d,i);
+      let offset = this.colOffsets[i] + (this.colWidths[d.type]/2);
+        return 'translate(' + offset + ',0) rotate(-25)';
       });
 
 
@@ -385,7 +385,7 @@ class attributeTable {
   }
   private renderCategoricalCell(element, cellData) {
 
-    let col_width = this.colWidths.cat;
+    let col_width = this.colWidths.categorical;
     let rowHeight = this.rowHeight;
 
     if (element.selectAll('.boundary').size()===0){
@@ -424,7 +424,7 @@ class attributeTable {
   }
 
   private renderIntCell(element, cellData) {
-    let col_width = this.colWidths.quant; //this.getDisplayedColumnWidths(this.width).find(x => x.name === cellData.name).width
+    let col_width = this.colWidths.int; //this.getDisplayedColumnWidths(this.width).find(x => x.name === cellData.name).width
     let rowHeight = this.rowHeight;
     const radius = 3.5;
 
@@ -520,7 +520,7 @@ class attributeTable {
   }
   private renderStringCell(element, cellData) {
 
-    let col_width = this.colWidths.str; //this.getDisplayedColumnWidths(this.width).find(x => x.name === cellData.name).width
+    let col_width = this.colWidths.string; //this.getDisplayedColumnWidths(this.width).find(x => x.name === cellData.name).width
     let rowHeight = this.rowHeight;
 
     if (element.selectAll('.boundary').size()===0){

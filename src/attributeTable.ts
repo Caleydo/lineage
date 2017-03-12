@@ -126,9 +126,13 @@ class attributeTable {
 
     this.height = Config.glyphSize * 3 * this.tableManager.graphTable.nrow //- this.margin.top - this.margin.bottom;
 
+    console.log('table height is ', this.height)
     select('.tableSVG').attr("height", this.height + this.margin.top + this.margin.bottom)
 
+    console.log('nrows in graphView is ', graphView.nrow)
+
     this.y.range([0, this.height]).domain([1, graphView.nrow]);
+
 
     let colDataAccum = [];
 
@@ -136,6 +140,8 @@ class attributeTable {
 
     //This are the rows that every col in the table should have;
     let graphIDs = await graphView.col(0).names();
+
+
 
     //Create a dictionary of y value to people
     let y2personDict = {};

@@ -353,6 +353,7 @@ class GenealogyTree {
       return  Math.round(+d.y);
     })])
 
+
     this.interGenerationScale.range([.75, .25]).domain([2, nodes.length]);
 
     select('#graph')

@@ -156,7 +156,7 @@ class attributeTable {
     col.data=[];
     col.name = 'personID';
     col.ys = allRows;
-    col.type = 'string';
+    col.type = 'id';
     col.stats=[];
 
     for (let key of allRows){
@@ -472,6 +472,9 @@ class attributeTable {
       else if (cell.type === 'string') {
         self.renderStringCell(select(this), cell);
       }
+      else if (cell.type === 'id') {
+        self.renderStringCell(select(this), cell);
+      }
     });
 
 
@@ -764,7 +767,7 @@ class attributeTable {
    */
   private renderStringCell(element, cellData) {
 
-    let col_width = this.colWidths.string;
+    let col_width = this.colWidths[cellData.type];
     let rowHeight = this.rowHeight;
 
     if (element.selectAll('.boundary').size()===0){
@@ -788,8 +791,8 @@ class attributeTable {
         .classed('string', true)
     }
 
-    let textLabel = cellData.data[0].toLowerCase().slice(0,14);
-    if (cellData.data[0].length>14){
+    let textLabel = cellData.data[0].toLowerCase().slice(0,12);
+    if (cellData.data[0].length>12){
       textLabel = textLabel.concat(['...']);
     }
 
@@ -806,14 +809,19 @@ class attributeTable {
     //set Hover to show entire text
     element
       .on('mouseover',function(d){
-
         select(this).select('.string')
-          .text(d.data[0].toLowerCase())
+          .text(()=>{
+          if (d.data.length === 1)
+            return d.data[0].toLowerCase()
+          else
+            return 'Multiple'
+
+        })
       })
       .on('mouseout',function(d){
-        let textLabel = cellData.data[0].toLowerCase().slice(0,14);
+        let textLabel = cellData.data[0].toLowerCase().slice(0,12);
 
-        if (cellData.data[0].length>14){
+        if (cellData.data[0].length>12){
           textLabel = textLabel.concat(['...']);
         }
 
@@ -821,13 +829,6 @@ class attributeTable {
           textLabel = '...'
         }
         select(this).select('.string').text(textLabel)
-        //   .call(getBB);
-        //
-        // select(this).select('rect')
-        //   .attr("width", function(d:any){return d.bbox.width})
-        //   .attr("height", function(d:any){return d.bbox.height*0.9})
-        //   .style("fill", "white")
-        //   .style('stroke','none')
         });
   }
 

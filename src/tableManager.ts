@@ -179,8 +179,8 @@ export default class TableManager {
    * @return {Promise<void>}
    */
   public async refreshActiveViews() {
-    // const key = range.join(range.all(), this.activeTableColumns);
-    const key = range.join(this._activeTableRows, range.list([0,1,2,3,4,5,6,7,8,10,11,19,20,21,22,23,24,25,26,27,28,29])); //temporary since there are too many attributes in the table
+    const key = range.join(this._activeTableRows, range.all());
+    // const key = range.join(this._activeTableRows, range.list([0,1,2,3,4,5,6,7,8,10,11,19,20,21,22,23,24,25,26,27,28,29])); //temporary since there are too many attributes in the table
 
     this.tableTable = await this.attributeTable.view(key); //view on attribute table
     this.graphTable = await this.table.view(range.join(this._activeGraphRows, range.all()));

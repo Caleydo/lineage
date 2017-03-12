@@ -78,6 +78,7 @@ export class App {
     const familySelectorView = familySelector.create(this.$node.select('#familySelector').node());
     familySelectorView.init(attributeDataObj);
 
+    
     this.$node.select('h3').remove();
     this.setBusy(false);
 

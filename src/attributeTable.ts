@@ -52,7 +52,7 @@ class attributeTable {
   private colData;    // <- everything we need to bind
 
   private rowHeight = Config.glyphSize * 2.5 - 4;
-  private colWidths = {'categorical':this.rowHeight, 'int':this.rowHeight*4, 'string':this.rowHeight*6, 'id':this.rowHeight*4};
+  private colWidths = {'categorical':this.rowHeight, 'int':this.rowHeight*4, 'string':this.rowHeight*5, 'id':this.rowHeight*4};
 
   private colOffsets = [0];
 
@@ -344,8 +344,7 @@ class attributeTable {
       })
 
       .attr("transform", (d,i) => {
-      let offset = this.colOffsets[i] ; //+ (this.colWidths[d.type]/2);
-
+      let offset = this.colOffsets[i] + (this.colWidths[d.type]/2);
         return d.type === 'categorical' ? 'translate(' + offset + ',0) rotate(-30)' : 'translate(' + offset + ',0)' ;
       });
 
@@ -770,6 +769,7 @@ class attributeTable {
     let col_width = this.colWidths[cellData.type];
     let rowHeight = this.rowHeight;
 
+
     if (element.selectAll('.boundary').size()===0){
       element.append('rect')
         .classed('boundary',true);
@@ -791,13 +791,21 @@ class attributeTable {
         .classed('string', true)
     }
 
-    let textLabel = cellData.data[0].toLowerCase().slice(0,12);
-    if (cellData.data[0].length>12){
-      textLabel = textLabel.concat(['...']);
-    }
+    let textLabel;
 
-    if (numValues > 1){ //aggregate Row
-      textLabel = '...'
+    if (cellData.data.length === 0){
+      textLabel = '';
+    } else {
+
+      textLabel = cellData.data[0].toLowerCase().slice(0, 12);
+      if (cellData.data[0].length > 12) {
+        textLabel = textLabel.concat(['...']);
+      }
+
+      if (numValues > 1) { //aggregate Row
+        textLabel = '...'
+      }
+
     }
 
     element

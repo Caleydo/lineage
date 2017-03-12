@@ -52,7 +52,7 @@ class attributeTable {
   private colData;    // <- everything we need to bind
 
   private rowHeight = Config.glyphSize * 2.5 - 4;
-  private colWidths = {'categorical':this.rowHeight, 'int':this.rowHeight*4, 'string':this.rowHeight*8};
+  private colWidths = {'categorical':this.rowHeight, 'int':this.rowHeight*4, 'string':this.rowHeight*6};
 
   private colOffsets = [0];
 
@@ -184,6 +184,7 @@ class attributeTable {
           });
 
           const base_name = await vector.desc.name;
+
           col.name = base_name + '_' + cat;
           //Ensure there is an element for every person in the graph, even if empty
           col.data = allRows.map((row) => {
@@ -202,7 +203,8 @@ class attributeTable {
           });
           col.ys = allRows;
           col.type = type;
-          if (categories.length > 2 || cat === 'M' || cat === 'Y') {
+          console.log(col.name, ' cat is ', cat)
+          if (categories.length <3 && (cat === 'M' || cat ==='Y' || +cat === 1)) {
 
             let maxOffset = max(this.colOffsets);
             this.colOffsets.push(maxOffset + this.buffer*2 + this.colWidths.categorical);
@@ -225,6 +227,7 @@ class attributeTable {
 
 
         col.name = await vector.desc.name;
+
 
         // console.log('comparing Mins for ',  col.name, stats.min, data.filter((d)=>{console.log(d); return +d>0}).map(Number), min(data.map(Number)))
         col.data = allRows.map((row) => {
@@ -257,6 +260,7 @@ class attributeTable {
         });
 
         col.name = await vector.desc.name;
+
         col.data = allRows.map((row) => {
           let colData = [];
           let people = y2personDict[row];
@@ -336,6 +340,8 @@ class attributeTable {
       .data(this.colData.map((d, i) => { return d}));
 
     let colSummariesEnter = colSummaries.enter().append('g').classed('colSummary',true);
+
+    colSummaries.exit().remove();
 
     colSummaries = colSummariesEnter.merge(colSummaries)
 
@@ -534,7 +540,6 @@ class attributeTable {
       element.append('circle').classed('meanValue',true);
     }
 
-    console.log(headerData.name, headerData.stats)
     element.select('.sparkLine')
       .datum(allValues)
       .transition(t)

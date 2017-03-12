@@ -6,7 +6,7 @@ import {Config} from './config';
 import {select, selection, selectAll, mouse, event} from 'd3-selection';
 import {format} from 'd3-format';
 import {scaleLinear} from 'd3-scale';
-import {max, min} from 'd3-array';
+import {max, min, mean} from 'd3-array';
 import {entries} from 'd3-collection';
 import {axisTop} from 'd3-axis';
 import * as range from 'phovea_core/src/range';
@@ -244,7 +244,7 @@ class attributeTable {
         col.type = type;
         col.stats = stats;
         col.stats.min = min(data.filter((d)=>{return +d>0}).map(Number)) //temporary fix since vector.stats() returns 0 for empty values;
-        // col.stats.max = max(data.filter((d)=>{return +d>0}).map(Number)) //temporary fix since vector.stats() returns 0 for empty values;
+        col.stats.mean = mean(data.filter((d)=>{return +d>0}).map(Number)) //temporary fix since vector.stats() returns 0 for empty values;
         colDataAccum.push(col);
       } else if (type === 'string') {
 
@@ -327,7 +327,7 @@ class attributeTable {
       .attr("transform", (d,i) => {
       let offset = this.colOffsets[i] ; //+ (this.colWidths[d.type]/2);
 
-        return d.type === 'categorical' ? 'translate(' + offset + ',0) rotate(-25)' : 'translate(' + offset + ',0)' ;
+        return d.type === 'categorical' ? 'translate(' + offset + ',0) rotate(-30)' : 'translate(' + offset + ',0)' ;
       });
 
 
@@ -507,6 +507,8 @@ class attributeTable {
     let col_width = this.colWidths.int;
     let height = this.rowHeight*2.5;
 
+    let t = transition('t').duration(500).ease(easeLinear);
+
 
     let allValues =[];
 
@@ -528,24 +530,36 @@ class attributeTable {
 
       element.append('text').classed('minValue',true);
       element.append('text').classed('maxValue',true);
+
+      element.append('circle').classed('meanValue',true);
     }
 
+    console.log(headerData.name, headerData.stats)
     element.select('.sparkLine')
       .datum(allValues)
-      .transition(transition('t').duration(500).ease(easeLinear))
+      .transition(t)
       .attr('d',lineFcn)
 
     element.select('.minValue')
+      .transition(t)
       .text(Math.round(min(allValues)))
       .attr('x',col_width*0.2)
       .attr('y',height)
       .attr('text-anchor','end')
 
     element.select('.maxValue')
+      .transition(t)
       .text(Math.round(max(allValues)))
       .attr('x',col_width*0.8)
       .attr('y',0)
       .attr('text-anchor','end')
+
+    element.select('.meanValue')
+      .attr('cx',col_width/2) //need to change to find the closest point in the read data to this value
+      .attr('cy',yScale(headerData.stats.mean))
+      .attr('r',3)
+
+
 
 
 

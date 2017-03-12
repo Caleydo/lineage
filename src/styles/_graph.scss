@@ -25,12 +25,20 @@ td rect{
   stroke: #686c6c;
   stroke-width: 2px;
 }
+.histogramLabel{
+  font-weight:bold;
+  font-size:12px;
+
+}
 
 .minValue,
 .maxValue{
   font-weight:bold;
   font-size:10px;
-  color: #931917;
+}
+
+.meanValue{
+  fill: #b40000;
 }
 
 .histogram{

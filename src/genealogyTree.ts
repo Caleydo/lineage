@@ -344,15 +344,16 @@ class GenealogyTree {
    */
   private update_graph() {
     const nodes = this.data.nodes;
-    this.height = Config.glyphSize * 3 * nodes.filter((n)=>{return !n.hidden}).length // - this.margin.top - this.margin.bottom;
 
-    // Y scale. Xscale range and domain are defined in update_time_axis;
-    this.y.range([0, this.height]).domain([min(nodes, function (d:any) {
+    let yrange = [min(nodes, function (d:any) {
       return Math.round(+d.y);
     }), max(nodes, function (d:any) {
       return  Math.round(+d.y);
-    })])
+    })];
 
+    this.height = Config.glyphSize * 3 * (yrange[1]-yrange[0]+1)// - this.margin.top - this.margin.bottom;
+
+    this.y.range([0, this.height]).domain(yrange)
 
     this.interGenerationScale.range([.75, .25]).domain([2, nodes.length]);
 

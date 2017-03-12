@@ -607,7 +607,6 @@ class GraphData {
       }
     });
 
-    console.log('id_range', id_range.length, aggregate)
     this.exportYValues();
     this.tableManager.activeGraphRows = Range.list(id_range)
   };
@@ -628,7 +627,6 @@ class GraphData {
       if (rowNodes < 1) { //found an empty Row
         toCollapse = toCollapse + 1;
       } else if (toCollapse>0) {
-        console.log('collapsing ', toCollapse ,  'rows')
         this.nodes.forEach((node) => {
           if (Math.round(node.y) >= y) {
             node.y = node.y - toCollapse;
@@ -660,10 +658,7 @@ class GraphData {
       return node.Y <= startIndex && node.Y >= endIndex;
     });
 
-    console.log('startInd is ', startIndex)
-    console.log('endInd is ', endIndex)
     let numRows = toUncollapse.length -1;
-   console.log('numRows is ', numRows)
     const ind = 1000;
 
     toUncollapse.forEach((n) => {

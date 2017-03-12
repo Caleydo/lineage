@@ -95,7 +95,8 @@ class attributeTable {
 
     //Height is a function of the current view and so is set in initData();
     this.width = 1000 - this.margin.left - this.margin.right
-    this.height = Config.glyphSize * 3 * this.tableManager.graphTable.nrow - this.margin.top - this.margin.bottom;
+    this.height = Config.glyphSize * 3 * this.tableManager.graphTable.nrow //- this.margin.top - this.margin.bottom;
+
 
     let t = transition('t').duration(500).ease(easeLinear);
 
@@ -124,15 +125,6 @@ class attributeTable {
     let graphView = await this.tableManager.graphTable;
     let attributeView = await this.tableManager.tableTable;
 
-    this.height = Config.glyphSize * 3 * this.tableManager.graphTable.nrow //- this.margin.top - this.margin.bottom;
-
-    console.log('table height is ', this.height)
-    select('.tableSVG').attr("height", this.height + this.margin.top + this.margin.bottom)
-
-    console.log('nrows in graphView is ', graphView.nrow)
-
-    this.y.range([0, this.height]).domain([1, graphView.nrow]);
-
 
     let colDataAccum = [];
 
@@ -159,8 +151,12 @@ class attributeTable {
     //Find y indexes of all rows
     let allRows = Object.keys(y2personDict).map(Number);
 
+    this.height = Config.glyphSize * 3 * allRows.length;
 
-    console.log('there should be ', allRows.length , ' rows')
+    select('.tableSVG').attr("height", this.height + this.margin.top + this.margin.bottom)
+
+    this.y.range([0, this.height]).domain([1, max(allRows)]);
+
 
     for (const vector of allCols) {
       const data = await vector.data(range.all());
@@ -911,7 +907,7 @@ class attributeTable {
     events.on(TABLE_VIS_ROWS_CHANGED_EVENT, () => {
       //self.ys = self.tableManager.ys; //regrab the y's
       //  console.log("registered event!!");
-      console.log('calling update from TABLE_VIS_ROWS_CHANGED EVENT')
+      // console.log('calling update from TABLE_VIS_ROWS_CHANGED EVENT')
       self.update();
 
     });

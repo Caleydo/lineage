@@ -1762,9 +1762,7 @@ class GenealogyTree {
       console.log('heard attribute_selected_event' , item.attribute.data);
       if (item.badge === 'primary') {
         this.data.uncollapseAll();
-        this.update();
         this.data.definePrimary(item.attribute.data,'Y')
-        this.update_nodes();
         this.data.collapseAll();
         this.update();
 

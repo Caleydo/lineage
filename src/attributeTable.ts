@@ -803,10 +803,11 @@ class attributeTable {
 
     let textLabel;
 
-    if (cellData.data.length === 0){
+    if (cellData.data.length === 0 || cellData.data[0] === undefined ){
       textLabel = '';
     } else {
 
+      // console.log(cellData.data)
       textLabel = cellData.data[0].toLowerCase().slice(0, 12);
       if (cellData.data[0].length > 12) {
         textLabel = textLabel.concat(['...']);

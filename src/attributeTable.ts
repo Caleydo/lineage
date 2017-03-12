@@ -56,6 +56,8 @@ class attributeTable {
 
   private colOffsets = [0];
 
+  private idScale = scaleLinear(); //used to size the bars in the first col of the table;
+
 
 
   private margin = Config.margin;
@@ -165,9 +167,13 @@ class attributeTable {
     col.type = 'id';
     col.stats=[];
 
+    //Creating a scale for the rects in the personID col in the table.
+    let maxAggregates = 1;
     for (let key of allRows){
       col.data.push(y2personDict[key]);
+      maxAggregates = max([maxAggregates,y2personDict[key].length ])
     }
+    this.idScale.domain([1,maxAggregates]);
 
     col.ids = col.data;
 
@@ -497,8 +503,9 @@ class attributeTable {
         self.renderStringCell(select(this), cell);
       }
       else if (cell.type === 'id') {
-        self.renderStringCell(select(this), cell);
+        self.renderIdCell(select(this), cell);
       }
+
     });
 
 
@@ -804,7 +811,6 @@ class attributeTable {
       textLabel = '';
     } else {
 
-      // console.log(cellData.data)
       textLabel = cellData.data[0].toLowerCase().slice(0, 12);
       if (cellData.data[0].length > 12) {
         textLabel = textLabel.concat(['...']);
@@ -847,6 +853,70 @@ class attributeTable {
         select(this).select('.string').text(textLabel)
         });
   }
+
+
+  /**
+   *
+   * This function renders the content of ID Cells in the Table View.
+   *
+   * @param element d3 selection of the current cell element.
+   * @param cellData the data bound to the cell element being passed in.
+   */
+  private renderIdCell(element, cellData) {
+
+    let col_width = this.colWidths[cellData.type];
+    let rowHeight = this.rowHeight;
+
+    this.idScale.range([0,col_width*0.6]);
+
+    let numValues = cellData.data.reduce((a, v) => v ? a + 1 : a, 0);
+
+    if (numValues === 0){
+      return;
+    }
+
+    if (numValues > 1 && element.selectAll('.idBar').size()===0){
+      element
+        .append('rect')
+        .classed('idBar', true)
+    }
+
+    if (element.selectAll('.string').size()===0){
+      element
+        .append('text')
+        .classed('string', true)
+    }
+
+    let textLabel;
+    if (numValues === 1){
+
+      textLabel = cellData.data[0].toLowerCase().slice(0, 12);
+      element
+        .select('.string')
+        .text(textLabel)
+        .attr('dy',rowHeight*0.9)
+        .style('stroke','none')
+    } else{
+
+      element
+        .select('.string')
+        .text(numValues)
+        .attr('dy',rowHeight*0.9)
+        .attr('dx',this.idScale(numValues)+2)
+        .style('stroke','none')
+
+      element
+        .select('.idBar')
+        .attr('width',this.idScale(numValues))
+        .attr('height',rowHeight)
+
+    }
+
+
+
+  }
+
+
 
 //
 //     // stick on the median

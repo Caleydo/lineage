@@ -67,7 +67,8 @@ text.header{
   fill: $node-color;
 }
 
-.cell .categorical.aggregate{
+.cell .categorical.aggregate,
+.idBar{
   fill: #545757;
 }
 

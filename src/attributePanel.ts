@@ -275,7 +275,7 @@ class AttributePanel {
         dataVec = col;
       }
     })
-    
+
     if (dataVec.desc.value.type === VALUE_TYPE_CATEGORICAL) {
       const catVector = <ICategoricalVector> dataVec;
       const attributeHistogram = histogram.create(svg);
@@ -350,11 +350,13 @@ class AttributePanel {
   private attachListener() {
     // listen to toggle panel event
     select('#toggle-btn').on('click', ()=> {
+      console.log('clicked now?')
      this.toggle();
     })
 
     //Set listener for click event on corresponding node that changes the color of that row to red
     events.on('node_clicked', (evt, item) => {
+      console.log('clicked')
       selectAll('.row').classed('selected', function (d) {
         return select(this).attr('id') === 'row_' + item;
       });

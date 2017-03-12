@@ -155,6 +155,58 @@ class GraphData {
 
   /**
    *
+   * This function uncollapses the entire tree
+   *
+   */
+  private uncollapseAll(){
+
+    //Iterate through branch, if there are hidden nodes, uncollapse
+    const isHidden = this.nodes.filter((node) => {
+      return (node.hidden);
+    });
+
+    if (isHidden.length === 0) {
+      return;
+    }
+
+    //Find oldest person in this set of nodes and set as startingPoint
+    let startNode = isHidden.reduce((a,b)=> {return +a.bdate < +b.bdate? a : b});
+    this.expandBranch(startNode);
+
+    //Recursively call uncollapseAll to handle any branches that were not uncollapsed.
+    this.uncollapseAll();
+  }
+
+  /**
+   *
+   * This function collapses the entire tree (using aggregation, not hiding)
+   *
+   */
+
+  private collapseAll() {
+
+    //Iterate through branch, if there are any unhidden nodes, collapse
+    const isNotHidden = this.nodes.filter((node) => {
+      return (!node.hidden || !node.affected);
+    });
+
+    if (isNotHidden.length === 0) {
+      return;
+    }
+
+    //Find oldest person in this set of nodes and set as startingPoint
+    let startNode = isNotHidden.reduce((a,b)=> {return +a.bdate < +b.bdate? a : b});
+
+    console.log(startNode.Y);
+    this.hideNodes(startNode.y,true);
+
+    //Recursively call collapseAll to handle any branches that were not collapsed.
+    // this.collapseAll();
+  }
+
+
+  /**
+   *
    * This function passes the newly computed y values to the tableManager
    *
    */
@@ -390,12 +442,14 @@ class GraphData {
    */
   public hideNodes(startIndex, aggregate) {
 
+    startIndex = Math.round(startIndex)
     let Y: number = startIndex;
 
     //find all nodes in that row
     const rowNodes = this.nodes.filter((node) => {
       return Math.round(node.y) === startIndex;
     });
+
 
     //find the largest original Y value
     let startYIndex: any = max(rowNodes, function (n) {

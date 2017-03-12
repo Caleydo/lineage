@@ -1761,14 +1761,20 @@ class GenealogyTree {
     events.on('attribute_selected',(evt,item) => {
       console.log('heard attribute_selected_event' , item.attribute.data);
       if (item.badge === 'primary') {
+        this.data.uncollapseAll();
+        this.update();
         this.data.definePrimary(item.attribute.data,'Y')
+        this.update_nodes();
+        this.data.collapseAll();
+        this.update();
+
       } else if (item.badge === 'secondary') {
         this.data.defineSecondary(item.attribute.data,'Y')
       }
 
       //Uncollapse Tree
       //Re-render tree
-      this.update_nodes();
+
 
 
     });

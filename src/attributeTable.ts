@@ -41,6 +41,7 @@ class attributeTable {
 // RENDERING THINGS
   private table;
   private tableHeader;
+  private columnSummaries;
 
 
   //private margin = {top: 60, right: 20, bottom: 60, left: 40};
@@ -108,6 +109,9 @@ class attributeTable {
 //HEADERS
     this.tableHeader = svg.append("g")
       .attr("transform", "translate(2," + this.margin.axisTop + ")");
+
+    this.columnSummaries = svg.append("g")
+      .attr("transform", "translate(2," + (this.margin.top - 50) + ")");
 
 // TABLE
     this.table = svg.append("g")
@@ -264,6 +268,7 @@ class attributeTable {
   //renders the DOM elements
   private async render() {
     let t = transition('t').duration(500).ease(easeLinear);
+    let self = this;
 
     //rendering info
     var col_widths = this.getDisplayedColumnWidths(this.width);
@@ -307,6 +312,35 @@ class attributeTable {
       let offset = this.colOffsets[i] ; //+ (this.colWidths[d.type]/2);
         return 'translate(' + offset + ',0) rotate(-25)';
       });
+
+
+    //Bind data to the col header summaries
+    let colSummaries = this.columnSummaries.selectAll(".colSummary")
+      .data(this.colData.map((d, i) => { return d}));
+
+    let colSummariesEnter = colSummaries.enter().append('g').classed('colSummary',true);
+
+    colSummaries = colSummariesEnter.merge(colSummaries)
+
+    colSummaries.each(function (cell) {
+      if (cell.type === 'categorical') {
+        self.renderCategoricalHeader(select(this), cell);
+      }
+      // else if (cell.type === 'int') {
+      //   self.renderIntHeader(select(this), cell);
+      // }
+      // else if (cell.type === 'string') {
+      //   self.renderStringHeader(select(this), cell);
+      // }
+    });
+
+    colSummaries.transition(t)
+      .attr("transform", (d,i) => {
+        let offset = this.colOffsets[i];
+        return 'translate(' + offset + ',0)';
+      });
+
+
 
 
 // TABLE
@@ -390,7 +424,6 @@ class attributeTable {
 
     cellsEnter.attr('opacity',1);
 
-    let self = this;
     cells.each(function (cell) {
       if (cell.type === 'categorical') {
         self.renderCategoricalCell(select(this), cell);
@@ -405,6 +438,57 @@ class attributeTable {
 
 
   }
+
+  /**
+   *
+   * This function renders the column header of Categorical columns in the Table View.
+   *
+   * @param element d3 selection of the current column header element.
+   * @param cellData the data bound to the column header element being passed in.
+   */
+  private renderCategoricalHeader(element, headerData){
+
+    let col_width = this.colWidths.categorical;
+    let height = this.rowHeight*2.5;
+
+    let numPositiveValues = headerData.data.map((singleRow)=>{return singleRow.reduce((a, v) => {return v ? a + 1 : a}, 0) }).reduce((a, v) => {return v + a}, 0);
+    let totalValues = headerData.data.map((singleRow)=>{return singleRow.length}).reduce((a,v) => {return a+v},0);
+
+
+    let summaryScale = scaleLinear().range([0,height]).domain([0,totalValues])
+
+    console.log(headerData.name, summaryScale.domain(), numPositiveValues)
+
+    console.log('headerData is ', headerData)
+
+    if (element.selectAll('.histogram').size()===0){
+      element.append('rect')
+        .classed('histogram',true);
+
+      element.append('text')
+        .classed('histogramLabel',true)
+    }
+
+    element.select('.histogram')
+      .attr('width', col_width)
+      .attr('height', summaryScale(numPositiveValues))
+      .attr('y',(height - summaryScale(numPositiveValues)))
+
+    element.select('.histogramLabel')
+      .text(Math.round(numPositiveValues/totalValues*100) + '%')
+      .attr('y',(height - summaryScale(numPositiveValues) - 2))
+
+
+
+  };
+
+  /**
+   *
+   * This function renders the content of Categorical Cells in the Table View.
+   *
+   * @param element d3 selection of the current cell element.
+   * @param cellData the data bound to the cell element being passed in.
+   */
   private renderCategoricalCell(element, cellData) {
 
     let col_width = this.colWidths.categorical;
@@ -445,6 +529,13 @@ class attributeTable {
       .classed('aggregate',()=>{return cellData.data.length >1})
   }
 
+  /**
+   *
+   * This function renders the content of Quantitative (type === int)  Cells in the Table View.
+   *
+   * @param element d3 selection of the current cell element.
+   * @param cellData the data bound to the cell element being passed in.
+   */
   private renderIntCell(element, cellData) {
     let col_width = this.colWidths.int; //this.getDisplayedColumnWidths(this.width).find(x => x.name === cellData.name).width
     let rowHeight = this.rowHeight;
@@ -538,6 +629,14 @@ class attributeTable {
 
 
   }
+
+  /**
+   *
+   * This function renders the content of String Cells in the Table View.
+   *
+   * @param element d3 selection of the current cell element.
+   * @param cellData the data bound to the cell element being passed in.
+   */
   private renderStringCell(element, cellData) {
 
     let col_width = this.colWidths.string;

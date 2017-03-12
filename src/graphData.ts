@@ -257,10 +257,7 @@ class GraphData {
   private definePrimary(attribute, value) {
     this.nodes.forEach((node) => {
       node.affected = node[attribute] === value;
-      //node.affected = +d["affection"] === 100;
-      // node.affected= false;
       node.primary = {'Attribute': attribute, 'Threshold': value};
-      // node.affected = Math.random() > 0.7;
     });
 
   }

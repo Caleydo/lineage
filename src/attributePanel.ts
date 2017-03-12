@@ -8,6 +8,7 @@ import {IAnyVector} from 'phovea_core/src/vector';
 import {ICategoricalVector, INumericalVector} from 'phovea_core/src/vector/IVector';
 import * as histogram from './histogram';
 import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL} from 'phovea_core/src/datatype';
+import * as range from 'phovea_core/src/range';
 
 
 import {Config} from './config';
@@ -23,7 +24,9 @@ class AttributePanel {
   // access to all the data in our backend
   private table;
   private columns;
-  private activeColumns;
+  private activeColumns=[];
+
+  private tableManager;
 
   private collapsed = false;
 
@@ -49,9 +52,23 @@ class AttributePanel {
    * @returns {Promise<FilterBar>}
    */
   init(attributeDataObj) {
-    this.table = attributeDataObj.attributeTable;
-    this.columns = this.table.cols();
-    this.activeColumns = attributeDataObj.activeAttributes;
+    // this.table = attributeDataObj.attributeTable;
+    this.tableManager = attributeDataObj;
+
+    let graphView = this.tableManager.graphTable;
+    let attributeView = this.tableManager.tableTable;
+    this.columns  = graphView.cols().concat(attributeView.cols());   //this.table.cols();
+
+    this.columns.forEach((col, i) => {
+      const name = col.desc.name;
+      const type = col.desc.value.type;
+
+      if (type !== 'idtype') {
+        this.activeColumns.push(name);
+      }
+    });
+
+    // this.activeColumns = range.all(); //attributeDataObj.activeAttributes;
 
     this.build();
     this.attachListener();
@@ -252,12 +269,13 @@ class AttributePanel {
     // we need to use col(index) so we can get IVector object
     // since we don't have indices for columns, we are iterating though
     // columns and get the matched one
-    for (const col in this.columns) {
-      if (this.columns[col].desc.name === attributeName) {
-        dataVec = await this.table.col(col);
-      }
-    }
 
+    this.columns.forEach(col => {
+      if (col.desc.name === attributeName) {
+        dataVec = col;
+      }
+    })
+    
     if (dataVec.desc.value.type === VALUE_TYPE_CATEGORICAL) {
       const catVector = <ICategoricalVector> dataVec;
       const attributeHistogram = histogram.create(svg);

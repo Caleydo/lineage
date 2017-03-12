@@ -163,9 +163,9 @@ class GraphData {
     //Create hashmap of personID to y value;
     let dict = {};
 
-    this.nodes.forEach((node) => {
-      dict[node.id] = Math.round(node.y);
-    })
+    this.nodes.forEach((node) => {dict[node.id] = Math.round(node.y);})
+
+
 
     //Assign y values to the tableManager object
     this.tableManager.yValues = dict;
@@ -601,12 +601,13 @@ class GraphData {
 
     let id_range = [];
     this.nodes.forEach((n: any) => {
-      if (n.aggregated || !n.hidden) {
+     if (!(!n.aggregated && n.hidden)){
         let ind: number = this.ids.indexOf(n.id);
         id_range.push(ind);
-      };
+      }
     });
 
+    console.log('id_range', id_range.length, aggregate)
     this.exportYValues();
     this.tableManager.activeGraphRows = Range.list(id_range)
   };

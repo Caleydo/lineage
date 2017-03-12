@@ -168,24 +168,6 @@ class GenealogyTree {
 
   private update(){
 
-    const nodes = this.data.nodes;
-    this.height = Config.glyphSize * 3 * nodes.filter((n)=>{return !n.hidden}).length - this.margin.top - this.margin.bottom;
-
-
-    // this.height = 2506;
-
-    // Y scale. Xscale range and domain are defined in update_time_axis;
-    this.y.range([0, this.height]).domain([min(nodes, function (d) {
-      return +d['y'];
-    }), max(nodes, function (d) {
-      return +d['y'];
-    })])
-
-    this.interGenerationScale.range([.75, .25]).domain([2, nodes.length]);
-
-    select('#graph')
-      .attr('height', this.height + this.margin.top + this.margin.bottom)
-
   //Filter data to only render what is visible in the current window
   this.update_time_axis();
 
@@ -361,6 +343,21 @@ class GenealogyTree {
    * @param parentParentEdges array of parent parent edges to update the tree with
    */
   private update_graph() {
+    const nodes = this.data.nodes;
+    this.height = Config.glyphSize * 3 * nodes.filter((n)=>{return !n.hidden}).length // - this.margin.top - this.margin.bottom;
+
+    // Y scale. Xscale range and domain are defined in update_time_axis;
+    this.y.range([0, this.height]).domain([min(nodes, function (d:any) {
+      return Math.round(+d.y);
+    }), max(nodes, function (d:any) {
+      return  Math.round(+d.y);
+    })])
+
+    this.interGenerationScale.range([.75, .25]).domain([2, nodes.length]);
+
+    select('#graph')
+      .attr('height', this.height + this.margin.top + this.margin.bottom)
+
     this.update_edges();
     this.update_nodes();
   }

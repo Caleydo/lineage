@@ -124,6 +124,10 @@ class attributeTable {
     let graphView = await this.tableManager.graphTable;
     let attributeView = await this.tableManager.tableTable;
 
+    this.height = Config.glyphSize * 3 * this.tableManager.graphTable.nrow //- this.margin.top - this.margin.bottom;
+
+    select('.tableSVG').attr("height", this.height + this.margin.top + this.margin.bottom)
+
     this.y.range([0, this.height]).domain([1, graphView.nrow]);
 
     let colDataAccum = [];
@@ -132,7 +136,6 @@ class attributeTable {
 
     //This are the rows that every col in the table should have;
     let graphIDs = await graphView.col(0).names();
-
 
     //Create a dictionary of y value to people
     let y2personDict = {};
@@ -149,6 +152,9 @@ class attributeTable {
 
     //Find y indexes of all rows
     let allRows = Object.keys(y2personDict).map(Number);
+
+
+    console.log('there should be ', allRows.length , ' rows')
 
     for (const vector of allCols) {
       const data = await vector.data(range.all());
@@ -456,10 +462,6 @@ class attributeTable {
 
 
     let summaryScale = scaleLinear().range([0,height]).domain([0,totalValues])
-
-    console.log(headerData.name, summaryScale.domain(), numPositiveValues)
-
-    console.log('headerData is ', headerData)
 
     if (element.selectAll('.histogram').size()===0){
       element.append('rect')
@@ -896,8 +898,6 @@ class attributeTable {
 
     //
     events.on('redraw_tree', () => {
-      this.height = Config.glyphSize * 3 * this.tableManager.graphTable.nrow - this.margin.top - this.margin.bottom;
-      select('.tableSVG').attr("height", this.height + this.margin.top + this.margin.bottom)
       self.update();
 
     });

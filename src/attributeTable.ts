@@ -203,7 +203,7 @@ class attributeTable {
           });
           col.ys = allRows;
           col.type = type;
-          console.log(col.name, ' cat is ', cat)
+          // console.log(col.name, ' cat is ', cat)
           if (categories.length <3 && (cat === 'M' || cat ==='Y' || +cat === 1)) {
 
             let maxOffset = max(this.colOffsets);
@@ -489,13 +489,25 @@ class attributeTable {
     }
 
     element.select('.histogram')
+      .attr('opacity',0)
       .attr('width', col_width)
       .attr('height', summaryScale(numPositiveValues))
       .attr('y',(height - summaryScale(numPositiveValues)))
+      .attr('opacity',1)
 
     element.select('.histogramLabel')
-      .text(Math.round(numPositiveValues/totalValues*100) + '%')
+      .attr('opacity',0)
+      .text(()=>{
+        let percentage = (numPositiveValues/totalValues*100);
+        if (percentage<1) {
+          return percentage.toFixed(1) + '%'
+        } else {
+          return percentage.toFixed(0) + '%'
+        }
+      })
       .attr('y',(height - summaryScale(numPositiveValues) - 2))
+      .attr('opacity',1)
+
 
 
 

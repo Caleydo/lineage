@@ -352,6 +352,7 @@ class GenealogyTree {
     })];
 
     this.height = Config.glyphSize * 3 * (yrange[1]-yrange[0]+1)// - this.margin.top - this.margin.bottom;
+    // console.log('tree height is ', this.height)
 
     this.y.range([0, this.height]).domain(yrange)
 

@@ -98,6 +98,7 @@ class attributeTable {
     this.height = Config.glyphSize * 3 * this.tableManager.graphTable.nrow //- this.margin.top - this.margin.bottom;
 
 
+
     let t = transition('t').duration(500).ease(easeLinear);
 
     //Exctract y values from dict.
@@ -151,7 +152,8 @@ class attributeTable {
     //Find y indexes of all rows
     let allRows = Object.keys(y2personDict).map(Number);
 
-    this.height = Config.glyphSize * 3 * allRows.length;
+    this.height = Config.glyphSize * 3 * (max(allRows) - min(allRows) + 1);
+    // console.log('table height is ', this.height)
 
     select('.tableSVG').attr("height", this.height + this.margin.top + this.margin.bottom)
 

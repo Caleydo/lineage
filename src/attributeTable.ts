@@ -112,14 +112,20 @@ class attributeTable {
 
 //HEADERS
     this.tableHeader = svg.append("g")
-      .attr("transform", "translate(2," + this.margin.axisTop + ")");
+      .attr("transform", "translate(0," + this.margin.axisTop + ")");
 
     this.columnSummaries = svg.append("g")
-      .attr("transform", "translate(2," + (this.margin.top - 50) + ")");
+      .attr("transform", "translate(0," + (this.margin.top - 50) + ")");
 
 // TABLE
+
+    svg.append("g")
+      .attr("transform", "translate(0," + this.margin.top + ")")
+      .attr('id','highlightBarsGroup')
+
+
     this.table = svg.append("g")
-      .attr("transform", "translate(2," + this.margin.top + ")");
+      .attr("transform", "translate(0," + this.margin.top + ")");
   }
 
 
@@ -380,6 +386,23 @@ class attributeTable {
 
 
 
+    //create backgroundHighlight Bars
+    let highlightBars = select('#highlightBarsGroup').selectAll('.highlightBar')
+      .data(this.colData[0].ys.map(d=>{return {'y':d}}), (d: any) => {return d});
+
+    highlightBars.exit().remove();
+
+    let highlightBarsEnter = highlightBars.enter().append('rect').classed('highlightBar', true);
+
+    highlightBars = highlightBarsEnter.merge(highlightBars)
+
+    highlightBars
+      .attr('x',0 )
+      .attr('y',(d:any)=>{return this.y(d.y)})
+      .attr('width',max(this.colOffsets))
+      .attr('height',this.rowHeight)
+      .attr('opacity', 0);
+
 // TABLE
     //Bind data to the col groups
     let cols = this.table.selectAll(".dataCols")
@@ -406,6 +429,7 @@ class attributeTable {
         return 'translate(' + offset + ',0)';
       });
 
+
     //create table Lines
 
     // //Bind data to the cells
@@ -427,6 +451,7 @@ class attributeTable {
       .attr('stroke-width', 1)
       .attr('stroke', '#9e9d9b')
       .attr('opacity',.4)
+
 
 
     //Bind data to the cells
@@ -1001,17 +1026,17 @@ class attributeTable {
 
 
   private attachListener() {
-    //NODE BEGIN HOVER
-    events.on('row_mouseover', (evt, item) => {
-      let cell = selectAll('.cell').filter((d:any)=> {return d.y === item}).select('.boundary')
-        // .classed('tablehovered', function (d: any) {return (d.y === item);});
-        .classed('tablehovered', true);
-    });
-
-    //NODE END HOVER
-    events.on('row_mouseout', (evt, item) => {
-      return selectAll('.boundary').classed('tablehovered', false);
-    });
+    // //NODE BEGIN HOVER
+    // events.on('row_mouseover', (evt, item) => {
+    //   let cell = selectAll('.cell').filter((d:any)=> {return d.y === item}).select('.boundary')
+    //     // .classed('tablehovered', function (d: any) {return (d.y === item);});
+    //     .classed('tablehovered', true);
+    // });
+    //
+    // //NODE END HOVER
+    // events.on('row_mouseout', (evt, item) => {
+    //   return selectAll('.boundary').classed('tablehovered', false);
+    // });
 
 
     // NODE CLICK

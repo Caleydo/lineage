@@ -82,7 +82,7 @@ class GenealogyTree {
 
   private y = scaleLinear();
 
-  private attributeBarY = scaleLinear().range([Config.glyphSize * 2, 0]).domain([0, 99]);
+  private attributeBarY = scaleLinear().range([0, Config.glyphSize * 2])
 
 
   private kidGridSize = 4;
@@ -728,18 +728,10 @@ class GenealogyTree {
     selectAll('.bars')
       .selectAll('.backgroundBar')
       .on('mouseover', function (d: any) {
-        //
-        // //find non-hidden node in that row
-        // let nonHidden  = selectAll('.highlightBar').filter((n) => {
-        //   return !n['hidden'] && Math.round(n['y']) === Math.round(d.y)
-        // })
-        //
-        //
-        // console.log('there are ', nonHidden.size() ,  ' nodes in this row');
 
         //Set opacity of corresponding highlightBar
-        selectAll('.highlightBar').filter((e) => {
-          return e === d;
+        selectAll('.highlightBar').filter((e:any) => {
+          return e.y === d.y || e.y === Math.round(d.y);
         }).attr('opacity', .2)
 
         //Set the age label on the lifeLine of this row to visible
@@ -749,16 +741,6 @@ class GenealogyTree {
           return !d['aggregated'] && !d['hidden']
         }).select('.lifeRect').select('.ageLabel').attr('visibility', 'visible');
 
-        // //For aggregated nodes, show all the nodes that went into the aggregate
-        // selectAll('.node').filter((e) => {
-        //   return e === d;
-        // }).filter('.aggregated').attr('opacity', 1)
-        //
-        // //Hide the aggregate node itself
-        // selectAll('.node').filter((e) => {
-        //   return e === d;
-        // }).select('.hex').attr('opacity', 0)
-
         events.fire('row_mouseover', Math.round(d['y']));
       })
       .on('mouseout', (d) => {
@@ -766,16 +748,7 @@ class GenealogyTree {
         //Hide all the highlightBars
         selectAll('.highlightBar').attr('opacity', 0);
 
-        //Hide all the age labels on the lifeLines
         selectAll('.ageLabel').attr('visibility', 'hidden');
-
-        // //Hide all nodes that were aggregated
-        // selectAll('.aggregated').attr('opacity', 0);
-
-        //Set the opacity of any aggregate icons back to 1;
-        // selectAll('.node').filter((e) => {
-        //   return e === d;
-        // }).select('.hex').attr('opacity', 1);
 
         events.fire('row_mouseout', d['y']);
       })
@@ -1035,15 +1008,15 @@ class GenealogyTree {
     allNodes.selectAll('.attributeFrame')
       .attr('width', Config.glyphSize/1.5)
       .attr('height', (d) => {
-        return Config.glyphSize * 2 - this.attributeBarY(99)
+        return Config.glyphSize * 2
 
       })
       .attr('x', (d) => {
-        return d['sex'] === 'F' ? -Config.glyphSize * 2 : -Config.glyphSize * 1
+        return d['sex'] === 'F' ? -Config.glyphSize * 2 : -Config.glyphSize
       })
       .attr('y', (d) => {
 
-        return d['sex'] === 'F' ? (this.attributeBarY(99) - Config.glyphSize) : this.attributeBarY(99)
+        return d['sex'] === 'F' ? (- Config.glyphSize) : 0
       })
       .attr('fill','white')
 
@@ -1051,7 +1024,7 @@ class GenealogyTree {
     allNodes.selectAll('.attributeBar')
       .attr('width', Config.glyphSize/1.5)
       .attr('height', (d) => {
-        return Config.glyphSize * 2 - this.attributeBarY(+d['bdate'] % 100);
+        return Config.glyphSize * 2;
 
       })
       .attr('x', (d) => {
@@ -1060,7 +1033,7 @@ class GenealogyTree {
       .attr('y', (d) => {
         // return d['sex'] === 'F' ? (this.attributeBarY(1) - Config.glyphSize) : this.attributeBarY(1)
 
-	      return d['sex']=='F'? (this.attributeBarY(+d['bdate'] % 100)-Config.glyphSize) : this.attributeBarY(+d['bdate'] % 100);
+	      return d['sex']=='F'? (-Config.glyphSize) : 0;
 
 
       })
@@ -1345,13 +1318,11 @@ class GenealogyTree {
 
       //Set click callback on background bars
     selectAll('.bars')
-      .on('click', (d) => {
+      .on('click', (d:any) => {
 
         console.log(d)
 
         if (event.altKey) {
-          //Hide node
-
 
           this.data.hideNodes(Math.round(d['y']),false);
 
@@ -1363,8 +1334,8 @@ class GenealogyTree {
         }
         if (event.defaultPrevented) return; // dragged
 
-        let wasSelected = selectAll('.highlightBar').filter((e) => {
-          return e === d
+        let wasSelected = selectAll('.highlightBar').filter((e:any) => {
+          return e.y === d.y || e.y === Math.round(d.y)
         }).classed('selected');
 
 // 		    let wasSelected = select(this).select('.backgroundBar').classed('selected');
@@ -1374,14 +1345,11 @@ class GenealogyTree {
           selectAll('.highlightBar').classed('selected', false);
         }
 
-        selectAll('.highlightBar').filter((e) => {
-          return e === d
+        selectAll('.highlightBar').filter((e:any) => {
+          return e.y === d.y || e.y === Math.round(d.y)
         }).classed('selected', function () {
           return (!wasSelected);
         })
-
-// 			d['clicked'] = !wasSelected;
-
 
         if (!event.metaKey) {
           events.fire('row_selected', d['y'], 'single');

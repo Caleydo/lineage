@@ -646,15 +646,6 @@ class attributeTable {
     let col_width = this.colWidths.categorical;
     let rowHeight = this.rowHeight;
 
-    if (element.selectAll('.boundary').size()===0){
-      element.append('rect')
-        .classed('boundary',true);
-    }
-
-    element.select('.boundary')
-      .attr('width', col_width)
-      .attr('height', rowHeight)
-
     let numValues = cellData.data.reduce((a, v) => v ? a + 1 : a, 0);
 
     element.selectAll('rect').remove(); //Hack. don't know why the height of the rects isn' being updated.
@@ -706,15 +697,6 @@ class attributeTable {
     let jitterScale =  scaleLinear()
       .domain([0,1])
       .range([rowHeight*0.3, rowHeight*0.7]);
-
-    if (element.selectAll('.boundary').size()===0){
-      element.append('rect')
-        .classed('boundary',true);
-    }
-
-    element.select('.boundary')
-      .attr('width', col_width)
-      .attr('height', rowHeight)
 
     this.xScale
       .domain([cellData.stats.min, cellData.stats.max])
@@ -803,16 +785,6 @@ class attributeTable {
 
     let col_width = this.colWidths[cellData.type];
     let rowHeight = this.rowHeight;
-
-
-    if (element.selectAll('.boundary').size()===0){
-      element.append('rect')
-        .classed('boundary',true);
-    }
-
-    element.select('.boundary')
-      .attr('width', col_width)
-      .attr('height', rowHeight)
 
     let numValues = cellData.data.reduce((a, v) => v ? a + 1 : a, 0);
 

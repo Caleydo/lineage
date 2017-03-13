@@ -311,7 +311,6 @@ class GraphData {
   private definePrimary(affectedState) {
     this.nodes.forEach((node) => {
       node.affected = node[affectedState.var] === affectedState.value;
-      // node.primary = {'Attribute': affectedState.var, 'Threshold': affectedState.value};
     });
 
   }

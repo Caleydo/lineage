@@ -250,6 +250,7 @@ class AttributePanel {
       .attr('id', columnName)
       .classed('sub-menu collapse fade', true)
       .append('svg')
+      .attr('height',Config.panelAttributeHeight)
       .attr('id', columnName + '_svg')
       .classed('attribute_svg', true);
 

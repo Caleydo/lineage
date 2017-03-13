@@ -12,6 +12,8 @@ import {easeLinear} from 'd3-ease';
 import {IHistogram, rangeHist} from 'phovea_core/src/math';
 import {line} from 'd3-shape';
 
+import {Config} from './config';
+
 
 class Histogram {
   //DOM elements
@@ -21,9 +23,10 @@ class Histogram {
   private $histogram;
   private $histogramCols;
   //settings
-  private margin;
-  private width;
-  private height;
+
+  private margin= {top: 20, right: 20, bottom: 10, left: 20};
+  private width = Config.panelAttributeWidth - this.margin.left - this.margin.right;
+  private height = Config.panelAttributeHeight - this.margin.top - this.margin.bottom;
 
   //data vector is of type IVector
   private dataVec;
@@ -77,17 +80,13 @@ class Histogram {
 
     const categoricalDataVec = await <ICategoricalVector>dataVec;
     const histData: IHistogram = await categoricalDataVec.hist();
-    console.log(histData)
+    // console.log(histData)
     const catData = [];
     histData.forEach((d, i) => catData.push({key:histData['categories'][i], value:d}));
-    console.log('Cate', catData);
+    // console.log('Cate', catData);
 
+    console.log(catData)
     let t = transition('t').duration(500).ease(easeLinear);
-
-    const padding = 20;
-    this.margin = {top: 20, right: 20, bottom: 30, left: 40};
-    this.width = 300 - this.margin.left - this.margin.right - padding;
-    this.height = 200 - this.margin.top - this.margin.bottom - padding;
 
       //scales
    let xScale = scaleBand();
@@ -116,7 +115,7 @@ class Histogram {
     //axis
     const xAxis = element.append('g')
       .attr('class', 'axis axis--x')
-      .attr('transform', 'translate(' + padding + ',' + this.height + ')')
+      .attr('transform', 'translate(' + this.margin.left + ',' + this.height + ')')
       .call(axisBottom(xScale));
     //yaxis
    /* const yAxis = element.append('g')
@@ -131,7 +130,7 @@ class Histogram {
       .text('Value');*/
 
     const barContainer = element.append('g')
-      .attr('transform', 'translate(' + padding + ',0)')
+      .attr('transform', 'translate(' + this.margin.left + ',0)')
 
     barContainer
       .selectAll('.bar')
@@ -189,14 +188,10 @@ class Histogram {
 
 
   /**
-   * This function renders the hitogram for numerical attribute in the attribute panel
+   * This function renders the histogram for numerical attribute in the attribute panel
    *
    */
   private async renderNumHistogram(dataVec){
-    const padding = 20;
-    this.margin = {top: 20, right: 20, bottom: 30, left: 40};
-    this.width = 300 - this.margin.left - this.margin.right - padding;
-    this.height = 200 - this.margin.top - this.margin.bottom - padding;
 
     let histData = await dataVec.hist(10);
     let range = [0,this.width];
@@ -207,7 +202,6 @@ class Histogram {
       binWidth = (range[1] - range[0]) / histData.bins,
       acc = 0;
 
-     console.log(dataVec.name, dataVec.stats, dataVec.hist)
     histData.forEach((b, i) => {
       data[i] = {
         v: b,
@@ -237,11 +231,11 @@ class Histogram {
      //axis
     const xAxis = element.append('g')
       .attr('class', 'axis axis--x')
-      .attr('transform', 'translate(' + padding + ',' + this.height + ')')
+      .attr('transform', 'translate(' + this.margin.left + ',' + this.height + ')')
       .call(axisBottom(xScale).tickSize(5).ticks(1));
 
     const barContainer = element.append('g')
-      .attr('transform', 'translate(' + padding + ',0)')
+      .attr('transform', 'translate(' + this.margin.left + ',0)')
 
      barContainer
       .selectAll('.bar').data(data)

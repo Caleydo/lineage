@@ -68,8 +68,9 @@ class AttributePanel {
       }
     });
 
-    // this.activeColumns = range.all(); //attributeDataObj.activeAttributes;
 
+
+    this.update();
     this.build();
     this.attachListener();
 
@@ -167,10 +168,10 @@ class AttributePanel {
 
     });
 
+ // populate the panel with attributes
     this.columns.forEach((column) => {
       this.addAttribute(column.desc.name, column.desc.value.type);
     });
-
 
   }
 
@@ -180,7 +181,6 @@ class AttributePanel {
    * @param columnDesc
    */
   private addAttribute(columnName, columnDesc) {
-
 
     //if this is an active attribute then add it to the active list otherwise add it to the inactive list
     let list = '';
@@ -285,47 +285,30 @@ class AttributePanel {
     // initiate this object
     await attributeHistogram.init(attributeName, dataVec, dataVec.desc.value.type);
 
+  }
+
+  private update(){
+    console.log('update when tree fire');
+    console.log('my data is new');
+
+    //get updated data from the tableManager
+    let graphView = this.tableManager.graphTable;
+    let attributeView = this.tableManager.tableTable;
+    this.columns  = graphView.cols().concat(attributeView.cols());
+
+    let dataVec: IAnyVector;
 
 
-/*
-    if (dataVec.desc.value.type === VALUE_TYPE_CATEGORICAL) {
-      const catVector = <ICategoricalVector> dataVec;
-      const attributeHistogram = histogram.create(svg);
-      await attributeHistogram.init(attributeName, dataVec);
-      console.log('attribute name: ', attributeName);
-      console.log('cat stat',await catVector.stats());
-       console.log('cat hist', await catVector.hist());
-    } else if (dataVec.desc.value.type !== 'idtype'){
-      const numVector = <INumericalVector> dataVec;
-       console.log('attribute name: ', attributeName);
-       console.log('num stat for'+ attributeName,await numVector.stats());
-       console.log('num hist for'+ attributeName,await numVector.hist());
+    this.histograms.forEach(singleHistogram =>{
+      this.columns.forEach(col => {
+      if (col.desc.name === singleHistogram.attrName) {
+        console.log(col);
+        singleHistogram.update(col)
+      }
+    })
 
-    }
+    })
 
-
-
-     const dataVec = await this.table.colData(attributeName);
-     if(attributeType === 'categorical'){
-     //catVector = <ICategoricalVector> this.table.colData(4);
-     //console.log('The histogram:');
-     console.log(await catVector.hist());
-     } else {
-     /*numVector = <INumericalVector> this.table.colData(attributeName);
-     console.log('Stats on a vector:');
-     console.log(await numVector.stats());
-     }
-
-     if(attributeType === VALUE_TYPE_INT) {
-     // const attributeHistogram = histogram.create(svg);
-     // attributeHistogram.init(dataVec);
-
-     const numVector = <INumericalVector> this.table.col(5);
-     console.log('3rd value from the 5th vector:' + await numVector.at(3));
-     console.log('Stats on a vector:');
-     console.log(await numVector.stats());
-     }
-     */
 
 
   }
@@ -376,6 +359,11 @@ class AttributePanel {
       selectAll('.row').classed('selected', function (d) {
         return select(this).attr('id') === 'row_' + item;
       });
+    });
+
+    events.on('redraw_tree', () => {
+      this.update();
+
     });
   }
 

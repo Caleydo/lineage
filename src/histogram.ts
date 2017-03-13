@@ -9,6 +9,7 @@ import {IAnyVector} from 'phovea_core/src/vector';
 import * as events from 'phovea_core/src/event';
 import {transition} from 'd3-transition';
 import {easeLinear} from 'd3-ease';
+import {IHistogram, rangeHist} from 'phovea_core/src/math';
 import {line} from 'd3-shape';
 
 
@@ -49,19 +50,23 @@ class Histogram {
     this.categories = dataVec.desc.value.categories;
     this.data = await this.dataVec.data();
 
-
-    if(this.type === VALUE_TYPE_CATEGORICAL){
-      this.renderCategoricalHistogram(this.dataVec);
-    } else if(this.type === VALUE_TYPE_INT){
-      this.renderNumHistogram(this.dataVec);
-    } else if(this.type === 'string'){
-
-    }
-
+    this.build();
+    this.update(dataVec);
     this.attachListener();
 
     //return the promise
     return Promise.resolve(this);
+  }
+
+
+  private update(dataVec){
+      if(this.type === VALUE_TYPE_CATEGORICAL){
+      this.renderCategoricalHistogram(dataVec);
+    } else if(this.type === VALUE_TYPE_INT){
+      this.renderNumHistogram(dataVec);
+    } else if(this.type === 'string'){
+
+    }
   }
 
 
@@ -72,7 +77,7 @@ class Histogram {
   private async renderCategoricalHistogram(dataVec){
 
     const categoricalDataVec = await <ICategoricalVector>dataVec;
-    const histData = await categoricalDataVec.hist();
+    const histData: IHistogram = await categoricalDataVec.hist();
     console.log(histData)
     const catData = [];
     histData.forEach((d, i) => catData.push({key:histData.categories[i], value:d}));
@@ -101,8 +106,13 @@ class Histogram {
         return d.value;
       })]);
 
-    const element = this.$node.append('g')
-      .attr('transform', 'scale(0.8,0.8) translate(20,20)');
+     if(this.$node.selectAll('.svg-g').size() === 0){
+       this.$node.append('g')
+         .attr('transform', 'scale(0.8,0.8) translate(20,20)')
+         .attr('class','svg-g');
+     }
+
+    const element = this.$node.selectAll('.svg-g');
 
     //axis
     const xAxis = element.append('g')
@@ -189,7 +199,7 @@ class Histogram {
     this.width = 300 - this.margin.left - this.margin.right - padding;
     this.height = 200 - this.margin.top - this.margin.bottom - padding;
 
-    let histData = await dataVec.hist();
+    let histData = await dataVec.hist(10);
     let range = [0,this.width];
 
      var data = [],

@@ -375,7 +375,7 @@ class attributeTable {
 
     //Find largest frequency among all quant columns for yScale in histograms.
     let maxFrequency = this.colData.filter(d=>{return d.type === 'int'})
-      .reduce((a,v)=>{ console.log(v); return v.hist.largestFrequency > a ? v.hist.largestFrequency : a},0);
+      .reduce((a,v)=>{ return v.hist.largestFrequency > a ? v.hist.largestFrequency : a},0);
 
 
     colSummaries.each(function (cell) {
@@ -541,7 +541,7 @@ class attributeTable {
   private renderCategoricalHeader(element, headerData){
 
     let col_width = this.colWidths.categorical;
-    let height = this.rowHeight*2.5;
+    let height = this.rowHeight*1.8;
 
     let numPositiveValues = headerData.data.map((singleRow)=>{return singleRow.reduce((a, v) => {return v ? a + 1 : a}, 0) }).reduce((a, v) => {return v + a}, 0);
     let totalValues = headerData.data.map((singleRow)=>{return singleRow.length}).reduce((a,v) => {return a+v},0);
@@ -666,7 +666,6 @@ class attributeTable {
       binWidth = (range[1] - range[0]) / hist.bins,
       acc = 0;
 
-    console.log(headerData.name, headerData.stats, headerData.hist)
     hist.forEach((b, i) => {
       data[i] = {
         v: b,
@@ -680,27 +679,17 @@ class attributeTable {
       };
       acc += b;
 
-      console.log(data[i].range.first,data[i].range.last)
 
     });
 
-
-
-    // console.log(headerData)
-    let xScale = scaleLinear().range([0,col_width]).domain([0,hist.bins])
-    // let yScale = scaleLinear().range([0,height*0.8]).domain([0,maxFrequency]);
+    let xScale = scaleLinear().range([0,col_width]).domain(hist.valueRange).nice()
+    var bin2value = scaleLinear().range(hist.valueRange).domain([0,hist.bins]);
     let yScale = scaleLinear().range([0,height*0.8]).domain([0,hist.largestFrequency]);
 
-
-
-    let tickLabels = range;
    let xAxis = axisBottom(xScale)
      .tickSize(5)
-     .ticks(1)
-     // .tickValues([0,10])
-     // .tickFormat(function(d:any,i:any){ return range[i] });
-     // .tickFormat(function(d:any,i:any){return range[i]});
-
+     .tickValues(xScale.domain())
+     .tickFormat(format(".0f"))
 
 
     if (element.selectAll('.histogram').size()===0){
@@ -726,9 +715,18 @@ class attributeTable {
       // .attr('y',0)
       // .attr('height', 2)
       // .attr('y',d =>{return (yScale(d.v))})
-      .attr('x',(d,i) =>{return xScale(i)})
+      .attr('x',(d,i) =>{return xScale(bin2value(i))})
       .attr('opacity',1)
-      // .style('fill',d=>{return d.color})
+
+    //Position tick labels to be 'inside' the axis bounds. avoid overlap
+    element.selectAll('.tick').each(function(cell){
+      let xtranslate = +select(this).attr('transform').split('translate(')[1].split(',')[0];
+      if (xtranslate === 0) //first label in the axis
+        select(this).select('text').style('text-anchor','start');
+      else{ //last label in the axis
+        select(this).select('text').style('text-anchor','end');
+      }
+    });
 
     total = (data[data.length-1]).acc +(data[data.length-1]).v
     element.select('.maxValue')
@@ -737,11 +735,6 @@ class attributeTable {
       .attr('x',col_width/2)
       .attr('y',-height*0.1)
       .attr('text-anchor','middle')
-    //
-    // element.select('.meanValue')
-    //   .attr('cx',col_width/2) //need to change to find the closest point in the read data to this value
-    //   .attr('cy',yScale(headerData.stats.mean))
-    //   .attr('r',3)
 
   };
 
@@ -985,6 +978,8 @@ class attributeTable {
       element
         .append('rect')
         .classed('idBar', true)
+    } else{
+      element.selectAll('rect').remove();
     }
 
     if (element.selectAll('.string').size()===0){
@@ -1001,6 +996,7 @@ class attributeTable {
         .select('.string')
         .text(textLabel)
         .attr('dy',rowHeight*0.9)
+        .attr('dx',0)
         .style('stroke','none')
     } else{
 
@@ -1010,6 +1006,7 @@ class attributeTable {
         .attr('dy',rowHeight*0.9)
         .attr('dx',this.idScale(numValues)+2)
         .style('stroke','none')
+
 
       element
         .select('.idBar')

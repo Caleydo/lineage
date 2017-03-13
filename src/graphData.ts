@@ -112,7 +112,7 @@ class GraphData {
     });
 
     //Define attribute that defines 'affected' state
-    this.definePrimary('suicide', 'Y');
+    this.definePrimary(this.tableManager.affectedState);
     this.buildTree();
 
 
@@ -308,10 +308,10 @@ class GraphData {
    * @param value threshold value to apply to attribute when defining 'affected'.
    * Currently has a single value that indicates true.
    */
-  private definePrimary(attribute, value) {
+  private definePrimary(affectedState) {
     this.nodes.forEach((node) => {
-      node.affected = node[attribute] === value;
-      node.primary = {'Attribute': attribute, 'Threshold': value};
+      node.affected = node[affectedState.var] === affectedState.value;
+      // node.primary = {'Attribute': affectedState.var, 'Threshold': affectedState.value};
     });
 
   }

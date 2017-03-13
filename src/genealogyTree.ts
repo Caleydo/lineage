@@ -931,20 +931,6 @@ class GenealogyTree {
       //   return (d.affected) ? 'red' : '#e2e1e0';
       // })
 
-
-    //Add Aggregate Node glyphs
-    allNodesEnter.filter(function (d: any) {
-      return d['type'] === 'aggregate';
-    })
-      .append('path')
-      .attr('d', this.hexLine(this.hexData))
-      .classed('hex', true)
-
-    allNodes.selectAll('.hex')
-    //             .classed('male', true)
-      .classed('nodeIcon', true)
-
-
     //Add couples line
     allNodesEnter.filter(function (d: any) {
       return d['hasChildren'];
@@ -1160,6 +1146,7 @@ class GenealogyTree {
 
 
     allNodes
+      .classed('affected',(n:any)=>{return n.affected})
       .style('stroke-width', (d: any) => {
         return (d['hidden']) ? 1 : 1
       })
@@ -1167,9 +1154,9 @@ class GenealogyTree {
       .style('stroke', (d: any) => {
         return (d.affected) ? 'black' : '#7b8282'
       })
-      .style('fill', (d: any) => {
-        return (d.affected) ? '#7b8282' : '#e2e1e0'
-      })
+      // .style('fill', (d: any) => {
+      //   return (d.affected) ? '#7b8282' : '#e2e1e0'
+      // })
 
     let tran = t.transition().ease(easeLinear);
     allNodes

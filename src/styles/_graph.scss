@@ -1,5 +1,15 @@
 $edge-color: #4f4f4d;
 $node-color: #9ba1a1;
+$affected-node-color: #195e6e;
+
+.node .affected{
+  fill: $affected-node-color;
+  stroke: $affected-node-color;
+}
+
+.node{
+  fill:white;
+}
 
 .well {
   padding-top: 0px;

@@ -50,17 +50,20 @@ export class App {
     // back a promise and resolve that before you keep going
     // await tableManager.loadData('big-decent-clipped-38');
 
-    await tableManager.loadAttributeData('allAttributes');
+
+    /** =====  PUBLIC CASE ===== */
     //Load in Attribute Data
-    //await tableManager.loadAttributeData('TwoFamiliesAttributes');
+    await tableManager.loadAttributeData('TwoFamiliesAttributes');
     //Load in Genealogy Data
     await tableManager.loadData('TwoFamiliesDescendAnon');
 
 
-    //Load in Genealogy Data
+    /** =====  PRIVATE CASE - WORKS ONLY WITH THE RIGHT DATA LOCALLY ===== */
 
-    //await tableManager.loadData('FiftyFamiliesDescendAnon');
-    //await tableManager.loadData('AllFamiliesDescendAnon');
+      //await tableManager.loadAttributeData('allAttributes');
+      // Pick one of these
+      //await tableManager.loadData('FiftyFamiliesDescendAnon');
+      //await tableManager.loadData('AllFamiliesDescendAnon');
 
 
     const graphDataObj = graphData.create(tableManager);

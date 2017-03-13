@@ -541,7 +541,7 @@ class attributeTable {
   private renderCategoricalHeader(element, headerData){
 
     let col_width = this.colWidths.categorical;
-    let height = this.rowHeight*2.5;
+    let height = this.rowHeight*1.8;
 
     let numPositiveValues = headerData.data.map((singleRow)=>{return singleRow.reduce((a, v) => {return v ? a + 1 : a}, 0) }).reduce((a, v) => {return v + a}, 0);
     let totalValues = headerData.data.map((singleRow)=>{return singleRow.length}).reduce((a,v) => {return a+v},0);
@@ -731,13 +731,12 @@ class attributeTable {
     //Position tick labels to be 'inside' the axis bounds. avoid overlap
     element.selectAll('.tick').each(function(cell){
       let xtranslate = +select(this).attr('transform').split('translate(')[1].split(',')[0];
-      if (xtranslate === 0)
+      if (xtranslate === 0) //first label in the axis
         select(this).select('text').style('text-anchor','start');
-      else{
+      else{ //last label in the axis
         select(this).select('text').style('text-anchor','end');
       }
     });
-      //
 
     total = (data[data.length-1]).acc +(data[data.length-1]).v
     element.select('.maxValue')

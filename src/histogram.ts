@@ -50,7 +50,7 @@ class Histogram {
     this.categories = dataVec.desc.value.categories;
     this.data = await this.dataVec.data();
 
-    this.build();
+    // this.build();
     this.update(dataVec);
     this.attachListener();
 

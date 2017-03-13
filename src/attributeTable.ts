@@ -375,7 +375,7 @@ class attributeTable {
 
     //Find largest frequency among all quant columns for yScale in histograms.
     let maxFrequency = this.colData.filter(d=>{return d.type === 'int'})
-      .reduce((a,v)=>{ console.log(v); return v.hist.largestFrequency > a ? v.hist.largestFrequency : a},0);
+      .reduce((a,v)=>{ return v.hist.largestFrequency > a ? v.hist.largestFrequency : a},0);
 
 
     colSummaries.each(function (cell) {
@@ -666,7 +666,6 @@ class attributeTable {
       binWidth = (range[1] - range[0]) / hist.bins,
       acc = 0;
 
-    console.log(headerData.name, headerData.stats, headerData.hist)
     hist.forEach((b, i) => {
       data[i] = {
         v: b,
@@ -680,7 +679,6 @@ class attributeTable {
       };
       acc += b;
 
-      console.log(data[i].range.first,data[i].range.last)
 
     });
 
@@ -980,6 +978,8 @@ class attributeTable {
       element
         .append('rect')
         .classed('idBar', true)
+    } else{
+      element.selectAll('rect').remove();
     }
 
     if (element.selectAll('.string').size()===0){
@@ -996,6 +996,7 @@ class attributeTable {
         .select('.string')
         .text(textLabel)
         .attr('dy',rowHeight*0.9)
+        .attr('dx',0)
         .style('stroke','none')
     } else{
 
@@ -1005,6 +1006,7 @@ class attributeTable {
         .attr('dy',rowHeight*0.9)
         .attr('dx',this.idScale(numValues)+2)
         .style('stroke','none')
+
 
       element
         .select('.idBar')

@@ -93,7 +93,7 @@ export default class TableManager {
    * This function sets the affected State.
    *
    */
-  public setAffectedState(varName,varType,thresholdValue,){
+  public setAffectedState(varName,varType,thresholdValue){
     this.affectedState = ({var: varName, type: varType, 'value':thresholdValue});
   }
 

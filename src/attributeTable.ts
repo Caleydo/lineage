@@ -687,8 +687,8 @@ class attributeTable {
 
 
     // console.log(headerData)
-    let xScale = scaleLinear().range([0,col_width]).domain([0,hist.bins])
-    // let yScale = scaleLinear().range([0,height*0.8]).domain([0,maxFrequency]);
+    let xScale = scaleLinear().range([0,col_width]).domain(hist.valueRange).nice()
+    var bin2value = scaleLinear().range(hist.valueRange).domain([0,hist.bins]);
     let yScale = scaleLinear().range([0,height*0.8]).domain([0,hist.largestFrequency]);
 
 
@@ -696,10 +696,9 @@ class attributeTable {
     let tickLabels = range;
    let xAxis = axisBottom(xScale)
      .tickSize(5)
-     .ticks(1)
-     // .tickValues([0,10])
-     // .tickFormat(function(d:any,i:any){ return range[i] });
-     // .tickFormat(function(d:any,i:any){return range[i]});
+     .tickValues(xScale.domain())
+     .tickFormat(format(".0f"))
+
 
 
 
@@ -726,9 +725,19 @@ class attributeTable {
       // .attr('y',0)
       // .attr('height', 2)
       // .attr('y',d =>{return (yScale(d.v))})
-      .attr('x',(d,i) =>{return xScale(i)})
+      .attr('x',(d,i) =>{return xScale(bin2value(i))})
       .attr('opacity',1)
-      // .style('fill',d=>{return d.color})
+
+    //Position tick labels to be 'inside' the axis bounds. avoid overlap
+    element.selectAll('.tick').each(function(cell){
+      let xtranslate = +select(this).attr('transform').split('translate(')[1].split(',')[0];
+      if (xtranslate === 0)
+        select(this).select('text').style('text-anchor','start');
+      else{
+        select(this).select('text').style('text-anchor','end');
+      }
+    });
+      //
 
     total = (data[data.length-1]).acc +(data[data.length-1]).v
     element.select('.maxValue')
@@ -737,11 +746,6 @@ class attributeTable {
       .attr('x',col_width/2)
       .attr('y',-height*0.1)
       .attr('text-anchor','middle')
-    //
-    // element.select('.meanValue')
-    //   .attr('cx',col_width/2) //need to change to find the closest point in the read data to this value
-    //   .attr('cy',yScale(headerData.stats.mean))
-    //   .attr('r',3)
 
   };
 

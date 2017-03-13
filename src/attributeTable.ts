@@ -684,22 +684,14 @@ class attributeTable {
 
     });
 
-
-
-    // console.log(headerData)
     let xScale = scaleLinear().range([0,col_width]).domain(hist.valueRange).nice()
     var bin2value = scaleLinear().range(hist.valueRange).domain([0,hist.bins]);
     let yScale = scaleLinear().range([0,height*0.8]).domain([0,hist.largestFrequency]);
 
-
-
-    let tickLabels = range;
    let xAxis = axisBottom(xScale)
      .tickSize(5)
      .tickValues(xScale.domain())
      .tickFormat(format(".0f"))
-
-
 
 
     if (element.selectAll('.histogram').size()===0){

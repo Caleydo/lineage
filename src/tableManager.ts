@@ -11,6 +11,13 @@ interface IFamilyInfo {
   affected: number;
 }
 
+//Interface for the 'affected' state. Contains variable chosen to determine the 'affected' people and the threshold/value for 'affected' === true. Drives tree layout.
+interface IAffectedState {
+  var: string;
+  type: string;
+  value: number;
+}
+
 const IndexOfKindredIDColumn = 1;
 
 export const VIEW_CHANGED_EVENT = 'view_changed_event';
@@ -53,15 +60,21 @@ export default class TableManager {
   // TODO what is this? Should this be in this class?
   public yValues;
 
+  /** Holds the information for the 'affectedState' including variable and threshold*/
+  public affectedState: IAffectedState;
+
+
+
   /**
    * Loads the graph data from the server and stores it in the public table variable
+   * Parses out the familySpecific information to populate the Family Selector
    * @param: id of the dataset
    */
   public async loadData(datasetID: string) {
     //retrieving the desired dataset by name
     this.table = <ITable> await getById(datasetID);
-    console.log(await this.table.data());
-    await this.parseData();
+    this.setAffectedState('suicide','categorical','Y') //Default value;
+    await this.parseFamilyInfo();
     return Promise.resolve(this);
   }
 
@@ -76,8 +89,13 @@ export default class TableManager {
     return Promise.resolve(this);
   }
 
-
-
+  /**
+   * This function sets the affected State.
+   *
+   */
+  public setAffectedState(varName,varType,thresholdValue,){
+    this.affectedState = ({var: varName, type: varType, 'value':thresholdValue});
+  }
 
   /**
    * This function changes the range of rows to display on the selected family.
@@ -145,16 +163,16 @@ export default class TableManager {
     this._activeTableRows = range.all();
     this.activeTableColumns = range.list(colIndexAccum);
   }
+
   /**
    * This function is called after loadData.
    * This function populates needed variables for family selector
    *
    */
-  public async parseData() {
+  public async parseFamilyInfo() {
 
     const familyIDs: number[] = <number[]> await this.table.col(IndexOfKindredIDColumn).data(); //Assumes kindredID is the first col. Not ideal.
-    // FIXME this is a strong assumption on the data. We should move this stuff to a configuration object
-    const suicideCol = await this.table.colData('suicide');
+    const affectedColData = await this.table.colData(this.affectedState.var);
 
     const uniqueFamilyIDs = Array.from(new Set(familyIDs));
 
@@ -166,7 +184,7 @@ export default class TableManager {
       familyIDs.forEach((d, i) => {
         if (d === id) {
           familyRange.push(i);
-          if (suicideCol[i] === 'Y') {
+          if (affectedColData[i] === this.affectedState.value) {
             affected = affected + 1;
           }
         }

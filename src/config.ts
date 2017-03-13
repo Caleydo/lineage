@@ -23,9 +23,10 @@ export class Config {
     };
 
   public static expPanelWidth = '300px';
+  public static colGraphTableWidth = '100%';
+
   public static colPanelWidth = '30px';
   public static expGraphTableWidth = '100%';
-  public static colGraphTableWidth = '100%';
 
 
 }

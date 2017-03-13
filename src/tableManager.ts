@@ -18,10 +18,29 @@ interface IAffectedState {
   value: number;
 }
 
+//Interfaces describing objects that describe a selected attribute and the associated ranges
+
+interface ISelectedCatAttribute {
+  value: string; //Attribute Name
+  type: string; //Attribute Type. May be redundant if the interface is only for categorical data.
+  range: range.Range []; //Array of ranges representing people who match the attribute value.
+}
+
+interface ISelectedQuantAttribute {
+  value: string; //Attribute Name
+  type: string; //Attribute Type
+  range: range.Range []; //Array of ranges representing people who match the attribute value.
+}
+
+//Create new type that encompasses both types of selectedAttributes
+export type selectedAttribute = ISelectedCatAttribute | ISelectedQuantAttribute;
+
 const IndexOfKindredIDColumn = 1;
 
 export const VIEW_CHANGED_EVENT = 'view_changed_event';
 export const TABLE_VIS_ROWS_CHANGED_EVENT = 'table_vis_rows_changed_event';
+
+
 
 /**
  * This class manages the data structure for the graph, the table visualization and the attribute selection panel.
@@ -48,6 +67,10 @@ export default class TableManager {
   private _activeGraphRows: range.Range = range.all() ;
   /** The columns currently displayed in the graph  */
   private activeGraphColumns: range.Range;
+
+
+  /**Array of Selected Attributes in the Panel*/
+  private _selectedAttributes : selectedAttribute [];
 
 
   /** Active attribute is an attribute that is not ID. This an array of strings (column name) */

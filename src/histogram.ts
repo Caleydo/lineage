@@ -75,7 +75,7 @@ class Histogram {
     const histData = await categoricalDataVec.hist();
     console.log(histData)
     const catData = [];
-    histData.forEach((d, i) => catData.push({key:histData.categories[i], value:d}));
+    histData.forEach((d, i) => catData.push({key:histData['categories'][i], value:d}));
     console.log('Cate', catData);
 
     let t = transition('t').duration(500).ease(easeLinear);

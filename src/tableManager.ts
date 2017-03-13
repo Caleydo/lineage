@@ -11,6 +11,8 @@ interface IFamilyInfo {
   affected: number;
 }
 
+const IndexOfKindredIDColumn = 1;
+
 export const VIEW_CHANGED_EVENT = 'view_changed_event';
 export const TABLE_VIS_ROWS_CHANGED_EVENT = 'table_vis_rows_changed_event';
 
@@ -53,11 +55,12 @@ export default class TableManager {
 
   /**
    * Loads the graph data from the server and stores it in the public table variable
-   * @param: name of the dataset
+   * @param: id of the dataset
    */
-  public async loadData(name: string) {
+  public async loadData(datasetID: string) {
     //retrieving the desired dataset by name
-    this.table = <ITable> await getFirstByName(name);
+    this.table = <ITable> await getById(datasetID);
+    console.log(await this.table.data());
     await this.parseData();
     return Promise.resolve(this);
   }
@@ -66,9 +69,9 @@ export default class TableManager {
    * Loads the attribute data from the server and stores it in the public attributeTable variable
    * @param: name of the dataset
    */
-  public async loadAttributeData(name: string) {
+  public async loadAttributeData(datasetID: string) {
     //retrieving the desired dataset by name
-    this.attributeTable = <ITable> await getFirstByName(name);
+    this.attributeTable = <ITable> await getById(datasetID);
     await this.parseAttributeData();
     return Promise.resolve(this);
   }
@@ -149,7 +152,7 @@ export default class TableManager {
    */
   public async parseData() {
 
-    const familyIDs: number[] = <number[]> await this.table.col(0).data(); //Assumes kindredID is the first col. Not ideal.
+    const familyIDs: number[] = <number[]> await this.table.col(IndexOfKindredIDColumn).data(); //Assumes kindredID is the first col. Not ideal.
     // FIXME this is a strong assumption on the data. We should move this stuff to a configuration object
     const suicideCol = await this.table.colData('suicide');
 

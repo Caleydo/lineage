@@ -14,6 +14,8 @@ import * as events from 'phovea_core/src/event';
 import * as Range from 'phovea_core/src/range';
 import {VIEW_CHANGED_EVENT} from './tableManager';
 
+
+
 class GraphData {
 
   public nodes;
@@ -21,6 +23,8 @@ class GraphData {
   public attributeTable;
   private tableManager;
   private ids; //unique identifier for each person. Is used to create new range on graphView
+
+
 
   //Array of Parent Child Edges
   public parentChildEdges = [];
@@ -46,9 +50,7 @@ class GraphData {
     ).catch(function (error) {
       console.log('Error: ' + error);
     });
-
   });
-
 }
 
   /**
@@ -66,7 +68,7 @@ class GraphData {
 
     range(0,nrow,1).forEach(()=>{
       this.nodes.push({});
-    })
+    });
 
     this.ids =await columns[0].names();
     this.ids = this.ids.map(Number); //covert array to numbers
@@ -289,7 +291,7 @@ class GraphData {
           .filter((c)=>{return (c.ma === ss && c.pa === s) || (c.pa === ss && c.ma === s)})
           .map((c:any) => {this.linearizeHelper(c)});
       })
-    })
+    });
 
     //Base case are leaf nodes. Reached end of this branch.
     if(!node.hasChildren){

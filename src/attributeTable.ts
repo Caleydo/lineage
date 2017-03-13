@@ -214,6 +214,7 @@ class attributeTable {
           const base_name = await vector.desc.name;
 
           col.name = base_name + '_' + cat;
+          col.varName = base_name;
           //Ensure there is an element for every person in the graph, even if empty
           col.data = allRows.map((row) => {
             let colData = [];
@@ -235,7 +236,6 @@ class attributeTable {
 
             let maxOffset = max(this.colOffsets);
             this.colOffsets.push(maxOffset + this.buffer*2 + this.colWidths.categorical);
-
             colDataAccum.push(col);
           }
         }
@@ -420,7 +420,7 @@ class attributeTable {
       .data(this.colData.map((d, i) => {
         return {
           'name': d.name, 'data': d.data, 'ind': i, 'ys': d.ys, 'type': d.type,
-          'ids': d.ids, 'stats': d.stats
+          'ids': d.ids, 'stats': d.stats, 'varName':d.varName
         }
       }));
 
@@ -467,7 +467,7 @@ class attributeTable {
     let cells = cols.selectAll('.cell')
       .data((d) => {
         return d.data.map((e, i) => {
-          return {'id': d.ids[i], 'name': d.name, 'data': e, 'y': d.ys[i], 'type': d.type, 'stats': d.stats}
+          return {'id': d.ids[i], 'name': d.name, 'data': e, 'y': d.ys[i], 'type': d.type, 'stats': d.stats, 'varName':d.varName}
         })
       }, (d: any) => {return +d.id[0]});
 
@@ -786,6 +786,7 @@ class attributeTable {
       .attr('height', this.yScale(numValues))
       .attr('y',(rowHeight - this.yScale(numValues)))
       .classed('aggregate',()=>{return cellData.data.length >1})
+      .classed('affected',()=>{return this.tableManager.affectedState.var === cellData.varName})
   }
 
   /**

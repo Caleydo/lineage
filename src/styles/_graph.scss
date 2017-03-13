@@ -1,14 +1,16 @@
 $edge-color: #4f4f4d;
 $node-color: #9ba1a1;
-$affected-node-color: #195e6e;
+$affected-node-color: rgb(99, 150, 125);
 
-.node .affected{
+.node.affected{
   fill: $affected-node-color;
-  stroke: $affected-node-color;
+  stroke: none;
 }
 
 .node{
-  fill:white;
+  fill: #e2e2e2;
+  stroke: #a0a7a7;
+
 }
 
 .well {
@@ -78,6 +80,10 @@ text.header{
 
 .cell{
   fill: $node-color;
+}
+
+.cell .categorical.affected{
+  fill: $affected-node-color;
 }
 
 .cell .categorical.aggregate,
@@ -204,8 +210,13 @@ label {
     stroke-width: 0;
 }
 
+
+.hist_xscale .tick text{
+  font-size:8px;
+}
+
 .tick text{
-    font-size:8px;
+    font-size:12px;
 }
 
 #graphDiv{

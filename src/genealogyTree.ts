@@ -1147,13 +1147,13 @@ class GenealogyTree {
 
     allNodes
       .classed('affected',(n:any)=>{return n.affected})
-      .style('stroke-width', (d: any) => {
-        return (d['hidden']) ? 1 : 1
-      })
+      // .style('stroke-width', (d: any) => {
+      //   return (d['hidden']) ? 1 : 1
+      // })
 
-      .style('stroke', (d: any) => {
-        return (d.affected) ? 'black' : '#7b8282'
-      })
+      // .style('stroke', (d: any) => {
+      //   return (d.affected) ? 'black' : '#7b8282'
+      // })
       // .style('fill', (d: any) => {
       //   return (d.affected) ? '#7b8282' : '#e2e1e0'
       // })

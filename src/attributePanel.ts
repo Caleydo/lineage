@@ -2,7 +2,7 @@ import * as events from 'phovea_core/src/event';
 import {AppConstants, ChangeTypes} from './app_constants';
 import * as Sortable from 'sortablejs';
 import * as $ from 'jquery';
-import {select, selectAll} from 'd3-selection';
+import {select, selectAll, event} from 'd3-selection';
 import {keys} from 'd3-collection';
 import {IAnyVector} from 'phovea_core/src/vector';
 import {ICategoricalVector, INumericalVector} from 'phovea_core/src/vector/IVector';
@@ -199,7 +199,7 @@ class AttributePanel {
       .attr('data-target', '#' + columnName)
       .attr('data-toggle', 'collapse');
 
-    attrHeader.append('a').attr('href', '#')
+    const header = attrHeader.append('a').attr('href', '#')
       .html('<i class=\'glyphicon glyphicon-chevron-right\'></i>')
       .append('strong').html(columnName)
       .append('span').attr('class', columnDesc)
@@ -227,6 +227,7 @@ class AttributePanel {
 
     selectAll('.badge').on('click', function () {
       console.log('badge clicked');
+
       const badge = $(this).text();
       const attribute = $(this).closest('strong').contents()[0];
       //reset badge dispaly for previously clicked badges
@@ -238,6 +239,7 @@ class AttributePanel {
       $(this).parent().children().css('display', 'none');
       $(this).addClass('checked_' + badge);
       $(this).css('display', 'inline');
+       event.stopPropagation();
 
       events.fire('attribute_selected', {attribute, badge});
 

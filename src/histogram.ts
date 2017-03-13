@@ -161,7 +161,13 @@ class Histogram {
 
 
     selectAll('.bar').on('click', function (d) {
-      select(this).classed('picked', true);
+      if(select(this).classed('picked')){
+        select(this).classed('picked', false);
+      } else {
+         select(this).classed('picked', true);
+
+      }
+
       const item = {
           name: select(this).attr('attribute'),
           value: d['key']

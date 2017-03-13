@@ -25,6 +25,7 @@ class AttributePanel {
   private table;
   private columns;
   private activeColumns=[];
+  private histograms = [];
 
   private tableManager;
 
@@ -54,7 +55,6 @@ class AttributePanel {
   init(attributeDataObj) {
     // this.table = attributeDataObj.attributeTable;
     this.tableManager = attributeDataObj;
-
     let graphView = this.tableManager.graphTable;
     let attributeView = this.tableManager.tableTable;
     this.columns  = graphView.cols().concat(attributeView.cols());   //this.table.cols();
@@ -276,18 +276,32 @@ class AttributePanel {
       }
     })
 
+    // creat a histogram object
+    const attributeHistogram = histogram.create(svg);
+    // add this object to the histogram array
+    this.histograms.push(attributeHistogram);
+    // initiate this object
+    await attributeHistogram.init(attributeName, dataVec, dataVec.desc.value.type);
+
+
+
+/*
     if (dataVec.desc.value.type === VALUE_TYPE_CATEGORICAL) {
       const catVector = <ICategoricalVector> dataVec;
       const attributeHistogram = histogram.create(svg);
       await attributeHistogram.init(attributeName, dataVec);
+      console.log('attribute name: ', attributeName);
+      console.log('cat stat',await catVector.stats());
+       console.log('cat hist', await catVector.hist());
     } else if (dataVec.desc.value.type !== 'idtype'){
       const numVector = <INumericalVector> dataVec;
-      // console.log('Stats on a vector:');
-      //console.log(await numVector.stats());
+       console.log('attribute name: ', attributeName);
+       console.log('num stat for'+ attributeName,await numVector.stats());
+       console.log('num hist for'+ attributeName,await numVector.hist());
 
     }
 
-    /*
+
 
      const dataVec = await this.table.colData(attributeName);
      if(attributeType === 'categorical'){

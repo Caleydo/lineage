@@ -45,6 +45,9 @@ td rect{
   fill: #5f6262;
 }
 
+.hist_xscale{
+  font-size:8px;
+}
 .frame{
   fill: white;
   stroke:#545757;
@@ -192,7 +195,7 @@ label {
 }
 
 .tick text{
-    font-size:16px;
+    font-size:8px;
 }
 
 #graphDiv{

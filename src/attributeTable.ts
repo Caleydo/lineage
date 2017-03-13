@@ -8,7 +8,7 @@ import {format} from 'd3-format';
 import {scaleLinear} from 'd3-scale';
 import {max, min, mean} from 'd3-array';
 import {entries} from 'd3-collection';
-import {axisTop} from 'd3-axis';
+import {axisTop, axisBottom} from 'd3-axis';
 import * as range from 'phovea_core/src/range';
 import {isNullOrUndefined} from 'util';
 import {active} from 'd3-transition';
@@ -274,7 +274,7 @@ class attributeTable {
         col.vector = vector;
         col.type = type;
         col.stats = stats;
-        col.hist = await vector.hist();
+        col.hist = await vector.hist(10);
         col.stats.min = min(data.filter((d)=>{return +d>0}).map(Number)) //temporary fix since vector.stats() returns 0 for empty values;
         col.stats.mean = mean(data.filter((d)=>{return +d>0}).map(Number)) //temporary fix since vector.stats() returns 0 for empty values;
         colDataAccum.push(col);
@@ -359,7 +359,7 @@ class attributeTable {
 
       .attr("transform", (d,i) => {
       let offset = this.colOffsets[i] + (this.colWidths[d.type]/2);
-        return d.type === 'categorical' ? 'translate(' + offset + ',0) rotate(-30)' : 'translate(' + offset + ',0)' ;
+        return d.type === 'categorical' ? 'translate(' + offset + ',-30) rotate(-30)' : 'translate(' + offset + ',0)' ;
       });
 
 
@@ -373,12 +373,17 @@ class attributeTable {
 
     colSummaries = colSummariesEnter.merge(colSummaries)
 
+    //Find largest frequency among all quant columns for yScale in histograms.
+    let maxFrequency = this.colData.filter(d=>{return d.type === 'int'})
+      .reduce((a,v)=>{ console.log(v); return v.hist.largestFrequency > a ? v.hist.largestFrequency : a},0);
+
+
     colSummaries.each(function (cell) {
       if (cell.type === 'categorical') {
         self.renderCategoricalHeader(select(this), cell);
       }
       else if (cell.type === 'int') {
-        self.renderIntHeaderHist(select(this), cell);
+        self.renderIntHeaderHist(select(this), cell,maxFrequency);
       }
       else if (cell.type === 'string') {
         self.renderStringHeader(select(this), cell);
@@ -457,8 +462,6 @@ class attributeTable {
       .attr('stroke-width', 1)
       .attr('stroke', '#9e9d9b')
       .attr('opacity',.4)
-
-
 
     //Bind data to the cells
     let cells = cols.selectAll('.cell')
@@ -648,60 +651,92 @@ class attributeTable {
    * @param cellData the data bound to the column header element being passed in.
    */
 
-  private renderIntHeaderHist(element, headerData){
+  private renderIntHeaderHist(element, headerData,maxFrequency){
 
     let col_width = this.colWidths.int;
-    let height = this.rowHeight*2.5;
+    let height = this.rowHeight*1.8;
 
-    console.log('header')
-    console.log(headerData.hist);
+    let hist = headerData.hist;
 
-    // let values = headerData.hist.bins().map( d=> console.log(d))
+    let range = [0,col_width];
 
-    // let t = transition('t').duration(500).ease(easeLinear);
-    //
-    // let allValues =[];
-    //
-    // headerData.data.map((singleRow)=>{singleRow.map((element)=>{if (+element >0) {allValues.push(+element)}})});
-    //
-    // allValues = allValues.sort((a,b)=>{return b-a});
-    //
-    // let xScale = scaleLinear().range([col_width*0.2,col_width*0.8]).domain([0,allValues.length])
-    // let yScale = scaleLinear().range([height*0.1,height*0.75]).domain([headerData.stats.min,headerData.stats.max])
-    //
-    // var lineFcn = line()
-    //   .x(function(d:any,i:any) {return xScale(i); })
-    //   .y(function(d:any) {return yScale(d); });
-    //
-    // if (element.selectAll('.sparkLine').size()===0){
-    //   element
-    //     .append('path')
-    //     .classed('sparkLine',true)
-    //
-    //   element.append('text').classed('minValue',true);
-    //   element.append('text').classed('maxValue',true);
-    //
-    //   element.append('circle').classed('meanValue',true);
-    // }
-    //
-    // element.select('.sparkLine')
-    //   .datum(allValues)
-    //   .transition(t)
-    //   .attr('d',lineFcn)
-    //
-    // element.select('.minValue')
-    //   .transition(t)
-    //   .text(Math.round(min(allValues)))
-    //   .attr('x',col_width*0.2)
-    //   .attr('y',height)
-    //   .attr('text-anchor','end')
-    //
-    // element.select('.maxValue')
-    //   .transition(t)
-    //   .text(Math.round(max(allValues)))
-    //   .attr('x',col_width*0.8)
-    //   .attr('y',0)
-    //   .attr('text-anchor','end')
+    var data = [],
+      cols = scaleLinear<string,string>().domain([maxFrequency,0]).range(['#111111', '#999999']),
+      total = hist.validCount,
+      binWidth = (range[1] - range[0]) / hist.bins,
+      acc = 0;
+
+    console.log(headerData.name, headerData.stats, headerData.hist)
+    hist.forEach((b, i) => {
+      data[i] = {
+        v: b,
+        acc: acc,
+        ratio: b / total,
+        range: hist.range(i),
+
+        name: 'Bin ' + (i + 1) + ' (center: ' + Math.round((i + 0.5) * binWidth) + ')',
+        // color: cols((i + 0.5) * binWidth);
+        color:cols(b)
+      };
+      acc += b;
+
+      console.log(data[i].range.first,data[i].range.last)
+
+    });
+
+
+
+    // console.log(headerData)
+    let xScale = scaleLinear().range([0,col_width]).domain([0,hist.bins])
+    // let yScale = scaleLinear().range([0,height*0.8]).domain([0,maxFrequency]);
+    let yScale = scaleLinear().range([0,height*0.8]).domain([0,hist.largestFrequency]);
+
+
+
+    let tickLabels = range;
+   let xAxis = axisBottom(xScale)
+     .tickSize(5)
+     .ticks(1)
+     // .tickValues([0,10])
+     // .tickFormat(function(d:any,i:any){ return range[i] });
+     // .tickFormat(function(d:any,i:any){return range[i]});
+
+
+
+    if (element.selectAll('.histogram').size()===0){
+      element.selectAll('.histogram')
+        .data(data)
+        .enter()
+        .append('rect')
+        .classed('histogram',true)
+
+      element.append('text').classed('maxValue',true);
+
+      element.append('g')
+        .attr("transform", "translate(0," + height + ")")
+        .classed('hist_xscale',true)
+        .call(xAxis)
+    }
+
+    element.selectAll('.histogram')
+      .attr('opacity',0)
+      .attr('width', binWidth*0.8)
+      .attr('height', d =>{return yScale(d.v)})
+      .attr('y',d =>{return (height - yScale(d.v))})
+      // .attr('y',0)
+      // .attr('height', 2)
+      // .attr('y',d =>{return (yScale(d.v))})
+      .attr('x',(d,i) =>{return xScale(i)})
+      .attr('opacity',1)
+      // .style('fill',d=>{return d.color})
+
+    total = (data[data.length-1]).acc +(data[data.length-1]).v
+    element.select('.maxValue')
+      .text('Total:' + total)
+
+      .attr('x',col_width/2)
+      .attr('y',-height*0.1)
+      .attr('text-anchor','middle')
     //
     // element.select('.meanValue')
     //   .attr('cx',col_width/2) //need to change to find the closest point in the read data to this value

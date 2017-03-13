@@ -5,6 +5,8 @@ Lineage is a genalogy visualization tool developed at the [Visualization Design 
 
 See also the [lineage_server](https://github.com/Caleydo/lineage_server) and the [lineage_product](https://github.com/Caleydo/lineage_product/) repositories.
 
+Data preprocessing and anonymization is done in the (currently private) [lineage_data_anonymization repository](https://github.com/Caleydo/lineage_data_anonymization).
+
 
 ## Installation
 
@@ -29,7 +31,15 @@ cd lineage
 
 In this directory (`lineage`), you will have (at least) two subdirectories `lineage` which hosts the client code, and `lineage_server` which hosts the server code. 
 
-Next install and run the server via docker:
+An optional next step is to install the (phovea_core)[https://github.com/phovea/phovea_core] via git. If you do that, you'll be able to easily step into the core. We currently develop against the `develop` branch, so we need to switch to that: 
+
+```bash 
+git clone https://github.com/phovea/phovea_core
+cd phovea_core
+git checkout develop
+```
+
+Next install and run the server via docker, from the `lineage` root directory:
 
 ```bash
 docker-compose up -d

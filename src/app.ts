@@ -11,13 +11,8 @@ import * as table from './attributeTable';
 import * as panel from './attributePanel';
 import * as familySelector from './familySelector';
 
-
-import {csv} from 'd3-request';
-
 //Import Data Structure for graph & table
-
 import * as graphData from './graphData';
-import * as tableData from './tableData';
 import * as attributeData from './tableManager';
 
 
@@ -61,7 +56,6 @@ export class App {
 
     //Load in Genealogy Data
     await attributeDataObj.loadData('BigDescend');
-
 
     const graphDataObj = graphData.create(attributeDataObj);
     await graphDataObj.createTree();

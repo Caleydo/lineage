@@ -271,8 +271,10 @@ class attributeTable {
           return colData;
         });
         col.ys = allRows
+        col.vector = vector;
         col.type = type;
         col.stats = stats;
+        col.hist = await vector.hist();
         col.stats.min = min(data.filter((d)=>{return +d>0}).map(Number)) //temporary fix since vector.stats() returns 0 for empty values;
         col.stats.mean = mean(data.filter((d)=>{return +d>0}).map(Number)) //temporary fix since vector.stats() returns 0 for empty values;
         colDataAccum.push(col);
@@ -376,7 +378,7 @@ class attributeTable {
         self.renderCategoricalHeader(select(this), cell);
       }
       else if (cell.type === 'int') {
-        self.renderIntHeader(select(this), cell);
+        self.renderIntHeaderHist(select(this), cell);
       }
       else if (cell.type === 'string') {
         self.renderStringHeader(select(this), cell);
@@ -388,8 +390,6 @@ class attributeTable {
         let offset = this.colOffsets[i];
         return 'translate(' + offset + ',0)';
       });
-
-
 
 
     //create backgroundHighlight Bars
@@ -577,7 +577,7 @@ class attributeTable {
 
   /**
    *
-   * This function renders the column header of Quantitative columns in the Table View.
+   * This function renders the column header of Quantitative columns as SparkLines
    *
    * @param element d3 selection of the current column header element.
    * @param cellData the data bound to the column header element being passed in.
@@ -636,6 +636,77 @@ class attributeTable {
       .attr('cx',col_width/2) //need to change to find the closest point in the read data to this value
       .attr('cy',yScale(headerData.stats.mean))
       .attr('r',3)
+
+  };
+
+
+  /**
+   *
+   * This function renders the column header of Quantitative columns as Histograms
+   *
+   * @param element d3 selection of the current column header element.
+   * @param cellData the data bound to the column header element being passed in.
+   */
+
+  private renderIntHeaderHist(element, headerData){
+
+    let col_width = this.colWidths.int;
+    let height = this.rowHeight*2.5;
+
+    console.log('header')
+    console.log(headerData.hist);
+
+    // let values = headerData.hist.bins().map( d=> console.log(d))
+
+    // let t = transition('t').duration(500).ease(easeLinear);
+    //
+    // let allValues =[];
+    //
+    // headerData.data.map((singleRow)=>{singleRow.map((element)=>{if (+element >0) {allValues.push(+element)}})});
+    //
+    // allValues = allValues.sort((a,b)=>{return b-a});
+    //
+    // let xScale = scaleLinear().range([col_width*0.2,col_width*0.8]).domain([0,allValues.length])
+    // let yScale = scaleLinear().range([height*0.1,height*0.75]).domain([headerData.stats.min,headerData.stats.max])
+    //
+    // var lineFcn = line()
+    //   .x(function(d:any,i:any) {return xScale(i); })
+    //   .y(function(d:any) {return yScale(d); });
+    //
+    // if (element.selectAll('.sparkLine').size()===0){
+    //   element
+    //     .append('path')
+    //     .classed('sparkLine',true)
+    //
+    //   element.append('text').classed('minValue',true);
+    //   element.append('text').classed('maxValue',true);
+    //
+    //   element.append('circle').classed('meanValue',true);
+    // }
+    //
+    // element.select('.sparkLine')
+    //   .datum(allValues)
+    //   .transition(t)
+    //   .attr('d',lineFcn)
+    //
+    // element.select('.minValue')
+    //   .transition(t)
+    //   .text(Math.round(min(allValues)))
+    //   .attr('x',col_width*0.2)
+    //   .attr('y',height)
+    //   .attr('text-anchor','end')
+    //
+    // element.select('.maxValue')
+    //   .transition(t)
+    //   .text(Math.round(max(allValues)))
+    //   .attr('x',col_width*0.8)
+    //   .attr('y',0)
+    //   .attr('text-anchor','end')
+    //
+    // element.select('.meanValue')
+    //   .attr('cx',col_width/2) //need to change to find the closest point in the read data to this value
+    //   .attr('cy',yScale(headerData.stats.mean))
+    //   .attr('r',3)
 
   };
 

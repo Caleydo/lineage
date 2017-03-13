@@ -11,18 +11,13 @@ import * as table from './attributeTable';
 import * as panel from './attributePanel';
 import * as familySelector from './familySelector';
 
-
-import {csv} from 'd3-request';
-
 //Import Data Structure for graph & table
-
 import * as graphData from './graphData';
-import * as tableData from './tableData';
 import * as TableManager from './tableManager';
 
 
 /**
- * The main class for the App app
+ * The main class for the Lineage app
  */
 export class App {
 

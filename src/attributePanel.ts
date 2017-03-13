@@ -2,7 +2,7 @@ import * as events from 'phovea_core/src/event';
 import {AppConstants, ChangeTypes} from './app_constants';
 import * as Sortable from 'sortablejs';
 import * as $ from 'jquery';
-import {select, selectAll} from 'd3-selection';
+import {select, selectAll, event} from 'd3-selection';
 import {keys} from 'd3-collection';
 import {IAnyVector} from 'phovea_core/src/vector';
 import {ICategoricalVector, INumericalVector} from 'phovea_core/src/vector/IVector';
@@ -25,6 +25,7 @@ class AttributePanel {
   private table;
   private columns;
   private activeColumns=[];
+  private histograms = [];
 
   private tableManager;
 
@@ -54,7 +55,6 @@ class AttributePanel {
   init(attributeDataObj) {
     // this.table = attributeDataObj.attributeTable;
     this.tableManager = attributeDataObj;
-
     let graphView = this.tableManager.graphTable;
     let attributeView = this.tableManager.tableTable;
     this.columns  = graphView.cols().concat(attributeView.cols());   //this.table.cols();
@@ -199,7 +199,7 @@ class AttributePanel {
       .attr('data-target', '#' + columnName)
       .attr('data-toggle', 'collapse');
 
-    attrHeader.append('a').attr('href', '#')
+    const header = attrHeader.append('a').attr('href', '#')
       .html('<i class=\'glyphicon glyphicon-chevron-right\'></i>')
       .append('strong').html(columnName)
       .append('span').attr('class', columnDesc)
@@ -227,6 +227,7 @@ class AttributePanel {
 
     selectAll('.badge').on('click', function () {
       console.log('badge clicked');
+
       const badge = $(this).text();
       const attribute = $(this).closest('strong').contents()[0];
       //reset badge dispaly for previously clicked badges
@@ -238,6 +239,7 @@ class AttributePanel {
       $(this).parent().children().css('display', 'none');
       $(this).addClass('checked_' + badge);
       $(this).css('display', 'inline');
+       event.stopPropagation();
 
       events.fire('attribute_selected', {attribute, badge});
 
@@ -276,18 +278,32 @@ class AttributePanel {
       }
     })
 
+    // creat a histogram object
+    const attributeHistogram = histogram.create(svg);
+    // add this object to the histogram array
+    this.histograms.push(attributeHistogram);
+    // initiate this object
+    await attributeHistogram.init(attributeName, dataVec, dataVec.desc.value.type);
+
+
+
+/*
     if (dataVec.desc.value.type === VALUE_TYPE_CATEGORICAL) {
       const catVector = <ICategoricalVector> dataVec;
       const attributeHistogram = histogram.create(svg);
       await attributeHistogram.init(attributeName, dataVec);
+      console.log('attribute name: ', attributeName);
+      console.log('cat stat',await catVector.stats());
+       console.log('cat hist', await catVector.hist());
     } else if (dataVec.desc.value.type !== 'idtype'){
       const numVector = <INumericalVector> dataVec;
-      // console.log('Stats on a vector:');
-      //console.log(await numVector.stats());
+       console.log('attribute name: ', attributeName);
+       console.log('num stat for'+ attributeName,await numVector.stats());
+       console.log('num hist for'+ attributeName,await numVector.hist());
 
     }
 
-    /*
+
 
      const dataVec = await this.table.colData(attributeName);
      if(attributeType === 'categorical'){

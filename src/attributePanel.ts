@@ -311,7 +311,7 @@ class AttributePanel {
     this.histograms.forEach(singleHistogram =>{
       this.columns.forEach(col => {
       if (col.desc.name === singleHistogram.attrName) {
-        console.log(col);
+        // console.log(col);
         singleHistogram.update(col)
       }
     })

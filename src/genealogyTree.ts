@@ -307,8 +307,6 @@ class GenealogyTree {
       .attr('id', 'nodes');
 
 
-
-
     //Create group for all time axis
     const axis = svg.append('g')
       .attr('transform', 'translate(' + this.margin.left + ',' + this.margin.axisTop / 1.5 + ')')
@@ -353,6 +351,21 @@ class GenealogyTree {
   //End of Build Function
 
 
+  private update_legend(){
+    let legendIcons = select('#legendIcons').selectAll('.icons')
+      .data([this.primaryAttribute, this.secondaryAttribute]);
+
+    let legendIconsEnter = legendIcons.enter().append('rect').classed('icons',true);
+
+    legendIcons = legendIconsEnter.merge(legendIcons);
+
+    legendIcons.selectAll('.icons')
+      .attr('width', 50)
+      .attr('fill','white')
+      .attr('height', Config.legendHeight*0.65)
+
+
+  }
   /**
    *
    * This function updates the genealogy tree by calling the update_edges
@@ -1847,8 +1860,6 @@ class GenealogyTree {
     // });
 
     events.on(PRIMARY_SECONDARY_SELECTED,(evt,Attribute) => {
-      console.log('heard ' , Attribute.var ,  ' attribute_selected_event');
-      console.log(Attribute)
 
       if (Attribute.primary) {
         this.primaryAttribute = Attribute;
@@ -1856,6 +1867,8 @@ class GenealogyTree {
         this.secondaryAttribute = Attribute;
       }
         this.update_visible_nodes()
+
+        this.update_legend();
     });
 
     events.on(POI_SELECTED,(evt,affectedState) => {

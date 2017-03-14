@@ -105,7 +105,7 @@ class attributeTable {
 
 
 
-    let t = transition('t').duration(500).ease(easeLinear);
+    // let t = transition('t').duration(500).ease(easeLinear);
 
     //Exctract y values from dict.
     const svg = this.$node.append('svg')
@@ -345,7 +345,7 @@ class attributeTable {
         }
       }));
 
-    headers.exit().transition(t).attr('opacity', 0).remove(); // should remove headers of removed col's
+    headers.exit().attr('opacity', 0).remove(); // should remove headers of removed col's
 
     const headerEnter = headers
       .enter()
@@ -653,7 +653,7 @@ class attributeTable {
 
   private renderIntHeaderHist(element, headerData,maxFrequency){
 
-    let t = transition('t').duration(500).ease(easeLinear);
+    // let t = transition('t').duration(500).ease(easeLinear);
 
     let col_width = this.colWidths.int;
     let height = this.rowHeight*1.8;
@@ -711,7 +711,7 @@ class attributeTable {
 
     element.selectAll('.histogram')
       .attr('width', binWidth*0.8)
-      .transition(t)
+      // .transition(t)
       .attr('height', d =>{return yScale(d.v)})
       .attr('y',d =>{return (height - yScale(d.v))})
       .attr('x',(d,i) =>{return xScale(bin2value(i))})
@@ -760,7 +760,7 @@ class attributeTable {
    * @param cellData the data bound to the cell element being passed in.
    */
   private renderCategoricalCell(element, cellData) {
-    let t = transition('t').duration(500).ease(easeLinear);
+    // let t = transition('t').duration(500).ease(easeLinear);
 
     let col_width = this.colWidths.categorical;
     let rowHeight = this.rowHeight;
@@ -799,7 +799,7 @@ class attributeTable {
       .attr('height', this.yScale(numValues))
       .attr('y',(rowHeight - this.yScale(numValues)))
       .classed('aggregate',()=>{return cellData.data.length >1})
-      .transition(t)
+      // .transition(t)
       .attr('fill',(d)=> {
         let attr = this.tableManager.primaryAttribute;
           if (attr && attr.var === cellData.varName) {

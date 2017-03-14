@@ -24,7 +24,7 @@ class Histogram {
   private $histogramCols;
   //settings
 
-  private margin= {top: 20, right: 20, bottom: 10, left: 20};
+  private margin= {top: 10, right: 20, bottom: 10, left: 20};
   private width = Config.panelAttributeWidth - this.margin.left - this.margin.right;
   private height = Config.panelAttributeHeight - this.margin.top - this.margin.bottom;
 
@@ -78,7 +78,10 @@ class Histogram {
    */
   private async renderCategoricalHistogram(dataVec){
 
-    const categoricalDataVec = await <ICategoricalVector>dataVec;
+    const categoricalDataVec = <ICategoricalVector>dataVec;
+
+    const numElements = categoricalDataVec.length;
+
     const histData: IHistogram = await categoricalDataVec.hist();
     // console.log(histData)
     const catData = [];
@@ -99,14 +102,14 @@ class Histogram {
       }));
 
      yScale.rangeRound([this.height, 0])
-      //.domain([0, this.data.length]);
+      // .domain([0, numElements]);
       .domain([0, max(catData, function (d) {
         return d.value;
       })]);
 
      if(this.$node.selectAll('.svg-g').size() === 0){
        this.$node.append('g')
-         .attr('transform', 'scale(0.8,0.8) translate(20,20)')
+       .attr('transform', 'scale(0.8,0.8) translate(' + this.margin.left + ',' + this.margin.top + ')')
          .attr('class','svg-g');
      }
 
@@ -117,6 +120,7 @@ class Histogram {
       .attr('class', 'axis axis--x')
       .attr('transform', 'translate(' + this.margin.left + ',' + this.height + ')')
       .call(axisBottom(xScale));
+
     //yaxis
    /* const yAxis = element.append('g')
       .attr('class', 'axis axis--y')
@@ -150,22 +154,23 @@ class Histogram {
       .attr('fill', 'rgb(226, 225, 224)')
       .attr('attribute', this.attrName );
 
-    barContainer
-      .selectAll('.barLabel')
-      .data(catData)
-      .enter()
-      .append('text')
-      .attr('class','barLabel')
-      .text((d,i)=>{
-        return d.value;
-      })
-      .attr('x', (d)=> {
-        return xScale(d.key)+10;
-      })
-      .attr('y',(d)=> {
-        return yScale(d.value)-2;
-      })
-      .attr('opacity',1)
+    // barContainer
+    //   .selectAll('.barLabel')
+    //   .data(catData)
+    //   .enter()
+    //   .append('text')
+    //   .attr('class','barLabel')
+    //   .text((d)=>{
+    //     return Math.round(d.value/numElements *100 ) + '%';
+    //   })
+    //   .attr('x', (d)=> {
+    //     return xScale(d.key)+xScale.bandwidth()/2;
+    //   })
+    //   .attr('y',(d)=> {
+    //     return yScale(d.value)-2;
+    //   })
+    //   .attr('opacity',1)
+    //   .attr('text-anchor','middle')
 
 
     selectAll('.bar').on('click', function (d) {
@@ -219,14 +224,12 @@ class Histogram {
 
 
     let xScale = scaleLinear().range([0,this.width]).domain([0,histData.bins])
-    // let yScale = scaleLinear().range([0,height*0.8]).domain([0,maxFrequency]);
-    let yScale = scaleLinear().range([0,this.height*0.8]).domain([0,histData.largestFrequency]);
-
-
-
+    // let yScale = scaleLinear().range([0,height]).domain([0,maxFrequency]);
+    let yScale = scaleLinear().range([0,this.height]).domain([0,histData.largestFrequency]);
 
     const element = this.$node.append('g')
-      .attr('transform', 'scale(0.8,0.8) translate(20,20)');
+      // .attr('transform', 'scale(0.8,0.8) translate(20,20)');
+      .attr('transform', 'scale(0.8,0.8) translate(' + this.margin.left + ',' + this.margin.top + ')')
 
      //axis
     const xAxis = element.append('g')

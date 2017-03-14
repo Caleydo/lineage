@@ -23,7 +23,7 @@ export class Config {
     };
 
   public static panelAttributeWidth = 300;
-  public static panelAttributeHeight = 100;
+  public static panelAttributeHeight = 50;
 
   public static expPanelWidth = '300px';
   public static colGraphTableWidth = '100%';

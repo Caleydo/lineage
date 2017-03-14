@@ -32,6 +32,11 @@ td rect{
 
 }
 
+.barLabel{
+  font-weight:normal;
+  font-size:18px;
+}
+
 .sparkLine{
   fill:none;
   stroke: #686c6c;
@@ -57,9 +62,6 @@ td rect{
   fill: #5f6262;
 }
 
-.hist_xscale{
-  font-size:8px;
-}
 .frame{
   fill: white;
   stroke:#545757;
@@ -211,11 +213,17 @@ label {
 }
 
 
+.axis--x .tick text{
+  font-size:16px;
+  font-weight:bold;
+}
+
+
 .hist_xscale .tick text{
   font-size:8px;
 }
 
-.tick text{
+.visible_axis .tick text{
     font-size:12px;
 }
 

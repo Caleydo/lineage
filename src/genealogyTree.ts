@@ -309,17 +309,17 @@ class GenealogyTree {
 
     //Create group for all time axis
     const axis = svg.append('g')
-      .attr('transform', 'translate(' + this.margin.left + ',' + this.margin.axisTop / 1.5 + ')')
+      .attr('transform', 'translate(' + this.margin.left + ',' + this.margin.axisTop + ')')
       .attr('id', 'axis')
 
     //Create group for legend
     const legend = axis.append('g')
       .attr('id', 'legend')
 
-    legend
-      .append('rect')
-      .attr('width', this.width)
-      .attr('height', this.margin.top - this.margin.axisTop)
+    // legend
+    //   .append('rect')
+    //   .attr('width', this.width)
+    //   .attr('height', this.margin.top - this.margin.axisTop)
 
     axis
       .append('rect')
@@ -336,9 +336,9 @@ class GenealogyTree {
       .attr('id', 'extremes_axis')
       .call(this.extremesXAxis)
 
-    legend.append('g')
-      .attr('id','legendIcons')
-      .attr('transform', 'translate(10,20)')
+    // legend.append('g')
+    //   .attr('id','legendIcons')
+    //   .attr('transform', 'translate(10,20)')
 
 
     //  //Create temporary group for y axis
@@ -1044,11 +1044,19 @@ class GenealogyTree {
 
     //attribute Bars
     allNodes.selectAll('.attributeFrame')
-      .attr('width', Config.glyphSize/1.5)
+      .attr('width', Config.glyphSize*1.5)
       .attr('y', (d) => {
         return d['sex'] === 'F' ? (- Config.glyphSize) : 0
       })
       .attr('fill','white')
+
+    //attribute Bars
+    allNodes.selectAll('.attributeBar')
+      .attr('y', (d) => {
+        return d['sex'] === 'F' ? (- Config.glyphSize) : 0
+      })
+      .attr('width', Config.glyphSize*1.5)
+
 
     allNodes.selectAll('.attributeFrame').filter('.primary')
       .transition(t)
@@ -1074,10 +1082,6 @@ class GenealogyTree {
         }
         return height
       })
-
-    //attribute Bars
-    allNodes.selectAll('.attributeBar')
-      .attr('width', Config.glyphSize/1.5)
 
     allNodes.selectAll('.attributeBar').filter('.primary')
       .transition(t)
@@ -1150,12 +1154,14 @@ class GenealogyTree {
 
     allNodes.selectAll('.primary')
       .attr('x', (d) => {
-        return d['sex'] === 'F' ? -Config.glyphSize * 2 : -Config.glyphSize
+        // return d['sex'] === 'F' ? -Config.glyphSize * 2 : -Config.glyphSize
+        return d['sex'] === 'F' ? Config.glyphSize * 2 : Config.glyphSize * 3
       })
 
     allNodes.selectAll('.secondary')
       .attr('x', (d) => {
-        return d['sex'] === 'F' ? -Config.glyphSize * 3 : -Config.glyphSize*2
+        // return d['sex'] === 'F' ? -Config.glyphSize * 3 : -Config.glyphSize*2
+        return d['sex'] === 'F' ? Config.glyphSize * 4 : Config.glyphSize * 5
       })
 
 
@@ -1500,7 +1506,7 @@ class GenealogyTree {
     let maxY = this.y.invert(divHeight + scrollOffset - 75)
 
     select('#axis')
-      .attr('transform', 'translate(' + this.margin.left + ',' + (scrollOffset + this.margin.axisTop / 1.5) + ')')
+      .attr('transform', 'translate(' + this.margin.left + ',' + (scrollOffset + 130) + ')')
 
     //the 75 offset is the transform applied on the group
 

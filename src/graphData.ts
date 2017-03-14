@@ -150,10 +150,20 @@ class GraphData {
       d.Y = +d.y; //keeps track of nodes original y position
       d.X = +d.x; //keeps track of nodes original x position - can change for kid grids on hide.
     });
-
-
   };
 
+
+  /**
+   *
+   * This function get the requested attribute from the tableManager for the person requested.
+   * Returns undefined if there is no value.
+   *
+   * @param attribute - attribute to search for
+   * @param personID - person for which to search for attribute
+   */
+  private async getAttribute(attribute, personID){
+    return this.tableManager.getAttribute(attribute,personID);
+  }
 
   /**
    *
@@ -198,8 +208,6 @@ class GraphData {
 
     //Find oldest person in this set of nodes and set as startingPoint
     let startNode = isNotHidden.reduce((a,b)=> {return +a.bdate < +b.bdate? a : b});
-
-    console.log(startNode.Y);
     this.hideNodes(startNode.y,true);
 
     //Recursively call collapseAll to handle any branches that were not collapsed.

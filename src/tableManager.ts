@@ -124,6 +124,36 @@ export default class TableManager {
   private secondaryAttribute: attribute;
 
 
+  /**
+   *
+   * This function get the requested attribute for the person requested.
+   * Returns undefined if there is no value.
+   *
+   * @param attribute - attribute to search for
+   * @param personID - person for which to search for attribute
+   */
+  public async getAttribute(attribute,personID){
+
+    let attributeVector;
+    //Find Vector of that attribute in either table.
+    let allColumns = this.graphTable.cols().concat(this.tableTable.cols());
+
+    allColumns.forEach(col => {
+      if (col.desc.name === attribute) {
+        attributeVector = col;
+      }
+    })
+
+    let IDs = await attributeVector.names();
+
+    if (personID in IDs){
+      return await attributeVector.at(IDs.indexOf(personID));
+    } else{
+      return undefined;
+    }
+  }
+
+
   public async setPrimarySecondaryAttribute(attributeName, primary_secondary) {
 
     let binaryColorChoice, multipleColorChoice;

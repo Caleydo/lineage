@@ -718,7 +718,6 @@ class attributeTable {
       .attr('fill',()=> {
           let attr = this.tableManager.primaryAttribute;
           if (attr && attr.var === headerData.name) {
-            console.log('here')
             return attr.color
           } else {
             attr = this.tableManager.secondaryAttribute;
@@ -924,7 +923,6 @@ class attributeTable {
       .data((d)=>{
         let cellArray = cellData.data.filter((f)=>{return !isNullOrUndefined((f))})
           .map((e,i)=>{return {'id':d.id[i],'name':d.name, 'stats':d.stats, 'value':e}})
-      // console.log('ellipse data for ', d.id , ' has ', cellArray.length , 'values');
         return cellArray
     });
 

@@ -562,6 +562,20 @@ class attributeTable {
       .attr('height', summaryScale(numPositiveValues))
       .attr('y',(height - summaryScale(numPositiveValues)))
       .attr('opacity',1)
+      .attr('fill',()=> {
+          let attr = this.tableManager.primaryAttribute;
+        if (attr)
+          // console.log(attr,headerData)
+          if (attr && attr.var === headerData.varName) {
+            return attr.color[1]
+          } else {
+            attr = this.tableManager.secondaryAttribute;
+            if (attr && attr.var === headerData.varName) {
+              return attr.color[1]
+            }
+          }
+        }
+      )
 
     element.select('.histogramLabel')
       .attr('opacity',0)
@@ -806,6 +820,31 @@ class attributeTable {
       .attr('width', rowHeight)
       .attr('height', rowHeight)
       .attr('y',0)
+      .attr('fill',(d)=> {
+          let attr = this.tableManager.primaryAttribute;
+          if (attr && attr.var === cellData.varName) {
+            let ind = attr.categories.indexOf(cellData.data.filter((d)=>{return d !== undefined})[0]);
+            if (ind === 0) {
+                return attr.color[1]
+              } else {
+              return attr.color[0]
+            }
+          } else {
+            attr = this.tableManager.secondaryAttribute;
+            if (attr && attr.var === cellData.varName) {
+              let ind = attr.categories.indexOf(cellData.data.filter((d)=>{return d !== undefined})[0]);
+              if (ind === 0) {
+                return attr.color[1]
+              } else {
+                return attr.color[0]
+              }
+            }
+          }
+            return '#dfdfdf';
+        }
+      )
+
+
       // .classed('aggregate',()=>{return cellData.data.length >1})
 
     element
@@ -833,18 +872,19 @@ class attributeTable {
             if (attr && attr.var === cellData.varName) {
               let ind = attr.categories.indexOf(cellData.data.filter((d)=>{return d !== undefined})[0]);
               if (ind>-1) {
-                if (cellData.data.length > 1) {
-                  return this.ColorLuminance(attr.color[ind], -0.3);
-                } else {
-                  return attr.color[ind]
-                }
+                return attr.color[ind]
+                // if (cellData.data.length > 1) {
+                //   return this.ColorLuminance(attr.color[ind], -0.3);
+                // } else {
+                //   return attr.color[ind]
+                // }
               }
             }
           }
-          if (cellData.data.length>1){
-            // console.log(cellData,attr)
-            return '#545757';
-          }
+          // if (cellData.data.length>1){
+          //   // console.log(cellData,attr)
+          //   return '#545757';
+          // }
         }
        )
 

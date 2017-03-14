@@ -69,8 +69,11 @@ export const TABLE_VIS_ROWS_CHANGED_EVENT = 'table_vis_rows_changed_event';
 export const PRIMARY_SECONDARY_SELECTED = 'primary_secondary_attribute_event';
 export const POI_SELECTED = 'affected_attribute_event';
 
-export const PRIMARY_COLOR = '#4472CA';
-export const SECONDARY_COLOR = '#5ea1ae';
+export const PRIMARY_COLOR = '#20567c';
+export const PRIMARY_COLOR_2 = '#a3ccf0';
+
+export const SECONDARY_COLOR = '#e48737';
+export const SECONDARY_COLOR_2 = '#ffd6b3';
 
 export const PRIMARY_CATEGORICAL_COLORS = ['#D77A61', '#223843', '#D8B4A0', '#393E41'];
 export const SECONDARY_CATEGORICAL_COLORS = ['#D77A61', '#223843', '#D8B4A0', '#393E41']; //need to pick different colors
@@ -134,11 +137,13 @@ export default class TableManager {
    */
   public async getAttribute(attribute,personID){
 
+
     let attributeVector;
     //Find Vector of that attribute in either table.
     let allColumns = this.graphTable.cols().concat(this.tableTable.cols());
 
     allColumns.forEach(col => {
+      // console.log(col.desc.name, attribute)
       if (col.desc.name === attribute) {
         attributeVector = col;
       }
@@ -156,12 +161,15 @@ export default class TableManager {
 
   public async setPrimarySecondaryAttribute(attributeName, primary_secondary) {
 
-    let binaryColorChoice, multipleColorChoice;
+    let binaryColorChoice1, binaryColorChoice2, multipleColorChoice;
     if (primary_secondary === 'primary') {
-      binaryColorChoice = PRIMARY_COLOR;
+      binaryColorChoice1 = PRIMARY_COLOR;
+      binaryColorChoice2 = PRIMARY_COLOR_2;
       multipleColorChoice = PRIMARY_CATEGORICAL_COLORS;
     } else if (primary_secondary === 'secondary') {
-      binaryColorChoice = SECONDARY_COLOR;
+      binaryColorChoice1 = SECONDARY_COLOR;
+      binaryColorChoice2 = SECONDARY_COLOR_2;
+
       multipleColorChoice = SECONDARY_CATEGORICAL_COLORS;
     }
 
@@ -190,7 +198,7 @@ export default class TableManager {
       categories = Array.from(new Set(data)).sort(); //sort alphabetically to ensure the correct order of attributes
 
       if (categories.length === 2) {//binary categorical data
-        color = ['#ffffff', binaryColorChoice];
+        color = [binaryColorChoice2, binaryColorChoice1];
       } else {
         color = multipleColorChoice.slice(0, categories.length) //extract one color per category;
       }
@@ -200,7 +208,7 @@ export default class TableManager {
       Attribute['stats'] = await attributeVector.stats();
       Attribute['stats'].min = min(data.filter((d)=>{return +d!==0}).map(Number)) //temporary fix since vector.stats() returns 0 for empty values;
       Attribute['stats'].mean = mean(data.filter((d)=>{return +d!==0}).map(Number)) //temporary fix since vector.stats() returns 0 for empty values;
-      Attribute['color'] = binaryColorChoice;
+      Attribute['color'] = binaryColorChoice1;
     }
     // console.log(Attribute)
 

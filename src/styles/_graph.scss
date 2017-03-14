@@ -1,5 +1,5 @@
 $edge-color: #4f4f4d;
-$node-color: #9ba1a1;
+$node-color: #6f7373;
 $affected-node-color: rgb(48, 50, 50);
 
 .node.affected .nodeIcon{
@@ -70,9 +70,10 @@ td rect{
 }
 
 .frame{
-  fill: white;
-  stroke:#545757;
+  //fill: white;
+  //stroke:#545757;
   stroke-width: .5px;
+  stroke:none;
 }
 
 text.header{

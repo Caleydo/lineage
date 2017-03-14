@@ -975,12 +975,14 @@ class attributeTable {
       return;
     }
 
-    if (numValues > 1 && element.selectAll('.idBar').size()===0){
+    if (numValues > 1 && element.select('.idBar').size()===0){
       element
         .append('rect')
         .classed('idBar', true)
-    } else{
-      element.selectAll('rect').remove();
+    }
+
+    if (numValues ===1 ) {
+      element.select('rect').remove();
     }
 
     if (element.selectAll('.string').size()===0){
@@ -1007,7 +1009,6 @@ class attributeTable {
         .attr('dy',rowHeight*0.9)
         .attr('dx',this.idScale(numValues)+2)
         .style('stroke','none')
-
 
       element
         .select('.idBar')

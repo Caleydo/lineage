@@ -9,6 +9,8 @@ import {IAnyVector} from 'phovea_core/src/vector';
 import * as events from 'phovea_core/src/event';
 import {transition} from 'd3-transition';
 import {easeLinear} from 'd3-ease';
+import {format} from 'd3-format';
+
 import {IHistogram, rangeHist} from 'phovea_core/src/math';
 import {line} from 'd3-shape';
 
@@ -136,10 +138,10 @@ class Histogram {
       .attr('transform', 'translate(' + this.margin.left + ',0)')
 
     barContainer
-      .selectAll('.bar')
+      .selectAll('.catBar')
       .data(catData)
       .enter().append('rect')
-      .attr('class', 'bar')
+      .attr('class', 'catBar')
       .attr('x', (d)=> {
         return xScale(d.key);
       })
@@ -171,7 +173,7 @@ class Histogram {
     //   .attr('opacity',1)
     //   .attr('text-anchor','middle');
 
-selectAll('.bar').on('click', function (d) {
+selectAll('.catBar').on('click', function (d) {
   const item = {
           name: select(this).attr('attribute'),
           value: d['key']
@@ -224,9 +226,10 @@ selectAll('.bar').on('click', function (d) {
 
     });
 
-
-    let xScale = scaleLinear().range([0,this.width]).domain([0,histData.bins])
+    //let xScale = scaleLinear().range([0,this.width]).domain([0,histData.bins])
+    let xScale = scaleLinear().range([0,this.width]).domain(histData.valueRange).nice();
     // let yScale = scaleLinear().range([0,height]).domain([0,maxFrequency]);
+   var bin2value = scaleLinear().range(histData.valueRange).domain([0,histData.bins]);
     let yScale = scaleLinear().range([0,this.height]).domain([0,histData.largestFrequency]);
 
     const element = this.$node.append('g')
@@ -237,23 +240,47 @@ selectAll('.bar').on('click', function (d) {
     const xAxis = element.append('g')
       .attr('class', 'axis axis--x')
       .attr('transform', 'translate(' + this.margin.left + ',' + this.height + ')')
-      .call(axisBottom(xScale).tickSize(5).ticks(1));
+      .call(axisBottom(xScale)
+     .tickSize(5)
+     .tickValues(xScale.domain())
+     .tickFormat(format(".0f")));
 
     const barContainer = element.append('g')
       .attr('transform', 'translate(' + this.margin.left + ',0)')
 
      barContainer
-      .selectAll('.bar').data(data)
+      .selectAll('.numBar').data(data)
        .enter().append('rect')
-       .attr('class','bar')
+       .attr('class','numBar')
        .attr('opacity',0)
       .attr('width', binWidth*0.8)
       .attr('height', d =>{return yScale(d.v)})
       .attr('y',d =>{return (this.height - yScale(d.v))})
-      .attr('x',(d,i) =>{return xScale(i)}).attr('fill', 'rgb(226, 225, 224)')
+      .attr('x',(d,i) =>{return xScale(bin2value(i))})
+       .attr('fill', 'rgb(226, 225, 224)')
       .attr('opacity',1)
       .attr('attribute', this.attrName );
 
+
+
+    selectAll('.numBar').on('click', function (d) {
+      console.log(d)
+  const item = {
+          name: select(this).attr('attribute'),
+         // value: d['key']
+        };
+
+      if(select(this).classed('picked')){
+        select(this).classed('picked', false);
+        console.log('unpicked');
+         events.fire('attribute_unpicked', item);
+      } else {
+         select(this).classed('picked', true);
+         console.log('picked');
+        events.fire('attribute_picked', item);
+      }
+
+    });
 
   }
 

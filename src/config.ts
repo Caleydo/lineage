@@ -31,6 +31,6 @@ export class Config {
   public static colPanelWidth = '30px';
   public static expGraphTableWidth = '100%';
 
-  public static legendHeight = 100;
+  public static legendHeight = 150;
 
 }

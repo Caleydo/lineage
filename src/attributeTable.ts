@@ -769,6 +769,22 @@ class attributeTable {
     element.selectAll('rect').remove(); //Hack. don't know why the height of the rects isn' being updated.
 
     // if (numValues === 0){
+    //   //Add a faint cross out to indicate no data here;
+    //   if (element.selectAll('.cross_out').size()===0){
+    //     element
+    //       .append('line')
+    //       .attr('class', 'cross_out')
+    //   }
+    //
+    //   element.select('.cross_out')
+    //     .attr('x1', col_width*0.3)
+    //     .attr('y1', rowHeight/2)
+    //     .attr('x2', col_width*0.6)
+    //     .attr('y2', rowHeight/2)
+    //     .attr('stroke-width', 2)
+    //     .attr('stroke', '#9e9d9b')
+    //     .attr('opacity',.6)
+    //
     //   return;
     // }
 

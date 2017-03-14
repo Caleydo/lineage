@@ -67,9 +67,10 @@ const IndexOfKindredIDColumn = 1;
 export const VIEW_CHANGED_EVENT = 'view_changed_event';
 export const TABLE_VIS_ROWS_CHANGED_EVENT = 'table_vis_rows_changed_event';
 export const PRIMARY_SECONDARY_SELECTED = 'primary_secondary_attribute_event';
+export const POI_SELECTED = 'affected_attribute_event';
 
-export const PRIMARY_COLOR = '#284B63';
-export const SECONDARY_COLOR = '#3C6E71';
+export const PRIMARY_COLOR = '#4472CA';
+export const SECONDARY_COLOR = '#345e61';
 
 export const PRIMARY_CATEGORICAL_COLORS = ['#D77A61', '#223843', '#D8B4A0', '#393E41'];
 export const SECONDARY_CATEGORICAL_COLORS = ['#D77A61', '#223843', '#D8B4A0', '#393E41']; //need to pick different colors
@@ -167,8 +168,8 @@ export default class TableManager {
       Attribute['color'] = color;
     } else if (Attribute['type'] === 'int') {
       Attribute['stats'] = await attributeVector.stats();
-      Attribute['stats'].min = min(data.filter((d)=>{return +d>0}).map(Number)) //temporary fix since vector.stats() returns 0 for empty values;
-      Attribute['stats'].mean = mean(data.filter((d)=>{return +d>0}).map(Number)) //temporary fix since vector.stats() returns 0 for empty values;
+      Attribute['stats'].min = min(data.filter((d)=>{return +d!==0}).map(Number)) //temporary fix since vector.stats() returns 0 for empty values;
+      Attribute['stats'].mean = mean(data.filter((d)=>{return +d!==0}).map(Number)) //temporary fix since vector.stats() returns 0 for empty values;
       Attribute['color'] = binaryColorChoice;
     }
     // console.log(Attribute)
@@ -210,6 +211,7 @@ export default class TableManager {
    */
   public setAffectedState(varName, varType, thresholdValue) {
     this.affectedState = ({var: varName, type: varType, 'value': thresholdValue});
+    events.fire(POI_SELECTED,this.affectedState);
   }
 
   /**

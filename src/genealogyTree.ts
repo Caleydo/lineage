@@ -55,7 +55,7 @@ import {
   Config
 } from './config';
 
-import {PRIMARY_SECONDARY_SELECTED} from './tableManager';
+import {PRIMARY_SECONDARY_SELECTED, POI_SELECTED} from './tableManager';
 
 
 /**
@@ -110,6 +110,9 @@ class GenealogyTree {
   private interGenerationScale = scaleLinear();
 
   private self;
+
+  private primaryAttribute;
+  private secondaryAttribute;
 
   private colors = ['#a6cee3', '#1f78b4', '#b2df8a', '#33a02c', '#fb9a99', '#e31a1c', '#fdbf6f', '#ff7f00'];
 
@@ -304,10 +307,21 @@ class GenealogyTree {
       .attr('id', 'nodes');
 
 
+
+
     //Create group for all time axis
     const axis = svg.append('g')
       .attr('transform', 'translate(' + this.margin.left + ',' + this.margin.axisTop / 1.5 + ')')
       .attr('id', 'axis')
+
+    //Create group for legend
+    const legend = axis.append('g')
+      .attr('id', 'legend')
+
+    legend
+      .append('rect')
+      .attr('width', this.width)
+      .attr('height', this.margin.top - this.margin.axisTop)
 
     axis
       .append('rect')
@@ -787,7 +801,7 @@ class GenealogyTree {
 
         let ageAtDeath = Math.abs(this.x(d['ddate']) - this.x(d['bdate']));
         let ageToday = Math.abs(this.x(year) - this.x(d['bdate']));
-        return (+d['deceased'] === 1) ? ageAtDeath : ageToday;
+        return (+d['ddate']) ? ageAtDeath : ageToday;
       })
       .attr('height', Config.glyphSize / 8)
       .style('fill', (d: any) => { return '#9e9d9b';
@@ -815,7 +829,7 @@ class GenealogyTree {
         let ageAtDeath = Math.abs(this.x(d['ddate']) - this.x(d['bdate']));
         let ageToday = Math.abs(this.x(year) - this.x(d['bdate']))
 
-        return (+d['deceased'] === 1) ? ageAtDeath : ageToday;
+        return (+d['ddate']) ? ageAtDeath : ageToday;
 //                 return Math.abs(this.x(d['ddate']) - this.x(d['bdate']));
       })
       .attr('text-anchor', 'end')
@@ -825,7 +839,7 @@ class GenealogyTree {
         let ageAtDeath = (d['ddate'] - d['bdate']);
         let ageToday = (year - d['bdate'])
 
-        return (+d['deceased'] === 1) ? ageAtDeath : ageToday;
+        return (+d['ddate']) ? ageAtDeath : ageToday;
 
 //                 return Math.abs(+d['ddate'] - +d['bdate']);
       })
@@ -839,7 +853,7 @@ class GenealogyTree {
 
     //Add cross at the end of lifelines for deceased people
     lifeRectsEnter.filter(function (d: any) {
-      return (+d.deceased === 1);
+      return (d.ddate);
     })
       .append('line')
       .attr('class', 'endOfTheLine')
@@ -868,7 +882,7 @@ class GenealogyTree {
 
     //Add cross through lines for deceased people
     allNodesEnter.filter(function (d: any) {
-      return (+d.deceased === 1);
+      return (d.ddate);
     })
       .append('line')
       .attr('class', 'nodeLine')
@@ -981,51 +995,152 @@ class GenealogyTree {
         return !d['hidden'];
       })
       .append('rect')
+      .classed('primary', true)
       .classed('attributeFrame', true)
+
 
     allNodesEnter
       .filter(function (d: any) {
         return !d['hidden'];
       })
       .append('rect')
+      .classed('primary', true)
       .classed('attributeBar', true)
 
+    allNodesEnter
+      .filter(function (d: any) {
+        return !d['hidden'];
+      })
+      .append('rect')
+      .classed('secondary', true)
+      .classed('attributeFrame', true)
+
+
+    allNodesEnter
+      .filter(function (d: any) {
+        return !d['hidden'];
+      })
+      .append('rect')
+      .classed('secondary', true)
+      .classed('attributeBar', true)
 
 
     //attribute Bars
     allNodes.selectAll('.attributeFrame')
       .attr('width', Config.glyphSize/1.5)
-      .attr('height', (d) => {
-        return Config.glyphSize * 2
-
-      })
-      .attr('x', (d) => {
-        return d['sex'] === 'F' ? -Config.glyphSize * 2 : -Config.glyphSize
-      })
       .attr('y', (d) => {
-
         return d['sex'] === 'F' ? (- Config.glyphSize) : 0
       })
       .attr('fill','white')
 
+    allNodes.selectAll('.attributeFrame').filter('.primary')
+      .transition(t)
+      .attr('height', (d) => {
+        let height = 0 ;
+        let attr = this.primaryAttribute;
+
+        if (attr) {
+          height = Config.glyphSize * 2;
+        }
+        return height
+      })
+
+
+    allNodes.selectAll('.attributeFrame').filter('.secondary')
+      .transition(t)
+      .attr('height', (d) => {
+        let height = 0 ;
+        let attr = this.secondaryAttribute;
+
+        if (attr) {
+          height = Config.glyphSize * 2;
+        }
+        return height
+      })
+
     //attribute Bars
     allNodes.selectAll('.attributeBar')
       .attr('width', Config.glyphSize/1.5)
-      .attr('height', (d) => {
-        return Config.glyphSize * 2;
 
-      })
-      .attr('x', (d) => {
-        return d['sex'] === 'F' ? -Config.glyphSize * 2 : -Config.glyphSize * 1;
+    allNodes.selectAll('.attributeBar').filter('.primary')
+      .transition(t)
+      .attr('height', (d) => {
+        let height = 0 ;
+        let attr = this.primaryAttribute;
+
+        if (attr && attr.type === 'categorical') {
+          height = Config.glyphSize * 2;
+        } else if (attr && d[attr.var] && attr.type === 'int'){
+          this.attributeBarY.domain([attr.stats.min,attr.stats.max]);
+          height = this.attributeBarY(d[attr.var]);
+        }
+        return height
       })
       .attr('y', (d) => {
-        // return d['sex'] === 'F' ? (this.attributeBarY(1) - Config.glyphSize) : this.attributeBarY(1)
-
-	      return d['sex']=='F'? (-Config.glyphSize) : 0;
-
-
+        let y = 0 ;
+        let attr = this.primaryAttribute;
+        if (attr && d[attr.var] && attr.type === 'int'){
+          this.attributeBarY.domain([attr.stats.min,attr.stats.max]);
+          y =  Config.glyphSize * 2 - this.attributeBarY(d[attr.var]);
+        }
+        return d['sex'] === 'F' ? (- Config.glyphSize) +y : y
       })
-      // .attr('fill','red')
+      .attr('fill', (d) => {
+        let attr  = this.primaryAttribute;
+        if (attr && d[attr.var] && attr.type === 'categorical' ){
+          // console.log(d[attr.var],attr.categories)
+          let ind = attr.categories.indexOf(d[attr.var]);
+          return attr.color[ind]
+        } else if (attr && d[attr.var] && attr.type === 'int' ){
+          return attr.color
+        }
+      })
+
+    allNodes.selectAll('.attributeBar').filter('.secondary')
+      .transition(t)
+      .attr('height', (d) => {
+        let height = 0 ;
+        let attr = this.secondaryAttribute;
+
+        if (attr && attr.type === 'categorical') {
+          height = Config.glyphSize * 2;
+        } else if (attr && d[attr.var] && attr.type === 'int'){
+          this.attributeBarY.domain([attr.stats.min,attr.stats.max]);
+          height = this.attributeBarY(d[attr.var]);
+        }
+        return height
+      })
+      .attr('y', (d) => {
+        let y = 0 ;
+        let attr = this.secondaryAttribute;
+        if (attr && d[attr.var] && attr.type === 'int'){
+          this.attributeBarY.domain([attr.stats.min,attr.stats.max]);
+          y =  Config.glyphSize * 2 - this.attributeBarY(d[attr.var]);
+        }
+        return d['sex'] === 'F' ? (- Config.glyphSize) +y : y
+      })
+      .attr('fill', (d) => {
+        let attr  = this.secondaryAttribute;
+        if (attr && d[attr.var] && attr.type === 'categorical' ){
+          // console.log(d[attr.var],attr.categories)
+          let ind = attr.categories.indexOf(d[attr.var]);
+          return attr.color[ind]
+        } else if (attr && d[attr.var] && attr.type === 'int' ){
+          return attr.color
+        }
+      })
+
+
+
+    allNodes.selectAll('.primary')
+      .attr('x', (d) => {
+        return d['sex'] === 'F' ? -Config.glyphSize * 2 : -Config.glyphSize
+      })
+
+    allNodes.selectAll('.secondary')
+      .attr('x', (d) => {
+        return d['sex'] === 'F' ? -Config.glyphSize * 3 : -Config.glyphSize*2
+      })
 
 
 
@@ -1710,7 +1825,6 @@ class GenealogyTree {
     });
 
     events.on('redraw_tree', (evt,item) => {
-      console.log('redrawing tree!')
       this.data = item;
       this.update();
     });
@@ -1730,20 +1844,22 @@ class GenealogyTree {
 
     events.on(PRIMARY_SECONDARY_SELECTED,(evt,Attribute) => {
       console.log('heard ' , Attribute.var ,  ' attribute_selected_event');
-      console.log(Attribute) 
-      // if (item.badge === 'primary') {
-      //   this.data.uncollapseAll();
-      //   this.data.definePrimary(primary_secondary);
-      //   this.data.collapseAll();
-      //   this.update();
-      //
-      // } else if (item.badge === 'secondary') {
-      //   this.data.defineSecondary(item.attribute.data,'Y')
-      // }
+      console.log(Attribute)
+
+      if (Attribute.primary) {
+        this.primaryAttribute = Attribute;
+      } else {
+        this.secondaryAttribute = Attribute;
+      }
+        this.update_visible_nodes()
     });
 
-
-
+    events.on(POI_SELECTED,(evt,affectedState) => {
+        // this.data.uncollapseAll();
+        this.data.defineAffected(affectedState);
+        // this.data.collapseAll();
+        this.update();
+    });
 
     events.on('table_row_hover_on', (evt, item) => {
       selectAll('.highlightBar').filter((d) => {

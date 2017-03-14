@@ -2,10 +2,10 @@ $edge-color: #4f4f4d;
 $node-color: #9ba1a1;
 $affected-node-color: rgb(48, 50, 50);
 
-.node.affected{
-  fill: $affected-node-color;
-  stroke: none;
-}
+//.node.affected{
+//  fill: $affected-node-color;
+//  stroke: none;
+//}
 
 .node{
   fill: #e2e2e2;
@@ -26,6 +26,11 @@ $affected-node-color: rgb(48, 50, 50);
   color: #0e2231 !important;
 }
 
+#legend{
+  fill: #e7e7e7;
+  opacity:.9;
+  stroke: #b6b6b6;
+}
 
 td rect{
   fill: #636363;

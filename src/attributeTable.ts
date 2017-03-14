@@ -20,6 +20,8 @@ import {line} from 'd3-shape';
 import {range as d3Range} from 'd3-array';
 import {isUndefined} from 'util';
 
+import {PRIMARY_SECONDARY_SELECTED, POI_SELECTED,VIEW_CHANGED_EVENT,TABLE_VIS_ROWS_CHANGED_EVENT} from './tableManager';
+
 /**
  * Creates the attribute table view
  */
@@ -529,8 +531,6 @@ class attributeTable {
   };
 
 
-
-
   /**
    *
    * This function renders the column header of Categorical columns in the Table View.
@@ -748,6 +748,7 @@ class attributeTable {
    * @param cellData the data bound to the cell element being passed in.
    */
   private renderCategoricalCell(element, cellData) {
+    let t = transition('t').duration(500).ease(easeLinear);
 
     let col_width = this.colWidths.categorical;
     let rowHeight = this.rowHeight;
@@ -756,9 +757,9 @@ class attributeTable {
 
     element.selectAll('rect').remove(); //Hack. don't know why the height of the rects isn' being updated.
 
-    if (numValues === 0){
-      return;
-    }
+    // if (numValues === 0){
+    //   return;
+    // }
 
     if (element.selectAll('.categorical').size()===0){
       element
@@ -786,7 +787,24 @@ class attributeTable {
       .attr('height', this.yScale(numValues))
       .attr('y',(rowHeight - this.yScale(numValues)))
       .classed('aggregate',()=>{return cellData.data.length >1})
-      .classed('affected',()=>{return this.tableManager.affectedState.var === cellData.varName})
+      .transition(t)
+      .attr('fill',(d)=> {
+        let attr = this.tableManager.primaryAttribute;
+          if (attr && attr.var === cellData.varName) {
+            // console.log(attr.categories,cellData)
+            let ind = attr.categories.indexOf(cellData.data[0]);
+            return attr.color[ind]
+          } else {
+            attr = this.tableManager.secondaryAttribute;
+            if (attr && attr.var === cellData.varName) {
+              let ind = attr.categories.indexOf(cellData.data[0]);
+              return attr.color[ind]
+            }
+          }
+        }
+       )
+
+      // .classed('affected',()=>{return this.tableManager.affectedState.var === cellData.varName})
   }
 
   /**
@@ -1185,31 +1203,7 @@ class attributeTable {
     //   return selectAll('.boundary').classed('tablehovered', false);
     // });
 
-
-    // NODE CLICK
-    events.on('row_selected', (evt, row, multipleSelection) => {
-      selectAll('.boundary').classed('tablehovered', false); //don't hover
-      //  console.log(multipleSelection);
-      selectAll('.boundary').classed('tableselected', function (a) {
-        // if it's the right row, toggle it
-        // if it's the wrong row, leave the selection the same
-        const rightRow = (select(this).attr('row_pos') == row);
-        if (rightRow)
-          return (!select(this).classed('tableselected')); //toggle it
-        else {
-          if (multipleSelection == 'single') { //unless we pressed shift, unselect everything else
-            select(this).classed('tableselected', false);
-          }
-          return select(this).classed('tableselected'); //leave it be
-        }
-
-
-      });
-    });
-
     const self = this;
-    const VIEW_CHANGED_EVENT = 'view_changed_event';
-    const TABLE_VIS_ROWS_CHANGED_EVENT = 'table_vis_rows_changed_event';
 
     //
     events.on('redraw_tree', () => {
@@ -1218,11 +1212,12 @@ class attributeTable {
     });
 
     events.on(TABLE_VIS_ROWS_CHANGED_EVENT, () => {
-      //self.ys = self.tableManager.ys; //regrab the y's
-      //  console.log("registered event!!");
-      // console.log('calling update from TABLE_VIS_ROWS_CHANGED EVENT')
       self.update();
 
+    });
+
+    events.on(PRIMARY_SECONDARY_SELECTED, (evt,item) => {
+      self.render();
     });
 
 

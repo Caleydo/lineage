@@ -97,7 +97,7 @@ class GraphData {
       d.hidden = false;
       d.aggregated = false;
       d.bdate = +d.bdate;
-      d.deceased = d.deceased === 'Y'; //transform to boolean values
+      // d.deceased = d.deceased === 'Y'; //transform to boolean values
       d.generation = -1; //indicator that generation has not been set
       d.descendant = false; //flag for blood descendants of founders - not in use yet (2/23/17)
       d.family_ids = []; //keeps track of nuclear families a given node belongs to.

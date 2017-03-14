@@ -26,6 +26,7 @@ class AttributePanel {
   private columns;
   private activeColumns=[];
   private histograms = [];
+  private attributeState = [];
 
   private tableManager;
 
@@ -317,7 +318,50 @@ class AttributePanel {
 
     })
 
+  }
 
+  /**
+   * This function is called when an attribute value is selected
+   * it keep track of selected attributes in an array
+   * @param attrName
+   * @param value
+   */
+  private updateAttrState(attrName, value) {
+    console.log('updata attr stat', attrName + ' , ' + value);
+
+
+    let found = null;
+
+    this.attributeState.forEach(function (item) {
+      if (item.name === attrName) {
+        found = item;
+      }
+    });
+
+    if (found) {
+      found.value.push(value);
+    } else {
+      this.attributeState.push({name: attrName, value: [value]});
+    }
+
+  }
+
+  /**
+   * This function update the attributestate array when a user deselect an attribute
+   *
+   */
+  private removeFromAttrState(attrName, value){
+     let found = null;
+
+    this.attributeState.forEach(function (item) {
+      if (item.name === attrName) {
+        found = item;
+      }
+    });
+
+    if (found) {
+      found.value.splice(found.value.indexOf(value) ,1);
+    }
 
   }
 
@@ -373,6 +417,16 @@ class AttributePanel {
       this.update();
 
     });
+
+    events.on('attribute_picked', (evt,item)=>{
+      this.updateAttrState(item.name, item.value)
+      console.log(this.attributeState);
+    })
+
+    events.on('attribute_unpicked', (evt,item)=>{
+      this.removeFromAttrState(item.name, item.value);
+      console.log(this.attributeState);
+    })
   }
 
 }

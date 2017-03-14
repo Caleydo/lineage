@@ -803,27 +803,31 @@ class attributeTable {
       .attr('fill',(d)=> {
         let attr = this.tableManager.primaryAttribute;
           if (attr && attr.var === cellData.varName) {
-            // console.log(attr.categories,cellData)
-            let ind = attr.categories.indexOf(cellData.data[0]);
-            if (cellData.data.length>1){
-              return this.ColorLuminance(attr.color[ind],-0.3);
-            } else {
-              return attr.color[ind]
+            let ind = attr.categories.indexOf(cellData.data.filter((d)=>{return d !== undefined})[0]);
+            if (ind>-1) {
+              // console.log(attr.categories, cellData.data[0], ind)
+              if (cellData.data.length > 1) {
+                return this.ColorLuminance(attr.color[ind], -0.3);
+              } else {
+                return attr.color[ind]
+              }
             }
 
           } else {
             attr = this.tableManager.secondaryAttribute;
             if (attr && attr.var === cellData.varName) {
-              let ind = attr.categories.indexOf(cellData.data[0]);
-              if (cellData.data.length>1){
-                return this.ColorLuminance(attr.color[ind],-0.3);
-              } else{
-                return attr.color[ind]
+              let ind = attr.categories.indexOf(cellData.data.filter((d)=>{return d !== undefined})[0]);
+              if (ind>-1) {
+                if (cellData.data.length > 1) {
+                  return this.ColorLuminance(attr.color[ind], -0.3);
+                } else {
+                  return attr.color[ind]
+                }
               }
-
             }
           }
           if (cellData.data.length>1){
+            // console.log(cellData,attr)
             return '#545757';
           }
         }

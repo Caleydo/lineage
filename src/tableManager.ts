@@ -157,10 +157,10 @@ export default class TableManager {
     let data = await attributeVector.data();
     if (Attribute['type'] === 'categorical') {
 
-      categories = Array.from(new Set(data));
+      categories = Array.from(new Set(data)).sort(); //sort alphabetically to ensure the correct order of attributes
 
       if (categories.length === 2) {//binary categorical data
-        color = [binaryColorChoice, '#ffffff'];
+        color = ['#ffffff', binaryColorChoice];
       } else {
         color = multipleColorChoice.slice(0, categories.length) //extract one color per category;
       }

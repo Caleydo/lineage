@@ -70,7 +70,7 @@ export const PRIMARY_SECONDARY_SELECTED = 'primary_secondary_attribute_event';
 export const POI_SELECTED = 'affected_attribute_event';
 
 export const PRIMARY_COLOR = '#4472CA';
-export const SECONDARY_COLOR = '#345e61';
+export const SECONDARY_COLOR = '#5ea1ae';
 
 export const PRIMARY_CATEGORICAL_COLORS = ['#D77A61', '#223843', '#D8B4A0', '#393E41'];
 export const SECONDARY_CATEGORICAL_COLORS = ['#D77A61', '#223843', '#D8B4A0', '#393E41']; //need to pick different colors

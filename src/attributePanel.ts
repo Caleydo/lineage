@@ -254,7 +254,7 @@ class AttributePanel {
     // append svgs for attributes:
     const attributeSVG = attributeElm.append('ul')
       .attr('id', columnName)
-      // .classed('sub-menu collapse fade', true)
+      .classed('sub-menu collapse fade', true)
       .append('svg')
       .attr('height',Config.panelAttributeHeight)
       .attr('id', columnName + '_svg')

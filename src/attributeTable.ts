@@ -653,6 +653,8 @@ class attributeTable {
 
   private renderIntHeaderHist(element, headerData,maxFrequency){
 
+    let t = transition('t').duration(500).ease(easeLinear);
+
     let col_width = this.colWidths.int;
     let height = this.rowHeight*1.8;
 
@@ -708,15 +710,25 @@ class attributeTable {
     }
 
     element.selectAll('.histogram')
-      .attr('opacity',0)
       .attr('width', binWidth*0.8)
+      .transition(t)
       .attr('height', d =>{return yScale(d.v)})
       .attr('y',d =>{return (height - yScale(d.v))})
-      // .attr('y',0)
-      // .attr('height', 2)
-      // .attr('y',d =>{return (yScale(d.v))})
       .attr('x',(d,i) =>{return xScale(bin2value(i))})
-      .attr('opacity',1)
+      .attr('fill',()=> {
+          let attr = this.tableManager.primaryAttribute;
+          if (attr && attr.var === headerData.name) {
+            console.log('here')
+            return attr.color
+          } else {
+            attr = this.tableManager.secondaryAttribute;
+            if (attr && attr.var === headerData.name) {
+              return attr.color
+            }
+          }
+        }
+      )
+
 
     //Position tick labels to be 'inside' the axis bounds. avoid overlap
     element.selectAll('.tick').each(function(cell){
@@ -779,7 +791,7 @@ class attributeTable {
       .attr('width', rowHeight)
       .attr('height', rowHeight)
       .attr('y',0)
-      .classed('aggregate',()=>{return cellData.data.length >1})
+      // .classed('aggregate',()=>{return cellData.data.length >1})
 
     element
       .select('.categorical')
@@ -793,19 +805,54 @@ class attributeTable {
           if (attr && attr.var === cellData.varName) {
             // console.log(attr.categories,cellData)
             let ind = attr.categories.indexOf(cellData.data[0]);
-            return attr.color[ind]
+            if (cellData.data.length>1){
+              return this.ColorLuminance(attr.color[ind],-0.3);
+            } else {
+              return attr.color[ind]
+            }
+
           } else {
             attr = this.tableManager.secondaryAttribute;
             if (attr && attr.var === cellData.varName) {
               let ind = attr.categories.indexOf(cellData.data[0]);
-              return attr.color[ind]
+              if (cellData.data.length>1){
+                return this.ColorLuminance(attr.color[ind],-0.3);
+              } else{
+                return attr.color[ind]
+              }
+
             }
+          }
+          if (cellData.data.length>1){
+            return '#545757';
           }
         }
        )
 
+
+
       // .classed('affected',()=>{return this.tableManager.affectedState.var === cellData.varName})
   }
+
+  private ColorLuminance(hex, lum) {
+
+  // validate hex string
+  hex = String(hex).replace(/[^0-9a-f]/gi, '');
+  if (hex.length < 6) {
+    hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+  }
+  lum = lum || 0;
+
+  // convert to decimal and change luminosity
+  var rgb = "#", c, i;
+  for (i = 0; i < 3; i++) {
+    c = parseInt(hex.substr(i*2,2), 16);
+    c = Math.round(Math.min(Math.max(0, c + (c * lum)), 255)).toString(16);
+    rgb += ("00"+c).substr(c.length);
+  }
+
+  return rgb;
+}
 
   /**
    *
@@ -895,6 +942,19 @@ class attributeTable {
       .attr("cy", ()=>{ return numValues>1 ? jitterScale(Math.random()) : rowHeight/2}) //introduce jitter in the y position for multiple ellipses.
       .attr("rx", radius)
       .attr("ry", radius)
+      .attr('fill',()=> {
+          let attr = this.tableManager.primaryAttribute;
+        if (attr && attr.var === cellData.name) {
+
+            return attr.color
+          } else {
+            attr = this.tableManager.secondaryAttribute;
+            if (attr && attr.var === cellData.name) {
+              return attr.color
+            }
+          }
+        }
+      )
 
 
   }

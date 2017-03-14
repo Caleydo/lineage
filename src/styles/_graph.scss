@@ -2,10 +2,10 @@ $edge-color: #4f4f4d;
 $node-color: #9ba1a1;
 $affected-node-color: rgb(48, 50, 50);
 
-//.node.affected{
-//  fill: $affected-node-color;
-//  stroke: none;
-//}
+.node.affected .nodeIcon{
+  fill: $affected-node-color;
+  stroke: none;
+}
 
 .node{
   fill: #e2e2e2;
@@ -63,7 +63,7 @@ td rect{
   fill: #b40000;
 }
 
-.histogram{
+.colSummary{
   fill: #5f6262;
 }
 
@@ -93,10 +93,12 @@ text.header{
   fill: $affected-node-color;
 }
 
-.cell .categorical.aggregate,
+
 .idBar{
   fill: #545757;
 }
+
+//.cell .categorical.aggregate
 
 
 .cell text{
@@ -298,6 +300,13 @@ rect.selected{
 	}
 }
 
+.attributeBar{
+  stroke:none;
+}
+
+.attributeFrame{
+  stroke-width: .5px;
+}
 
 
 //.aggregate{

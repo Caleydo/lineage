@@ -27,9 +27,11 @@ $affected-node-color: rgb(48, 50, 50);
 }
 
 #legend{
-  fill: #e7e7e7;
+  //fill: #e7e7e7;
+  fill:#4f4f4f;
   opacity:.9;
   stroke: #b6b6b6;
+  stroke-width: 2px;
 }
 
 td rect{

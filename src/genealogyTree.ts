@@ -326,8 +326,8 @@ class GenealogyTree {
     axis
       .append('rect')
       .attr('width', this.width)
-      .attr('height', 100)
-      .attr('y', -100)
+      .attr('height', Config.legendHeight)
+      .attr('y', -Config.legendHeight)
       .attr('fill', 'white')
 
     axis.append('g')
@@ -337,6 +337,10 @@ class GenealogyTree {
     axis.append('g')
       .attr('id', 'extremes_axis')
       .call(this.extremesXAxis)
+
+    legend.append('g')
+      .attr('id','legendIcons')
+      .attr('transform', 'translate(10,20)')
 
 
     //  //Create temporary group for y axis

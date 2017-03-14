@@ -88,7 +88,7 @@ class Histogram {
     histData.forEach((d, i) => catData.push({key:histData['categories'][i], value:d}));
     // console.log('Cate', catData);
 
-    console.log(catData)
+    // console.log(catData)
     let t = transition('t').duration(500).ease(easeLinear);
 
       //scales

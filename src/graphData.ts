@@ -112,7 +112,7 @@ class GraphData {
     });
 
     //Define attribute that defines 'affected' state
-    this.definePrimary(this.tableManager.affectedState);
+    this.defineAffected(this.tableManager.affectedState);
     this.buildTree();
 
 
@@ -308,12 +308,26 @@ class GraphData {
    * @param value threshold value to apply to attribute when defining 'affected'.
    * Currently has a single value that indicates true.
    */
-  private definePrimary(affectedState) {
+  private definePrimary(primary_secondary) {
+
+
+  }
+
+  /**
+   *
+   * This function defined the 'affected' state based on a user defined attribute.
+   *
+   * @param attribute attribute to be used to define 'affected' state of nodes.
+   * @param value threshold value to apply to attribute when defining 'affected'.
+   * Currently has a single value that indicates true.
+   */
+  private defineAffected(affectedState) {
     this.nodes.forEach((node) => {
       node.affected = node[affectedState.var] === affectedState.value;
     });
 
   }
+
 
   /**
    *
@@ -734,6 +748,8 @@ class GraphData {
         node['aggregated']=false;
       }
     });
+
+    this.trimTree();
 
     let new_range = [];
     this.nodes.forEach((n: any) => {

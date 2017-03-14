@@ -3,6 +3,7 @@ import {list as listData, getFirstByName, get as getById} from 'phovea_core/src/
 import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT} from 'phovea_core/src/datatype';
 import * as range from 'phovea_core/src/range';
 import * as events from 'phovea_core/src/event';
+import {max, min, mean} from 'd3-array';
 
 interface IFamilyInfo {
   id: number;
@@ -17,6 +18,27 @@ interface IAffectedState {
   type: string;
   value: number;
 }
+
+//Interface for the primary or secondary Categorical Attributes.
+interface IPrimaryCatAttribute {
+  primary:boolean; //true for primary; false for secondary;
+  var: string; //attribute Name
+  type: string; //Binary or MultiCategory *Should not be strings or idtypes.*
+  categories: string[]; //Array of categories
+  color: string []; // array of colors (1 to n).
+  //For binary categorical data there will be only one color for the 'Y', 1, or 'M' category. The second category will be encoded in white.
+  //for more than two categories, each category gets their own color.
+}
+
+//Interface for the primary or secondary Categorical Attributes.
+interface IPrimaryQuantAttribute {
+  primary:boolean; //true for primary; false for secondary;
+  var: string; //attribute Name
+  type: string; //Ints, floats, etc  *Should not be strings or idtypes.*
+  range: Number []; //max and min of the data. used to set the yscale in the attribute bar;
+  color: string ; // single color.  value is encoded by the height of the attribute bar.
+}
+
 
 //Interfaces describing objects that describe a selected attribute and the associated ranges
 
@@ -37,12 +59,20 @@ interface ISelectedQuantAttribute {
 //Create new type that encompasses both types of selectedAttributes
 export type selectedAttribute = ISelectedCatAttribute | ISelectedQuantAttribute;
 
+//Create new type that encompasses both types of primary attributes
+export type attribute = IPrimaryCatAttribute | IPrimaryQuantAttribute;
+
 const IndexOfKindredIDColumn = 1;
 
 export const VIEW_CHANGED_EVENT = 'view_changed_event';
 export const TABLE_VIS_ROWS_CHANGED_EVENT = 'table_vis_rows_changed_event';
+export const PRIMARY_SECONDARY_SELECTED = 'primary_secondary_attribute_event';
 
+export const PRIMARY_COLOR = '#284B63';
+export const SECONDARY_COLOR = '#3C6E71';
 
+export const PRIMARY_CATEGORICAL_COLORS = ['#D77A61', '#223843', '#D8B4A0', '#393E41'];
+export const SECONDARY_CATEGORICAL_COLORS = ['#D77A61', '#223843', '#D8B4A0', '#393E41']; //need to pick different colors
 
 /**
  * This class manages the data structure for the graph, the table visualization and the attribute selection panel.
@@ -66,13 +96,13 @@ export default class TableManager {
   /** The table view (of table) used for the graph */
   public graphTable: ITable; // table view
   /** All rows that are used in the graph - corresponds to a family */
-  private _activeGraphRows: range.Range = range.all() ;
+  private _activeGraphRows: range.Range = range.all();
   /** The columns currently displayed in the graph  */
   private activeGraphColumns: range.Range;
 
 
   /**Array of Selected Attributes in the Panel*/
-  private _selectedAttributes : selectedAttribute [];
+  private _selectedAttributes: selectedAttribute [];
 
 
   /** Active attribute is an attribute that is not ID. This an array of strings (column name) */
@@ -88,7 +118,67 @@ export default class TableManager {
   /** Holds the information for the 'affectedState' including variable and threshold*/
   public affectedState: IAffectedState;
 
+  //Keeps track of selected primary/secondary variable
+  private primaryAttribute: attribute;
+  private secondaryAttribute: attribute;
 
+
+  public async setPrimarySecondaryAttribute(attributeName, primary_secondary) {
+
+    let binaryColorChoice, multipleColorChoice;
+    if (primary_secondary === 'primary') {
+      binaryColorChoice = PRIMARY_COLOR;
+      multipleColorChoice = PRIMARY_CATEGORICAL_COLORS;
+    } else if (primary_secondary === 'secondary') {
+      binaryColorChoice = SECONDARY_COLOR;
+      multipleColorChoice = SECONDARY_CATEGORICAL_COLORS;
+    }
+
+    let Attribute = {};
+    Attribute['var'] = attributeName;
+
+    Attribute['primary'] = primary_secondary === 'primary';
+
+    let attributeVector;
+    let categories;
+    let color;
+
+    //Find Vector of that attribute in either table.
+    let allColumns = this.graphTable.cols().concat(this.tableTable.cols());
+
+    allColumns.forEach(col => {
+      if (col.desc.name === attributeName) {
+        attributeVector = col;
+      }
+    })
+
+    Attribute['type'] = attributeVector.valuetype.type;
+    let data = await attributeVector.data();
+    if (Attribute['type'] === 'categorical') {
+
+      categories = Array.from(new Set(data));
+
+      if (categories.length === 2) {//binary categorical data
+        color = [binaryColorChoice, '#ffffff'];
+      } else {
+        color = multipleColorChoice.slice(0, categories.length) //extract one color per category;
+      }
+      Attribute['categories'] = categories;
+      Attribute['color'] = color;
+    } else if (Attribute['type'] === 'int') {
+      Attribute['stats'] = await attributeVector.stats();
+      Attribute['stats'].min = min(data.filter((d)=>{return +d>0}).map(Number)) //temporary fix since vector.stats() returns 0 for empty values;
+      Attribute['stats'].mean = mean(data.filter((d)=>{return +d>0}).map(Number)) //temporary fix since vector.stats() returns 0 for empty values;
+      Attribute['color'] = binaryColorChoice;
+    }
+    // console.log(Attribute)
+
+    this[primary_secondary + 'Attribute'] = Attribute;
+
+    events.fire(PRIMARY_SECONDARY_SELECTED,Attribute);
+
+
+  }
 
   /**
    * Loads the graph data from the server and stores it in the public table variable
@@ -98,7 +188,7 @@ export default class TableManager {
   public async loadData(datasetID: string) {
     //retrieving the desired dataset by name
     this.table = <ITable> await getById(datasetID);
-    this.setAffectedState('suicide','categorical','Y') //Default value;
+    this.setAffectedState('suicide', 'categorical', 'Y') //Default value;
     await this.parseFamilyInfo();
     return Promise.resolve(this);
   }
@@ -118,8 +208,8 @@ export default class TableManager {
    * This function sets the affected State.
    *
    */
-  public setAffectedState(varName,varType,thresholdValue){
-    this.affectedState = ({var: varName, type: varType, 'value':thresholdValue});
+  public setAffectedState(varName, varType, thresholdValue) {
+    this.affectedState = ({var: varName, type: varType, 'value': thresholdValue});
   }
 
   /**
@@ -147,10 +237,10 @@ export default class TableManager {
     let familyMembers = await this.graphTable.col(0).names();
     let attributeMembers = await this.attributeTable.col(0).names();
 
-    let attributeRows =[];
+    let attributeRows = [];
 
-    attributeMembers.forEach((member,i)=>{
-      if (familyMembers.indexOf(member)>-1){
+    attributeMembers.forEach((member, i) => {
+      if (familyMembers.indexOf(member) > -1) {
         attributeRows.push(i)
       }
 
@@ -179,7 +269,7 @@ export default class TableManager {
       const name = col.desc.name;
       const type = col.desc.value.type;
 
-    if (type !== 'idtype') {
+      if (type !== 'idtype') {
         colIndexAccum.push(i);//push the index so we can get the right view
         this.activeAttributes.push(name);
       }
@@ -234,7 +324,7 @@ export default class TableManager {
     // events.fire(VIEW_CHANGED_EVENT);
   }
 
-    /**
+  /**
    * Updates the active rows for the table visualization, creates a new table view and fires a {TABLE_VIS_ROWS_CHANGED} event.
    * @param newRows
    */
@@ -260,11 +350,9 @@ export default class TableManager {
    * Updates the array of selectedAttributes in the panel.
    * @param newRows
    */
-  set selectedAttributes( attributes : selectedAttribute []) {
+  set selectedAttributes(attributes: selectedAttribute []) {
     this._selectedAttributes = attributes;
   }
-
-
 
 
   public getColumns() {

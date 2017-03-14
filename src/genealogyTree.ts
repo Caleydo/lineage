@@ -55,6 +55,8 @@ import {
   Config
 } from './config';
 
+import {PRIMARY_SECONDARY_SELECTED} from './tableManager';
+
 
 /**
  * The visualization showing the genealogy graph
@@ -1713,24 +1715,34 @@ class GenealogyTree {
       this.update();
     });
 
-    events.on('attribute_selected',(evt,item) => {
-      console.log('heard attribute_selected_event' , item.attribute.data);
-      if (item.badge === 'primary') {
-        this.data.uncollapseAll();
-        this.data.definePrimary(item.attribute.data,'Y')
-        this.data.collapseAll();
-        this.update();
+    // events.on('attribute_selected',(evt,item) => {
+    //   console.log('heard attribute_selected_event' , item.attribute.data);
+    //   if (item.badge === 'primary') {
+    //     this.data.uncollapseAll();
+    //     this.data.definePrimary(item.attribute.data,'Y')
+    //     this.data.collapseAll();
+    //     this.update();
+    //
+    //   } else if (item.badge === 'secondary') {
+    //     this.data.defineSecondary(item.attribute.data,'Y')
+    //   }
+    // });
 
-      } else if (item.badge === 'secondary') {
-        this.data.defineSecondary(item.attribute.data,'Y')
-      }
-
-      //Uncollapse Tree
-      //Re-render tree
-
-
-
+    events.on(PRIMARY_SECONDARY_SELECTED,(evt,Attribute) => {
+      console.log('heard ' , Attribute.var ,  ' attribute_selected_event');
+      console.log(Attribute) 
+      // if (item.badge === 'primary') {
+      //   this.data.uncollapseAll();
+      //   this.data.definePrimary(primary_secondary);
+      //   this.data.collapseAll();
+      //   this.update();
+      //
+      // } else if (item.badge === 'secondary') {
+      //   this.data.defineSecondary(item.attribute.data,'Y')
+      // }
     });
+
+
 
 
     events.on('table_row_hover_on', (evt, item) => {

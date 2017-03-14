@@ -173,6 +173,10 @@ class AttributePanel {
       this.addAttribute(column.desc.name, column.desc.value.type);
     });
 
+    events.on('attribute_selected', (evt, item) => {
+      this.tableManager.setPrimarySecondaryAttribute(item.attribute.data,item.badge);
+    });
+
   }
 
   /***
@@ -241,6 +245,7 @@ class AttributePanel {
       $(this).css('display', 'inline');
        event.stopPropagation();
 
+
       events.fire('attribute_selected', {attribute, badge});
 
     });
@@ -257,6 +262,8 @@ class AttributePanel {
     this.populateData(this.$node.select('#' + columnName + '_svg').node(), columnName, columnDesc);
 
   }
+
+
 
   /***
    * This function takes an svg as an input and populate it with vis element

@@ -1,4 +1,4 @@
-import {select, selectAll} from 'd3-selection';
+import {select, selectAll,event} from 'd3-selection';
 import {scaleLinear, scaleBand} from 'd3-scale';
 import {max,min,ticks,range,extent} from 'd3-array';
 import {axisTop,axisLeft,axisRight,axisBottom} from 'd3-axis';
@@ -88,7 +88,6 @@ class Histogram {
     histData.forEach((d, i) => catData.push({key:histData['categories'][i], value:d}));
     // console.log('Cate', catData);
 
-    console.log(catData)
     let t = transition('t').duration(500).ease(easeLinear);
 
       //scales
@@ -170,23 +169,26 @@ class Histogram {
     //     return yScale(d.value)-2;
     //   })
     //   .attr('opacity',1)
-    //   .attr('text-anchor','middle')
+    //   .attr('text-anchor','middle');
 
-
-    selectAll('.bar').on('click', function (d) {
-      if(select(this).classed('picked')){
-        select(this).classed('picked', false);
-      } else {
-         select(this).classed('picked', true);
-
-      }
-
-      const item = {
+selectAll('.bar').on('click', function (d) {
+  const item = {
           name: select(this).attr('attribute'),
           value: d['key']
         };
-        events.fire('attribute_cat_picked', item);
+
+      if(select(this).classed('picked')){
+        select(this).classed('picked', false);
+        console.log('unpicked');
+         events.fire('attribute_unpicked', item);
+      } else {
+         select(this).classed('picked', true);
+         console.log('picked');
+          events.fire('attribute_picked', item);
+      }
+
     });
+
 
 
   }
@@ -258,6 +260,7 @@ class Histogram {
   private attachListener() {
 
   }
+
 
 
 }

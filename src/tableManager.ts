@@ -21,15 +21,17 @@ interface IAffectedState {
 //Interfaces describing objects that describe a selected attribute and the associated ranges
 
 interface ISelectedCatAttribute {
-  value: string; //Attribute Name
+  name: string;//Attribute Name
+  values: string []; //Array of categories selected (strings) that define a positive affected state
   type: string; //Attribute Type. May be redundant if the interface is only for categorical data.
-  range: range.Range []; //Array of ranges representing people who match the attribute value.
+  range: range.Range []; //Array of ranges representing people who match any of the categories in the value field.
 }
 
 interface ISelectedQuantAttribute {
-  value: string; //Attribute Name
-  type: string; //Attribute Type
-  range: range.Range []; //Array of ranges representing people who match the attribute value.
+  name: string;//Attribute Name
+  values: number []; //Array of tuples (start and end values) that define a positive affected state
+  type: string; //Attribute Type. Within quantitative data this could be ints, floats, etc..
+  range: range.Range []; //Array of ranges representing people who match the interval defined in the value field.
 }
 
 //Create new type that encompasses both types of selectedAttributes
@@ -118,8 +120,6 @@ export default class TableManager {
    */
   public setAffectedState(varName,varType,thresholdValue){
     this.affectedState = ({var: varName, type: varType, 'value':thresholdValue});
-
-
   }
 
   /**
@@ -253,6 +253,15 @@ export default class TableManager {
     let familyView = this.table.view(range.join(this._activeGraphRows, range.all()))
     this.graphTable = familyView.view(range.join(newRows, range.all()));
     events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);
+  }
+
+
+  /**
+   * Updates the array of selectedAttributes in the panel.
+   * @param newRows
+   */
+  set selectedAttributes( attributes : selectedAttribute []) {
+    this._selectedAttributes = attributes;
   }
 
 

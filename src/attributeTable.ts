@@ -265,29 +265,27 @@ class attributeTable {
           let colData = [];
           let people = y2personDict[row];
           people.map((person) => {
-            let ind = peopleIDs.lastIndexOf(person) //find this person in the attribute data
+            const ind = peopleIDs.lastIndexOf(person); //find this person in the attribute data
             if (ind > -1) {
-              colData.push(data[ind])
+              colData.push(data[ind]);
             } else {
               colData.push(undefined);
             }
           });
           return colData;
         });
-        col.ys = allRows
+        col.ys = allRows;
         col.vector = vector;
         col.type = type;
         col.stats = stats;
         col.hist = await vector.hist(10);
-        col.stats.min = min(data.filter((d)=>{return +d>0}).map(Number)) //temporary fix since vector.stats() returns 0 for empty values;
-        col.stats.mean = mean(data.filter((d)=>{return +d>0}).map(Number)) //temporary fix since vector.stats() returns 0 for empty values;
         colDataAccum.push(col);
       } else if (type === 'string') {
 
-        let maxOffset = max(this.colOffsets);
+        const maxOffset = max(this.colOffsets);
         this.colOffsets.push(maxOffset + this.buffer + this.colWidths.string);
 
-        let col: any = {};
+        const col: any = {};
         col.ids = allRows.map((row) => {
           return y2personDict[row]
         });

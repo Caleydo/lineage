@@ -210,14 +210,6 @@ export default class TableManager {
     } else if (attributeDefinition.type === VALUE_TYPE_INT || attributeDefinition.type === VALUE_TYPE_REAL) {
           const quantDefinition = <IPrimaryQuantAttribute> attributeDefinition;
       quantDefinition.stats = await attributeVector.stats();
-      // FIXME temporary fix since vector.stats() returns 0 for empty values
-      quantDefinition.stats['min'] = min(data.filter((d) => {
-        return +d !== 0;
-      }).map(Number));
-       // FIXME temporary fix since vector.stats() returns 0 for empty values
-      quantDefinition.stats['mean'] = mean(data.filter((d) => {
-        return +d !== 0;
-      }).map(Number)); //temporary fix since vector.stats() returns 0 for empty values;
       quantDefinition.color = binaryColorChoice1;
     }
     // console.log(Attribute)

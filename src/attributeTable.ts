@@ -254,7 +254,7 @@ class attributeTable {
           return y2personDict[row]
         });
 
-        let stats = await vector.stats();
+        const stats = await vector.stats();
 
 
         col.name = await vector.desc.name;

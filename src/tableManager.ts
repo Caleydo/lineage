@@ -14,7 +14,7 @@ interface IFamilyInfo {
 
 //Interface for the 'affected' state. Contains variable chosen to determine the 'affected' people and the threshold/value for 'affected' === true. Drives tree layout.
 interface IAffectedState {
-  var: string;
+  name: string;
   type: string;
   value: number;
 }
@@ -22,7 +22,7 @@ interface IAffectedState {
 //Interface for the primary or secondary Categorical Attributes.
 interface IPrimaryCatAttribute {
   primary:boolean; //true for primary; false for secondary;
-  var: string; //attribute Name
+  name: string; //attribute Name
   type: string; //Binary or MultiCategory *Should not be strings or idtypes.*
   categories: string[]; //Array of categories
   color: string []; // array of colors (1 to n).
@@ -33,7 +33,7 @@ interface IPrimaryCatAttribute {
 //Interface for the primary or secondary Categorical Attributes.
 interface IPrimaryQuantAttribute {
   primary:boolean; //true for primary; false for secondary;
-  var: string; //attribute Name
+  name: string; //attribute Name
   type: string; //Ints, floats, etc  *Should not be strings or idtypes.*
   range: Number []; //max and min of the data. used to set the yscale in the attribute bar;
   color: string ; // single color.  value is encoded by the height of the attribute bar.
@@ -176,7 +176,7 @@ export default class TableManager {
     }
 
     let Attribute = {};
-    Attribute['var'] = attributeName;
+    Attribute['name'] = attributeName;
 
     Attribute['primary'] = primary_secondary === 'primary';
 
@@ -244,7 +244,7 @@ export default class TableManager {
    *
    */
   public setAffectedState(varName, varType, thresholdValue) {
-    this.affectedState = ({var: varName, type: varType, 'value': thresholdValue});
+    this.affectedState = ({name: varName, type: varType, 'value': thresholdValue});
     events.fire(POI_SELECTED,this.affectedState);
   }
 
@@ -323,7 +323,7 @@ export default class TableManager {
   public async parseFamilyInfo() {
 
     const familyIDs: number[] = <number[]> await this.table.col(IndexOfKindredIDColumn).data(); //Assumes kindredID is the first col. Not ideal.
-    const affectedColData = await this.table.colData(this.affectedState.var);
+    const affectedColData = await this.table.colData(this.affectedState.name);
 
     const uniqueFamilyIDs = Array.from(new Set(familyIDs));
 

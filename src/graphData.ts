@@ -331,7 +331,7 @@ class GraphData {
    */
   private defineAffected(affectedState) {
     this.nodes.forEach((node) => {
-      node.affected = node[affectedState.var] === affectedState.value;
+      node.affected = node[affectedState.name] === affectedState.value;
     });
 
   }

@@ -1,9 +1,10 @@
 import {ITable} from 'phovea_core/src/table';
 import {list as listData, getFirstByName, get as getById} from 'phovea_core/src/data';
-import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT} from 'phovea_core/src/datatype';
+import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL} from 'phovea_core/src/datatype';
 import * as range from 'phovea_core/src/range';
 import * as events from 'phovea_core/src/event';
 import {max, min, mean} from 'd3-array';
+import {IStatistics} from '../../phovea_core/src/math';
 
 interface IFamilyInfo {
   id: number;
@@ -19,29 +20,33 @@ interface IAffectedState {
   value: number;
 }
 
-//Interface for the primary or secondary Categorical Attributes.
-interface IPrimaryCatAttribute {
-  primary:boolean; //true for primary; false for secondary;
+interface IPrimaryAttribute {
+  primary: boolean; //true for primary; false for secondary;
   name: string; //attribute Name
   type: string; //Binary or MultiCategory *Should not be strings or idtypes.*
+}
+
+/**
+ * Interface for the primary or secondary Categorical Attributes
+ */
+interface IPrimaryCatAttribute extends IPrimaryAttribute {
   categories: string[]; //Array of categories
-  color: string []; // array of colors (1 to n).
   //For binary categorical data there will be only one color for the 'Y', 1, or 'M' category. The second category will be encoded in white.
   //for more than two categories, each category gets their own color.
+  color: string []; // array of colors (1 to n).
 }
 
 //Interface for the primary or secondary Categorical Attributes.
-interface IPrimaryQuantAttribute {
-  primary:boolean; //true for primary; false for secondary;
-  name: string; //attribute Name
-  type: string; //Ints, floats, etc  *Should not be strings or idtypes.*
+interface IPrimaryQuantAttribute extends IPrimaryAttribute {
   range: Number []; //max and min of the data. used to set the yscale in the attribute bar;
   color: string ; // single color.  value is encoded by the height of the attribute bar.
+  stats: IStatistics;
 }
 
 
-//Interfaces describing objects that describe a selected attribute and the associated ranges
-
+/**
+ * Interfaces describing objects that describe a selected attribute and the associated ranges
+ */
 interface ISelectedCatAttribute {
   name: string;//Attribute Name
   values: string []; //Array of categories selected (strings) that define a positive affected state
@@ -62,7 +67,7 @@ export type selectedAttribute = ISelectedCatAttribute | ISelectedQuantAttribute;
 //Create new type that encompasses both types of primary attributes
 export type attribute = IPrimaryCatAttribute | IPrimaryQuantAttribute;
 
-const IndexOfKindredIDColumn = 1;
+const indexOfKindredIDColumn = 1;
 
 export const VIEW_CHANGED_EVENT = 'view_changed_event';
 export const TABLE_VIS_ROWS_CHANGED_EVENT = 'table_vis_rows_changed_event';
@@ -104,8 +109,7 @@ export default class TableManager {
   /** The columns currently displayed in the graph  */
   private activeGraphColumns: range.Range;
 
-
-  /**Array of Selected Attributes in the Panel*/
+  /** Array of Selected Attributes in the Panel */
   private _selectedAttributes: selectedAttribute [];
 
 
@@ -119,7 +123,7 @@ export default class TableManager {
   // TODO what is this? Should this be in this class?
   public yValues;
 
-  /** Holds the information for the 'affectedState' including variable and threshold*/
+  /** Holds the information for the 'affectedState' including variable and threshold */
   public affectedState: IAffectedState;
 
   //Keeps track of selected primary/secondary variable
@@ -135,88 +139,92 @@ export default class TableManager {
    * @param attribute - attribute to search for
    * @param personID - person for which to search for attribute
    */
-  public async getAttribute(attribute,personID){
+  public async getAttribute(attribute, personID) {
 
     console.log('getAttribute: ' + attribute + personID);
     let attributeVector;
     //Find Vector of that attribute in either table.
-    let allColumns = this.graphTable.cols().concat(this.tableTable.cols());
+    const allColumns = this.graphTable.cols().concat(this.tableTable.cols());
 
-    allColumns.forEach(col => {
+    allColumns.forEach((col) => {
       // console.log(col.desc.name, attribute)
       if (col.desc.name === attribute) {
         attributeVector = col;
       }
     });
 
-    let IDs = await attributeVector.names();
+    const ids = await attributeVector.names();
 
-    if (personID in IDs){
-      const index = IDs.indexOf(personID);
+    if (personID in ids) {
+      const index = ids.indexOf(personID);
       const value = await attributeVector.at(index);
       return value;
-    } else{
+    } else {
       return undefined;
     }
   }
 
 
-  public async setPrimarySecondaryAttribute(attributeName, primary_secondary) {
+  public async setPrimarySecondaryAttribute(attributeName, primarySecondary) {
 
     let binaryColorChoice1, binaryColorChoice2, multipleColorChoice;
-    if (primary_secondary === 'primary') {
+    if (primarySecondary === 'primary') {
       binaryColorChoice1 = PRIMARY_COLOR;
       binaryColorChoice2 = PRIMARY_COLOR_2;
       multipleColorChoice = PRIMARY_CATEGORICAL_COLORS;
-    } else if (primary_secondary === 'secondary') {
+    } else if (primarySecondary === 'secondary') {
       binaryColorChoice1 = SECONDARY_COLOR;
       binaryColorChoice2 = SECONDARY_COLOR_2;
 
       multipleColorChoice = SECONDARY_CATEGORICAL_COLORS;
     }
 
-    let Attribute = {};
-    Attribute['name'] = attributeName;
-
-    Attribute['primary'] = primary_secondary === 'primary';
 
     let attributeVector;
     let categories;
     let color;
 
     //Find Vector of that attribute in either table.
-    let allColumns = this.graphTable.cols().concat(this.tableTable.cols());
+    const allColumns = this.graphTable.cols().concat(this.tableTable.cols());
 
-    allColumns.forEach(col => {
+    allColumns.forEach((col) => {
       if (col.desc.name === attributeName) {
         attributeVector = col;
       }
     });
 
-    Attribute['type'] = attributeVector.valuetype.type;
-    let data = await attributeVector.data();
-    if (Attribute['type'] === 'categorical') {
+    const attributeDefinition : IPrimaryAttribute = {name: attributeName, primary: primarySecondary === 'primary', type: attributeVector.valuetype.type};
 
+    const data = await attributeVector.data();
+    if (attributeDefinition.type === VALUE_TYPE_CATEGORICAL) {
+      const categoricalDefinition = <IPrimaryCatAttribute> attributeDefinition;
       categories = Array.from(new Set(data)).sort(); //sort alphabetically to ensure the correct order of attributes
 
       if (categories.length === 2) {//binary categorical data
         color = [binaryColorChoice2, binaryColorChoice1];
       } else {
-        color = multipleColorChoice.slice(0, categories.length) //extract one color per category;
+        color = multipleColorChoice.slice(0, categories.length); //extract one color per category;
       }
-      Attribute['categories'] = categories;
-      Attribute['color'] = color;
-    } else if (Attribute['type'] === 'int') {
-      Attribute['stats'] = await attributeVector.stats();
-      Attribute['stats'].min = min(data.filter((d)=>{return +d!==0}).map(Number)) //temporary fix since vector.stats() returns 0 for empty values;
-      Attribute['stats'].mean = mean(data.filter((d)=>{return +d!==0}).map(Number)) //temporary fix since vector.stats() returns 0 for empty values;
-      Attribute['color'] = binaryColorChoice1;
+      categoricalDefinition.categories = categories;
+      categoricalDefinition.color = color;
+    } else if (attributeDefinition.type === VALUE_TYPE_INT || attributeDefinition.type === VALUE_TYPE_REAL) {
+          const quantDefinition = <IPrimaryQuantAttribute> attributeDefinition;
+      quantDefinition.stats = await attributeVector.stats();
+      // FIXME temporary fix since vector.stats() returns 0 for empty values
+      quantDefinition.stats['min'] = min(data.filter((d) => {
+        return +d !== 0;
+      }).map(Number));
+       // FIXME temporary fix since vector.stats() returns 0 for empty values
+      quantDefinition.stats['mean'] = mean(data.filter((d) => {
+        return +d !== 0;
+      }).map(Number)); //temporary fix since vector.stats() returns 0 for empty values;
+      quantDefinition.color = binaryColorChoice1;
     }
     // console.log(Attribute)
 
-    this[primary_secondary + 'Attribute'] = Attribute;
+    this[primarySecondary + 'Attribute'] = attributeDefinition;
 
-    events.fire(PRIMARY_SECONDARY_SELECTED,Attribute);
+    events.fire(PRIMARY_SECONDARY_SELECTED, attributeDefinition);
 
 
   }
@@ -245,7 +253,7 @@ export default class TableManager {
    */
   public setAffectedState(varName, varType, thresholdValue) {
     this.affectedState = ({name: varName, type: varType, 'value': thresholdValue});
-    events.fire(POI_SELECTED,this.affectedState);
+    events.fire(POI_SELECTED, this.affectedState);
   }
 
   /**
@@ -270,17 +278,16 @@ export default class TableManager {
 
     //Update the activeAttributeRows. This ensure that vector.stats() returns the correct values in the table.
 
-    let familyMembers = await this.graphTable.col(0).names();
-    let attributeMembers = await this.attributeTable.col(0).names();
+    const familyMembers = await this.graphTable.col(0).names();
+    const attributeMembers = await this.attributeTable.col(0).names();
 
-    let attributeRows = [];
+    const attributeRows = [];
 
     attributeMembers.forEach((member, i) => {
       if (familyMembers.indexOf(member) > -1) {
-        attributeRows.push(i)
+        attributeRows.push(i);
       }
-
-    })
+    });
     this._activeTableRows = range.list(attributeRows);
 
     await this.refreshActiveViews();
@@ -298,7 +305,6 @@ export default class TableManager {
     const columns = await this.attributeTable.cols();
 
     const colIndexAccum = [];
-    let yIndex; //No need to set a value if you're going to override it in line 53.
 
     //populate active attribute array
     columns.forEach((col, i) => {
@@ -322,7 +328,7 @@ export default class TableManager {
    */
   public async parseFamilyInfo() {
 
-    const familyIDs: number[] = <number[]> await this.table.col(IndexOfKindredIDColumn).data(); //Assumes kindredID is the first col. Not ideal.
+    const familyIDs: number[] = <number[]> await this.table.col(indexOfKindredIDColumn).data(); //Assumes kindredID is the first col. Not ideal.
     const affectedColData = await this.table.colData(this.affectedState.name);
 
     const uniqueFamilyIDs = Array.from(new Set(familyIDs));
@@ -376,7 +382,7 @@ export default class TableManager {
    */
   set activeGraphRows(newRows: range.Range) {
     // this._activeGraphRows = newRows;
-    let familyView = this.table.view(range.join(this._activeGraphRows, range.all()))
+    const familyView = this.table.view(range.join(this._activeGraphRows, range.all()));
     this.graphTable = familyView.view(range.join(newRows, range.all()));
     events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);
   }

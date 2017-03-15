@@ -1900,6 +1900,7 @@ class GenealogyTree {
 
     events.on(POI_SELECTED,(evt,affectedState) => {
         // this.data.uncollapseAll();
+        console.log('POI SELECTED ', affectedState)
         this.data.defineAffected(affectedState);
         // this.data.collapseAll();
         this.update();

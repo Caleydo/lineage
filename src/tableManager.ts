@@ -167,6 +167,29 @@ export default class TableManager {
     }
   }
 
+  /**
+   *
+   * This function get the requested attribute vector.
+   *
+   * @param attribute - attribute to search for
+   */
+  public async getAttributeVector(attributeName) {
+
+    //Find Vector of that attribute in either table.
+    const allColumns = this.graphTable.cols().concat(this.tableTable.cols());
+
+    let attributeVector = undefined;
+    allColumns.forEach((col) => {
+      if (col.desc.name === attributeName) {
+        attributeVector = col;
+      }
+    });
+
+    return attributeVector;
+  }
+
+
+
 
   public async setPrimarySecondaryAttribute(attributeName, primarySecondary) {
 
@@ -248,8 +271,31 @@ export default class TableManager {
    * This function sets the affected State.
    *
    */
-  public setAffectedState(varName, varType, thresholdValue) {
+  public async setAffectedState(varName, varType?, thresholdValue?) {
+
+    let attributeVector = undefined;
+    if (typeof varType === 'undefined') {
+      attributeVector = await this.getAttributeVector(varName);
+
+      varType = attributeVector.valuetype.type;
+    }
+
+    if (typeof thresholdValue === 'undefined') {
+      attributeVector = await this.getAttributeVector(varName);
+      if (varType === VALUE_TYPE_INT || varType === VALUE_TYPE_REAL){
+        let stats = await attributeVector.stats();
+        thresholdValue = stats.mean ; //if threshold hasn't been defined, default to anything over the mean value
+      } else if (varType === VALUE_TYPE_CATEGORICAL){
+        let categoriesVec = attributeVector.valuetype.categories;
+        let categories = categoriesVec.map(c=>{return c.name});
+        thresholdValue = categories[1]; //pick a default category;
+      }
+
+    }
+
+
     this.affectedState = ({name: varName, type: varType, 'value': thresholdValue});
+    console.log(this.affectedState);
     events.fire(POI_SELECTED, this.affectedState);
   }
 
@@ -269,7 +315,6 @@ export default class TableManager {
       })[0];
     }
     this._activeGraphRows = range.list(family.range);
-
 
     await this.refreshActiveViews();
 
@@ -398,22 +443,22 @@ export default class TableManager {
     return this.table.cols();
   }
 
-  // private attachListener() {
-  //
-  //   //Set listener for added attribute to the active list
-  //   events.on('attribute_added', (evt, item) => {
-  //
-  //   });
-  //
-  //   //Set listener for removed attribute from the active list
-  //   events.on('attribute_reordered', (evt, item) => {
-  //
-  //   });
-  //   //Set listener for reordering attribute within the active list
-  //   events.on('attribute_removed', (evt, item) => {
-  //
-  //   });
-  // }
+  private attachListeners() {
+
+    //Set listener for added attribute to the active list
+    events.on('attribute_added', (evt, item) => {
+
+    });
+
+    //Set listener for removed attribute from the active list
+    events.on('attribute_reordered', (evt, item) => {
+
+    });
+    //Set listener for reordering attribute within the active list
+    events.on('attribute_removed', (evt, item) => {
+
+    });
+  }
 }
 
 /**

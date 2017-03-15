@@ -10,6 +10,8 @@ import * as histogram from './histogram';
 import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL} from 'phovea_core/src/datatype';
 import * as range from 'phovea_core/src/range';
 
+import {PRIMARY_SECONDARY_SELECTED, POI_SELECTED} from './tableManager';
+
 
 import {Config} from './config';
 
@@ -174,9 +176,14 @@ class AttributePanel {
       this.addAttribute(column.desc.name, column.desc.value.type);
     });
 
-    events.on('attribute_selected', (evt, item) => {
+    events.on(PRIMARY_SECONDARY_SELECTED, (evt, item) => {
       this.tableManager.setPrimarySecondaryAttribute(item.attribute.data,item.badge);
     });
+
+    events.on('poi_selected', (evt, item) => {
+      this.tableManager.setAffectedState(item.attribute.data);
+    });
+
 
   }
 
@@ -252,9 +259,11 @@ class AttributePanel {
       $(this).css('display', 'inline');
        event.stopPropagation();
 
-
-      events.fire('attribute_selected', {attribute, badge});
-
+      if (badge === 'primary' || badge === 'secondary'){
+        events.fire(PRIMARY_SECONDARY_SELECTED, {attribute, badge});
+      } else if (badge === 'poi'){
+        events.fire('poi_selected', {attribute, badge});
+      }
     });
 
     // append svgs for attributes:
@@ -420,7 +429,6 @@ class AttributePanel {
     });
 
     events.on('attribute_picked', (evt,item)=>{
-
       this.updateAttrState(item.name, item.value)
       console.log(this.attributeState);
     })

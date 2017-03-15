@@ -330,6 +330,8 @@ class GraphData {
    * Currently has a single value that indicates true.
    */
   private defineAffected(affectedState) {
+
+    console.log('affected State is ', affectedState)
     this.nodes.forEach((node) => {
       node.affected = node[affectedState.name] === affectedState.value;
     });

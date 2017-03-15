@@ -566,11 +566,11 @@ class attributeTable {
           let attr = this.tableManager.primaryAttribute;
         if (attr)
           // console.log(attr,headerData)
-          if (attr && attr.var === headerData.varName) {
+          if (attr && attr.name === headerData.varName) {
             return attr.color[1]
           } else {
             attr = this.tableManager.secondaryAttribute;
-            if (attr && attr.var === headerData.varName) {
+            if (attr && attr.name === headerData.varName) {
               return attr.color[1]
             }
           }
@@ -731,11 +731,11 @@ class attributeTable {
       .attr('x',(d,i) =>{return xScale(bin2value(i))})
       .attr('fill',()=> {
           let attr = this.tableManager.primaryAttribute;
-          if (attr && attr.var === headerData.name) {
+          if (attr && attr.name === headerData.name) {
             return attr.color
           } else {
             attr = this.tableManager.secondaryAttribute;
-            if (attr && attr.var === headerData.name) {
+            if (attr && attr.name === headerData.name) {
               return attr.color
             }
           }
@@ -822,7 +822,7 @@ class attributeTable {
       .attr('y',0)
       .attr('fill',(d)=> {
           let attr = this.tableManager.primaryAttribute;
-          if (attr && attr.var === cellData.varName) {
+          if (attr && attr.name === cellData.varName) {
             let ind = attr.categories.indexOf(cellData.data.filter((d)=>{return d !== undefined})[0]);
             if (ind === 0) {
                 return attr.color[1]
@@ -831,7 +831,7 @@ class attributeTable {
             }
           } else {
             attr = this.tableManager.secondaryAttribute;
-            if (attr && attr.var === cellData.varName) {
+            if (attr && attr.name === cellData.varName) {
               let ind = attr.categories.indexOf(cellData.data.filter((d)=>{return d !== undefined})[0]);
               if (ind === 0) {
                 return attr.color[1]
@@ -856,7 +856,7 @@ class attributeTable {
       // .transition(t)
       .attr('fill',(d)=> {
         let attr = this.tableManager.primaryAttribute;
-          if (attr && attr.var === cellData.varName) {
+          if (attr && attr.name === cellData.varName) {
             let ind = attr.categories.indexOf(cellData.data.filter((d)=>{return d !== undefined})[0]);
             if (ind>-1) {
               // console.log(attr.categories, cellData.data[0], ind)
@@ -869,7 +869,7 @@ class attributeTable {
 
           } else {
             attr = this.tableManager.secondaryAttribute;
-            if (attr && attr.var === cellData.varName) {
+            if (attr && attr.name === cellData.varName) {
               let ind = attr.categories.indexOf(cellData.data.filter((d)=>{return d !== undefined})[0]);
               if (ind>-1) {
                 return attr.color[ind]
@@ -890,7 +890,7 @@ class attributeTable {
 
 
 
-      // .classed('affected',()=>{return this.tableManager.affectedState.var === cellData.varName})
+      // .classed('affected',()=>{return this.tableManager.affectedState.name === cellData.varName})
   }
 
   private ColorLuminance(hex, lum) {
@@ -1002,12 +1002,12 @@ class attributeTable {
       .attr("ry", radius)
       .attr('fill',()=> {
           let attr = this.tableManager.primaryAttribute;
-        if (attr && attr.var === cellData.name) {
+        if (attr && attr.name === cellData.name) {
 
             return attr.color
           } else {
             attr = this.tableManager.secondaryAttribute;
-            if (attr && attr.var === cellData.name) {
+            if (attr && attr.name === cellData.name) {
               return attr.color
             }
           }

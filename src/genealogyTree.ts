@@ -1090,7 +1090,7 @@ class GenealogyTree {
         let attr = this.primaryAttribute;
 
         if (attr) {
-          this.data.getAttribute(attr.var, d.id).then((data) => {
+          this.data.getAttribute(attr.name, d.id).then((data) => {
             if (attr && attr.type === 'categorical') {
               height = Config.glyphSize * 2;
             } else if (attr && data && attr.type === 'int') {
@@ -1108,10 +1108,10 @@ class GenealogyTree {
         let attr = this.primaryAttribute;
 
         if (attr) {
-          this.data.getAttribute(attr.var, d.id).then((data) => {
+          this.data.getAttribute(attr.name, d.id).then((data) => {
             if (attr && data && attr.type === 'int') {
               this.attributeBarY.domain([attr.stats.min, attr.stats.max]);
-              y = Config.glyphSize * 2 - this.attributeBarY(d[attr.var]);
+              y = Config.glyphSize * 2 - this.attributeBarY(d[attr.name]);
             }
 
           })
@@ -1123,9 +1123,9 @@ class GenealogyTree {
         let attr  = this.primaryAttribute;
         let color;
         if (attr) {
-          color = this.data.getAttribute(attr.var, d.id).then((data) => {
+          color = this.data.getAttribute(attr.name, d.id).then((data) => {
             if (attr && data && attr.type === 'categorical') {
-              let ind = attr.categories.indexOf(d[attr.var]);
+              let ind = attr.categories.indexOf(d[attr.name]);
               return attr.color[ind]
             } else if (attr && data && attr.type === 'int') {
               return attr.color
@@ -1144,28 +1144,28 @@ class GenealogyTree {
 
         if (attr && attr.type === 'categorical') {
           height = Config.glyphSize * 2;
-        } else if (attr && d[attr.var] && attr.type === 'int'){
+        } else if (attr && d[attr.name] && attr.type === 'int'){
           this.attributeBarY.domain([attr.stats.min,attr.stats.max]);
-          height = this.attributeBarY(d[attr.var]);
+          height = this.attributeBarY(d[attr.name]);
         }
         return height
       })
       .attr('y', (d) => {
         let y = 0 ;
         let attr = this.secondaryAttribute;
-        if (attr && d[attr.var] && attr.type === 'int'){
+        if (attr && d[attr.name] && attr.type === 'int'){
           this.attributeBarY.domain([attr.stats.min,attr.stats.max]);
-          y =  Config.glyphSize * 2 - this.attributeBarY(d[attr.var]);
+          y =  Config.glyphSize * 2 - this.attributeBarY(d[attr.name]);
         }
         return d['sex'] === 'F' ? (- Config.glyphSize) +y : y
       })
       .attr('fill', (d) => {
         let attr  = this.secondaryAttribute;
-        if (attr && d[attr.var] && attr.type === 'categorical' ){
-          // console.log(d[attr.var],attr.categories)
-          let ind = attr.categories.indexOf(d[attr.var]);
+        if (attr && d[attr.name] && attr.type === 'categorical' ){
+          // console.log(d[attr.name],attr.categories)
+          let ind = attr.categories.indexOf(d[attr.name]);
           return attr.color[ind]
-        } else if (attr && d[attr.var] && attr.type === 'int' ){
+        } else if (attr && d[attr.name] && attr.type === 'int' ){
           return attr.color
         }
       })

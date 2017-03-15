@@ -18,7 +18,7 @@ import {
 /**
  * Creates the family selector view
  */
-class familySelector {
+class FamilySelector {
 
   private $node;
 
@@ -26,18 +26,18 @@ class familySelector {
 
   private casesScale = scaleLinear();  //yscale for cases
 
-  constructor(parent:Element) {
+  constructor(parent: Element) {
     this.$node = select(parent);
   }
 
   /**
    * Initialize the view and return a promise
    * that is resolved as soon the view is completely initialized.
-   * @returns {Promise<familySelector>}
+   * @returns {Promise<FamilySelector>}
    */
   init(dataObject) {
     this.build();
-    this.updateTable(dataObject)
+    this.updateTable(dataObject);
 
     // return the promise directly as long there is no dynamical data to update
     return Promise.resolve(this);
@@ -57,20 +57,21 @@ class familySelector {
     //            </ul>`);
 
 
+    const table = select('#familySelector').append('table')
+      .classed('fixed_headers', true)
 
-    const table = select("#familySelector").append("table")
-      .classed('fixed_headers',true)
-
-    const thead = table.append("thead");
-    const tbody = table.append("tbody");
+    const thead = table.append('thead');
+    const tbody = table.append('tbody');
 
     // append the header row
-    thead.append("tr")
-      .selectAll("th")
-      .data(['FamilyID','# People','# Cases'])
+    thead.append('tr')
+      .selectAll('th')
+      .data(['FamilyID', '# People', '# Cases'])
       .enter()
-      .append("th")
-      .text(function(column) { return column; })
+      .append('th')
+      .text(function (column) {
+        return column;
+      });
 
   }
 
@@ -80,8 +81,8 @@ class familySelector {
   private updateTable(data) {
 
     this.peopleScale
-      .range([0,140])
-      .domain([0,800])
+      .range([0, 140])
+      .domain([0, 800]);
 
 
     // let minValue = min(data.familyInfo,(d:any)=>{return +d.size});
@@ -99,60 +100,80 @@ class familySelector {
     //   .range([0,50])
     //   .domain([minValue,maxValue]);
 
-  // create a row for each object in the data
-  var rows = select('tbody').selectAll("tr")
-    .data(data.familyInfo)
-    .enter()
-    .append("tr");
-  //
-  // create a cell in each row for each column
-  var cells = rows.selectAll("td")
-    .data((d)=>{return [{'id':d['id'], 'value':d['id'], 'type':'id'}, {'id':d['id'], 'value':d['size'], 'type':'size'}, {'id':d['id'], 'value':d['affected'], 'type':'cases'}]})
-    .enter()
-    .append("td")
+    // create a row for each object in the data
+    const rows = select('tbody').selectAll('tr')
+      .data(data.familyInfo)
+      .enter()
+      .append('tr');
+    //
+    // create a cell in each row for each column
+    const cells = rows.selectAll('td')
+      .data((d) => {
+        return [{'id': d['id'], 'value': d['id'], 'type': 'id'}, {
+          'id': d['id'],
+          'value': d['size'],
+          'type': 'size'
+        }, {'id': d['id'], 'value': d['affected'], 'type': 'cases'}];
+      })
+      .enter()
+      .append('td');
 
 
-  selectAll('td').filter((c:any)=>{return c.type === 'size' || c.type === 'cases'})
-    .append('svg')
-    .attr('width',(d:any) => { return this.peopleScale.range()[1] })
-    .attr('height',10)
-    .append('rect')
-    .attr('width',(d:any) => { return this.peopleScale(d.value)})
-    .attr('height',10)
+    selectAll('td').filter((c: any) => {
+      return c.type === 'size' || c.type === 'cases'
+    })
+      .append('svg')
+      .attr('width', (d: any) => {
+        return this.peopleScale.range()[1];
+      })
+      .attr('height', 10)
+      .append('rect')
+      .attr('width', (d: any) => {
+        return this.peopleScale(d.value);
+      })
+      .attr('height', 10);
 
-    selectAll('td').selectAll('svg').filter((c:any)=>{return c.type === 'size' || c.type === 'cases'})
+    selectAll('td').selectAll('svg').filter((c: any) => {
+      return c.type === 'size' || c.type === 'cases';
+    })
       .append('text')
       .attr('dy', 10)
-      .attr('dx', (d:any) => {
-        return this.peopleScale(d.value) +4})
-      .text((d:any) => {
+      .attr('dx', (d: any) => {
+        return this.peopleScale(d.value) + 4;
+      })
+      .text((d: any) => {
+        return d.value.toString();
+      });
+    // .attr('fill', 'white')
+    // .style('font-weight', 'bold')
+    // .attr('text-anchor', 'end')
+
+
+    cells.filter((c: any) => {
+      return c.type === 'id';
+    })
+    // cells
+      .html((d: any) => {
         return d.value.toString();
       })
-      // .attr('fill', 'white')
-      // .style('font-weight', 'bold')
-      // .attr('text-anchor', 'end')
+      .style('text-align', 'center');
 
 
-
-
-    cells.filter((c:any)=>{return c.type === 'id'})
-    // cells
-      .html((d:any) => {
-      return d.value.toString();
-    })
-      .style('text-align','center')
-
-
-  selectAll('td').on('click',(d) => {
-    select('tbody').selectAll('tr').classed('selected',false);
-    select('tbody').selectAll('tr').filter((row)=>{return row['id'] === d['id']}).classed('selected',true);
-    data.selectFamily(d['id'])});
+    selectAll('td').on('click', (d) => {
+      select('tbody').selectAll('tr').classed('selected', false);
+      select('tbody').selectAll('tr').filter((row) => {
+        return row['id'] === d['id'];
+      }).classed('selected', true);
+      data.selectFamily(d['id']);
+    });
 
     //default to 38
-    select('tbody').selectAll('tr').filter((row)=>{return row['id'] === 38}).classed('selected',true);
+    select('tbody').selectAll('tr').filter((row) => {
+      return row['id'] === 38;
+    }).classed('selected', true);
 
 
-}
+  }
 
 
 }
@@ -164,6 +185,6 @@ class familySelector {
  * @param options
  * @returns {attributePanel}
  */
-export function create(parent:Element) {
-  return new familySelector(parent);
+export function create(parent: Element) {
+  return new FamilySelector(parent);
 }

@@ -1,6 +1,6 @@
 import {ITable} from 'phovea_core/src/table';
 import {list as listData, getFirstByName, get as getById} from 'phovea_core/src/data';
-import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL} from 'phovea_core/src/datatype';
+import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL, INumberValueTypeDesc} from 'phovea_core/src/datatype';
 import * as range from 'phovea_core/src/range';
 import * as events from 'phovea_core/src/event';
 import {max, min, mean} from 'd3-array';
@@ -242,7 +242,7 @@ export default class TableManager {
 
     //retrieving the desired dataset by name
     this.table = <ITable> await getById(descendDataSetID);
-    this.setAffectedState('suicide', 'categorical', 'Y'); //Default value;
+    this.setAffectedState('suicide', VALUE_TYPE_CATEGORICAL, 'Y'); //Default value;
     await this.parseFamilyInfo();
     return Promise.resolve(this);
   }

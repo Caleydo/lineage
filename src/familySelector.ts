@@ -58,7 +58,7 @@ class FamilySelector {
 
 
     const table = select('#familySelector').append('table')
-      .classed('fixed_headers', true)
+      .classed('fixed_headers', true);
 
     const thead = table.append('thead');
     const tbody = table.append('tbody');

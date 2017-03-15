@@ -1089,51 +1089,45 @@ class GenealogyTree {
         let height = 0 ;
         let attr = this.primaryAttribute;
 
-        if (attr) {
-          this.data.getAttribute(attr.var, d.id).then((data) => {
+          // this.data.getAttribute(attr.var,d.id).then((data) =>{
             if (attr && attr.type === 'categorical') {
               height = Config.glyphSize * 2;
-            } else if (attr && data && attr.type === 'int') {
-              this.attributeBarY.domain([attr.stats.min, attr.stats.max]);
-              height = this.attributeBarY(data);
+            } else if (attr && d[attr.var] && attr.type === 'int'){
+              this.attributeBarY.domain([attr.stats.min,attr.stats.max]);
+              height = this.attributeBarY(d[attr.var]);
             }
-          })
+            // })
 
-          return height;
-        }
+        return height;
 
       })
       .attr('y', (d:any) => {
         let y = 0 ;
         let attr = this.primaryAttribute;
 
-        if (attr) {
-          this.data.getAttribute(attr.var, d.id).then((data) => {
-            if (attr && data && attr.type === 'int') {
-              this.attributeBarY.domain([attr.stats.min, attr.stats.max]);
-              y = Config.glyphSize * 2 - this.attributeBarY(d[attr.var]);
-            }
+        // this.data.getAttribute(attr.var,d.id).then((data) =>{
+          if (attr && d[attr.var] && attr.type === 'int'){
+            this.attributeBarY.domain([attr.stats.min,attr.stats.max]);
+            y =  Config.glyphSize * 2 - this.attributeBarY(d[attr.var]);
+          }
 
-          })
-          return d['sex'] === 'F' ? (-Config.glyphSize) + y : y
-        }
+        // })
+        return d['sex'] === 'F' ? (- Config.glyphSize) +y : y
 
       })
       .attr('fill', (d:any) => {
         let attr  = this.primaryAttribute;
         let color;
-        if (attr) {
-          color = this.data.getAttribute(attr.var, d.id).then((data) => {
-            if (attr && data && attr.type === 'categorical') {
-              let ind = attr.categories.indexOf(d[attr.var]);
-              return attr.color[ind]
-            } else if (attr && data && attr.type === 'int') {
-              return attr.color
-            }
-          })
-        }
-        return color;
-
+        // this.data.getAttribute(attr.var,d.id).then((data) =>{
+          if (attr && d[attr.var] && attr.type === 'categorical' ){
+            // console.log(d[attr.var],attr.categories)
+            let ind = attr.categories.indexOf(d[attr.var]);
+            color = attr.color[ind]
+          } else if (attr && d[attr.var] && attr.type === 'int' ){
+            color =  attr.color
+          }
+        // })
+        return color
       })
 
     allNodes.selectAll('.attributeBar').filter('.secondary')

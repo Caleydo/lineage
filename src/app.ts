@@ -60,9 +60,9 @@ export class App {
 
     /** =====  PRIVATE CASE - WORKS ONLY WITH THE RIGHT DATA LOCALLY ===== */
 
-      //await tableManager.loadAttributeData('allAttributes');
+      // await tableManager.loadAttributeData('allAttributes');
       // Pick one of these
-      //await tableManager.loadData('FiftyFamiliesDescendAnon');
+      // await tableManager.loadData('FiftyFamiliesDescendAnon');
       //await tableManager.loadData('AllFamiliesDescendAnon');
 
 

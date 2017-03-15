@@ -326,7 +326,7 @@ class AttributePanel {
    * @param attrName
    * @param value
    */
-  private updateAttrState(attrName, value? , range?) {
+  private updateAttrState(attrName, value) {
     console.log('updata attr stat', attrName + ' , ' + value);
     let found = null;
     this.attributeState.forEach(function (item) {

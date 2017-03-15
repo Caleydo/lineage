@@ -216,9 +216,9 @@ selectAll('.catBar').on('click', function (d) {
         v: b,
         acc: acc,
         ratio: b / total,
-        range: histData.range(i),
-
+        valueRange: histData.valueRange,
         name: 'Bin ' + (i + 1) + ' (center: ' + Math.round((i + 0.5) * binWidth) + ')',
+        binIndex: i ,
         // color: cols((i + 0.5) * binWidth);
         color:cols(b)
       };
@@ -226,10 +226,12 @@ selectAll('.catBar').on('click', function (d) {
 
     });
 
+    console.log(histData.valueRange);
+
     //let xScale = scaleLinear().range([0,this.width]).domain([0,histData.bins])
-    let xScale = scaleLinear().range([0,this.width]).domain(histData.valueRange).nice();
+    let xScale = scaleLinear().range([0,this.width]).domain(histData.valueRange);//.nice();
     // let yScale = scaleLinear().range([0,height]).domain([0,maxFrequency]);
-   var bin2value = scaleLinear().range(histData.valueRange).domain([0,histData.bins]);
+   let bin2value = scaleLinear().range(histData.valueRange).domain([0,histData.bins]);
     let yScale = scaleLinear().range([0,this.height]).domain([0,histData.largestFrequency]);
 
     const element = this.$node.append('g')
@@ -263,11 +265,23 @@ selectAll('.catBar').on('click', function (d) {
 
 
 
-    selectAll('.numBar').on('click', function (d) {
-      console.log(d)
+    selectAll('.numBar').on('click', function (d, i) {
+      bin2value.range(d['valueRange']);
+      //getting the range of the selected bin
+      const binIndex = parseInt(d['binIndex']);
+      const diff = (d['valueRange'][1] - d['valueRange'][0])/10;
+      const lowerBound = Math.floor(d['valueRange'][0]+(diff*binIndex));
+      const upperBound = Math.floor(d['valueRange'][0]+(diff*(binIndex+1)));
+      console.log(bin2value.range())
+      console.log('selected bin range', lowerBound);
+      console.log('selected bin range', upperBound);
+      console.log('num bar', d);
+      console.log('num bar', i);
+      console.log('num bar', bin2value(binIndex));
+
   const item = {
           name: select(this).attr('attribute'),
-         // value: d['key']
+          value: [lowerBound, upperBound]
         };
 
       if(select(this).classed('picked')){
@@ -281,6 +295,7 @@ selectAll('.catBar').on('click', function (d) {
       }
 
     });
+
 
   }
 

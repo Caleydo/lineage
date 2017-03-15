@@ -52,19 +52,19 @@ export class App {
 
 
     /** =====  PUBLIC CASE ===== */
-    //Load in Attribute Data
-    await tableManager.loadAttributeData('TwoFamiliesAttributes');
-    //Load in Genealogy Data
-    await tableManager.loadData('TwoFamiliesDescendAnon');
+    // await tableManager.loadData('TwoFamiliesDescendAnon');
 
+    // await tableManager.loadAttributeData('TwoFamiliesAttributes');
+    //
 
-    /** =====  PRIVATE CASE - WORKS ONLY WITH THE RIGHT DATA LOCALLY ===== */
+    /** =====  PUBLIC CASE ===== */
+    await tableManager.loadData('TwoFamiliesDescendAnon', 'TwoFamiliesAttributes');
 
-      // await tableManager.loadAttributeData('allAttributes');
-      // Pick one of these
-      // await tableManager.loadData('FiftyFamiliesDescendAnon');
-      //await tableManager.loadData('AllFamiliesDescendAnon');
-
+    /** =====  PRIVATE CASES - WORKS ONLY WITH THE RIGHT DATA LOCALLY ===== */
+    //await tableManager.loadData('TenFamiliesDescendAnon', 'TenFamiliesAttributes');
+    //await tableManager.loadData('FiftyFamiliesDescendAnon', 'FiftyFamiliesAttributes');
+    //await tableManager.loadData('AllFamiliesDescendAnon', 'AllFamiliesAttributes');
+    /** ============= */
 
     const graphDataObj = graphData.create(tableManager);
     await graphDataObj.createTree();

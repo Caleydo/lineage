@@ -56,6 +56,7 @@ import {
 } from './config';
 
 import {PRIMARY_SECONDARY_SELECTED, POI_SELECTED} from './tableManager';
+import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT} from 'phovea_core/src/datatype';
 
 
 /**
@@ -1089,14 +1090,16 @@ class GenealogyTree {
         let height = 0 ;
         let attr = this.primaryAttribute;
 
-          // this.data.getAttribute(attr.var,d.id).then((data) =>{
-            if (attr && attr.type === 'categorical') {
+        if (attr) {
+          let data = this.data.getAttribute(attr.name, d.id);
+
+            if (attr && attr.type === VALUE_TYPE_CATEGORICAL) {
               height = Config.glyphSize * 2;
-            } else if (attr && d[attr.var] && attr.type === 'int'){
-              this.attributeBarY.domain([attr.stats.min,attr.stats.max]);
-              height = this.attributeBarY(d[attr.var]);
+            } else if (attr && data && attr.type === VALUE_TYPE_INT) {
+              this.attributeBarY.domain([attr.stats.min, attr.stats.max]);
+              height = this.attributeBarY(data);
             }
-            // })
+          }
 
         return height;
 
@@ -1105,29 +1108,32 @@ class GenealogyTree {
         let y = 0 ;
         let attr = this.primaryAttribute;
 
-        // this.data.getAttribute(attr.var,d.id).then((data) =>{
-          if (attr && d[attr.var] && attr.type === 'int'){
-            this.attributeBarY.domain([attr.stats.min,attr.stats.max]);
-            y =  Config.glyphSize * 2 - this.attributeBarY(d[attr.var]);
-          }
+        if (attr) {
+          let data = this.data.getAttribute(attr.name, d.id);
 
-        // })
+            if (attr && data && attr.type === VALUE_TYPE_INT) {
+              this.attributeBarY.domain([attr.stats.min, attr.stats.max]);
+              y = Config.glyphSize * 2 - this.attributeBarY(data);
+            }
+
+
         return d['sex'] === 'F' ? (- Config.glyphSize) +y : y
 
-      })
+      }})
       .attr('fill', (d:any) => {
         let attr  = this.primaryAttribute;
-        let color;
-        // this.data.getAttribute(attr.var,d.id).then((data) =>{
-          if (attr && d[attr.var] && attr.type === 'categorical' ){
-            // console.log(d[attr.var],attr.categories)
-            let ind = attr.categories.indexOf(d[attr.var]);
-            color = attr.color[ind]
-          } else if (attr && d[attr.var] && attr.type === 'int' ){
-            color =  attr.color
-          }
-        // })
-        return color
+
+        if (attr) {
+          let data = this.data.getAttribute(attr.name, d.id);
+          console.log(data)
+            if (attr && data && attr.type === VALUE_TYPE_CATEGORICAL) {
+              let ind = attr.categories.indexOf(data);
+              return attr.color[ind]
+            } else if (attr && data && attr.type === VALUE_TYPE_INT) {
+              return attr.color
+            }
+
+        }
       })
 
     allNodes.selectAll('.attributeBar').filter('.secondary')
@@ -1136,30 +1142,32 @@ class GenealogyTree {
         let height = 0 ;
         let attr = this.secondaryAttribute;
 
-        if (attr && attr.type === 'categorical') {
+
+
+        if (attr && attr.type === VALUE_TYPE_CATEGORICAL) {
           height = Config.glyphSize * 2;
-        } else if (attr && d[attr.var] && attr.type === 'int'){
+        } else if (attr && d[attr.name] && attr.type === VALUE_TYPE_INT){
           this.attributeBarY.domain([attr.stats.min,attr.stats.max]);
-          height = this.attributeBarY(d[attr.var]);
+          height = this.attributeBarY(d[attr.name]);
         }
         return height
       })
       .attr('y', (d) => {
         let y = 0 ;
         let attr = this.secondaryAttribute;
-        if (attr && d[attr.var] && attr.type === 'int'){
+        if (attr && d[attr.name] && attr.type === VALUE_TYPE_INT){
           this.attributeBarY.domain([attr.stats.min,attr.stats.max]);
-          y =  Config.glyphSize * 2 - this.attributeBarY(d[attr.var]);
+          y =  Config.glyphSize * 2 - this.attributeBarY(d[attr.name]);
         }
         return d['sex'] === 'F' ? (- Config.glyphSize) +y : y
       })
       .attr('fill', (d) => {
         let attr  = this.secondaryAttribute;
-        if (attr && d[attr.var] && attr.type === 'categorical' ){
-          // console.log(d[attr.var],attr.categories)
-          let ind = attr.categories.indexOf(d[attr.var]);
+        if (attr && d[attr.name] && attr.type === VALUE_TYPE_CATEGORICAL ){
+          // console.log(d[attr.name],attr.categories)
+          let ind = attr.categories.indexOf(d[attr.name]);
           return attr.color[ind]
-        } else if (attr && d[attr.var] && attr.type === 'int' ){
+        } else if (attr && d[attr.name] && attr.type === VALUE_TYPE_INT ){
           return attr.color
         }
       })

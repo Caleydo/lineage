@@ -15,6 +15,8 @@ import {active} from 'd3-transition';
 import {transition} from 'd3-transition';
 import {easeLinear} from 'd3-ease';
 
+import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT} from 'phovea_core/src/datatype';
+
 import {line} from 'd3-shape';
 
 import {range as d3Range} from 'd3-array';
@@ -54,7 +56,7 @@ class attributeTable {
   private colData;    // <- everything we need to bind
 
   private rowHeight = Config.glyphSize * 2.5 - 4;
-  private colWidths = {'categorical':this.rowHeight, 'int':this.rowHeight*4, 'string':this.rowHeight*5, 'id':this.rowHeight*4};
+  private colWidths = {categorical:this.rowHeight, int:this.rowHeight*4, string:this.rowHeight*5, id:this.rowHeight*4};
 
   private colOffsets = [0];
 
@@ -111,25 +113,25 @@ class attributeTable {
     const svg = this.$node.append('svg')
       .classed('tableSVG', true)
       .attr('width', this.width + this.margin.left + this.margin.right)
-      .attr("height", this.height + this.margin.top + this.margin.bottom)
+      .attr('height', this.height + this.margin.top + this.margin.bottom)
 
 
 //HEADERS
-    this.tableHeader = svg.append("g")
-      .attr("transform", "translate(0," + this.margin.axisTop + ")");
+    this.tableHeader = svg.append('g')
+      .attr('transform', 'translate(0,' + this.margin.axisTop + ')');
 
-    this.columnSummaries = svg.append("g")
-      .attr("transform", "translate(0," + (this.margin.top - 50) + ")");
+    this.columnSummaries = svg.append('g')
+      .attr('transform', 'translate(0,' + (this.margin.top - 50) + ')');
 
 // TABLE
 
-    svg.append("g")
-      .attr("transform", "translate(0," + this.margin.top + ")")
-      .attr('id','highlightBarsGroup')
+    svg.append('g')
+      .attr('transform', 'translate(0,' + this.margin.top + ')')
+      .attr('id','highlightBarsGroup');
 
 
-    this.table = svg.append("g")
-      .attr("transform", "translate(0," + this.margin.top + ")");
+    this.table = svg.append('g')
+      .attr('transform', 'translate(0,' + this.margin.top + ')');
   }
 
 
@@ -156,7 +158,7 @@ class attributeTable {
       } else {
         y2personDict[yDict[person]] = [person];
       }
-    })
+    });
 
     //Find y indexes of all rows
     let allRows = Object.keys(y2personDict).map(Number);
@@ -187,7 +189,7 @@ class attributeTable {
     this.height = Config.glyphSize * 3 * (max(allRows) - min(allRows) + 1);
     // console.log('table height is ', this.height)
 
-    select('.tableSVG').attr("height", this.height + this.margin.top + this.margin.bottom)
+    select('.tableSVG').attr('height', this.height + this.margin.top + this.margin.bottom);
 
     this.y.range([0, this.height]).domain([1, max(allRows)]);
 
@@ -202,7 +204,7 @@ class attributeTable {
 
 
 
-      if (type === 'categorical') {
+      if (type === VALUE_TYPE_CATEGORICAL) {
         //Build col offsets array ;
         const categories = Array.from(new Set(data));
 
@@ -241,7 +243,7 @@ class attributeTable {
             colDataAccum.push(col);
           }
         }
-      } else if (type === 'int') { //quant
+      } else if (type === VALUE_TYPE_INT) { //quant
 
         let maxOffset = max(this.colOffsets);
         this.colOffsets.push(maxOffset + this.buffer + this.colWidths.int);
@@ -337,7 +339,7 @@ class attributeTable {
 
 //HEADERS
     //Bind data to the col headers
-    let headers = this.tableHeader.selectAll(".header")
+    let headers = this.tableHeader.selectAll('.header')
       .data(this.colData.map((d, i) => {
         return {
           'name': d.name, 'data': d, 'ind': i, 'type': d.type,
@@ -359,14 +361,14 @@ class attributeTable {
         return d['name']
       })
 
-      .attr("transform", (d,i) => {
+      .attr('transform', (d,i) => {
       let offset = this.colOffsets[i] + (this.colWidths[d.type]/2);
-        return d.type === 'categorical' ? 'translate(' + offset + ',-30) rotate(-30)' : 'translate(' + offset + ',0)' ;
+        return d.type === VALUE_TYPE_CATEGORICAL ? 'translate(' + offset + ',-30) rotate(-30)' : 'translate(' + offset + ',0)' ;
       });
 
 
     //Bind data to the col header summaries
-    let colSummaries = this.columnSummaries.selectAll(".colSummary")
+    let colSummaries = this.columnSummaries.selectAll('.colSummary')
       .data(this.colData.map((d, i) => { return d}));
 
     let colSummariesEnter = colSummaries.enter().append('g').classed('colSummary',true);
@@ -376,15 +378,15 @@ class attributeTable {
     colSummaries = colSummariesEnter.merge(colSummaries)
 
     //Find largest frequency among all quant columns for yScale in histograms.
-    let maxFrequency = this.colData.filter(d=>{return d.type === 'int'})
+    let maxFrequency = this.colData.filter(d=>{return d.type === VALUE_TYPE_INT})
       .reduce((a,v)=>{ return v.hist.largestFrequency > a ? v.hist.largestFrequency : a},0);
 
 
     colSummaries.each(function (cell) {
-      if (cell.type === 'categorical') {
+      if (cell.type === VALUE_TYPE_CATEGORICAL) {
         self.renderCategoricalHeader(select(this), cell);
       }
-      else if (cell.type === 'int') {
+      else if (cell.type === VALUE_TYPE_INT) {
         self.renderIntHeaderHist(select(this), cell,maxFrequency);
       }
       else if (cell.type === 'string') {
@@ -393,7 +395,7 @@ class attributeTable {
     });
 
     colSummaries.transition(t)
-      .attr("transform", (d,i) => {
+      .attr('transform', (d,i) => {
         let offset = this.colOffsets[i];
         return 'translate(' + offset + ',0)';
       });
@@ -418,7 +420,7 @@ class attributeTable {
 
 // TABLE
     //Bind data to the col groups
-    let cols = this.table.selectAll(".dataCols")
+    let cols = this.table.selectAll('.dataCols')
       .data(this.colData.map((d, i) => {
         return {
           'name': d.name, 'data': d.data, 'ind': i, 'ys': d.ys, 'type': d.type,
@@ -437,7 +439,7 @@ class attributeTable {
 
     //translate columns horizontally to their position;
     cols.transition(t)
-      .attr("transform", (d,i) => {
+      .attr('transform', (d,i) => {
         let offset = this.colOffsets[i];
         return 'translate(' + offset + ',0)';
       });
@@ -476,14 +478,14 @@ class attributeTable {
     cells.exit().remove();
 
     let cellsEnter = cells.enter()
-      .append("g")
+      .append('g')
       .attr('class', 'cell');
 
 
     //Add rectangle for highlighting...
     cellsEnter
       .append('rect')
-      .classed("boundary", true);
+      .classed('boundary', true);
 
     cells = cellsEnter.merge(cells);
 
@@ -491,17 +493,17 @@ class attributeTable {
 
     cells
       .transition(t)
-      .attr("transform", function (col: any) {
+      .attr('transform', function (col: any) {
         return ('translate(0, ' + y(col.y) + ' )'); //the x translation is taken care of by the group this cell is nested in.
       });
 
     cellsEnter.attr('opacity',1);
 
     cells.each(function (cell) {
-      if (cell.type === 'categorical') {
+      if (cell.type === VALUE_TYPE_CATEGORICAL) {
         self.renderCategoricalCell(select(this), cell);
       }
-      else if (cell.type === 'int') {
+      else if (cell.type === VALUE_TYPE_INT) {
         self.renderIntCell(select(this), cell);
       }
       else if (cell.type === 'string') {
@@ -566,11 +568,11 @@ class attributeTable {
           let attr = this.tableManager.primaryAttribute;
         if (attr)
           // console.log(attr,headerData)
-          if (attr && attr.var === headerData.varName) {
+          if (attr && attr.name === headerData.varName) {
             return attr.color[1]
           } else {
             attr = this.tableManager.secondaryAttribute;
-            if (attr && attr.var === headerData.varName) {
+            if (attr && attr.name === headerData.varName) {
               return attr.color[1]
             }
           }
@@ -705,7 +707,7 @@ class attributeTable {
    let xAxis = axisBottom(xScale)
      .tickSize(5)
      .tickValues(xScale.domain())
-     .tickFormat(format(".0f"))
+     .tickFormat(format('.0f'))
 
 
     if (element.selectAll('.histogram').size()===0){
@@ -718,7 +720,7 @@ class attributeTable {
       element.append('text').classed('maxValue',true);
 
       element.append('g')
-        .attr("transform", "translate(0," + height + ")")
+        .attr('transform', 'translate(0,' + height + ')')
         .classed('hist_xscale',true)
         .call(xAxis)
     }
@@ -731,11 +733,11 @@ class attributeTable {
       .attr('x',(d,i) =>{return xScale(bin2value(i))})
       .attr('fill',()=> {
           let attr = this.tableManager.primaryAttribute;
-          if (attr && attr.var === headerData.name) {
+          if (attr && attr.name === headerData.name) {
             return attr.color
           } else {
             attr = this.tableManager.secondaryAttribute;
-            if (attr && attr.var === headerData.name) {
+            if (attr && attr.name === headerData.name) {
               return attr.color
             }
           }
@@ -808,7 +810,7 @@ class attributeTable {
         .classed('frame', true)
 
       element.append('rect')
-        .classed('categorical',true)
+        .classed(VALUE_TYPE_CATEGORICAL,true)
     }
 
     this.yScale
@@ -822,7 +824,7 @@ class attributeTable {
       .attr('y',0)
       .attr('fill',(d)=> {
           let attr = this.tableManager.primaryAttribute;
-          if (attr && attr.var === cellData.varName) {
+          if (attr && attr.name === cellData.varName) {
             let ind = attr.categories.indexOf(cellData.data.filter((d)=>{return d !== undefined})[0]);
             if (ind === 0) {
                 return attr.color[1]
@@ -831,7 +833,7 @@ class attributeTable {
             }
           } else {
             attr = this.tableManager.secondaryAttribute;
-            if (attr && attr.var === cellData.varName) {
+            if (attr && attr.name === cellData.varName) {
               let ind = attr.categories.indexOf(cellData.data.filter((d)=>{return d !== undefined})[0]);
               if (ind === 0) {
                 return attr.color[1]
@@ -856,7 +858,7 @@ class attributeTable {
       // .transition(t)
       .attr('fill',(d)=> {
         let attr = this.tableManager.primaryAttribute;
-          if (attr && attr.var === cellData.varName) {
+          if (attr && attr.name === cellData.varName) {
             let ind = attr.categories.indexOf(cellData.data.filter((d)=>{return d !== undefined})[0]);
             if (ind>-1) {
               // console.log(attr.categories, cellData.data[0], ind)
@@ -869,7 +871,7 @@ class attributeTable {
 
           } else {
             attr = this.tableManager.secondaryAttribute;
-            if (attr && attr.var === cellData.varName) {
+            if (attr && attr.name === cellData.varName) {
               let ind = attr.categories.indexOf(cellData.data.filter((d)=>{return d !== undefined})[0]);
               if (ind>-1) {
                 return attr.color[ind]
@@ -890,7 +892,7 @@ class attributeTable {
 
 
 
-      // .classed('affected',()=>{return this.tableManager.affectedState.var === cellData.varName})
+      // .classed('affected',()=>{return this.tableManager.affectedState.name === cellData.varName})
   }
 
   private ColorLuminance(hex, lum) {
@@ -903,11 +905,11 @@ class attributeTable {
   lum = lum || 0;
 
   // convert to decimal and change luminosity
-  var rgb = "#", c, i;
+  var rgb = '#', c, i;
   for (i = 0; i < 3; i++) {
     c = parseInt(hex.substr(i*2,2), 16);
     c = Math.round(Math.min(Math.max(0, c + (c * lum)), 255)).toString(16);
-    rgb += ("00"+c).substr(c.length);
+    rgb += ('00'+c).substr(c.length);
   }
 
   return rgb;
@@ -983,7 +985,7 @@ class attributeTable {
     });
 
     let ellipsesEnter = ellipses.enter()
-      .append("ellipse")
+      .append('ellipse')
       .classed('quant_ellipse', true)
 
     ellipses = ellipsesEnter.merge(ellipses);
@@ -992,22 +994,22 @@ class attributeTable {
 
 
     element.selectAll('.quant_ellipse')
-      .attr("cx",
+      .attr('cx',
          (d: any) => {
           return this.xScale(d.value);
           ;
         })
-      .attr("cy", ()=>{ return numValues>1 ? jitterScale(Math.random()) : rowHeight/2}) //introduce jitter in the y position for multiple ellipses.
-      .attr("rx", radius)
-      .attr("ry", radius)
+      .attr('cy', ()=>{ return numValues>1 ? jitterScale(Math.random()) : rowHeight/2}) //introduce jitter in the y position for multiple ellipses.
+      .attr('rx', radius)
+      .attr('ry', radius)
       .attr('fill',()=> {
           let attr = this.tableManager.primaryAttribute;
-        if (attr && attr.var === cellData.name) {
+        if (attr && attr.name === cellData.name) {
 
             return attr.color
           } else {
             attr = this.tableManager.secondaryAttribute;
-            if (attr && attr.var === cellData.name) {
+            if (attr && attr.name === cellData.name) {
               return attr.color
             }
           }
@@ -1162,15 +1164,15 @@ class attributeTable {
 //
 //     // stick on the median
 //     quantitative
-//       .append("rect") //sneaky line is a rectangle
+//       .append('rect') //sneaky line is a rectangle
 //       .attr('class', 'medianLine');
 //
 //     cells
 //       .selectAll('.medianLine')
-//       .attr("width", 1.2)
-//       .attr("height", rowHeight)
-//       .attr("fill", 'black')
-//       .attr("transform", function (d) {
+//       .attr('width', 1.2)
+//       .attr('height', rowHeight)
+//       .attr('fill', 'black')
+//       .attr('transform', function (d) {
 //         const width = col_widths.find(x => x.name === d.name).width;
 //         const scaledRange = (width - 2 * radius) / (d.stats.max - d.stats.min);
 //         return ('translate(' + ((d.stats.mean - d.stats.min) * scaledRange) + ',0)');
@@ -1186,12 +1188,12 @@ class attributeTable {
 //     let self = this;
 //
 //     cells.on('click', async function (elem) {
-//       //  console.log("REGISTERED CLICK");
+//       //  console.log('REGISTERED CLICK');
 //       //update the dataset & re-render
 //
 //       // const newView = await jankyAData.anniesTestUpdate();
 //       // self.update(newView, [1, 2]);
-//       // console.log("NEW VIEW!");
+//       // console.log('NEW VIEW!');
 //       // console.log(newView.cols()[0]);
 //
 //     });
@@ -1242,9 +1244,9 @@ class attributeTable {
 
 ////////////// RENDERING FUNCTIONS! /////////////////////////////////////////////
   private getWeight(data_elem) {
-    if (data_elem.type === 'int')
+    if (data_elem.type === VALUE_TYPE_INT)
       return 3;
-    else if (data_elem.type === 'categorical') { //make sure to account for # cols
+    else if (data_elem.type === VALUE_TYPE_CATEGORICAL) { //make sure to account for # cols
       return 1;
     }
     return 2;
@@ -1284,11 +1286,11 @@ class attributeTable {
       return {'name': elem['name'], 'x': x_dist};
     });
     //
-    // console.log("Full width was: " + width);
-    // console.log("this.colData: ");
+    // console.log('Full width was: ' + width);
+    // console.log('this.colData: ');
     // console.log(this.colData);
     // colWidths.map((d, i)=>{
-    //   console.log("col width: " + colWidths[i]['width'] + ", col x: " + toReturn[i]['x']);
+    //   console.log('col width: ' + colWidths[i]['width'] + ', col x: ' + toReturn[i]['x']);
     // })
 
     return toReturn;

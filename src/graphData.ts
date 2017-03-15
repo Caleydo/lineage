@@ -155,13 +155,13 @@ class GraphData {
 
   /**
    *
-   * This function get the requested attribute from the tableManager for the person requested.
-   * Returns undefined if there is no value.
+   * This function get the requested attribute from the tableManager (primary or secondary only) for the person requested.
+   * Returns undefined if there is no value or if the requested attribute is not the primary or secondary.
    *
    * @param attribute - attribute to search for
    * @param personID - person for which to search for attribute
    */
-  private async getAttribute(attribute, personID){
+  private getAttribute(attribute, personID){
     return this.tableManager.getAttribute(attribute,personID);
   }
 
@@ -331,7 +331,7 @@ class GraphData {
    */
   private defineAffected(affectedState) {
     this.nodes.forEach((node) => {
-      node.affected = node[affectedState.var] === affectedState.value;
+      node.affected = node[affectedState.name] === affectedState.value;
     });
 
   }

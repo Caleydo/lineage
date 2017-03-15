@@ -209,8 +209,14 @@ class AttributePanel {
       .append('strong').html(columnName)
       .append('span').attr('class', columnDesc)
       .html(`<div class=' attr_badges pull-right'>
-                <span class=' badge' >primary</span>
-                <span class=' badge' >secondary</span>
+                <span class=' badge' id ='add'>add</span>            
+                <span class=' badge' id ='remove' >remove</span>
+                <!-- Rounded switch -->
+                <!--<label class="switch">  <input type="checkbox">  <div class="slider round"></div></label>-->
+                <!--<label class="switch">  <input type="checkbox">  <div class="slider round"></div></label>-->
+                <span class=' badge' id ='primary'>P</span>
+                <span class=' badge' id ='secondary'>S</span>
+                 <span class=' badge' id ='poi'>POI</span>
               </div>`);
     attrHeader.on('mouseover', function () {
       select(this).select('.sort_handle').classed('focus', true);
@@ -233,7 +239,7 @@ class AttributePanel {
     selectAll('.badge').on('click', function () {
       console.log('badge clicked');
 
-      const badge = $(this).text();
+      const badge = select(this).attr('id'); //$(this).id();
       const attribute = $(this).closest('strong').contents()[0];
       //reset badge dispaly for previously clicked badges
       $('.checked_' + badge).parent().css('display', '');
@@ -328,22 +334,17 @@ class AttributePanel {
    */
   private updateAttrState(attrName, value) {
     console.log('updata attr stat', attrName + ' , ' + value);
-
-
     let found = null;
-
     this.attributeState.forEach(function (item) {
       if (item.name === attrName) {
         found = item;
       }
     });
-
     if (found) {
       found.value.push(value);
     } else {
       this.attributeState.push({name: attrName, value: [value]});
     }
-
   }
 
   /**
@@ -419,6 +420,7 @@ class AttributePanel {
     });
 
     events.on('attribute_picked', (evt,item)=>{
+
       this.updateAttrState(item.name, item.value)
       console.log(this.attributeState);
     })

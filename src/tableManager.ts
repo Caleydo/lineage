@@ -1,6 +1,6 @@
 import {ITable} from 'phovea_core/src/table';
 import {list as listData, getFirstByName, get as getById} from 'phovea_core/src/data';
-import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL, INumberValueTypeDesc} from 'phovea_core/src/datatype';
+import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL, VALUE_TYPE_STRING} from 'phovea_core/src/datatype';
 import * as range from 'phovea_core/src/range';
 import * as events from 'phovea_core/src/event';
 import {max, min, mean} from 'd3-array';
@@ -17,7 +17,7 @@ interface IFamilyInfo {
 interface IAffectedState {
   name: string;
   type: string;
-  value: number;
+  isAffected(b: string | Number ) : boolean;
 }
 
 interface IPrimaryAttribute {
@@ -175,8 +175,13 @@ export default class TableManager {
    */
   public async getAttributeVector(attributeName) {
 
+    let allColumns;
     //Find Vector of that attribute in either table.
-    const allColumns = this.graphTable.cols().concat(this.tableTable.cols());
+    if (this.graphTable) { //familyView has been defined)
+      allColumns = this.graphTable.cols().concat(this.tableTable.cols());
+    } else {
+      allColumns = this.table.cols().concat(this.attributeTable.cols());
+    }
 
     let attributeVector = undefined;
     allColumns.forEach((col) => {
@@ -262,7 +267,8 @@ export default class TableManager {
 
     //retrieving the desired dataset by name
     this.table = <ITable> await getById(descendDataSetID);
-    this.setAffectedState('suicide', VALUE_TYPE_CATEGORICAL, 'Y'); //Default value;
+
+    this.setAffectedState('suicide',(attr:string) => {return attr === 'Y'}); //Default value;
     await this.parseFamilyInfo();
     return Promise.resolve(this);
   }
@@ -271,30 +277,29 @@ export default class TableManager {
    * This function sets the affected State.
    *
    */
-  public async setAffectedState(varName, varType?, thresholdValue?) {
+  public async setAffectedState(varName, isAffectedCallbackFcn?) {
 
-    let attributeVector = undefined;
-    if (typeof varType === 'undefined') {
-      attributeVector = await this.getAttributeVector(varName);
+      let attributeVector = await this.getAttributeVector(varName);
+      let varType = attributeVector.valuetype.type;
 
-      varType = attributeVector.valuetype.type;
-    }
 
-    if (typeof thresholdValue === 'undefined') {
-      attributeVector = await this.getAttributeVector(varName);
+    if (typeof isAffectedCallbackFcn === 'undefined') {
+
       if (varType === VALUE_TYPE_INT || varType === VALUE_TYPE_REAL){
         let stats = await attributeVector.stats();
-        thresholdValue = stats.mean ; //if threshold hasn't been defined, default to anything over the mean value
+        isAffectedCallbackFcn = (attr:Number) => {return attr >= stats.mean} ; //if threshold hasn't been defined, default to anything over the mean value
       } else if (varType === VALUE_TYPE_CATEGORICAL){
         let categoriesVec = attributeVector.valuetype.categories;
         let categories = categoriesVec.map(c=>{return c.name});
-        thresholdValue = categories[1]; //pick a default category;
-      }
+        isAffectedCallbackFcn = (attr:string) => {return attr === categories[1]} //randomly pick the second category
+      } else if (varType === VALUE_TYPE_STRING){
+        isAffectedCallbackFcn = (attr:string) => {return attr.length>0} //string is non empty
+    }
 
     }
 
 
-    this.affectedState = ({name: varName, type: varType, 'value': thresholdValue});
+    this.affectedState = ({name: varName, type: varType, 'isAffected': isAffectedCallbackFcn});
     console.log(this.affectedState);
     events.fire(POI_SELECTED, this.affectedState);
   }
@@ -380,12 +385,14 @@ export default class TableManager {
       const familyRange = [];
       let affected = 0;
 
+
       familyIDs.forEach((d, i) => {
         if (d === id) {
           familyRange.push(i);
-          if (affectedColData[i] === this.affectedState.value) {
+          console.log(affectedColData[i])
+          // if (this.affectedState.isAffected(affectedColData[i])) {
             affected = affected + 1;
-          }
+          // }
         }
       });
 
@@ -400,7 +407,6 @@ export default class TableManager {
    */
   public async refreshActiveViews() {
     const key = range.join(this._activeTableRows, range.all());
-    // const key = range.join(this._activeTableRows, range.list([0,1,2,3,4,5,6,7,8,10,11,19,20,21,22,23,24,25,26,27,28,29])); //temporary since there are too many attributes in the table
 
     this.tableTable = await this.attributeTable.view(key); //view on attribute table
     this.graphTable = await this.table.view(range.join(this._activeGraphRows, range.all()));

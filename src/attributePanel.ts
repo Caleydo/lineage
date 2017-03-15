@@ -328,22 +328,17 @@ class AttributePanel {
    */
   private updateAttrState(attrName, value) {
     console.log('updata attr stat', attrName + ' , ' + value);
-
-
     let found = null;
-
     this.attributeState.forEach(function (item) {
       if (item.name === attrName) {
         found = item;
       }
     });
-
     if (found) {
       found.value.push(value);
     } else {
       this.attributeState.push({name: attrName, value: [value]});
     }
-
   }
 
   /**
@@ -419,6 +414,7 @@ class AttributePanel {
     });
 
     events.on('attribute_picked', (evt,item)=>{
+
       this.updateAttrState(item.name, item.value)
       console.log(this.attributeState);
     })

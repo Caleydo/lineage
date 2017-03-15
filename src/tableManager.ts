@@ -137,7 +137,7 @@ export default class TableManager {
    */
   public async getAttribute(attribute,personID){
 
-
+    console.log('getAttribute: ' + attribute + personID);
     let attributeVector;
     //Find Vector of that attribute in either table.
     let allColumns = this.graphTable.cols().concat(this.tableTable.cols());
@@ -147,12 +147,14 @@ export default class TableManager {
       if (col.desc.name === attribute) {
         attributeVector = col;
       }
-    })
+    });
 
     let IDs = await attributeVector.names();
 
     if (personID in IDs){
-      return await attributeVector.at(IDs.indexOf(personID));
+      const index = IDs.indexOf(personID);
+      const value = await attributeVector.at(index);
+      return value;
     } else{
       return undefined;
     }
@@ -189,7 +191,7 @@ export default class TableManager {
       if (col.desc.name === attributeName) {
         attributeVector = col;
       }
-    })
+    });
 
     Attribute['type'] = attributeVector.valuetype.type;
     let data = await attributeVector.data();
@@ -220,26 +222,20 @@ export default class TableManager {
   }
 
   /**
-   * Loads the graph data from the server and stores it in the public table variable
+   * Loads the graph data and the attribute data from the server and stores it in the public table variable
    * Parses out the familySpecific information to populate the Family Selector
    * @param: id of the dataset
    */
-  public async loadData(datasetID: string) {
-    //retrieving the desired dataset by name
-    this.table = <ITable> await getById(datasetID);
-    this.setAffectedState('suicide', 'categorical', 'Y') //Default value;
-    await this.parseFamilyInfo();
-    return Promise.resolve(this);
-  }
+  public async loadData(descendDataSetID: string, attributeDataSetID: string) {
 
-  /**
-   * Loads the attribute data from the server and stores it in the public attributeTable variable
-   * @param: name of the dataset
-   */
-  public async loadAttributeData(datasetID: string) {
     //retrieving the desired dataset by name
-    this.attributeTable = <ITable> await getById(datasetID);
+    this.attributeTable = <ITable> await getById(attributeDataSetID);
     await this.parseAttributeData();
+
+    //retrieving the desired dataset by name
+    this.table = <ITable> await getById(descendDataSetID);
+    this.setAffectedState('suicide', 'categorical', 'Y'); //Default value;
+    await this.parseFamilyInfo();
     return Promise.resolve(this);
   }
 

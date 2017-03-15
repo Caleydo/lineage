@@ -4,7 +4,7 @@ import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL, INumberValueTyp
 import * as range from 'phovea_core/src/range';
 import * as events from 'phovea_core/src/event';
 import {max, min, mean} from 'd3-array';
-import {IStatistics} from '../../phovea_core/src/math';
+import {IStatistics} from 'phovea_core/src/math';
 
 interface IFamilyInfo {
   id: number;

@@ -15,7 +15,7 @@ import {active} from 'd3-transition';
 import {transition} from 'd3-transition';
 import {easeLinear} from 'd3-ease';
 
-import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT} from '../../phovea_core/src/datatype';
+import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT} from 'phovea_core/src/datatype';
 
 import {line} from 'd3-shape';
 

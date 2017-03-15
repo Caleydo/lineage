@@ -56,7 +56,7 @@ import {
 } from './config';
 
 import {PRIMARY_SECONDARY_SELECTED, POI_SELECTED} from './tableManager';
-import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT} from '../../phovea_core/src/datatype';
+import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT} from 'phovea_core/src/datatype';
 
 
 /**

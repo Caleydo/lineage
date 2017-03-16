@@ -15,7 +15,7 @@ import {active} from 'd3-transition';
 import {transition} from 'd3-transition';
 import {easeLinear} from 'd3-ease';
 
-import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL} from 'phovea_core/src/datatype';
+import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL, VALUE_TYPE_STRING} from 'phovea_core/src/datatype';
 
 import {line} from 'd3-shape';
 
@@ -56,7 +56,7 @@ class attributeTable {
   private colData;    // <- everything we need to bind
 
   private rowHeight = Config.glyphSize * 2.5 - 4;
-  private colWidths = {categorical:this.rowHeight, int:this.rowHeight*4, real:this.rowHeight*4, string:this.rowHeight*5, id:this.rowHeight*4};
+  private colWidths = {idtype: this.rowHeight*4, categorical:this.rowHeight, int:this.rowHeight*4, real:this.rowHeight*4, string:this.rowHeight*5, id:this.rowHeight*4};
 
   private colOffsets;
 
@@ -156,9 +156,6 @@ class attributeTable {
         }
       }
     }
-
-
-    // console.log(allCols)
 
     //This are the rows that every col in the table should have;
     let graphIDs = await graphView.col(0).names();
@@ -300,7 +297,7 @@ class attributeTable {
         col.stats = stats;
         col.hist = await vector.hist(10);
         colDataAccum.push(col);
-      } else if (type === 'string') {
+      } else if (type === VALUE_TYPE_STRING) {
 
         const maxOffset = max(this.colOffsets);
         this.colOffsets.push(maxOffset + this.buffer + this.colWidths[type]);
@@ -328,9 +325,39 @@ class attributeTable {
         col.ys = allRows
         col.type = type;
         colDataAccum.push(col);
-      }
+      } else if (type === 'idtype') {
 
+      const maxOffset = max(this.colOffsets);
+      this.colOffsets.push(maxOffset + this.buffer + this.colWidths[type]);
+
+      const col: any = {};
+      col.ids = allRows.map((row) => {
+        return y2personDict[row]
+      });
+
+      col.name = await vector.desc.name;
+
+      col.data = allRows.map((row) => {
+        let colData = [];
+        let people = y2personDict[row];
+        people.map((person) => {
+          let ind = peopleIDs.indexOf(person) //find this person in the attribute data
+          if (ind > -1) {
+            colData.push(data[ind].toString())
+          } else {
+            colData.push(undefined);
+          }
+        });
+        return colData;
+      });
+      col.ys = allRows
+      col.type = type;
+      colDataAccum.push(col);
     }
+
+
+
+  }
     this.colData = colDataAccum;
 
   }
@@ -515,10 +542,10 @@ class attributeTable {
       else if (cell.type === VALUE_TYPE_INT || cell.type === VALUE_TYPE_REAL) {
         self.renderIntCell(select(this), cell);
       }
-      else if (cell.type === 'string') {
+      else if (cell.type === VALUE_TYPE_STRING) {
         self.renderStringCell(select(this), cell);
       }
-      else if (cell.type === 'id') {
+      else if (cell.type === 'id' || cell.type === 'idtype' ) {
         self.renderIdCell(select(this), cell);
       }
 

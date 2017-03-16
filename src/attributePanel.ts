@@ -218,10 +218,7 @@ class AttributePanel {
       .append('strong').html(columnName)
       .append('span').attr('class', columnDesc)
       .html(`<div class=' attr_badges pull-right'>
-                <span class=' badge' id ='add_remove'>+/-</span>           
-                <!-- Rounded switch -->
-                <!--<label class="switch">  <input type="checkbox">  <div class="slider round"></div></label>-->
-                <!--<label class="switch">  <input type="checkbox">  <div class="slider round"></div></label>-->
+                <!--<span class=' badge' id ='add_remove'>+/-</span>           -->
                 <span class=' badge' id ='primary'>P</span>
                 <span class=' badge' id ='secondary'>S</span>
                  <span class=' badge' id ='poi'>POI</span>
@@ -440,11 +437,24 @@ class AttributePanel {
 
     })
 
+    events.on('attribute_removed', (evt,item)=>{
+      console.log(item);
+      this.tableManager.colOrder.splice(item.oldIndex, 1);
+      events.fire(COL_ORDER_CHANGED_EVENT)
+
+    })
+
+    events.on('attribute_added', (evt,item)=>{
+      this.tableManager.colOrder.splice(item.newIndex, 0,item.name.split(/\r|\n/)[0]);
+      events.fire(COL_ORDER_CHANGED_EVENT)
+
+    })
+
 
 
     events.on('attribute_unpicked', (evt,item)=>{
       this.removeFromAttrState(item.name, item.value);
-      console.log('attribute unpicked', this.attributeState);
+
     })
   }
 

@@ -320,7 +320,6 @@ class GraphData {
   private defineAffected(affectedState) {
     this.nodes.forEach((node) => {
       let data = this.tableManager.getAttribute(affectedState.name,node.id);
-      console.log(data)
       node.affected = affectedState.isAffected(data);
     });
   }
@@ -728,16 +727,16 @@ class GraphData {
 
     this.trimTree();
 
-    let new_range = [];
+    let id_range = [];
     this.nodes.forEach((n: any) => {
-      if (n.aggregated || !n.hidden ) {
+      if (!(!n.aggregated && n.hidden)){
         let ind: number = this.ids.indexOf(n.id);
-        new_range.push(ind);
-      };
+        id_range.push(n.id);
+      }
     });
 
     this.exportYValues();
-    this.tableManager.activeGraphRows = Range.list(new_range)
+    this.tableManager.activeGraphRows = Range.list(id_range)
 
   };
 

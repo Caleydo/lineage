@@ -291,11 +291,13 @@ export default class TableManager {
    *
    */
   public async updatePOI_Primary_Secondary() {
-    let attributeVector = await this.getAttributeVector(this.affectedState.name);
-    let varType = attributeVector.valuetype.type;
+    if (this.affectedState) {
+      let attributeVector = await this.getAttributeVector(this.affectedState.name);
+      let varType = attributeVector.valuetype.type;
 
-    this.affectedState.data = await attributeVector.data();
-    this.affectedState.personIDs = (await attributeVector.names()).map(Number);
+      this.affectedState.data = await attributeVector.data();
+      this.affectedState.personIDs = (await attributeVector.names()).map(Number);
+    }
 
     if (this.primaryAttribute){
       let attributeVector = await this.getAttributeVector(this.primaryAttribute.name);

@@ -112,6 +112,7 @@ class GraphData {
     });
 
     //Define attribute that defines 'affected' state
+    console.log(this.tableManager.affectedState)
     this.defineAffected(this.tableManager.affectedState);
     this.buildTree();
 
@@ -319,6 +320,7 @@ class GraphData {
   private defineAffected(affectedState) {
     this.nodes.forEach((node) => {
       let data = this.tableManager.getAttribute(affectedState.name,node.id);
+      console.log(data)
       node.affected = affectedState.isAffected(data);
     });
   }

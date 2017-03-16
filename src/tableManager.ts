@@ -287,6 +287,38 @@ export default class TableManager {
   }
 
   /**
+   * This function updates the data and ids for the affected State (POI), primary, and secondary attributes when a different family is selected.
+   *
+   */
+  public async updatePOI_Primary_Secondary() {
+    let attributeVector = await this.getAttributeVector(this.affectedState.name);
+    let varType = attributeVector.valuetype.type;
+
+    this.affectedState.data = await attributeVector.data();
+    this.affectedState.personIDs = (await attributeVector.names()).map(Number);
+
+    if (this.primaryAttribute){
+      let attributeVector = await this.getAttributeVector(this.primaryAttribute.name);
+      let varType = attributeVector.valuetype.type;
+
+      this.primaryAttribute.data = await attributeVector.data();
+      this.primaryAttribute.personIDs = (await attributeVector.names()).map(Number);
+
+    }
+
+    if (this.secondaryAttribute){
+      let attributeVector = await this.getAttributeVector(this.secondaryAttribute.name);
+      let varType = attributeVector.valuetype.type;
+
+      this.secondaryAttribute.data = await attributeVector.data();
+      this.secondaryAttribute.personIDs = (await attributeVector.names()).map(Number);
+
+    }
+  }
+
+
+  /**
+   *
    * This function sets the affected State.
    *
    */
@@ -358,6 +390,8 @@ export default class TableManager {
     this._activeTableRows = range.list(attributeRows);
 
     await this.refreshActiveTableView();
+
+    this.updatePOI_Primary_Secondary();
 
     events.fire(VIEW_CHANGED_EVENT);
   }

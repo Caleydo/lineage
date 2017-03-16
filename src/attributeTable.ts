@@ -198,7 +198,7 @@ class attributeTable {
 
     for (const vector of allCols) {
       const name = await vector.desc.name;
-      console.log('looking at ', name);
+      // console.log('looking at ', name);
 
       const data = await vector.data(range.all());
       const type = await vector.valuetype.type;

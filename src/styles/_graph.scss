@@ -139,7 +139,7 @@ td rect{
 
 text.header{
   font-weight:bold;
-  text-anchor: middle;
+  //text-anchor: middle;
 }
 
 .quant_ellipse{
@@ -353,6 +353,12 @@ rect.selected{
 #data_selection{
   margin-left:10px;
   margin-right: 10px;
+}
+
+.cell .label{
+  fill: white;
+  //font-weight:bold;
+  font-size:12px;
 }
 
 .node .lifeRect rect

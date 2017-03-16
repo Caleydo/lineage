@@ -318,7 +318,6 @@ class GraphData {
    */
   private definePrimary(primary_secondary) {
 
-
   }
 
   /**

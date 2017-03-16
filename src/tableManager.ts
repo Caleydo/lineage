@@ -5,6 +5,7 @@ import * as range from 'phovea_core/src/range';
 import * as events from 'phovea_core/src/event';
 import {max, min, mean} from 'd3-array';
 import {IStatistics} from 'phovea_core/src/math';
+import {__awaiter} from 'tslib';
 
 interface IFamilyInfo {
   id: number;
@@ -17,6 +18,8 @@ interface IFamilyInfo {
 interface IAffectedState {
   name: string;
   type: string;
+  data: any [];
+  personIDs: Number [];
   isAffected(b: string | Number ) : boolean;
 }
 
@@ -73,6 +76,8 @@ export const VIEW_CHANGED_EVENT = 'view_changed_event';
 export const TABLE_VIS_ROWS_CHANGED_EVENT = 'table_vis_rows_changed_event';
 export const PRIMARY_SECONDARY_SELECTED = 'primary_secondary_attribute_event';
 export const POI_SELECTED = 'affected_attribute_event';
+export const FAMILY_INFO_UPDATED = 'family_stats_updated';
+
 
 export const PRIMARY_COLOR = '#20567c';
 export const PRIMARY_COLOR_2 = '#a3ccf0';
@@ -132,6 +137,31 @@ export default class TableManager {
 
 
   /**
+   * Loads the graph data and the attribute data from the server and stores it in the public table variable
+   * Parses out the familySpecific information to populate the Family Selector
+   * @param: id of the dataset
+   */
+  public async loadData(descendDataSetID: string, attributeDataSetID: string) {
+
+    //retrieving the desired dataset by name
+    this.attributeTable = <ITable> await getById(attributeDataSetID);
+    await this.parseAttributeData();
+
+    //retrieving the desired dataset by name
+    this.table = <ITable> await getById(descendDataSetID);
+
+    await this.parseFamilyInfo(); //this needs to come first because the setAffectedState sets default values based on the data for a selected family.
+
+    await this.setAffectedState('suicide',(attr:string) => {return attr === 'Y'}); //Default value;
+
+    await this.updateFamilyStats();
+
+    return Promise.resolve(this);
+  }
+
+
+
+  /**
    *
    * This function get the requested attribute for the person requested.
    * Returns undefined if there is no value.
@@ -172,12 +202,16 @@ export default class TableManager {
    * This function get the requested attribute vector.
    *
    * @param attribute - attribute to search for
+   * @param allFamilies - boolean set to true to return the attribute vector for all families. Defaults to false.
    */
-  public async getAttributeVector(attributeName) {
+  public async getAttributeVector(attributeName,allFamilies?) {
+
+    if (allFamilies === undefined)
+      allFamilies = false;
 
     let allColumns;
     //Find Vector of that attribute in either table.
-    if (this.graphTable) { //familyView has been defined)
+    if (this.graphTable && !allFamilies) { //familyView has been defined && allFamilies has not been requested)
       allColumns = this.graphTable.cols().concat(this.tableTable.cols());
     } else {
       allColumns = this.table.cols().concat(this.attributeTable.cols());
@@ -255,25 +289,6 @@ export default class TableManager {
   }
 
   /**
-   * Loads the graph data and the attribute data from the server and stores it in the public table variable
-   * Parses out the familySpecific information to populate the Family Selector
-   * @param: id of the dataset
-   */
-  public async loadData(descendDataSetID: string, attributeDataSetID: string) {
-
-    //retrieving the desired dataset by name
-    this.attributeTable = <ITable> await getById(attributeDataSetID);
-    await this.parseAttributeData();
-
-    //retrieving the desired dataset by name
-    this.table = <ITable> await getById(descendDataSetID);
-
-    this.setAffectedState('suicide',(attr:string) => {return attr === 'Y'}); //Default value;
-    await this.parseFamilyInfo();
-    return Promise.resolve(this);
-  }
-
-  /**
    * This function sets the affected State.
    *
    */
@@ -291,16 +306,22 @@ export default class TableManager {
       } else if (varType === VALUE_TYPE_CATEGORICAL){
         let categoriesVec = attributeVector.valuetype.categories;
         let categories = categoriesVec.map(c=>{return c.name});
-        isAffectedCallbackFcn = (attr:string) => {return attr === categories[1]} //randomly pick the second category
+        isAffectedCallbackFcn = (attr:string) => {return attr === categories[0]} //randomly pick the second category
       } else if (varType === VALUE_TYPE_STRING){
-        isAffectedCallbackFcn = (attr:string) => {return attr.length>0} //string is non empty
+        isAffectedCallbackFcn = (attr:string) => {console.log(attr); return attr !== undefined && attr.length>0} //string is non empty
     }
 
     }
 
+    let data = await attributeVector.data();
+    let personIDs = await attributeVector.names();
 
-    this.affectedState = ({name: varName, type: varType, 'isAffected': isAffectedCallbackFcn});
+    this.affectedState = ({name: varName, type: varType, 'isAffected': isAffectedCallbackFcn, 'data':data, 'personIDs':personIDs});
     console.log(this.affectedState);
+
+    //Update family selector
+    this.updateFamilyStats();
+
     events.fire(POI_SELECTED, this.affectedState);
   }
 
@@ -344,6 +365,33 @@ export default class TableManager {
 
 
   /**
+   * This function calculates the number of affected people based on the current POI selected in the panel.
+   */
+  public async updateFamilyStats(){
+
+    const attributeVector = await this.getAttributeVector(this.affectedState.name, true); //get Attribute Vector for all families
+    const kindredIDVector = await this.getAttributeVector('KindredID',true);
+
+    const familyIDs: number[] = <number[]> await kindredIDVector.data();
+    const attributeData = await attributeVector.data();
+
+    const uniqueFamilyIDs = Array.from(new Set(familyIDs));
+
+    console.log(uniqueFamilyIDs)
+
+    uniqueFamilyIDs.forEach((id,index)=>{
+      //Return people that are in this family and are affected
+      let affected = familyIDs.filter((d,i) => {return d === id && this.affectedState.isAffected(attributeData[i])});
+      this.familyInfo[index].affected = affected.length;
+    })
+
+    events.fire(FAMILY_INFO_UPDATED,this);
+
+
+  }
+
+
+  /**
    * This function is called after loadData.
    * This function populates needed variables for attribute table and attribute panel
    *
@@ -376,7 +424,7 @@ export default class TableManager {
   public async parseFamilyInfo() {
 
     const familyIDs: number[] = <number[]> await this.table.col(indexOfKindredIDColumn).data(); //Assumes kindredID is the first col. Not ideal.
-    const affectedColData = await this.table.colData(this.affectedState.name);
+    // const affectedColData = await this.table.colData(this.affectedState.name);
 
     const uniqueFamilyIDs = Array.from(new Set(familyIDs));
 
@@ -389,9 +437,9 @@ export default class TableManager {
       familyIDs.forEach((d, i) => {
         if (d === id) {
           familyRange.push(i);
-          console.log(affectedColData[i])
+          // console.log('affectedColData is ', affectedColData[i])
           // if (this.affectedState.isAffected(affectedColData[i])) {
-            affected = affected + 1;
+          //   affected = affected + 1;
           // }
         }
       });

@@ -176,7 +176,8 @@ class AttributePanel {
       this.addAttribute(column.desc.name, column.desc.value.type);
     });
 
-    events.on(PRIMARY_SECONDARY_SELECTED, (evt, item) => {
+    events.on('primary_secondary_selected', (evt, item) => {
+      console.log(item)
       this.tableManager.setPrimarySecondaryAttribute(item.attribute.data,item.badge);
     });
 
@@ -216,8 +217,7 @@ class AttributePanel {
       .append('strong').html(columnName)
       .append('span').attr('class', columnDesc)
       .html(`<div class=' attr_badges pull-right'>
-                <span class=' badge' id ='add'>add</span>            
-                <span class=' badge' id ='remove' >remove</span>
+                <span class=' badge' id ='add_remove'>+/-</span>           
                 <!-- Rounded switch -->
                 <!--<label class="switch">  <input type="checkbox">  <div class="slider round"></div></label>-->
                 <!--<label class="switch">  <input type="checkbox">  <div class="slider round"></div></label>-->
@@ -260,7 +260,7 @@ class AttributePanel {
        event.stopPropagation();
 
       if (badge === 'primary' || badge === 'secondary'){
-        events.fire(PRIMARY_SECONDARY_SELECTED, {attribute, badge});
+        events.fire('primary_secondary_selected', {attribute, badge});
       } else if (badge === 'poi'){
         events.fire('poi_selected', {attribute, badge});
       }

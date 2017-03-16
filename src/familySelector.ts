@@ -14,6 +14,8 @@ import {
   min
 } from 'd3-array';
 
+import {FAMILY_INFO_UPDATED} from './tableManager';
+
 
 /**
  * Creates the family selector view
@@ -38,6 +40,8 @@ class FamilySelector {
   init(dataObject) {
     this.build();
     this.updateTable(dataObject);
+
+    events.on(FAMILY_INFO_UPDATED,(evt,tableManagerObject)=>{ this.updateTable(tableManagerObject)});
 
     // return the promise directly as long there is no dynamical data to update
     return Promise.resolve(this);
@@ -101,28 +105,52 @@ class FamilySelector {
     //   .domain([minValue,maxValue]);
 
     // create a row for each object in the data
-    const rows = select('tbody').selectAll('tr')
-      .data(data.familyInfo)
+    let rows = select('tbody').selectAll('tr')
+      .data(data.familyInfo);
+
+    let rowsEnter = rows
       .enter()
       .append('tr');
+
+    rows = rowsEnter.merge(rows);
+
+    rows.exit().remove();
     //
     // create a cell in each row for each column
-    const cells = rows.selectAll('td')
+    let cells = rows.selectAll('td')
       .data((d) => {
         return [{'id': d['id'], 'value': d['id'], 'type': 'id'}, {
           'id': d['id'],
           'value': d['size'],
           'type': 'size'
         }, {'id': d['id'], 'value': d['affected'], 'type': 'cases'}];
-      })
+      });
+
+    let cellsEnter = cells
       .enter()
       .append('td');
+
+
+
+    cells = cellsEnter.merge(cells);
+
+    cells.exit().remove();
+
+    selectAll('td').each(function(cell:any) {
+      console.log(cell);
+      if ((cell.type === 'size' || cell.type === 'cases') && select(this).selectAll('rect').size() === 0){
+        select(this).append('svg');
+      }
+      if ((cell.type === 'size' || cell.type === 'cases') && select(this).select('svg').selectAll('text').size() === 0){
+        select(this).select('svg').append('text');
+      }
+    });
 
 
     selectAll('td').filter((c: any) => {
       return c.type === 'size' || c.type === 'cases'
     })
-      .append('svg')
+      .select('svg')
       .attr('width', (d: any) => {
         return this.peopleScale.range()[1];
       })
@@ -136,13 +164,13 @@ class FamilySelector {
     selectAll('td').selectAll('svg').filter((c: any) => {
       return c.type === 'size' || c.type === 'cases';
     })
-      .append('text')
+      .select('text')
       .attr('dy', 10)
       .attr('dx', (d: any) => {
         return this.peopleScale(d.value) + 4;
       })
       .text((d: any) => {
-        return d.value.toString();
+        return d.value;
       });
     // .attr('fill', 'white')
     // .style('font-weight', 'bold')

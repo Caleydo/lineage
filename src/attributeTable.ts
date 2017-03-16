@@ -15,7 +15,7 @@ import {active} from 'd3-transition';
 import {transition} from 'd3-transition';
 import {easeLinear} from 'd3-ease';
 
-import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT} from 'phovea_core/src/datatype';
+import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL} from 'phovea_core/src/datatype';
 
 import {line} from 'd3-shape';
 
@@ -56,7 +56,7 @@ class attributeTable {
   private colData;    // <- everything we need to bind
 
   private rowHeight = Config.glyphSize * 2.5 - 4;
-  private colWidths = {categorical:this.rowHeight, int:this.rowHeight*4, string:this.rowHeight*5, id:this.rowHeight*4};
+  private colWidths = {categorical:this.rowHeight, int:this.rowHeight*4, real:this.rowHeight*4, string:this.rowHeight*5, id:this.rowHeight*4};
 
   private colOffsets = [0];
 
@@ -243,10 +243,10 @@ class attributeTable {
             colDataAccum.push(col);
           }
         }
-      } else if (type === VALUE_TYPE_INT) { //quant
+      } else if (type === VALUE_TYPE_INT || type === VALUE_TYPE_REAL) { //quant
 
         let maxOffset = max(this.colOffsets);
-        this.colOffsets.push(maxOffset + this.buffer + this.colWidths.int);
+        this.colOffsets.push(maxOffset + this.buffer + this.colWidths[type]);
 
 
         let col: any = {};
@@ -283,7 +283,7 @@ class attributeTable {
       } else if (type === 'string') {
 
         const maxOffset = max(this.colOffsets);
-        this.colOffsets.push(maxOffset + this.buffer + this.colWidths.string);
+        this.colOffsets.push(maxOffset + this.buffer + this.colWidths[type]);
 
         const col: any = {};
         col.ids = allRows.map((row) => {
@@ -375,17 +375,13 @@ class attributeTable {
 
     colSummaries = colSummariesEnter.merge(colSummaries)
 
-    //Find largest frequency among all quant columns for yScale in histograms.
-    let maxFrequency = this.colData.filter(d=>{return d.type === VALUE_TYPE_INT})
-      .reduce((a,v)=>{ return v.hist.largestFrequency > a ? v.hist.largestFrequency : a},0);
-
 
     colSummaries.each(function (cell) {
       if (cell.type === VALUE_TYPE_CATEGORICAL) {
         self.renderCategoricalHeader(select(this), cell);
       }
-      else if (cell.type === VALUE_TYPE_INT) {
-        self.renderIntHeaderHist(select(this), cell,maxFrequency);
+      else if (cell.type === VALUE_TYPE_INT || cell.type === VALUE_TYPE_REAL) {
+        self.renderIntHeaderHist(select(this), cell);
       }
       else if (cell.type === 'string') {
         self.renderStringHeader(select(this), cell);
@@ -501,7 +497,7 @@ class attributeTable {
       if (cell.type === VALUE_TYPE_CATEGORICAL) {
         self.renderCategoricalCell(select(this), cell);
       }
-      else if (cell.type === VALUE_TYPE_INT) {
+      else if (cell.type === VALUE_TYPE_INT || cell.type === VALUE_TYPE_REAL) {
         self.renderIntCell(select(this), cell);
       }
       else if (cell.type === 'string') {
@@ -665,7 +661,7 @@ class attributeTable {
    * @param cellData the data bound to the column header element being passed in.
    */
 
-  private renderIntHeaderHist(element, headerData,maxFrequency){
+  private renderIntHeaderHist(element, headerData){
 
     // let t = transition('t').duration(500).ease(easeLinear);
 
@@ -677,7 +673,7 @@ class attributeTable {
     let range = [0,col_width];
 
     var data = [],
-      cols = scaleLinear<string,string>().domain([maxFrequency,0]).range(['#111111', '#999999']),
+      cols = scaleLinear<string,string>().domain([hist.largestFrequency,0]).range(['#111111', '#999999']),
       total = hist.validCount,
       binWidth = (range[1] - range[0]) / hist.bins,
       acc = 0;

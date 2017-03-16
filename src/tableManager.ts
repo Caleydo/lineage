@@ -152,7 +152,7 @@ export default class TableManager {
 
     await this.parseFamilyInfo(); //this needs to come first because the setAffectedState sets default values based on the data for a selected family.
 
-    await this.setAffectedState('suicide',(attr:string) => {return attr === 'Y'}); //Default value;
+    await this.setAffectedState('suicide'); //Default value;
 
     await this.updateFamilyStats();
 
@@ -163,7 +163,7 @@ export default class TableManager {
 
   /**
    *
-   * This function get the requested attribute for the person requested.
+   * This function get the requested attribute for the person requested if the attribute is a POI, primary, or secondary.
    * Returns undefined if there is no value.
    *
    * @param attribute - attribute to search for
@@ -174,20 +174,18 @@ export default class TableManager {
     // console.log('getAttribute: ' + attribute + personID);
     let selectedAttribute;
 
-    if (attribute === this.primaryAttribute.name){
+    if (attribute === this.affectedState.name){
+      selectedAttribute = this.affectedState;
+    } else if (this.primaryAttribute && attribute === this.primaryAttribute.name){
       selectedAttribute = this.primaryAttribute;
-    } else if (attribute === this.secondaryAttribute.name){
+    } else if (this.secondaryAttribute && attribute === this.secondaryAttribute.name){
       selectedAttribute = this.secondaryAttribute;
-    }
-    else{ //Attribute is neither primary nor secondary;
-      console.log('not a primary or secondary')
+    } else{ //Attribute is neither primary nor secondary nor POI;
+      console.log('not a primary, secondary, or POI')
       return undefined;
     }
 
     const ids = selectedAttribute.personIDs;
-
-    // console.log(personID in ids);
-
     if (ids.indexOf(personID) > -1) {
       const index = ids.indexOf(personID);
       const value = selectedAttribute.data[index];
@@ -306,18 +304,18 @@ export default class TableManager {
       } else if (varType === VALUE_TYPE_CATEGORICAL){
         let categoriesVec = attributeVector.valuetype.categories;
         let categories = categoriesVec.map(c=>{return c.name});
-        isAffectedCallbackFcn = (attr:string) => {return attr === categories[0]} //randomly pick the second category
+        isAffectedCallbackFcn = (attr:string) => {console.log('category is , ' , categories[0]); return attr === categories[0]} //randomly pick the second category
       } else if (varType === VALUE_TYPE_STRING){
-        isAffectedCallbackFcn = (attr:string) => {console.log(attr); return attr !== undefined && attr.length>0} //string is non empty
+        isAffectedCallbackFcn = (attr:string) => {return attr !== undefined && attr.length>0} //string is non empty
     }
 
     }
 
     let data = await attributeVector.data();
-    let personIDs = await attributeVector.names();
+    let personIDs = (await attributeVector.names()).map(Number);
 
     this.affectedState = ({name: varName, type: varType, 'isAffected': isAffectedCallbackFcn, 'data':data, 'personIDs':personIDs});
-    console.log(this.affectedState);
+    console.log('Affected State in Table Manager is' , this.affectedState);
 
     //Update family selector
     this.updateFamilyStats();
@@ -377,12 +375,12 @@ export default class TableManager {
 
     const uniqueFamilyIDs = Array.from(new Set(familyIDs));
 
-    console.log(uniqueFamilyIDs)
-
     uniqueFamilyIDs.forEach((id,index)=>{
       //Return people that are in this family and are affected
       let affected = familyIDs.filter((d,i) => {return d === id && this.affectedState.isAffected(attributeData[i])});
       this.familyInfo[index].affected = affected.length;
+
+      console.log('upating stats for family ', id , this.familyInfo )
     })
 
     events.fire(FAMILY_INFO_UPDATED,this);

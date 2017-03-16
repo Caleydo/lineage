@@ -84,25 +84,24 @@ class FamilySelector {
    */
   private updateTable(data) {
 
+    let self = this;
+
+    console.log('family info is ' , data.familyInfo);
+
+    let minValue = min(data.familyInfo,(d:any)=>{return +d.size});
+    let maxValue = max(data.familyInfo,(d:any)=>{return +d.size});
+
     this.peopleScale
-      .range([0, 140])
-      .domain([0, 800]);
+      .range([0,100])
+      .domain([0,maxValue])
 
 
-    // let minValue = min(data.familyInfo,(d:any)=>{return +d.size});
-    // let maxValue = max(data.familyInfo,(d:any)=>{return +d.size});
-    //
-    // this.peopleScale
-    //   .range([0,50])
-    //   .domain([minValue,maxValue])
-    //
-    // minValue = min(data.familyInfo,(d:any)=>{return +d.affected});
-    // maxValue = max(data.familyInfo,(d:any)=>{return +d.affected});
+    minValue = min(data.familyInfo,(d:any)=>{return +d.affected});
+    maxValue = max(data.familyInfo,(d:any)=>{return +d.affected});
 
-
-    // this.casesScale
-    //   .range([0,50])
-    //   .domain([minValue,maxValue]);
+    this.casesScale
+      .range([0,50])
+      .domain([0,maxValue]);
 
     // create a row for each object in the data
     let rows = select('tbody').selectAll('tr')
@@ -130,52 +129,52 @@ class FamilySelector {
       .enter()
       .append('td');
 
-
-
     cells = cellsEnter.merge(cells);
 
     cells.exit().remove();
 
+
+
     selectAll('td').each(function(cell:any) {
-      console.log(cell);
-      if ((cell.type === 'size' || cell.type === 'cases') && select(this).selectAll('rect').size() === 0){
-        select(this).append('svg');
+
+      if (cell.type === 'size' || cell.type === 'cases'){
+        if (select(this).selectAll('svg').size() === 0){
+          select(this).append('svg').append('rect')
+        }
+
+        if (select(this).select('svg').selectAll('text').size() === 0){
+          select(this).select('svg').append('text')
+        }
+
+          select(this).select('svg')
+            .data([cell.value])
+            .attr('width', () => {
+              return cell.type === 'size' ? self.peopleScale.range()[1]+30 : self.casesScale.range()[1]+30;
+            })
+            .attr('height', 10);
+
+          select(this).select('svg').select('rect')
+            .data([cell.value])
+            .attr('width', (d: any) => {console.log(self.casesScale(d), d)
+              return cell.type === 'size' ? self.peopleScale(d) : self.casesScale(d);
+            })
+            .attr('height', 10);
+
+        select(this)
+          .select('text')
+          .data([cell.value])
+          .attr('dy', 10)
+          .attr('dx', (d: any) => {
+            return cell.type === 'size' ? self.peopleScale(d)+4 : self.casesScale(d)+4;
+          })
+          .text((d: any) => {
+            return d;
+          });
+
       }
-      if ((cell.type === 'size' || cell.type === 'cases') && select(this).select('svg').selectAll('text').size() === 0){
-        select(this).select('svg').append('text');
-      }
+
+
     });
-
-
-    selectAll('td').filter((c: any) => {
-      return c.type === 'size' || c.type === 'cases'
-    })
-      .select('svg')
-      .attr('width', (d: any) => {
-        return this.peopleScale.range()[1];
-      })
-      .attr('height', 10)
-      .append('rect')
-      .attr('width', (d: any) => {
-        return this.peopleScale(d.value);
-      })
-      .attr('height', 10);
-
-    selectAll('td').selectAll('svg').filter((c: any) => {
-      return c.type === 'size' || c.type === 'cases';
-    })
-      .select('text')
-      .attr('dy', 10)
-      .attr('dx', (d: any) => {
-        return this.peopleScale(d.value) + 4;
-      })
-      .text((d: any) => {
-        return d.value;
-      });
-    // .attr('fill', 'white')
-    // .style('font-weight', 'bold')
-    // .attr('text-anchor', 'end')
-
 
     cells.filter((c: any) => {
       return c.type === 'id';
@@ -195,10 +194,12 @@ class FamilySelector {
       data.selectFamily(d['id']);
     });
 
-    //default to 38
-    select('tbody').selectAll('tr').filter((row) => {
-      return row['id'] === 38;
-    }).classed('selected', true);
+    if (selectAll('.selected').size() == 0){
+      select('tbody').selectAll('tr').filter((row) => {
+        return row['id'] === 38;
+      }).classed('selected', true);
+    }
+
 
 
   }

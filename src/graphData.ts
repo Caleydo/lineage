@@ -316,43 +316,14 @@ class GraphData {
    * @param value threshold value to apply to attribute when defining 'affected'.
    * Currently has a single value that indicates true.
    */
-  private definePrimary(primary_secondary) {
-
-  }
-
-  /**
-   *
-   * This function defined the 'affected' state based on a user defined attribute.
-   *
-   * @param attribute attribute to be used to define 'affected' state of nodes.
-   * @param value threshold value to apply to attribute when defining 'affected'.
-   * Currently has a single value that indicates true.
-   */
   private defineAffected(affectedState) {
-
     this.nodes.forEach((node) => {
-      node.affected = affectedState.isAffected(node[affectedState.name]);
+      let data = this.tableManager.getAttribute(affectedState.name,node.id);
+      node.affected = affectedState.isAffected(data);
     });
+    console.log(this.nodes.filter((n)=>{return n.affected}).length , 'affected nodes and ', this.nodes.length ,  ' total nodes')
 
   }
-
-
-  /**
-   *
-   * This function defined the 'secondary attribute' state based on a user defined attribute.
-   *
-   * @param attribute attribute to be used to define 'affected' state of nodes.
-   * @param value threshold value to apply to attribute when defining 'affected'.
-   * Currently has a single value that indicates true.
-   */
-  private defineSecondary(attribute, value) {
-    this.nodes.forEach((node) => {
-      node.secondary = {'Attribute': attribute, 'Threshold': value};
-      node.affected = node[attribute] === value;
-    });
-
-  }
-
 
   /**
    *

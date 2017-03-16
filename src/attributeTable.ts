@@ -102,7 +102,7 @@ class attributeTable {
   private async build() {
 
     //Height is a function of the current view and so is set in initData();
-    this.width = 1000 - this.margin.left - this.margin.right
+    this.width = 1200 - this.margin.left - this.margin.right
     this.height = Config.glyphSize * 3 * this.tableManager.graphTable.nrow //- this.margin.top - this.margin.bottom;
 
 
@@ -236,7 +236,7 @@ class attributeTable {
           col.ys = allRows;
           col.type = type;
           // console.log(col.name, ' cat is ', cat)
-          if (categories.length <3 && (cat === 'M' || cat ==='Y' || +cat === 1)) {
+          if (categories.length <3 && (cat === 'M' || cat ==='Y' || +cat === 1 || +cat === 2) || +cat === 3 || +cat === 4) {
 
             let maxOffset = max(this.colOffsets);
             this.colOffsets.push(maxOffset + this.buffer*2 + this.colWidths.categorical);

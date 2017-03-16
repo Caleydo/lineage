@@ -22,7 +22,7 @@ import {line} from 'd3-shape';
 import {range as d3Range} from 'd3-array';
 import {isUndefined} from 'util';
 
-import {PRIMARY_SECONDARY_SELECTED, POI_SELECTED,VIEW_CHANGED_EVENT,TABLE_VIS_ROWS_CHANGED_EVENT} from './tableManager';
+import {PRIMARY_SECONDARY_SELECTED, COL_ORDER_CHANGED_EVENT, POI_SELECTED,VIEW_CHANGED_EVENT,TABLE_VIS_ROWS_CHANGED_EVENT} from './tableManager';
 
 /**
  * Creates the attribute table view
@@ -58,7 +58,7 @@ class attributeTable {
   private rowHeight = Config.glyphSize * 2.5 - 4;
   private colWidths = {categorical:this.rowHeight, int:this.rowHeight*4, real:this.rowHeight*4, string:this.rowHeight*5, id:this.rowHeight*4};
 
-  private colOffsets = [0];
+  private colOffsets;
 
   private idScale = scaleLinear(); //used to size the bars in the first col of the table;
 
@@ -137,12 +137,14 @@ class attributeTable {
 
   public async initData() {
 
+    this.colOffsets =[0];
+
     let graphView = await this.tableManager.graphTable;
     let attributeView = await this.tableManager.tableTable;
 
-
-
     let allCols = graphView.cols().concat(attributeView.cols());
+
+    // console.log(allCols)
 
     //This are the rows that every col in the table should have;
     let graphIDs = await graphView.col(0).names();
@@ -195,6 +197,9 @@ class attributeTable {
 
 
     for (const vector of allCols) {
+      const name = await vector.desc.name;
+      console.log('looking at ', name);
+
       const data = await vector.data(range.all());
       const type = await vector.valuetype.type;
 
@@ -216,6 +221,7 @@ class attributeTable {
           });
 
           const base_name = await vector.desc.name;
+
 
           col.name = base_name + '_' + cat;
           col.varName = base_name;
@@ -321,19 +327,14 @@ class attributeTable {
     let t = transition('t').duration(500).ease(easeLinear);
     let self = this;
 
-    //rendering info
-    var col_widths = this.getDisplayedColumnWidths(this.width);
-    var col_xs = this.getDisplayedColumnXs(this.width);
-    var label_xs = this.getDisplayedColumnMidpointXs(this.width);
-
     let allys = [];
     for (var key in this.tableManager.ys) {
       allys.push(+this.tableManager.ys[key])
     }
 
-    // Scales
-    // let x = scaleLinear().range([0, this.width]).domain([0, 13]);
     let y = this.y;
+
+
 
 //HEADERS
     //Bind data to the col headers
@@ -343,7 +344,7 @@ class attributeTable {
           'name': d.name, 'data': d, 'ind': i, 'type': d.type,
           'max': d.max, 'min': d.min, 'mean': d.mean
         }
-      }));
+      }),(d) => {return d.name});
 
     headers.exit().attr('opacity', 0).remove(); // should remove headers of removed col's
 
@@ -367,7 +368,7 @@ class attributeTable {
 
     //Bind data to the col header summaries
     let colSummaries = this.columnSummaries.selectAll('.colSummary')
-      .data(this.colData.map((d, i) => { return d}));
+      .data(this.colData.map((d, i) => { return d}),(d)=>{return d.varName});
 
     let colSummariesEnter = colSummaries.enter().append('g').classed('colSummary',true);
 
@@ -397,7 +398,7 @@ class attributeTable {
 
     //create backgroundHighlight Bars
     let highlightBars = select('#highlightBarsGroup').selectAll('.highlightBar')
-      .data(this.colData[0].ys.map(d=>{return {'y':d}}), (d: any) => {return d});
+      .data(this.colData[0].ys.map(d=>{return {'y':d}}), (d: any) => {return d.y});
 
     highlightBars.exit().remove();
 
@@ -420,7 +421,7 @@ class attributeTable {
           'name': d.name, 'data': d.data, 'ind': i, 'ys': d.ys, 'type': d.type,
           'ids': d.ids, 'stats': d.stats, 'varName':d.varName
         }
-      }));
+      }),(d)=>{return d.varName});
 
     cols.exit().transition(t).attr('opacity', 0).remove(); // should remove on col remove
 
@@ -1332,6 +1333,11 @@ class attributeTable {
 
     events.on(PRIMARY_SECONDARY_SELECTED, (evt,item) => {
       self.render();
+    });
+
+    events.on(COL_ORDER_CHANGED_EVENT, (evt,item) => {
+      console.log('updating')
+      self.update();
     });
 
 

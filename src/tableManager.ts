@@ -77,6 +77,7 @@ export const TABLE_VIS_ROWS_CHANGED_EVENT = 'table_vis_rows_changed_event';
 export const PRIMARY_SECONDARY_SELECTED = 'primary_secondary_attribute_event';
 export const POI_SELECTED = 'affected_attribute_event';
 export const FAMILY_INFO_UPDATED = 'family_stats_updated';
+export const COL_ORDER_CHANGED_EVENT = 'col_ordering_changed'
 
 
 export const PRIMARY_COLOR = '#20567c';
@@ -102,7 +103,7 @@ export default class TableManager {
   /** The table view (of attributeTable) used in the table visualization */
   public tableTable: ITable; // table view
   /** The columns currently displayed in the table */
-  private activeTableColumns: range.Range = range.all(); //default value;;
+  private activeTableColumns: range.Range = range.all(); //default value;
   /** The rows currently shown in the table, a subset of the activeGraphRows */
   private _activeTableRows: range.Range = range.all(); //default value;
 
@@ -112,15 +113,11 @@ export default class TableManager {
   /** All rows that are used in the graph - corresponds to a family */
   private _activeGraphRows: range.Range = range.all();
   /** The columns currently displayed in the graph  */
-  private activeGraphColumns: range.Range;
-
+  private activeGraphColumns: range.Range = range.all(); //default value
   /** Array of Selected Attributes in the Panel */
   private _selectedAttributes: selectedAttribute [];
 
-
-  /** Active attribute is an attribute that is not ID. This an array of strings (column name) */
-    // TODO do we really need this?
-  public activeAttributes = [];
+  private activeFamilyRows: range.Range; //keeps track of the range associated to the currently selected family;
 
   /** Basic information about all the loaded families */
   public readonly familyInfo: IFamilyInfo[] = [];
@@ -155,6 +152,9 @@ export default class TableManager {
     await this.setAffectedState('suicide'); //Default value;
 
     await this.updateFamilyStats();
+
+    //For panel attribute add/remove/ordering
+    this.attachListeners();
 
     return Promise.resolve(this);
   }
@@ -304,7 +304,7 @@ export default class TableManager {
       } else if (varType === VALUE_TYPE_CATEGORICAL){
         let categoriesVec = attributeVector.valuetype.categories;
         let categories = categoriesVec.map(c=>{return c.name});
-        isAffectedCallbackFcn = (attr:string) => {console.log('category is , ' , categories[0]); return attr === categories[0]} //randomly pick the second category
+        isAffectedCallbackFcn = (attr:string) => {return attr === categories[0]} //randomly pick the second category
       } else if (varType === VALUE_TYPE_STRING){
         isAffectedCallbackFcn = (attr:string) => {return attr !== undefined && attr.length>0} //string is non empty
     }
@@ -338,9 +338,10 @@ export default class TableManager {
         return family.id === chosenFamilyID;
       })[0];
     }
+
     this._activeGraphRows = range.list(family.range);
 
-    await this.refreshActiveViews();
+    await this.refreshActiveGraphView();
 
     //Update the activeAttributeRows. This ensure that vector.stats() returns the correct values in the table.
 
@@ -356,7 +357,7 @@ export default class TableManager {
     });
     this._activeTableRows = range.list(attributeRows);
 
-    await this.refreshActiveViews();
+    await this.refreshActiveTableView();
 
     events.fire(VIEW_CHANGED_EVENT);
   }
@@ -379,8 +380,6 @@ export default class TableManager {
       //Return people that are in this family and are affected
       let affected = familyIDs.filter((d,i) => {return d === id && this.affectedState.isAffected(attributeData[i])});
       this.familyInfo[index].affected = affected.length;
-
-      console.log('upating stats for family ', id , this.familyInfo )
     })
 
     events.fire(FAMILY_INFO_UPDATED,this);
@@ -401,17 +400,18 @@ export default class TableManager {
 
     //populate active attribute array
     columns.forEach((col, i) => {
-      const name = col.desc.name;
       const type = col.desc.value.type;
 
       if (type !== 'idtype') {
         colIndexAccum.push(i);//push the index so we can get the right view
-        this.activeAttributes.push(name);
       }
     });
 
     this._activeTableRows = range.all();
     this.activeTableColumns = range.list(colIndexAccum);
+
+    await this.refreshActiveTableView();
+
   }
 
   /**
@@ -431,20 +431,36 @@ export default class TableManager {
       const familyRange = [];
       let affected = 0;
 
-
       familyIDs.forEach((d, i) => {
         if (d === id) {
           familyRange.push(i);
-          // console.log('affectedColData is ', affectedColData[i])
-          // if (this.affectedState.isAffected(affectedColData[i])) {
-          //   affected = affected + 1;
-          // }
         }
       });
 
       this.familyInfo.push({id, range: familyRange, size: familyRange.length, affected});
     }
+
+    // //Set active graph Cols to non id-types
+    const columns = await this.table.cols();
+
+    let colIndexAccum = [];
+
+    //populate active attribute array
+    columns.forEach((col, i) => {
+      const type = col.desc.value.type;
+
+      // if (type !== 'idtype') {
+        colIndexAccum.push(i);//push the index so we can get the right view
+      // }
+    });
+
+    this.activeGraphColumns = range.list(colIndexAccum);
+
+    await this.refreshActiveGraphView();
+
     await this.selectFamily();
+
+
   }
 
   /**
@@ -452,13 +468,31 @@ export default class TableManager {
    * @return {Promise<void>}
    */
   public async refreshActiveViews() {
-    const key = range.join(this._activeTableRows, range.all());
-
-    this.tableTable = await this.attributeTable.view(key); //view on attribute table
-    this.graphTable = await this.table.view(range.join(this._activeGraphRows, range.all()));
-
-    // events.fire(VIEW_CHANGED_EVENT);
+    await this.refreshActiveTableView();
+    await this.refreshActiveGraphView();
   }
+
+  /**
+   * Uses the active rows and cols to create new table view.
+   * @return {Promise<void>}
+   */
+  public async refreshActiveTableView() {
+    console.log('Active Table View refreshed to include rows ' , this._activeTableRows.dim(0).asList() ,  ' and  cols ',  this.activeTableColumns.dim(0).asList())
+    const tableRange = range.join(this._activeTableRows, this.activeTableColumns);
+    this.tableTable = await this.attributeTable.view(tableRange); //view on attribute table
+  }
+
+  /**
+   * Uses the active rows and cols to create new graph view.
+   * @return {Promise<void>}
+   */
+  public async refreshActiveGraphView() {
+    console.log('Active Graph View refreshed to include rows ' , this._activeGraphRows.dim(0).asList() ,  ' and  cols ',  this.activeGraphColumns.dim(0).asList())
+    const graphRange = range.join(this._activeGraphRows, this.activeGraphColumns);
+    this.graphTable = await this.table.view(graphRange); //view on graph table
+  }
+
+
 
   /**
    * Updates the active rows for the table visualization, creates a new table view and fires a {TABLE_VIS_ROWS_CHANGED} event.
@@ -474,11 +508,24 @@ export default class TableManager {
    * Updates the active rows for the table visualization, creates a new table view and fires a {TABLE_VIS_ROWS_CHANGED} event.
    * @param newRows
    */
-  set activeGraphRows(newRows: range.Range) {
-    // this._activeGraphRows = newRows;
-    const familyView = this.table.view(range.join(this._activeGraphRows, range.all()));
-    this.graphTable = familyView.view(range.join(newRows, range.all()));
-    events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);
+  set activeGraphRows(newRows: Number[]) {
+
+    this.table.col(0).names().then((allIDs)=>{
+
+      let newRange = [];
+      allIDs.forEach((id,i)=>{
+
+        if (newRows.indexOf(+id) > -1) {
+          newRange.push(i);
+        }
+
+      })
+
+      this._activeGraphRows = range.list(newRange);
+      this.refreshActiveGraphView().then(()=>{events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);})
+
+    });
+
   }
 
 
@@ -489,7 +536,6 @@ export default class TableManager {
   set selectedAttributes(attributes: selectedAttribute []) {
     this._selectedAttributes = attributes;
   }
-
 
   public getColumns() {
     return this.table.cols();
@@ -504,10 +550,20 @@ export default class TableManager {
 
     //Set listener for removed attribute from the active list
     events.on('attribute_reordered', (evt, item) => {
+      let currentRange = this.activeGraphColumns.dim(0).asList() //.concat(this.activeTableColumns.dim(0).asList());
+
+      // console.log(currentRange,item.newIndex,item.oldIndex);
+      currentRange.splice(item.newIndex, 0,currentRange.splice(item.oldIndex,1)[0]);
+      // console.log(currentRange)
+      this.activeGraphColumns = range.list(currentRange);
+
+
+      this.refreshActiveGraphView().then(()=>{events.fire(COL_ORDER_CHANGED_EVENT);});
 
     });
     //Set listener for reordering attribute within the active list
     events.on('attribute_removed', (evt, item) => {
+
 
     });
   }

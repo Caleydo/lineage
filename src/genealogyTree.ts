@@ -1095,7 +1095,7 @@ class GenealogyTree {
 
             if (attr && attr.type === VALUE_TYPE_CATEGORICAL) {
               height = Config.glyphSize * 2;
-            } else if (attr && data && (attr.type === VALUE_TYPE_INT || VALUE_TYPE_REAL)) {
+            } else if (attr && data && (attr.type === VALUE_TYPE_INT || attr.type === VALUE_TYPE_REAL)) {
               this.attributeBarY.domain([attr.stats.min, attr.stats.max]);
               height = this.attributeBarY(data);
             }
@@ -1110,8 +1110,7 @@ class GenealogyTree {
 
         if (attr) {
           let data = this.data.getAttribute(attr.name, d.id);
-
-            if (attr && data && (attr.type === VALUE_TYPE_INT || VALUE_TYPE_REAL)) {
+            if (attr && data && (attr.type === VALUE_TYPE_INT || attr.type === VALUE_TYPE_REAL)) {
               this.attributeBarY.domain([attr.stats.min, attr.stats.max]);
               y = Config.glyphSize * 2 - this.attributeBarY(data);
             }
@@ -1129,7 +1128,7 @@ class GenealogyTree {
             if (attr && data && attr.type === VALUE_TYPE_CATEGORICAL) {
               let ind = attr.categories.indexOf(data);
               return attr.color[ind]
-            } else if (attr && data && (attr.type === VALUE_TYPE_INT || VALUE_TYPE_REAL)) {
+            } else if (attr && data && (attr.type === VALUE_TYPE_INT || attr.type === VALUE_TYPE_REAL)) {
               return attr.color
             }
 
@@ -1146,7 +1145,7 @@ class GenealogyTree {
 
         if (attr && attr.type === VALUE_TYPE_CATEGORICAL) {
           height = Config.glyphSize * 2;
-        } else if (attr && d[attr.name] && (attr.type === VALUE_TYPE_INT || VALUE_TYPE_REAL)){
+        } else if (attr && d[attr.name] && (attr.type === VALUE_TYPE_INT || attr.type === VALUE_TYPE_REAL)){
           this.attributeBarY.domain([attr.stats.min,attr.stats.max]);
           height = this.attributeBarY(d[attr.name]);
         }
@@ -1155,7 +1154,7 @@ class GenealogyTree {
       .attr('y', (d) => {
         let y = 0 ;
         let attr = this.secondaryAttribute;
-        if (attr && d[attr.name] && (attr.type === VALUE_TYPE_INT || VALUE_TYPE_REAL)){
+        if (attr && d[attr.name] && (attr.type === VALUE_TYPE_INT || attr.type === VALUE_TYPE_REAL)){
           this.attributeBarY.domain([attr.stats.min,attr.stats.max]);
           y =  Config.glyphSize * 2 - this.attributeBarY(d[attr.name]);
         }
@@ -1167,7 +1166,7 @@ class GenealogyTree {
           // console.log(d[attr.name],attr.categories)
           let ind = attr.categories.indexOf(d[attr.name]);
           return attr.color[ind]
-        } else if (attr && d[attr.name] && (attr.type === VALUE_TYPE_INT || VALUE_TYPE_REAL) ){
+        } else if (attr && d[attr.name] && (attr.type === VALUE_TYPE_INT || attr.type === VALUE_TYPE_REAL) ){
           return attr.color
         }
       })

@@ -321,8 +321,6 @@ class GraphData {
       let data = this.tableManager.getAttribute(affectedState.name,node.id);
       node.affected = affectedState.isAffected(data);
     });
-    console.log(this.nodes.filter((n)=>{return n.affected}).length , 'affected nodes and ', this.nodes.length ,  ' total nodes')
-
   }
 
   /**
@@ -400,8 +398,6 @@ class GraphData {
           });
         }
       });
-
-    // console.log(parentChildEdges)
   };
 
   /**
@@ -651,12 +647,12 @@ class GraphData {
     this.nodes.forEach((n: any) => {
      if (!(!n.aggregated && n.hidden)){
         let ind: number = this.ids.indexOf(n.id);
-        id_range.push(ind);
+        id_range.push(n.id);
       }
     });
 
     this.exportYValues();
-    this.tableManager.activeGraphRows = Range.list(id_range)
+    this.tableManager.activeGraphRows = (id_range)
   };
 
   /**

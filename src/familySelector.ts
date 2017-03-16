@@ -88,15 +88,12 @@ class FamilySelector {
 
     console.log('family info is ' , data.familyInfo);
 
-    let minValue = min(data.familyInfo,(d:any)=>{return +d.size});
     let maxValue = max(data.familyInfo,(d:any)=>{return +d.size});
 
     this.peopleScale
       .range([0,100])
       .domain([0,maxValue])
 
-
-    minValue = min(data.familyInfo,(d:any)=>{return +d.affected});
     maxValue = max(data.familyInfo,(d:any)=>{return +d.affected});
 
     this.casesScale
@@ -155,7 +152,7 @@ class FamilySelector {
 
           select(this).select('svg').select('rect')
             .data([cell.value])
-            .attr('width', (d: any) => {console.log(self.casesScale(d), d)
+            .attr('width', (d: any) => {
               return cell.type === 'size' ? self.peopleScale(d) : self.casesScale(d);
             })
             .attr('height', 10);

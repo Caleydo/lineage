@@ -226,7 +226,7 @@ selectAll('.catBar').on('click', function (d) {
 
     });
 
-    console.log(histData.valueRange);
+    // console.log(histData.valueRange);
 
     //let xScale = scaleLinear().range([0,this.width]).domain([0,histData.bins])
     let xScale = scaleLinear().range([0,this.width]).domain(histData.valueRange);//.nice();

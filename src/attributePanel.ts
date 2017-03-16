@@ -144,6 +144,7 @@ class AttributePanel {
           newIndex: evt.newIndex,
           oldIndex: evt.oldIndex
         };
+        console.log('reordered!',item)
         events.fire('attribute_reordered', item);
       },
 
@@ -248,13 +249,13 @@ class AttributePanel {
 
       const badge = select(this).attr('id'); //$(this).id();
       const attribute = $(this).closest('strong').contents()[0];
-      //reset badge dispaly for previously clicked badges
+      //reset badge display for previously clicked badges
       $('.checked_' + badge).parent().css('display', '');
       $('.checked_' + badge).parent().children().css('display', '');
       $('.checked_' + badge).removeClass('.checked_' + badge);
 
       $(this).parent().css('display', 'inline');
-      $(this).parent().children().css('display', 'none');
+      // $(this).parent().children().css('display', 'none');
       $(this).addClass('checked_' + badge);
       $(this).css('display', 'inline');
        event.stopPropagation();
@@ -430,12 +431,12 @@ class AttributePanel {
 
     events.on('attribute_picked', (evt,item)=>{
       this.updateAttrState(item.name, item.value)
-      console.log(this.attributeState);
+      console.log('attribute picked', this.attributeState);
     })
 
     events.on('attribute_unpicked', (evt,item)=>{
       this.removeFromAttrState(item.name, item.value);
-      console.log(this.attributeState);
+      console.log('attribute unpicked', this.attributeState);
     })
   }
 

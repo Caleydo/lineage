@@ -210,11 +210,11 @@ class AttributePanel {
     //append the header as a menu option
     const attrHeader = attributeElm.append('li')
       .classed('collapsed active', true)
-      .attr('data-target', '#' + columnName)
-      .attr('data-toggle', 'collapse');
+      .attr('data-target', '#' + columnName);
+     // .attr('data-toggle', 'collapse');
 
     const header = attrHeader.append('a').attr('href', '#')
-      .html('<i class=\'glyphicon glyphicon-chevron-right\'></i>')
+      //.html('<i class=\'glyphicon glyphicon-chevron-right\'></i>')
       .append('strong').html(columnName)
       .append('span').attr('class', columnDesc)
       .html(`<div class=' attr_badges pull-right'>
@@ -267,7 +267,7 @@ class AttributePanel {
     // append svgs for attributes:
     const attributeSVG = attributeElm.append('ul')
       .attr('id', columnName)
-      .classed('sub-menu collapse fade', true)
+      .classed('sub-menu collapse fade in', true)
       .append('svg')
       .attr('height',Config.panelAttributeHeight)
       .attr('id', columnName + '_svg')

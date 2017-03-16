@@ -117,7 +117,8 @@ export default class TableManager {
   /** Array of Selected Attributes in the Panel */
   private _selectedAttributes: selectedAttribute [];
 
-  private activeFamilyRows: range.Range; //keeps track of the range associated to the currently selected family;
+
+  public colOrder: String[]; //array that keeps track which attributes are displayed in the panel and in the table and their correct order.
 
   /** Basic information about all the loaded families */
   public readonly familyInfo: IFamilyInfo[] = [];
@@ -513,7 +514,7 @@ export default class TableManager {
    * @return {Promise<void>}
    */
   public async refreshActiveTableView() {
-    console.log('Active Table View refreshed to include rows ' , this._activeTableRows.dim(0).asList() ,  ' and  cols ',  this.activeTableColumns.dim(0).asList())
+    // console.log('Active Table View refreshed to include rows ' , this._activeTableRows.dim(0).asList() ,  ' and  cols ',  this.activeTableColumns.dim(0).asList())
     const tableRange = range.join(this._activeTableRows, this.activeTableColumns);
     this.tableTable = await this.attributeTable.view(tableRange); //view on attribute table
   }
@@ -523,7 +524,7 @@ export default class TableManager {
    * @return {Promise<void>}
    */
   public async refreshActiveGraphView() {
-    console.log('Active Graph View refreshed to include rows ' , this._activeGraphRows.dim(0).asList() ,  ' and  cols ',  this.activeGraphColumns.dim(0).asList())
+    // console.log('Active Graph View refreshed to include rows ' , this._activeGraphRows.dim(0).asList() ,  ' and  cols ',  this.activeGraphColumns.dim(0).asList())
     const graphRange = range.join(this._activeGraphRows, this.activeGraphColumns);
     this.graphTable = await this.table.view(graphRange); //view on graph table
   }
@@ -579,29 +580,29 @@ export default class TableManager {
 
   private attachListeners() {
 
-    //Set listener for added attribute to the active list
-    events.on('attribute_added', (evt, item) => {
-
-    });
-
-    //Set listener for removed attribute from the active list
-    events.on('attribute_reordered', (evt, item) => {
-      let currentRange = this.activeGraphColumns.dim(0).asList() //.concat(this.activeTableColumns.dim(0).asList());
-
-      // console.log(currentRange,item.newIndex,item.oldIndex);
-      currentRange.splice(item.newIndex, 0,currentRange.splice(item.oldIndex,1)[0]);
-      // console.log(currentRange)
-      this.activeGraphColumns = range.list(currentRange);
-
-
-      this.refreshActiveGraphView().then(()=>{events.fire(COL_ORDER_CHANGED_EVENT);});
-
-    });
-    //Set listener for reordering attribute within the active list
-    events.on('attribute_removed', (evt, item) => {
-
-
-    });
+    // //Set listener for added attribute to the active list
+    // events.on('attribute_added', (evt, item) => {
+    //
+    // });
+    //
+    // //Set listener for removed attribute from the active list
+    // events.on('attribute_reordered', (evt, item) => {
+    //   let currentRange = this.activeGraphColumns.dim(0).asList() //.concat(this.activeTableColumns.dim(0).asList());
+    //
+    //   // console.log(currentRange,item.newIndex,item.oldIndex);
+    //   currentRange.splice(item.newIndex, 0,currentRange.splice(item.oldIndex,1)[0]);
+    //   // console.log(currentRange)
+    //   this.activeGraphColumns = range.list(currentRange);
+    //
+    //
+    //   this.refreshActiveGraphView().then(()=>{events.fire(COL_ORDER_CHANGED_EVENT);});
+    //
+    // });
+    // //Set listener for reordering attribute within the active list
+    // events.on('attribute_removed', (evt, item) => {
+    //
+    //
+    // });
   }
 }
 

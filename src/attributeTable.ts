@@ -144,6 +144,20 @@ class attributeTable {
 
     let allCols = graphView.cols().concat(attributeView.cols());
 
+    let colOrder = this.tableManager.colOrder;
+
+    let orderedCols =[];
+    for (const colName of colOrder){
+        // console.log(colName)
+      for (const vector of allCols) {
+        const name = await vector.desc.name;
+        if (name === colName){
+          orderedCols.push(vector)
+        }
+      }
+    }
+
+
     // console.log(allCols)
 
     //This are the rows that every col in the table should have;
@@ -196,7 +210,7 @@ class attributeTable {
     this.y.range([0, this.height]).domain([1, max(allRows)]);
 
 
-    for (const vector of allCols) {
+    for (const vector of orderedCols) {
       const name = await vector.desc.name;
       // console.log('looking at ', name);
 

@@ -1124,7 +1124,6 @@ class GenealogyTree {
 
         if (attr) {
           let data = this.data.getAttribute(attr.name, d.id);
-          console.log(data)
             if (attr && data && attr.type === VALUE_TYPE_CATEGORICAL) {
               let ind = attr.categories.indexOf(data);
               return attr.color[ind]

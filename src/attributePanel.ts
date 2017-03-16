@@ -10,7 +10,7 @@ import * as histogram from './histogram';
 import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL} from 'phovea_core/src/datatype';
 import * as range from 'phovea_core/src/range';
 
-import {PRIMARY_SECONDARY_SELECTED, POI_SELECTED} from './tableManager';
+import {PRIMARY_SECONDARY_SELECTED, POI_SELECTED, COL_ORDER_CHANGED_EVENT} from './tableManager';
 
 
 import {Config} from './config';
@@ -71,7 +71,7 @@ class AttributePanel {
       }
     });
 
-
+    this.tableManager.colOrder = this.activeColumns;
 
     this.update();
     this.build();
@@ -144,8 +144,8 @@ class AttributePanel {
           newIndex: evt.newIndex,
           oldIndex: evt.oldIndex
         };
-        console.log('reordered!',item)
-        events.fire('attribute_reordered', item);
+
+        events.fire('attribute_reordered',item);
       },
 
     });
@@ -178,7 +178,7 @@ class AttributePanel {
     });
 
     events.on('primary_secondary_selected', (evt, item) => {
-      console.log(item)
+      // console.log(item)
       this.tableManager.setPrimarySecondaryAttribute(item.attribute.data,item.badge);
     });
 
@@ -255,7 +255,7 @@ class AttributePanel {
       $('.checked_' + badge).removeClass('.checked_' + badge);
 
       $(this).parent().css('display', 'inline');
-      // $(this).parent().children().css('display', 'none');
+      $(this).parent().children().css('display', 'none');
       $(this).addClass('checked_' + badge);
       $(this).css('display', 'inline');
        event.stopPropagation();
@@ -433,6 +433,14 @@ class AttributePanel {
       this.updateAttrState(item.name, item.value)
       console.log('attribute picked', this.attributeState);
     })
+
+    events.on('attribute_reordered', (evt,item)=>{
+      this.tableManager.colOrder.splice(item.newIndex, 0,this.tableManager.colOrder.splice(item.oldIndex,1)[0]);
+      events.fire(COL_ORDER_CHANGED_EVENT)
+
+    })
+
+
 
     events.on('attribute_unpicked', (evt,item)=>{
       this.removeFromAttrState(item.name, item.value);

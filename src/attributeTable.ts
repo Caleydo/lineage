@@ -1236,8 +1236,8 @@ class attributeTable {
 
       element
         .select('.string')
-        .text('Aggregate')
-        .style('font-weight', 'bold')
+        .text('...')
+        // .style('font-style', 'bold')
         .attr('dy', rowHeight * 0.9)
         // .attr('dx', this.idScale(numValues) + 2)
         .style('stroke', 'none')

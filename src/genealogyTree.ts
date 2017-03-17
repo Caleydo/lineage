@@ -23,7 +23,7 @@ import {
 } from 'd3-ease';
 import {
   scaleLinear,
-  interpolateViridis,
+  scaleLog,scalePow
 } from 'd3-scale';
 import {
   max,
@@ -77,10 +77,10 @@ class GenealogyTree {
   private margin = Config.margin;
 
   //Time scale for visible nodes
-  private x = scaleLinear();
+  private x = scalePow().exponent(20);
 
   //Time scale for nodes outside the viewport
-  private x2 = scaleLinear();
+  private x2 = scalePow().exponent(20);
 
 
   private y = scaleLinear();
@@ -1517,6 +1517,7 @@ class GenealogyTree {
 
   private update_time_axis() {
 
+
     let scrollOffset = document.getElementById('graph_table').scrollTop;
     let divHeight = document.getElementById('graph_table').offsetHeight;
 
@@ -1552,8 +1553,15 @@ class GenealogyTree {
     }),
       max(this.data.nodes, function (d) {
         return +d['ddate']
-      }) + 5];
+      })];
 
+    //Temporary cap @ 2016. Not sure why the axis are scaling to 2025 automatically.
+    if (all_domain[1] >2016)
+      all_domain[1] = 2016;
+
+    if (filtered_domain[1] >2016)
+      filtered_domain[1] = 2016;
+    // console.log(all_domain, filtered_domain)
     //Build time axis
 
     //for visible nodes
@@ -1606,7 +1614,7 @@ class GenealogyTree {
     x_domain.push(all_domain[1]);
     x_ticks.push(all_domain[1]);
 
-    let t2 = transition('t2').duration(750).ease(easeLinear);
+    // let t2 = transition('t2').duration(750).ease(easeLinear);
 
     this.x.domain(x_domain);
     this.x.range(x_range)
@@ -1618,7 +1626,7 @@ class GenealogyTree {
     this.extremesXAxis.tickValues(x2_ticks);
 
     select('#visible_axis')
-      .transition(t2)
+      // .transition(t2)
       .call(this.visibleXAxis)
 
     select('#extremes_axis')
@@ -1629,7 +1637,7 @@ class GenealogyTree {
       .call(this.extremesXAxis)
 
     select('#extremes_axis')
-      .transition(t2)
+      // .transition(t2)
       .attr('opacity', .6)
 
     select('#visible_axis')

@@ -86,7 +86,7 @@ class FamilySelector {
 
     let self = this;
 
-    console.log('family info is ' , data.familyInfo);
+    // console.log('family info is ' , data.familyInfo);
 
     let maxValue = max(data.familyInfo,(d:any)=>{return +d.size});
 

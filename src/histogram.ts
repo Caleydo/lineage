@@ -16,6 +16,7 @@ import {IHistogram, rangeHist} from 'phovea_core/src/math';
 import {line} from 'd3-shape';
 
 import {Config} from './config';
+import {isNull} from 'util';
 
 
 class Histogram {
@@ -27,9 +28,9 @@ class Histogram {
   private $histogramCols;
   //settings
 
-  private margin = {top: 10, right: 30, bottom: 5, left: 50};
+  private margin = {top: 40, right: 30, bottom: 5, left: 50};
   private width = Config.panelSVGwidth;
-  private height = Config.panelAttributeHeight;
+  private height = Config.panelAttributeHeight*0.8;
 
   //data vector is of type IVector
   private dataVec;
@@ -375,6 +376,13 @@ class Histogram {
         .tickValues(xScale.domain())
         .tickFormat(format(".0f")));
 
+    const topAxis = element.append('g')
+      .attr('class', 'axis brushAxis')
+      .attr('transform', 'translate(' + this.margin.left + ',0)')
+      .call(axisTop(xScale)
+        .ticks(0))
+
+
     const barContainer = element.append('g')
       .attr('transform', 'translate(' + this.margin.left + ',0)')
 
@@ -405,12 +413,12 @@ class Histogram {
     let brush = brushX()
       .extent([[0, 0], [this.width, this.height]])
       .handleSize(8)
-      .on("end", brushed);
+      .on("brush", brushed)
+      .on("start end", fireEvent)
 
     brushGroup
       .call(brush)
       .call(brush.move, xScale.range());
-
 
     function brushed() {
       let extent = brushSelection(brushGroup.node());
@@ -418,16 +426,40 @@ class Histogram {
       let upperBound = xScale.invert(<Number>extent[1]);
 
       let domain = xScale.domain();
-      let allTicks = Array.from(new Set([lowerBound,upperBound].concat(domain)));
+      // let allTicks = Array.from(new Set([lowerBound,upperBound].concat(domain)));
+
+      let allTicks=[];
+      if (lowerBound !== domain[0] || upperBound !== domain[1]){
+        allTicks = [lowerBound,upperBound];
+      }
 
       //Create a tick mark at the edges of the brush
-      xAxis.call(axisBottom(xScale)
+      topAxis.call(axisTop(xScale)
         .tickSize(5)
         .tickValues(allTicks)
         .tickFormat(format(".0f")));
 
       console.log(lowerBound,upperBound)
     }
+
+    function fireEvent() {
+      let extent = brushSelection(brushGroup.node());
+
+      if (isNull(extent)) {
+        topAxis.call(axisTop(xScale)
+          .ticks(0))
+          // .tickValues(xScale.domain())
+          // .tickFormat(format(".0f")));
+
+
+
+      }else{
+        // let lowerBound = xScale.invert(<Number>extent[0]);
+        // let upperBound = xScale.invert(<Number>extent[1]);
+      }
+
+    }
+
 
 
 

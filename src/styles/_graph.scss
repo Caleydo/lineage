@@ -373,10 +373,35 @@ rect.selected{
  	fill: white  !important
 }
 
+.handle{
+  fill: #ff6400;
+  fill-opacity: 0.8;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+//
+//.brush .selection{
+//
+//  fill:#ff6400;
+//  //stroke-width: 4px ;
+//}
+//
+//.brushAxis text{
+//  fill:#ff6400
+//}
+
 .phantom{
 	.lifeRect{
 		visibility: hidden
 	}
+}
+
+.brushAxis path{
+  stroke: none;
+}
+
+.brushAxis text{
+  font-size:16px;
 }
 
 .attributeBar{

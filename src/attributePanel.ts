@@ -66,7 +66,7 @@ class AttributePanel {
       const name = col.desc.name;
       const type = col.desc.value.type;
 
-      if (type !== 'idtype') {
+      if (name === 'PersonID' || type !== 'idtype') {
         this.activeColumns.push(name);
       }
     });

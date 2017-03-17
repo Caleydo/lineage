@@ -184,10 +184,19 @@ class AttributePanel {
 
     events.on('poi_selected', (evt, item) => {
 
-      this.tableManager.setAffectedState(item.attribute.data).then((threshold)=>{
+      console.log('poi item is ', item)
+
+
+      this.tableManager.setAffectedState(item.name,item.callback).then((threshold)=>{
         //find histogram with this name and set the brush extent
-        let hist = this.histograms.filter((h)=>{return h.attrName === item.attribute.data})[0];
-        hist.setBrush(threshold);
+        let hist = this.histograms.filter((h)=>{return h.attrName === item.name})[0];
+
+        if (threshold !== undefined) { //setAffectedState returned a default value. Was not set by user brushing
+          //Remove all existing brushes
+          this.histograms.map((hist)=>{hist.removeBrush();})
+          hist.setBrush(threshold);
+        }
+
       });
     });
 
@@ -282,7 +291,8 @@ class AttributePanel {
       if (badge === 'primary' || badge === 'secondary') {
         events.fire('primary_secondary_selected', {attribute, badge});
       } else if (badge === 'poi') {
-        events.fire('poi_selected', {attribute, badge});
+        console.log(attribute.nodeValue)
+        events.fire('poi_selected', {'name':attribute.nodeValue});
       }
     });
 

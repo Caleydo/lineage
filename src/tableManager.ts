@@ -327,6 +327,8 @@ export default class TableManager {
    */
   public async setAffectedState(varName, isAffectedCallbackFcn?) {
 
+    console.log('varName is ', varName)
+
       let attributeVector = await this.getAttributeVector(varName);
       let varType = attributeVector.valuetype.type;
 

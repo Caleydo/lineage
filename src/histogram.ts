@@ -82,14 +82,6 @@ class Histogram {
 
     }
 
-    selectAll('.bar').on('click', function (d) {
-      if (select(this).classed('picked')) {
-        select(this).classed('picked', false);
-      } else {
-        // selectAll('.picked').classed('picked', false);
-        select(this).classed('picked', true);
-      }
-    });
 
 
   }
@@ -99,10 +91,12 @@ class Histogram {
    */
   private addBrush(){
 
+    let attrName = this.attrName;
+
     let element = this.$node;
     let xScale = this.xScale;
 
-    const topAxis = element.append('g')
+    const topAxis = element.select('g').append('g')
       .attr('class', 'axis brushAxis')
       .attr('transform', 'translate(' + this.margin.left + ',0)')
       .call(axisTop(xScale)
@@ -116,7 +110,7 @@ class Histogram {
       .extent([[0, 0], [this.width, this.height]])
       .handleSize(8)
       .on("brush", brushed)
-      .on("start end", fireEvent)
+      .on("end", fireEvent)
 
     brushGroup
       .call(brush)
@@ -144,15 +138,21 @@ class Histogram {
         .tickFormat(format(".0f")));
     }
 
-    function fireEvent(xScale) {
+    function fireEvent() {
       let extent = brushSelection(brushGroup.node());
 
-      if (isNull(extent)) {
+      if (isNull(extent)) { //user cleared brush entirely
         topAxis.call(axisTop(xScale)
           .ticks(0))
+        if (!isNull(event.sourceEvent)){ //user cleared brush, nobody is 'affected'
+          events.fire('poi_selected',{'name':attrName, 'callback':(attr:Number) => {return false} })
+        }
       }else{
-        // let lowerBound = xScale.invert(<Number>extent[0]);
-        // let upperBound = xScale.invert(<Number>extent[1]);
+        console.log('extent is ', extent);
+        if (!isNull(event.sourceEvent)){ //ideally will check if sourceEvent === MouseEvent but that check doesn' work...
+          events.fire('poi_selected',{'name':attrName, 'callback':(attr:Number) => {return attr >= xScale.invert(extent[0]) && attr <= xScale.invert(extent[1])} })
+        }
+
       }
 
     }
@@ -162,7 +162,7 @@ class Histogram {
   /**
    * Sets the brush extent for this histogram.
    */
-  private setBrush(threshold) {
+  public setBrush(threshold) {
 
     if (!this.brush){ //no brush exists. define default
       console.log('threshold is ', threshold)
@@ -171,6 +171,16 @@ class Histogram {
         .call(this.brush.move, [this.xScale(threshold), this.xScale.range()[1]]);
     }
 
+  }
+
+
+  /**
+   * Removes the brush from this histogram
+   */
+  public removeBrush() {
+      this.$node.select('.brush').remove()
+      this.$node.select('.brushAxis').remove();
+      this.brush = undefined;
   }
 
 
@@ -290,8 +300,18 @@ class Histogram {
     //
     // });
 
+      selectAll('.catBar').on('click', function (d) {
+        if (select(this).classed('picked')) {
+          select(this).classed('picked', false);
+        } else {
+          // selectAll('.picked').classed('picked', false);
+          select(this).classed('picked', true);
+        }
+      });
 
-  }
+
+
+    }
 
 
 

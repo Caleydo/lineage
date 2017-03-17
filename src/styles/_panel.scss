@@ -1,4 +1,8 @@
 $darkgray-color: #4f4f4d;
+$primary-color : #20567c;
+$primary-color-light : #a3ccf0;
+$secondary-color: #e48737;
+$secondary-color-light : #ffd6b3;
 
 #data_selection {
   float: left;
@@ -7,6 +11,10 @@ $darkgray-color: #4f4f4d;
   border-right: solid;
   border-color: lightgrey;
   width: 300px;
+}
+
+.menu-list ul{
+  margin-bottom:0px !important;
 }
 
 .nav-side-menu {
@@ -100,8 +108,21 @@ $darkgray-color: #4f4f4d;
 }
 
 #inactive-menu-content li {
+  background-color: white;
   color: #373737;
   opacity: .5;
+  margin-top: 3px;
+  border-top: 5px solid lightgray;
+
+
+}
+
+#active-menu-content li {
+  background-color: white;
+  margin-top: 3px;
+  border-top: 5px solid lightgray;
+
+
 }
 
 .menu-content .sort_handle {
@@ -116,27 +137,44 @@ $darkgray-color: #4f4f4d;
 }
 
 .menu-content .attr_badges {
-  display: none;
-}
-
-.menu-content .attr_badges span:hover {
   display: inline;
 }
 
-.menu-content .attr_badges.focus,
-.menu-content .attr_badges .checked_primary,
-.menu-content .attr_badges .checked_secondry {
+.menu-content .badge{
+  display: none;
+}
 
-  color: grey;
+.menu-content .badge.focus{
+  //color: $darkgray-color;
+  color:white;
+  display: inline;
+}
+
+
+.menu-content .attr_badges .checked_primary{
+  background-color: $primary-color;
+  color: white;
+  display: inline;
+}
+
+.menu-content .attr_badges .checked_secondary {
+  background-color: $secondary-color;
+  color: white;
+  display: inline;
+}
+
+.menu-content .attr_badges .checked_poi{
+  background-color: $darkgray-color;
+  color: white;
   display: inline;
 }
 
 .badge {
-  color: grey;
-  background-color: #DDDDDD;
+  color: white;
+  background-color: gray;
 }
 
-.menu-content li:hover {
+.menu-content #inactive-menu-content li{
   background-color: lightgrey;
 }
 
@@ -214,6 +252,18 @@ $darkgray-color: #4f4f4d;
   font-size: 14px;
 }
 
+.nav-side-menu li :not(collapsed) .real:before {
+  font-family: FontAwesome;
+  /*content: "\f078";*/
+  content: "\f292";
+  display: inline-block;
+  padding-left: 10px;
+  padding-right: 10px;
+  vertical-align: middle;
+  float: right;
+  font-size: 14px;
+}
+
 .nav-side-menu li :not(collapsed) .int:before {
   font-family: FontAwesome;
   /*content: "\f078";*/
@@ -263,7 +313,7 @@ $darkgray-color: #4f4f4d;
 
 .nav-side-menu ul .sub-menu li.active a,
 .nav-side-menu li .sub-menu li.active a {
-  color: #1182c5;
+  //color: #1182c5;
 }
 
 .nav-side-menu ul .sub-menu li,
@@ -302,6 +352,7 @@ $darkgray-color: #4f4f4d;
 .nav-side-menu li a {
   text-decoration: none;
   color: #333;
+  margin-left: 10px;
 }
 
 .nav-side-menu li img {
@@ -310,8 +361,8 @@ $darkgray-color: #4f4f4d;
 }
 
 .nav-side-menu li a:hover {
-  text-decoration: none;
-  color: #1182c5;
+  font-weight: bold;
+  color: #020203;
 }
 
 .nav-side-menu li a i {

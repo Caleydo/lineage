@@ -27,9 +27,9 @@ class Histogram {
   private $histogramCols;
   //settings
 
-  private margin = {top: 10, right: 20, bottom: 10, left: 20};
-  private width = (Config.panelAttributeWidth - this.margin.left - this.margin.right) / 2;
-  private height = Config.panelAttributeHeight - this.margin.top - this.margin.bottom;
+  private margin = {top: 10, right: 30, bottom: 5, left: 50};
+  private width = Config.panelSVGwidth;
+  private height = Config.panelAttributeHeight;
 
   //data vector is of type IVector
   private dataVec;
@@ -64,12 +64,14 @@ class Histogram {
   }
 
 
-  private update(dataVec) {
+  private async update(dataVec) {
     if (this.type === VALUE_TYPE_CATEGORICAL) {
-      this.renderCategoricalHistogram(dataVec);
+      await this.renderCategoricalHistogram(dataVec);
+      // await this.renderCategoricalBar(dataVec);
     } else if (this.type === VALUE_TYPE_INT || this.type === VALUE_TYPE_REAL) {
-      this.renderNumHistogram(dataVec);
+      await this.renderNumHistogram(dataVec);
     } else if (this.type === 'string') {
+
     }
 
     selectAll('.bar').on('click', function (d) {
@@ -77,9 +79,127 @@ class Histogram {
         select(this).classed('picked', false);
       } else {
         selectAll('.picked').classed('picked', false);
+        console.log('hre')
         select(this).classed('picked', true);
       }
     });
+
+
+  }
+
+
+  /**
+   * This function renders the histogram for categorical attribute in the attribute panel
+   *
+   */
+  private async renderCategoricalBar(dataVec) {
+
+    const categoricalDataVec = <ICategoricalVector>dataVec;
+
+    const numElements = categoricalDataVec.length;
+
+    const histData: IHistogram = await categoricalDataVec.hist();
+    // console.log(histData)
+    const catData = [];
+    histData.forEach((d, i) => catData.push({key: histData['categories'][i], value: d}));
+    // console.log('Cate', catData);
+
+    //scales
+    let xScale = scaleBand();
+    let yScale = scaleLinear();
+
+    //scales
+    xScale.rangeRound([0, this.width]).padding(0.6)
+      .domain(catData.map(function (d) {
+        return d.key;
+      }));
+
+    yScale.rangeRound([this.height, 0])
+    // .domain([0, numElements]);
+      .domain([0, max(catData, function (d) {
+        return d.value;
+      })]);
+
+    if (this.$node.selectAll('.svg-g').size() === 0) {
+      this.$node.append('g')
+        .attr('transform', 'scale(0.8,0.6) translate(' + this.margin.left + ',' + this.margin.top + ')')
+        .attr('class', 'svg-g');
+    }
+
+    const element = this.$node.selectAll('.svg-g');
+
+    //axis
+    const xAxis = element.append('g')
+      .attr('class', 'axis axis--x')
+      .attr('transform', 'translate(' + this.margin.left + ',' + this.height + ')')
+      .call(axisTop(xScale));
+
+    //yaxis
+    /* const yAxis = element.append('g')
+     .attr('class', 'axis axis--y')
+     .attr('transform', 'translate(' + padding + ',0)')
+     .call(axisLeft(yScale.nice()).ticks(3))
+     .append('text')
+     .attr('transform', 'rotate(-90)')
+     .attr('y', 6)
+     .attr('dy', '1.71em')
+     .attr('text-anchor', 'end')
+     .text('Value');*/
+
+    const barContainer = element.append('g')
+      .attr('transform', 'translate(' + this.margin.left + ',0)')
+
+    barContainer
+      .selectAll('.catBar')
+      .data(catData)
+      .enter().append('rect')
+      .classed('catBar', true)
+      .classed('bar', true)
+      .attr('x', (d) => {
+        return xScale(d.key);
+      })
+      .attr('y', (d) => {
+        return yScale(d.value);
+      })
+      .attr('width', xScale.bandwidth())
+      .attr('height', (d) => {
+        return this.height - yScale(d.value);
+      })
+      // .attr('fill', 'rgb(226, 225, 224)')
+      .attr('attribute', this.attrName);
+
+    // barContainer
+    //   .selectAll('.barLabel')
+    //   .data(catData)
+    //   .enter()
+    //   .append('text')
+    //   .attr('class','barLabel')
+    //   .text((d)=>{
+    //     return Math.round(d.value/numElements *100 ) + '%';
+    //   })
+    //   .attr('x', (d)=> {
+    //     return xScale(d.key)+xScale.bandwidth()/2;
+    //   })
+    //   .attr('y',(d)=> {
+    //     return yScale(d.value)-2;
+    //   })
+    //   .attr('opacity',1)
+    //   .attr('text-anchor','middle');
+
+
+    // selectAll('.catBar').on('click', function (d) {
+    //   const item = {
+    //     name: select(this).attr('attribute'),
+    //     value: d['key']
+    //   };
+    //
+    //   if (select(this).classed('picked')) {
+    //     events.fire('attribute_unpicked', item);
+    //   } else {
+    //     events.fire('attribute_picked', item);
+    //   }
+    //
+    // });
 
 
   }
@@ -121,7 +241,7 @@ class Histogram {
 
     if (this.$node.selectAll('.svg-g').size() === 0) {
       this.$node.append('g')
-        .attr('transform', 'scale(0.8,0.8) translate(' + this.margin.left + ',' + this.margin.top + ')')
+        .attr('transform', 'scale(0.6,0.6) translate(' + this.margin.left + ',' + this.margin.top + ')')
         .attr('class', 'svg-g');
     }
 
@@ -186,22 +306,23 @@ class Histogram {
     //   .attr('text-anchor','middle');
 
 
-    selectAll('.catBar').on('click', function (d) {
-      const item = {
-        name: select(this).attr('attribute'),
-        value: d['key']
-      };
-
-      if (select(this).classed('picked')) {
-        events.fire('attribute_unpicked', item);
-      } else {
-        events.fire('attribute_picked', item);
-      }
-
-    });
+    // selectAll('.catBar').on('click', function (d) {
+    //   const item = {
+    //     name: select(this).attr('attribute'),
+    //     value: d['key']
+    //   };
+    //
+    //   if (select(this).classed('picked')) {
+    //     events.fire('attribute_unpicked', item);
+    //   } else {
+    //     events.fire('attribute_picked', item);
+    //   }
+    //
+    // });
 
 
   }
+
 
 
   /**
@@ -248,7 +369,7 @@ class Histogram {
 
     const element = this.$node.append('g')
     // .attr('transform', 'scale(0.8,0.8) translate(20,20)');
-      .attr('transform', 'scale(0.8,0.8) translate(' + this.margin.left + ',' + this.margin.top + ')')
+      .attr('transform', 'scale(0.6,0.6) translate(' + this.margin.left + ',' + this.margin.top + ')')
 
     //axis
     const xAxis = element.append('g')
@@ -280,35 +401,37 @@ class Histogram {
       })
       // .attr('fill', 'rgb(226, 225, 224)')
       // .attr('opacity', 1)
-      .attr('attribute', this.attrName);
 
 
-    selectAll('.numBar').on('click', function (d, i) {
-      bin2value.range(d['valueRange']);
-      //getting the range of the selected bin
-      const binIndex = parseInt(d['binIndex']);
-      const diff = (d['valueRange'][1] - d['valueRange'][0]) / 10;
-      const lowerBound = Math.floor(d['valueRange'][0] + (diff * binIndex));
-      const upperBound = Math.floor(d['valueRange'][0] + (diff * (binIndex + 1)));
-      // console.log(bin2value.range())
-      // console.log('selected bin range', lowerBound);
-      // console.log('selected bin range', upperBound);
-      // console.log('num bar', d);
-      // console.log('num bar', i);
-      // console.log('num bar', bin2value(binIndex));
 
-      const item = {
-        name: select(this).attr('attribute'),
-        value: [lowerBound, upperBound]
-      };
-
-      if (select(this).classed('picked')) {
-        events.fire('attribute_unpicked', item);
-      } else {
-        events.fire('attribute_picked', item);
-      }
-
-    });
+    // selectAll('.numBar').on('click', function (d, i) {
+    //   bin2value.range(d['valueRange']);
+    //   //getting the range of the selected bin
+    //   const binIndex = parseInt(d['binIndex']);
+    //   const diff = (d['valueRange'][1] - d['valueRange'][0]) / 10;
+    //   const lowerBound = Math.floor(d['valueRange'][0] + (diff * binIndex));
+    //   const upperBound = Math.floor(d['valueRange'][0] + (diff * (binIndex + 1)));
+    //
+    //   // console.log(bin2value.range())
+    //   // console.log('selected bin range', lowerBound);
+    //   // console.log('selected bin range', upperBound);
+    //   // console.log('num bar', d);
+    //   // console.log('num bar', i);
+    //   // console.log('num bar', bin2value(binIndex));
+    //
+    //
+    //   const item = {
+    //     name: select(this).attr('attribute'),
+    //     value: [lowerBound, upperBound]
+    //   };
+    //
+    //   if (select(this).classed('picked')) {
+    //     events.fire('attribute_unpicked', item);
+    //   } else {
+    //     events.fire('attribute_picked', item);
+    //   }
+    //
+    // });
 
 
   }

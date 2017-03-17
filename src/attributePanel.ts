@@ -26,7 +26,7 @@ class AttributePanel {
   // access to all the data in our backend
   private table;
   private columns;
-  private activeColumns=[];
+  private activeColumns = [];
   private histograms = [];
   private attributeState = [];
 
@@ -39,14 +39,14 @@ class AttributePanel {
 
     //toggle btn
     select(parent).append('span')
-      .attr('id','toggle-btn')
+      .attr('id', 'toggle-btn')
       .append('i')
-      .classed('glyphicon glyphicon-menu-hamburger',true);
+      .classed('glyphicon glyphicon-menu-hamburger', true);
 
 
     this.$node = select(parent)
       .append('div')
-      .attr('id','panelContent')
+      .attr('id', 'panelContent')
       .classed('nav-side-menu active', true);
   }
 
@@ -60,7 +60,7 @@ class AttributePanel {
     this.tableManager = attributeDataObj;
     let graphView = this.tableManager.graphTable;
     let attributeView = this.tableManager.tableTable;
-    this.columns  = graphView.cols().concat(attributeView.cols());   //this.table.cols();
+    this.columns = graphView.cols().concat(attributeView.cols());   //this.table.cols();
 
     this.columns.forEach((col, i) => {
       const name = col.desc.name;
@@ -88,7 +88,7 @@ class AttributePanel {
   private build() {
     // family selector
     const familySelector = this.$node.append('div')
-      .attr('id','familySelector')
+      .attr('id', 'familySelector')
       .classed('menu-list', true)
       .html(` <ul >
             <li class='brand' data-toggle='collapse'> <i class=''></i> <strong>Family and Data Selection</strong></li>
@@ -145,7 +145,7 @@ class AttributePanel {
           oldIndex: evt.oldIndex
         };
 
-        events.fire('attribute_reordered',item);
+        events.fire('attribute_reordered', item);
       },
 
     });
@@ -172,14 +172,14 @@ class AttributePanel {
 
     });
 
- // populate the panel with attributes
+    // populate the panel with attributes
     this.columns.forEach((column) => {
       this.addAttribute(column.desc.name, column.desc.value.type);
     });
 
     events.on('primary_secondary_selected', (evt, item) => {
       // console.log(item)
-      this.tableManager.setPrimarySecondaryAttribute(item.attribute.data,item.badge);
+      this.tableManager.setPrimarySecondaryAttribute(item.attribute.data, item.badge);
     });
 
     events.on('poi_selected', (evt, item) => {
@@ -210,11 +210,11 @@ class AttributePanel {
     //append the header as a menu option
     const attrHeader = attributeElm.append('li')
       .classed('collapsed active', true)
-      .attr('data-target', '#' + columnName)
-      .attr('data-toggle', 'collapse');
+      .attr('data-target', '#' + columnName);
+    // .attr('data-toggle', 'collapse');
 
     const header = attrHeader.append('a').attr('href', '#')
-      .html('<i class=\'glyphicon glyphicon-chevron-right\'></i>')
+    //.html('<i class=\'glyphicon glyphicon-chevron-right\'></i>')
       .append('strong').html(columnName)
       .append('span').attr('class', columnDesc)
       .html(`<div class=' attr_badges pull-right'>
@@ -230,13 +230,13 @@ class AttributePanel {
     attrHeader.on('mouseover', function () {
       select(this).select('.sort_handle').classed('focus', true);
       if (list === '#active-menu-content') {
-        select(this).select('.attr_badges').classed('focus', true);
+        select(this).selectAll('.badge').classed('focus', true);
       }
     });
 
     attrHeader.on('mouseout', function () {
-      // select(this).select('.sort_handle').classed('focus', false);
-      select(this).select('.attr_badges').classed('focus', false);
+      select(this).select('.sort_handle').classed('focus', false);
+      select(this).selectAll('.badge').classed('focus', false);
     });
 
     attrHeader.on('click', function () {
@@ -251,36 +251,56 @@ class AttributePanel {
       const badge = select(this).attr('id'); //$(this).id();
       const attribute = $(this).closest('strong').contents()[0];
       //reset badge display for previously clicked badges
-      $('.checked_' + badge).parent().css('display', '');
+      $('.checked_' + badge).css('display', '');
       $('.checked_' + badge).parent().children().css('display', '');
-      $('.checked_' + badge).removeClass('.checked_' + badge);
+      $('.checked_' + badge).removeClass().addClass('badge');
+
+
+      // check if siblings has checked badge
+      $(this).parent().children().each(function () {
+        if (select(this).attr('class').indexOf('checked_') > -1 && (badge == 'primary' || badge === 'secondary')) {
+          console.log($(this).closest('strong').contents()[0]);
+          if(!$(this).hasClass('checked_poi')) {
+            $(this).removeClass().addClass('badge');
+            $(this).css('display', '');
+          }
+        }
+      });
+
 
       $(this).parent().css('display', 'inline');
-      $(this).parent().children().css('display', 'none');
+      //$(this).parent().children().css('display', 'none');
       $(this).addClass('checked_' + badge);
       $(this).css('display', 'inline');
-       event.stopPropagation();
+      event.stopPropagation();
 
-      if (badge === 'primary' || badge === 'secondary'){
+      if (badge === 'primary' || badge === 'secondary') {
         events.fire('primary_secondary_selected', {attribute, badge});
-      } else if (badge === 'poi'){
+      } else if (badge === 'poi') {
         events.fire('poi_selected', {attribute, badge});
       }
     });
 
-    // append svgs for attributes:
-    const attributeSVG = attributeElm.append('ul')
-      .attr('id', columnName)
-      .classed('sub-menu collapse fade', true)
-      .append('svg')
-      .attr('height',Config.panelAttributeHeight)
-      .attr('id', columnName + '_svg')
-      .classed('attribute_svg', true);
+    /** Generate SVG for these type only**/
+    if ([VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL].indexOf(columnDesc) > -1) {
 
-    this.populateData(this.$node.select('#' + columnName + '_svg').node(), columnName, columnDesc);
+      // append svgs for attributes:
+      const attributeSVG = attributeElm
+        // .select('li')
+        .append('ul')
+        .attr('id', columnName)
+        // .classed('sub-menu collapse fade in', true)
+        .append('svg')
+        .style('margin-top','-30px')
+        .attr('height', Config.panelAttributeHeight)
+        .attr('width',Config.panelSVGwidth)
+        .attr('id', columnName + '_svg')
+        .classed('attribute_svg', true)
+
+      this.populateData(this.$node.select('#' + columnName + '_svg').node(), columnName, columnDesc);
+    }
 
   }
-
 
 
   /***
@@ -313,25 +333,25 @@ class AttributePanel {
 
   }
 
-  private update(){
+  private update() {
     console.log('update when tree fire');
     console.log('my data is new');
 
     //get updated data from the tableManager
     let graphView = this.tableManager.graphTable;
     let attributeView = this.tableManager.tableTable;
-    this.columns  = graphView.cols().concat(attributeView.cols());
+    this.columns = graphView.cols().concat(attributeView.cols());
 
     let dataVec: IAnyVector;
 
 
-    this.histograms.forEach(singleHistogram =>{
+    this.histograms.forEach(singleHistogram => {
       this.columns.forEach(col => {
-      if (col.desc.name === singleHistogram.attrName) {
-        // console.log(col);
-        singleHistogram.update(col)
-      }
-    })
+        if (col.desc.name === singleHistogram.attrName) {
+          // console.log(col);
+          singleHistogram.update(col)
+        }
+      })
 
     })
 
@@ -362,8 +382,8 @@ class AttributePanel {
    * This function update the attributestate array when a user deselect an attribute
    *
    */
-  private removeFromAttrState(attrName, value){
-     let found = null;
+  private removeFromAttrState(attrName, value) {
+    let found = null;
 
     this.attributeState.forEach(function (item) {
       if (item.name === attrName) {
@@ -372,7 +392,7 @@ class AttributePanel {
     });
 
     if (found) {
-      found.value.splice(found.value.indexOf(value) ,1);
+      found.value.splice(found.value.indexOf(value), 1);
     }
 
   }
@@ -384,7 +404,7 @@ class AttributePanel {
     const toggleBtn = document.getElementById('toggle-btn');
 
     // if the attribute panel is expanded
-    if(!this.collapsed) {
+    if (!this.collapsed) {
       // collapse attribute panel
       sidePanel.style.width = Config.colPanelWidth;
       sidePanel.style.border = 'none';
@@ -412,9 +432,9 @@ class AttributePanel {
 
   private attachListener() {
     // listen to toggle panel event
-    select('#toggle-btn').on('click', ()=> {
+    select('#toggle-btn').on('click', () => {
       console.log('clicked now?')
-     this.toggle();
+      this.toggle();
     })
 
     //Set listener for click event on corresponding node that changes the color of that row to red
@@ -430,33 +450,32 @@ class AttributePanel {
 
     });
 
-    events.on('attribute_picked', (evt,item)=>{
+    events.on('attribute_picked', (evt, item) => {
       this.updateAttrState(item.name, item.value)
       console.log('attribute picked', this.attributeState);
     })
 
-    events.on('attribute_reordered', (evt,item)=>{
-      this.tableManager.colOrder.splice(item.newIndex, 0,this.tableManager.colOrder.splice(item.oldIndex,1)[0]);
+    events.on('attribute_reordered', (evt, item) => {
+      this.tableManager.colOrder.splice(item.newIndex, 0, this.tableManager.colOrder.splice(item.oldIndex, 1)[0]);
       events.fire(COL_ORDER_CHANGED_EVENT)
 
     })
 
-    events.on('attribute_removed', (evt,item)=>{
+    events.on('attribute_removed', (evt, item) => {
       console.log(item);
       this.tableManager.colOrder.splice(item.oldIndex, 1);
       events.fire(COL_ORDER_CHANGED_EVENT)
 
     })
 
-    events.on('attribute_added', (evt,item)=>{
-      this.tableManager.colOrder.splice(item.newIndex, 0,item.name.split(/\r|\n/)[0]);
+    events.on('attribute_added', (evt, item) => {
+      this.tableManager.colOrder.splice(item.newIndex, 0, item.name.split(/\r|\n/)[0]);
       events.fire(COL_ORDER_CHANGED_EVENT)
 
     })
 
 
-
-    events.on('attribute_unpicked', (evt,item)=>{
+    events.on('attribute_unpicked', (evt, item) => {
       this.removeFromAttrState(item.name, item.value);
 
     })

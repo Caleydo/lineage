@@ -107,10 +107,12 @@ $secondary-color-light : #ffd6b3;
   background-color: lightgray;
   color: #373737;
   opacity: .5;
+  margin-top: 3px;
 }
 
 #active-menu-content li {
   background-color: lightgray;
+  margin-top: 3px;
 }
 
 .menu-content .sort_handle {
@@ -125,27 +127,33 @@ $secondary-color-light : #ffd6b3;
 }
 
 .menu-content .attr_badges {
-  display: none;
-}
-
-.menu-content .attr_badges span:hover {
   display: inline;
 }
 
-.menu-content .attr_badges.focus{
+.menu-content .badge{
+  display: none;
+}
+
+.menu-content .badge.focus{
   color: $darkgray-color;
   display: inline;
 }
 
-.menu-content .attr_badges .checked_secondary {
 
+.menu-content .attr_badges .checked_primary{
+  background-color: $primary-color;
+  color: white;
+  display: inline;
+}
+
+.menu-content .attr_badges .checked_secondary {
   background-color: $secondary-color;
   color: white;
   display: inline;
 }
 
-.menu-content .attr_badges .checked_primary{
-  background-color: $primary-color;
+.menu-content .attr_badges .checked_poi{
+  background-color: $darkgray-color;
   color: white;
   display: inline;
 }

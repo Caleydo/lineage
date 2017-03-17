@@ -223,6 +223,10 @@ class AttributePanel {
                 <span class=' badge' id ='secondary'>S</span>
                  <span class=' badge' id ='poi'>POI</span>
               </div>`);
+
+
+    attrHeader.selectAll('.sort_handle').classed('focus', true);
+    // attrHeader.selectAll('.attr_badges').classed('focus', true);
     attrHeader.on('mouseover', function () {
       select(this).select('.sort_handle').classed('focus', true);
       if (list === '#active-menu-content') {
@@ -231,7 +235,7 @@ class AttributePanel {
     });
 
     attrHeader.on('mouseout', function () {
-      select(this).select('.sort_handle').classed('focus', false);
+      // select(this).select('.sort_handle').classed('focus', false);
       select(this).select('.attr_badges').classed('focus', false);
     });
 

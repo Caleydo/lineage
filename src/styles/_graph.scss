@@ -125,7 +125,9 @@ td rect{
   fill: #b40000;
 }
 
-.colSummary{
+.colSummary,
+.catBar,
+.numBar{
   fill: #5f6262;
 }
 
@@ -289,7 +291,7 @@ label {
 
 .axis--x .tick text{
   font-size:16px;
-  font-weight:bold;
+  //font-weight:bold;
 }
 
 

@@ -367,6 +367,15 @@ rect.selected{
 	stroke:none;
   }
 
+//.badge:after {
+//  content: '\A';
+//  white-space: pre;
+//}
+
+.badge{
+  border-radius:0px !important;
+  //margin-right:10px;
+}
 .phantom{
  	stroke-opacity:.2;
  	stroke-dasharray:5;

@@ -15,7 +15,7 @@ import {PRIMARY_SECONDARY_SELECTED, POI_SELECTED, COL_ORDER_CHANGED_EVENT} from 
 
 import {Config} from './config';
 
-
+2
 /**
  * Creates the attribute table view
  */
@@ -179,22 +179,28 @@ class AttributePanel {
 
     events.on('primary_secondary_selected', (evt, item) => {
       // console.log(item)
-      this.tableManager.setPrimarySecondaryAttribute(item.attribute.data, item.badge);
+      this.tableManager.setPrimarySecondaryAttribute(item.name, item.primary_secondary).then((threshold)=>{
+
+
+      });
     });
 
     events.on('poi_selected', (evt, item) => {
 
-      console.log('poi item is ', item)
-
-
-      this.tableManager.setAffectedState(item.name,item.callback).then((threshold)=>{
+      this.tableManager.setAffectedState(item.name,item.callback).then((obj)=>{
         //find histogram with this name and set the brush extent
         let hist = this.histograms.filter((h)=>{return h.attrName === item.name})[0];
+        if (obj.threshold !== undefined) { //setAffectedState returned a default value. Was not set by user brushing or selecting bar;
 
-        if (threshold !== undefined) { //setAffectedState returned a default value. Was not set by user brushing
-          //Remove all existing brushes
-          this.histograms.map((hist)=>{hist.removeBrush();})
-          hist.setBrush(threshold);
+          //New POI has been set, remove all other brush and rect selection interactions;
+          this.histograms.map((hist)=>{hist.clearInteraction()});
+
+          if (obj.type === VALUE_TYPE_CATEGORICAL) {
+            hist.setSelected(obj.threshold);
+          } else if (obj.type === VALUE_TYPE_REAL || obj.type === VALUE_TYPE_INT){
+            hist.setBrush(obj.threshold);
+          }
+
         }
 
       });
@@ -232,10 +238,12 @@ class AttributePanel {
       .append('strong').html(columnName)
       .append('span').attr('class', columnDesc)
       .html(`<div class=' attr_badges pull-right'>
-                <!--<span class=' badge' id ='add_remove'>+/-</span>           -->
-                <span class=' badge' id ='primary'>P</span>
-                <span class=' badge' id ='secondary'>S</span>
-                 <span class=' badge' id ='poi'>POI</span>
+                <!--<span class=' badge' id ='add_remove'>-</span> -->
+                        
+                <span class=' badge' id ='primary'>A1</span>
+                <span class=' badge' id ='secondary'>A2</span>
+                <span class=' badge' id ='poi'>POI</span>
+                 
               </div>`);
 
 
@@ -286,12 +294,13 @@ class AttributePanel {
       //$(this).parent().children().css('display', 'none');
       $(this).addClass('checked_' + badge);
       $(this).css('display', 'inline');
+      $(this).css('margin-right', '10px');
       event.stopPropagation();
 
       if (badge === 'primary' || badge === 'secondary') {
-        events.fire('primary_secondary_selected', {attribute, badge});
+
+        events.fire('primary_secondary_selected', {'name':attribute.nodeValue,  'primary_secondary':badge});
       } else if (badge === 'poi') {
-        console.log(attribute.nodeValue)
         events.fire('poi_selected', {'name':attribute.nodeValue});
       }
     });

@@ -17,6 +17,7 @@ import {line} from 'd3-shape';
 
 import {Config} from './config';
 import {isNull} from 'util';
+import {isNullOrUndefined} from 'util';
 
 
 class Histogram {
@@ -28,7 +29,7 @@ class Histogram {
   private $histogramCols;
   //settings
 
-  private margin = {top: 40, right: 30, bottom: 5, left: 50};
+  private margin = {top: 40, right: 30, bottom: 5, left: 65};
   private width = Config.panelSVGwidth;
   private height = Config.panelAttributeHeight*0.8;
 
@@ -75,7 +76,6 @@ class Histogram {
   private async update(dataVec) {
     if (this.type === VALUE_TYPE_CATEGORICAL) {
       await this.renderCategoricalHistogram(dataVec);
-      // await this.renderCategoricalBar(dataVec);
     } else if (this.type === VALUE_TYPE_INT || this.type === VALUE_TYPE_REAL) {
       await this.renderNumHistogram(dataVec);
     } else if (this.type === 'string') {
@@ -84,6 +84,48 @@ class Histogram {
 
 
 
+  }
+
+  public clearInteraction(){
+    this.removeBrush();
+    this.removeCategorySelection();
+  }
+
+  /**
+   * Adds abilility to hover and click to select histogram bars.
+   */
+  private addCategorySelection() {
+
+    let attrName = this.attrName;
+
+    this.$node.selectAll('.catBar').on('click', function (d:any) {
+      if (select(this).classed('picked')) {
+        select(this).classed('picked', false);
+      } else {
+        selectAll('.picked').classed('picked', false);
+        select(this).classed('picked', true);
+      }
+
+      events.fire('poi_selected',{'name':attrName, 'callback':(attr:String) => {return attr === d.key}})
+
+    });
+
+  }
+
+  public setSelected(category){
+    //Bars are not clickable
+    if (isNullOrUndefined(this.$node.select('.catBar').on('click'))) {
+      this.addCategorySelection();
+    }
+    //select right bar and set classed to picked.
+    this.$node.selectAll('.catBar').filter((bar)=>{ return bar.key === category; }).classed('picked',true);
+    }
+  /**
+   * Remove ability to select categories.
+   */
+  private removeCategorySelection(){
+    this.$node.selectAll('.catBar').classed('picked',false)
+    this.$node.selectAll('.catBar').on('click', null);
   }
 
   /**
@@ -177,7 +219,7 @@ class Histogram {
   /**
    * Removes the brush from this histogram
    */
-  public removeBrush() {
+  private removeBrush() {
       this.$node.select('.brush').remove()
       this.$node.select('.brushAxis').remove();
       this.brush = undefined;
@@ -286,28 +328,6 @@ class Histogram {
     //   .attr('text-anchor','middle');
 
 
-    // selectAll('.catBar').on('click', function (d) {
-    //   const item = {
-    //     name: select(this).attr('attribute'),
-    //     value: d['key']
-    //   };
-    //
-    //   if (select(this).classed('picked')) {
-    //     events.fire('attribute_unpicked', item);
-    //   } else {
-    //     events.fire('attribute_picked', item);
-    //   }
-    //
-    // });
-
-      selectAll('.catBar').on('click', function (d) {
-        if (select(this).classed('picked')) {
-          select(this).classed('picked', false);
-        } else {
-          // selectAll('.picked').classed('picked', false);
-          select(this).classed('picked', true);
-        }
-      });
 
 
 

@@ -361,7 +361,7 @@ export default class TableManager {
     this.updateFamilyStats();
     events.fire(POI_SELECTED, this.affectedState);
 
-    return threshold;
+    return {threshold, 'type':varType};
   }
 
 

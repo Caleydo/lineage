@@ -24,7 +24,7 @@ export class Config {
 
   public static panelAttributeWidth = 300;
   public static panelAttributeHeight = 70;
-  public static panelSVGwidth = 180;
+  public static panelSVGwidth = 220;
 
 
   public static expPanelWidth = '300px';

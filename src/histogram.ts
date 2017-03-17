@@ -10,7 +10,7 @@ import * as events from 'phovea_core/src/event';
 import {transition} from 'd3-transition';
 import {easeLinear} from 'd3-ease';
 import {format} from 'd3-format';
-import {brushX} from 'd3-brush';
+import {brushX, brushSelection} from 'd3-brush';
 
 import {IHistogram, rangeHist} from 'phovea_core/src/math';
 import {line} from 'd3-shape';
@@ -79,7 +79,6 @@ class Histogram {
         select(this).classed('picked', false);
       } else {
         selectAll('.picked').classed('picked', false);
-        console.log('hre')
         select(this).classed('picked', true);
       }
     });
@@ -357,10 +356,6 @@ class Histogram {
 
     // console.log(histData.valueRange);
 
-    // let brush = brushX()
-    //   .extent([[0, 0], [width, height2]])
-    //   .on("brush", brushed);
-
     //let xScale = scaleLinear().range([0,this.width]).domain([0,histData.bins])
     let xScale = scaleLinear().range([0, this.width]).domain(histData.valueRange);//.nice();
     // let yScale = scaleLinear().range([0,height]).domain([0,maxFrequency]);
@@ -401,6 +396,39 @@ class Histogram {
       })
       // .attr('fill', 'rgb(226, 225, 224)')
       // .attr('opacity', 1)
+
+
+    let brushGroup = barContainer.append("g")
+      .attr("class", "brush")
+
+
+    let brush = brushX()
+      .extent([[0, 0], [this.width, this.height]])
+      .handleSize(8)
+      .on("end", brushed);
+
+    brushGroup
+      .call(brush)
+      .call(brush.move, xScale.range());
+
+
+    function brushed() {
+      let extent = brushSelection(brushGroup.node());
+      let lowerBound = xScale.invert(<Number>extent[0]);
+      let upperBound = xScale.invert(<Number>extent[1]);
+
+      let domain = xScale.domain();
+      let allTicks = Array.from(new Set([lowerBound,upperBound].concat(domain)));
+
+      //Create a tick mark at the edges of the brush
+      xAxis.call(axisBottom(xScale)
+        .tickSize(5)
+        .tickValues(allTicks)
+        .tickFormat(format(".0f")));
+
+      console.log(lowerBound,upperBound)
+    }
+
 
 
 

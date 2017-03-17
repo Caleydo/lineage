@@ -386,7 +386,7 @@ $secondary-color-light : #ffd6b3;
   margin-left: -20;
 }
 
-.attribute_svg rect:hover {
+.attribute_svg .bar:hover {
   cursor: pointer;
   fill: rgb(127,134,134);
 }

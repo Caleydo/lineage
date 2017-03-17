@@ -330,16 +330,19 @@ export default class TableManager {
       let attributeVector = await this.getAttributeVector(varName);
       let varType = attributeVector.valuetype.type;
 
+      let threshold ;
 
     if (typeof isAffectedCallbackFcn === 'undefined') {
 
       if (varType === VALUE_TYPE_INT || varType === VALUE_TYPE_REAL){
         let stats = await attributeVector.stats();
         isAffectedCallbackFcn = (attr:Number) => {return attr >= stats.mean} ; //if threshold hasn't been defined, default to anything over the mean value
+        threshold = stats.mean;
       } else if (varType === VALUE_TYPE_CATEGORICAL){
         let categoriesVec = attributeVector.valuetype.categories;
         let categories = categoriesVec.map(c=>{return c.name});
         isAffectedCallbackFcn = (attr:string) => {return attr === categories[0]} //randomly pick the second category
+        threshold = categories[0]
       } else if (varType === VALUE_TYPE_STRING){
         isAffectedCallbackFcn = (attr:string) => {return attr !== undefined && attr.length>0} //string is non empty
     }
@@ -354,9 +357,11 @@ export default class TableManager {
 
     //Update family selector
     this.updateFamilyStats();
-
     events.fire(POI_SELECTED, this.affectedState);
+
+    return threshold;
   }
+
 
   /**
    * This function changes the range of rows to display on the selected family.

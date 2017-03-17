@@ -183,7 +183,12 @@ class AttributePanel {
     });
 
     events.on('poi_selected', (evt, item) => {
-      this.tableManager.setAffectedState(item.attribute.data);
+
+      this.tableManager.setAffectedState(item.attribute.data).then((threshold)=>{
+        //find histogram with this name and set the brush extent
+        let hist = this.histograms.filter((h)=>{return h.attrName === item.attribute.data})[0];
+        hist.setBrush(threshold);
+      });
     });
 
 

@@ -1908,9 +1908,9 @@ class GenealogyTree {
     });
 
     events.on(POI_SELECTED,(evt,affectedState) => {
-        // this.data.uncollapseAll();
+        this.data.uncollapseAll();
         this.data.defineAffected(affectedState);
-        // this.data.collapseAll();
+        this.data.collapseAll();
         this.update();
     });
 

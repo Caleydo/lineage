@@ -240,7 +240,7 @@ class Histogram {
 
     const numElements = categoricalDataVec.length;
 
-    const histData: IHistogram = await categoricalDataVec.hist();
+    const histData: IHistogram = await categoricalDataVec.hist(10);
     // console.log(histData)
     const catData = [];
     histData.forEach((d, i) => catData.push({key: histData['categories'][i], value: d}));
@@ -322,7 +322,7 @@ class Histogram {
    */
   private async renderNumHistogram(dataVec) {
 
-    let histData = await dataVec.hist();
+    let histData = await dataVec.hist(10);
     let range = [0, this.width];
 
     var data = [],
@@ -379,12 +379,14 @@ class Histogram {
     }
 
     let bars = currentHist
-      .selectAll('.barContainer')
-      .selectAll('.numBar').data(data);
+      .select('.barContainer')
+      .selectAll('.numBar')
+      .data(data);
 
 
     let barsEnter = bars
-      .enter().append('rect')
+      .enter()
+      .append('rect')
       .classed('numBar', true)
       .classed('bar', true);
 

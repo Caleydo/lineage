@@ -234,6 +234,8 @@ class Histogram {
    */
   private async renderCategoricalHistogram(dataVec) {
 
+    let currentHist = this.$node;
+
     const categoricalDataVec = <ICategoricalVector>dataVec;
 
     const numElements = categoricalDataVec.length;
@@ -262,41 +264,42 @@ class Histogram {
         return d.value;
       })]);
 
-    if (this.$node.selectAll('.svg-g').size() === 0) {
-      this.$node.append('g')
+
+    if (currentHist.selectAll('.svg-g').size() === 0) {
+      currentHist.append('g')
         .attr('transform', 'scale(0.6,0.6) translate(' + this.margin.left + ',' + this.margin.top + ')')
-        .attr('class', 'svg-g');
+
+          .attr('class', 'svg-g');
+
+      let element = currentHist.selectAll('.svg-g');
+
+      element.append('g')
+        .attr('class', 'axis axis--x')
+        .attr('transform', 'translate(' + this.margin.left + ',' + this.height + ')')
+        .call(axisBottom(xScale));
+
+      element.append('g')
+        .classed('barContainer',true)
+        .attr('transform', 'translate(' + this.margin.left + ',0)')
+
     }
 
-    const element = this.$node.selectAll('.svg-g');
 
-    //axis
-    const xAxis = element.append('g')
-      .attr('class', 'axis axis--x')
-      .attr('transform', 'translate(' + this.margin.left + ',' + this.height + ')')
-      .call(axisBottom(xScale));
-
-    //yaxis
-    /* const yAxis = element.append('g')
-     .attr('class', 'axis axis--y')
-     .attr('transform', 'translate(' + padding + ',0)')
-     .call(axisLeft(yScale.nice()).ticks(3))
-     .append('text')
-     .attr('transform', 'rotate(-90)')
-     .attr('y', 6)
-     .attr('dy', '1.71em')
-     .attr('text-anchor', 'end')
-     .text('Value');*/
-
-    const barContainer = element.append('g')
-      .attr('transform', 'translate(' + this.margin.left + ',0)')
-
-    barContainer
+    let bars = currentHist
+      .select('.barContainer')
       .selectAll('.catBar')
-      .data(catData)
+      .data(catData);
+
+    let barsEnter = bars
       .enter().append('rect')
       .classed('catBar', true)
-      .classed('bar', true)
+      .classed('bar', true);
+
+    bars = barsEnter.merge(bars);
+
+    bars.exit().remove();
+
+    bars
       .attr('x', (d) => {
         return xScale(d.key);
       })
@@ -307,30 +310,7 @@ class Histogram {
       .attr('height', (d) => {
         return this.height - yScale(d.value);
       })
-      // .attr('fill', 'rgb(226, 225, 224)')
       .attr('attribute', this.attrName);
-
-    // barContainer
-    //   .selectAll('.barLabel')
-    //   .data(catData)
-    //   .enter()
-    //   .append('text')
-    //   .attr('class','barLabel')
-    //   .text((d)=>{
-    //     return Math.round(d.value/numElements *100 ) + '%';
-    //   })
-    //   .attr('x', (d)=> {
-    //     return xScale(d.key)+xScale.bandwidth()/2;
-    //   })
-    //   .attr('y',(d)=> {
-    //     return yScale(d.value)-2;
-    //   })
-    //   .attr('opacity',1)
-    //   .attr('text-anchor','middle');
-
-
-
-
 
     }
 
@@ -397,8 +377,6 @@ class Histogram {
         .attr('class','barContainer')
 
     }
-
-
 
     let bars = currentHist
       .selectAll('.barContainer')

@@ -141,7 +141,6 @@ class attributeTable {
       .attr('transform', 'translate(0,' + this.margin.top + ')');
   }
 
-
   public async initData() {
 
     this.colOffsets = [0];
@@ -206,7 +205,9 @@ class attributeTable {
     }
     this.idScale.domain([1, maxAggregates]);
 
-    col.ids = col.data;
+    col.ids = allRows.map((row) => {
+      return y2personDict[row]
+    });
 
     let maxOffset = max(this.colOffsets);
     this.colOffsets.push(maxOffset + this.buffer * 2 + this.colWidths[col.type]);
@@ -363,7 +364,6 @@ class attributeTable {
     this.colData = colDataAccum;
 
   }
-
 
   //renders the DOM elements
   private async render() {
@@ -555,12 +555,6 @@ class attributeTable {
     let cellsEnter = cells.enter()
       .append('g')
       .attr('class', 'cell');
-
-
-    //Add rectangle for highlighting...
-    cellsEnter
-      .append('rect')
-      .classed('boundary', true);
 
     cells = cellsEnter.merge(cells);
 
@@ -939,7 +933,8 @@ class attributeTable {
     let rowHeight = this.rowHeight;
 
     if (element.selectAll('.dataDens').size() === 0) {
-      element.append('rect')
+      element
+        .append('rect')
         .classed('dataDens', true)
 
       element.append('text')

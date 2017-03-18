@@ -115,7 +115,7 @@ class GenealogyTree {
   private primaryAttribute;
   private secondaryAttribute;
 
-  private t = transition('t').duration(500).ease(easeLinear); //transition
+  // private t = transition('t').duration(500).ease(easeLinear); //transition
 
   private colors = ['#a6cee3', '#1f78b4', '#b2df8a', '#33a02c', '#fb9a99', '#e31a1c', '#fdbf6f', '#ff7f00'];
 
@@ -399,7 +399,7 @@ class GenealogyTree {
     select('#graph')
       .attr('height', this.height + this.margin.top + this.margin.bottom)
 
-    // this.update_edges();
+    this.update_edges();
     this.update_nodes();
   }
 
@@ -442,7 +442,7 @@ class GenealogyTree {
 
     edgePaths
       .attr('class', 'edges')
-      .transition(this.t)
+      .transition(t)
       .attr('d', (d) => {
         let maY = Math.round(d['ma']['y']);
         let paY = Math.round(d['pa']['y']);
@@ -483,7 +483,7 @@ class GenealogyTree {
       .attr('class', 'parentEdges')
       .attr('stroke-width', Config.glyphSize / 5)
       .style('fill', 'none')
-      .transition(this.t)
+      .transition(t)
       .attr('d', (d) => {
         return this.parentEdge(d, this.lineFunction)
       })
@@ -540,7 +540,7 @@ class GenealogyTree {
     lifeRects.exit().remove();
 
     lifeRects
-      .transition(this.t)
+      .transition()
       .attr('transform', (d: any) => {
         return d.sex === 'M' ? 'translate(' + (this.xPOS(d) + Config.glyphSize) + ',' + this.yPOS(d) + ')'
           : 'translate(' + this.xPOS(d) + ',' + (this.yPOS(d) - Config.glyphSize) + ')';
@@ -702,7 +702,7 @@ class GenealogyTree {
         return gridSize;
       })
       .attr('height', Config.glyphSize * 2)
-      .transition(this.t)
+      .transition()
       .attr('x', (d) => {
         if (!d['affected'] && d['spouse'][0]['affected']) {
           return this.x(d['spouse'][0]['x']);
@@ -940,6 +940,8 @@ class GenealogyTree {
   private addNodes() {
     let nodes = this.data.nodes;
 
+    let t = transition('t').duration(500).ease(easeLinear);
+
     //Separate groups for separate layers
     const nodeGroup = select('#genealogyTree').select('#nodes');
 
@@ -949,13 +951,88 @@ class GenealogyTree {
         return d['id'];
       });
 
-    allNodes.exit().remove();
+    allNodes.exit().transition().duration(400).style('opacity', 0).remove();
 
     const allNodesEnter = allNodes
       .enter()
       .append('g');
 
     allNodes = allNodesEnter.merge(allNodes);
+
+    allNodesEnter.attr('opacity', 0);
+
+    //Position and Color all Nodes
+    allNodes
+      .filter((d) => {
+        return !(d['hidden'] && !d['hasChildren'])
+      })
+      .transition(t)
+      .attr('transform', (node) => {
+        let xpos = this.xPOS(node);
+        let ypos = this.yPOS(node);
+
+        let xoffset = 0;
+        if (!node['affected'] && node['spouse'].length > 0 && node['spouse'][0]['affected'] && node['hidden']) {
+          xoffset = Config.glyphSize * 2;
+        }
+        return 'translate(' + (xpos + xoffset) + ',' + ypos + ')';
+      })
+
+
+
+    //Position  Kid Grid Nodes (i.e leaf siblings)
+    allNodes.filter((d) => {
+      return d['hidden'] && !d['hasChildren']
+    })
+      .transition(t)
+      .attr('transform', (node) => {
+        let xpos = this.xPOS(node);
+        let ypos = this.yPOS(node);
+
+        let childCount = 0;
+
+        let ma = node['ma'];
+        let pa = node['pa'];
+
+        let xind;
+        let yind;
+
+        let gender = node['sex'];
+        this.data.parentChildEdges.forEach((d, i) => {
+
+          if (d.ma === ma && d.pa === pa) {
+            //Only count unaffected children so as to avoid gaps in the kid Grid
+            if (!d.target.affected && d.target.sex === gender)
+              childCount = childCount + 1
+            if (d.target === node) {
+
+              yind = childCount % (this.kidGridSize / 2);
+
+              if (yind === 0)
+                yind = this.kidGridSize / 2;
+
+              xind = Math.ceil(childCount / 2);
+
+            }
+          }
+        })
+
+        let xoffset;
+
+        if (node['ma']['affected'] && node['pa']['affected']) {
+          xoffset = Config.glyphSize * 2;
+        } else if (node['ma']['affected'] || node['pa']['affected']) {
+          xoffset = Config.glyphSize * 3.5;
+        } else {
+          xoffset = Config.glyphSize * 1.5;
+        }
+        return 'translate(' + (xpos + xoffset + this.kidGridXScale(xind)) + ',' + (ypos + +this.kidGridYScale(yind)) + ')';
+
+      })
+
+    allNodes
+      .transition(t.transition().ease(easeLinear))
+      .attr('opacity', 1);
 
     //AllNodes
     allNodes
@@ -1155,79 +1232,6 @@ class GenealogyTree {
         return d['hidden'] && d['hasChildren']
       })
       .attr('r', Config.glyphSize * .45);
-
-
-    allNodesEnter.attr('opacity', 0);
-
-
-    //Position and Color all Nodes
-    allNodes
-      .filter((d) => {
-        return !(d['hidden'] && !d['hasChildren'])
-      })
-      .transition(this.t)
-      .attr('transform', (node) => {
-        let xpos = this.xPOS(node);
-        let ypos = this.yPOS(node);
-
-        let xoffset = 0;
-        if (!node['affected'] && node['spouse'].length > 0 && node['spouse'][0]['affected'] && node['hidden']) {
-          xoffset = Config.glyphSize * 2;
-        }
-        return 'translate(' + (xpos + xoffset) + ',' + ypos + ')';
-      })
-      .attr('opacity', 1);
-
-
-    //Position  Kid Grid Nodes (i.e leaf siblings)
-    allNodes.filter((d) => {
-      return d['hidden'] && !d['hasChildren']
-    })
-      .transition(this.t)
-      .attr('transform', (node) => {
-        let xpos = this.xPOS(node);
-        let ypos = this.yPOS(node);
-
-        let childCount = 0;
-
-        let ma = node['ma'];
-        let pa = node['pa'];
-
-        let xind;
-        let yind;
-
-        let gender = node['sex'];
-        this.data.parentChildEdges.forEach((d, i) => {
-
-          if (d.ma === ma && d.pa === pa) {
-            //Only count unaffected children so as to avoid gaps in the kid Grid
-            if (!d.target.affected && d.target.sex === gender)
-              childCount = childCount + 1
-            if (d.target === node) {
-
-              yind = childCount % (this.kidGridSize / 2);
-
-              if (yind === 0)
-                yind = this.kidGridSize / 2;
-
-              xind = Math.ceil(childCount / 2);
-
-            }
-          }
-        })
-
-        let xoffset;
-
-        if (node['ma']['affected'] && node['pa']['affected']) {
-          xoffset = Config.glyphSize * 2;
-        } else if (node['ma']['affected'] || node['pa']['affected']) {
-          xoffset = Config.glyphSize * 3.5;
-        } else {
-          xoffset = Config.glyphSize * 1.5;
-        }
-        return 'translate(' + (xpos + xoffset + this.kidGridXScale(xind)) + ',' + (ypos + +this.kidGridYScale(yind)) + ')';
-
-      })
 
 
     allNodes

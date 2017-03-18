@@ -220,7 +220,6 @@ class attributeTable {
       let peopleIDs = await vector.names()
 
       if (type === VALUE_TYPE_CATEGORICAL) {
-        console.log(data,name)
         //Build col offsets array ;
         let allCategories = vector.desc.value.categories.map(c=>{return c.name}); //get categories from index.json def
         let categories;
@@ -234,7 +233,6 @@ class attributeTable {
 
         for (let cat of categories) {
 
-          console.log(cat);
           let col: any = {};
           col.ids = allRows.map((row) => {
             return y2personDict[row]

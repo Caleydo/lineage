@@ -162,6 +162,7 @@ class GenealogyTree {
   init(data) {
     this.data = data;
     this.build();
+    // this.data.collapseAll();
     this.update();
     this.attachListeners();
     // return the promise directly as long there is no dynamical data to update
@@ -1907,6 +1908,7 @@ class GenealogyTree {
     events.on(POI_SELECTED,(evt,affectedState) => {
         // this.data.uncollapseAll();
         this.data.defineAffected(affectedState);
+        // this.data.collapseAll();
         this.update();
     });
 

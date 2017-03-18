@@ -342,7 +342,7 @@ class Histogram {
    */
   private async renderNumHistogram(dataVec) {
 
-    let histData = await dataVec.hist(10);
+    let histData = await dataVec.hist();
     let range = [0, this.width];
 
     var data = [],
@@ -374,30 +374,47 @@ class Histogram {
 
     const xScale = this.xScale;
 
-    const element = this.$node.append('g')
-    // .attr('transform', 'scale(0.8,0.8) translate(20,20)');
-      .attr('transform', 'scale(0.6,0.6) translate(' + this.margin.left + ',' + this.margin.top + ')')
+    const currentHist = this.$node;
 
-    //axis
-    const xAxis = element.append('g')
-      .attr('class', 'axis axis--x')
-      .attr('transform', 'translate(' + this.margin.left + ',' + this.height + ')')
-      .call(axisBottom(xScale)
-        .tickSize(5)
-        .tickValues(xScale.domain())
-        .tickFormat(format(".0f")));
+    if (currentHist.select('.elementGroup').size() === 0){
+
+      let element = currentHist.append('g')
+        .classed('elementGroup',true)
+        .attr('transform', 'scale(0.6,0.6) translate(' + this.margin.left + ',' + this.margin.top + ')')
+
+      //axis
+      element.append('g')
+        .attr('class', 'axis axis--x')
+        .attr('transform', 'translate(' + this.margin.left + ',' + this.height + ')')
+        .call(axisBottom(xScale)
+          .tickSize(5)
+          .tickValues(xScale.domain())
+          .tickFormat(format(".0f")));
 
 
-    const barContainer = element.append('g')
-      .attr('transform', 'translate(' + this.margin.left + ',0)')
-      .attr('class','barContainer')
+     element.append('g')
+        .attr('transform', 'translate(' + this.margin.left + ',0)')
+        .attr('class','barContainer')
 
-    barContainer
-      .selectAll('.numBar').data(data)
+    }
+
+
+
+    let bars = currentHist
+      .selectAll('.barContainer')
+      .selectAll('.numBar').data(data);
+
+
+    let barsEnter = bars
       .enter().append('rect')
       .classed('numBar', true)
-      .classed('bar', true)
-      // .attr('opacity', 0)
+      .classed('bar', true);
+
+    bars = barsEnter.merge(bars);
+
+    bars.exit().remove();
+
+    bars
       .attr('width', binWidth * 0.8)
       .attr('height', d => {
         return this.yScale(d.v)

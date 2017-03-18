@@ -314,14 +314,19 @@ class AttributePanel {
       const attributeSVG = attributeElm
         // .select('li')
         .append('ul')
-        .attr('id', columnName)
+        .attr('id', columnName);
+
+      //Only append new svg if there isn't already one there
+      if (attributeElm.select('.attribute_svg').size()===0) {
         // .classed('sub-menu collapse fade in', true)
-        .append('svg')
-        .style('margin-top','-50px')
-        .attr('height', Config.panelAttributeHeight)
-        .attr('width',Config.panelSVGwidth)
-        .attr('id', columnName + '_svg')
-        .classed('attribute_svg', true)
+      attributeElm
+          .append('svg')
+          .style('margin-top', '-50px')
+          .attr('height', Config.panelAttributeHeight)
+          .attr('width', Config.panelSVGwidth)
+          .attr('id', columnName + '_svg')
+          .classed('attribute_svg', true)
+      }
 
       this.populateData(this.$node.select('#' + columnName + '_svg').node(), columnName, columnDesc);
     }
@@ -350,10 +355,18 @@ class AttributePanel {
       }
     })
 
-    // creat a histogram object
-    const attributeHistogram = histogram.create(svg);
-    // add this object to the histogram array
-    this.histograms.push(attributeHistogram);
+    // creat a histogram object if one does not already exist for this attribute
+    let currentHist = this.histograms.filter((hist)=>{return hist.attrName === attributeName});
+    let attributeHistogram;
+    if (currentHist.length === 0) {
+       attributeHistogram = histogram.create(svg);
+      // add this object to the histogram array
+      this.histograms.push(attributeHistogram);
+
+    } else {
+      attributeHistogram = currentHist[0];
+    }
+
     // initiate this object
     await attributeHistogram.init(attributeName, dataVec, dataVec.desc.value.type);
 

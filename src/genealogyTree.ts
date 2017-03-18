@@ -1292,6 +1292,7 @@ class GenealogyTree {
         })
 
         let xoffset;
+
         if (node['ma']['affected'] && node['pa']['affected']) {
           xoffset = Config.glyphSize * 2;
         } else if (node['ma']['affected'] || node['pa']['affected']){

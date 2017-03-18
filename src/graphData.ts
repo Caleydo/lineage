@@ -130,46 +130,52 @@ class GraphData {
          let toDuplicate;
          if (node.ma){
            toDuplicate = node;
-         } else{
+         } else if (s.ma) {
            toDuplicate = s;
+         } else{
+           console.log('neither person has parents in this family!')
          }
 
-         let duplicateNode = Object.assign({}, toDuplicate);
+         if (toDuplicate) {
+           let duplicateNode = Object.assign({}, toDuplicate);
 
-         duplicateNode.id = toDuplicate.id;
+           duplicateNode.id = toDuplicate.id;
 
-         //Add each node to the other's 'duplicate' array
-         toDuplicate.duplicates.push(duplicateNode);
-         duplicateNode.duplicates.push(toDuplicate);
+           //Add each node to the other's 'duplicate' array
+           toDuplicate.duplicates.push(duplicateNode);
+           duplicateNode.duplicates.push(toDuplicate);
 
-         //Remove node from parent's 'children' array
-         let childIndex = toDuplicate.ma.children.indexOf(node);
-         toDuplicate.ma.children.splice(childIndex,1);
+           //Remove node from parent's 'children' array
+           let childIndex = toDuplicate.ma.children.indexOf(node);
+           toDuplicate.ma.children.splice(childIndex, 1);
 
-         childIndex = toDuplicate.pa.children.indexOf(toDuplicate);
-         toDuplicate.pa.children.splice(childIndex,1);
+           childIndex = toDuplicate.pa.children.indexOf(toDuplicate);
+           toDuplicate.pa.children.splice(childIndex, 1);
 
-         // Clear child/spousal links from duplicate node;
-         duplicateNode.hasChildren = false;
-         duplicateNode.children = [];
-         duplicateNode.spouse = [];
+           // Clear child/spousal links from duplicate node;
+           duplicateNode.hasChildren = false;
+           duplicateNode.children = [];
+           duplicateNode.spouse = [];
 
-         duplicateNode.ma.children.push(duplicateNode);
-         duplicateNode.pa.children.push(duplicateNode);
+           duplicateNode.ma.children.push(duplicateNode);
+           duplicateNode.pa.children.push(duplicateNode);
 
-         //Replace node with 'duplicateNode' in the parentChild edge.
-         let ParentChildEdge = this.parentChildEdges.filter((e)=>{return e.target === toDuplicate})[0];
-         ParentChildEdge.target = duplicateNode;
+           //Replace node with 'duplicateNode' in the parentChild edge.
+           let ParentChildEdge = this.parentChildEdges.filter((e) => {
+             return e.target === toDuplicate
+           })[0];
+           ParentChildEdge.target = duplicateNode;
 
-         //clear parent references
-         toDuplicate.maId = 0;
-         toDuplicate.paID = 0;
+           //clear parent references
+           toDuplicate.maId = 0;
+           toDuplicate.paID = 0;
 
-         toDuplicate.ma = undefined;
-         toDuplicate.pa = undefined;
+           toDuplicate.ma = undefined;
+           toDuplicate.pa = undefined;
 
-         this.nodes.push(duplicateNode);
+           this.nodes.push(duplicateNode);
 
+         }
 
          //clear visited status of this persons spouse(s) and the branch starting at this couple;
          this.clearVisitedBranch(toDuplicate);
@@ -279,13 +285,15 @@ class GraphData {
       }
     });
 
-
+    console.log('1')
     //Remove cycles by creating duplicate nodes where necessary
     this.removeCycles();
 
+    console.log('2')
     //Linearize Tree and pass y values to the attributeData Object
     this.linearizeTree();
 
+    console.log('3')
     //Create dictionary of person to y values
     this.exportYValues();
 
@@ -328,7 +336,7 @@ class GraphData {
    *
    */
   private uncollapseAll(){
-    this.nodes.forEach(node=>{node.y = node.Y; node.hidden = false; node.aggregated = false;})
+    this.nodes.forEach(node=>{node.y = node.Y; node.x = node.X; node.hidden = false; node.aggregated = false;})
   }
 
   /**
@@ -623,7 +631,7 @@ class GraphData {
     })[0];
 
 
-    //Iterate through branch, if there are hidden nodes, uncollapse
+    //Iterate through branch, if there are only hidden nodes, uncollapse
     const isNotHidden = this.nodes.filter((node) => {
       return (node.Y <= startNode.Y && node.Y >= endIndex && !node.hidden && !node.affected);
     });
@@ -644,7 +652,7 @@ class GraphData {
     }).forEach((node, i) => {
 
       //non affected leaf nodes
-      if (!node.hasChildren && !node.affected) {
+      if (!node.hasChildren && !node.affected && node.ma && node.pa) {
 
         const ma = node.ma;
         const pa = node.pa;

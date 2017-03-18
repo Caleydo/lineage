@@ -170,11 +170,14 @@ class attributeTable {
 
 
     graphIDs.forEach((person) => {
-      if (yDict[person] in y2personDict) {
-        y2personDict[yDict[person]].push(person);
-      } else {
-        y2personDict[yDict[person]] = [person];
-      }
+      //Handle Duplicate Nodes
+      yDict[person].forEach((y)=>{
+        if (y in y2personDict) {
+          y2personDict[y].push(person);
+        } else {
+          y2personDict[y] = [person];
+        }
+      })
     });
 
     //Find y indexes of all rows

@@ -1876,6 +1876,8 @@ class GenealogyTree {
     });
 
     events.on('redraw_tree', (evt,item) => {
+
+      console.log('redrawing tree, there are ', this.data.nodes.filter(d=>{return d.hidden}).length , 'hidden nodes')
       this.data = item;
       this.update();
     });

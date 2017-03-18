@@ -54,6 +54,156 @@ class GraphData {
 }
 
   /**
+   * This function removesCycles from a tree by building duplicate nodes as necessary.
+   *
+   */
+
+   private removeCycles(){
+
+    let toDecycle = this.nodes.filter(n=>{return !n.visited});
+
+    if (toDecycle.length === 0){
+      // console.log('all nodes visited')
+      return;
+    }
+
+    // console.log('There are ', toDecycle.filter(n=>{return !n.visited}).length , ' unvisited nodes');
+    //Find oldest person in the graph as the starting point. No Y values have been assigned yet.
+    let startNode = toDecycle.reduce((a,b)=> {return a.bdate < b.bdate? a : b});
+    this.removeCyclesHelper(startNode);
+
+    this.removeCycles();
+   }
+
+   private removeCyclesHelper(node:any){
+
+     if (node.visited){
+       console.log('found child cycle with ', node.id)
+       //Create Duplicate Node in the 'child' role and leave the current one as the parent/spouse
+       let duplicateNode = Object.assign({}, node);
+
+       duplicateNode.id = node.id;
+
+       //Add each node to the other's 'duplicate' array
+       node.duplicates.push(duplicateNode);
+       duplicateNode.duplicates.push(node);
+
+       //Remove node from parent's 'children' array
+       let childIndex = node.ma.children.indexOf(node);
+       node.ma.children.splice(childIndex,1);
+
+       childIndex = node.pa.children.indexOf(node);
+       node.pa.children.splice(childIndex,1);
+
+       // Clear child/spousal links from duplicate node;
+       duplicateNode.hasChildren = false;
+       duplicateNode.children = [];
+       duplicateNode.spouse = [];
+
+       duplicateNode.ma.children.push(duplicateNode);
+       duplicateNode.pa.children.push(duplicateNode);
+
+       //Replace node with 'duplicateNode' in the parentChild edge.
+       let ParentChildEdge = this.parentChildEdges.filter((e)=>{return e.target === node})[0];
+        ParentChildEdge.target = duplicateNode;
+
+       //clear parent references
+       node.maId = 0;
+       node.paID = 0;
+
+       node.ma = undefined;
+       node.pa = undefined;
+
+       this.nodes.push(duplicateNode);
+
+
+       //clear visited status of this persons spouse(s) and the branch starting at this couple;
+       this.clearVisitedBranch(node);
+     }
+
+     node.visited = true;
+
+     node.spouse.forEach((s)=>{
+       if (s.visited) {
+         console.log('found spouse cycle between  ', node.id, ' and ' , s.id);
+         //choose the person who is part of the blood family (i.e, who have a mom and dad in this family) and duplicate them.
+         let toDuplicate;
+         if (node.ma){
+           toDuplicate = node;
+         } else{
+           toDuplicate = s;
+         }
+
+         let duplicateNode = Object.assign({}, toDuplicate);
+
+         duplicateNode.id = toDuplicate.id;
+
+         //Add each node to the other's 'duplicate' array
+         toDuplicate.duplicates.push(duplicateNode);
+         duplicateNode.duplicates.push(toDuplicate);
+
+         //Remove node from parent's 'children' array
+         let childIndex = toDuplicate.ma.children.indexOf(node);
+         toDuplicate.ma.children.splice(childIndex,1);
+
+         childIndex = toDuplicate.pa.children.indexOf(toDuplicate);
+         toDuplicate.pa.children.splice(childIndex,1);
+
+         // Clear child/spousal links from duplicate node;
+         duplicateNode.hasChildren = false;
+         duplicateNode.children = [];
+         duplicateNode.spouse = [];
+
+         duplicateNode.ma.children.push(duplicateNode);
+         duplicateNode.pa.children.push(duplicateNode);
+
+         //Replace node with 'duplicateNode' in the parentChild edge.
+         let ParentChildEdge = this.parentChildEdges.filter((e)=>{return e.target === toDuplicate})[0];
+         ParentChildEdge.target = duplicateNode;
+
+         //clear parent references
+         toDuplicate.maId = 0;
+         toDuplicate.paID = 0;
+
+         toDuplicate.ma = undefined;
+         toDuplicate.pa = undefined;
+
+         this.nodes.push(duplicateNode);
+
+
+         //clear visited status of this persons spouse(s) and the branch starting at this couple;
+         this.clearVisitedBranch(toDuplicate);
+       }
+       s.visited = true;
+     })
+
+     node.children.forEach((c)=>{
+       this.removeCyclesHelper(c);
+     })
+
+     if (!node.hasChildren){
+       return;
+     }
+   }
+
+  /**
+   * This function sets the 'visited' state of the remainder of this branch to false.
+   *
+   */
+   private clearVisitedBranch(node){
+
+     if (!node.hasChildren)
+       return;
+
+     //set all spouses to false
+    node.spouse.forEach((s)=>{s.visited = false;})
+
+    //recursively call this function on the children
+    node.children.forEach((c)=>{c.visited = false; this.clearVisitedBranch(c)});
+   }
+
+
+  /**
    * This function loads genealogy data from lineage-server
    * and builds the genealogy tree
    * @param: name of the dataset
@@ -108,17 +258,15 @@ class GraphData {
       d.hasChildren = false;
       d.children = []; //Array of children
       d.spouse = []; //Array of spouses (some have more than one)
-      // console.log(d.KindredID)
+      d.duplicates=[]; //keep track of any duplicates of this node
+      d.visited = false; // used for deCycling the tree
     });
 
-    //Define attribute that defines 'affected' state
-    console.log(this.tableManager.affectedState)
+
+
+
     this.defineAffected(this.tableManager.affectedState);
     this.buildTree();
-
-
-    //Linearize Tree and pass y values to the attributeData Object
-    this.linearizeTree();
 
     //Create fake birthdays for people w/o a bdate.
     this.nodes.forEach((n)=>{
@@ -131,6 +279,14 @@ class GraphData {
       }
     });
 
+
+    //Remove cycles by creating duplicate nodes where necessary
+    this.removeCycles();
+
+    //Linearize Tree and pass y values to the attributeData Object
+    this.linearizeTree();
+
+    //Create dictionary of person to y values
     this.exportYValues();
 
 
@@ -168,26 +324,11 @@ class GraphData {
 
   /**
    *
-   * This function uncollapses the entire tree
+   * This function uncollapses the entire tree by setting their node y values back to the originally Y Value;
    *
    */
   private uncollapseAll(){
-
-    //Iterate through branch, if there are hidden nodes, uncollapse
-    const isHidden = this.nodes.filter((node) => {
-      return (node.hidden);
-    });
-
-    if (isHidden.length === 0) {
-      return;
-    }
-
-    //Find person farthest down the graph and set as startingPoint
-    let startNode = isHidden.reduce((a,b)=> {return +a.Y > +b.Y? a : b});
-    this.expandBranch(startNode);
-
-    //Recursively call uncollapseAll to handle any branches that were not uncollapsed.
-    // this.uncollapseAll();
+    this.nodes.forEach(node=>{node.y = node.Y; node.hidden = false; node.aggregated = false;})
   }
 
   /**
@@ -226,7 +367,12 @@ class GraphData {
     //Create hashmap of personID to y value;
     let dict = {};
 
-    this.nodes.forEach((node) => {dict[node.id] = Math.round(node.y);})
+    this.nodes.forEach((node) => {
+      if (node.id in dict){
+        dict[node.id].push(Math.round(node.y));
+      }else{
+        dict[node.id] = [Math.round(node.y)]
+      }})
 
 
 

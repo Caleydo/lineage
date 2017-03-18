@@ -182,8 +182,8 @@ class GraphData {
       return;
     }
 
-    //Find oldest person in this set of nodes and set as startingPoint
-    let startNode = isHidden.reduce((a,b)=> {return +a.bdate < +b.bdate? a : b});
+    //Find person farthest down the graph and set as startingPoint
+    let startNode = isHidden.reduce((a,b)=> {return +a.Y < +b.Y? a : b});
     this.expandBranch(startNode);
 
     //Recursively call uncollapseAll to handle any branches that were not uncollapsed.

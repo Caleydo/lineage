@@ -62,6 +62,7 @@ export class App {
 
     /** =====  PRIVATE CASES - WORKS ONLY WITH THE RIGHT DATA LOCALLY ===== */
     // await tableManager.loadData('TenFamiliesDescendAnon', 'TenFamiliesAttributes');
+    console.log('loadData')
     await tableManager.loadData('FiftyFamiliesDescendAnon', 'FiftyFamiliesAttributes');
     //await tableManager.loadData('AllFamiliesDescendAnon', 'AllFamiliesAttributes');
     /** ============= */
@@ -69,12 +70,15 @@ export class App {
     const graphDataObj = graphData.create(tableManager);
     await graphDataObj.createTree();
 
+    console.log('tree')
     const genealogyTree = tree.create(this.$node.select('#graph_table').node());
     genealogyTree.init(graphDataObj);
 
+    console.log('table')
     const attributeTable = table.create(this.$node.select('#graph_table').node());
     attributeTable.init(tableManager);
 
+    console.log('panel')
     const attributePanel = panel.create(this.$node.select('#data_selection').node());
     attributePanel.init(tableManager);
 

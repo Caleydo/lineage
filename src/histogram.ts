@@ -79,20 +79,19 @@ class Histogram {
     } else if (this.type === VALUE_TYPE_INT || this.type === VALUE_TYPE_REAL) {
       await this.renderNumHistogram(dataVec);
     } else if (this.type === 'string') {
-
     }
-
-
-
   }
 
+  /**
+   * Removes all interaction from the  histogram. (brushes and selecting bars)
+   */
   public clearInteraction(){
     this.removeBrush();
     this.removeCategorySelection();
   }
 
   /**
-   * Adds abilility to hover and click to select histogram bars.
+   * Adds ability to hover and click to select histogram bars.
    */
   private addCategorySelection() {
 
@@ -112,6 +111,9 @@ class Histogram {
 
   }
 
+  /**
+   * Set categorical bar as selected.
+   */
   public setSelected(category){
     //Bars are not clickable
     if (isNullOrUndefined(this.$node.select('.catBar').on('click'))) {
@@ -120,6 +122,8 @@ class Histogram {
     //select right bar and set classed to picked.
     this.$node.selectAll('.catBar').filter((bar)=>{ return bar.key === category; }).classed('picked',true);
     }
+
+
   /**
    * Remove ability to select categories.
    */
@@ -215,7 +219,6 @@ class Histogram {
 
   }
 
-
   /**
    * Removes the brush from this histogram
    */
@@ -224,8 +227,6 @@ class Histogram {
       this.$node.select('.brushAxis').remove();
       this.brush = undefined;
   }
-
-
 
     /**
    * This function renders the histogram for categorical attribute in the attribute panel

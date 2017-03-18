@@ -7,20 +7,15 @@ import {select, selection, selectAll, mouse, event} from 'd3-selection';
 import {format} from 'd3-format';
 import {scaleLinear} from 'd3-scale';
 import {max, min, mean} from 'd3-array';
-import {entries} from 'd3-collection';
 import {axisTop, axisBottom} from 'd3-axis';
 import * as range from 'phovea_core/src/range';
 import {isNullOrUndefined} from 'util';
-import {active} from 'd3-transition';
 import {transition} from 'd3-transition';
 import {easeLinear} from 'd3-ease';
 
 import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL, VALUE_TYPE_STRING} from 'phovea_core/src/datatype';
 
 import {line} from 'd3-shape';
-
-import {range as d3Range} from 'd3-array';
-import {isUndefined} from 'util';
 
 import {
   PRIMARY_SECONDARY_SELECTED,
@@ -29,6 +24,7 @@ import {
   VIEW_CHANGED_EVENT,
   TABLE_VIS_ROWS_CHANGED_EVENT
 } from './tableManager';
+import {isUndefined} from 'util';
 
 /**
  * Creates the attribute table view
@@ -41,8 +37,6 @@ class attributeTable {
   private height;
   private buffer = 10; //pixel dist between columns
 
-  private tableAxis;
-
   //for entire Table
   private y = scaleLinear();
 
@@ -54,7 +48,6 @@ class attributeTable {
   private table;
   private tableHeader;
   private columnSummaries;
-
 
   //private margin = {top: 60, right: 20, bottom: 60, left: 40};
 
@@ -92,9 +85,11 @@ class attributeTable {
 
     this.tableManager = data;
 
+
     this.build(); //builds the DOM
 
     // sets up the data & binds it to svg groups
+
     await this.update();
 
     this.attachListener();
@@ -155,15 +150,12 @@ class attributeTable {
     let attributeView = await this.tableManager.tableTable;
 
     let allCols = graphView.cols().concat(attributeView.cols());
-
     let colOrder = this.tableManager.colOrder;
-
     let orderedCols = [];
+
     for (const colName of colOrder) {
-      // console.log(colName)
       for (const vector of allCols) {
-        const name = await vector.desc.name;
-        if (name === colName) {
+        if (vector.desc.name === colName) {
           orderedCols.push(vector)
         }
       }
@@ -188,7 +180,14 @@ class attributeTable {
     //Find y indexes of all rows
     let allRows = Object.keys(y2personDict).map(Number);
 
-    //set up first column. can't seem to get an ivector for the first col from the table
+    //Set height of svg
+    this.height = Config.glyphSize * 3 * (max(allRows) - min(allRows) + 1);
+    select('.tableSVG').attr('height', this.height + this.margin.top + this.margin.bottom);
+
+    this.y.range([0, this.height]).domain([1, max(allRows)]);
+
+
+    //set up first column with #People per row.
     let col: any = {};
     col.data = [];
     col.name = ['# People'];
@@ -209,51 +208,49 @@ class attributeTable {
     let maxOffset = max(this.colOffsets);
     this.colOffsets.push(maxOffset + this.buffer * 2 + this.colWidths[col.type]);
 
+    //Set first col as the number of people per row. Can't move this col's  position.
     let colDataAccum = [col];
 
-    this.height = Config.glyphSize * 3 * (max(allRows) - min(allRows) + 1);
-    // console.log('table height is ', this.height)
-
-    select('.tableSVG').attr('height', this.height + this.margin.top + this.margin.bottom);
-
-    this.y.range([0, this.height]).domain([1, max(allRows)]);
-
-
     for (const vector of orderedCols) {
-      const name = await vector.desc.name;
-      // console.log('looking at ', name);
-
       const data = await vector.data(range.all());
-      const type = await vector.valuetype.type;
+      const type =  vector.valuetype.type;
+      const name =  vector.desc.name;
 
-      let peopleIDs = await vector.names();
-      // peopleIDs = peopleIDs.map(Number);
-      // console.log(vector.desc.name, peopleIDs.length);
 
+      let peopleIDs = await vector.names()
 
       if (type === VALUE_TYPE_CATEGORICAL) {
+        console.log(data,name)
         //Build col offsets array ;
-        const categories = Array.from(new Set(data));
+        let allCategories = vector.desc.value.categories.map(c=>{return c.name}); //get categories from index.json def
+        let categories;
+
+        //Only need one col for binary categories
+        if (allCategories.length<3){
+          categories = allCategories[0];
+        } else{
+          categories = allCategories;
+        }
 
         for (let cat of categories) {
-          // console.log('category', cat);
+
+          console.log(cat);
           let col: any = {};
           col.ids = allRows.map((row) => {
             return y2personDict[row]
           });
 
-          const base_name = await vector.desc.name;
+          col.name = name;
+          col.category = cat;
 
-
-          col.name = base_name + '_' + cat;
-          col.varName = base_name;
           //Ensure there is an element for every person in the graph, even if empty
           col.data = allRows.map((row) => {
             let colData = [];
             let people = y2personDict[row];
             people.map((person) => {
-              let ind = peopleIDs.lastIndexOf(person) //find this person in the attribute data
-              if (ind > -1 && data[ind] === cat) {
+              let ind = peopleIDs.indexOf(person) //find this person in the attribute data
+              //If there are only two categories, save both category values in this column. Else, only save the ones that match the category at hand.
+              if (ind > -1 && (allCategories.length <3  || (allCategories.length>2 && data[ind] === cat))) {
                 colData.push(data[ind])
               } else {
                 colData.push(undefined);
@@ -263,13 +260,12 @@ class attributeTable {
           });
           col.ys = allRows;
           col.type = type;
-          // console.log(col.name, ' cat is ', cat)
-          if (categories.length < 3 && (cat === 'M' || cat === 'Y' || +cat === 1 || +cat === 2) || +cat === 3 || +cat === 4) {
 
-            let maxOffset = max(this.colOffsets);
-            this.colOffsets.push(maxOffset + this.buffer * 2 + this.colWidths.categorical);
-            colDataAccum.push(col);
-          }
+
+          let maxOffset = max(this.colOffsets);
+          this.colOffsets.push(maxOffset + this.buffer * 2 + this.colWidths.categorical);
+          colDataAccum.push(col);
+
         }
       } else if (type === VALUE_TYPE_INT || type === VALUE_TYPE_REAL) { //quant
 
@@ -283,12 +279,7 @@ class attributeTable {
         });
 
         const stats = await vector.stats();
-
-
-        col.name = await vector.desc.name;
-
-
-        // console.log('comparing Mins for ',  col.name, stats.min, data.filter((d)=>{console.log(d); return +d>0}).map(Number), min(data.map(Number)))
+        col.name = name;
         col.data = allRows.map((row) => {
           let colData = [];
           let people = y2personDict[row];
@@ -318,7 +309,7 @@ class attributeTable {
           return y2personDict[row]
         });
 
-        col.name = await vector.desc.name;
+        col.name = name;
 
         col.data = allRows.map((row) => {
           let colData = [];
@@ -346,7 +337,7 @@ class attributeTable {
           return y2personDict[row]
         });
 
-        col.name = await vector.desc.name;
+        col.name = name;
 
         col.data = allRows.map((row) => {
           let colData = [];
@@ -392,7 +383,7 @@ class attributeTable {
       .data(this.colData.map((d, i) => {
         return {
           'name': d.name, 'data': d, 'ind': i, 'type': d.type,
-          'max': d.max, 'min': d.min, 'mean': d.mean
+          'max': d.max, 'min': d.min, 'mean': d.mean , 'category':d.category
         }
       }), (d) => {
         return d.name
@@ -408,8 +399,12 @@ class attributeTable {
     headers = headerEnter.merge(headers);
 
     headers
-      .text((d) => {
-        return d['name']
+      .text((d:any) => {
+      if (d.category)
+        return d.name + ' (' + d.category + ')'
+      else
+        return d.name
+
       })
 
       .attr('transform', (d, i) => {
@@ -423,10 +418,10 @@ class attributeTable {
 
     //Bind data to the col header summaries
     let colSummaries = this.columnSummaries.selectAll('.colSummary')
-      .data(this.colData.map((d, i) => {
+      .data(this.colData.map((d) => {
         return d
       }), (d) => {
-        return d.varName
+        return d.name
       });
 
     let colSummariesEnter = colSummaries.enter().append('g').classed('colSummary', true);
@@ -484,7 +479,7 @@ class attributeTable {
       .data(this.colData.map((d, i) => {
         return {
           'name': d.name, 'data': d.data, 'ind': i, 'ys': d.ys, 'type': d.type,
-          'ids': d.ids, 'stats': d.stats, 'varName': d.varName
+          'ids': d.ids, 'stats': d.stats, 'varName': d.name, 'category':d.category
         }
       }), (d) => {
         return d.varName
@@ -546,7 +541,8 @@ class attributeTable {
             'y': d.ys[i],
             'type': d.type,
             'stats': d.stats,
-            'varName': d.varName
+            'varName': d.name,
+            'category':d.category
           }
         })
       }, (d: any) => {
@@ -629,11 +625,12 @@ class attributeTable {
 
     let numPositiveValues = headerData.data.map((singleRow) => {
       return singleRow.reduce((a, v) => {
-        return v ? a + 1 : a
+        return v === headerData.category ? a + 1 : a
       }, 0)
     }).reduce((a, v) => {
       return v + a
     }, 0);
+
     let totalValues = headerData.data.map((singleRow) => {
       return singleRow.length
     }).reduce((a, v) => {
@@ -659,7 +656,6 @@ class attributeTable {
       .attr('fill', () => {
           let attr = this.tableManager.primaryAttribute;
           if (attr)
-          // console.log(attr,headerData)
             if (attr && attr.name === headerData.varName) {
               return attr.color[1]
             } else {
@@ -812,29 +808,31 @@ class attributeTable {
     let col_width = this.colWidths.categorical;
     let rowHeight = this.rowHeight;
 
-    let numValues = cellData.data.reduce((a, v) => v ? a + 1 : a, 0);
+    //Add up the undefined values;
+    let numValidValues = cellData.data.reduce((a, v) => { return v ? a + 1 : a}, 0);
+     let numValues = cellData.data.filter((c)=>{return (c == cellData.category)}).length
 
     element.selectAll('rect').remove(); //Hack. don't know why the height of the rects isn' being updated.
 
-    // if (numValues === 0){
-    //   //Add a faint cross out to indicate no data here;
-    //   if (element.selectAll('.cross_out').size()===0){
-    //     element
-    //       .append('line')
-    //       .attr('class', 'cross_out')
-    //   }
-    //
-    //   element.select('.cross_out')
-    //     .attr('x1', col_width*0.3)
-    //     .attr('y1', rowHeight/2)
-    //     .attr('x2', col_width*0.6)
-    //     .attr('y2', rowHeight/2)
-    //     .attr('stroke-width', 2)
-    //     .attr('stroke', '#9e9d9b')
-    //     .attr('opacity',.6)
-    //
-    //   return;
-    // }
+    if (numValidValues <1){
+      //Add a faint cross out to indicate no data here;
+      if (element.selectAll('.cross_out').size()===0){
+        element
+          .append('line')
+          .attr('class', 'cross_out')
+      }
+
+      element.select('.cross_out')
+        .attr('x1', col_width*0.3)
+        .attr('y1', rowHeight/2)
+        .attr('x2', col_width*0.6)
+        .attr('y2', rowHeight/2)
+        .attr('stroke-width', 2)
+        .attr('stroke', '#9e9d9b')
+        .attr('opacity',.6)
+
+      return;
+    }
 
     if (element.selectAll('.categorical').size() === 0) {
       element
@@ -917,18 +915,9 @@ class attributeTable {
               })[0]);
               if (ind > -1) {
                 return attr.color[ind]
-                // if (cellData.data.length > 1) {
-                //   return this.ColorLuminance(attr.color[ind], -0.3);
-                // } else {
-                //   return attr.color[ind]
-                // }
               }
             }
           }
-          // if (cellData.data.length>1){
-          //   // console.log(cellData,attr)
-          //   return '#545757';
-          // }
         }
       )
 
@@ -957,7 +946,6 @@ class attributeTable {
     }
 
     var colorScale = scaleLinear<string,string>().domain(this.idScale.domain()).range(["#c0bfbb","#373838"]);
-    // console.log('colorScale', colorScale.domain())
 
     element
       .select('.dataDens')
@@ -1334,73 +1322,6 @@ class attributeTable {
 
   //}
 
-////////////// RENDERING FUNCTIONS! /////////////////////////////////////////////
-  private getWeight(data_elem) {
-    if (data_elem.type === VALUE_TYPE_INT)
-      return 3;
-    else if (data_elem.type === VALUE_TYPE_CATEGORICAL) { //make sure to account for # cols
-      return 1;
-    }
-    return 2;
-  }
-
-  private getTotalWeights() {
-    const getWeightHandle = this.getWeight;
-    const weights = this.colData.map(function (elem) {
-      return getWeightHandle(elem);
-    });
-    return weights.reduce(function (a, b) {
-      return a + b;
-    }, 0);
-  }
-
-  private getDisplayedColumnWidths(width) {
-    const buffer = this.buffer;
-    const totalWeight = this.getTotalWeights();
-    const getWeightHandle = this.getWeight;
-    const availableWidth = width - (buffer * this.colData.length);
-    const toReturn = this.colData.map(function (elem, index) {
-      const elemWidth = getWeightHandle(elem) * availableWidth / totalWeight;
-      return {'name': elem['name'], 'width': elemWidth}
-    });
-    return toReturn;
-  }
-
-  private getDisplayedColumnXs(width) {
-    const buffer = this.buffer;
-    const totalWeight = this.getTotalWeights();
-    const colWidths = this.getDisplayedColumnWidths(width);
-    const toReturn = colWidths.map(function (elem, index) {
-      var x_dist = 0;
-      for (let i = 0; i < index; i++) {
-        x_dist += colWidths[i].width + buffer;
-      }
-      return {'name': elem['name'], 'x': x_dist};
-    });
-    //
-    // console.log('Full width was: ' + width);
-    // console.log('this.colData: ');
-    // console.log(this.colData);
-    // colWidths.map((d, i)=>{
-    //   console.log('col width: ' + colWidths[i]['width'] + ', col x: ' + toReturn[i]['x']);
-    // })
-
-    return toReturn;
-  }
-
-
-  private getDisplayedColumnMidpointXs(width) {
-    const buffer = this.buffer + 2;
-    const totalWeight = this.getTotalWeights();
-    const colXs = this.getDisplayedColumnXs(width);
-    const colWidths = this.getDisplayedColumnWidths(width);
-    return this.colData.map(function (elem, index) {
-      const midPoint = colXs[index].x + (colWidths[index].width / 2);//+ 40; //TODO WHY
-      return {'name': elem['name'], 'x': midPoint};
-    });
-
-  }
-
 
   private attachListener() {
     // //NODE BEGIN HOVER
@@ -1433,25 +1354,8 @@ class attributeTable {
     });
 
     events.on(COL_ORDER_CHANGED_EVENT, (evt, item) => {
-      console.log('updating')
       self.update();
     });
-
-
-//
-
-    // //TODO
-    // events.on('rows_aggregated', (evt, item) => {
-    //   //this.all_the_data.aggregateRows();
-    //
-    //   // Things that need to happen here:
-    //   // change rows to be joined w. the displayRows instead of displayData- then we have to index each time for every attribute.
-    //   // update the displayedRows datastructure
-    //   //
-    //
-    //
-    // });
-
 
   }
 

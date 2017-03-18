@@ -66,7 +66,7 @@ class AttributePanel {
       const name = col.desc.name;
       const type = col.desc.value.type;
 
-      if (name === 'PersonID' || type !== 'idtype') {
+      if (this.tableManager.defaultCols.indexOf(name)>-1) {
         this.activeColumns.push(name);
       }
     });
@@ -76,6 +76,9 @@ class AttributePanel {
     this.update();
     this.build();
     this.attachListener();
+
+    //Programatically select 'suicide' as the POI
+    // this.$node.select(".suicide").select('#poi').on("click")();
 
     // return the promise directly as long there is no dynamical data to update
     return Promise.resolve(this);
@@ -236,7 +239,9 @@ class AttributePanel {
     const header = attrHeader.append('a').attr('href', '#')
     //.html('<i class=\'glyphicon glyphicon-chevron-right\'></i>')
       .append('strong').html(columnName)
-      .append('span').attr('class', columnDesc)
+      .append('span')
+      .classed(columnDesc, true)
+      .classed(columnName, true) //used to later programatically select and trigger the onClick callbacks of these badges
       .html(`<div class=' attr_badges pull-right'>
                 <!--<span class=' badge' id ='add_remove'>-</span> -->
                         
@@ -268,8 +273,6 @@ class AttributePanel {
     });
 
     selectAll('.badge').on('click', function () {
-      console.log('badge clicked');
-
       const badge = select(this).attr('id'); //$(this).id();
       const attribute = $(this).closest('strong').contents()[0];
       //reset badge display for previously clicked badges
@@ -288,7 +291,6 @@ class AttributePanel {
           }
         }
       });
-
 
       $(this).parent().css('display', 'inline');
       //$(this).parent().children().css('display', 'none');
@@ -358,9 +360,6 @@ class AttributePanel {
   }
 
   private update() {
-    console.log('update when tree fire');
-    console.log('my data is new');
-
     //get updated data from the tableManager
     let graphView = this.tableManager.graphTable;
     let attributeView = this.tableManager.tableTable;

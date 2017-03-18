@@ -458,6 +458,20 @@ rect.selected{
   stroke:none;
 }
 
+.personIcon {
+  font-family: FontAwesome;
+  /*content: "\f078";*/
+  content: "\f292";
+  display: inline-block;
+  padding-left: 10px;
+  padding-right: 10px;
+  vertical-align: middle;
+  //float: right;
+  font-size: 14px;
+}
+
+
+
 .collapsed .nodeLine{
   stroke:#9b9a99;
 }

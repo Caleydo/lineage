@@ -13,6 +13,7 @@ import {
 import * as events from 'phovea_core/src/event';
 import * as Range from 'phovea_core/src/range';
 import {VIEW_CHANGED_EVENT} from './tableManager';
+import {isUndefined} from 'util';
 
 
 
@@ -136,7 +137,7 @@ class GraphData {
            console.log('neither person has parents in this family!')
          }
 
-         if (toDuplicate) {
+         if (!isUndefined(toDuplicate)) {
            let duplicateNode = Object.assign({}, toDuplicate);
 
            duplicateNode.id = toDuplicate.id;
@@ -175,10 +176,11 @@ class GraphData {
 
            this.nodes.push(duplicateNode);
 
+           //clear visited status of this persons spouse(s) and the branch starting at this couple;
+           this.clearVisitedBranch(toDuplicate);
+
          }
 
-         //clear visited status of this persons spouse(s) and the branch starting at this couple;
-         this.clearVisitedBranch(toDuplicate);
        }
        s.visited = true;
      })
@@ -268,9 +270,6 @@ class GraphData {
       d.visited = false; // used for deCycling the tree
     });
 
-
-
-
     this.defineAffected(this.tableManager.affectedState);
     this.buildTree();
 
@@ -296,19 +295,6 @@ class GraphData {
     console.log('3')
     //Create dictionary of person to y values
     this.exportYValues();
-
-
-    //Create hashmap of personID to y value;
-    let dict = {};
-
-    this.nodes.forEach((node) => {
-      //console.log(node.id, node.y)
-      dict[node.id] = node.y;
-    })
-
-    //Assign y values to the tableManager object
-    this.tableManager.ys = dict;
-
 
   //After linear order has been computed:
     this.nodes.forEach((d)=> {

@@ -354,18 +354,21 @@ class GraphData {
    *
    */
   private exportYValues() {
-
     //Create hashmap of personID to y value;
     let dict = {};
 
     this.nodes.forEach((node) => {
-      if (node.id in dict){
-        dict[node.id].push(Math.round(node.y));
-      }else{
-        dict[node.id] = [Math.round(node.y)]
-      }})
+      //Remove danglers
+      // if (node.hasChildren || (!isUndefined(node.ma) && !isUndefined(node.pa))) {
+        if (node.id in dict) {
+          dict[node.id].push(Math.round(node.y));
+        } else {
+          dict[node.id] = [Math.round(node.y)]
+        }
+      // }
+    })
 
-
+    // console.log(dict);
 
     //Assign y values to the tableManager object
     this.tableManager.yValues = dict;

@@ -542,7 +542,7 @@ class GenealogyTree {
     lifeRects
       .transition()
       .attr('transform', (d: any) => {
-        console.log('lifeLine Data is ' , d)
+        // console.log('lifeLine Data is ' , d)
         return d.sex === 'M' ? 'translate(' + (this.xPOS(d) + Config.glyphSize) + ',' + this.yPOS(d) + ')'
           : 'translate(' + this.xPOS(d) + ',' + (this.yPOS(d) - Config.glyphSize) + ')';
       });

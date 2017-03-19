@@ -167,16 +167,18 @@ class attributeTable {
     let y2personDict = {};
     let yDict = this.tableManager.yValues;
 
-
+    // console.log('yDict', yDict)
     graphIDs.forEach((person) => {
-      //Handle Duplicate Nodes
-      yDict[person].forEach((y)=>{
-        if (y in y2personDict) {
-          y2personDict[y].push(person);
-        } else {
-          y2personDict[y] = [person];
-        }
-      })
+      if (person in yDict) { //may not be if dangling nodes were removed
+        //Handle Duplicate Nodes
+        yDict[person].forEach((y) => {
+          if (y in y2personDict) {
+            y2personDict[y].push(person);
+          } else {
+            y2personDict[y] = [person];
+          }
+        })
+      }
     });
 
     //Find y indexes of all rows
@@ -370,12 +372,13 @@ class attributeTable {
     let t = transition('t').duration(500).ease(easeLinear);
     let self = this;
 
-    let allys = [];
-    for (var key in this.tableManager.ys) {
-      allys.push(+this.tableManager.ys[key])
-    }
-
+    // let allys = [];
+    // for (var key in this.tableManager.ys) {
+    //   allys.push(+this.tableManager.ys[key])
+    // }
+    //
     let y = this.y;
+
 
 
 //HEADERS

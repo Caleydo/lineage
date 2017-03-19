@@ -284,15 +284,12 @@ class GraphData {
       }
     });
 
-    console.log('1')
     //Remove cycles by creating duplicate nodes where necessary
     this.removeCycles();
 
-    console.log('2')
     //Linearize Tree and pass y values to the attributeData Object
     this.linearizeTree();
 
-    console.log('3')
     //Create dictionary of person to y values
     this.exportYValues();
 

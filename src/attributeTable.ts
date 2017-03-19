@@ -699,11 +699,13 @@ class attributeTable {
 
     let range = [0, col_width];
 
-    var data = [],
-      cols = scaleLinear<string,string>().domain([hist.largestFrequency, 0]).range(['#111111', '#999999']),
-      total = hist.validCount,
-      binWidth = (range[1] - range[0]) / hist.bins,
+    // var data = [],
+      // cols = scaleLinear<string,string>().domain([hist.largestFrequency, 0]).range(['#111111', '#999999']),
+      let total = hist.validCount,
+        binWidth = (range[1] - range[0]) / hist.bins,
       acc = 0;
+
+    let data =[];
 
     hist.forEach((b, i) => {
       data[i] = {
@@ -711,10 +713,6 @@ class attributeTable {
         acc: acc,
         ratio: b / total,
         range: hist.range(i),
-
-        name: 'Bin ' + (i + 1) + ' (center: ' + Math.round((i + 0.5) * binWidth) + ')',
-        // color: cols((i + 0.5) * binWidth);
-        color: cols(b)
       };
       acc += b;
 
@@ -723,23 +721,30 @@ class attributeTable {
 
     let xScale = scaleLinear().range([0, col_width]).domain(hist.valueRange).nice()
     var bin2value = scaleLinear().range(hist.valueRange).domain([0, hist.bins]);
-    let yScale = scaleLinear().range([0, height * 0.8]).domain([0, hist.largestFrequency]);
+    let yScale = scaleLinear().range([0, height * 0.8]).domain([0, max(data,(d)=>{return d.v})]);
+
 
     let xAxis = axisBottom(xScale)
       .tickSize(5)
       .tickValues(xScale.domain())
       .tickFormat(format('.0f'))
 
+    let bars = element.selectAll('.histogram')
+      .data(data);
 
-    if (element.selectAll('.histogram').size() === 0) {
-      element.selectAll('.histogram')
-        .data(data)
-        .enter()
-        .append('rect')
-        .classed('histogram', true)
+    let barsEnter = bars.enter();
+
+    barsEnter
+      .append('rect')
+      .classed('histogram', true)
+
+    bars.exit().remove();
+
+    //bars = barsEnter.merge(bars);
+
+    if (element.selectAll('.hist xscale').size() === 0) {
 
       element.append('text').classed('maxValue', true);
-
       element.append('g')
         .attr('transform', 'translate(0,' + height + ')')
         .classed('hist_xscale', true)

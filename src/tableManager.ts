@@ -80,14 +80,14 @@ export const FAMILY_INFO_UPDATED = 'family_stats_updated';
 export const COL_ORDER_CHANGED_EVENT = 'col_ordering_changed'
 
 
-export const PRIMARY_COLOR = '#20567c';
-export const PRIMARY_COLOR_2 = '#a3ccf0';
+export const PRIMARY_COLOR = '#335b8e';
+export const PRIMARY_COLOR_2 = '#b5b867';
 
-export const SECONDARY_COLOR = '#e48737';
-export const SECONDARY_COLOR_2 = '#ffd6b3';
+export const SECONDARY_COLOR = '#9f295d';
+export const SECONDARY_COLOR_2 = '#e7a396';
 
-export const PRIMARY_CATEGORICAL_COLORS = ['#e7a396', '#9f295d', '#d9a34b', '#ecd1ca','#430e00'];
-export const SECONDARY_CATEGORICAL_COLORS = ['#b5b867', '#ffea59', '#b7dbdb', '#335b8e','#6ca18f']; //
+export const PRIMARY_CATEGORICAL_COLORS = ['#b5b867', '#ffea59', '#b7dbdb', '#335b8e','#6ca18f'];
+export const SECONDARY_CATEGORICAL_COLORS = ['#e7a396', '#9f295d', '#d9a34b', '#ecd1ca','#430e00']; //
 
 /**
  * This class manages the data structure for the graph, the table visualization and the attribute selection panel.

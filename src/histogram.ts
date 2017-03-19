@@ -115,7 +115,7 @@ class Histogram {
    */
   public setSelected(category){
 
-    if (this.type !== 'categorical'){
+    if (this.type !== VALUE_TYPE_CATEGORICAL){
       return;
     }
     //Bars are not clickable
@@ -133,15 +133,20 @@ class Histogram {
   public setPrimarySecondary(attributeObj){
 
     //Only need to set colors for categorical type
-    if (this.type !== 'categorical') {
-      return;
+    if (this.type === VALUE_TYPE_INT || this.type === VALUE_TYPE_REAL) {
+      this.$node.selectAll('.numBar').attr('fill',attributeObj.color);
+
     }
 
-    //Color Bars appropriately.
-    attributeObj.categories.forEach((category,i)=>{
-      console.log(category)
-      this.$node.selectAll('.catBar').filter((bar)=>{ return bar.key === category; }).attr('fill',attributeObj.color[i]);
-    });
+    if (this.type === VALUE_TYPE_CATEGORICAL) {
+      //Color Bars appropriately.
+      attributeObj.categories.forEach((category, i) => {
+        console.log(category)
+        this.$node.selectAll('.catBar').filter((bar) => {
+          return bar.key === category;
+        }).attr('fill', attributeObj.color[i]);
+      });
+    }
   }
 
   /**
@@ -150,11 +155,14 @@ class Histogram {
   public clearPrimarySecondary(){
 
     //Only need to set colors for categorical type
-    if (this.type !== 'categorical') {
-      return;
+    if (this.type === VALUE_TYPE_INT || this.type === VALUE_TYPE_REAL) {
+      this.$node.selectAll('.numBar').attr('fill','#5f6262');
     }
-    //Set Bars back to original color.
-      this.$node.selectAll('.catBar').attr('fill','#5f6262');
+
+    if (this.type === VALUE_TYPE_CATEGORICAL) {
+      //Set Bars back to original color.
+      this.$node.selectAll('.catBar').attr('fill', '#5f6262');
+    }
   }
 
 
@@ -277,7 +285,7 @@ class Histogram {
 
     const numElements = categoricalDataVec.length;
 
-    const histData: IHistogram = await categoricalDataVec.hist(10);
+    const histData: IHistogram = await categoricalDataVec.hist();
     // console.log(histData)
     const catData = [];
     histData.forEach((d, i) => catData.push({key: histData['categories'][i], value: d}));
@@ -290,7 +298,7 @@ class Histogram {
     let yScale = scaleLinear();
 
     //scales
-    xScale.rangeRound([0, this.width]).padding(0.6)
+    xScale.rangeRound([0, this.width]).padding(0.2)
       .domain(catData.map(function (d) {
         return d.key;
       }));
@@ -302,6 +310,7 @@ class Histogram {
       })]);
 
 
+    let bandwidth = min([xScale.bandwidth(),40]);
     if (currentHist.selectAll('.svg-g').size() === 0) {
       currentHist.append('g')
         .attr('transform', 'scale(0.6,0.6) translate(' + this.margin.left + ',' + this.margin.top + ')')
@@ -315,15 +324,10 @@ class Histogram {
         .attr('transform', 'translate(' + this.margin.left + ',' + this.height + ')')
         .call(axisBottom(xScale).tickFormat((d)=>{return d[0]}));
 
-
       element.append('g')
         .classed('barContainer',true)
         .attr('transform', 'translate(' + this.margin.left + ',0)')
-
-
-
     }
-
 
     let bars = currentHist
       .select('.barContainer')
@@ -342,12 +346,12 @@ class Histogram {
 
     bars
       .attr('x', (d) => {
-        return xScale(d.key);
+        return xScale(d.key) + (xScale.bandwidth() - bandwidth)/2; //potential offset created from making bars skinnier
       })
       .attr('y', (d) => {
         return yScale(d.value);
       })
-      .attr('width', xScale.bandwidth())
+      .attr('width', bandwidth)
       .attr('height', (d) => {
         return this.height - yScale(d.value);
       })
@@ -429,7 +433,8 @@ class Histogram {
       .enter()
       .append('rect')
       .classed('numBar', true)
-      .classed('bar', true);
+      .classed('bar', true)
+      .attr('fill','#5f6262');
 
     bars = barsEnter.merge(bars);
 

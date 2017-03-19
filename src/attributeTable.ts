@@ -219,21 +219,23 @@ class attributeTable {
 
     for (const vector of orderedCols) {
       const data = await vector.data(range.all());
-      const type =  vector.valuetype.type;
-      const name =  vector.desc.name;
+      const type = vector.valuetype.type;
+      const name = vector.desc.name;
 
 
       let peopleIDs = await vector.names()
 
       if (type === VALUE_TYPE_CATEGORICAL) {
         //Build col offsets array ;
-        let allCategories = vector.desc.value.categories.map(c=>{return c.name}); //get categories from index.json def
+        let allCategories = vector.desc.value.categories.map(c => {
+          return c.name
+        }); //get categories from index.json def
         let categories;
 
         //Only need one col for binary categories
-        if (allCategories.length<3){
+        if (allCategories.length < 3) {
           categories = [allCategories[0]];
-        } else{
+        } else {
           categories = allCategories;
         }
 
@@ -254,7 +256,7 @@ class attributeTable {
             people.map((person) => {
               let ind = peopleIDs.indexOf(person) //find this person in the attribute data
               //If there are only two categories, save both category values in this column. Else, only save the ones that match the category at hand.
-              if (ind > -1 && (allCategories.length <3  || (allCategories.length>2 && data[ind] === cat))) {
+              if (ind > -1 && (allCategories.length < 3 || (allCategories.length > 2 && data[ind] === cat))) {
                 colData.push(data[ind])
               } else {
                 colData.push(undefined);
@@ -380,14 +382,13 @@ class attributeTable {
     let y = this.y;
 
 
-
 //HEADERS
     //Bind data to the col headers
     let headers = this.tableHeader.selectAll('.header')
       .data(this.colData.map((d, i) => {
         return {
           'name': d.name, 'data': d, 'ind': i, 'type': d.type,
-          'max': d.max, 'min': d.min, 'mean': d.mean , 'category':d.category
+          'max': d.max, 'min': d.min, 'mean': d.mean, 'category': d.category
         }
       }), (d) => {
         return d.name
@@ -403,11 +404,11 @@ class attributeTable {
     headers = headerEnter.merge(headers);
 
     headers
-      .text((d:any) => {
-      if (d.category)
-        return d.name + ' (' + d.category + ')'
-      else
-        return d.name
+      .text((d: any) => {
+        if (d.category)
+          return d.name + ' (' + d.category + ')'
+        else
+          return d.name
 
       })
 
@@ -415,7 +416,7 @@ class attributeTable {
         let offset = this.colOffsets[i] + (this.colWidths[d.type] / 2);
         return (d.type === VALUE_TYPE_CATEGORICAL || d.type === 'dataDensity') ? 'translate(' + offset + ',0) rotate(-30)' : 'translate(' + offset + ',0)';
       })
-      .attr('text-anchor',(d)=>{
+      .attr('text-anchor', (d) => {
         return (d.type === VALUE_TYPE_CATEGORICAL || d.type === 'dataDensity') ? 'start' : 'middle'
       })
 
@@ -483,7 +484,7 @@ class attributeTable {
       .data(this.colData.map((d, i) => {
         return {
           'name': d.name, 'data': d.data, 'ind': i, 'ys': d.ys, 'type': d.type,
-          'ids': d.ids, 'stats': d.stats, 'varName': d.name, 'category':d.category
+          'ids': d.ids, 'stats': d.stats, 'varName': d.name, 'category': d.category
         }
       }), (d) => {
         return d.varName
@@ -546,7 +547,7 @@ class attributeTable {
             'type': d.type,
             'stats': d.stats,
             'varName': d.name,
-            'category':d.category
+            'category': d.category
           }
         })
       }, (d: any) => {
@@ -700,12 +701,12 @@ class attributeTable {
     let range = [0, col_width];
 
     // var data = [],
-      // cols = scaleLinear<string,string>().domain([hist.largestFrequency, 0]).range(['#111111', '#999999']),
-      let total = hist.validCount,
-        binWidth = (range[1] - range[0]) / hist.bins,
+    // cols = scaleLinear<string,string>().domain([hist.largestFrequency, 0]).range(['#111111', '#999999']),
+    let total = hist.validCount,
+      binWidth = (range[1] - range[0]) / hist.bins,
       acc = 0;
 
-    let data =[];
+    let data = [];
 
     hist.forEach((b, i) => {
       data[i] = {
@@ -721,7 +722,9 @@ class attributeTable {
 
     let xScale = scaleLinear().range([0, col_width]).domain(hist.valueRange).nice()
     var bin2value = scaleLinear().range(hist.valueRange).domain([0, hist.bins]);
-    let yScale = scaleLinear().range([0, height * 0.8]).domain([0, max(data,(d)=>{return d.v})]);
+    let yScale = scaleLinear().range([0, height * 0.8]).domain([0, max(data, (d) => {
+      return d.v
+    })]);
 
 
     let xAxis = axisBottom(xScale)
@@ -812,27 +815,31 @@ class attributeTable {
     let rowHeight = this.rowHeight;
 
     //Add up the undefined values;
-    let numValidValues = cellData.data.reduce((a, v) => { return v ? a + 1 : a}, 0);
-     let numValues = cellData.data.filter((c)=>{return (c == cellData.category)}).length
+    let numValidValues = cellData.data.reduce((a, v) => {
+      return v ? a + 1 : a
+    }, 0);
+    let numValues = cellData.data.filter((c) => {
+      return (c == cellData.category)
+    }).length
 
     element.selectAll('rect').remove(); //Hack. don't know why the height of the rects isn' being updated.
 
-    if (numValidValues <1){
+    if (numValidValues < 1) {
       //Add a faint cross out to indicate no data here;
-      if (element.selectAll('.cross_out').size()===0){
+      if (element.selectAll('.cross_out').size() === 0) {
         element
           .append('line')
           .attr('class', 'cross_out')
       }
 
       element.select('.cross_out')
-        .attr('x1', col_width*0.3)
-        .attr('y1', rowHeight/2)
-        .attr('x2', col_width*0.6)
-        .attr('y2', rowHeight/2)
+        .attr('x1', col_width * 0.3)
+        .attr('y1', rowHeight / 2)
+        .attr('x2', col_width * 0.6)
+        .attr('y2', rowHeight / 2)
         .attr('stroke-width', 2)
         .attr('stroke', '#9e9d9b')
-        .attr('opacity',.6)
+        .attr('opacity', .6)
 
       return;
     }
@@ -896,31 +903,25 @@ class attributeTable {
       })
       // .transition(t)
       .attr('fill', (d) => {
-          let attr = this.tableManager.primaryAttribute;
-          if (attr && attr.name === cellData.varName) {
+          let attr;
+
+          let primary = this.tableManager.primaryAttribute;
+          let secondary = this.tableManager.secondaryAttribute;
+          if (primary && primary.name === cellData.varName) {
+            attr = primary;
+          } else if (secondary && secondary.name === cellData.varName) {
+            attr = secondary;
+          }
+
+          if (attr) {
             let ind = attr.categories.indexOf(cellData.data.filter((d) => {
               return d !== undefined
             })[0]);
             if (ind > -1) {
-              // console.log(attr.categories, cellData.data[0], ind)
-              if (cellData.data.length > 1) {
-                return this.ColorLuminance(attr.color[ind], -0.3);
-              } else {
-                return attr.color[ind]
-              }
-            }
-
-          } else {
-            attr = this.tableManager.secondaryAttribute;
-            if (attr && attr.name === cellData.varName) {
-              let ind = attr.categories.indexOf(cellData.data.filter((d) => {
-                return d !== undefined
-              })[0]);
-              if (ind > -1) {
-                return attr.color[ind]
-              }
+              return attr.color[ind]
             }
           }
+
         }
       )
 
@@ -946,10 +947,10 @@ class attributeTable {
         .classed('dataDens', true)
 
       element.append('text')
-        .classed('label',true);
+        .classed('label', true);
     }
 
-    var colorScale = scaleLinear<string,string>().domain(this.idScale.domain()).range(["#c0bfbb","#373838"]);
+    var colorScale = scaleLinear<string,string>().domain(this.idScale.domain()).range(["#c0bfbb", "#373838"]);
 
     element
       .select('.dataDens')
@@ -957,21 +958,20 @@ class attributeTable {
       .attr('height', rowHeight)
       .attr('y', 0)
       .attr('fill', (d) => {
-          return colorScale(cellData.data)
-        })
+        return colorScale(cellData.data)
+      })
 
     element
       .select('.label')
-      .attr('x',col_width/2)
-      .attr('y',rowHeight*0.8)
+      .attr('x', col_width / 2)
+      .attr('y', rowHeight * 0.8)
       .text(() => {
         return cellData.data
         // return (+cellData.data >1 ? cellData.data : '')
       })
-      .attr('text-anchor','middle')
+      .attr('text-anchor', 'middle')
 
   }
-
 
 
   private ColorLuminance(hex, lum) {

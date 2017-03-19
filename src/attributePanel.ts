@@ -181,9 +181,35 @@ class AttributePanel {
     });
 
     events.on('primary_secondary_selected', (evt, item) => {
-      // console.log(item)
-      this.tableManager.setPrimarySecondaryAttribute(item.name, item.primary_secondary).then((threshold)=>{
 
+
+
+      let attribute = this.tableManager[item.primary_secondary + 'Attribute'];
+
+      //A primary or secondary attribute had been previously defined
+      if (attribute) {
+        //Clear previously colored histogram for primary/secondary
+        let previousHist = this.histograms.filter((h) => {
+          return h.attrName === attribute.name
+        });
+
+        if (previousHist.length > 0) {
+          previousHist[0].clearPrimarySecondary();
+        }
+      }
+
+      let otherAttributePrimarySecondary = ['primary', 'secondary'].filter((a)=>{return a !== item.primary_secondary});
+      let otherAttribute = this.tableManager[otherAttributePrimarySecondary + 'Attribute'];
+
+      //If the attribute you are setting as secondary is the same as the one you had as primary, (or vice versa) set the primary (secondary) to undefined;
+      if (otherAttribute && item.name === otherAttribute.name){
+        this.tableManager[otherAttributePrimarySecondary + 'Attribute'] = undefined;
+      }
+
+      this.tableManager.setPrimarySecondaryAttribute(item.name, item.primary_secondary).then((obj)=>{
+
+        let hist = this.histograms.filter((h)=>{return h.attrName === item.name})[0];
+        hist.setPrimarySecondary(obj);
 
       });
     });

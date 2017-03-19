@@ -44,8 +44,6 @@ class Histogram {
   private data;
   // categories specified in the data desc
   private categories = [];
-  //histogram data
-  private histData = [];
 
 
   constructor(parent: Element) {
@@ -100,6 +98,7 @@ class Histogram {
     this.$node.selectAll('.catBar').on('click', function (d:any) {
       if (select(this).classed('picked')) {
         select(this).classed('picked', false);
+        events.fire('poi_selected',{'name':attrName, 'callback':(attr:String) => {return false}}) //if a bar is unclicked affected State is false for all
       } else {
         selectAll('.picked').classed('picked', false);
         select(this).classed('picked', true);
@@ -115,6 +114,10 @@ class Histogram {
    * Set categorical bar as selected.
    */
   public setSelected(category){
+
+    if (this.type !== 'categorical'){
+      return;
+    }
     //Bars are not clickable
     if (isNullOrUndefined(this.$node.select('.catBar').on('click'))) {
       this.addCategorySelection();
@@ -122,6 +125,40 @@ class Histogram {
     //select right bar and set classed to picked.
     this.$node.selectAll('.catBar').filter((bar)=>{ return bar.key === category; }).classed('picked',true);
     }
+
+
+  /**
+   * Set categorical bar as primary or secondary.
+   */
+  public setPrimarySecondary(attributeObj){
+
+    //Only need to set colors for categorical type
+    if (this.type !== 'categorical') {
+      return;
+    }
+
+    //Color Bars appropriately.
+    attributeObj.categories.forEach((category,i)=>{
+      console.log(category)
+      this.$node.selectAll('.catBar').filter((bar)=>{ return bar.key === category; }).attr('fill',attributeObj.color[i]);
+    });
+  }
+
+  /**
+   * Clear coloring for categorical bar as primary or secondary.
+   */
+  public clearPrimarySecondary(){
+
+    //Only need to set colors for categorical type
+    if (this.type !== 'categorical') {
+      return;
+    }
+    //Set Bars back to original color.
+      this.$node.selectAll('.catBar').attr('fill','#5f6262');
+  }
+
+
+
 
 
   /**
@@ -276,11 +313,14 @@ class Histogram {
       element.append('g')
         .attr('class', 'axis axis--x')
         .attr('transform', 'translate(' + this.margin.left + ',' + this.height + ')')
-        .call(axisBottom(xScale));
+        .call(axisBottom(xScale).tickFormat((d)=>{return d[0]}));
+
 
       element.append('g')
         .classed('barContainer',true)
         .attr('transform', 'translate(' + this.margin.left + ',0)')
+
+
 
     }
 
@@ -293,7 +333,8 @@ class Histogram {
     let barsEnter = bars
       .enter().append('rect')
       .classed('catBar', true)
-      .classed('bar', true);
+      .classed('bar', true)
+      .attr('fill','#5f6262');
 
     bars = barsEnter.merge(bars);
 

@@ -86,8 +86,8 @@ export const PRIMARY_COLOR_2 = '#a3ccf0';
 export const SECONDARY_COLOR = '#e48737';
 export const SECONDARY_COLOR_2 = '#ffd6b3';
 
-export const PRIMARY_CATEGORICAL_COLORS = ['#D77A61', '#223843', '#D8B4A0', '#393E41'];
-export const SECONDARY_CATEGORICAL_COLORS = ['#D77A61', '#223843', '#D8B4A0', '#393E41']; //need to pick different colors
+export const PRIMARY_CATEGORICAL_COLORS = ['#e7a396', '#9f295d', '#d9a34b', '#ecd1ca','#430e00'];
+export const SECONDARY_CATEGORICAL_COLORS = ['#b5b867', '#ffea59', '#b7dbdb', '#335b8e','#6ca18f']; //
 
 /**
  * This class manages the data structure for the graph, the table visualization and the attribute selection panel.
@@ -267,7 +267,8 @@ export default class TableManager {
     const data = await attributeVector.data();
     if (attributeDefinition.type === VALUE_TYPE_CATEGORICAL) {
       const categoricalDefinition = <IPrimaryCatAttribute> attributeDefinition;
-      categories = Array.from(new Set(data)).sort(); //sort alphabetically to ensure the correct order of attributes
+      categories = attributeVector.desc.value.categories.map(c=>{return c.name}); //get categories from index.json def
+      // categories = Array.from(new Set(data)).sort(); //derive categories from data
 
       if (categories.length === 2) {//binary categorical data
         color = [binaryColorChoice2, binaryColorChoice1];
@@ -286,6 +287,8 @@ export default class TableManager {
     this[primarySecondary + 'Attribute'] = attributeDefinition;
 
     events.fire(PRIMARY_SECONDARY_SELECTED, attributeDefinition);
+
+    return attributeDefinition; //used by the attribute Panel to set the appropriate colors;
 
 
   }

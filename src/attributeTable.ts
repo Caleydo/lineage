@@ -232,7 +232,7 @@ class attributeTable {
 
         //Only need one col for binary categories
         if (allCategories.length<3){
-          categories = allCategories[0];
+          categories = [allCategories[0]];
         } else{
           categories = allCategories;
         }

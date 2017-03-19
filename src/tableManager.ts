@@ -330,8 +330,6 @@ export default class TableManager {
    */
   public async setAffectedState(varName, isAffectedCallbackFcn?) {
 
-    console.log('varName is ', varName)
-
       let attributeVector = await this.getAttributeVector(varName);
       let varType = attributeVector.valuetype.type;
 
@@ -358,7 +356,6 @@ export default class TableManager {
     let personIDs = (await attributeVector.names()).map(Number);
 
     this.affectedState = ({name: varName, type: varType, 'isAffected': isAffectedCallbackFcn, 'data':data, 'personIDs':personIDs});
-    console.log('Affected State in Table Manager is' , this.affectedState);
 
     //Update family selector
     this.updateFamilyStats();

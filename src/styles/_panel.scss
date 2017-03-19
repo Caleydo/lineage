@@ -393,7 +393,8 @@ $secondary-color-light : #ffd6b3;
 
 .attribute_svg  rect.picked {
   //fill: rgb(127,134,134);
-  fill: #df7813;
+  stroke: #f61637;
+  stroke-width: 5px;
 
 }
 

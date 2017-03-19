@@ -77,10 +77,10 @@ class GenealogyTree {
   private margin = Config.margin;
 
   //Time scale for visible nodes
-  private x = scalePow().exponent(20);
+  private x = scalePow().exponent(10);
 
   //Time scale for nodes outside the viewport
-  private x2 = scalePow().exponent(20);
+  private x2 = scalePow().exponent(10);
 
 
   private y = scaleLinear();
@@ -164,7 +164,7 @@ class GenealogyTree {
   init(data) {
     this.data = data;
     this.build();
-    // this.data.collapseAll();
+    this.data.collapseAll();
     this.update();
     this.attachListeners();
     // return the promise directly as long there is no dynamical data to update
@@ -264,7 +264,7 @@ class GenealogyTree {
       clearTimeout(this.timer);
       /* wait until 100 ms for callback */
       this.timer = setTimeout(() => {
-        this.update_visible_nodes()
+        this.update_graph();
       }, 100);
     });
 
@@ -402,7 +402,6 @@ class GenealogyTree {
     this.update_edges();
     this.update_nodes();
   }
-
 
   /**
    *
@@ -639,7 +638,6 @@ class GenealogyTree {
 
   }
 
-
   private addKidGrids() {
 
     const kidGridGroup = select('#genealogyTree').select('#kidGrids');
@@ -722,7 +720,6 @@ class GenealogyTree {
       .style('fill', 'url(#kidGridGradient)')
       .style('stroke', 'none')
   }
-
 
   private addHightlightBars() {
 
@@ -939,6 +936,8 @@ class GenealogyTree {
   }
 
   private addNodes() {
+
+
     let nodes = this.data.nodes;
 
     let t = transition('t').duration(500).ease(easeLinear);
@@ -982,8 +981,8 @@ class GenealogyTree {
 
 
     //Position  Kid Grid Nodes (i.e leaf siblings)
-    allNodes.filter((d) => {
-      return d['hidden'] && !d['hasChildren']
+    allNodes.filter((d:any) => {
+      return d.hidden && !d.hasChildren && d.ma && d.pa
     })
       .transition(t)
       .attr('transform', (node) => {
@@ -1549,6 +1548,7 @@ class GenealogyTree {
   }
 
 
+  //Function that repositions the visible nodes to fill the graph.
   private update_visible_nodes() {
 
     console.log('called update_visible_nodes');
@@ -1671,7 +1671,6 @@ class GenealogyTree {
     }];
     return lineFunction(linedata);
   }
-
 
   private attachListeners() {
 

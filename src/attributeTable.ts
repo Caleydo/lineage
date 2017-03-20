@@ -66,6 +66,7 @@ class attributeTable {
   };
 
   private colOffsets;
+  private catOffset = 30;
 
   private idScale = scaleLinear(); //used to size the bars in the first col of the table;
 
@@ -239,6 +240,12 @@ class attributeTable {
           categories = allCategories;
         }
 
+
+        if(categories.length > 2){ //Add spacing around multicolumn categories
+          let numColsBefore = this.colOffsets.length-1;
+          this.colOffsets[numColsBefore] += this.catOffset;
+        }
+
         for (let cat of categories) {
 
           let col: any = {};
@@ -267,12 +274,19 @@ class attributeTable {
           col.ys = allRows;
           col.type = type;
 
-
           let maxOffset = max(this.colOffsets);
           this.colOffsets.push(maxOffset + this.buffer * 2 + this.colWidths.categorical);
-          colDataAccum.push(col);
 
+          colDataAccum.push(col);
         }
+
+
+        if(categories.length > 2){ //Add spacing around multicolumn categories
+          let numColsAfter = this.colOffsets.length-1;
+          this.colOffsets[numColsAfter] += this.catOffset;
+        }
+
+
       } else if (type === VALUE_TYPE_INT || type === VALUE_TYPE_REAL) { //quant
 
         let maxOffset = max(this.colOffsets);

@@ -463,6 +463,9 @@ class attributeTable {
       else if (cell.type === VALUE_TYPE_STRING) {
         self.renderStringHeader(select(this), cell);
       }
+      else if (cell.type === 'id' || cell.type === 'idtype') {
+        self.addSortingIcons(select(this),cell);
+      }
     });
 
 
@@ -631,6 +634,8 @@ class attributeTable {
           return (isUndefined(el[0]) || el[0].length === 0) ? { index: i, value: undefined} : { index: i, value: el[0].toLowerCase()};
         } else if (d.type === VALUE_TYPE_CATEGORICAL){
         return { index: i, value: +(el.filter(e=>{return e === d.category}).length /el.length) };
+      } else if (d.type == 'idtype'){
+        return el.length> 1 ? { index: i, value: undefined} : {index: i, value: +el};
       }
 
       })

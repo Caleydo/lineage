@@ -22,5 +22,17 @@ export class Config {
         left: 40
     };
 
+  public static panelAttributeWidth = 300;
+  public static panelAttributeHeight = 70;
+  public static panelSVGwidth = 220;
+
+
+  public static expPanelWidth = '300px';
+  public static colGraphTableWidth = '100%';
+
+  public static colPanelWidth = '30px';
+  public static expGraphTableWidth = '100%';
+
+  public static legendHeight = 150;
 
 }

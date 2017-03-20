@@ -23,7 +23,7 @@ import {
 } from 'd3-ease';
 import {
   scaleLinear,
-  interpolateViridis,
+  scaleLog, scalePow
 } from 'd3-scale';
 import {
   max,
@@ -55,6 +55,9 @@ import {
   Config
 } from './config';
 
+import {PRIMARY_SECONDARY_SELECTED, POI_SELECTED} from './tableManager';
+import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL} from 'phovea_core/src/datatype';
+
 
 /**
  * The visualization showing the genealogy graph
@@ -74,15 +77,15 @@ class GenealogyTree {
   private margin = Config.margin;
 
   //Time scale for visible nodes
-  private x = scaleLinear();
+  private x = scalePow().exponent(10);
 
   //Time scale for nodes outside the viewport
-  private x2 = scaleLinear();
+  private x2 = scalePow().exponent(10);
 
 
   private y = scaleLinear();
 
-  private attributeBarY = scaleLinear().range([Config.glyphSize * 2, 0]).domain([0, 99]);
+  private attributeBarY = scaleLinear().range([0, Config.glyphSize * 2])
 
 
   private kidGridSize = 4;
@@ -108,6 +111,11 @@ class GenealogyTree {
   private interGenerationScale = scaleLinear();
 
   private self;
+
+  private primaryAttribute;
+  private secondaryAttribute;
+
+  // private t = transition('t').duration(500).ease(easeLinear); //transition
 
   private colors = ['#a6cee3', '#1f78b4', '#b2df8a', '#33a02c', '#fb9a99', '#e31a1c', '#fdbf6f', '#ff7f00'];
 
@@ -156,6 +164,7 @@ class GenealogyTree {
   init(data) {
     this.data = data;
     this.build();
+    this.data.collapseAll();
     this.update();
     this.attachListeners();
     // return the promise directly as long there is no dynamical data to update
@@ -166,30 +175,13 @@ class GenealogyTree {
    * Updates the view when the input data changes
    */
 
-  private update(){
+  private update() {
 
-    const nodes = this.data.nodes;
-    this.height = Config.glyphSize * 3 * nodes.length - this.margin.top - this.margin.bottom;
+    //Filter data to only render what is visible in the current window
+    this.update_time_axis();
 
-    // this.height = 2506;
-
-    // Y scale. Xscale range and domain are defined in update_time_axis;
-    this.y.range([0, this.height]).domain([min(nodes, function (d) {
-      return +d['y'];
-    }), max(nodes, function (d) {
-      return +d['y'];
-    })])
-
-    this.interGenerationScale.range([.75, .25]).domain([2, nodes.length]);
-
-    select('#graph')
-      .attr('height', this.height + this.margin.top + this.margin.bottom)
-
-  //Filter data to only render what is visible in the current window
-  this.update_time_axis();
-
-  //Call function that updates the position of all elements in the tree
-  this.update_graph();
+    //Call function that updates the position of all elements in the tree
+    this.update_graph();
 
   }
 
@@ -272,7 +264,7 @@ class GenealogyTree {
       clearTimeout(this.timer);
       /* wait until 100 ms for callback */
       this.timer = setTimeout(() => {
-        this.update_visible_nodes()
+        this.update_graph();
       }, 100);
     });
 
@@ -321,14 +313,23 @@ class GenealogyTree {
 
     //Create group for all time axis
     const axis = svg.append('g')
-      .attr('transform', 'translate(' + this.margin.left + ',' + this.margin.axisTop / 1.5 + ')')
+      .attr('transform', 'translate(' + this.margin.left + ',' + this.margin.axisTop + ')')
       .attr('id', 'axis')
+
+    //Create group for legend
+    const legend = axis.append('g')
+      .attr('id', 'legend')
+
+    // legend
+    //   .append('rect')
+    //   .attr('width', this.width)
+    //   .attr('height', this.margin.top - this.margin.axisTop)
 
     axis
       .append('rect')
       .attr('width', this.width)
-      .attr('height', 100)
-      .attr('y', -100)
+      .attr('height', Config.legendHeight)
+      .attr('y', -Config.legendHeight)
       .attr('fill', 'white')
 
     axis.append('g')
@@ -338,6 +339,10 @@ class GenealogyTree {
     axis.append('g')
       .attr('id', 'extremes_axis')
       .call(this.extremesXAxis)
+
+    // legend.append('g')
+    //   .attr('id','legendIcons')
+    //   .attr('transform', 'translate(10,20)')
 
 
     //  //Create temporary group for y axis
@@ -350,6 +355,22 @@ class GenealogyTree {
   //End of Build Function
 
 
+  private update_legend() {
+    let legendIcons = select('#legendIcons').selectAll('.icons')
+      .data([this.primaryAttribute, this.secondaryAttribute]);
+
+    let legendIconsEnter = legendIcons.enter().append('rect').classed('icons', true);
+
+    legendIcons = legendIconsEnter.merge(legendIcons);
+
+    legendIcons.selectAll('.icons')
+      .attr('width', 50)
+      .attr('fill', 'white')
+      .attr('height', Config.legendHeight * 0.65)
+
+
+  }
+
   /**
    *
    * This function updates the genealogy tree by calling the update_edges
@@ -360,10 +381,27 @@ class GenealogyTree {
    * @param parentParentEdges array of parent parent edges to update the tree with
    */
   private update_graph() {
+    const nodes = this.data.nodes;
+
+    let yrange = [min(nodes, function (d: any) {
+      return Math.round(+d.y);
+    }), max(nodes, function (d: any) {
+      return Math.round(+d.y);
+    })];
+
+    this.height = Config.glyphSize * 3 * (yrange[1] - yrange[0] + 1)// - this.margin.top - this.margin.bottom;
+    // console.log('tree height is ', this.height)
+
+    this.y.range([0, this.height]).domain(yrange)
+
+    this.interGenerationScale.range([.75, .25]).domain([2, nodes.length]);
+
+    select('#graph')
+      .attr('height', this.height + this.margin.top + this.margin.bottom)
+
     this.update_edges();
     this.update_nodes();
   }
-
 
   /**
    *
@@ -385,7 +423,7 @@ class GenealogyTree {
     //Only draw parentedges if target node is not
     let edgePaths = edgeGroup.selectAll('.edges')
       .data(childParentEdges.filter(function (d) {
-        return (!d['target']['aggregated'] && !(d['target']['hidden'] && !d['target']['hasChildren']))
+        return (!(d['target']['hidden'] && !d['target']['hasChildren']))
       }), function (d) {
         return d['id'];
       });
@@ -422,11 +460,13 @@ class GenealogyTree {
       .attr('stroke-width', Config.glyphSize / 5)
 
     let parentEdgePaths = edgeGroup.selectAll('.parentEdges')// only draw parent parent edges if neither parent is aggregated
-      .data(parentParentEdges.filter(function (d) {
-        return !d['ma']['aggregated'] || !d['pa']['aggregated']
-      }), function (d) {
-        return d['id'];
-      });
+      .data(parentParentEdges
+        //   .filter(function (d) {
+        //   return !d['ma']['aggregated'] || !d['pa']['aggregated']
+        // })
+        , function (d: any) {
+          return d.id;
+        });
 
     parentEdgePaths.exit().transition().duration(400).style('opacity', 0).remove();
 
@@ -455,50 +495,15 @@ class GenealogyTree {
 
   /**
    *
-   * This function updates the nodes in the genealogy tree
-   *
-   * @param nodes array of nodes to update the tree with
+   * This function adds the lifeLines to the graph
    */
-  private update_nodes() {
-    let nodes = this.data.nodes;
+  private addLifeLines() {
 
-    //Create transition for fading nodes in and out;
-    const t = transition('t').duration(500).ease(easeLinear);
-
-    //Separate groups for separate layers
-    const highlightBarGroup = select('#genealogyTree').select('#highlightBars');
-    const hiddenHighlightBarGroup = select('#genealogyTree').select('#hiddenHighlightBars');
     const lifeLineGroup = select('#genealogyTree').select('#lifeLines');
-    const kidGridGroup = select('#genealogyTree').select('#kidGrids');
-    const nodeGroup = select('#genealogyTree').select('#nodes');
-
-    // Attach node groups
-    let allNodes = nodeGroup.selectAll('.node')
-      .data(nodes, function (d) {
-        return d['id'];
-      });
-
-    allNodes.exit().transition().duration(400).style('opacity', 0).remove();
-
-    const allNodesEnter = allNodes
-      .enter()
-      .append('g');
-
-    allNodes = allNodesEnter.merge(allNodes);
-
-    //AllNodes
-    allNodes
-      .classed('node', true)
-      .classed('aggregated', (d) => {
-        return d['aggregated'];
-      })
-      .classed('collapsed', (d) => {
-        return d['hidden'];
-      });
 
     // Attach lifeLines groups
     let allLifeLines = lifeLineGroup.selectAll('.lifeLine')
-      .data(nodes, function (d) {
+      .data(this.data.nodes, function (d) {
         return d['id'];
       });
 
@@ -520,10 +525,126 @@ class GenealogyTree {
         return d['hidden'];
       })
 
+    //Add life line groups
+    const lifeRectsEnter = allLifeLinesEnter.filter((d) => {
+      return d['type'] === 'single' && !d['hidden']
+    }).append('g')
+      .classed('lifeRect', true);
+
+
+    let lifeRects = allLifeLines.selectAll('.lifeRect').filter((d) => {
+      return !d['hidden']
+    });
+
+    lifeRects.exit().remove();
+
+    lifeRects
+      .transition()
+      .attr('transform', (d: any) => {
+        // console.log('lifeLine Data is ' , d)
+        return d.sex === 'M' ? 'translate(' + (this.xPOS(d) + Config.glyphSize) + ',' + this.yPOS(d) + ')'
+          : 'translate(' + this.xPOS(d) + ',' + (this.yPOS(d) - Config.glyphSize) + ')';
+      });
+
+    //Add actual life lines
+    lifeRectsEnter
+      .append('rect');
+
+    lifeRects.selectAll('rect')
+      .attr('y', Config.glyphSize)
+      .attr('width', (d) => {
+        let year = new Date().getFullYear();
+
+        let ageAtDeath = Math.abs(this.x(d['ddate']) - this.x(d['bdate']));
+        let ageToday = Math.abs(this.x(year) - this.x(d['bdate']));
+        return (+d['ddate']) ? ageAtDeath : ageToday;
+      })
+      .attr('height', Config.glyphSize / 8)
+      .style('fill', (d: any) => {
+        return '#9e9d9b';
+        // if (d.affected)
+        //   return '#484646';
+        // if (d.deceased)
+        //   return '#9e9d9b';
+        // else
+        //   return 'url(#gradient)'
+      })
+      .style('opacity', .6);
+    //         .style('stroke','none')
+
+    //Add label to lifelines
+    lifeRectsEnter
+      .append('text')
+      .attr('class', 'ageLabel')
+
+    lifeRects.selectAll('.ageLabel')
+    // .attr('y', glyphSize )
+      .attr('dy', Config.glyphSize * 0.8)
+      .attr('dx', (d) => {
+        let year = new Date().getFullYear();
+
+        let ageAtDeath = Math.abs(this.x(d['ddate']) - this.x(d['bdate']));
+        let ageToday = Math.abs(this.x(year) - this.x(d['bdate']))
+
+        return (+d['ddate']) ? ageAtDeath : ageToday;
+//                 return Math.abs(this.x(d['ddate']) - this.x(d['bdate']));
+      })
+      .attr('text-anchor', 'end')
+      .text(function (d) {
+        let year = new Date().getFullYear();
+
+        let ageAtDeath = (d['ddate'] - d['bdate']);
+        let ageToday = (year - d['bdate'])
+
+        return (+d['ddate']) ? ageAtDeath : ageToday;
+
+//                 return Math.abs(+d['ddate'] - +d['bdate']);
+      })
+      .attr('fill', function (d: any) {
+        return (d.affected) ? 'black' : '#9e9d9b';
+      })
+      .style('font-size', Config.glyphSize * 1.5)
+      .style('font-weight', 'bold')
+      .attr('visibility', 'hidden');
+
+
+    //Add cross at the end of lifelines for deceased people
+    lifeRectsEnter.filter(function (d: any) {
+      return (d.ddate);
+    })
+      .append('line')
+      .attr('class', 'endOfTheLine')
+
+
+    lifeRects.selectAll('.endOfTheLine')
+      .attr('x1', (d: any) => {
+        return (Math.abs(this.x(d['ddate']) - this.x(d['bdate'])) + Config.glyphSize / 3);
+      })
+      .attr('y1', function (d: any) {
+        return Config.glyphSize * 1.5;
+      })
+      .attr('x2', (d: any) => {
+        return Math.abs(this.x(d['ddate']) - this.x(d['bdate']) - Config.glyphSize / 3);
+      })
+      .attr('y2', function (d: any) {
+
+        return (Config.glyphSize / 2);
+      })
+      .attr('stroke-width', 1)
+      .attr('stroke', function (d: any) {
+        return '#9e9d9b';
+      })
+      .attr('opacity', .6)
+
+  }
+
+  private addKidGrids() {
+
+    const kidGridGroup = select('#genealogyTree').select('#kidGrids');
 
     // Attach kidGrid groups
     let allKidGrids = kidGridGroup.selectAll('.kidGrid')
-      .data(nodes.filter((d: any) => {
+      .data(this.data.filter((d: any) => {
         if (d['sex'] === 'F')
           return false;
         if (!d['hasChildren'])
@@ -552,16 +673,14 @@ class GenealogyTree {
 
     allKidGrids
       .classed('collapsed', (d) => {
-      return d['hidden'];
-    })
-      .classed('kidGrid',true)
-
-
+        return d['hidden'];
+      })
+      .classed('kidGrid', true)
 
 
     select('#kidGrids').selectAll('.kidGrid')
       .attr('width', (d) => {
-        let gridSize = Config.glyphSize*2;
+        let gridSize = Config.glyphSize * 2;
 
 
         this.data.parentChildEdges.forEach((edge) => {
@@ -570,28 +689,29 @@ class GenealogyTree {
           }
         })
 
-        if (!d['affected'] && d['hidden'] && d['spouse'][0]['affected']){
-          gridSize = gridSize *2 ;
+        if (!d['affected'] && d['hidden'] && d['spouse'][0]['affected']) {
+          gridSize = gridSize * 2;
         }
 
-        if (d['affected'] && !d['spouse'][0]['affected']){
-          gridSize = gridSize *2 ;
-        };
+        if (d['affected'] && !d['spouse'][0]['affected']) {
+          gridSize = gridSize * 2;
+        }
+        ;
 
         return gridSize;
       })
       .attr('height', Config.glyphSize * 2)
-      .transition(t)
-      .attr('x',(d)=>{
-        if (!d['affected'] && d['spouse'][0]['affected']){
+      .transition()
+      .attr('x', (d) => {
+        if (!d['affected'] && d['spouse'][0]['affected']) {
           return this.x(d['spouse'][0]['x']);
         } else {
           return this.x(d['x']);
         }
       })
-      .attr('y',(d)=>{
-        if (d['affected'] && d['spouse'][0]['affected']){
-          return min([this.yPOS(d),this.yPOS(d['spouse'][0])]);
+      .attr('y', (d) => {
+        if (d['affected'] && d['spouse'][0]['affected']) {
+          return min([this.yPOS(d), this.yPOS(d['spouse'][0])]);
         } else {
           return this.yPOS(d);
         }
@@ -599,17 +719,23 @@ class GenealogyTree {
       })
       .style('fill', 'url(#kidGridGradient)')
       .style('stroke', 'none')
+  }
 
+  private addHightlightBars() {
 
+    const highlightBarGroup = select('#genealogyTree').select('#highlightBars');
+    const hiddenHighlightBarGroup = select('#genealogyTree').select('#hiddenHighlightBars');
 
 
     // Attach highlight Bars
     let hiddenBars = hiddenHighlightBarGroup.selectAll('.bars')
-      .data(nodes.filter((n) => {return n.hidden && n.hasChildren && n.sex === 'M'}), function (d) {
+      .data(this.data.nodes.filter((n) => {
+        return n.hidden && n.hasChildren && n.sex === 'M'
+      }), function (d) {
         return d['id'];
       });
 
-    hiddenBars.exit().transition().duration(400).style('opacity', 0).remove();
+    hiddenBars.exit().remove();
 
     const hiddenBarsEnter = hiddenBars
       .enter()
@@ -622,28 +748,32 @@ class GenealogyTree {
       .classed('bars', true);
 
     //Attach background rectangle to all rows and set to invisible with css (will be used to capture mouse events)
-    hiddenBarsEnter.filter((d) => {
-      return !d['aggregated']
-    })
+    hiddenBarsEnter
+    //   .filter((d) => {
+    //   return !d['aggregated']
+    // })
       .append('rect')
       .classed('backgroundBar', true);
 
 
     //Attach highlight rectangle to all unhidden rows and set to invisible (will be set to visible on hover over backgroundBar)
-    hiddenBarsEnter.filter((d) => {
-      return !d['aggregated']
-    })
+    hiddenBarsEnter
+    //   .filter((d) => {
+    //   return !d['aggregated']
+    // })
       .append('rect')
       .classed('highlightBar', true);
 
 
     // Attach highlight Bars
     let allBars = highlightBarGroup.selectAll('.bars')
-      .data(nodes.filter((n) => {return !n.hidden}), function (d) {
+      .data(this.data.nodes.filter((n) => {
+        return !n.hidden
+      }), function (d) {
         return d['id'];
       });
 
-    allBars.exit().transition().duration(400).style('opacity', 0).remove();
+    allBars.exit().remove();
 
     const allBarsEnter = allBars
       .enter()
@@ -723,18 +853,10 @@ class GenealogyTree {
     selectAll('.bars')
       .selectAll('.backgroundBar')
       .on('mouseover', function (d: any) {
-        //
-        // //find non-hidden node in that row
-        // let nonHidden  = selectAll('.highlightBar').filter((n) => {
-        //   return !n['hidden'] && Math.round(n['y']) === Math.round(d.y)
-        // })
-        //
-        //
-        // console.log('there are ', nonHidden.size() ,  ' nodes in this row');
 
         //Set opacity of corresponding highlightBar
-        selectAll('.highlightBar').filter((e) => {
-          return e === d;
+        selectAll('.highlightBar').filter((e: any) => {
+          return e.y === d.y || e.y === Math.round(d.y);
         }).attr('opacity', .2)
 
         //Set the age label on the lifeLine of this row to visible
@@ -744,151 +866,187 @@ class GenealogyTree {
           return !d['aggregated'] && !d['hidden']
         }).select('.lifeRect').select('.ageLabel').attr('visibility', 'visible');
 
-        //For aggregated nodes, show all the nodes that went into the aggregate
-        selectAll('.node').filter((e) => {
-          return e === d;
-        }).filter('.aggregated').attr('opacity', 1)
-
-        //Hide the aggregate node itself
-        selectAll('.node').filter((e) => {
-          return e === d;
-        }).select('.hex').attr('opacity', 0)
-
-        events.fire('row_mouseover', d['y']);
+        events.fire('row_mouseover', Math.round(d['y']));
       })
       .on('mouseout', (d) => {
 
         //Hide all the highlightBars
         selectAll('.highlightBar').attr('opacity', 0);
 
-        //Hide all the age labels on the lifeLines
         selectAll('.ageLabel').attr('visibility', 'hidden');
-
-        //Hide all nodes that were aggregated
-        selectAll('.aggregated').attr('opacity', 0);
-
-        //Set the opacity of any aggregate icons back to 1;
-        selectAll('.node').filter((e) => {
-          return e === d;
-        }).select('.hex').attr('opacity', 1);
 
         events.fire('row_mouseout', d['y']);
       })
 
 
-    //Add life line groups
-    const lifeRectsEnter = allLifeLinesEnter.filter((d) => {
-      return d['type'] === 'single' && !d['hidden']
-    }).append('g')
-      .classed('lifeRect', true);
+    selectAll('.bars')
+      .on('contextmenu', (d) => {
 
 
-    let lifeRects = allLifeLines.selectAll('.lifeRect').filter((d) => {
-      return !d['hidden']
-    });
+        this.data.hideNodes(Math.round(d['y']), true);
+        // this.data.collapseFamilies(d['family_ids'].slice(-1))
+        this.update_visible_nodes();
+        event.preventDefault();
 
-    lifeRects.exit().remove();
+      })
+      .on('dblclick', () => {
+      })
 
-    lifeRects
-      .transition(t)
-      .attr('transform', (d: any) => {
-        return d.sex === 'M' ? 'translate(' + (this.xPOS(d) + Config.glyphSize) + ',' +  this.yPOS(d) + ')'
-          : 'translate(' + this.xPOS(d) + ',' + (this.yPOS(d) -Config.glyphSize) + ')';
+    //Set click callback on background bars
+    selectAll('.bars')
+      .on('click', (d: any) => {
+
+        console.log(d)
+
+        if (event.altKey) {
+
+          this.data.hideNodes(Math.round(d['y']), false);
+
+          this.update_time_axis();
+          this.update_visible_nodes();
+          selectAll('.highlightBar').classed('selected', false);
+
+          return;
+        }
+        if (event.defaultPrevented) return; // dragged
+
+        let wasSelected = selectAll('.highlightBar').filter((e: any) => {
+          return e.y === d.y || e.y === Math.round(d.y)
+        }).classed('selected');
+
+        //'Unselect all other background bars if ctrl was not pressed
+        if (!event.metaKey) {
+          selectAll('.highlightBar').classed('selected', false);
+        }
+
+        selectAll('.highlightBar').filter((e: any) => {
+          return e.y === d.y || e.y === Math.round(d.y)
+        }).classed('selected', function () {
+          return (!wasSelected);
+        })
+
+        if (!event.metaKey) {
+          events.fire('row_selected', d['y'], 'single');
+        }
+        else {
+          events.fire('row_selected', d['y'], 'multiple');
+        }
+      })
+
+  }
+
+  private addNodes() {
+
+
+    let nodes = this.data.nodes;
+
+    let t = transition('t').duration(500).ease(easeLinear);
+
+    //Separate groups for separate layers
+    const nodeGroup = select('#genealogyTree').select('#nodes');
+
+    // Attach node groups
+    let allNodes = nodeGroup.selectAll('.node')
+      .data(nodes, function (d) {
+        return d['id'];
       });
 
-    //Add actual life lines
-    lifeRectsEnter
-      .append('rect');
+    allNodes.exit().transition().duration(400).style('opacity', 0).remove();
 
-    lifeRects.selectAll('rect')
-      .attr('y', Config.glyphSize)
-      .attr('width', (d) => {
-        let year = new Date().getFullYear();
+    const allNodesEnter = allNodes
+      .enter()
+      .append('g');
 
-        let ageAtDeath = Math.abs(this.x(d['ddate']) - this.x(d['bdate']));
-        let ageToday = Math.abs(this.x(year) - this.x(d['bdate']));
-        return (+d['deceased'] === 1) ? ageAtDeath : ageToday;
+    allNodes = allNodesEnter.merge(allNodes);
+
+    allNodesEnter.attr('opacity', 0);
+
+    //Position and Color all Nodes
+    allNodes
+      .filter((d) => {
+        return !(d['hidden'] && !d['hasChildren'])
       })
-      .attr('height', Config.glyphSize / 8)
-      .style('fill', (d: any) => { return '#9e9d9b';
-        // if (d.affected)
-        //   return '#484646';
-        // if (d.deceased)
-        //   return '#9e9d9b';
-        // else
-        //   return 'url(#gradient)'
+      .transition(t)
+      .attr('transform', (node) => {
+        let xpos = this.xPOS(node);
+        let ypos = this.yPOS(node);
+
+        let xoffset = 0;
+        if (!node['affected'] && node['spouse'].length > 0 && node['spouse'][0]['affected'] && node['hidden']) {
+          xoffset = Config.glyphSize * 2;
+        }
+        return 'translate(' + (xpos + xoffset) + ',' + ypos + ')';
       })
-      .style('opacity', .6);
-    //         .style('stroke','none')
-
-    //Add label to lifelines
-    lifeRectsEnter
-      .append('text')
-      .attr('class', 'ageLabel')
-
-    lifeRects.selectAll('.ageLabel')
-    // .attr('y', glyphSize )
-      .attr('dy', Config.glyphSize * 0.8)
-      .attr('dx', (d) => {
-        let year = new Date().getFullYear();
-
-        let ageAtDeath = Math.abs(this.x(d['ddate']) - this.x(d['bdate']));
-        let ageToday = Math.abs(this.x(year) - this.x(d['bdate']))
-
-        return (+d['deceased'] === 1) ? ageAtDeath : ageToday;
-//                 return Math.abs(this.x(d['ddate']) - this.x(d['bdate']));
-      })
-      .attr('text-anchor', 'end')
-      .text(function (d) {
-        let year = new Date().getFullYear();
-
-        let ageAtDeath = (d['ddate'] - d['bdate']);
-        let ageToday = (year - d['bdate'])
-
-        return (+d['deceased'] === 1) ? ageAtDeath : ageToday;
-
-//                 return Math.abs(+d['ddate'] - +d['bdate']);
-      })
-      .attr('fill', function (d: any) {
-        return (d.affected) ? 'black' : '#9e9d9b';
-      })
-      .style('font-size', Config.glyphSize * 1.5)
-      .style('font-weight', 'bold')
-      .attr('visibility', 'hidden');
 
 
-    //Add cross at the end of lifelines for deceased people
-    lifeRectsEnter.filter(function (d: any) {
-      return (+d.deceased === 1);
+
+    //Position  Kid Grid Nodes (i.e leaf siblings)
+    allNodes.filter((d:any) => {
+      return d.hidden && !d.hasChildren && d.ma && d.pa
     })
-      .append('line')
-      .attr('class', 'endOfTheLine')
+      .transition(t)
+      .attr('transform', (node) => {
+        let xpos = this.xPOS(node);
+        let ypos = this.yPOS(node);
 
+        let childCount = 0;
 
-    lifeRects.selectAll('.endOfTheLine')
-      .attr('x1', (d: any) => {
-        return (Math.abs(this.x(d['ddate']) - this.x(d['bdate'])) + Config.glyphSize / 3);
-      })
-      .attr('y1', function (d: any) {
-        return Config.glyphSize*1.5 ;
-      })
-      .attr('x2', (d: any) => {
-        return Math.abs(this.x(d['ddate']) - this.x(d['bdate']) - Config.glyphSize / 3);
-      })
-      .attr('y2', function (d: any) {
+        let ma = node['ma'];
+        let pa = node['pa'];
 
-        return (Config.glyphSize/2) ;
-      })
-      .attr('stroke-width', 1)
-      .attr('stroke', function (d: any) {
-        return '#9e9d9b';
-      })
-      .attr('opacity',.6)
+        let xind;
+        let yind;
 
+        let gender = node['sex'];
+        this.data.parentChildEdges.forEach((d, i) => {
+
+          if (d.ma === ma && d.pa === pa) {
+            //Only count unaffected children so as to avoid gaps in the kid Grid
+            if (!d.target.affected && d.target.sex === gender)
+              childCount = childCount + 1
+            if (d.target === node) {
+
+              yind = childCount % (this.kidGridSize / 2);
+
+              if (yind === 0)
+                yind = this.kidGridSize / 2;
+
+              xind = Math.ceil(childCount / 2);
+
+            }
+          }
+        })
+
+        let xoffset;
+
+        if (node['ma']['affected'] && node['pa']['affected']) {
+          xoffset = Config.glyphSize * 2;
+        } else if (node['ma']['affected'] || node['pa']['affected']) {
+          xoffset = Config.glyphSize * 3.5;
+        } else {
+          xoffset = Config.glyphSize * 1.5;
+        }
+        return 'translate(' + (xpos + xoffset + this.kidGridXScale(xind)) + ',' + (ypos + +this.kidGridYScale(yind)) + ')';
+
+      })
+
+    allNodes
+      .transition(t.transition().ease(easeLinear))
+      .attr('opacity', 1);
+
+    //AllNodes
+    allNodes
+      .classed('node', true)
+      .classed('aggregated', (d) => {
+        return d['aggregated'];
+      })
+      .classed('collapsed', (d) => {
+        return d['hidden'];
+      });
 
     //Add cross through lines for deceased people
     allNodesEnter.filter(function (d: any) {
-      return (+d.deceased === 1);
+      return (d.ddate);
     })
       .append('line')
       .attr('class', 'nodeLine')
@@ -918,16 +1076,16 @@ class GenealogyTree {
       return d['hidden'] && !d['hasChildren']
     })
       .attr('x1', function (d: any) {
-        return d.sex === 'F' ? -Config.hiddenGlyphSize/1.5 : -Config.hiddenGlyphSize / 3;
+        return d.sex === 'F' ? -Config.hiddenGlyphSize / 1.5 : -Config.hiddenGlyphSize / 3;
       })
       .attr('y1', function (d: any) {
-        return d.sex === 'F' ? -Config.hiddenGlyphSize/1.5 : -Config.hiddenGlyphSize / 3;
+        return d.sex === 'F' ? -Config.hiddenGlyphSize / 1.5 : -Config.hiddenGlyphSize / 3;
       })
       .attr('x2', function (d: any) {
-        return d.sex === 'F' ? Config.hiddenGlyphSize/1.5 : Config.hiddenGlyphSize*1.3 ;
+        return d.sex === 'F' ? Config.hiddenGlyphSize / 1.5 : Config.hiddenGlyphSize * 1.3;
       })
       .attr('y2', function (d: any) {
-        return d.sex === 'F' ? Config.hiddenGlyphSize/1.5 : Config.hiddenGlyphSize*1.3 ;
+        return d.sex === 'F' ? Config.hiddenGlyphSize / 1.5 : Config.hiddenGlyphSize * 1.3;
       })
       .attr('stroke-width', 1);
 
@@ -937,35 +1095,21 @@ class GenealogyTree {
       return d['hidden'] && d['hasChildren']
     })
       .attr('x1', function (d: any) {
-        return d.sex === 'F' ? -Config.hiddenGlyphSize  : -Config.hiddenGlyphSize / 3;
+        return d.sex === 'F' ? -Config.hiddenGlyphSize : -Config.hiddenGlyphSize / 3;
       })
       .attr('y1', function (d: any) {
-        return d.sex === 'F' ? -Config.hiddenGlyphSize  : -Config.hiddenGlyphSize / 3;
+        return d.sex === 'F' ? -Config.hiddenGlyphSize : -Config.hiddenGlyphSize / 3;
       })
       .attr('x2', function (d: any) {
         return d.sex === 'F' ? Config.hiddenGlyphSize : Config.hiddenGlyphSize * 1.8;
       })
       .attr('y2', function (d: any) {
-        return d.sex === 'F' ? Config.hiddenGlyphSize  : Config.hiddenGlyphSize * 1.8;
+        return d.sex === 'F' ? Config.hiddenGlyphSize : Config.hiddenGlyphSize * 1.8;
       })
       .attr('stroke-width', 1)
-      // .attr('stroke', function (d: any) {
-      //   return (d.affected) ? 'red' : '#e2e1e0';
-      // })
-
-
-    //Add Aggregate Node glyphs
-    allNodesEnter.filter(function (d: any) {
-      return d['type'] === 'aggregate';
-    })
-      .append('path')
-      .attr('d', this.hexLine(this.hexData))
-      .classed('hex', true)
-
-    allNodes.selectAll('.hex')
-    //             .classed('male', true)
-      .classed('nodeIcon', true)
-
+    // .attr('stroke', function (d: any) {
+    //   return (d.affected) ? 'red' : '#e2e1e0';
+    // })
 
     //Add couples line
     allNodesEnter.filter(function (d: any) {
@@ -978,17 +1122,17 @@ class GenealogyTree {
 
     allNodes.selectAll('.couplesLine')
       .attr('x1', (d: any) => {
-        return d['sex'] === 'F' ? Config.glyphSize * 0.8 : Config.glyphSize * 1.3 ;
+        return d['sex'] === 'F' ? Config.glyphSize * 0.8 : Config.glyphSize * 1.3;
       })
       .attr('y1', function (d: any) {
-        return d['sex'] === 'F' ? ( -Config.glyphSize*1.8) : -Config.glyphSize * 0.2 ;
+        return d['sex'] === 'F' ? ( -Config.glyphSize * 1.8) : -Config.glyphSize * 0.2;
       })
       .attr('x2', (d: any) => {
-        return d['sex'] === 'F' ? Config.glyphSize * 0.8 : Config.glyphSize * 1.3 ;
+        return d['sex'] === 'F' ? Config.glyphSize * 0.8 : Config.glyphSize * 1.3;
       })
       .attr('y2', function (d: any) {
 
-        return d['sex'] === 'F' ? Config.glyphSize*0.6: Config.glyphSize *2.2;
+        return d['sex'] === 'F' ? Config.glyphSize * 0.6 : Config.glyphSize * 2.2;
       })
       .attr('stroke-width', 2)
 
@@ -1015,53 +1159,34 @@ class GenealogyTree {
         return !d['hidden'];
       })
       .append('rect')
+      .classed('primary', true)
       .classed('attributeFrame', true)
+
 
     allNodesEnter
       .filter(function (d: any) {
         return !d['hidden'];
       })
       .append('rect')
+      .classed('primary', true)
       .classed('attributeBar', true)
 
-
-
-    //attribute Bars
-    allNodes.selectAll('.attributeFrame')
-      .attr('width', Config.glyphSize/1.5)
-      .attr('height', (d) => {
-        return Config.glyphSize * 2 - this.attributeBarY(99)
-
+    allNodesEnter
+      .filter(function (d: any) {
+        return !d['hidden'];
       })
-      .attr('x', (d) => {
-        return d['sex'] === 'F' ? -Config.glyphSize * 2 : -Config.glyphSize * 1
+      .append('rect')
+      .classed('secondary', true)
+      .classed('attributeFrame', true)
+
+
+    allNodesEnter
+      .filter(function (d: any) {
+        return !d['hidden'];
       })
-      .attr('y', (d) => {
-
-        return d['sex'] === 'F' ? (this.attributeBarY(99) - Config.glyphSize) : this.attributeBarY(99)
-      })
-      .attr('fill','white')
-
-    //attribute Bars
-    allNodes.selectAll('.attributeBar')
-      .attr('width', Config.glyphSize/1.5)
-      .attr('height', (d) => {
-        return Config.glyphSize * 2 - this.attributeBarY(+d['bdate'] % 100);
-
-      })
-      .attr('x', (d) => {
-        return d['sex'] === 'F' ? -Config.glyphSize * 2 : -Config.glyphSize * 1;
-      })
-      .attr('y', (d) => {
-        // return d['sex'] === 'F' ? (this.attributeBarY(1) - Config.glyphSize) : this.attributeBarY(1)
-
-	      return d['sex']=='F'? (this.attributeBarY(+d['bdate'] % 100)-Config.glyphSize) : this.attributeBarY(+d['bdate'] % 100);
-
-
-      })
-      // .attr('fill','red')
-
-
+      .append('rect')
+      .classed('secondary', true)
+      .classed('attributeBar', true)
 
 
     //leaf nodes, go into kidGrid
@@ -1109,104 +1234,10 @@ class GenealogyTree {
       .attr('r', Config.glyphSize * .45);
 
 
-    allNodesEnter.attr('opacity', 0);
-
-
-    //Position and Color all Nodes
     allNodes
-      .filter((d) => {
-        return !(d['hidden'] && !d['hasChildren'])
+      .classed('affected', (n: any) => {
+        return n.affected
       })
-      .transition(t)
-      .attr('transform', (node) => {
-        let xpos = this.xPOS(node);
-        let ypos = this.yPOS(node);
-
-        let xoffset = 0;
-        if (!node['affected'] && node['spouse'].length >0 && node['spouse'][0]['affected'] && node['hidden']){
-          xoffset = Config.glyphSize*2;
-        }
-        return 'translate(' +  (xpos + xoffset) + ',' + ypos + ')';
-      })
-
-
-    //Position  Kid Grid Nodes (i.e leaf siblings)
-    allNodes.filter((d) => {
-      return d['hidden'] && !d['hasChildren']
-    })
-      .transition(t)
-      .attr('transform', (node) => {
-        let xpos = this.xPOS(node);
-        let ypos = this.yPOS(node);
-
-        let childCount = 0;
-
-        let ma = node['ma'];
-        let pa = node['pa'];
-
-        let xind;
-        let yind;
-
-        let gender = node['sex'];
-        this.data.parentChildEdges.forEach((d, i) => {
-
-          if (d.ma === ma && d.pa === pa) {
-            //Only count unaffected children so as to avoid gaps in the kid Grid
-            if (!d.target.affected && d.target.sex === gender)
-              childCount = childCount + 1
-            if (d.target === node) {
-
-              yind = childCount % (this.kidGridSize / 2);
-
-              if (yind === 0)
-                yind = this.kidGridSize / 2;
-
-              xind = Math.ceil(childCount / 2);
-
-            }
-          }
-        })
-
-        let xoffset;
-        if (node['ma']['affected'] && node['pa']['affected']) {
-          xoffset = Config.glyphSize * 2;
-        } else if (node['ma']['affected'] || node['pa']['affected']){
-          xoffset = Config.glyphSize * 3.5 ;
-        } else {
-          xoffset = Config.glyphSize * 1.5 ;
-        }
-
-        return 'translate(' + (xpos + xoffset + this.kidGridXScale(xind)) + ',' + (ypos + +this.kidGridYScale(yind)) + ')';
-
-      })
-
-
-    allNodes
-      .style('stroke-width', (d: any) => {
-        return (d['hidden']) ? 1 : 1
-      })
-
-      .style('stroke', (d: any) => {
-        return (d.affected) ? 'black' : '#7b8282'
-      })
-      .style('fill', (d: any) => {
-        return (d.affected) ? '#7b8282' : '#e2e1e0'
-      })
-
-    let tran = t.transition().ease(easeLinear);
-    allNodes.filter((d) => {
-      return !d['aggregated']
-    })
-      .transition(tran)
-      .attr('opacity', 1);
-
-
-
-    allNodes.filter((d) => {
-      return d['aggregated']
-    })
-      .transition(tran.duration(100))
-      .attr('opacity', 0);
 
 
     allNodesEnter
@@ -1216,19 +1247,8 @@ class GenealogyTree {
     allNodes.selectAll('.nodeLabel')
     // .attr('visibility','hidden')
       .text((d: any) => {
-
-      return '';
+        return '';
         // return d.id
-        // return d['hidden'] ? '' : max(d['family_ids']);
-
-         // let year = new Date().getFullYear();
-         // if (+d.ddate > 0) {
-         // return d['hidden'] ? '' : Math.abs(d['ddate'] - d['bdate']);
-         // }
-         // else
-         // return d['hidden'] ? '' : Math.abs(year - d['bdate']);
-
-
       })
       .attr('dx', function (d) {
         return d['sex'] === 'M' ? Config.glyphSize / 2 : -Config.glyphSize / 2;
@@ -1242,158 +1262,163 @@ class GenealogyTree {
       .attr('stroke', 'none')
       .style('font-size', Config.glyphSize);
 
-    /*
-     //Temporarily hide all collapsed nodes that aren't in the kid grid;
-     selectAll('.nodeIcon').filter((d)=>{return d['hasChildren'] && d['hidden']})
-     .attr('visibility','hidden');
-     */
+  }
 
-    // selectAll('.nodeLine').filter((d) => {
-    //   return !d['hasChildren'] && d['hidden'];})
-    //   .attr('visibility', 'hidden');
+  private fillAttributeBars() {
 
+    let nodeGroup = select('#genealogyTree').select('#nodes');
+    let allNodes = nodeGroup.selectAll('.node');
 
-    let dragged = drag()
-      .on('start', (d) => {
-
-
-        console.log('started drag')
-
-        this.startYPos = this.y.invert(mouse(< any > select('.genealogyTree').node())[1]);
-        this.aggregatingLevels = new Set();
-        this.create_phantom(d)
-
+    //attribute frames
+    allNodes.selectAll('.attributeFrame')
+      .attr('width', Config.glyphSize)
+      .attr('y', (d) => {
+        return d['sex'] === 'F' ? (-Config.glyphSize) : 0
       })
-      .on('drag', (d) => {
+      .attr('fill', 'white')
 
-        let currentY = this.floorY(); //this.y.invert(mouse(<any>select('.genealogyTree').node())[1]);
-        if (currentY > this.startYPos) {
-          //user is dragging down
-          // 		      currentY = this.floorY();
-          this.aggregatingLevels.add(currentY);
-        } else {
-          // 		      currentY = this.ceilY();
-          this.aggregatingLevels.delete(currentY);
+    //attribute Bars
+    allNodes.selectAll('.attributeBar')
+      .attr('y', (d) => {
+        return d['sex'] === 'F' ? (-Config.glyphSize) : 0
+      })
+      .attr('width', Config.glyphSize)
+
+
+    allNodes.selectAll('.attributeFrame').filter('.primary')
+      .attr('height', (d) => {
+        let height = 0;
+        let attr = this.primaryAttribute;
+
+        if (attr) {
+          height = Config.glyphSize * 2;
         }
-
-        this.aggregatingLevels.forEach((level) => {
-          this.create_phantom(this.get_row_data('.row_' + level))
-          this.update_pos_row('.row_' + level);
-        });
-
-        this.update_pos_row('.row_' + Math.round(this.startYPos))
-
-        //Call function that updates the position of all elements in the tree
-        this.update_edges()
-// 				event.stopPropagation()
+        return height
       })
 
-      .on('end', (d) => {
 
-        this.update_pos_row('.row_' + Math.round(this.startYPos))
-        this.aggregatingLevels.add(this.closestY())
+    allNodes.selectAll('.attributeFrame').filter('.secondary')
+      .attr('height', (d) => {
+        let height = 0;
+        let attr = this.secondaryAttribute;
 
-        const indexes = Array.from(this.aggregatingLevels);
-
-        console.log('aggregating ', indexes, 'on click')
-        this.data.aggregateNodes(indexes, [], [])
-
-        selectAll('.phantom').remove();
-
-        if (indexes.length === 1) {
-          return;
+        if (attr) {
+          height = Config.glyphSize * 2;
         }
-
-        this.update_visible_nodes();
-
-
-      });
-
-
-    selectAll('.bars')
-      .on('contextmenu', (d) => {
-
-
-        this.data.hideNodes(Math.round(d['y']),true);
-        // this.data.collapseFamilies(d['family_ids'].slice(-1))
-        this.update_visible_nodes();
-        event.preventDefault();
-
+        return height
       })
 
-      .on('dblclick', (d) => {
+    allNodes.selectAll('.attributeBar').filter('.primary')
+      .attr('height', (d: any) => {
+        let height = 0;
+        let attr = this.primaryAttribute;
 
-        // this.data.expandBranch(d['y']);
-        // this.update_visible_nodes();
+        if (attr) {
+          let data = this.data.getAttribute(attr.name, d.id);
 
-
-        // if (d['collapsedNodes']) {
-        //   //clicked on an Aggregate Node
-        //   console.log('double clicked on an aggregate')
-        //   this.data.expandAggregates(d['collapsedNodes'].map((n) => {
-        //     return n['y']
-        //   }))
-        //   this.update_visible_nodes()
-        // }
-      })
-
-      //Set click callback on background bars
-    selectAll('.bars')
-      .on('click', (d) => {
-
-        console.log(d)
-
-        if (event.altKey) {
-          //Hide node
-
-
-          this.data.hideNodes(Math.round(d['y']),false);
-
-          this.update_time_axis();
-          this.update_visible_nodes();
-          selectAll('.highlightBar').classed('selected', false);
-
-          return;
-        }
-        if (event.defaultPrevented) return; // dragged
-
-        let wasSelected = selectAll('.highlightBar').filter((e) => {
-          return e === d
-        }).classed('selected');
-
-// 		    let wasSelected = select(this).select('.backgroundBar').classed('selected');
-
-        //'Unselect all other background bars if ctrl was not pressed
-        if (!event.metaKey) {
-          selectAll('.highlightBar').classed('selected', false);
+          if (attr && attr.type === VALUE_TYPE_CATEGORICAL) {
+            height = Config.glyphSize * 2;
+          } else if (attr && data && (attr.type === VALUE_TYPE_INT || attr.type === VALUE_TYPE_REAL)) {
+            this.attributeBarY.domain([attr.stats.min, attr.stats.max]);
+            height = this.attributeBarY(data);
+          }
         }
 
-        selectAll('.highlightBar').filter((e) => {
-          return e === d
-        }).classed('selected', function () {
-          return (!wasSelected);
-        })
-
-// 			d['clicked'] = !wasSelected;
-
-
-        if (!event.metaKey) {
-          events.fire('row_selected', d['y'], 'single');
-        }
-        else {
-          events.fire('row_selected', d['y'], 'multiple');
-        }
-
+        return height;
 
       })
-// 		.call(dragged)
+      .attr('y', (d: any) => {
+        let y = 0;
+        let attr = this.primaryAttribute;
+
+        if (attr) {
+          let data = this.data.getAttribute(attr.name, d.id);
+          if (attr && data && (attr.type === VALUE_TYPE_INT || attr.type === VALUE_TYPE_REAL)) {
+            this.attributeBarY.domain([attr.stats.min, attr.stats.max]);
+            y = Config.glyphSize * 2 - this.attributeBarY(data);
+          }
+
+
+          return d['sex'] === 'F' ? (-Config.glyphSize) + y : y
+
+        }
+      })
+      .attr('fill', (d: any) => {
+        let attr = this.primaryAttribute;
+
+        if (attr) {
+          let data = this.data.getAttribute(attr.name, d.id);
+          if (attr && data && attr.type === VALUE_TYPE_CATEGORICAL) {
+            let ind = attr.categories.indexOf(data);
+            return attr.color[ind]
+          } else if (attr && data && (attr.type === VALUE_TYPE_INT || attr.type === VALUE_TYPE_REAL)) {
+            return attr.color
+          }
+
+        }
+      })
+
+    allNodes.selectAll('.attributeBar').filter('.secondary')
+      .attr('height', (d) => {
+        let height = 0;
+        let attr = this.secondaryAttribute;
+
+        if (attr && attr.type === VALUE_TYPE_CATEGORICAL) {
+          height = Config.glyphSize * 2;
+        } else if (attr && d[attr.name] && (attr.type === VALUE_TYPE_INT || attr.type === VALUE_TYPE_REAL)) {
+          this.attributeBarY.domain([attr.stats.min, attr.stats.max]);
+          height = this.attributeBarY(d[attr.name]);
+        }
+        return height
+      })
+      .attr('y', (d) => {
+        let y = 0;
+        let attr = this.secondaryAttribute;
+        if (attr && d[attr.name] && (attr.type === VALUE_TYPE_INT || attr.type === VALUE_TYPE_REAL)) {
+          this.attributeBarY.domain([attr.stats.min, attr.stats.max]);
+          y = Config.glyphSize * 2 - this.attributeBarY(d[attr.name]);
+        }
+        return d['sex'] === 'F' ? (-Config.glyphSize) + y : y
+      })
+      .attr('fill', (d) => {
+        let attr = this.secondaryAttribute;
+        if (attr && d[attr.name] && attr.type === VALUE_TYPE_CATEGORICAL) {
+          // console.log(d[attr.name],attr.categories)
+          let ind = attr.categories.indexOf(d[attr.name]);
+          return attr.color[ind]
+        } else if (attr && d[attr.name] && (attr.type === VALUE_TYPE_INT || attr.type === VALUE_TYPE_REAL)) {
+          return attr.color
+        }
+      })
+
+
+    allNodes.selectAll('.primary')
+      .attr('x', (d) => {
+        // return d['sex'] === 'F' ? -Config.glyphSize * 2 : -Config.glyphSize
+        return d['sex'] === 'F' ? Config.glyphSize * 2 : Config.glyphSize * 3
+      })
+
+    allNodes.selectAll('.secondary')
+      .attr('x', (d) => {
+        // return d['sex'] === 'F' ? -Config.glyphSize * 3 : -Config.glyphSize*2
+        return d['sex'] === 'F' ? Config.glyphSize * 3.5 : Config.glyphSize * 4.5
+      })
 
 
   }
 
-
-//     		private clicked
-
+  /**
+   *
+   * This function updates the nodes in the genealogy tree
+   *
+   * @param nodes array of nodes to update the tree with
+   */
+  private update_nodes() {
+    this.addNodes();
+    this.addHightlightBars();
+    this.addLifeLines();
+    this.fillAttributeBars();
+  }
 
   private update_time_axis() {
 
@@ -1406,7 +1431,7 @@ class GenealogyTree {
     let maxY = this.y.invert(divHeight + scrollOffset - 75)
 
     select('#axis')
-      .attr('transform', 'translate(' + this.margin.left + ',' + (scrollOffset + this.margin.axisTop / 1.5) + ')')
+      .attr('transform', 'translate(' + this.margin.left + ',' + (scrollOffset + 130) + ')')
 
     //the 75 offset is the transform applied on the group
 
@@ -1432,8 +1457,15 @@ class GenealogyTree {
     }),
       max(this.data.nodes, function (d) {
         return +d['ddate']
-      }) + 5];
+      })];
 
+    //Temporary cap @ 2016. Not sure why the axis are scaling to 2025 automatically.
+    if (all_domain[1] > 2016)
+      all_domain[1] = 2016;
+
+    if (filtered_domain[1] > 2016)
+      filtered_domain[1] = 2016;
+    // console.log(all_domain, filtered_domain)
     //Build time axis
 
     //for visible nodes
@@ -1486,8 +1518,6 @@ class GenealogyTree {
     x_domain.push(all_domain[1]);
     x_ticks.push(all_domain[1]);
 
-    let t2 = transition('t2').duration(750).ease(easeLinear);
-
     this.x.domain(x_domain);
     this.x.range(x_range)
 
@@ -1498,18 +1528,15 @@ class GenealogyTree {
     this.extremesXAxis.tickValues(x2_ticks);
 
     select('#visible_axis')
-      .transition(t2)
       .call(this.visibleXAxis)
 
     select('#extremes_axis')
       .attr('opacity', .6);
 
     select('#extremes_axis')
-    //         .transition(t2)
       .call(this.extremesXAxis)
 
     select('#extremes_axis')
-      .transition(t2)
       .attr('opacity', .6)
 
     select('#visible_axis')
@@ -1521,7 +1548,10 @@ class GenealogyTree {
   }
 
 
+  //Function that repositions the visible nodes to fill the graph.
   private update_visible_nodes() {
+
+    console.log('called update_visible_nodes');
 
     let scrollOffset = document.getElementById('graph_table').scrollTop;
     let divHeight = document.getElementById('graph_table').offsetHeight;
@@ -1551,135 +1581,8 @@ class GenealogyTree {
 
   }
 
-  private create_phantom(d) {
-
-    let phantom = selectAll('#g_' + d['id']);
-
-    if (phantom.size() === 1) {
-      //Create phantom node
-
-      const node = document.getElementById('g_' + d['id'])
-      let phantomNode = node.cloneNode(true)
-      //        phantomNode.setAttribute('class', 'phantom node');
-      document.getElementById('genealogyTree').appendChild(phantomNode)
-//             console.log(phantom)
-
-    }
-  }
-
-  //Update position of a group based on data
-  private update_pos(d) {
-
-    const node_group = select('#g_' + d['id']);
-    const currentPos = mouse(< any > select('.genealogyTree').node());
-
-    node_group.attr('transform', () => {
-      return 'translate(' + this.xPOS(d) + ',' + currentPos[1] + ')';
-    })
-  }
-
-  //Update position of a group based on a class
-  private update_pos_row(class_id) {
-
-    const row_nodes = select(class_id);
-
-    const currentPos = mouse(< any > select('.genealogyTree').node());
-
-    const node = row_nodes.data()[0];
-
-    let nodePos = {
-      'sex': node['sex'],
-      'x': node['x'],
-      'y': this.y.invert(currentPos[1])
-    }
-//         node['y'] = this.y.invert(currentPos[1])
-
-    row_nodes.attr('transform', () => {
-      return 'translate(' + this.xPOS(nodePos) + ',' + this.yPOS(nodePos) + ')';
-    })
-  }
-
-  //Snap row to position
-  private snap_pos_row(class_id) {
-
-    const row_nodes = select(class_id);
-
-    const currentPos = mouse(< any > select('.genealogyTree').node());
-
-    const node = row_nodes.data()[0];
-
-    node['y'] = Math.round(this.y.invert(currentPos[1]))
-
-    row_nodes.attr('transform', () => {
-      return 'translate(' + this.xPOS(node) + ',' + this.yPOS(node) + ')';
-    })
-  }
-
-
-  private get_row_data(class_id) {
-    return select(class_id).data()[0];
-
-  }
-
-  private closestY() {
-    const currentPos = mouse(< any > select('.genealogyTree').node());
-    return Math.round(this.y.invert(currentPos[1]))
-  }
-
-  private ceilY() {
-    const currentPos = mouse(< any > select('.genealogyTree').node());
-    return Math.ceil(this.y.invert(currentPos[1]))
-  }
-
-  private floorY() {
-    const currentPos = mouse(< any > select('.genealogyTree').node());
-    return Math.floor(this.y.invert(currentPos[1]))
-  }
-
 
   private xPOS(node) {
-
-    //Check for hidden nodes with no children to place in the kid grid;
-
-    /*
-     if (node['hidden'] && !node['hasChildren']){
-
-     let childCount = 0;
-     //Find ma and pa
-     let edge = this.data.parentChildEdges.filter((d) => {
-     return d.target === node
-     });
-
-     let ma = edge[0]['ma'];
-     let pa = edge[0]['pa'];
-
-
-     this.data.parentChildEdges.forEach((d,i)=>{
-
-     if (d.ma === ma && d.pa === pa ){
-     //Only count unaffected children so as to avoid gaps in the kid Grid
-     if (!d.target.affected)
-     childCount = childCount +1
-     if (d.target === node){
-
-     let xpos = childCount % this.kidGridSize;
-     if (xpos === 0)
-     xpos = this.kidGridSize
-
-
-     let ans  = this.x(node.x) + this.kidGridScale(xpos)
-
-     console.log('Family ' , max(node['family_ids']) ,   ' has ', childCount  , ' kids. child has node.x ', node.x , ' and xpos is ' , ans)
-     return ans;
-
-     }
-
-     }
-
-     })
-     }
-     */
-
 
     if (node['sex'] === 'M') {
       if (node['hidden'] && node['hasChildren'])
@@ -1694,41 +1597,6 @@ class GenealogyTree {
   }
 
   private yPOS(node) {
-    /*
-
-     if (node['hidden'] && !node['hasChildren']){
-
-     let childCount = 0;
-     //Find ma and pa
-     let edge = this.data.parentChildEdges.filter((d) => {
-     return d.target === node
-     });
-
-     let ma = edge[0]['ma'];
-     let pa = edge[0]['pa'];
-
-
-     this.data.parentChildEdges.forEach((d,i)=>{
-
-     if (d.ma === ma && d.pa === pa){
-     //Only count unaffected children so as to avoid gaps in the kid Grid
-     if (!d.target.affected)
-     childCount = childCount +1
-     if (d.target === node){
-     let ypos = this.y(node.y) + this.kidGridScale(Math.ceil(childCount / this.kidGridSize))
-     console.log('child has node.y ', node.y , ' and ypos is ' , ypos)
-     return ypos;
-     }
-
-     }
-
-
-     })
-     }
-     */
-
-
-//       return (node['hidden'] && node['hasChildren']) ? this.y(node.y) - Config.hiddenGlyphSize : this.y(node.y) - Config.glyphSize;
     if (node['sex'] === 'M') {
       if (node['hidden'] && node['hasChildren'])
         return this.y(node.y) - Config.hiddenGlyphSize
@@ -1804,73 +1672,78 @@ class GenealogyTree {
     return lineFunction(linedata);
   }
 
-
   private attachListeners() {
-    events.on('table_row_selected', (evt, item) => {
-      let wasSelected = selectAll('.highlightBar').filter((d) => {
-        return d['id'] === item
-      }).classed('selected');
 
-      //'Unselect all other background bars if ctrl was not pressed
-      if (!event.metaKey) {
-        selectAll('.highlightBar').classed('selected', false);
-      }
+    // events.on('table_row_selected', (evt, item) => {
+    //   let wasSelected = selectAll('.highlightBar').filter((d) => {
+    //     return d['id'] === item
+    //   }).classed('selected');
+    //
+    //   //'Unselect all other background bars if ctrl was not pressed
+    //   if (!event.metaKey) {
+    //     selectAll('.highlightBar').classed('selected', false);
+    //   }
+    //
+    //   selectAll('.highlightBar').filter((d) => {
+    //     return d['id'] === item
+    //   }).classed('selected', function () {
+    //     return (!wasSelected);
+    //   })
+    // });
 
-      selectAll('.highlightBar').filter((d) => {
-        return d['id'] === item
-      }).classed('selected', function () {
-        return (!wasSelected);
-      })
-    });
+    events.on('redraw_tree', (evt, item) => {
 
-    events.on('redraw_tree', (evt,item) => {
-      console.log('redrawing tree!')
-      console.log(item.nodes.length)
-      this.data = item;
+      console.log('redrawing tree, there are ', this.data.nodes.filter(d => {
+        return d.hidden
+      }).length, 'hidden nodes')
+      // this.data = item;
       this.update();
     });
 
-    events.on('attribute_selected',(evt,item) => {
-      console.log('heard attribute_selected_event' , item.attribute.data);
-      if (item.badge === 'primary') {
-        this.data.definePrimary(item.attribute.data,'Y')
-      } else if (item.badge === 'secondary') {
-        this.data.defineSecondary(item.attribute.data,'Y')
+    events.on(PRIMARY_SECONDARY_SELECTED, (evt, Attribute) => {
+
+      if (Attribute.primary) {
+        this.primaryAttribute = Attribute;
+      } else {
+        this.secondaryAttribute = Attribute;
       }
+      this.update_visible_nodes()
 
-      //Uncollapse Tree
-      //Re-render tree
-      this.update_nodes();
-
-
+      this.update_legend();
     });
 
-
-    events.on('table_row_hover_on', (evt, item) => {
-      selectAll('.highlightBar').filter((d) => {
-        return d['id'] === item
-      }).attr('opacity', .2)
-      selectAll('.row').filter((e) => {
-        return e['id'] === item
-      }).filter((d) => {
-        return !d['aggregated']
-      }).select('.lifeRect').select('.ageLabel').attr('visibility', 'visible');
-      selectAll('.row').filter((e) => {
-        return e['id'] === item
-      }).filter('.aggregated').attr('opacity', 1)
-      selectAll('.row').filter((e) => {
-        return e['id'] === item
-      }).select('.hex').attr('opacity', 0)
+    events.on(POI_SELECTED, (evt, affectedState) => {
+      this.data.uncollapseAll();
+      this.data.defineAffected(affectedState);
+      this.data.collapseAll();
+      this.update();
     });
 
-    events.on('table_row_hover_off', (evt, item) => {
-      selectAll('.aggregated').attr('opacity', 0)
-      selectAll('.highlightBar').attr('opacity', 0)
-      selectAll('.ageLabel').attr('visibility', 'hidden');
-      selectAll('.row').filter((e) => {
-        return e['id'] === item
-      }).select('.hex').attr('opacity', 1)
-    });
+    // events.on('table_row_hover_on', (evt, item) => {
+    //   selectAll('.highlightBar').filter((d) => {
+    //     return d['id'] === item
+    //   }).attr('opacity', .2)
+    //   selectAll('.row').filter((e) => {
+    //     return e['id'] === item
+    //   }).filter((d) => {
+    //     return !d['aggregated']
+    //   }).select('.lifeRect').select('.ageLabel').attr('visibility', 'visible');
+    //   selectAll('.row').filter((e) => {
+    //     return e['id'] === item
+    //   }).filter('.aggregated').attr('opacity', 1)
+    //   selectAll('.row').filter((e) => {
+    //     return e['id'] === item
+    //   }).select('.hex').attr('opacity', 0)
+    // });
+    //
+    // events.on('table_row_hover_off', (evt, item) => {
+    //   selectAll('.aggregated').attr('opacity', 0)
+    //   selectAll('.highlightBar').attr('opacity', 0)
+    //   selectAll('.ageLabel').attr('visibility', 'hidden');
+    //   selectAll('.row').filter((e) => {
+    //     return e['id'] === item
+    //   }).select('.hex').attr('opacity', 1)
+    // });
   }
 }
 

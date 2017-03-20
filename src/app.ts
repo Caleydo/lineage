@@ -11,18 +11,13 @@ import * as table from './attributeTable';
 import * as panel from './attributePanel';
 import * as familySelector from './familySelector';
 
-
-import {csv} from 'd3-request';
-
 //Import Data Structure for graph & table
-
 import * as graphData from './graphData';
-import * as tableData from './tableData';
-import * as attributeData from './tableManager';
+import * as TableManager from './tableManager';
 
 
 /**
- * The main class for the App app
+ * The main class for the Lineage app
  */
 export class App {
 
@@ -33,7 +28,6 @@ export class App {
 
     this.$node.append('div').attr('id', 'data_selection');
     this.$node.append('div').attr('id', 'graph_table');
-
   }
 
   /**
@@ -51,35 +45,43 @@ export class App {
    */
   private async build() {
 
-    const attributeDataObj = attributeData.create();
+    const tableManager = TableManager.create();
     // This executes asynchronously, so you'll have to pass
     // back a promise and resolve that before you keep going
-    // await attributeDataObj.loadData('big-decent-clipped-38');
-
-    //Load in Attribute Data
-    await attributeDataObj.loadAttributeData('Attributes');
-
-    //Load in Genealogy Data
-    await attributeDataObj.loadData('SmallDescend');
+    // await tableManager.loadData('big-decent-clipped-38');
 
 
-    const graphDataObj = graphData.create(attributeDataObj);
+    /** =====  PUBLIC CASE ===== */
+    //await tableManager.loadData('TwoFamiliesDescendAnon', 'TwoFamiliesAttributes');
+
+    /** =====  PRIVATE CASES - WORKS ONLY WITH THE RIGHT DATA LOCALLY ===== */
+    await tableManager.loadData('TenFamiliesDescendAnon', 'TenFamiliesAttributes');
+    //await tableManager.loadData('FiftyFamiliesDescendAnon', 'FiftyFamiliesAttributes');
+    //await tableManager.loadData('AllFamiliesDescendAnon', 'AllFamiliesAttributes');
+    /** ============= */
+
+    const graphDataObj = graphData.create(tableManager);
     await graphDataObj.createTree();
 
+    // console.log('tree')
     const genealogyTree = tree.create(this.$node.select('#graph_table').node());
     genealogyTree.init(graphDataObj);
 
+    // console.log('table')
     const attributeTable = table.create(this.$node.select('#graph_table').node());
-    attributeTable.init(attributeDataObj);
+    attributeTable.init(tableManager);
 
+    // console.log('panel')
     const attributePanel = panel.create(this.$node.select('#data_selection').node());
-    attributePanel.init(attributeDataObj);
+    attributePanel.init(tableManager);
 
     const familySelectorView = familySelector.create(this.$node.select('#familySelector').node());
-    familySelectorView.init(attributeDataObj);
+    familySelectorView.init(tableManager);
+
 
     this.$node.select('h3').remove();
     this.setBusy(false);
+
 
     return Promise.resolve(this);
   }

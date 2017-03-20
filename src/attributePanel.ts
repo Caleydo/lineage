@@ -2,17 +2,20 @@ import * as events from 'phovea_core/src/event';
 import {AppConstants, ChangeTypes} from './app_constants';
 import * as Sortable from 'sortablejs';
 import * as $ from 'jquery';
-import {select, selectAll} from 'd3-selection';
+import {select, selectAll, event} from 'd3-selection';
 import {keys} from 'd3-collection';
 import {IAnyVector} from 'phovea_core/src/vector';
 import {ICategoricalVector, INumericalVector} from 'phovea_core/src/vector/IVector';
 import * as histogram from './histogram';
 import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL} from 'phovea_core/src/datatype';
+import * as range from 'phovea_core/src/range';
+
+import {PRIMARY_SECONDARY_SELECTED, POI_SELECTED, COL_ORDER_CHANGED_EVENT} from './tableManager';
 
 
 import {Config} from './config';
 
-
+2
 /**
  * Creates the attribute table view
  */
@@ -23,17 +26,27 @@ class AttributePanel {
   // access to all the data in our backend
   private table;
   private columns;
-  private activeColumns;
+  private activeColumns = [];
+  private histograms = [];
+  private attributeState = [];
+
+  private tableManager;
+
+  private collapsed = false;
 
 
   constructor(parent: Element) {
 
-    select(parent)
-      .append('div')
-      .attr('id', 'familySelector');
+    //toggle btn
+    select(parent).append('span')
+      .attr('id', 'toggle-btn')
+      .append('i')
+      .classed('glyphicon glyphicon-menu-hamburger', true);
+
 
     this.$node = select(parent)
       .append('div')
+      .attr('id', 'panelContent')
       .classed('nav-side-menu active', true);
   }
 
@@ -43,12 +56,29 @@ class AttributePanel {
    * @returns {Promise<FilterBar>}
    */
   init(attributeDataObj) {
-    this.table = attributeDataObj.attributeTable;
-    this.columns = this.table.cols();
-    this.activeColumns = attributeDataObj.activeAttributes;
+    // this.table = attributeDataObj.attributeTable;
+    this.tableManager = attributeDataObj;
+    let graphView = this.tableManager.graphTable;
+    let attributeView = this.tableManager.tableTable;
+    this.columns = graphView.cols().concat(attributeView.cols());   //this.table.cols();
 
+    this.columns.forEach((col, i) => {
+      const name = col.desc.name;
+      const type = col.desc.value.type;
+
+      if (this.tableManager.defaultCols.indexOf(name)>-1) {
+        this.activeColumns.push(name);
+      }
+    });
+
+    this.tableManager.colOrder = this.activeColumns;
+
+    this.update();
     this.build();
     this.attachListener();
+
+    //Programatically select 'suicide' as the POI
+    // this.$node.select(".suicide").select('#poi').on("click")();
 
     // return the promise directly as long there is no dynamical data to update
     return Promise.resolve(this);
@@ -59,27 +89,34 @@ class AttributePanel {
    * Build the basic DOM elements and binds the change function
    */
   private build() {
+    // family selector
+    const familySelector = this.$node.append('div')
+      .attr('id', 'familySelector')
+      .classed('menu-list', true)
+      .html(` <ul >
+            <li class='brand' data-toggle='collapse'> <i class=''></i> <strong>Family and Data Selection</strong></li>
+               </ul>`);
+
+    //<span class='toggle-btn'><i class='glyphicon glyphicon-menu-hamburger'></i></span>
 
     // menu container container
     const menuList = this.$node.append('div')
-      .classed('menu-list', true)
-      .html(` <ul >
-            <li class='brand' data-toggle='collapse'> <i class=''></i> <strong>Data Selection</strong>
-             <span class='toggle-btn'><i class='glyphicon glyphicon-menu-hamburger'></i></span></li>
-               </ul>`);
+      .classed('menu-list', true);
+
+
+    menuList.append('ul').html(`<li class='inactive collapsed active' data-target='#active-menu-content' data-toggle='collapse'>
+    <strong>Data Selection</strong><span class='arrow'></span></li>`);
 
 
     // list that holds data attribute
     // initially all attributes are active
     const activeAttributeList = menuList.append('div')
       .attr('id', 'active-menu-content')
-      .classed('menu-content collapse in', true);
+      .classed('menu-content sub-menu collapse in fade', true);
 
     menuList.append('ul')
-      .html(`
-       <li class='inactive collapsed active' data-target='#inactive-menu-content' data-toggle='collapse'>
-                                  <i class=''></i><strong>Inactive attributes</strong> <span class='arrow'></span>
-                                </li>`);
+      .html(`<li class='inactive collapsed active' data-target='#inactive-menu-content' data-toggle='collapse'>
+       <strong>Inactive attributes</strong> <span class='arrow'></span></li>`);
 
 
     // list that holds inactive attributes
@@ -87,8 +124,6 @@ class AttributePanel {
     const inactiveAttributeList = menuList.append('div')
       .attr('id', 'inactive-menu-content')
       .classed('menu-content sub-menu collapse in fade', true);
-    // .html(`
-    // <li class='placeholder'>DRAG AND DROP ATTRIBUTES HERE TO MAKE THEM INACTIVE</li>`);
 
 
     // Active sortable list
@@ -112,6 +147,7 @@ class AttributePanel {
           newIndex: evt.newIndex,
           oldIndex: evt.oldIndex
         };
+
         events.fire('attribute_reordered', item);
       },
 
@@ -139,8 +175,64 @@ class AttributePanel {
 
     });
 
+    // populate the panel with attributes
     this.columns.forEach((column) => {
       this.addAttribute(column.desc.name, column.desc.value.type);
+    });
+
+    events.on('primary_secondary_selected', (evt, item) => {
+
+
+
+      let attribute = this.tableManager[item.primary_secondary + 'Attribute'];
+
+      //A primary or secondary attribute had been previously defined
+      if (attribute) {
+        //Clear previously colored histogram for primary/secondary
+        let previousHist = this.histograms.filter((h) => {
+          return h.attrName === attribute.name
+        });
+
+        if (previousHist.length > 0) {
+          previousHist[0].clearPrimarySecondary();
+        }
+      }
+
+      let otherAttributePrimarySecondary = ['primary', 'secondary'].filter((a)=>{return a !== item.primary_secondary});
+      let otherAttribute = this.tableManager[otherAttributePrimarySecondary + 'Attribute'];
+
+      //If the attribute you are setting as secondary is the same as the one you had as primary, (or vice versa) set the primary (secondary) to undefined;
+      if (otherAttribute && item.name === otherAttribute.name){
+        this.tableManager[otherAttributePrimarySecondary + 'Attribute'] = undefined;
+      }
+
+      this.tableManager.setPrimarySecondaryAttribute(item.name, item.primary_secondary).then((obj)=>{
+
+        let hist = this.histograms.filter((h)=>{return h.attrName === item.name})[0];
+        hist.setPrimarySecondary(obj);
+
+      });
+    });
+
+    events.on('poi_selected', (evt, item) => {
+
+      this.tableManager.setAffectedState(item.name,item.callback).then((obj)=>{
+        //find histogram with this name and set the brush extent
+        let hist = this.histograms.filter((h)=>{return h.attrName === item.name})[0];
+        if (obj.threshold !== undefined) { //setAffectedState returned a default value. Was not set by user brushing or selecting bar;
+
+          //New POI has been set, remove all other brush and rect selection interactions;
+          this.histograms.map((hist)=>{hist.clearInteraction()});
+
+          if (obj.type === VALUE_TYPE_CATEGORICAL) {
+            hist.setSelected(obj.threshold);
+          } else if (obj.type === VALUE_TYPE_REAL || obj.type === VALUE_TYPE_INT){
+            hist.setBrush(obj.threshold);
+          }
+
+        }
+
+      });
     });
 
 
@@ -152,7 +244,6 @@ class AttributePanel {
    * @param columnDesc
    */
   private addAttribute(columnName, columnDesc) {
-
 
     //if this is an active attribute then add it to the active list otherwise add it to the inactive list
     let list = '';
@@ -168,27 +259,37 @@ class AttributePanel {
     //append the header as a menu option
     const attrHeader = attributeElm.append('li')
       .classed('collapsed active', true)
-      .attr('data-target', '#' + columnName)
-      .attr('data-toggle', 'collapse');
+      .attr('data-target', '#' + columnName);
+    // .attr('data-toggle', 'collapse');
 
-    attrHeader.append('a').attr('href', '#')
-      .html('<i class=\'glyphicon glyphicon-chevron-right\'></i>')
+    const header = attrHeader.append('a').attr('href', '#')
+    //.html('<i class=\'glyphicon glyphicon-chevron-right\'></i>')
       .append('strong').html(columnName)
-      .append('span').attr('class', columnDesc)
+      .append('span')
+      .classed(columnDesc, true)
+      .classed(columnName, true) //used to later programatically select and trigger the onClick callbacks of these badges
       .html(`<div class=' attr_badges pull-right'>
-                <span class=' badge' >primary</span>
-                <span class=' badge' >secondary</span>
+                <!--<span class=' badge' id ='add_remove'>-</span> -->
+                        
+                <span class=' badge' id ='primary'>A1</span>
+                <span class=' badge' id ='secondary'>A2</span>
+                <span class=' badge' id ='poi'>POI</span>
+                 
               </div>`);
+
+
+    attrHeader.selectAll('.sort_handle').classed('focus', true);
+    // attrHeader.selectAll('.attr_badges').classed('focus', true);
     attrHeader.on('mouseover', function () {
       select(this).select('.sort_handle').classed('focus', true);
       if (list === '#active-menu-content') {
-        select(this).select('.attr_badges').classed('focus', true);
+        select(this).selectAll('.badge').classed('focus', true);
       }
     });
 
     attrHeader.on('mouseout', function () {
       select(this).select('.sort_handle').classed('focus', false);
-      select(this).select('.attr_badges').classed('focus', false);
+      select(this).selectAll('.badge').classed('focus', false);
     });
 
     attrHeader.on('click', function () {
@@ -198,34 +299,66 @@ class AttributePanel {
     });
 
     selectAll('.badge').on('click', function () {
-      console.log('badge clicked');
-      const badge = $(this).text();
+      const badge = select(this).attr('id'); //$(this).id();
       const attribute = $(this).closest('strong').contents()[0];
-      //reset badge dispaly for previously clicked badges
-      $('.checked_' + badge).parent().css('display', '');
+      //reset badge display for previously clicked badges
+      $('.checked_' + badge).css('display', '');
       $('.checked_' + badge).parent().children().css('display', '');
-      $('.checked_' + badge).removeClass('.checked_' + badge);
+      $('.checked_' + badge).removeClass().addClass('badge');
+
+
+      // check if siblings has checked badge
+      $(this).parent().children().each(function () {
+        if (select(this).attr('class').indexOf('checked_') > -1 && (badge == 'primary' || badge === 'secondary')) {
+          console.log($(this).closest('strong').contents()[0]);
+          if(!$(this).hasClass('checked_poi')) {
+            $(this).removeClass().addClass('badge');
+            $(this).css('display', '');
+          }
+        }
+      });
 
       $(this).parent().css('display', 'inline');
-      $(this).parent().children().css('display', 'none');
+      //$(this).parent().children().css('display', 'none');
       $(this).addClass('checked_' + badge);
       $(this).css('display', 'inline');
+      $(this).css('margin-right', '10px');
+      event.stopPropagation();
 
-      events.fire('attribute_selected', {attribute, badge});
+      if (badge === 'primary' || badge === 'secondary') {
 
+        events.fire('primary_secondary_selected', {'name':attribute.nodeValue,  'primary_secondary':badge});
+      } else if (badge === 'poi') {
+        events.fire('poi_selected', {'name':attribute.nodeValue});
+      }
     });
 
-    // append svgs for attributes:
-    const attributeSVG = attributeElm.append('ul')
-      .attr('id', columnName)
-      .classed('sub-menu collapse fade', true)
-      .append('svg')
-      .attr('id', columnName + '_svg')
-      .classed('attribute_svg', true);
+    /** Generate SVG for these type only**/
+    if ([VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL].indexOf(columnDesc) > -1) {
 
-    this.populateData(this.$node.select('#' + columnName + '_svg').node(), columnName, columnDesc);
+      // append svgs for attributes:
+      const attributeSVG = attributeElm
+        // .select('li')
+        .append('ul')
+        .attr('id', columnName);
+
+      //Only append new svg if there isn't already one there
+      if (attributeElm.select('.attribute_svg').size()===0) {
+        // .classed('sub-menu collapse fade in', true)
+      attributeElm
+          .append('svg')
+          .style('margin-top', '-50px')
+          .attr('height', Config.panelAttributeHeight)
+          .attr('width', Config.panelSVGwidth)
+          .attr('id', columnName + '_svg')
+          .classed('attribute_svg', true)
+      }
+
+      this.populateData(this.$node.select('#' + columnName + '_svg').node(), columnName, columnDesc);
+    }
 
   }
+
 
   /***
    * This function takes an svg as an input and populate it with vis element
@@ -235,64 +368,179 @@ class AttributePanel {
   private async populateData(svg, attributeName, attributeType) {
     //console.log(await this.table.colData(attribute));
 
-    console.log('populateData');
+    // console.log('populateData');
     let dataVec: IAnyVector;
     // getting data as IVector for attributeName
     // we need to use col(index) so we can get IVector object
     // since we don't have indices for columns, we are iterating though
     // columns and get the matched one
-    for (const col in this.columns) {
-      if (this.columns[col].desc.name === attributeName) {
-        dataVec = await this.table.col(col);
+
+    this.columns.forEach(col => {
+      if (col.desc.name === attributeName) {
+        dataVec = col;
       }
-    }
+    })
 
-    if (dataVec.desc.value.type === VALUE_TYPE_CATEGORICAL) {
-      const catVector = <ICategoricalVector> dataVec;
-      const attributeHistogram = histogram.create(svg);
-      await attributeHistogram.init(attributeName, dataVec);
+    // creat a histogram object if one does not already exist for this attribute
+    let currentHist = this.histograms.filter((hist)=>{return hist.attrName === attributeName});
+    let attributeHistogram;
+    if (currentHist.length === 0) {
+       attributeHistogram = histogram.create(svg);
+      // add this object to the histogram array
+      this.histograms.push(attributeHistogram);
+
     } else {
-      const numVector = <INumericalVector> dataVec;
-      console.log('Stats on a vector:');
-      console.log(await numVector.stats());
+      attributeHistogram = currentHist[0];
     }
 
-    /*
-
-     const dataVec = await this.table.colData(attributeName);
-     if(attributeType === 'categorical'){
-     //catVector = <ICategoricalVector> this.table.colData(4);
-     //console.log('The histogram:');
-     console.log(await catVector.hist());
-     } else {
-     /*numVector = <INumericalVector> this.table.colData(attributeName);
-     console.log('Stats on a vector:');
-     console.log(await numVector.stats());
-     }
-
-     if(attributeType === VALUE_TYPE_INT) {
-     // const attributeHistogram = histogram.create(svg);
-     // attributeHistogram.init(dataVec);
-
-     const numVector = <INumericalVector> this.table.col(5);
-     console.log('3rd value from the 5th vector:' + await numVector.at(3));
-     console.log('Stats on a vector:');
-     console.log(await numVector.stats());
-     }
-     */
-
+    // initiate this object
+    await attributeHistogram.init(attributeName, dataVec, dataVec.desc.value.type);
 
   }
 
+  private update() {
+    //get updated data from the tableManager
+    let graphView = this.tableManager.graphTable;
+    let attributeView = this.tableManager.tableTable;
+    this.columns = graphView.cols().concat(attributeView.cols());
+
+    let dataVec: IAnyVector;
+
+
+    this.histograms.forEach(singleHistogram => {
+      this.columns.forEach(col => {
+        if (col.desc.name === singleHistogram.attrName) {
+          // console.log(col);
+          singleHistogram.update(col)
+        }
+      })
+
+    })
+
+  }
+
+  /**
+   * This function is called when an attribute value is selected
+   * it keep track of selected attributes in an array
+   * @param attrName
+   * @param value
+   */
+  private updateAttrState(attrName, value) {
+    console.log('updata attr stat', attrName + ' , ' + value);
+    let found = null;
+    this.attributeState.forEach(function (item) {
+      if (item.name === attrName) {
+        found = item;
+      }
+    });
+    if (found) {
+      found.value.push(value);
+    } else {
+      this.attributeState.push({name: attrName, value: [value]});
+    }
+  }
+
+  /**
+   * This function update the attributestate array when a user deselect an attribute
+   *
+   */
+  private removeFromAttrState(attrName, value) {
+    let found = null;
+
+    this.attributeState.forEach(function (item) {
+      if (item.name === attrName) {
+        found = item;
+      }
+    });
+
+    if (found) {
+      found.value.splice(found.value.indexOf(value), 1);
+    }
+
+  }
+
+  private toggle() {
+    const sidePanel = document.getElementById('data_selection');
+    const sidePanelContent = document.getElementById('panelContent');
+    const graphNtable = document.getElementById('graph_table');
+    const toggleBtn = document.getElementById('toggle-btn');
+
+    // if the attribute panel is expanded
+    if (!this.collapsed) {
+      // collapse attribute panel
+      sidePanel.style.width = Config.colPanelWidth;
+      sidePanel.style.border = 'none';
+      toggleBtn.style.marginRight = '-10px';
+      //Hide attribute panel content
+      sidePanelContent.style.display = 'none';
+
+      // resize graph div
+      graphNtable.style.width = Config.expGraphTableWidth;
+      //update flag value
+      this.collapsed = true;
+    } else {
+      // expand attribute panel
+      sidePanel.style.width = Config.expPanelWidth;
+      sidePanel.style.borderRight = 'solid lightgrey';
+      toggleBtn.style.marginLeft = '-30px';
+      // show attribute panel content
+      sidePanelContent.style.display = 'inline';
+      // resize graph div
+      graphNtable.style.width = Config.colGraphTableWidth;
+      //update flag value
+      this.collapsed = false;
+    }
+  }
 
   private attachListener() {
+    // listen to toggle panel event
+    select('#toggle-btn').on('click', () => {
+      console.log('clicked now?')
+      this.toggle();
+    })
 
     //Set listener for click event on corresponding node that changes the color of that row to red
     events.on('node_clicked', (evt, item) => {
+      console.log('clicked')
       selectAll('.row').classed('selected', function (d) {
         return select(this).attr('id') === 'row_' + item;
       });
     });
+
+    events.on('redraw_tree', () => {
+      this.update();
+
+    });
+
+    events.on('attribute_picked', (evt, item) => {
+      this.updateAttrState(item.name, item.value)
+      console.log('attribute picked', this.attributeState);
+    })
+
+    events.on('attribute_reordered', (evt, item) => {
+      this.tableManager.colOrder.splice(item.newIndex, 0, this.tableManager.colOrder.splice(item.oldIndex, 1)[0]);
+      events.fire(COL_ORDER_CHANGED_EVENT)
+
+    })
+
+    events.on('attribute_removed', (evt, item) => {
+      console.log(item);
+      this.tableManager.colOrder.splice(item.oldIndex, 1);
+      events.fire(COL_ORDER_CHANGED_EVENT)
+
+    })
+
+    events.on('attribute_added', (evt, item) => {
+      this.tableManager.colOrder.splice(item.newIndex, 0, item.name.split(/\r|\n/)[0]);
+      events.fire(COL_ORDER_CHANGED_EVENT)
+
+    })
+
+
+    events.on('attribute_unpicked', (evt, item) => {
+      this.removeFromAttrState(item.name, item.value);
+
+    })
   }
 
 }

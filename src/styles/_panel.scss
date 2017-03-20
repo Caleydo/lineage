@@ -1,8 +1,20 @@
+$darkgray-color: #4f4f4d;
+$primary-color : #20567c;
+$primary-color-light : #a3ccf0;
+$secondary-color: #9f295d;
+$secondary-color-light : #ffd6b3;
+
 #data_selection {
+  float: left;
   height: 100vh;
-  border-right: solid lightgrey;
-  margin-left: 10px;
+  overflow: scroll;
+  border-right: solid;
+  border-color: lightgrey;
   width: 300px;
+}
+
+.menu-list ul{
+  margin-bottom:0px !important;
 }
 
 .nav-side-menu {
@@ -13,6 +25,7 @@
   top: 0px;
   height: 100%;
   color: #e1ffff;
+  display: inline;
   margin-top: 15px;
 }
 
@@ -42,17 +55,20 @@
   margin-top: 15px;
 }
 
-.nav-side-menu .toggle-btn {
+ #toggle-btn {
   font-family: FontAwesome;
   /*content: "\f078";*/
   content: "\f107";
-  display: inline-block;
+  display: inline !important;
+   margin-left: -30px;
+   padding-top: 15px;
   padding-left: 10px;
   padding-right: 10px;
   vertical-align: middle;
   float: right;
   font-size: 18px;
   cursor: pointer;
+   color: $darkgray-color;
 }
 
 .ghost {
@@ -92,8 +108,21 @@
 }
 
 #inactive-menu-content li {
+  background-color: white;
   color: #373737;
   opacity: .5;
+  margin-top: 3px;
+  border-top: 5px solid lightgray;
+
+
+}
+
+#active-menu-content li {
+  background-color: white;
+  margin-top: 3px;
+  border-top: 5px solid lightgray;
+
+
 }
 
 .menu-content .sort_handle {
@@ -108,31 +137,54 @@
 }
 
 .menu-content .attr_badges {
-  display: none;
-}
-
-.menu-content .attr_badges span:hover {
   display: inline;
 }
 
-.menu-content .attr_badges.focus,
-.menu-content .attr_badges .checked_primary,
-.menu-content .attr_badges .checked_secondry {
+.menu-content .badge{
+  display: none;
+}
 
-  color: grey;
+.menu-content .badge.focus{
+  //color: $darkgray-color;
+  color:white;
+  display: inline;
+}
+
+
+.menu-content .attr_badges .checked_primary{
+  background-color: $primary-color;
+  color: white;
+  display: inline;
+}
+
+.menu-content .attr_badges .checked_secondary {
+  background-color: $secondary-color;
+  color: white;
+  display: inline;
+}
+
+.menu-content .attr_badges .checked_poi{
+  background-color: $darkgray-color;
+  color: white;
   display: inline;
 }
 
 .badge {
-  color: grey;
-  background-color: #DDDDDD;
+  color: white;
+  background-color: gray;
 }
 
-.menu-content li:hover {
+.menu-content #inactive-menu-content li{
   background-color: lightgrey;
 }
 
-.nav-side-menu menu-list,
+.nav-side-menu .menu-list ul{
+  -webkit-padding-start: 5px;
+  padding-right: -20px;
+  margin-top: 10px;
+}
+
+
 .nav-side-menu li {
   list-style: none;
   padding: 0px;
@@ -158,8 +210,8 @@
 
 .nav-side-menu ul a > strong,
 .nav-side-menu li > a > strong {
-  font-size: 1.5em;
-  font-weight: 400;
+  font-size: 1.2em;
+  font-weight: 300;
   vertical-align: middle;
 }
 
@@ -184,7 +236,7 @@
   padding-left: 10px;
   padding-right: 10px;
   vertical-align: middle;
-  float: right;
+  //float: right;
   font-size: 14px;
 }
 
@@ -200,6 +252,18 @@
   font-size: 14px;
 }
 
+.nav-side-menu li :not(collapsed) .real:before {
+  font-family: FontAwesome;
+  /*content: "\f078";*/
+  content: "\f292";
+  display: inline-block;
+  padding-left: 10px;
+  padding-right: 10px;
+  vertical-align: middle;
+  //float: right;
+  font-size: 14px;
+}
+
 .nav-side-menu li :not(collapsed) .int:before {
   font-family: FontAwesome;
   /*content: "\f078";*/
@@ -208,7 +272,7 @@
   padding-left: 10px;
   padding-right: 10px;
   vertical-align: middle;
-  float: right;
+  //float: right;
   font-size: 14px;
 }
 
@@ -220,7 +284,7 @@
   padding-left: 10px;
   padding-right: 10px;
   vertical-align: middle;
-  float: right;
+  //float: right;
   font-size: 14px;
 }
 
@@ -232,7 +296,7 @@
   padding-left: 10px;
   padding-right: 10px;
   vertical-align: middle;
-  float: right;
+  //float: right;
   font-size: 14px;
 }
 
@@ -249,7 +313,7 @@
 
 .nav-side-menu ul .sub-menu li.active a,
 .nav-side-menu li .sub-menu li.active a {
-  color: #1182c5;
+  //color: #1182c5;
 }
 
 .nav-side-menu ul .sub-menu li,
@@ -288,6 +352,7 @@
 .nav-side-menu li a {
   text-decoration: none;
   color: #333;
+  margin-left: 10px;
 }
 
 .nav-side-menu li img {
@@ -296,13 +361,13 @@
 }
 
 .nav-side-menu li a:hover {
-  text-decoration: none;
-  color: #1182c5;
+  font-weight: bold;
+  color: #020203;
 }
 
 .nav-side-menu li a i {
   display: inline-block;
-  margin-right: 5px;
+
   vertical-align: middle;
   width: 32px;
 }
@@ -321,13 +386,15 @@
   margin-left: -20;
 }
 
-.attribute_svg rect:hover {
-  cursor: pointer;
-  fill: rgb(127,134,134);
-}
+//.attribute_svg .catBar:hover {
+//  cursor: pointer;
+//  fill: rgb(127,134,134);
+//}
 
 .attribute_svg  rect.picked {
-  fill: rgb(127,134,134);
+  //fill: rgb(127,134,134);
+  stroke: #f61637;
+  stroke-width: 5px;
 
 }
 

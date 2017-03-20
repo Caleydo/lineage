@@ -458,10 +458,11 @@ class attributeTable {
       else if (cell.type === VALUE_TYPE_INT || cell.type === VALUE_TYPE_REAL) {
         self.renderIntHeaderHist(select(this), cell);
       }
-      else if (cell.type === 'string') {
+      else if (cell.type === VALUE_TYPE_STRING) {
         self.renderStringHeader(select(this), cell);
       }
     });
+
 
     colSummaries.transition(t)
       .attr('transform', (d, i) => {
@@ -621,7 +622,14 @@ class attributeTable {
 
 // temporary array holds objects with position and sort-value
       const mapped = toSort.map(function(el, i) {
-        return { index: i, value: +mean(el)};
+        if (d.type === VALUE_TYPE_REAL || d.type === VALUE_TYPE_INT){
+          return { index: i, value: +mean(el)};
+        } else if (d.type === VALUE_TYPE_STRING){
+          return { index: i, value: el[0]};
+        } else if (d.type === VALUE_TYPE_CATEGORICAL){
+        return { index: i, value: +(el.filter(e=>{return e === d.category}).length /el.length) };
+      }
+
       })
 
       // sorting the mapped array containing the reduced values
@@ -658,6 +666,34 @@ class attributeTable {
 
   }
 
+  private addSortingIcons(element,cellData){
+
+    element.append('text')
+      .attr('font-family', 'FontAwesome')
+      .classed('sortIcon',true)
+      .classed('descending',true)
+      // .attr('font-size', function(d) { return d.size+'em'} )
+      .attr('font-size',17)
+      .text(function(d) { return '\uf0dd' })
+      .attr('y', this.rowHeight * 1.8 + 20)
+      .attr('x', (d) =>{return this.colWidths[cellData.type]/2-5})
+      // .attr('x', (d) =>{return this.colWidths[cellData.type]/2})
+      .attr('text-anchor', 'middle')
+
+    element.append('text')
+      .attr('font-family', 'FontAwesome')
+      .classed('sortIcon',true)
+      .classed('ascending',true)
+      // .attr('font-size', function(d) { return d.size+'em'} )
+      .attr('font-size',17)
+      .text(function(d) { return '\uf0de' })
+      .attr('y', this.rowHeight * 1.8 + 30)
+      .attr('x', (d) =>{return this.colWidths[cellData.type]/2+5})
+      // .attr('x', (d) =>{return this.colWidths[cellData.type]/2})
+      .attr('text-anchor', 'middle')
+
+  }
+
   /**
    *
    * This function renders the column header of String columns in the Table View.
@@ -670,7 +706,28 @@ class attributeTable {
     element.selectAll('rect').remove();
     element.selectAll('text').remove();
     element.selectAll('circle').remove();
+
+    this.addSortingIcons(element,headerData);
   };
+
+
+  /**
+   *
+   * This function renders the column header of String columns in the Table View.
+   *
+   * @param element d3 selection of the current column header element.
+   * @param cellData the data bound to the column header element being passed in.
+   */
+  private renderIDHeader(element, headerData) {
+
+    element.selectAll('rect').remove();
+    element.selectAll('text').remove();
+    element.selectAll('circle').remove();
+
+    this.addSortingIcons(element,headerData);
+  };
+
+
 
 
   /**
@@ -707,6 +764,8 @@ class attributeTable {
 
       element.append('text')
         .classed('histogramLabel', true)
+
+      this.addSortingIcons(element,headerData);
     }
 
     element.select('.histogram')
@@ -815,6 +874,8 @@ class attributeTable {
         .attr('transform', 'translate(0,' + height + ')')
         .classed('hist_xscale', true)
         .call(xAxis)
+
+      this.addSortingIcons(element,headerData);
     }
 
     element.selectAll('.histogram')
@@ -862,29 +923,6 @@ class attributeTable {
       .attr('text-anchor', 'middle')
 
 
-    element.append('text')
-      .attr('font-family', 'FontAwesome')
-      .classed('sortIcon',true)
-      .classed('descending',true)
-      // .attr('font-size', function(d) { return d.size+'em'} )
-      .attr('font-size',20)
-      .text(function(d) { return '\uf0dd' })
-      .attr('y', height + 20)
-      .attr('x', col_width /6*3.5)
-      .attr('text-anchor', 'middle')
-
-
-    element.append('text')
-      .attr('font-family', 'FontAwesome')
-      .classed('sortIcon',true)
-      .classed('ascending',true)
-      // .attr('font-size', function(d) { return d.size+'em'} )
-      .attr('font-size',20)
-      .text(function(d) { return '\uf0de' })
-      // .attr('y', height + 30)
-      .attr('y',height + 30)
-      .attr('x', col_width /6*2.5)
-      .attr('text-anchor', 'middle')
 
   };
 

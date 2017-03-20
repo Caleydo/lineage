@@ -227,6 +227,8 @@ class attributeTable {
       const type = vector.valuetype.type;
       const name = vector.desc.name;
 
+      // console.log(name,data)
+
 
       let peopleIDs = await vector.names()
 
@@ -500,7 +502,7 @@ class attributeTable {
       .data(this.colData.map((d, i) => {
         return {
           'name': d.name, 'data': d.data, 'ind': i, 'type': d.type,
-          'ids': d.ids, 'stats': d.stats, 'varName': d.name, 'category': d.category
+          'ids': d.ids, 'stats': d.stats, 'varName': d.name, 'category': d.category, 'vector':d.vector
         }
       }), (d) => {
         return d.varName
@@ -563,7 +565,8 @@ class attributeTable {
             'type': d.type,
             'stats': d.stats,
             'varName': d.name,
-            'category': d.category
+            'category': d.category,
+            'vector':d.vector
           }
         })
       }, (d: any) => {
@@ -620,26 +623,33 @@ class attributeTable {
       // the array to be sorted
       const toSort  = d.data;
 
-// temporary array holds objects with position and sort-value
+       // temporary array holds objects with position and sort-value
       const mapped = toSort.map(function(el, i) {
         if (d.type === VALUE_TYPE_REAL || d.type === VALUE_TYPE_INT){
-          return { index: i, value: +mean(el)};
+          return isNaN(+mean(el)) ? { index: i, value:undefined} :  { index: i, value: +mean(el)};
         } else if (d.type === VALUE_TYPE_STRING){
-          return { index: i, value: el[0]};
+          return (isUndefined(el[0]) || el[0].length === 0) ? { index: i, value: undefined} : { index: i, value: el[0].toLowerCase()};
         } else if (d.type === VALUE_TYPE_CATEGORICAL){
         return { index: i, value: +(el.filter(e=>{return e === d.category}).length /el.length) };
       }
 
       })
 
+      // console.log(mapped.map(e=>{return e.value}));
+
       // sorting the mapped array containing the reduced values
       if (select(this).classed('ascending')){
         mapped.sort(function(a, b) {
-          return a.value - b.value;
+          if (a.value == b.value) return 0;
+          if (b.value == undefined || a.value<b.value) return -1;
+          if (a.value == undefined || a.value>b.value) return  1;
+
         });
       } else{
         mapped.sort(function(a, b) {
-          return b.value - a.value;
+          if (a.value == b.value) return 0;
+          if (b.value == undefined || a.value<b.value) return 1;
+          if (a.value == undefined || a.value>b.value) return -1;
         });
       }
 
@@ -649,9 +659,13 @@ class attributeTable {
         return el.index;
       });
 
+      // console.log(sortedIndexes)
+
       const sortedArray = mapped.map(function(el){
         return toSort[el.index];
       });
+
+      // console.log(d, sortedArray)
 
       cells
         .transition(t)
@@ -666,6 +680,14 @@ class attributeTable {
 
   }
 
+
+  /**
+   *
+   * This function adds the 'sorting' glyphs to the top of the columns in the table.
+   *
+   * @param element d3 selection of the current column header element.
+   * @param cellData the data bound to the column header element being passed in.
+   */
   private addSortingIcons(element,cellData){
 
     element.append('text')
@@ -1137,7 +1159,7 @@ class attributeTable {
       .range([rowHeight * 0.3, rowHeight * 0.7]);
 
     this.xScale
-      .domain([cellData.stats.min, cellData.stats.max])
+      .domain(cellData.vector.desc.value.range)
       .range([col_width * 0.1, col_width * 0.9]);
 
     //No of non-undefined elements in this array

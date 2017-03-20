@@ -270,7 +270,6 @@ class attributeTable {
             });
             return colData;
           });
-          // col.ys = allRows;
           col.type = type;
 
 
@@ -308,7 +307,6 @@ class attributeTable {
           });
           return colData;
         });
-        // col.ys = allRows;
         col.vector = vector;
         col.type = type;
         col.stats = stats;
@@ -340,7 +338,6 @@ class attributeTable {
           });
           return colData;
         });
-        // col.ys = allRows
         col.type = type;
         colDataAccum.push(col);
       } else if (type === 'idtype') {
@@ -549,7 +546,6 @@ class attributeTable {
             'name': d.name,
             'data': e,
             'ind':i,
-            // 'y': d.ys[i],
             'type': d.type,
             'stats': d.stats,
             'varName': d.name,
@@ -599,14 +595,41 @@ class attributeTable {
     });
 
   selectAll('.sortIcon')
-    .on('click',function(d,i){
+    .on('click',function(d:any){
 
+      // the array to be sorted
+      const toSort  = d.data;
 
-      // cells
-      //   .transition(t)
-      //   .attr('transform', function (col: any) {
-      //     return ('translate(0, ' + y(rowOrder(d.i)) + ' )'); //the x translation is taken care of by the group this cell is nested in.
-      //   });
+// temporary array holds objects with position and sort-value
+      const mapped = toSort.map(function(el, i) {
+        return { index: i, value: mean(el) };
+      })
+
+      console.log(mapped.map(m=>{return m.value}));
+// sorting the mapped array containing the reduced values
+      mapped.sort(function(a, b) {
+        return a.value > b.value;
+      });
+
+      // mapped.sort();
+
+// container for the resulting order
+      const sortedIndexes = mapped.map(function(el){
+        return el.index;
+      });
+
+      const sortedArray = mapped.map(function(el){
+        return toSort[el.index];
+      });
+
+      console.log(sortedArray.map(a=>{return mean(a)}));
+
+      cells
+        .transition(t)
+        .attr('transform',(cell: any,i) => {
+          // console.log(cell.ind, i, sortedIndexes[i], self.rowOrder[sortedIndexes[i]])
+          return ('translate(0, ' + self.y(self.rowOrder[sortedIndexes[i]]) + ' )'); //the x translation is taken care of by the group this cell is nested in.
+        });
 
     })
 
@@ -825,7 +848,18 @@ class attributeTable {
       // .attr('font-size', function(d) { return d.size+'em'} )
       .attr('font-size',20)
       .text(function(d) { return '\uf0dd' })
-      .attr('y', height + 20)
+      .attr('y', height + 30)
+      .attr('x', col_width / 2)
+      .attr('text-anchor', 'middle')
+
+
+    element.append('text')
+      .attr('font-family', 'FontAwesome')
+      .classed('sortIcon',true)
+      // .attr('font-size', function(d) { return d.size+'em'} )
+      .attr('font-size',20)
+      .text(function(d) { return '\uf0de' })
+      .attr('y', height + 30)
       .attr('x', col_width / 2)
       .attr('text-anchor', 'middle')
 

@@ -69,8 +69,9 @@ class attributeTable {
 
   private idScale = scaleLinear(); //used to size the bars in the first col of the table;
 
-
   private margin = Config.margin;
+
+  private rowOrder: Number[]; //keeps track of the order of rows (changes when a column is sorted)
 
   constructor(parent: Element) {
     this.$node = select(parent);
@@ -128,7 +129,7 @@ class attributeTable {
       .attr('transform', 'translate(0,' + this.margin.axisTop + ')');
 
     this.columnSummaries = svg.append('g')
-      .attr('transform', 'translate(0,' + (this.margin.top - 50) + ')');
+      .attr('transform', 'translate(0,' + (this.margin.top - 70) + ')');
 
 // TABLE
 
@@ -184,20 +185,23 @@ class attributeTable {
     //Find y indexes of all rows
     let allRows = Object.keys(y2personDict).map(Number);
 
+
     //Set height of svg
     this.height = Config.glyphSize * 3 * (max(allRows) - min(allRows) + 1);
     select('.tableSVG').attr('height', this.height + this.margin.top + this.margin.bottom);
 
     this.y.range([0, this.height]).domain([1, max(allRows)]);
+    this.rowOrder = allRows; //will be used to set the y position of each cell/row;
 
 
     //set up first column with #People per row.
     let col: any = {};
     col.data = [];
     col.name = ['# People'];
-    col.ys = allRows;
+    // col.ys = allRows;
     col.type = 'dataDensity';
     col.stats = [];
+    col.isSorted = false;
 
     //Creating a scale for the rects in the personID col in the table.
     let maxAggregates = 1;
@@ -239,9 +243,11 @@ class attributeTable {
           categories = allCategories;
         }
 
+
         for (let cat of categories) {
 
           let col: any = {};
+          col.isSorted = false;
           col.ids = allRows.map((row) => {
             return y2personDict[row]
           });
@@ -264,11 +270,13 @@ class attributeTable {
             });
             return colData;
           });
-          col.ys = allRows;
+          // col.ys = allRows;
           col.type = type;
 
 
           let maxOffset = max(this.colOffsets);
+
+
           this.colOffsets.push(maxOffset + this.buffer * 2 + this.colWidths.categorical);
           colDataAccum.push(col);
 
@@ -280,6 +288,7 @@ class attributeTable {
 
 
         let col: any = {};
+        col.isSorted = false;
         col.ids = allRows.map((row) => {
           return y2personDict[row]
         });
@@ -299,7 +308,7 @@ class attributeTable {
           });
           return colData;
         });
-        col.ys = allRows;
+        // col.ys = allRows;
         col.vector = vector;
         col.type = type;
         col.stats = stats;
@@ -311,6 +320,7 @@ class attributeTable {
         this.colOffsets.push(maxOffset + this.buffer + this.colWidths[type]);
 
         const col: any = {};
+        col.isSorted = false;
         col.ids = allRows.map((row) => {
           return y2personDict[row]
         });
@@ -330,7 +340,7 @@ class attributeTable {
           });
           return colData;
         });
-        col.ys = allRows
+        // col.ys = allRows
         col.type = type;
         colDataAccum.push(col);
       } else if (type === 'idtype') {
@@ -374,11 +384,6 @@ class attributeTable {
     let t = transition('t').duration(500).ease(easeLinear);
     let self = this;
 
-    // let allys = [];
-    // for (var key in this.tableManager.ys) {
-    //   allys.push(+this.tableManager.ys[key])
-    // }
-    //
     let y = this.y;
 
 
@@ -388,7 +393,7 @@ class attributeTable {
       .data(this.colData.map((d, i) => {
         return {
           'name': d.name, 'data': d, 'ind': i, 'type': d.type,
-          'max': d.max, 'min': d.min, 'mean': d.mean, 'category': d.category
+          'max': d.max, 'min': d.min, 'mean': d.mean, 'category': d.category, 'isSorted':d.isSorted
         }
       }), (d) => {
         return d.name
@@ -457,7 +462,7 @@ class attributeTable {
 
     //create backgroundHighlight Bars
     let highlightBars = select('#highlightBarsGroup').selectAll('.highlightBar')
-      .data(this.colData[0].ys.map(d => {
+      .data(this.rowOrder.map(d => {
         return {'y': d}
       }), (d: any) => {
         return d.y
@@ -483,7 +488,7 @@ class attributeTable {
     let cols = this.table.selectAll('.dataCols')
       .data(this.colData.map((d, i) => {
         return {
-          'name': d.name, 'data': d.data, 'ind': i, 'ys': d.ys, 'type': d.type,
+          'name': d.name, 'data': d.data, 'ind': i, 'type': d.type,
           'ids': d.ids, 'stats': d.stats, 'varName': d.name, 'category': d.category
         }
       }), (d) => {
@@ -511,7 +516,7 @@ class attributeTable {
 
     // //Bind data to the cells
     let rowLines = this.table.selectAll('.rowLine')
-      .data(this.colData[0].ys, (d: any) => {
+      .data(this.rowOrder, (d: any) => {
         return d
       });
 
@@ -543,7 +548,8 @@ class attributeTable {
             'id': d.ids[i],
             'name': d.name,
             'data': e,
-            'y': d.ys[i],
+            'ind':i,
+            // 'y': d.ys[i],
             'type': d.type,
             'stats': d.stats,
             'varName': d.name,
@@ -566,8 +572,8 @@ class attributeTable {
 
     cells
       .transition(t)
-      .attr('transform', function (col: any) {
-        return ('translate(0, ' + y(col.y) + ' )'); //the x translation is taken care of by the group this cell is nested in.
+      .attr('transform', (cell: any,i) => {
+        return ('translate(0, ' + y(this.rowOrder[i]) + ' )'); //the x translation is taken care of by the group this cell is nested in.
       });
 
     cellsEnter.attr('opacity', 1);
@@ -591,6 +597,20 @@ class attributeTable {
       }
 
     });
+
+  selectAll('.sortIcon')
+    .on('click',function(d,i){
+
+
+      // cells
+      //   .transition(t)
+      //   .attr('transform', function (col: any) {
+      //     return ('translate(0, ' + y(rowOrder(d.i)) + ' )'); //the x translation is taken care of by the group this cell is nested in.
+      //   });
+
+    })
+
+
 
 
   }
@@ -796,6 +816,17 @@ class attributeTable {
 
       .attr('x', col_width / 2)
       .attr('y', -height * 0.1)
+      .attr('text-anchor', 'middle')
+
+
+    element.append('text')
+      .attr('font-family', 'FontAwesome')
+      .classed('sortIcon',true)
+      // .attr('font-size', function(d) { return d.size+'em'} )
+      .attr('font-size',20)
+      .text(function(d) { return '\uf0dd' })
+      .attr('y', height + 20)
+      .attr('x', col_width / 2)
       .attr('text-anchor', 'middle')
 
   };

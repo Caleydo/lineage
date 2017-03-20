@@ -66,6 +66,7 @@ class attributeTable {
   };
 
   private colOffsets;
+  private catOffset = 30;
 
   private idScale = scaleLinear(); //used to size the bars in the first col of the table;
 
@@ -244,6 +245,11 @@ class attributeTable {
         }
 
 
+        if(categories.length > 2){ //Add spacing around multicolumn categories
+          let numColsBefore = this.colOffsets.length-1;
+          this.colOffsets[numColsBefore] += this.catOffset;
+        }
+
         for (let cat of categories) {
 
           let col: any = {};
@@ -272,14 +278,21 @@ class attributeTable {
           });
           col.type = type;
 
-
           let maxOffset = max(this.colOffsets);
 
 
           this.colOffsets.push(maxOffset + this.buffer * 2 + this.colWidths.categorical);
-          colDataAccum.push(col);
 
+          colDataAccum.push(col);
         }
+
+
+        if(categories.length > 2){ //Add spacing around multicolumn categories
+          let numColsAfter = this.colOffsets.length-1;
+          this.colOffsets[numColsAfter] += this.catOffset;
+        }
+
+
       } else if (type === VALUE_TYPE_INT || type === VALUE_TYPE_REAL) { //quant
 
         let maxOffset = max(this.colOffsets);
@@ -597,21 +610,31 @@ class attributeTable {
   selectAll('.sortIcon')
     .on('click',function(d:any){
 
+      selectAll('.sortIcon')
+        .classed('sortSelected',false)
+
+      select(this)
+        .classed('sortSelected',true)
+
       // the array to be sorted
       const toSort  = d.data;
 
 // temporary array holds objects with position and sort-value
       const mapped = toSort.map(function(el, i) {
-        return { index: i, value: mean(el) };
+        return { index: i, value: +mean(el)};
       })
 
-      console.log(mapped.map(m=>{return m.value}));
-// sorting the mapped array containing the reduced values
-      mapped.sort(function(a, b) {
-        return a.value > b.value;
-      });
+      // sorting the mapped array containing the reduced values
+      if (select(this).classed('ascending')){
+        mapped.sort(function(a, b) {
+          return a.value - b.value;
+        });
+      } else{
+        mapped.sort(function(a, b) {
+          return b.value - a.value;
+        });
+      }
 
-      // mapped.sort();
 
 // container for the resulting order
       const sortedIndexes = mapped.map(function(el){
@@ -622,13 +645,10 @@ class attributeTable {
         return toSort[el.index];
       });
 
-      console.log(sortedArray.map(a=>{return mean(a)}));
-
       cells
         .transition(t)
-        .attr('transform',(cell: any,i) => {
-          // console.log(cell.ind, i, sortedIndexes[i], self.rowOrder[sortedIndexes[i]])
-          return ('translate(0, ' + self.y(self.rowOrder[sortedIndexes[i]]) + ' )'); //the x translation is taken care of by the group this cell is nested in.
+        .attr('transform',(cell: any) => {
+          return ('translate(0, ' + self.y(self.rowOrder[sortedIndexes.indexOf(cell.ind)]) + ' )'); //the x translation is taken care of by the group this cell is nested in.
         });
 
     })
@@ -845,22 +865,25 @@ class attributeTable {
     element.append('text')
       .attr('font-family', 'FontAwesome')
       .classed('sortIcon',true)
+      .classed('descending',true)
       // .attr('font-size', function(d) { return d.size+'em'} )
       .attr('font-size',20)
       .text(function(d) { return '\uf0dd' })
-      .attr('y', height + 30)
-      .attr('x', col_width / 2)
+      .attr('y', height + 20)
+      .attr('x', col_width /6*3.5)
       .attr('text-anchor', 'middle')
 
 
     element.append('text')
       .attr('font-family', 'FontAwesome')
       .classed('sortIcon',true)
+      .classed('ascending',true)
       // .attr('font-size', function(d) { return d.size+'em'} )
       .attr('font-size',20)
       .text(function(d) { return '\uf0de' })
-      .attr('y', height + 30)
-      .attr('x', col_width / 2)
+      // .attr('y', height + 30)
+      .attr('y',height + 30)
+      .attr('x', col_width /6*2.5)
       .attr('text-anchor', 'middle')
 
   };

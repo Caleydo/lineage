@@ -88,22 +88,13 @@ export default class Node {
     this.deceased = 'Y';
   }
 
-  public initialize(table: ITable, row: any) {
+  public initialize(columnNameToIndex: any, row: any) {
 
-    const columns = table.desc.columns;
-
-    const columNameToIndex: {[name: string]: number} = {};
-
-    for (let i = 0;  i < columns.length; i++) {
-      //console.log(columns[i]);
-      const name = columns[i].name;
-      columNameToIndex[name] = i;
-    }
-    this.sex = (row[columNameToIndex.sex] === 'M') ? Sex.Male : Sex.Female;
-    this.bdate = +row[columNameToIndex.bdate];
-    this.ddate = +row[columNameToIndex.ddate];
-    this.x = +row[columNameToIndex.bdate];
-    this.MaID = row[columNameToIndex.MaID].toString();
-    this.PaID = row[columNameToIndex.PaID].toString();
+    this.sex = (row[columnNameToIndex.sex] === 'M') ? Sex.Male : Sex.Female;
+    this.bdate = +row[columnNameToIndex.bdate];
+    this.ddate = +row[columnNameToIndex.ddate];
+    this.x = +row[columnNameToIndex.bdate];
+    this.MaID = row[columnNameToIndex.MaID].toString();
+    this.PaID = row[columnNameToIndex.PaID].toString();
   }
 }

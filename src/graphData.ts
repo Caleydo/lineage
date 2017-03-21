@@ -243,56 +243,29 @@ class GraphData {
     this.ids = await columns[0].names();
     // this.ids = this.ids.map(Number); //covert array to numbers
 
+    const columnDesc = this.graphTable.desc.columns;
+    const columnNameToIndex: {[name: string]: number} = {};
+
+    for (let i = 0; i < columnDesc.length; i++) {
+      //console.log(columns[i]);
+      const name = columnDesc[i].name;
+      columnNameToIndex[name] = i;
+    }
+
     let i = 0;
     for (const row of await this.graphTable.data(range(0, nrow, 1))) {
       const node = new Node(this.ids[i]);
       this.nodes.push(node);
-      node.initialize(this.graphTable, row);
+      node.initialize(columnNameToIndex, row);
       i++;
     }
 
-    // for (const col of columns) {
-    //   const data = await col.data();
-    //   for (const row of range(0, nrow, 1)) {
-    //     const personObj = this.nodes[row];
-    //     personObj.id = +this.ids[row];
-    //     personObj[col.desc.name] = data[row];
-    //   }
-    // }
 
     //Sort nodes by y value, always starting at the founder (largest y) ;
     this.nodes.sort(function (a, b) {
       return b.y - a.y;
     });
-    //
-    // //Initially set all nodes to visible (i.e, not hidden)  and of type 'single' (vs aggregate)
-    // this.nodes.forEach((d) => {
-    //   d.sex = (d['sex'] === 'M') ? Sex.Male : Sex.Female;
-    //   d.bdate = +d.bdate;
-    //   d.x = d.bdate;
-    //   d.MaID = +d.MaID;
-    //   d.PaID = +d.PaID;
-    // });
-    //   d.x = +d.bdate; //set year as x attribute
-    //   d.MaID = +d.MaID;
-    //   d.PaID = +d.PaID;
-    //   d.hidden = false;
-    //   d.aggregated = false;
-    //   d.bdate = +d.bdate;
-    //   // d.deceased = d.deceased === 'Y'; //transform to boolean values
-    //   d.generation = -1; //indicator that generation has not been set
-    //   d.descendant = false; //flag for blood descendants of founders - not in use yet (2/23/17)
-    //   d.family_ids = []; //keeps track of nuclear families a given node belongs to.
-    //   d.clicked = false; //used to keep track of clicked nodes even when they are removed from the visible area. May not need if nodes are not removed and simply scroll out of view.
-    //   d.primary = undefined; //Keep track of primary attribute and what 'affected' means for this attribute data.
-    //   d.secondary = undefined; //Keep track of secondary attribute and what 'affected' means for this attribute data.
-    //   //For Tree structure
-    //   d.hasChildren = false;
-    //   d.children = []; //Array of children
-    //   d.spouse = []; //Array of spouses (some have more than one)
-    //   d.duplicates=[]; //keep track of any duplicates of this node
-    //   d.visited = false; // used for deCycling the tree
-    // });
+
 
     this.defineAffected(this.tableManager.affectedState);
     this.buildTree();

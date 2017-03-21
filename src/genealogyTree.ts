@@ -1318,7 +1318,7 @@ class GenealogyTree {
         if (attr) {
           height = Config.glyphSize * 2;
         }
-        return height
+        return height;
       })
 
     allNodes.selectAll('.attributeBar').filter('.primary')

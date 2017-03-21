@@ -16,7 +16,7 @@ import {VIEW_CHANGED_EVENT, default as TableManager} from './tableManager';
 import {isUndefined} from 'util';
 import Node from './Node';
 import {Sex} from './Node';
-import {ITable} from '../../phovea_core/src/table/ITable';
+import {ITable} from 'phovea_core/src/table/ITable';
 import {CURRENT_YEAR} from './genealogyTree';
 
 

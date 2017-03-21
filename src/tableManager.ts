@@ -569,14 +569,13 @@ export default class TableManager {
    * Updates the active rows for the table visualization, creates a new table view and fires a {TABLE_VIS_ROWS_CHANGED} event.
    * @param newRows
    */
-  set activeGraphRows(newRows: Number[]) {
+  set activeGraphRows(newRows: string[]) {
 
     this.table.col(0).names().then((allIDs) => {
 
       const newRange = [];
       allIDs.forEach((id, i) => {
-
-        if (newRows.indexOf(+id) > -1) {
+        if (newRows.indexOf(id) > -1) {
           newRange.push(i);
         }
       });

@@ -1,8 +1,8 @@
-
+import {ITable} from '../../phovea_core/src/table/ITable';
 export enum Sex {
-    Male,
-    Female,
-    Unknown
+  Male,
+  Female,
+  Unknown
 }
 
 export default class Node {
@@ -15,10 +15,10 @@ export default class Node {
   //keeps track of nodes original Y position - can change for kid grids on hide.
   originalY: number;
   /** This node's ID */
-  id: number;
+  id: string;
   type: string;
-  MaID: number;
-  PaID: number;
+  MaID: string;
+  PaID: string;
   /** Reference to the mother */
   ma: Node;
   /** Reference to the father */
@@ -27,7 +27,7 @@ export default class Node {
   aggregated: boolean;
   /** Year of Birth */
   bdate: number;
-    /** Year of Death */
+  /** Year of Death */
   ddate: number;
   deceased: string;
   // d.deceased = d.deceased === 'Y'; //transform to boolean values
@@ -59,13 +59,15 @@ export default class Node {
   sex: Sex;
 
 
-  constructor() {
+  constructor(id: string) {
     // d.y
-     this.type = 'single';
+    this.type = 'single';
     // d.MaID = +d.MaID;
     // d.PaID = +d.PaID;
     // d.bdate = +d.bdate;
     // d.x = +d.bdate; //set year as x attribute
+
+    this.id = id;
 
 
     this.hidden = false;
@@ -84,5 +86,24 @@ export default class Node {
     this.duplicates = [];
     this.visited = false; // used for deCycling the tree
     this.deceased = 'Y';
+  }
+
+  public initialize(table: ITable, row: any) {
+
+    const columns = table.desc.columns;
+
+    const columNameToIndex: {[name: string]: number} = {};
+
+    for (let i = 0;  i < columns.length; i++) {
+      //console.log(columns[i]);
+      const name = columns[i].name;
+      columNameToIndex[name] = i;
+    }
+    this.sex = (row[columNameToIndex.sex] === 'M') ? Sex.Male : Sex.Female;
+    this.bdate = +row[columNameToIndex.bdate];
+    this.ddate = +row[columNameToIndex.ddate];
+    this.x = +row[columNameToIndex.bdate];
+    this.MaID = row[columNameToIndex.MaID].toString();
+    this.PaID = row[columNameToIndex.PaID].toString();
   }
 }

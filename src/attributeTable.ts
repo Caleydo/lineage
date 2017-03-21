@@ -112,8 +112,8 @@ class attributeTable {
   private async build() {
 
     //Height is a function of the current view and so is set in initData();
-    this.width = 1200 - this.margin.left - this.margin.right
-    this.height = Config.glyphSize * 3 * this.tableManager.graphTable.nrow //- this.margin.top - this.margin.bottom;
+    this.width = 1200 - this.margin.left - this.margin.right;
+    this.height = Config.glyphSize * 3 * this.tableManager.graphTable.nrow; //- this.margin.top - this.margin.bottom;
 
 
     // let t = transition('t').duration(500).ease(easeLinear);
@@ -122,7 +122,7 @@ class attributeTable {
     const svg = this.$node.append('svg')
       .classed('tableSVG', true)
       .attr('width', this.width + this.margin.left + this.margin.right)
-      .attr('height', this.height + this.margin.top + this.margin.bottom)
+      .attr('height', this.height + this.margin.top + this.margin.bottom);
 
 
 //HEADERS

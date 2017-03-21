@@ -116,8 +116,8 @@ class GraphData {
       parentChildEdge.target = duplicateNode;
 
       //clear parent references
-      node.MaID = 0;
-      node.PaID = 0;
+      node.MaID = '';
+      node.PaID = '';
 
       node.ma = undefined;
       node.pa = undefined;
@@ -236,22 +236,29 @@ class GraphData {
     const columns = this.graphTable.cols();
     const nrow = this.graphTable.nrow;
 
-    range(0, nrow, 1).forEach(() => {
-      this.nodes.push(new Node());
-    });
+    // range(0, nrow, 1).forEach(() => {
+    //   this.nodes.push();
+    // });
 
     this.ids = await columns[0].names();
     // this.ids = this.ids.map(Number); //covert array to numbers
 
-    for (const col of columns) {
-      const data = await col.data();
-      for (const row of range(0, nrow, 1)) {
-        const personObj = this.nodes[row];
-        personObj.id = +this.ids[row];
-
-        personObj[col.desc.name] = data[row];
-      }
+    let i = 0;
+    for (const row of await this.graphTable.data(range(0, nrow, 1))) {
+      const node = new Node(this.ids[i]);
+      this.nodes.push(node);
+      node.initialize(this.graphTable, row);
+      i++;
     }
+
+    // for (const col of columns) {
+    //   const data = await col.data();
+    //   for (const row of range(0, nrow, 1)) {
+    //     const personObj = this.nodes[row];
+    //     personObj.id = +this.ids[row];
+    //     personObj[col.desc.name] = data[row];
+    //   }
+    // }
 
     //Sort nodes by y value, always starting at the founder (largest y) ;
     this.nodes.sort(function (a, b) {
@@ -259,13 +266,13 @@ class GraphData {
     });
     //
     // //Initially set all nodes to visible (i.e, not hidden)  and of type 'single' (vs aggregate)
-    this.nodes.forEach((d) => {
-      d.sex = (d['sex'] === 'M') ? Sex.Male : Sex.Female;
-      d.bdate = +d.bdate;
-      d.x = d.bdate;
-      d.MaID = +d.MaID;
-      d.PaID = +d.PaID;
-    });
+    // this.nodes.forEach((d) => {
+    //   d.sex = (d['sex'] === 'M') ? Sex.Male : Sex.Female;
+    //   d.bdate = +d.bdate;
+    //   d.x = d.bdate;
+    //   d.MaID = +d.MaID;
+    //   d.PaID = +d.PaID;
+    // });
     //   d.x = +d.bdate; //set year as x attribute
     //   d.MaID = +d.MaID;
     //   d.PaID = +d.PaID;
@@ -902,7 +909,7 @@ class GraphData {
       }
     });
 
-    const ydiff = Math.round(endNode.originalY - endNode.originalY);
+    const ydiff = Math.round(endNode.originalY - endNode.y);
 
     this.nodes.forEach((node) => {
       if (node.originalY > startIndex) {

@@ -478,8 +478,8 @@ class attributeTable {
 
     //create backgroundHighlight Bars
     let highlightBars = select('#highlightBarsGroup').selectAll('.highlightBar')
-      .data(this.rowOrder.map(d => {
-        return {'y': d}
+      .data(this.rowOrder.map((d,i) => {
+        return {'y': d, 'i':i}
       }), (d: any) => {
         return d.y
       });
@@ -493,8 +493,7 @@ class attributeTable {
     highlightBars
       .attr('x', 0)
       .attr('y', (d: any) => {
-        return this.y(d.y)
-      })
+        return this.y(this.rowOrder[d.i])})
       .attr('width', max(this.colOffsets))
       .attr('height', this.rowHeight)
       .attr('opacity', 0);
@@ -567,11 +566,11 @@ class attributeTable {
     selectAll('.slopeLine')
       .attr('x1', 0)
       .attr('y1', (d: any) => {
-        return this.y(d.y) + this.rowHeight
+        return this.y(d.y) + (this.rowHeight/2)
       })
       .attr('x2', -Config.slopeChartWidth)
       .attr('y2', (d: any) => {
-        return this.y(this.rowOrder[d.ind]) + this.rowHeight
+        return this.y(this.rowOrder[d.ind]) + (this.rowHeight/2)
       })
 
 
@@ -700,13 +699,17 @@ class attributeTable {
       selectAll('.slopeLine')
         .attr('x1', 0)
         .attr('y1', (d: any) => {
-          console.log(d.ind,sortedIndexes.indexOf(d.ind))
-          return self.y(self.rowOrder[sortedIndexes.indexOf(d.ind)]) + self.rowHeight
+          // console.log(d.ind,sortedIndexes.indexOf(d.ind))
+          return self.y(self.rowOrder[sortedIndexes.indexOf(d.ind)]) + (self.rowHeight/2)
         })
         .attr('x2', -Config.slopeChartWidth)
         .attr('y2', (d: any) => {
-          return self.y(self.rowOrder[d.ind]) + self.rowHeight
+          return self.y(self.rowOrder[d.ind]) + (self.rowHeight/2)
         })
+
+      highlightBars
+        .attr('y', (d: any) => {
+          return self.y(self.rowOrder[sortedIndexes.indexOf(d.i)])})
 
     })
 

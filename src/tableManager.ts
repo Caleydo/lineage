@@ -184,10 +184,12 @@ export default class TableManager {
     } else if (this.secondaryAttribute && attribute === this.secondaryAttribute.name) {
       selectedAttribute = this.secondaryAttribute;
     } else { //Attribute is neither primary nor secondary nor POI;
+      console.log('neither POI, primary, or secondary')
       return undefined;
     }
 
     const ids = selectedAttribute.personIDs;
+
     if (ids.indexOf(personID) > -1) {
       const index = ids.indexOf(personID);
       const value = selectedAttribute.data[index];
@@ -260,7 +262,7 @@ export default class TableManager {
     //Store data and associated personIDs for graph rendering of attribute bars
     const attributeDefinition: IPrimaryAttribute = {
       name: attributeName, primary: primarySecondary === 'primary', type: attributeVector.valuetype.type,
-      'data': await attributeVector.data(), 'personIDs': (await attributeVector.names()).map(Number)
+      'data': await attributeVector.data(), 'personIDs': (await attributeVector.names())
     };
 
     const data = await attributeVector.data();
@@ -365,7 +367,7 @@ export default class TableManager {
     }
 
     const data = await attributeVector.data();
-    const personIDs = (await attributeVector.names()).map(Number);
+    const personIDs = (await attributeVector.names());
 
     this.affectedState = ({
       name: varName,

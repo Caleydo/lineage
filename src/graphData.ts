@@ -491,6 +491,7 @@ class GraphData {
       const data = this.tableManager.getAttribute(affectedState.name, node.id);
       node.affected = affectedState.isAffected(data);
     });
+
   }
 
   /**

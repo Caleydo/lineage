@@ -265,7 +265,7 @@ class GraphData {
       d.x = d.bdate;
       d.MaID = +d.MaID;
       d.PaID = +d.PaID;
-    };
+    });
     //   d.x = +d.bdate; //set year as x attribute
     //   d.MaID = +d.MaID;
     //   d.PaID = +d.PaID;

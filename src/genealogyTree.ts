@@ -57,6 +57,7 @@ import {
 
 import {PRIMARY_SECONDARY_SELECTED, POI_SELECTED} from './tableManager';
 import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL} from 'phovea_core/src/datatype';
+import {TABLE_SORTED_EVENT} from './attributeTable'
 import Node from './Node';
 import {Sex} from './Node';
 
@@ -111,6 +112,8 @@ class GenealogyTree {
 
   private aggregatingLevels;
 
+  private y2personDict;
+
   private interGenerationScale = scaleLinear();
 
   private self;
@@ -150,6 +153,14 @@ class GenealogyTree {
       return this.x(d.x);
     }).y((d: any) => {
       return this.y(d.y);
+    })
+    .curve(curveBasis);
+
+  private slopeLineFunction = line < any >()
+    .x((d: any) => {
+      return d.x;
+    }).y((d: any) => {
+      return d.y;
     })
     .curve(curveBasis);
 
@@ -202,7 +213,7 @@ class GenealogyTree {
     // window.onscroll = (e:any)=>{console.log(e,'user scrolled')}
 
     const svg = this.$node.append('svg')
-      .attr('width', this.width + this.margin.left + this.margin.right)
+      .attr('width', this.width + Config.slopeChartWidth + this.margin.left + this.margin.right)
       .attr('id', 'graph');
 
     //Create gradients for fading life lines and kidGrids
@@ -297,6 +308,11 @@ class GenealogyTree {
     select('#allBars')
       .append('g')
       .attr('id', 'highlightBars');
+
+    //create a group for slopeChart
+    select('#genealogyTree')
+      .append('g')
+      .attr('id', 'slopeChart');
 
     //create a group for lifeLines
     select('#genealogyTree')
@@ -470,6 +486,7 @@ class GenealogyTree {
         , function (d: any) {
           return d.id;
         });
+
 
     parentEdgePaths.exit().transition().duration(400).style('opacity', 0).remove();
 
@@ -1420,6 +1437,88 @@ class GenealogyTree {
 
   }
 
+  private addSlopeChart(){
+
+    //Find y indexes of all rows
+    let allPeople = Object.keys(this.data.yValues).map(Number);
+
+    //Create a dictionary of y value to people
+    let y2personDict = {};
+    let yDict = this.data.yValues;
+
+    // console.log('yDict', yDict)
+    allPeople.forEach((person) => {
+      if (person in yDict) { //may not be if dangling nodes were removed
+        //Handle Duplicate Nodes
+        yDict[person].forEach((y) => {
+          if (y in y2personDict) {
+            y2personDict[y].push(person);
+          } else {
+            y2personDict[y] = [person];
+          }
+        })
+      }
+    });
+
+    //Find y indexes of all rows
+    let rowOrder = Object.keys(y2personDict).map(Number);
+
+    this.y2personDict = y2personDict;
+
+    let t = transition('t').duration(500).ease(easeLinear);
+
+    //create slope Lines
+    // //Bind data to the cells
+    let slopeLines = select('#slopeChart').selectAll('.slopeLine')
+      .data(rowOrder.map((d: any,i) => {
+        let nodes = y2personDict[d].map((id)=>{return this.data.nodes.filter((n)=>{return n.id == id.toString()})})
+          return {y:d, ind:i, x:max(nodes,(n:Node)=>{return n[0].x})}}),(d:any)=> {return d.y});
+
+    slopeLines.exit().remove();
+
+    let slopeLinesEnter = slopeLines.enter().append('path') ;
+
+    slopeLines = slopeLinesEnter.merge(slopeLines)
+
+    slopeLines
+      .attr('class', 'slopeLine')
+      .transition(t)
+      .attr('d', (d:any) => {
+        return this.slopeChart(d,rowOrder)
+      })
+      .style('stroke','url(#gradient)');
+  }
+
+  //Path generator for Slope Chart Lines
+  private slopeChart(d,rowOrder) {
+
+    let nx = Config.slopeChartWidth*0.3;
+    let width = Config.slopeChartWidth;
+    // let endpoint = this.width + 40;
+
+    let linedata = [{
+      x: this.x(d.x),
+      y: this.y(rowOrder[d.ind])
+    },
+      {
+          x: this.width,
+          y:this.y(rowOrder[d.ind])
+        },
+        {
+          x:  this.width + Config.slopeChartWidth - nx,
+          y: this.y(d.y)
+        },
+      {
+        x: this.width + Config.slopeChartWidth,
+        y: this.y(d.y)
+      }];
+
+
+    return this.slopeLineFunction(linedata);
+  }
+
+
+
   /**
    *
    * This function updates the nodes in the genealogy tree
@@ -1431,6 +1530,7 @@ class GenealogyTree {
     this.addHightlightBars();
     this.addLifeLines();
     this.fillAttributeBars();
+    this.addSlopeChart();
   }
 
   private update_time_axis() {
@@ -1712,6 +1812,20 @@ class GenealogyTree {
       // this.data = item;
       this.update();
     });
+
+    events.on(TABLE_SORTED_EVENT,(evt,item) =>{
+
+      let t = transition('t').duration(500).ease(easeLinear);
+
+      selectAll('.slopeLine')
+        .transition(t)
+        .attr('d', (d: any) => {
+          let nodes = this.y2personDict[item.rowOrder[item.sortedIndexes.indexOf(d.ind)]].map((id)=>{return this.data.nodes.filter((n)=>{return n.id == id.toString()})})
+          // console.log(max(nodes,(n:Node)=>{console.log('node is ', n[0]); return n[0].x}))
+          return this.slopeChart({'y':d.y, 'ind':item.sortedIndexes.indexOf(d.ind), x:max(nodes,(n:Node)=>{return n[0].x})},item.rowOrder)
+        });
+
+    })
 
     events.on(PRIMARY_SECONDARY_SELECTED, (evt, attribute) => {
 

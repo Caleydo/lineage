@@ -28,6 +28,8 @@ export class Config {
 
   public static slopeChartWidth = 200;
 
+  public static rowHeight = Config.glyphSize * 2.5 - 4;
+
 
   public static expPanelWidth = '300px';
   public static colGraphTableWidth = '100%';

@@ -525,6 +525,7 @@ rect.selected{
   display: flex;
 }
 
+
 .node a{
 visibility:hidden;
 }
@@ -539,9 +540,11 @@ visibility:hidden;
 }
 
 .slopeLine{
-  stroke-width: 2;
+  stroke-width:6;
   stroke:#9e9d9b;
   opacity:.4;
+  fill:none;
+  //fill: #dfdfdf
 }
 
 .selectedSlope{

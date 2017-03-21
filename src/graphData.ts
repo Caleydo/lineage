@@ -28,6 +28,7 @@ class GraphData {
   private tableManager: TableManager;
   private ids: string[]; //unique identifier for each person. Is used to create new range on graphView
 
+  public yValues;
 
   //Array of Parent Child Edges
   public parentChildEdges = [];
@@ -374,6 +375,7 @@ class GraphData {
 
     //Assign y values to the tableManager object
     this.tableManager.yValues = dict;
+    this.yValues = dict; //store dict for tree to use when creating slope chart
   }
 
   /**

@@ -260,7 +260,6 @@ class GraphData {
       i++;
     }
 
-
     //Sort nodes by y value, always starting at the founder (largest y) ;
     this.nodes.sort(function (a, b) {
       return b.y - a.y;

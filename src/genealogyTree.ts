@@ -898,7 +898,7 @@ class GenealogyTree {
     selectAll('.bars')
       .on('contextmenu', (d) => {
         this.data.hideNodes(Math.round(d['y']), true);
-        // this.data.collapseFamilies(d['family_ids'].slice(-1))
+        // this.data.collapseFamilies(d['familyIds'].slice(-1))
         this.update_visible_nodes();
         event.preventDefault();
 

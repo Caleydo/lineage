@@ -57,7 +57,7 @@ import {
 
 import {PRIMARY_SECONDARY_SELECTED, POI_SELECTED} from './tableManager';
 import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL} from 'phovea_core/src/datatype';
-import {TABLE_SORTED_EVENT} from './attributeTable'
+// import {TABLE_SORTED_EVENT} from './attributeTable'
 import Node from './Node';
 import {Sex} from './Node';
 
@@ -213,7 +213,7 @@ class GenealogyTree {
     // window.onscroll = (e:any)=>{console.log(e,'user scrolled')}
 
     const svg = this.$node.append('svg')
-      .attr('width', this.width + Config.slopeChartWidth + this.margin.left + this.margin.right)
+      .attr('width', this.width + this.margin.left + this.margin.right)
       .attr('id', 'graph');
 
     //Create gradients for fading life lines and kidGrids
@@ -240,6 +240,22 @@ class GenealogyTree {
       .attr('offset', '100%')
       .attr('stop-color', 'white')
       .attr('stop-opacity', 0);
+
+    const slopeGradient = svg.append('defs')
+      .append('linearGradient')
+      .attr('id','linear')
+        .attr('x1','0%')
+      .attr('y1','0%')
+      .attr('x2','100%')
+      .attr('y2','0%');
+
+    slopeGradient.append('stop')
+      .attr('offset', '0%')
+      .attr('stop-color','#05a')
+
+    slopeGradient.append('stop')
+      .attr('offset', '0%')
+      .attr('stop-color','#0a5')
 
 
     const kidGridGradient = svg.append('defs')
@@ -1472,7 +1488,7 @@ class GenealogyTree {
     let slopeLines = select('#slopeChart').selectAll('.slopeLine')
       .data(rowOrder.map((d: any,i) => {
         let nodes = y2personDict[d].map((id)=>{return this.data.nodes.filter((n)=>{return n.id == id.toString()})})
-          return {y:d, ind:i, x:max(nodes,(n:Node)=>{return n[0].x})}}),(d:any)=> {return d.y});
+          return {y:d, ind:i, x:max(nodes,(n:Node)=>{return n[0].ddate})}}),(d:any)=> {return d.y});
 
     slopeLines.exit().remove();
 
@@ -1486,7 +1502,8 @@ class GenealogyTree {
       .attr('d', (d:any) => {
         return this.slopeChart(d,rowOrder)
       })
-      .style('stroke','url(#gradient)');
+      .style('stroke-linecap','round')
+      // .style('stroke','url(#slopeGradient)');
   }
 
   //Path generator for Slope Chart Lines
@@ -1530,7 +1547,7 @@ class GenealogyTree {
     this.addHightlightBars();
     this.addLifeLines();
     this.fillAttributeBars();
-    this.addSlopeChart();
+    // this.addSlopeChart();
   }
 
   private update_time_axis() {
@@ -1813,19 +1830,19 @@ class GenealogyTree {
       this.update();
     });
 
-    events.on(TABLE_SORTED_EVENT,(evt,item) =>{
-
-      let t = transition('t').duration(500).ease(easeLinear);
-
-      selectAll('.slopeLine')
-        .transition(t)
-        .attr('d', (d: any) => {
-          let nodes = this.y2personDict[item.rowOrder[item.sortedIndexes.indexOf(d.ind)]].map((id)=>{return this.data.nodes.filter((n)=>{return n.id == id.toString()})})
-          // console.log(max(nodes,(n:Node)=>{console.log('node is ', n[0]); return n[0].x}))
-          return this.slopeChart({'y':d.y, 'ind':item.sortedIndexes.indexOf(d.ind), x:max(nodes,(n:Node)=>{return n[0].x})},item.rowOrder)
-        });
-
-    })
+    // events.on(TABLE_SORTED_EVENT,(evt,item) =>{
+    //
+    //   let t = transition('t').duration(500).ease(easeLinear);
+    //
+    //   selectAll('.slopeLine')
+    //     .transition(t)
+    //     .attr('d', (d: any) => {
+    //       let nodes = this.y2personDict[item.rowOrder[item.sortedIndexes.indexOf(d.ind)]].map((id)=>{return this.data.nodes.filter((n)=>{return n.id == id.toString()})})
+    //       // console.log(max(nodes,(n:Node)=>{console.log('node is ', n[0]); return n[0].x}))
+    //       return this.slopeChart({'y':d.y, 'ind':item.sortedIndexes.indexOf(d.ind), x:max(nodes,(n:Node)=>{return n[0].ddate ? n[0].ddate : n[0].bdate})},item.rowOrder)
+    //     });
+    //
+    // })
 
     events.on(PRIMARY_SECONDARY_SELECTED, (evt, attribute) => {
 

@@ -16,8 +16,6 @@ import {curveBasis,curveLinear} from 'd3-shape';
 
 import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL, VALUE_TYPE_STRING} from 'phovea_core/src/datatype';
 
-export const TABLE_SORTED_EVENT = 'table_sorted_event';
-
 import {line} from 'd3-shape';
 
 import {
@@ -57,7 +55,7 @@ class attributeTable {
   private tableManager;
   private colData;    // <- everything we need to bind
 
-  private rowHeight = Config.rowHeight
+  private rowHeight = Config.glyphSize * 2.5 - 4;
   private colWidths = {
     idtype: this.rowHeight * 4,
     categorical: this.rowHeight,
@@ -68,6 +66,13 @@ class attributeTable {
     dataDensity: this.rowHeight
   };
 
+  private lineFunction = line < any >()
+    .x((d: any) => {
+      return d.x;
+    }).y((d: any) => {
+      return d.y;
+    })
+    .curve(curveBasis);
 
 
   private colOffsets;
@@ -132,20 +137,20 @@ class attributeTable {
 
 //HEADERS
     this.tableHeader = svg.append('g')
-      .attr('transform', 'translate(0,'  + this.margin.axisTop + ')');
+      .attr('transform', 'translate(' + Config.slopeChartWidth + ' , '  + this.margin.axisTop + ')');
 
     this.columnSummaries = svg.append('g')
-      .attr('transform', 'translate(0,'  +  (this.margin.top - 70) + ')');
+      .attr('transform', 'translate(' + Config.slopeChartWidth + ' , '  +  (this.margin.top - 70) + ')');
 
 // TABLE
 
     svg.append('g')
-      .attr('transform', 'translate(0,'  +  this.margin.top + ')')
+      .attr('transform', 'translate(' + Config.slopeChartWidth + ' , '  +  this.margin.top + ')')
       .attr('id', 'highlightBarsGroup');
 
 
     this.table = svg.append('g')
-      .attr('transform', 'translate(0,'  +  this.margin.top + ')');
+      .attr('transform', 'translate(' + Config.slopeChartWidth + ' , '  +  this.margin.top + ')');
   }
 
   public async initData() {
@@ -555,6 +560,38 @@ class attributeTable {
         return this.y(d) + this.rowHeight
       })
 
+    //create slope Lines
+    // //Bind data to the cells
+    let slopeLines = this.table.selectAll('.slopeLine')
+      .data(this.rowOrder.map((d: any,i) => {
+        return {y:d, ind:i}})
+      ,d=> {return d.y});
+
+    slopeLines.exit().remove();
+
+    let slopeLinesEnter = slopeLines.enter().append('path') ; //append('line').classed('slopeLine', true);
+
+
+    slopeLines = slopeLinesEnter.merge(slopeLines)
+
+    slopeLines
+      .attr('class', 'slopeLine')
+      .transition(t)
+      .attr('d', (d: Node) => {
+          return this.slopeChart(d)
+      });
+
+
+    // selectAll('.slopeLine')
+    //   .attr('x1', -Config.slopeChartWidth *.2)
+    //   .attr('y1', (d: any) => {
+    //     return this.y(d.y) + (this.rowHeight/2)
+    //   })
+    //   .attr('x2', -Config.slopeChartWidth*1.2)
+    //   .attr('y2', (d: any) => {
+    //     return this.y(this.rowOrder[d.ind]) + (this.rowHeight/2)
+    //   })
+
 
     //Bind data to the cells
     let cells = cols.selectAll('.cell')
@@ -678,12 +715,17 @@ class attributeTable {
           return ('translate(0, ' + self.y(self.rowOrder[sortedIndexes.indexOf(cell.ind)]) + ' )'); //the x translation is taken care of by the group this cell is nested in.
         });
 
+      d.ind = sortedIndexes.indexOf(d.ind);
+
+      selectAll('.slopeLine')
+        .transition(t)
+        .attr('d', (d: any) => {
+          return self.slopeChart({y:d.y, ind:sortedIndexes.indexOf(d.ind)})
+        });
+
       highlightBars
         .attr('y', (d: any) => {
           return self.y(self.rowOrder[sortedIndexes.indexOf(d.i)])})
-
-
-      events.fire(TABLE_SORTED_EVENT,{sortedIndexes,rowOrder:self.rowOrder});
 
     })
 
@@ -1403,6 +1445,34 @@ class attributeTable {
 
 
   }
+
+
+  private slopeChart(d) {
+
+      let nx = -Config.slopeChartWidth*0.2;
+      let width = -Config.slopeChartWidth;
+
+      let linedata = [{
+        x: 0,
+        y: this.y(this.rowOrder[d.ind]) + (this.rowHeight/2)
+      },
+        {
+          x: nx,
+          y: this.y(this.rowOrder[d.ind]) + (this.rowHeight/2)
+        },
+        {
+          x:  width - nx,
+          y: this.y(d.y) + (this.rowHeight/2)
+        },
+        {
+          x:  width,
+          y: this.y(d.y) + (this.rowHeight/2)
+        }];
+
+      return this.lineFunction(linedata);
+  }
+
+
 
 //
 //     // stick on the median

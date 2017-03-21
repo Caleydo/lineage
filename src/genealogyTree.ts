@@ -557,6 +557,9 @@ class GenealogyTree {
 
         let ageAtDeath = Math.abs(this.x(d['ddate']) - this.x(d['bdate']));
         let ageToday = Math.abs(this.x(year) - this.x(d['bdate']));
+        if (isNaN(ageAtDeath) && isNaN(ageToday)) {
+          return 0;
+        }
         return (+d['ddate']) ? ageAtDeath : ageToday;
       })
       .attr('height', Config.glyphSize / 8)
@@ -586,6 +589,10 @@ class GenealogyTree {
         let ageAtDeath = Math.abs(this.x(d['ddate']) - this.x(d['bdate']));
         let ageToday = Math.abs(this.x(year) - this.x(d['bdate']))
 
+        if(isNaN(ageAtDeath) && isNaN(ageToday)) {
+          return '';
+        }
+
         return (+d['ddate']) ? ageAtDeath : ageToday;
 //                 return Math.abs(this.x(d['ddate']) - this.x(d['bdate']));
       })
@@ -594,8 +601,10 @@ class GenealogyTree {
         let year = new Date().getFullYear();
 
         let ageAtDeath = (d['ddate'] - d['bdate']);
-        let ageToday = (year - d['bdate'])
-
+        let ageToday = (year - d['bdate']);
+        if (isNaN(ageAtDeath) && isNaN(ageToday)) {
+          return "";
+        }
         return (+d['ddate']) ? ageAtDeath : ageToday;
 
 //                 return Math.abs(+d['ddate'] - +d['bdate']);
@@ -987,9 +996,8 @@ class GenealogyTree {
       })
 
 
-
     //Position  Kid Grid Nodes (i.e leaf siblings)
-    allNodes.filter((d:any) => {
+    allNodes.filter((d: any) => {
       return d.hidden && !d.hasChildren && d.ma && d.pa
     })
       .transition(t)

@@ -315,11 +315,11 @@ class GenealogyTree {
     //Create group for all time axis
     const axis = svg.append('g')
       .attr('transform', 'translate(' + this.margin.left + ',' + this.margin.axisTop + ')')
-      .attr('id', 'axis')
+      .attr('id', 'axis');
 
     //Create group for legend
     const legend = axis.append('g')
-      .attr('id', 'legend')
+      .attr('id', 'legend');
 
     // legend
     //   .append('rect')
@@ -331,15 +331,15 @@ class GenealogyTree {
       .attr('width', this.width)
       .attr('height', Config.legendHeight)
       .attr('y', -Config.legendHeight)
-      .attr('fill', 'white')
+      .attr('fill', 'white');
 
     axis.append('g')
       .attr('id', 'visible_axis')
-      .call(this.visibleXAxis)
+      .call(this.visibleXAxis);
 
     axis.append('g')
       .attr('id', 'extremes_axis')
-      .call(this.extremesXAxis)
+      .call(this.extremesXAxis);
 
     // legend.append('g')
     //   .attr('id','legendIcons')
@@ -390,10 +390,10 @@ class GenealogyTree {
       return Math.round(+d.y);
     })];
 
-    this.height = Config.glyphSize * 3 * (yrange[1] - yrange[0] + 1) // - this.margin.top - this.margin.bottom;
+    this.height = Config.glyphSize * 3 * (yrange[1] - yrange[0] + 1); // - this.margin.top - this.margin.bottom;
     // console.log('tree height is ', this.height)
 
-    this.y.range([0, this.height]).domain(yrange)
+    this.y.range([0, this.height]).domain(yrange);
 
     this.interGenerationScale.range([.75, .25]).domain([2, nodes.length]);
 
@@ -458,7 +458,7 @@ class GenealogyTree {
     edgePaths
       .transition(t.transition().ease(easeLinear))
       .attr('opacity', 1)
-      .attr('stroke-width', Config.glyphSize / 5)
+      .attr('stroke-width', Config.glyphSize / 5);
 
     let parentEdgePaths = edgeGroup.selectAll('.parentEdges')// only draw parent parent edges if neither parent is aggregated
       .data(parentParentEdges
@@ -475,7 +475,7 @@ class GenealogyTree {
       .enter()
       .append('path');
 
-    parentEdgePathsEnter.attr('opacity', 0)
+    parentEdgePathsEnter.attr('opacity', 0);
 
     parentEdgePaths = parentEdgePathsEnter.merge(parentEdgePaths);
 
@@ -485,8 +485,8 @@ class GenealogyTree {
       .style('fill', 'none')
       .transition(t)
       .attr('d', (d) => {
-        return this.parentEdge(d, this.lineFunction)
-      })
+        return GenealogyTree.parentEdge(d, this.lineFunction)
+      });
 
     parentEdgePaths
       .transition(t.transition().ease(easeLinear))
@@ -524,7 +524,7 @@ class GenealogyTree {
       })
       .classed('collapsed', (d) => {
         return d['hidden'];
-      })
+      });
 
     //Add life line groups
     const lifeRectsEnter = allLifeLinesEnter.filter((d) => {
@@ -1510,7 +1510,7 @@ class GenealogyTree {
     x_ticks = x_ticks.concat(ticks(filtered_domain[0], filtered_domain[1], 10));
 
 
-    if (all_domain[1] != filtered_domain[1]) {
+    if (all_domain[1] !== filtered_domain[1]) {
 
       x_range.push(this.width * 0.95);
       x_domain.push(filtered_domain[1]);
@@ -1571,19 +1571,19 @@ class GenealogyTree {
     // 	          console.log(divHeight, this.y(65),this.y(72), (divHeight + scrollOffset) - 75)
 
     let minY = this.y.invert(scrollOffset) - 2;
-    let maxY = this.y.invert(divHeight + scrollOffset - 75)
+    let maxY = this.y.invert(divHeight + scrollOffset - 75);
 
     let filtered_nodes = this.data.nodes.filter((d) => {
-      return d['y'] >= Math.round(minY)
+      return d['y'] >= Math.round(minY);
     });
 
 
     let filtered_parentParentEdges = this.data.parentParentEdges.filter((d) => {
-      return d['ma'].y >= Math.round(minY) && d['pa'].y >= Math.round(minY)
+      return d['ma'].y >= Math.round(minY) && d['pa'].y >= Math.round(minY);
     });
 
     let filtered_parentChildEdges = this.data.parentChildEdges.filter((d) => {
-      return d.target.y >= Math.round(minY)
+      return d.target.y >= Math.round(minY);
     });
 
 
@@ -1598,7 +1598,7 @@ class GenealogyTree {
 
     if (node['sex'] === 'M') {
       if (node['hidden'] && node['hasChildren'])
-        return this.x(node.x) - Config.hiddenGlyphSize
+        return this.x(node.x) - Config.hiddenGlyphSize;
       if (!node['hidden'])
         return this.x(node.x) - Config.glyphSize;
       if (node['hidden'] && !node['hasChildren'])
@@ -1611,9 +1611,9 @@ class GenealogyTree {
   private yPOS(node) {
     if (node['sex'] === 'M') {
       if (node['hidden'] && node['hasChildren'])
-        return this.y(node.y) - Config.hiddenGlyphSize
+        return this.y(node.y) - Config.hiddenGlyphSize;
       if (!node['hidden'])
-        return this.y(node.y) - Config.glyphSize
+        return this.y(node.y) - Config.glyphSize;
       if (node['hidden'] && !node['hasChildren'])
         return this.y(node.y) - Config.hiddenGlyphSize;
     }
@@ -1624,11 +1624,11 @@ class GenealogyTree {
   private elbow(d, interGenerationScale, lineFunction, curves) {
     const xdiff = d.ma.x - d.target.x;
     const ydiff = d.ma.y - d.target.y;
-    let nx = d.ma.x - xdiff - 4 //* interGenerationScale(ydiff)
+    let nx = d.ma.x - xdiff - 4; //* interGenerationScale(ydiff)
 
     let linedata;
     if (curves) {
-      nx = d.ma.x - xdiff * interGenerationScale(ydiff)
+      nx = d.ma.x - xdiff * interGenerationScale(ydiff);
       linedata = [{
         x: (d.ma.x + d.pa.x) / 2,
         y: (d.ma.y + d.pa.y) / 2
@@ -1673,7 +1673,7 @@ class GenealogyTree {
     return lineFunction(linedata);
   }
 
-  private parentEdge(d, lineFunction) {
+  private static parentEdge(d, lineFunction) {
     const linedata = [{
       x: d['ma'].x,
       y: d['ma'].y
@@ -1712,14 +1712,14 @@ class GenealogyTree {
       this.update();
     });
 
-    events.on(PRIMARY_SECONDARY_SELECTED, (evt, Attribute) => {
+    events.on(PRIMARY_SECONDARY_SELECTED, (evt, attribute) => {
 
-      if (Attribute.primary) {
-        this.primaryAttribute = Attribute;
+      if (attribute.primary) {
+        this.primaryAttribute = attribute;
       } else {
-        this.secondaryAttribute = Attribute;
+        this.secondaryAttribute = attribute;
       }
-      this.update_visible_nodes()
+      this.update_visible_nodes();
 
       this.update_legend();
     });

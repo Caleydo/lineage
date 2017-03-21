@@ -274,10 +274,10 @@ class GraphData {
     this.buildTree();
 
     //Create fake birthdays for people w/o a bdate.
-    this.nodes.forEach((n)=>{
-      if (+n.bdate === 0 ) {//random number
+    this.nodes.forEach((n) => {
+      if (+n.bdate === 0 || isNaN(n.bdate)) { //random number
         //subtract 20 from the age of the first kid
-        if (n.hasChildren){
+        if (n.hasChildren) {
           n.bdate = n.children[0].bdate - 20;
           n.x = n.bdate;
         }

@@ -58,6 +58,7 @@ import {
 import {PRIMARY_SECONDARY_SELECTED, POI_SELECTED} from './tableManager';
 import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL} from 'phovea_core/src/datatype';
 
+export const CURRENT_YEAR = 2014;
 
 /**
  * The visualization showing the genealogy graph
@@ -389,7 +390,7 @@ class GenealogyTree {
       return Math.round(+d.y);
     })];
 
-    this.height = Config.glyphSize * 3 * (yrange[1] - yrange[0] + 1)// - this.margin.top - this.margin.bottom;
+    this.height = Config.glyphSize * 3 * (yrange[1] - yrange[0] + 1) // - this.margin.top - this.margin.bottom;
     // console.log('tree height is ', this.height)
 
     this.y.range([0, this.height]).domain(yrange)
@@ -397,7 +398,7 @@ class GenealogyTree {
     this.interGenerationScale.range([.75, .25]).domain([2, nodes.length]);
 
     select('#graph')
-      .attr('height', this.height + this.margin.top + this.margin.bottom)
+      .attr('height', this.height + this.margin.top + this.margin.bottom);
 
     this.update_edges();
     this.update_nodes();
@@ -418,7 +419,7 @@ class GenealogyTree {
 
     let t = transition('t').duration(500).ease(easeLinear);
 
-    let edgeGroup = select('#genealogyTree').select('#edges')
+    let edgeGroup = select('#genealogyTree').select('#edges');
 
     //Only draw parentedges if target node is not
     let edgePaths = edgeGroup.selectAll('.edges')
@@ -553,10 +554,8 @@ class GenealogyTree {
     lifeRects.selectAll('rect')
       .attr('y', Config.glyphSize)
       .attr('width', (d) => {
-        let year = new Date().getFullYear();
-
         let ageAtDeath = Math.abs(this.x(d['ddate']) - this.x(d['bdate']));
-        let ageToday = Math.abs(this.x(year) - this.x(d['bdate']));
+        let ageToday = Math.abs(this.x(CURRENT_YEAR) - this.x(d['bdate']));
         if (isNaN(ageAtDeath) && isNaN(ageToday)) {
           return 0;
         }
@@ -584,10 +583,9 @@ class GenealogyTree {
     // .attr('y', glyphSize )
       .attr('dy', Config.glyphSize * 0.8)
       .attr('dx', (d) => {
-        let year = new Date().getFullYear();
 
         let ageAtDeath = Math.abs(this.x(d['ddate']) - this.x(d['bdate']));
-        let ageToday = Math.abs(this.x(year) - this.x(d['bdate']))
+        let ageToday = Math.abs(this.x(CURRENT_YEAR) - this.x(d['bdate']))
 
         if(isNaN(ageAtDeath) && isNaN(ageToday)) {
           return '';
@@ -598,12 +596,10 @@ class GenealogyTree {
       })
       .attr('text-anchor', 'end')
       .text(function (d) {
-        let year = new Date().getFullYear();
-
         let ageAtDeath = (d['ddate'] - d['bdate']);
-        let ageToday = (year - d['bdate']);
+        let ageToday = (CURRENT_YEAR - d['bdate']);
         if (isNaN(ageAtDeath) && isNaN(ageToday)) {
-          return "";
+          return '';
         }
         return (+d['ddate']) ? ageAtDeath : ageToday;
 
@@ -622,7 +618,7 @@ class GenealogyTree {
       return (d.ddate);
     })
       .append('line')
-      .attr('class', 'endOfTheLine')
+      .attr('class', 'endOfTheLine');
 
 
     lifeRects.selectAll('.endOfTheLine')
@@ -1476,18 +1472,18 @@ class GenealogyTree {
       })];
 
     //Temporary cap @ 2016. Not sure why the axis are scaling to 2025 automatically.
-    if (all_domain[1] > 2016)
-      all_domain[1] = 2016;
+    if (all_domain[1] > CURRENT_YEAR)
+      all_domain[1] = CURRENT_YEAR;
 
-    if (filtered_domain[1] > 2016)
-      filtered_domain[1] = 2016;
+    if (filtered_domain[1] > CURRENT_YEAR)
+      filtered_domain[1] = CURRENT_YEAR;
     // console.log(all_domain, filtered_domain)
     //Build time axis
 
     //for visible nodes
     let x_range = [0];
     let x_domain = [all_domain[0]];
-    let x_ticks = [all_domain[0]]
+    let x_ticks = [all_domain[0]];
 
     //for out of scope nodes
     let x2_range = [0];
@@ -1498,12 +1494,12 @@ class GenealogyTree {
     //If there are hidden nodes older than the first visible node
     if (all_domain[0] < filtered_domain[0]) {
       x_range.push(this.width * 0.05);
-      x_domain.push(filtered_domain[0])
-      x_ticks.push(filtered_domain[0])
+      x_domain.push(filtered_domain[0]);
+      x_ticks.push(filtered_domain[0]);
 
 
       x2_range.push(this.width * 0.05);
-      x2_domain.push(filtered_domain[0])
+      x2_domain.push(filtered_domain[0]);
 
       //Add tick marks
       let left_range = range(all_domain[0], filtered_domain[0], 10);
@@ -1517,14 +1513,14 @@ class GenealogyTree {
     if (all_domain[1] != filtered_domain[1]) {
 
       x_range.push(this.width * 0.95);
-      x_domain.push(filtered_domain[1])
-      x_ticks.push(filtered_domain[1])
+      x_domain.push(filtered_domain[1]);
+      x_ticks.push(filtered_domain[1]);
 
-      x2_range.push(this.width * 0.95)
-      x2_domain.push(filtered_domain[1])
+      x2_range.push(this.width * 0.95);
+      x2_domain.push(filtered_domain[1]);
 
-      x2_range.push(this.width)
-      x2_domain.push(all_domain[1])
+      x2_range.push(this.width);
+      x2_domain.push(all_domain[1]);
 
       let right_range = range(filtered_domain[1], all_domain[1], 10);
       x2_ticks = x2_ticks.concat(right_range);
@@ -1535,16 +1531,16 @@ class GenealogyTree {
     x_ticks.push(all_domain[1]);
 
     this.x.domain(x_domain);
-    this.x.range(x_range)
+    this.x.range(x_range);
 
     this.x2.domain(x2_domain);
-    this.x2.range(x2_range)
+    this.x2.range(x2_range);
 
     this.visibleXAxis.tickValues(x_ticks);
     this.extremesXAxis.tickValues(x2_ticks);
 
     select('#visible_axis')
-      .call(this.visibleXAxis)
+      .call(this.visibleXAxis);
 
     select('#extremes_axis')
       .attr('opacity', .6);

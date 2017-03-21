@@ -77,7 +77,7 @@ export const TABLE_VIS_ROWS_CHANGED_EVENT = 'table_vis_rows_changed_event';
 export const PRIMARY_SECONDARY_SELECTED = 'primary_secondary_attribute_event';
 export const POI_SELECTED = 'affected_attribute_event';
 export const FAMILY_INFO_UPDATED = 'family_stats_updated';
-export const COL_ORDER_CHANGED_EVENT = 'col_ordering_changed'
+export const COL_ORDER_CHANGED_EVENT = 'col_ordering_changed';
 
 
 export const PRIMARY_COLOR = '#335b8e';

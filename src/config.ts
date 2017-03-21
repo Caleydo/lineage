@@ -26,6 +26,8 @@ export class Config {
   public static panelAttributeHeight = 70;
   public static panelSVGwidth = 220;
 
+  public static slopeChartWidth = 200;
+
 
   public static expPanelWidth = '300px';
   public static colGraphTableWidth = '100%';

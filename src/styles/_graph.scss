@@ -531,3 +531,15 @@ visibility:hidden;
 .node:hover a {
  visibility:visible;
 }
+
+.rowLine{
+  stroke-width: 1;
+  stroke:#9e9d9b;
+  opacity:.4;
+}
+
+.slopeLine{
+  stroke-width: 2;
+  stroke:#9e9d9b;
+  opacity:.4;
+}

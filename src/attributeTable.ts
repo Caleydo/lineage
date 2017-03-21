@@ -127,20 +127,20 @@ class attributeTable {
 
 //HEADERS
     this.tableHeader = svg.append('g')
-      .attr('transform', 'translate(0,' + this.margin.axisTop + ')');
+      .attr('transform', 'translate(' + Config.slopeChartWidth + ' , '  + this.margin.axisTop + ')');
 
     this.columnSummaries = svg.append('g')
-      .attr('transform', 'translate(0,' + (this.margin.top - 70) + ')');
+      .attr('transform', 'translate(' + Config.slopeChartWidth + ' , '  +  (this.margin.top - 70) + ')');
 
 // TABLE
 
     svg.append('g')
-      .attr('transform', 'translate(0,' + this.margin.top + ')')
+      .attr('transform', 'translate(' + Config.slopeChartWidth + ' , '  +  this.margin.top + ')')
       .attr('id', 'highlightBarsGroup');
 
 
     this.table = svg.append('g')
-      .attr('transform', 'translate(0,' + this.margin.top + ')');
+      .attr('transform', 'translate(' + Config.slopeChartWidth + ' , '  +  this.margin.top + ')');
   }
 
   public async initData() {
@@ -529,7 +529,6 @@ class attributeTable {
 
 
     //create table Lines
-
     // //Bind data to the cells
     let rowLines = this.table.selectAll('.rowLine')
       .data(this.rowOrder, (d: any) => {
@@ -551,10 +550,30 @@ class attributeTable {
       .attr('y2', (d: any) => {
         return this.y(d) + this.rowHeight
       })
-      .attr('stroke', 'black')
-      .attr('stroke-width', 1)
-      .attr('stroke', '#9e9d9b')
-      .attr('opacity', .4)
+
+    //create slope Lines
+    // //Bind data to the cells
+    let slopeLines = this.table.selectAll('.slopeLine')
+      .data(this.rowOrder.map((d: any,i) => {
+        return {y:d, ind:i}})
+      ,d=> {return d.y});
+
+    slopeLines.exit().remove();
+
+    let slopeLinesEnter = slopeLines.enter().append('line').classed('slopeLine', true);
+
+    slopeLines = slopeLinesEnter.merge(slopeLines)
+
+    selectAll('.slopeLine')
+      .attr('x1', 0)
+      .attr('y1', (d: any) => {
+        return this.y(d.y) + this.rowHeight
+      })
+      .attr('x2', -Config.slopeChartWidth)
+      .attr('y2', (d: any) => {
+        return this.y(this.rowOrder[d.ind]) + this.rowHeight
+      })
+
 
     //Bind data to the cells
     let cells = cols.selectAll('.cell')
@@ -677,6 +696,17 @@ class attributeTable {
         .attr('transform',(cell: any) => {
           return ('translate(0, ' + self.y(self.rowOrder[sortedIndexes.indexOf(cell.ind)]) + ' )'); //the x translation is taken care of by the group this cell is nested in.
         });
+
+      selectAll('.slopeLine')
+        .attr('x1', 0)
+        .attr('y1', (d: any) => {
+          console.log(d.ind,sortedIndexes.indexOf(d.ind))
+          return self.y(self.rowOrder[sortedIndexes.indexOf(d.ind)]) + self.rowHeight
+        })
+        .attr('x2', -Config.slopeChartWidth)
+        .attr('y2', (d: any) => {
+          return self.y(self.rowOrder[d.ind]) + self.rowHeight
+        })
 
     })
 

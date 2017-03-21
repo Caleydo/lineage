@@ -5,6 +5,9 @@ export enum Sex {
   Unknown
 }
 
+/**
+ * This class holds all attributes of a node in the genealogy graph.
+ */
 export default class Node {
 
   /** This node's ID */
@@ -32,8 +35,8 @@ export default class Node {
 
   // ----- Relationship information -------
 
-  MaID: string;
-  PaID: string;
+  maID: string;
+  paID: string;
   /** Reference to the mother */
   ma: Node;
   /** Reference to the father */
@@ -73,7 +76,7 @@ export default class Node {
   descendant?: boolean;
 
   // ----- De-cycling data -----
- //keep track of any duplicates of this node */
+  //keep track of any duplicates of this node */
   duplicates: Node[];
   // used for deCycling the tree
   visited: boolean;
@@ -81,7 +84,7 @@ export default class Node {
   // TODO what is target?
   target: Node;
 
-
+  /** Default initialization for attributes */
   constructor(id: string) {
     this.type = 'single';
     this.id = id;
@@ -108,7 +111,7 @@ export default class Node {
     this.bdate = +row[columnNameToIndex.bdate];
     this.ddate = +row[columnNameToIndex.ddate];
     this.x = +row[columnNameToIndex.bdate];
-    this.MaID = row[columnNameToIndex.MaID].toString();
-    this.PaID = row[columnNameToIndex.PaID].toString();
+    this.maID = row[columnNameToIndex.MaID].toString();
+    this.paID = row[columnNameToIndex.PaID].toString();
   }
 }

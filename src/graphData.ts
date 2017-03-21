@@ -17,6 +17,7 @@ import {isUndefined} from 'util';
 import Node from './Node';
 import {Sex} from './Node';
 import {ITable} from '../../phovea_core/src/table/ITable';
+import {CURRENT_YEAR} from './genealogyTree';
 
 
 class GraphData {
@@ -116,8 +117,8 @@ class GraphData {
       parentChildEdge.target = duplicateNode;
 
       //clear parent references
-      node.MaID = '';
-      node.PaID = '';
+      node.maID = '';
+      node.paID = '';
 
       node.ma = undefined;
       node.pa = undefined;
@@ -222,7 +223,6 @@ class GraphData {
     });
   }
 
-
   /**
    * This function loads genealogy data from lineage-server
    * and builds the genealogy tree
@@ -236,12 +236,8 @@ class GraphData {
     const columns = this.graphTable.cols();
     const nrow = this.graphTable.nrow;
 
-    // range(0, nrow, 1).forEach(() => {
-    //   this.nodes.push();
-    // });
 
     this.ids = await columns[0].names();
-    // this.ids = this.ids.map(Number); //covert array to numbers
 
     const columnDesc = this.graphTable.desc.columns;
     const columnNameToIndex: {[name: string]: number} = {};
@@ -278,7 +274,7 @@ class GraphData {
           n.x = n.bdate;
         } else {
           // The not-so-nice case when we don't have an age and no children
-          n.x = 2014;
+          n.x = CURRENT_YEAR;
         }
       }
     });
@@ -516,10 +512,10 @@ class GraphData {
       .forEach((node) => {
         //Check if there are mother and father nodes in this family (founder won't have them for example)
         const maNode = this.nodes.find((d) => {
-          return d.id === node.MaID;
+          return d.id === node.maID;
         });
         const paNode = this.nodes.find((d) => {
-          return d.id === node.PaID;
+          return d.id === node.paID;
         });
 
         //No parents found

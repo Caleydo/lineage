@@ -20,7 +20,7 @@ interface IAffectedState {
   type: string;
   data: any [];
   personIDs: Number [];
-  isAffected(b: string | Number ) : boolean;
+  isAffected(b: string | Number): boolean;
 }
 
 interface IPrimaryAttribute {
@@ -86,8 +86,8 @@ export const PRIMARY_COLOR_2 = '#b5b867';
 export const SECONDARY_COLOR = '#9f295d';
 export const SECONDARY_COLOR_2 = '#e7a396';
 
-export const PRIMARY_CATEGORICAL_COLORS = ['#b5b867', '#ffea59', '#b7dbdb', '#335b8e','#6ca18f'];
-export const SECONDARY_CATEGORICAL_COLORS = ['#e7a396', '#9f295d', '#d9a34b', '#ecd1ca','#430e00']; //
+export const PRIMARY_CATEGORICAL_COLORS = ['#b5b867', '#ffea59', '#b7dbdb', '#335b8e', '#6ca18f'];
+export const SECONDARY_CATEGORICAL_COLORS = ['#e7a396', '#9f295d', '#d9a34b', '#ecd1ca', '#430e00']; //
 
 /**
  * This class manages the data structure for the graph, the table visualization and the attribute selection panel.
@@ -118,7 +118,7 @@ export default class TableManager {
   private _selectedAttributes: selectedAttribute [];
 
   private defaultCols: String[] =
-    ['PersonID','Asthma','Bipolar','sex','deceased','suicide','gen','Age','FirstBMI','AgeFirstBMI','race','cause_death','weapon']; //set of default cols to read in, minimizes load time for large files;
+    ['PersonID', 'Asthma', 'Bipolar', 'sex', 'deceased', 'suicide', 'gen', 'Age', 'FirstBMI', 'AgeFirstBMI', 'race', 'cause_death', 'weapon']; //set of default cols to read in, minimizes load time for large files;
 
 
   public colOrder: String[]; //array that keeps track which attributes are displayed in the panel and in the table and their correct order.
@@ -164,7 +164,6 @@ export default class TableManager {
   }
 
 
-
   /**
    *
    * This function get the requested attribute for the person requested if the attribute is a POI, primary, or secondary.
@@ -178,14 +177,13 @@ export default class TableManager {
     // console.log('getAttribute: ' + attribute + personID);
     let selectedAttribute;
 
-    if (attribute === this.affectedState.name){
+    if (attribute === this.affectedState.name) {
       selectedAttribute = this.affectedState;
-    } else if (this.primaryAttribute && attribute === this.primaryAttribute.name){
+    } else if (this.primaryAttribute && attribute === this.primaryAttribute.name) {
       selectedAttribute = this.primaryAttribute;
-    } else if (this.secondaryAttribute && attribute === this.secondaryAttribute.name){
+    } else if (this.secondaryAttribute && attribute === this.secondaryAttribute.name) {
       selectedAttribute = this.secondaryAttribute;
-    } else{ //Attribute is neither primary nor secondary nor POI;
-      console.log('not a primary, secondary, or POI')
+    } else { //Attribute is neither primary nor secondary nor POI;
       return undefined;
     }
 
@@ -206,10 +204,11 @@ export default class TableManager {
    * @param attribute - attribute to search for
    * @param allFamilies - boolean set to true to return the attribute vector for all families. Defaults to false.
    */
-  public async getAttributeVector(attributeName,allFamilies?) {
+  public async getAttributeVector(attributeName, allFamilies?) {
 
-    if (allFamilies === undefined)
+    if (allFamilies === undefined) {
       allFamilies = false;
+    }
 
     let allColumns;
     //Find Vector of that attribute in either table.
@@ -228,8 +227,6 @@ export default class TableManager {
 
     return attributeVector;
   }
-
-
 
 
   public async setPrimarySecondaryAttribute(attributeName, primarySecondary) {
@@ -261,13 +258,17 @@ export default class TableManager {
     });
 
     //Store data and associated personIDs for graph rendering of attribute bars
-    const attributeDefinition : IPrimaryAttribute = {name: attributeName, primary: primarySecondary === 'primary', type: attributeVector.valuetype.type,
-    'data': await attributeVector.data() , 'personIDs': (await attributeVector.names()).map(Number)};
+    const attributeDefinition: IPrimaryAttribute = {
+      name: attributeName, primary: primarySecondary === 'primary', type: attributeVector.valuetype.type,
+      'data': await attributeVector.data(), 'personIDs': (await attributeVector.names()).map(Number)
+    };
 
     const data = await attributeVector.data();
     if (attributeDefinition.type === VALUE_TYPE_CATEGORICAL) {
       const categoricalDefinition = <IPrimaryCatAttribute> attributeDefinition;
-      categories = attributeVector.desc.value.categories.map(c=>{return c.name}); //get categories from index.json def
+      categories = attributeVector.desc.value.categories.map((c) => {
+        return c.name;
+      }); //get categories from index.json def
       // categories = Array.from(new Set(data)).sort(); //derive categories from data
 
       if (categories.length === 2) {//binary categorical data
@@ -278,7 +279,7 @@ export default class TableManager {
       categoricalDefinition.categories = categories;
       categoricalDefinition.color = color;
     } else if (attributeDefinition.type === VALUE_TYPE_INT || attributeDefinition.type === VALUE_TYPE_REAL) {
-          const quantDefinition = <IPrimaryQuantAttribute> attributeDefinition;
+      const quantDefinition = <IPrimaryQuantAttribute> attributeDefinition;
       quantDefinition.stats = await attributeVector.stats();
       quantDefinition.color = binaryColorChoice1;
     }
@@ -299,25 +300,25 @@ export default class TableManager {
    */
   public async updatePOI_Primary_Secondary() {
     if (this.affectedState) {
-      let attributeVector = await this.getAttributeVector(this.affectedState.name);
-      let varType = attributeVector.valuetype.type;
+      const attributeVector = await this.getAttributeVector(this.affectedState.name);
+      const varType = attributeVector.valuetype.type;
 
       this.affectedState.data = await attributeVector.data();
       this.affectedState.personIDs = (await attributeVector.names()).map(Number);
     }
 
-    if (this.primaryAttribute){
-      let attributeVector = await this.getAttributeVector(this.primaryAttribute.name);
-      let varType = attributeVector.valuetype.type;
+    if (this.primaryAttribute) {
+      const attributeVector = await this.getAttributeVector(this.primaryAttribute.name);
+      const varType = attributeVector.valuetype.type;
 
       this.primaryAttribute.data = await attributeVector.data();
       this.primaryAttribute.personIDs = (await attributeVector.names()).map(Number);
 
     }
 
-    if (this.secondaryAttribute){
-      let attributeVector = await this.getAttributeVector(this.secondaryAttribute.name);
-      let varType = attributeVector.valuetype.type;
+    if (this.secondaryAttribute) {
+      const attributeVector = await this.getAttributeVector(this.secondaryAttribute.name);
+      const varType = attributeVector.valuetype.type;
 
       this.secondaryAttribute.data = await attributeVector.data();
       this.secondaryAttribute.personIDs = (await attributeVector.names()).map(Number);
@@ -333,38 +334,52 @@ export default class TableManager {
    */
   public async setAffectedState(varName, isAffectedCallbackFcn?) {
 
-      let attributeVector = await this.getAttributeVector(varName);
-      let varType = attributeVector.valuetype.type;
+    const attributeVector = await this.getAttributeVector(varName);
+    const varType = attributeVector.valuetype.type;
 
-      let threshold ;
+    let threshold;
 
     if (typeof isAffectedCallbackFcn === 'undefined') {
 
-      if (varType === VALUE_TYPE_INT || varType === VALUE_TYPE_REAL){
-        let stats = await attributeVector.stats();
-        isAffectedCallbackFcn = (attr:Number) => {return attr >= stats.mean} ; //if threshold hasn't been defined, default to anything over the mean value
+      if (varType === VALUE_TYPE_INT || varType === VALUE_TYPE_REAL) {
+        const stats = await attributeVector.stats();
+        isAffectedCallbackFcn = (attr: Number) => {
+          return attr >= stats.mean;
+        }; //if threshold hasn't been defined, default to anything over the mean value
         threshold = stats.mean;
-      } else if (varType === VALUE_TYPE_CATEGORICAL){
-        let categoriesVec = attributeVector.valuetype.categories;
-        let categories = categoriesVec.map(c=>{return c.name});
-        isAffectedCallbackFcn = (attr:string) => {return attr === categories[0]} //randomly pick the second category
-        threshold = categories[0]
-      } else if (varType === VALUE_TYPE_STRING){
-        isAffectedCallbackFcn = (attr:string) => {return attr !== undefined && attr.length>0} //string is non empty
-    }
+      } else if (varType === VALUE_TYPE_CATEGORICAL) {
+        const categoriesVec = attributeVector.valuetype.categories;
+        const categories = categoriesVec.map((c) => {
+          return c.name;
+        });
+        isAffectedCallbackFcn = (attr: string) => {
+          return attr === categories[0];
+        }; //randomly pick the second category
+        threshold = categories[0];
+      } else if (varType === VALUE_TYPE_STRING) {
+        isAffectedCallbackFcn = (attr: string) => {
+          return attr !== undefined && attr.length > 0;
+        }; //string is non empty
+      }
 
     }
 
-    let data = await attributeVector.data();
-    let personIDs = (await attributeVector.names()).map(Number);
+    const data = await attributeVector.data();
+    const personIDs = (await attributeVector.names()).map(Number);
 
-    this.affectedState = ({name: varName, type: varType, 'isAffected': isAffectedCallbackFcn, 'data':data, 'personIDs':personIDs});
+    this.affectedState = ({
+      name: varName,
+      type: varType,
+      'isAffected': isAffectedCallbackFcn,
+      'data': data,
+      'personIDs': personIDs
+    });
 
     //Update family selector
     this.updateFamilyStats();
     events.fire(POI_SELECTED, this.affectedState);
 
-    return {threshold, 'type':varType};
+    return {threshold, 'type': varType};
   }
 
 
@@ -413,25 +428,25 @@ export default class TableManager {
   /**
    * This function calculates the number of affected people based on the current POI selected in the panel.
    */
-  public async updateFamilyStats(){
+  public async updateFamilyStats() {
 
     const attributeVector = await this.getAttributeVector(this.affectedState.name, true); //get Attribute Vector for all families
-    const kindredIDVector = await this.getAttributeVector('KindredID',true);
+    const kindredIDVector = await this.getAttributeVector('KindredID', true);
 
     const familyIDs: number[] = <number[]> await kindredIDVector.data();
     const attributeData = await attributeVector.data();
 
     const uniqueFamilyIDs = Array.from(new Set(familyIDs));
 
-    uniqueFamilyIDs.forEach((id,index)=>{
+    uniqueFamilyIDs.forEach((id, index) => {
       //Return people that are in this family and are affected
-      let affected = familyIDs.filter((d,i) => {return d === id && this.affectedState.isAffected(attributeData[i])});
+      const affected = familyIDs.filter((d, i) => {
+        return d === id && this.affectedState.isAffected(attributeData[i]);
+      });
       this.familyInfo[index].affected = affected.length;
-    })
+    });
 
-    events.fire(FAMILY_INFO_UPDATED,this);
-
-
+    events.fire(FAMILY_INFO_UPDATED, this);
   }
 
 
@@ -476,7 +491,7 @@ export default class TableManager {
     for (const id of uniqueFamilyIDs) {
       //Array to store the ranges for the selected family
       const familyRange = [];
-      let affected = 0;
+      const affected = 0;
 
       familyIDs.forEach((d, i) => {
         if (d === id) {
@@ -490,14 +505,14 @@ export default class TableManager {
     // //Set active graph Cols to non id-types
     const columns = await this.table.cols();
 
-    let colIndexAccum = [];
+    const colIndexAccum = [];
 
     //populate active attribute array
     columns.forEach((col, i) => {
       const type = col.desc.value.type;
 
       // if (type !== 'idtype') {
-        colIndexAccum.push(i);//push the index so we can get the right view
+      colIndexAccum.push(i);//push the index so we can get the right view
       // }
     });
 
@@ -540,7 +555,6 @@ export default class TableManager {
   }
 
 
-
   /**
    * Updates the active rows for the table visualization, creates a new table view and fires a {TABLE_VIS_ROWS_CHANGED} event.
    * @param newRows
@@ -557,19 +571,20 @@ export default class TableManager {
    */
   set activeGraphRows(newRows: Number[]) {
 
-    this.table.col(0).names().then((allIDs)=>{
+    this.table.col(0).names().then((allIDs) => {
 
-      let newRange = [];
-      allIDs.forEach((id,i)=>{
+      const newRange = [];
+      allIDs.forEach((id, i) => {
 
         if (newRows.indexOf(+id) > -1) {
           newRange.push(i);
         }
-
-      })
+      });
 
       this._activeGraphRows = range.list(newRange);
-      this.refreshActiveGraphView().then(()=>{events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);})
+      this.refreshActiveGraphView().then(() => {
+        events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);
+      });
 
     });
 

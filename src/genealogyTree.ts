@@ -854,6 +854,12 @@ class GenealogyTree {
       .selectAll('.backgroundBar')
       .on('mouseover', function (d: any) {
 
+        selectAll('.slopeLine').classed('selectedSlope', false);
+
+        selectAll('.slopeLine').filter((e: any) => {
+          return e.y === d.y || e.y === Math.round(d.y);
+        }).classed('selectedSlope', true)
+
         //Set opacity of corresponding highlightBar
         selectAll('.highlightBar').filter((e: any) => {
           return e.y === d.y || e.y === Math.round(d.y);
@@ -869,6 +875,8 @@ class GenealogyTree {
         events.fire('row_mouseover', Math.round(d['y']));
       })
       .on('mouseout', (d) => {
+
+        selectAll('.slopeLine').classed('selectedSlope', false);
 
         //Hide all the highlightBars
         selectAll('.highlightBar').attr('opacity', 0);

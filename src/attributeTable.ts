@@ -155,7 +155,7 @@ class attributeTable {
 
   public async initData() {
 
-    this.colOffsets = [0];
+    this.colOffsets = [-Config.slopeChartWidth];
 
     let graphView = await this.tableManager.graphTable;
     let attributeView = await this.tableManager.tableTable;
@@ -226,8 +226,10 @@ class attributeTable {
       return y2personDict[row]
     });
 
-    let maxOffset = max(this.colOffsets);
-    this.colOffsets.push(maxOffset + this.buffer * 2 + this.colWidths[col.type]);
+    let maxOffset = max(this.colOffsets) + Config.slopeChartWidth;
+    // this.colOffsets.push(maxOffset + this.buffer * 2 + this.colWidths[col.type]);
+
+    this.colOffsets.push(maxOffset);
 
     //Set first col as the number of people per row. Can't move this col's  position.
     let colDataAccum = [col];
@@ -292,8 +294,7 @@ class attributeTable {
 
           let maxOffset = max(this.colOffsets);
 
-
-          this.colOffsets.push(maxOffset + this.buffer * 2 + this.colWidths.categorical);
+          this.colOffsets.push(maxOffset + this.buffer * 2 + this.colWidths[type]);
 
           colDataAccum.push(col);
         }
@@ -367,9 +368,6 @@ class attributeTable {
         colDataAccum.push(col);
       } else if (type === 'idtype') {
 
-        const maxOffset = max(this.colOffsets);
-        this.colOffsets.push(maxOffset + this.buffer + this.colWidths[type]);
-
         const col: any = {};
         col.ids = allRows.map((row) => {
           return y2personDict[row]
@@ -393,6 +391,20 @@ class attributeTable {
         col.ys = allRows
         col.type = type;
         colDataAccum.push(col);
+
+
+        const maxOffset = max(this.colOffsets);
+
+        // if (name === 'KindredID'){
+        //   console.log(col.data[0], 'length', col.data[0].length)
+        //   this.colOffsets.push(maxOffset + this.buffer +  col.data[0][0].length*7);
+        //
+        // }else{
+          this.colOffsets.push(maxOffset + this.buffer + this.colWidths[type]);
+        // }
+
+
+
       }
 
 
@@ -508,6 +520,28 @@ class attributeTable {
       .attr('height', this.rowHeight)
       .attr('opacity', 0);
 
+    //create slope Lines
+    // //Bind data to the cells
+    let slopeLines = this.table.selectAll('.slopeLine')
+      .data(this.rowOrder.map((d: any,i) => {
+          return {y:d, ind:i}})
+        ,d=> {return d.y});
+
+    slopeLines.exit().remove();
+
+    let slopeLinesEnter = slopeLines.enter().append('path');
+
+
+    slopeLines = slopeLinesEnter.merge(slopeLines)
+
+    slopeLines
+      .attr('class', 'slopeLine')
+      .transition(t)
+      .attr('d', (d: Node) => {
+        return this.slopeChart(d)
+      });
+
+
 // TABLE
     //Bind data to the col groups
     let cols = this.table.selectAll('.dataCols')
@@ -560,26 +594,6 @@ class attributeTable {
         return this.y(d) + this.rowHeight
       })
 
-    //create slope Lines
-    // //Bind data to the cells
-    let slopeLines = this.table.selectAll('.slopeLine')
-      .data(this.rowOrder.map((d: any,i) => {
-        return {y:d, ind:i}})
-      ,d=> {return d.y});
-
-    slopeLines.exit().remove();
-
-    let slopeLinesEnter = slopeLines.enter().append('path') ; //append('line').classed('slopeLine', true);
-
-
-    slopeLines = slopeLinesEnter.merge(slopeLines)
-
-    slopeLines
-      .attr('class', 'slopeLine')
-      .transition(t)
-      .attr('d', (d: Node) => {
-          return this.slopeChart(d)
-      });
 
 
     // selectAll('.slopeLine')
@@ -641,6 +655,9 @@ class attributeTable {
       else if (cell.type === VALUE_TYPE_STRING) {
         self.renderStringCell(select(this), cell);
       }
+      else if (cell.name === 'KindredID'){
+        self.renderFamilyIDCell(select(this),cell)
+      }
       else if (cell.type === 'id' || cell.type === 'idtype') {
 
         self.renderIdCell(select(this), cell);
@@ -648,6 +665,7 @@ class attributeTable {
       else if (cell.type === 'dataDensity') {
         self.renderDataDensCell(select(this), cell);
       }
+
 
     });
 
@@ -1160,7 +1178,7 @@ class attributeTable {
       .attr('height', rowHeight)
       .attr('y', 0)
       .attr('fill', (d) => {
-        return colorScale(cellData.data)
+        return cellData.type === 'idtype' ? '#969593' : colorScale(cellData.data)
       })
 
     element
@@ -1172,6 +1190,22 @@ class attributeTable {
         // return (+cellData.data >1 ? cellData.data : '')
       })
       .attr('text-anchor', 'middle')
+
+  }
+
+
+  private renderFamilyIDCell(element,cellData){
+
+    let equalValues = cellData.data.reduce(function(a, b){ return (a === b) ? a : NaN; }); //check for array that has all equal values in an aggregate (such as KindredId);
+
+    if (isNaN(equalValues)){
+      console.log('Found Duplicate KindredIDs in aggregate row!')
+      return;
+    }
+
+    cellData.data = equalValues;
+
+    this.renderDataDensCell(element,cellData);
 
   }
 
@@ -1396,6 +1430,8 @@ class attributeTable {
 
     let numValues = cellData.data.reduce((a, v) => v ? a + 1 : a, 0);
 
+    let equalValues = cellData.data.reduce(function(a, b){ return (a === b) ? a : NaN; }); //check for array that has all equal values in an aggregate (such as KindredId)
+
     if (numValues === 0) {
       return;
     }
@@ -1417,7 +1453,7 @@ class attributeTable {
     }
 
     let textLabel;
-    if (numValues === 1) {
+    if (numValues === 1 || !isNaN(equalValues)) {
 
       textLabel = '#' + cellData.data[0];
       element
@@ -1436,12 +1472,11 @@ class attributeTable {
         // .attr('dx', this.idScale(numValues) + 2)
         .style('stroke', 'none')
 
-      // element
-      //   .select('.idBar')
-      //   .attr('width', this.idScale(numValues))
-      //   .attr('height', rowHeight)
-
     }
+
+    // element.selectAll('text')
+    //   .attr('dx', col_width/2)
+    //   .attr('text-anchor','middle')
 
 
   }

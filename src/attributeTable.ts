@@ -135,8 +135,6 @@ class attributeTable {
       .attr('width', this.width + this.margin.left + this.margin.right)
       .attr('height', this.height + this.margin.top + this.margin.bottom);
 
-
-
     // TABLE (except for slope Chart and first col on the left of the slope chart)
     this.table = svg.append('g')
       .attr('transform', 'translate(' + Config.collapseSlopeChartWidth + ' , 0)')
@@ -157,7 +155,6 @@ class attributeTable {
       .attr('transform', 'translate(0, '  +  this.margin.top + ')')
       .attr('id', 'columns');
 
-
     //Highlight Bars
     select('#columns').append('g')
       .attr('transform', 'translate(0, '  +  this.margin.top + ')')
@@ -174,6 +171,66 @@ class attributeTable {
     select('#slopeChart').append('g')
       .attr('id','slopeLines')
 
+
+    //Add button to slopeChart Div that says 'revert to Tree Order'
+    let button = select('#slopeLines')
+      .append('g')
+      .attr('transform','translate(45,' + (-60) + ')')
+      .attr('id','revertTreeOrder')
+      .attr('visibility','hidden')
+      .append('svg');
+
+      button.append('rect')
+      .attr('width',120)
+      .attr('height',25)
+        .attr('rx',10)
+        .attr('ry',20)
+        .attr('fill','#b4b3b1')
+        .attr('y',0)
+        .attr('opacity',.1)
+
+      button.append('text')
+      .classed('histogramLabel',true)
+      .attr('x',60)
+      .attr('y',15)
+        .attr('fill', '#757472')
+      .text('Sort by Tree')
+      .attr('text-anchor', 'middle')
+        .on('click',(d)=>{
+
+          selectAll('.sortIcon')
+            .classed('sortSelected',false)
+
+          select('#revertTreeOrder')
+            .attr('visibility','hidden')
+
+          let t2 = transition('t2').duration(600).ease(easeLinear);
+
+          select('#columns').selectAll('.cell')
+            .transition(t2)
+            .attr('transform',(cell: any) => {
+              return ('translate(0, ' + this.y(this.rowOrder[cell.ind]) + ' )'); //the x translation is taken care of by the group this cell is nested in.
+            });
+
+          //translate tableGroup to make room for the slope lines.
+          select('#tableGroup')
+            .transition(t2)
+            .attr('transform',(cell: any) => {
+              return ('translate(' + Config.collapseSlopeChartWidth + ' ,0)');
+            });
+
+
+          selectAll('.slopeLine')
+            .transition(t2)
+            .attr('d', (d: any) => {
+              return this.slopeChart({y:d.y, ind:d.ind, width:Config.collapseSlopeChartWidth})
+            });
+
+          select('#tableGroup').selectAll('.highlightBar')
+            .attr('y', (d: any) => {
+              return this.y(this.rowOrder[d.i])})
+
+        })
 
 
   }
@@ -253,6 +310,8 @@ class attributeTable {
     });
 
     this.firstCol = [col];
+
+    // console.log('first col data is ', col.data)
 
     // let maxOffset = max(this.colOffsets) //+ Config.slopeChartWidth;
     // this.colOffsets.push(maxOffset + this.buffer * 2 + this.colWidths[col.type]);
@@ -620,31 +679,7 @@ class attributeTable {
       .classed('dataCols', true);
 
 
-    firstCol = firstColEnter.merge(cols)//;
-
-    //create table Lines
-    // //Bind data to the cells
-    let rowLines = select('#columns').selectAll('.rowLine')
-      .data(this.rowOrder, (d: any) => {
-        return d
-      });
-
-    rowLines.exit().remove();
-
-    let rowLinesEnter = rowLines.enter().append('line').classed('rowLine', true);
-
-    rowLines = rowLinesEnter.merge(rowLines)
-
-    selectAll('.rowLine')
-      .attr('x1', 0)
-      .attr('y1', (d: any) => {
-        return this.y(d) + this.rowHeight
-      })
-      .attr('x2', max(this.colOffsets))
-      .attr('y2', (d: any) => {
-        return this.y(d) + this.rowHeight
-      })
-
+    firstCol = firstColEnter.merge(firstCol)//;
 
     //Bind data to the cells
     let firstCells = firstCol.selectAll('.cell')
@@ -685,8 +720,33 @@ class attributeTable {
     firstCellsEnter.attr('opacity', 1);
 
     firstCells.each(function (cell) {
-        self.renderDataDensCell(select(this), cell);
+      self.renderDataDensCell(select(this), cell);
     });
+
+
+
+    //create table Lines
+    // //Bind data to the cells
+    let rowLines = select('#columns').selectAll('.rowLine')
+      .data(this.rowOrder, (d: any) => {
+        return d
+      });
+
+    rowLines.exit().remove();
+
+    let rowLinesEnter = rowLines.enter().append('line').classed('rowLine', true);
+
+    rowLines = rowLinesEnter.merge(rowLines)
+
+    selectAll('.rowLine')
+      .attr('x1', 0)
+      .attr('y1', (d: any) => {
+        return this.y(d) + this.rowHeight
+      })
+      .attr('x2', max(this.colOffsets))
+      .attr('y2', (d: any) => {
+        return this.y(d) + this.rowHeight
+      })
 
 
     //Bind data to the cells
@@ -756,6 +816,8 @@ class attributeTable {
   selectAll('.sortIcon')
     .on('click',function(d:any){
 
+      let t2 = transition('t2').duration(600).ease(easeLinear);
+
       selectAll('.sortIcon')
         .classed('sortSelected',false)
 
@@ -765,7 +827,9 @@ class attributeTable {
       // the array to be sorted
       const toSort  = d.data;
 
-       // temporary array holds objects with position and sort-value
+      console.log(d)
+
+      // temporary array holds objects with position and sort-value
       const mapped = toSort.map(function(el, i) {
         if (d.type === VALUE_TYPE_REAL || d.type === VALUE_TYPE_INT){
           return isNaN(+mean(el)) ? { index: i, value:undefined} :  { index: i, value: +mean(el)};
@@ -774,10 +838,22 @@ class attributeTable {
         } else if (d.type === VALUE_TYPE_CATEGORICAL){
         return { index: i, value: +(el.filter(e=>{return e === d.category}).length /el.length) };
       } else if (d.type == 'idtype'){
-        return el.length> 1 ? { index: i, value: undefined} : {index: i, value: +el};
+          let equalValues = el.reduce(function(a, b){ return (a === b) ? a : NaN; }); //check for array that has all equal values in an aggregate (such as KindredId);
+          return isNaN(equalValues) ? { index: i, value: undefined} : {index: i, value: equalValues};
       }
 
       })
+
+      let equalValues = mapped.reduce(function(a, b){return ( a.value === b.value) ? a : NaN; }); //check for array that has all equal values in an aggregate (such as KindredId);
+
+      //All values are the same, no sorting needed;
+      if (!isNaN(equalValues.value)){
+        return;
+      }
+
+      select('#revertTreeOrder')
+        .transition(t2.transition().duration(500).ease(easeLinear))
+        .attr('visibility','visible')
 
       console.log('original indexes prior to sorting were:' , mapped.map(e=>{return e.index}));
 
@@ -806,12 +882,6 @@ class attributeTable {
       const sortedArray = mapped.map(function(el){
         return toSort[el.index];
       });
-
-      // console.log('rowOrder', self.rowOrder)
-      // console.log('sortedIndex', sortedIndexes)
-
-
-      let t2 = transition('t2').duration(600).ease(easeLinear);
 
       cells
         .transition(t2)

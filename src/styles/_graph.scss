@@ -547,7 +547,15 @@ visibility:hidden;
   //fill: #dfdfdf
 }
 
-.selectedSlope, .clickedSlope{
+.clickedSlope{
   stroke: #df7813;
   stroke-width: 8px;
 }
+
+.selectedSlope{
+  stroke: #ffc800;
+  stroke-width: 8px;
+}
+
+
+

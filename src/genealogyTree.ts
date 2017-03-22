@@ -912,7 +912,7 @@ class GenealogyTree {
           return !d['aggregated'] && !d['hidden']
         }).select('.lifeRect').select('.ageLabel').attr('visibility', 'visible');
 
-        events.fire('row_mouseover', Math.round(d.y));
+        // events.fire('row_mouseover', Math.round(d.y));
       })
       // FIXME is any a node?
       .on('mouseout', (d: any) => {
@@ -924,7 +924,7 @@ class GenealogyTree {
 
         selectAll('.ageLabel').attr('visibility', 'hidden');
 
-        events.fire('row_mouseout', d.y);
+        // events.fire('row_mouseout', d.y);
       })
 
 
@@ -951,7 +951,11 @@ class GenealogyTree {
 
           this.update_time_axis();
           this.update_visible_nodes();
+
+          // Perhaps change to only unselected bars that are part of this newly aggregated/expanded set?
           selectAll('.highlightBar').classed('selected', false);
+
+          events.fire('graphLayout_changed')
 
           return;
         }
@@ -968,11 +972,6 @@ class GenealogyTree {
           selectAll('.slopeLine').classed('clickedSlope', false)
           selectAll('.highlightBar').classed('selected', false);
         }
-        //
-        // selectAll('.slopeLine').filter((e: any) => {
-        //   return e.y === d.y || e.y === Math.round(d.y);
-        // }).classed('clickedSlope', true)
-        //
 
         selectAll('.slopeLine').filter((e: any) => {
           return e.y === d.y || e.y === Math.round(d.y)
@@ -985,13 +984,6 @@ class GenealogyTree {
         }).classed('selected', function () {
           return (!wasSelected);
         })
-
-        if (!event.metaKey) {
-          events.fire('row_selected', d['y'], 'single');
-        }
-        else {
-          events.fire('row_selected', d['y'], 'multiple');
-        }
       })
 
   }

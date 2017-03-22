@@ -80,7 +80,7 @@ class attributeTable {
   private catOffset = 30;
 
   //Keeps track of whether the table is sorted by a certain attribute;
-  private sortAttribute={element:undefined,data:undefined}; //element is the arrow that was clicked, data is the data associated to that column
+  private sortAttribute={ascending:undefined,data:undefined}; //ascending: boolean for sort direction is ascending, data: data associated to that column
 
   private idScale = scaleLinear(); //used to size the bars in the first col of the table;
 
@@ -283,6 +283,8 @@ class attributeTable {
 
     //Find y indexes of all rows
     let allRows = Object.keys(y2personDict).map(Number);
+
+    console.log('AR', allRows)
 
 
     //Set height of svg
@@ -821,7 +823,8 @@ class attributeTable {
   selectAll('.sortIcon')
     .on('click', function(d){
 
-      //Set 'sortAttribute'
+      // Set 'sortAttribute'
+      self.sortAttribute.ascending = select(this).classed('ascending');
       self.sortAttribute.data = d;
 
       selectAll('.sortIcon')
@@ -830,8 +833,14 @@ class attributeTable {
       select(this)
         .classed('sortSelected',true)
 
-      self.sortRows(d,select(this).classed('ascending'))})
+      self.sortRows(d,select(this).classed('ascending'))
 
+    })
+
+    // If a sortAttribute has been set, sort by that attribute
+    // if (this.sortAttribute.data){
+    //   this.sortRows(this.sortAttribute.data, this.sortAttribute.ascending);
+    // }
   }
 
   /**
@@ -843,12 +852,14 @@ class attributeTable {
    */
   private sortRows(d:any,ascending){
 
+    // console.log()
+
     let t2 = transition('t2').duration(600).ease(easeLinear);
 
     // the array to be sorted
     const toSort  = d.data;
 
-    console.log(d)
+    console.log('data is ' , d.data)
 
     // temporary array holds objects with position and sort-value
     const mapped = toSort.map(function(el, i) {
@@ -908,7 +919,7 @@ class attributeTable {
     select('#columns')
       .selectAll('.cell')
     // .transition(t2)
-      .attr('transform',(cell: any) => { //console.log(this.rowOrder, sortedIndexes, cell.ind)
+      .attr('transform',(cell: any) => {
         return ('translate(0, ' + this.y(this.rowOrder[sortedIndexes.indexOf(cell.ind)]) + ' )'); //the x translation is taken care of by the group this cell is nested in.
       });
 
@@ -944,28 +955,42 @@ class attributeTable {
    */
   private addSortingIcons(element,cellData){
 
-    element.append('text')
-      .attr('font-family', 'FontAwesome')
+    let icon = element.selectAll('.descending')
+      .data([cellData]);
+
+
+    let iconEnter = icon.enter()
+      .append('text')
       .classed('sortIcon',true)
-      .classed('descending',true)
-      // .attr('font-size', function(d) { return d.size+'em'} )
-      .attr('font-size',17)
+      .classed('descending',true);
+
+    icon = iconEnter.merge(icon);
+
+    icon
       .text(function(d) { return '\uf0dd' })
       .attr('y', this.rowHeight * 1.8 + 20)
-      .attr('x', (d) =>{return this.colWidths[cellData.type]/2-5})
-      // .attr('x', (d) =>{return this.colWidths[cellData.type]/2})
-      .attr('text-anchor', 'middle')
+      .attr('x', (d) =>{return this.colWidths[d.type]/2-5})
 
-    element.append('text')
-      .attr('font-family', 'FontAwesome')
+    icon = element.selectAll('.ascending')
+      .data([cellData]);
+
+    iconEnter = icon.enter()
+      .append('text')
       .classed('sortIcon',true)
       .classed('ascending',true)
-      // .attr('font-size', function(d) { return d.size+'em'} )
-      .attr('font-size',17)
+
+
+    icon = iconEnter.merge(icon);
+
+      icon
+      .attr('font-family', 'FontAwesome')
       .text(function(d) { return '\uf0de' })
       .attr('y', this.rowHeight * 1.8 + 30)
       .attr('x', (d) =>{return this.colWidths[cellData.type]/2+5})
-      // .attr('x', (d) =>{return this.colWidths[cellData.type]/2})
+
+    element.selectAll('.sortIcon')
+      .attr('font-family', 'FontAwesome')
+      .attr('font-size',17)
       .attr('text-anchor', 'middle')
 
   }
@@ -1041,8 +1066,9 @@ class attributeTable {
       element.append('text')
         .classed('histogramLabel', true)
 
-      this.addSortingIcons(element,headerData);
     }
+
+    this.addSortingIcons(element,headerData);
 
     element.select('.histogram')
       .attr('opacity', 0)
@@ -1150,9 +1176,9 @@ class attributeTable {
         .attr('transform', 'translate(0,' + height + ')')
         .classed('hist_xscale', true)
         .call(xAxis)
-
-      this.addSortingIcons(element,headerData);
     }
+
+    this.addSortingIcons(element,headerData);
 
     element.selectAll('.histogram')
       .attr('width', binWidth * 0.8)

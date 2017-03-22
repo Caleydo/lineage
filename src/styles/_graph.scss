@@ -541,19 +541,20 @@ visibility:hidden;
 
 .slopeLine{
   stroke-width:6;
-  stroke: #b1b0ae;
+  stroke: #e2e2e0;
   opacity:.5;
   fill:none;
   //fill: #dfdfdf
 }
 
-.clickedSlope{
-  stroke: #df7813;
-  stroke-width: 8px;
-}
 
 .selectedSlope{
   stroke: #ffc800;
+  stroke-width: 8px;
+}
+
+.clickedSlope{
+  stroke: #df7813;
   stroke-width: 8px;
 }
 

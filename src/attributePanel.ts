@@ -56,29 +56,26 @@ class AttributePanel {
    * @returns {Promise<FilterBar>}
    */
   init(attributeDataObj) {
-    // this.table = attributeDataObj.attributeTable;
+
     this.tableManager = attributeDataObj;
-    let graphView = this.tableManager.graphTable;
-    let attributeView = this.tableManager.tableTable;
-    this.columns = graphView.cols().concat(attributeView.cols());   //this.table.cols();
+    this.tableManager.colOrder =this.tableManager.defaultCols;
+    this.activeColumns = this.tableManager.defaultCols;
 
-    this.columns.forEach((col, i) => {
-      const name = col.desc.name;
-      const type = col.desc.value.type;
+    let allCols = this.tableManager.graphTable.cols().concat(this.tableManager.tableTable.cols());
 
-      if (this.tableManager.defaultCols.indexOf(name)>-1) {
-        this.activeColumns.push(name);
-      }
-    });
+    //Order columns according to 'defaultCols' order;
+    let orderedCols = [];
+    this.tableManager.colOrder.forEach( col =>{
+      // console.log('looking for ', col)
+      orderedCols.push(allCols.find((el)=>{return el.desc.name === col}))
+      // console.log(orderedCols);
+    })
 
-    this.tableManager.colOrder = this.activeColumns;
+    this.columns = orderedCols;
 
     this.update();
     this.build();
     this.attachListener();
-
-    //Programatically select 'suicide' as the POI
-    // this.$node.select(".suicide").select('#poi').on("click")();
 
     // return the promise directly as long there is no dynamical data to update
     return Promise.resolve(this);
@@ -181,8 +178,6 @@ class AttributePanel {
     });
 
     events.on('primary_secondary_selected', (evt, item) => {
-
-
 
       let attribute = this.tableManager[item.primary_secondary + 'Attribute'];
 
@@ -400,9 +395,17 @@ class AttributePanel {
 
   private update() {
     //get updated data from the tableManager
-    let graphView = this.tableManager.graphTable;
-    let attributeView = this.tableManager.tableTable;
-    this.columns = graphView.cols().concat(attributeView.cols());
+    let allCols = this.tableManager.graphTable.cols().concat(this.tableManager.tableTable.cols());
+
+    //Order columns according to 'defaultCols' order;
+    let orderedCols = [];
+    this.tableManager.colOrder.forEach( col =>{
+      orderedCols.push(allCols.find((el)=>{return el.desc.name === col}))
+    })
+
+    this.columns = orderedCols;
+
+
 
     let dataVec: IAnyVector;
 

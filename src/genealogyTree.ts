@@ -325,10 +325,10 @@ class GenealogyTree {
       .append('g')
       .attr('id', 'highlightBars');
 
-    //create a group for slopeChart
-    select('#genealogyTree')
-      .append('g')
-      .attr('id', 'slopeChart');
+    // //create a group for slopeChart
+    // select('#genealogyTree')
+    //   .append('g')
+    //   .attr('id', 'slopeChart');
 
     //create a group for lifeLines
     select('#genealogyTree')
@@ -968,10 +968,17 @@ class GenealogyTree {
           selectAll('.slopeLine').classed('clickedSlope', false)
           selectAll('.highlightBar').classed('selected', false);
         }
+        //
+        // selectAll('.slopeLine').filter((e: any) => {
+        //   return e.y === d.y || e.y === Math.round(d.y);
+        // }).classed('clickedSlope', true)
+        //
 
         selectAll('.slopeLine').filter((e: any) => {
-          return e.y === d.y || e.y === Math.round(d.y);
-        }).classed('clickedSlope', true)
+          return e.y === d.y || e.y === Math.round(d.y)
+        }).classed('clickedSlope', function () {
+          return (!wasSelected);
+        })
 
         selectAll('.highlightBar').filter((e: any) => {
           return e.y === d.y || e.y === Math.round(d.y)
@@ -1460,86 +1467,86 @@ class GenealogyTree {
 
   }
 
-  private addSlopeChart(){
+  // private addSlopeChart(){
+  //
+  //   //Find y indexes of all rows
+  //   let allPeople = Object.keys(this.data.yValues).map(Number);
+  //
+  //   //Create a dictionary of y value to people
+  //   let y2personDict = {};
+  //   let yDict = this.data.yValues;
+  //
+  //   // console.log('yDict', yDict)
+  //   allPeople.forEach((person) => {
+  //     if (person in yDict) { //may not be if dangling nodes were removed
+  //       //Handle Duplicate Nodes
+  //       yDict[person].forEach((y) => {
+  //         if (y in y2personDict) {
+  //           y2personDict[y].push(person);
+  //         } else {
+  //           y2personDict[y] = [person];
+  //         }
+  //       })
+  //     }
+  //   });
+  //
+  //   //Find y indexes of all rows
+  //   let rowOrder = Object.keys(y2personDict).map(Number);
+  //
+  //   this.y2personDict = y2personDict;
+  //
+  //   let t = transition('t').duration(500).ease(easeLinear);
+  //
+  //   //create slope Lines
+  //   // //Bind data to the cells
+  //   let slopeLines = select('#slopeChart').selectAll('.slopeLine')
+  //     .data(rowOrder.map((d: any,i) => {
+  //       let nodes = y2personDict[d].map((id)=>{return this.data.nodes.filter((n)=>{return n.id == id.toString()})})
+  //         return {y:d, ind:i, x:max(nodes,(n:Node)=>{return n[0].ddate})}}),(d:any)=> {return d.y});
+  //
+  //   slopeLines.exit().remove();
+  //
+  //   let slopeLinesEnter = slopeLines.enter().append('path') ;
+  //
+  //   slopeLines = slopeLinesEnter.merge(slopeLines)
+  //
+  //   slopeLines
+  //     .attr('class', 'slopeLine')
+  //     .transition(t)
+  //     .attr('d', (d:any) => {
+  //       return this.slopeChart(d,rowOrder)
+  //     })
+  //     .style('stroke-linecap','round')
+  //     // .style('stroke','url(#slopeGradient)');
+  // }
 
-    //Find y indexes of all rows
-    let allPeople = Object.keys(this.data.yValues).map(Number);
-
-    //Create a dictionary of y value to people
-    let y2personDict = {};
-    let yDict = this.data.yValues;
-
-    // console.log('yDict', yDict)
-    allPeople.forEach((person) => {
-      if (person in yDict) { //may not be if dangling nodes were removed
-        //Handle Duplicate Nodes
-        yDict[person].forEach((y) => {
-          if (y in y2personDict) {
-            y2personDict[y].push(person);
-          } else {
-            y2personDict[y] = [person];
-          }
-        })
-      }
-    });
-
-    //Find y indexes of all rows
-    let rowOrder = Object.keys(y2personDict).map(Number);
-
-    this.y2personDict = y2personDict;
-
-    let t = transition('t').duration(500).ease(easeLinear);
-
-    //create slope Lines
-    // //Bind data to the cells
-    let slopeLines = select('#slopeChart').selectAll('.slopeLine')
-      .data(rowOrder.map((d: any,i) => {
-        let nodes = y2personDict[d].map((id)=>{return this.data.nodes.filter((n)=>{return n.id == id.toString()})})
-          return {y:d, ind:i, x:max(nodes,(n:Node)=>{return n[0].ddate})}}),(d:any)=> {return d.y});
-
-    slopeLines.exit().remove();
-
-    let slopeLinesEnter = slopeLines.enter().append('path') ;
-
-    slopeLines = slopeLinesEnter.merge(slopeLines)
-
-    slopeLines
-      .attr('class', 'slopeLine')
-      .transition(t)
-      .attr('d', (d:any) => {
-        return this.slopeChart(d,rowOrder)
-      })
-      .style('stroke-linecap','round')
-      // .style('stroke','url(#slopeGradient)');
-  }
-
-  //Path generator for Slope Chart Lines
-  private slopeChart(d,rowOrder) {
-
-    let nx = Config.slopeChartWidth*0.3;
-    let width = Config.slopeChartWidth;
-    // let endpoint = this.width + 40;
-
-    let linedata = [{
-      x: this.x(d.x),
-      y: this.y(rowOrder[d.ind])
-    },
-      {
-          x: this.width,
-          y:this.y(rowOrder[d.ind])
-        },
-        {
-          x:  this.width + Config.slopeChartWidth - nx,
-          y: this.y(d.y)
-        },
-      {
-        x: this.width + Config.slopeChartWidth,
-        y: this.y(d.y)
-      }];
-
-
-    return this.slopeLineFunction(linedata);
-  }
+  // //Path generator for Slope Chart Lines
+  // private slopeChart(d,rowOrder) {
+  //
+  //   let nx = Config.slopeChartWidth*0.3;
+  //   let width = Config.slopeChartWidth;
+  //   // let endpoint = this.width + 40;
+  //
+  //   let linedata = [{
+  //     x: this.x(d.x),
+  //     y: this.y(rowOrder[d.ind])
+  //   },
+  //     {
+  //         x: this.width,
+  //         y:this.y(rowOrder[d.ind])
+  //       },
+  //       {
+  //         x:  this.width + Config.slopeChartWidth - nx,
+  //         y: this.y(d.y)
+  //       },
+  //     {
+  //       x: this.width + Config.slopeChartWidth,
+  //       y: this.y(d.y)
+  //     }];
+  //
+  //
+  //   return this.slopeLineFunction(linedata);
+  // }
 
 
 
@@ -1864,9 +1871,10 @@ class GenealogyTree {
     });
 
     events.on(POI_SELECTED, (evt, affectedState) => {
-      this.data.uncollapseAll();
+      console.log('POI',affectedState.name);
+      // this.data.uncollapseAll();
       this.data.defineAffected(affectedState);
-      this.data.collapseAll();
+      // this.data.collapseAll();
       this.update();
     });
 

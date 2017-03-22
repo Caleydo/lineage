@@ -695,7 +695,7 @@ class attributeTable {
 
       })
 
-      // console.log(mapped.map(e=>{return e.value}));
+      console.log('original indexes prior to sorting were:' , mapped.map(e=>{return e.index}));
 
       // sorting the mapped array containing the reduced values
       if (select(this).classed('ascending')){
@@ -719,13 +719,13 @@ class attributeTable {
         return el.index;
       });
 
-      // console.log(sortedIndexes)
-
       const sortedArray = mapped.map(function(el){
         return toSort[el.index];
       });
 
-      // console.log(d, sortedArray)
+      // console.log('rowOrder', self.rowOrder)
+      // console.log('sortedIndex', sortedIndexes)
+
 
       cells
         .transition(t)
@@ -735,6 +735,8 @@ class attributeTable {
 
       d.ind = sortedIndexes.indexOf(d.ind);
 
+
+
       selectAll('.slopeLine')
         .transition(t)
         .attr('d', (d: any) => {
@@ -743,15 +745,11 @@ class attributeTable {
 
       highlightBars
         .attr('y', (d: any) => {
+          console.log(d.i, self.rowOrder[sortedIndexes.indexOf(d.i)], sortedIndexes.indexOf(d.i) )
           return self.y(self.rowOrder[sortedIndexes.indexOf(d.i)])})
 
     })
-
-
-
-
   }
-
 
   /**
    *
@@ -1178,7 +1176,7 @@ class attributeTable {
       .attr('height', rowHeight)
       .attr('y', 0)
       .attr('fill', (d) => {
-        return cellData.type === 'idtype' ? '#969593' : colorScale(cellData.data)
+        return cellData.type === 'idtype' ? '#c0bfbb' : colorScale(cellData.data) //return a single color for idtype cols.
       })
 
     element
@@ -1203,7 +1201,7 @@ class attributeTable {
       return;
     }
 
-    cellData.data = equalValues;
+    cellData.data = equalValues; //set the value of this cell as the KindredID
 
     this.renderDataDensCell(element,cellData);
 
@@ -1484,8 +1482,10 @@ class attributeTable {
 
   private slopeChart(d) {
 
-      let nx = -Config.slopeChartWidth*0.2;
-      let width = -Config.slopeChartWidth;
+      let slopeWidth = -Config.slopeChartWidth;
+
+      let nx = slopeWidth*0.2;
+      let width = slopeWidth;
 
       let linedata = [{
         x: 0,

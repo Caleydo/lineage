@@ -54,6 +54,7 @@ class attributeTable {
 
   private tableManager;
   private colData;    // <- everything we need to bind
+  private firstCol; //bind separetly on the left side of the slope chart.
 
   private rowHeight = Config.glyphSize * 2.5 - 4;
   private colWidths = {
@@ -135,28 +136,53 @@ class attributeTable {
       .attr('height', this.height + this.margin.top + this.margin.bottom);
 
 
-//HEADERS
-    this.tableHeader = svg.append('g')
-      .attr('transform', 'translate(' + Config.slopeChartWidth + ' , '  + this.margin.axisTop + ')');
 
-    this.columnSummaries = svg.append('g')
-      .attr('transform', 'translate(' + Config.slopeChartWidth + ' , '  +  (this.margin.top - 70) + ')');
-
-// TABLE
-
-    svg.append('g')
-      .attr('transform', 'translate(' + Config.slopeChartWidth + ' , '  +  this.margin.top + ')')
-      .attr('id', 'highlightBarsGroup');
-
-
+    // TABLE (except for slope Chart and first col on the left of the slope chart)
     this.table = svg.append('g')
-      .attr('transform', 'translate(' + Config.slopeChartWidth + ' , '  +  this.margin.top + ')');
+      .attr('transform', 'translate(' + Config.collapseSlopeChartWidth + ' , 0)')
+      .attr('id','tableGroup')
+
+    //HEADERS
+    select('#tableGroup').append('g')
+      .attr('transform', 'translate(0, '  + this.margin.axisTop + ')')
+      .attr('id','tableHeaders')
+
+    //Column Summaries
+    select('#tableGroup').append('g')
+      .attr('transform', 'translate(0, '  +  (this.margin.top - 70) + ')')
+      .attr('id','colSummaries')
+
+    //Columns (except for the first)
+    select('#tableGroup').append('g')
+      .attr('transform', 'translate(0, '  +  this.margin.top + ')')
+      .attr('id', 'columns');
+
+
+    //Highlight Bars
+    select('#columns').append('g')
+      .attr('transform', 'translate(0, '  +  this.margin.top + ')')
+      .attr('id', 'highlightBars');
+
+    //SlopeChart and first col
+    svg.append('g')
+      .attr('transform', 'translate(0, '  +  this.margin.top + ')')
+      .attr('id','slopeChart')
+
+    select('#slopeChart').append('g')
+      .attr('id','firstCol')
+
+    select('#slopeChart').append('g')
+      .attr('id','slopeLines')
+
+
+
   }
 
   public async initData() {
 
-    this.colOffsets = [-Config.slopeChartWidth];
+    // this.colOffsets = [-Config.slopeChartWidth];
 
+    this.colOffsets =[0];
     let graphView = await this.tableManager.graphTable;
     let attributeView = await this.tableManager.tableTable;
 
@@ -226,13 +252,17 @@ class attributeTable {
       return y2personDict[row]
     });
 
-    let maxOffset = max(this.colOffsets) + Config.slopeChartWidth;
+    this.firstCol = [col];
+
+    // let maxOffset = max(this.colOffsets) //+ Config.slopeChartWidth;
     // this.colOffsets.push(maxOffset + this.buffer * 2 + this.colWidths[col.type]);
 
-    this.colOffsets.push(maxOffset);
+    // this.colOffsets.push(maxOffset);
 
     //Set first col as the number of people per row. Can't move this col's  position.
-    let colDataAccum = [col];
+    // let colDataAccum = [col];
+
+    let colDataAccum = [];
 
     for (const vector of orderedCols) {
       const data = await vector.data(range.all());
@@ -411,6 +441,7 @@ class attributeTable {
     }
     this.colData = colDataAccum;
 
+
   }
 
   //renders the DOM elements
@@ -423,13 +454,13 @@ class attributeTable {
 
 //HEADERS
     //Bind data to the col headers
-    let headers = this.tableHeader.selectAll('.header')
-      .data(this.colData.map((d, i) => {
+    let headers = select('#tableHeaders').selectAll('.header')
+      .data(this.colData.map((d:any, i) => {
         return {
           'name': d.name, 'data': d, 'ind': i, 'type': d.type,
           'max': d.max, 'min': d.min, 'mean': d.mean, 'category': d.category, 'isSorted':d.isSorted
         }
-      }), (d) => {
+      }), (d:any) => {
         return d.name
       });
 
@@ -438,7 +469,7 @@ class attributeTable {
     const headerEnter = headers
       .enter()
       .append('text')
-      .classed('header', 'true');
+      .classed('header', true);
 
     headers = headerEnter.merge(headers);
 
@@ -461,10 +492,10 @@ class attributeTable {
 
 
     //Bind data to the col header summaries
-    let colSummaries = this.columnSummaries.selectAll('.colSummary')
+    let colSummaries = select('#colSummaries').selectAll('.colSummary')
       .data(this.colData.map((d) => {
         return d
-      }), (d) => {
+      }), (d:any) => {
         return d.name
       });
 
@@ -499,7 +530,7 @@ class attributeTable {
 
 
     //create backgroundHighlight Bars
-    let highlightBars = select('#highlightBarsGroup').selectAll('.highlightBar')
+    let highlightBars = select('#columns').selectAll('.highlightBar')
       .data(this.rowOrder.map((d,i) => {
         return {'y': d, 'i':i}
       }), (d: any) => {
@@ -522,10 +553,10 @@ class attributeTable {
 
     //create slope Lines
     // //Bind data to the cells
-    let slopeLines = this.table.selectAll('.slopeLine')
+    let slopeLines = select('#slopeLines').selectAll('.slopeLine')
       .data(this.rowOrder.map((d: any,i) => {
-          return {y:d, ind:i}})
-        ,d=> {return d.y});
+          return {y:d, ind:i, width:Config.collapseSlopeChartWidth}})
+        ,(d:any) => {return d.y});
 
     slopeLines.exit().remove();
 
@@ -537,20 +568,20 @@ class attributeTable {
     slopeLines
       .attr('class', 'slopeLine')
       .transition(t)
-      .attr('d', (d: Node) => {
+      .attr('d', (d:any) => {
         return this.slopeChart(d)
       });
 
 
 // TABLE
     //Bind data to the col groups
-    let cols = this.table.selectAll('.dataCols')
+    let cols = select('#columns').selectAll('.dataCols')
       .data(this.colData.map((d, i) => {
         return {
           'name': d.name, 'data': d.data, 'ind': i, 'type': d.type,
           'ids': d.ids, 'stats': d.stats, 'varName': d.name, 'category': d.category, 'vector':d.vector
         }
-      }), (d) => {
+      }), (d:any) => {
         return d.varName
       });
 
@@ -571,9 +602,29 @@ class attributeTable {
       });
 
 
+    //Bind data to the first col group
+    let firstCol = select('#slopeChart').selectAll('.dataCols')
+      .data(this.firstCol.map((d, i) => {
+        return {
+          'name': d.name, 'data': d.data, 'ind': i, 'type': d.type,
+          'ids': d.ids, 'stats': d.stats, 'varName': d.name, 'category': d.category, 'vector':d.vector
+        }
+      }), (d:any) => {
+        return d.varName
+      });
+
+    firstCol.exit().transition(t).attr('opacity', 0).remove(); // should remove on col remove
+
+    const firstColEnter = firstCol.enter()
+      .append('g')
+      .classed('dataCols', true);
+
+
+    firstCol = firstColEnter.merge(cols)//;
+
     //create table Lines
     // //Bind data to the cells
-    let rowLines = this.table.selectAll('.rowLine')
+    let rowLines = select('#columns').selectAll('.rowLine')
       .data(this.rowOrder, (d: any) => {
         return d
       });
@@ -595,16 +646,47 @@ class attributeTable {
       })
 
 
+    //Bind data to the cells
+    let firstCells = firstCol.selectAll('.cell')
+      .data((d) => {
+        return d.data.map((e, i) => {
+          return {
+            'id': d.ids[i],
+            'name': d.name,
+            'data': e,
+            'ind':i,
+            'type': d.type,
+            'stats': d.stats,
+            'varName': d.name,
+            'category': d.category,
+            'vector':d.vector
+          }
+        })
+      }, (d:any) => {
+        return d.id[0]
+      });
 
-    // selectAll('.slopeLine')
-    //   .attr('x1', -Config.slopeChartWidth *.2)
-    //   .attr('y1', (d: any) => {
-    //     return this.y(d.y) + (this.rowHeight/2)
-    //   })
-    //   .attr('x2', -Config.slopeChartWidth*1.2)
-    //   .attr('y2', (d: any) => {
-    //     return this.y(this.rowOrder[d.ind]) + (this.rowHeight/2)
-    //   })
+    firstCells.exit().remove();
+
+    let firstCellsEnter = firstCells.enter()
+      .append('g')
+      .attr('class', 'cell');
+
+    firstCells = firstCellsEnter.merge(firstCells);
+
+    firstCellsEnter.attr('opacity', 0);
+
+    firstCells
+      .transition(t)
+      .attr('transform', (cell: any,i) => {
+        return ('translate(0, ' + y(this.rowOrder[i]) + ' )'); //the x translation is taken care of by the group this cell is nested in.
+      });
+
+    firstCellsEnter.attr('opacity', 1);
+
+    firstCells.each(function (cell) {
+        self.renderDataDensCell(select(this), cell);
+    });
 
 
     //Bind data to the cells
@@ -623,8 +705,8 @@ class attributeTable {
             'vector':d.vector
           }
         })
-      }, (d: any) => {
-        return +d.id[0]
+      }, (d:any) => {
+        return d.id[0]
       });
 
     cells.exit().remove();
@@ -668,6 +750,8 @@ class attributeTable {
 
 
     });
+
+
 
   selectAll('.sortIcon')
     .on('click',function(d:any){
@@ -727,25 +811,32 @@ class attributeTable {
       // console.log('sortedIndex', sortedIndexes)
 
 
+      let t2 = transition('t2').duration(600).ease(easeLinear);
+
       cells
-        .transition(t)
+        .transition(t2)
         .attr('transform',(cell: any) => {
           return ('translate(0, ' + self.y(self.rowOrder[sortedIndexes.indexOf(cell.ind)]) + ' )'); //the x translation is taken care of by the group this cell is nested in.
         });
 
       d.ind = sortedIndexes.indexOf(d.ind);
 
+      //translate tableGroup to make room for the slope lines.
+      select('#tableGroup')
+        .transition(t2)
+        .attr('transform',(cell: any) => {
+          return ('translate(' + Config.slopeChartWidth + ' ,0)');
+        });
 
 
       selectAll('.slopeLine')
-        .transition(t)
+        .transition(t2)
         .attr('d', (d: any) => {
-          return self.slopeChart({y:d.y, ind:sortedIndexes.indexOf(d.ind)})
+          return self.slopeChart({y:d.y, ind:sortedIndexes.indexOf(d.ind), width:Config.slopeChartWidth})
         });
 
       highlightBars
         .attr('y', (d: any) => {
-          console.log(d.i, self.rowOrder[sortedIndexes.indexOf(d.i)], sortedIndexes.indexOf(d.i) )
           return self.y(self.rowOrder[sortedIndexes.indexOf(d.i)])})
 
     })
@@ -1482,26 +1573,26 @@ class attributeTable {
 
   private slopeChart(d) {
 
-      let slopeWidth = -Config.slopeChartWidth;
+      let slopeWidth = d.width;
 
       let nx = slopeWidth*0.2;
       let width = slopeWidth;
 
       let linedata = [{
         x: 0,
-        y: this.y(this.rowOrder[d.ind]) + (this.rowHeight/2)
+        y: this.y(d.y) + (this.rowHeight/2)
       },
         {
           x: nx,
-          y: this.y(this.rowOrder[d.ind]) + (this.rowHeight/2)
+          y: this.y(d.y) + (this.rowHeight/2)
         },
         {
           x:  width - nx,
-          y: this.y(d.y) + (this.rowHeight/2)
+          y: this.y(this.rowOrder[d.ind]) + (this.rowHeight/2)
         },
         {
           x:  width,
-          y: this.y(d.y) + (this.rowHeight/2)
+          y: this.y(this.rowOrder[d.ind]) + (this.rowHeight/2)
         }];
 
       return this.lineFunction(linedata);

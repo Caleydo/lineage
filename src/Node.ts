@@ -1,4 +1,3 @@
-import {ITable} from '../../phovea_core/src/table/ITable';
 export enum Sex {
   Male,
   Female,

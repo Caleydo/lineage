@@ -394,7 +394,7 @@ export default class TableManager {
 
 
     if (chosenFamilyID == null) {
-      family = this.familyInfo[0];
+      family = this.familyInfo[2];
     } else {
       family = this.familyInfo.filter((family) => {
         return family.id === chosenFamilyID;

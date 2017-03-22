@@ -79,6 +79,9 @@ class attributeTable {
   private colOffsets;
   private catOffset = 30;
 
+  //Keeps track of whether the table is sorted by a certain attribute;
+  private sortAttribute={element:undefined,data:undefined}; //element is the arrow that was clicked, data is the data associated to that column
+
   private idScale = scaleLinear(); //used to size the bars in the first col of the table;
 
   private margin = Config.margin;
@@ -188,14 +191,6 @@ class attributeTable {
         .attr('fill','#b4b3b1')
         .attr('y',0)
         .attr('opacity',.1)
-
-      button.append('text')
-      .classed('histogramLabel',true)
-      .attr('x',60)
-      .attr('y',15)
-        .attr('fill', '#757472')
-      .text('Sort by Tree')
-      .attr('text-anchor', 'middle')
         .on('click',(d)=>{
 
           selectAll('.sortIcon')
@@ -209,13 +204,13 @@ class attributeTable {
           select('#columns').selectAll('.cell')
             .transition(t2)
             .attr('transform',(cell: any) => {
-              return ('translate(0, ' + this.y(this.rowOrder[cell.ind]) + ' )'); //the x translation is taken care of by the group this cell is nested in.
+              return ('translate(0, ' + this.y(this.rowOrder[cell.ind]) + ' )');
             });
 
           //translate tableGroup to make room for the slope lines.
           select('#tableGroup')
             .transition(t2)
-            .attr('transform',(cell: any) => {
+            .attr('transform',() => {
               return ('translate(' + Config.collapseSlopeChartWidth + ' ,0)');
             });
 
@@ -227,10 +222,20 @@ class attributeTable {
             });
 
           select('#tableGroup').selectAll('.highlightBar')
+            .transition(t2)
             .attr('y', (d: any) => {
               return this.y(this.rowOrder[d.i])})
 
         })
+
+      button.append('text')
+      .classed('histogramLabel',true)
+      .attr('x',60)
+      .attr('y',15)
+        .attr('fill', '#757472')
+      .text('Sort by Tree')
+      .attr('text-anchor', 'middle')
+
 
 
   }
@@ -814,9 +819,10 @@ class attributeTable {
 
 
   selectAll('.sortIcon')
-    .on('click',function(d:any){
+    .on('click', function(d){
 
-      let t2 = transition('t2').duration(600).ease(easeLinear);
+      //Set 'sortAttribute'
+      self.sortAttribute.data = d;
 
       selectAll('.sortIcon')
         .classed('sortSelected',false)
@@ -824,94 +830,111 @@ class attributeTable {
       select(this)
         .classed('sortSelected',true)
 
-      // the array to be sorted
-      const toSort  = d.data;
+      self.sortRows(d,select(this).classed('ascending'))})
 
-      console.log(d)
+  }
 
-      // temporary array holds objects with position and sort-value
-      const mapped = toSort.map(function(el, i) {
-        if (d.type === VALUE_TYPE_REAL || d.type === VALUE_TYPE_INT){
-          return isNaN(+mean(el)) ? { index: i, value:undefined} :  { index: i, value: +mean(el)};
-        } else if (d.type === VALUE_TYPE_STRING){
-          return (isUndefined(el[0]) || el[0].length === 0) ? { index: i, value: undefined} : { index: i, value: el[0].toLowerCase()};
-        } else if (d.type === VALUE_TYPE_CATEGORICAL){
+  /**
+   *
+   * This function sorts the table by the current Attribute
+   *
+   * @param d data to be sorted
+   * @param ascending, boolean flag set to true if sort order is ascending
+   */
+  private sortRows(d:any,ascending){
+
+    let t2 = transition('t2').duration(600).ease(easeLinear);
+
+    // the array to be sorted
+    const toSort  = d.data;
+
+    console.log(d)
+
+    // temporary array holds objects with position and sort-value
+    const mapped = toSort.map(function(el, i) {
+      if (d.type === VALUE_TYPE_REAL || d.type === VALUE_TYPE_INT){
+        return isNaN(+mean(el)) ? { index: i, value:undefined} :  { index: i, value: +mean(el)};
+      } else if (d.type === VALUE_TYPE_STRING){
+        return (isUndefined(el[0]) || el[0].length === 0) ? { index: i, value: undefined} : { index: i, value: el[0].toLowerCase()};
+      } else if (d.type === VALUE_TYPE_CATEGORICAL){
         return { index: i, value: +(el.filter(e=>{return e === d.category}).length /el.length) };
       } else if (d.type == 'idtype'){
-          let equalValues = el.reduce(function(a, b){ return (a === b) ? a : NaN; }); //check for array that has all equal values in an aggregate (such as KindredId);
-          return isNaN(equalValues) ? { index: i, value: undefined} : {index: i, value: equalValues};
+        let equalValues = el.reduce(function(a, b){ return (a === b) ? a : NaN; }); //check for array that has all equal values in an aggregate (such as KindredId);
+        return isNaN(equalValues) ? { index: i, value: undefined} : {index: i, value: equalValues};
       }
 
-      })
+    })
 
-      let equalValues = mapped.reduce(function(a, b){return ( a.value === b.value) ? a : NaN; }); //check for array that has all equal values in an aggregate (such as KindredId);
+    let equalValues = mapped.reduce(function(a, b){return ( a.value === b.value) ? a : NaN; }); //check for array that has all equal values in an aggregate (such as KindredId);
 
-      //All values are the same, no sorting needed;
-      if (!isNaN(equalValues.value)){
-        return;
-      }
+    //All values are the same, no sorting needed;
+    if (!isNaN(equalValues.value)){
+      return;
+    }
 
-      select('#revertTreeOrder')
-        .transition(t2.transition().duration(500).ease(easeLinear))
-        .attr('visibility','visible')
+    select('#revertTreeOrder')
+      .transition(t2.transition().duration(500).ease(easeLinear))
+      .attr('visibility','visible')
 
-      console.log('original indexes prior to sorting were:' , mapped.map(e=>{return e.index}));
+    console.log('original indexes prior to sorting were:' , mapped.map(e=>{return e.index}));
 
-      // sorting the mapped array containing the reduced values
-      if (select(this).classed('ascending')){
-        mapped.sort(function(a, b) {
-          if (a.value == b.value) return 0;
-          if (b.value == undefined || a.value<b.value) return -1;
-          if (a.value == undefined || a.value>b.value) return  1;
+    // sorting the mapped array containing the reduced values
+    if (ascending){
+      mapped.sort(function(a, b) {
+        if (a.value == b.value) return 0;
+        if (b.value == undefined || a.value<b.value) return -1;
+        if (a.value == undefined || a.value>b.value) return  1;
 
-        });
-      } else{
-        mapped.sort(function(a, b) {
-          if (a.value == b.value) return 0;
-          if (b.value == undefined || a.value<b.value) return 1;
-          if (a.value == undefined || a.value>b.value) return -1;
-        });
-      }
+      });
+    } else{
+      mapped.sort(function(a, b) {
+        if (a.value == b.value) return 0;
+        if (b.value == undefined || a.value<b.value) return 1;
+        if (a.value == undefined || a.value>b.value) return -1;
+      });
+    }
 
 
 // container for the resulting order
-      const sortedIndexes = mapped.map(function(el){
-        return el.index;
+    const sortedIndexes = mapped.map(function(el){
+      return el.index;
+    });
+
+    const sortedArray = mapped.map(function(el){
+      return toSort[el.index];
+    });
+
+
+    select('#columns')
+      .selectAll('.cell')
+    // .transition(t2)
+      .attr('transform',(cell: any) => { //console.log(this.rowOrder, sortedIndexes, cell.ind)
+        return ('translate(0, ' + this.y(this.rowOrder[sortedIndexes.indexOf(cell.ind)]) + ' )'); //the x translation is taken care of by the group this cell is nested in.
       });
 
-      const sortedArray = mapped.map(function(el){
-        return toSort[el.index];
+    d.ind = sortedIndexes.indexOf(d.ind);
+
+    //translate tableGroup to make room for the slope lines.
+    select('#tableGroup')
+    // .transition(t2)
+      .attr('transform',(cell: any) => {
+        return ('translate(' + Config.slopeChartWidth + ' ,0)');
       });
 
-      cells
-        .transition(t2)
-        .attr('transform',(cell: any) => {
-          return ('translate(0, ' + self.y(self.rowOrder[sortedIndexes.indexOf(cell.ind)]) + ' )'); //the x translation is taken care of by the group this cell is nested in.
-        });
 
-      d.ind = sortedIndexes.indexOf(d.ind);
+    selectAll('.slopeLine')
+    // .transition(t2)
+      .attr('d', (d: any) => {
+        return this.slopeChart({y:d.y, ind:sortedIndexes.indexOf(d.ind), width:Config.slopeChartWidth})
+      });
 
-      //translate tableGroup to make room for the slope lines.
-      select('#tableGroup')
-        .transition(t2)
-        .attr('transform',(cell: any) => {
-          return ('translate(' + Config.slopeChartWidth + ' ,0)');
-        });
+    select('#tableGroup')
+      .selectAll('.highlightBar')
+    // .transition(t2)
+      .attr('y', (d: any) => {
+        return this.y(this.rowOrder[sortedIndexes.indexOf(d.i)])})
 
-
-      selectAll('.slopeLine')
-        .transition(t2)
-        .attr('d', (d: any) => {
-          return self.slopeChart({y:d.y, ind:sortedIndexes.indexOf(d.ind), width:Config.slopeChartWidth})
-        });
-
-      highlightBars
-        .attr('y', (d: any) => {
-          return self.y(self.rowOrder[sortedIndexes.indexOf(d.i)])})
-
-    })
   }
-
   /**
    *
    * This function adds the 'sorting' glyphs to the top of the columns in the table.

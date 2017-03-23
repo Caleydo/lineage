@@ -1323,7 +1323,7 @@ class GenealogyTree {
 
     //attribute frames
     allNodes.selectAll('.attributeFrame')
-      .attr('width', Config.glyphSize*2)
+      .attr('width', Config.glyphSize)
       .attr('y', (d) => {
         return d['sex'] === Sex.Female ? (-Config.glyphSize) : 0
       })
@@ -1334,7 +1334,7 @@ class GenealogyTree {
       .attr('y', (d) => {
         return d['sex'] === Sex.Female ? (-Config.glyphSize) : 0
       })
-      .attr('width', Config.glyphSize *2)
+      .attr('width', Config.glyphSize )
 
 
     allNodes.selectAll('.attributeFrame').filter('.primary')

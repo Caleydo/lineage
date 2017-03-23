@@ -1330,7 +1330,7 @@ class attributeTable {
             });
 
             let ind = attr.categories.indexOf(nonUndefinedData);
-            console.log(attr.categories,nonUndefinedData,ind)
+            // console.log(attr.categories,nonUndefinedData,ind)
             return attr.color[ind]
           } else {
             attr = this.tableManager.secondaryAttribute;

@@ -352,8 +352,8 @@ class attributeTable {
             categories = ['Y']
           } else if (allCategories.find(d=>{return d==='TRUE'})){
             categories = ['TRUE']
-          } else if (allCategories.find(d=>{return d==='M'})) {
-            categories = ['M']
+          } else if (allCategories.find(d=>{return d==='F'})) {
+            categories = ['F']
           } else {
               categories = [allCategories[0]];
           }

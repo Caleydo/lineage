@@ -177,7 +177,6 @@ export default class TableManager {
    */
   public getAttribute(attribute, personID) {
 
-    // console.log('getAttribute: ' + attribute + personID);
     let selectedAttribute;
 
     if (attribute === this.affectedState.name) {
@@ -198,6 +197,7 @@ export default class TableManager {
       const value = selectedAttribute.data[index];
       return value;
     } else {
+      console.log(ids,personID)
       return undefined;
     }
   }
@@ -309,7 +309,7 @@ export default class TableManager {
       const varType = attributeVector.valuetype.type;
 
       this.affectedState.data = await attributeVector.data();
-      this.affectedState.personIDs = (await attributeVector.names()).map(Number);
+      this.affectedState.personIDs = (await attributeVector.names());
     }
 
     if (this.primaryAttribute) {
@@ -317,7 +317,7 @@ export default class TableManager {
       const varType = attributeVector.valuetype.type;
 
       this.primaryAttribute.data = await attributeVector.data();
-      this.primaryAttribute.personIDs = (await attributeVector.names()).map(Number);
+      this.primaryAttribute.personIDs = (await attributeVector.names());
 
     }
 
@@ -326,7 +326,7 @@ export default class TableManager {
       const varType = attributeVector.valuetype.type;
 
       this.secondaryAttribute.data = await attributeVector.data();
-      this.secondaryAttribute.personIDs = (await attributeVector.names()).map(Number);
+      this.secondaryAttribute.personIDs = (await attributeVector.names());
 
     }
   }
@@ -397,7 +397,7 @@ export default class TableManager {
 
 
     if (chosenFamilyID == null) {
-      family = this.familyInfo[2];
+      family = this.familyInfo[0];
     } else {
       family = this.familyInfo.filter((family) => {
         return family.id === chosenFamilyID;

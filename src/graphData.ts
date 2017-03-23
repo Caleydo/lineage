@@ -263,7 +263,10 @@ class GraphData {
     });
 
 
+    console.log('affected state is ', this.tableManager.affectedState)
     this.defineAffected(this.tableManager.affectedState);
+
+
     this.buildTree();
 
     //Create fake birthdays for people w/o a bdate.

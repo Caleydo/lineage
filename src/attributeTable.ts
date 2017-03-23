@@ -284,8 +284,6 @@ class attributeTable {
     //Find y indexes of all rows
     let allRows = Object.keys(y2personDict).map(Number);
 
-    console.log('AR', allRows)
-
 
     //Set height of svg
     this.height = Config.glyphSize * 3 * (max(allRows) - min(allRows) + 1);
@@ -394,7 +392,6 @@ class attributeTable {
 
           colDataAccum.push(col);
 
-          console.log('pushing col for ', col.name, ' which has ', col.data.length , ' items.')
         }
 
 
@@ -515,7 +512,6 @@ class attributeTable {
   //renders the DOM elements
   private async render() {
 
-    console.log('this.colData has ' , this.colData.length , ' cols');
     let t = transition('t').duration(500).ease(easeLinear);
     let self = this;
 
@@ -645,7 +641,7 @@ class attributeTable {
 // TABLE
     //Bind data to the col groups
     let cols = select('#columns').selectAll('.dataCols')
-      .data(this.colData.map((d, i) => { console.log('binding ', d.data.length, ' elements')
+      .data(this.colData.map((d, i) => {
         return {
           'name': d.name, 'data': d.data, 'ind': i, 'type': d.type,
           'ids': d.ids, 'stats': d.stats, 'varName': d.name, 'category': d.category, 'vector':d.vector
@@ -761,7 +757,7 @@ class attributeTable {
 
     //Bind data to the cells
     let cells = cols.selectAll('.cell')
-      .data((d) => { console.log('binding ', d.name , ' which has ', d.data.length ,' items')
+      .data((d) => {
         return d.data.map((e, i) => {
           return {
             'id': d.ids[i],
@@ -787,7 +783,7 @@ class attributeTable {
 
     cells = cellsEnter.merge(cells);
 
-    console.log('there are a total of ', cells.size() , 'cells')
+    // console.log('there are a total of ', cells.size() , 'cells')
 
     cellsEnter.attr('opacity', 0);
 
@@ -838,20 +834,10 @@ class attributeTable {
    */
   private sortRows(d:any,ascending){
 
-    console.log('sorting rows based on ', d.name)
-
-    // console.log()
-
     let t2 = transition('t2').duration(600).ease(easeLinear);
 
     //get data from colData array
     const toSort = this.colData.find((c)=>{return c.name === d.name}).data;
-
-    console.log(toSort)
-
-    // const toSort  = d.data;
-
-    // console.log('data is ' , d.data)
 
     // temporary array holds objects with position and sort-value
     const mapped = toSort.map(function(el, i) {
@@ -868,8 +854,6 @@ class attributeTable {
 
     })
 
-
-
     let equalValues = mapped.reduce(function(a, b){return ( a.value === b.value) ? a : NaN; }); //check for array that has all equal values in an aggregate (such as KindredId);
 
     //All values are the same, no sorting needed;
@@ -880,9 +864,6 @@ class attributeTable {
     select('#revertTreeOrder')
       .transition(t2.transition().duration(500).ease(easeLinear))
       .attr('visibility','visible')
-
-    console.log('original indexes prior to sorting were:' , mapped.map(e=>{return e.index}));
-    console.log('original values prior to sorting were:' , mapped.map(d=>{return d.value}));
 
     // sorting the mapped array containing the reduced values
     if (ascending){
@@ -900,9 +881,6 @@ class attributeTable {
       });
     }
 
-
-    console.log('sorted values were:' , mapped.map(d=>{return d.value}));
-
 // container for the resulting order
     const sortedIndexes = mapped.map(function(el){
       return el.index;
@@ -912,20 +890,12 @@ class attributeTable {
       return toSort[el.index];
     });
 
-    console.log(sortedArray.map(d=>{return d}));
-
-    let cellSelection = select('#columns').selectAll('.cell');
-
-    console.log('size of cell selection is ', cellSelection.size() );
-
-    // cellSelection.each((c:any)=>{console.log(c.name,c.category,c.ind)});
-
-    console.log(this.rowOrder,sortedIndexes)
+    // let cellSelection = select('#columns').selectAll('.cell');
 
     select('#columns')
       .selectAll('.cell')
     .transition(t2)
-      .attr('transform',(cell: any) => { //console.log(max(sortedIndexes),cell, cell.ind)
+      .attr('transform',(cell: any) => {
         return ('translate(0, ' + this.y(this.rowOrder[sortedIndexes.indexOf(cell.ind)]) + ' )'); //the x translation is taken care of by the group this cell is nested in.
       });
 
@@ -1717,8 +1687,6 @@ class attributeTable {
 
   private slopeChart(d) {
 
-
-      console.log('setting chart with a width of ', d.width)
       let slopeWidth = d.width;
 
       let nx = slopeWidth*0.2;

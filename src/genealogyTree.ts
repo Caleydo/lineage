@@ -1687,7 +1687,7 @@ class GenealogyTree {
   //Function that repositions the visible nodes to fill the graph.
   private update_visible_nodes() {
 
-    console.log('called update_visible_nodes');
+    // console.log('called update_visible_nodes');
 
     let scrollOffset = document.getElementById('graph_table').scrollTop;
     let divHeight = document.getElementById('graph_table').offsetHeight;
@@ -1828,11 +1828,6 @@ class GenealogyTree {
     // });
 
     events.on('redraw_tree', (evt, item) => {
-
-      console.log('redrawing tree, there are ', this.data.nodes.filter(d => {
-        return d.hidden
-      }).length, 'hidden nodes')
-      // this.data = item;
       this.update();
     });
 

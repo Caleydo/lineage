@@ -348,7 +348,16 @@ class attributeTable {
 
         //Only need one col for binary categories
         if (allCategories.length < 3) {
-          categories = [allCategories[0]];
+          if (allCategories.find(d=>{return d==='Y'})){
+            categories = ['Y']
+          } else if (allCategories.find(d=>{return d==='TRUE'})){
+            categories = ['TRUE']
+          } else if (allCategories.find(d=>{return d==='M'})) {
+            categories = ['M']
+          } else {
+              categories = [allCategories[0]];
+          }
+
         } else {
           categories = allCategories;
         }

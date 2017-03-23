@@ -12,7 +12,7 @@ import * as range from 'phovea_core/src/range';
 import {isNullOrUndefined} from 'util';
 import {transition} from 'd3-transition';
 import {easeLinear} from 'd3-ease';
-import {curveBasis,curveLinear} from 'd3-shape';
+import {curveBasis, curveLinear} from 'd3-shape';
 
 import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL, VALUE_TYPE_STRING} from 'phovea_core/src/datatype';
 
@@ -81,7 +81,7 @@ class attributeTable {
   private catOffset = 30;
 
   //Keeps track of whether the table is sorted by a certain attribute;
-  private sortAttribute={ascending:undefined,data:undefined,name:undefined}; //ascending: boolean for sort direction is ascending, data: data associated to that column
+  private sortAttribute = {ascending: undefined, data: undefined, name: undefined}; //ascending: boolean for sort direction is ascending, data: data associated to that column
 
   private idScale = scaleLinear(); //used to size the bars in the first col of the table;
 
@@ -142,101 +142,102 @@ class attributeTable {
     // TABLE (except for slope Chart and first col on the left of the slope chart)
     this.table = svg.append('g')
       .attr('transform', 'translate(' + Config.collapseSlopeChartWidth + ' , 0)')
-      .attr('id','tableGroup')
+      .attr('id', 'tableGroup')
 
     //HEADERS
     select('#tableGroup').append('g')
-      .attr('transform', 'translate(0, '  + this.margin.axisTop + ')')
-      .attr('id','tableHeaders')
+      .attr('transform', 'translate(0, ' + this.margin.axisTop + ')')
+      .attr('id', 'tableHeaders')
 
     //Column Summaries
     select('#tableGroup').append('g')
-      .attr('transform', 'translate(0, '  +  (this.margin.top - 70) + ')')
-      .attr('id','colSummaries')
+      .attr('transform', 'translate(0, ' + (this.margin.top - 70) + ')')
+      .attr('id', 'colSummaries')
 
     //Columns (except for the first)
     select('#tableGroup').append('g')
-      .attr('transform', 'translate(0, '  +  this.margin.top + ')')
+      .attr('transform', 'translate(0, ' + this.margin.top + ')')
       .attr('id', 'columns');
 
     //Highlight Bars
     select('#columns').append('g')
-      .attr('transform', 'translate(0, '  +  this.margin.top + ')')
+      .attr('transform', 'translate(0, ' + this.margin.top + ')')
       .attr('id', 'highlightBars');
 
     //SlopeChart and first col
     svg.append('g')
-      .attr('transform', 'translate(0, '  +  this.margin.top + ')')
-      .attr('id','slopeChart')
+      .attr('transform', 'translate(0, ' + this.margin.top + ')')
+      .attr('id', 'slopeChart')
 
     select('#slopeChart').append('g')
-      .attr('id','firstCol')
+      .attr('id', 'firstCol')
 
     select('#slopeChart').append('g')
-      .attr('id','slopeLines')
+      .attr('id', 'slopeLines')
 
 
     //Add button to slopeChart Div that says 'revert to Tree Order'
     let button = select('#slopeLines')
       .append('g')
-      .attr('transform','translate(45,' + (-60) + ')')
-      .attr('id','revertTreeOrder')
-      .attr('visibility','hidden')
+      .attr('transform', 'translate(45,' + (-60) + ')')
+      .attr('id', 'revertTreeOrder')
+      .attr('visibility', 'hidden')
       .append('svg');
 
-      button.append('rect')
-      .attr('width',120)
-      .attr('height',25)
-        .attr('rx',10)
-        .attr('ry',20)
-        .attr('fill','#b4b3b1')
-        .attr('y',0)
-        .attr('opacity',.1)
-        .on('click',(d)=>{
+    button.append('rect')
+      .attr('width', 120)
+      .attr('height', 25)
+      .attr('rx', 10)
+      .attr('ry', 20)
+      .attr('fill', '#b4b3b1')
+      .attr('y', 0)
+      .attr('opacity', .1)
+      .on('click', (d) => {
 
-          selectAll('.sortIcon')
-            .classed('sortSelected',false)
+        selectAll('.sortIcon')
+          .classed('sortSelected', false)
 
-          select('#revertTreeOrder')
-            .attr('visibility','hidden')
+        select('#revertTreeOrder')
+          .attr('visibility', 'hidden')
 
-          let t2 = transition('t2').duration(600).ease(easeLinear);
+        let t2 = transition('t2').duration(600).ease(easeLinear);
 
-          select('#columns').selectAll('.cell')
-            .transition(t2)
-            .attr('transform',(cell: any) => {
-              return ('translate(0, ' + this.y(this.rowOrder[cell.ind]) + ' )');
-            });
+        select('#columns').selectAll('.cell')
+          .transition(t2)
+          .attr('transform', (cell: any) => {
+            return ('translate(0, ' + this.y(this.rowOrder[cell.ind]) + ' )');
+          });
 
-          //translate tableGroup to make room for the slope lines.
-          select('#tableGroup')
-            .transition(t2)
-            .attr('transform',() => {
-              return ('translate(' + Config.collapseSlopeChartWidth + ' ,0)');
-            });
+        //translate tableGroup to make room for the slope lines.
+        select('#tableGroup')
+          .transition(t2)
+          .attr('transform', () => {
+            return ('translate(' + Config.collapseSlopeChartWidth + ' ,0)');
+          });
 
 
-          selectAll('.slopeLine')
-            .transition(t2)
-            .attr('d', (d: any) => { console.log('collapsedWidth')
-              return this.slopeChart({y:d.y, ind:d.ind, width:Config.collapseSlopeChartWidth})
-            });
+        selectAll('.slopeLine')
+          .transition(t2)
+          .attr('d', (d: any) => {
+            console.log('collapsedWidth')
+            return this.slopeChart({y: d.y, ind: d.ind, width: Config.collapseSlopeChartWidth})
+          });
 
-          select('#tableGroup').selectAll('.highlightBar')
-            .transition(t2)
-            .attr('y', (d: any) => {
-              return this.y(this.rowOrder[d.i])})
+        select('#tableGroup').selectAll('.highlightBar')
+          .transition(t2)
+          .attr('y', (d: any) => {
+            return this.y(this.rowOrder[d.i])
+          })
 
-        })
+      })
 
-      button.append('text')
-      .classed('histogramLabel',true)
-      .attr('x',60)
-      .attr('y',15)
-        .attr('fill', '#757472')
+    button.append('text')
+      .classed('histogramLabel', true)
+      .attr('x', 60)
+      .attr('y', 15)
+      .attr('fill', '#757472')
       .text('Sort by Tree')
       .attr('text-anchor', 'middle')
-
 
 
   }
@@ -245,7 +246,7 @@ class attributeTable {
 
     // this.colOffsets = [-Config.slopeChartWidth];
 
-    this.colOffsets =[0];
+    this.colOffsets = [0];
     let graphView = await this.tableManager.graphTable;
     let attributeView = await this.tableManager.tableTable;
 
@@ -348,14 +349,20 @@ class attributeTable {
 
         //Only need one col for binary categories
         if (allCategories.length < 3) {
-          if (allCategories.find(d=>{return d==='Y'})){
+          if (allCategories.find(d => {
+              return d === 'Y'
+            })) {
             categories = ['Y']
-          } else if (allCategories.find(d=>{return d==='TRUE'})){
+          } else if (allCategories.find(d => {
+              return d === 'TRUE'
+            })) {
             categories = ['TRUE']
-          } else if (allCategories.find(d=>{return d==='F'})) {
+          } else if (allCategories.find(d => {
+              return d === 'F'
+            })) {
             categories = ['F']
           } else {
-              categories = [allCategories[0]];
+            categories = [allCategories[0]];
           }
 
         } else {
@@ -363,8 +370,8 @@ class attributeTable {
         }
 
 
-        if(categories.length > 2){ //Add spacing around multicolumn categories
-          let numColsBefore = this.colOffsets.length-1;
+        if (categories.length > 2) { //Add spacing around multicolumn categories
+          let numColsBefore = this.colOffsets.length - 1;
           this.colOffsets[numColsBefore] += this.catOffset;
         }
 
@@ -405,8 +412,8 @@ class attributeTable {
         }
 
 
-        if(categories.length > 2){ //Add spacing around multicolumn categories
-          let numColsAfter = this.colOffsets.length-1;
+        if (categories.length > 2) { //Add spacing around multicolumn categories
+          let numColsAfter = this.colOffsets.length - 1;
           this.colOffsets[numColsAfter] += this.catOffset;
         }
 
@@ -505,9 +512,8 @@ class attributeTable {
         //   this.colOffsets.push(maxOffset + this.buffer +  col.data[0][0].length*7);
         //
         // }else{
-          this.colOffsets.push(maxOffset + this.buffer + this.colWidths[type]);
+        this.colOffsets.push(maxOffset + this.buffer + this.colWidths[type]);
         // }
-
 
 
       }
@@ -531,12 +537,12 @@ class attributeTable {
 //HEADERS
     //Bind data to the col headers
     let headers = select('#tableHeaders').selectAll('.header')
-      .data(this.colData.map((d:any, i) => {
+      .data(this.colData.map((d: any, i) => {
         return {
           'name': d.name, 'data': d, 'ind': i, 'type': d.type,
-          'max': d.max, 'min': d.min, 'mean': d.mean, 'category': d.category, 'isSorted':d.isSorted
+          'max': d.max, 'min': d.min, 'mean': d.mean, 'category': d.category, 'isSorted': d.isSorted
         }
-      }), (d:any) => {
+      }), (d: any) => {
         return d.name
       });
 
@@ -551,7 +557,7 @@ class attributeTable {
 
     headers
       .text((d: any) => {
-        if (d.category)
+        if (d.category && d.category !== 'TRUE' && d.category !== 'Y')
           return d.name + ' (' + d.category + ')'
         else
           return d.name
@@ -571,7 +577,7 @@ class attributeTable {
     let colSummaries = select('#colSummaries').selectAll('.colSummary')
       .data(this.colData.map((d) => {
         return d
-      }), (d:any) => {
+      }), (d: any) => {
         return d.name
       });
 
@@ -593,7 +599,7 @@ class attributeTable {
         self.renderStringHeader(select(this), cell);
       }
       else if (cell.type === 'id' || cell.type === 'idtype') {
-        self.addSortingIcons(select(this),cell);
+        self.addSortingIcons(select(this), cell);
       }
     });
 
@@ -607,8 +613,8 @@ class attributeTable {
 
     //create backgroundHighlight Bars
     let highlightBars = select('#columns').selectAll('.highlightBar')
-      .data(this.rowOrder.map((d,i) => {
-        return {'y': d, 'i':i}
+      .data(this.rowOrder.map((d, i) => {
+        return {'y': d, 'i': i}
       }), (d: any) => {
         return d.y
       });
@@ -622,7 +628,8 @@ class attributeTable {
     highlightBars
       .attr('x', 0)
       .attr('y', (d: any) => {
-        return this.y(this.rowOrder[d.i])})
+        return this.y(this.rowOrder[d.i])
+      })
       .attr('width', max(this.colOffsets))
       .attr('height', this.rowHeight)
       .attr('opacity', 0);
@@ -630,9 +637,12 @@ class attributeTable {
     //create slope Lines
     // //Bind data to the cells
     let slopeLines = select('#slopeLines').selectAll('.slopeLine')
-      .data(this.rowOrder.map((d: any,i) => {
-          return {y:d, ind:i, width:Config.collapseSlopeChartWidth}})
-        ,(d:any) => {return d.y});
+      .data(this.rowOrder.map((d: any, i) => {
+          return {y: d, ind: i, width: Config.collapseSlopeChartWidth}
+        })
+        , (d: any) => {
+          return d.y
+        });
 
     slopeLines.exit().remove();
 
@@ -643,7 +653,7 @@ class attributeTable {
 
     // slopeLines
       .attr('class', 'slopeLine')
-      .attr('d', (d:any) => {
+      .attr('d', (d: any) => {
         return this.slopeChart(d)
       });
 
@@ -654,9 +664,9 @@ class attributeTable {
       .data(this.colData.map((d, i) => {
         return {
           'name': d.name, 'data': d.data, 'ind': i, 'type': d.type,
-          'ids': d.ids, 'stats': d.stats, 'varName': d.name, 'category': d.category, 'vector':d.vector
+          'ids': d.ids, 'stats': d.stats, 'varName': d.name, 'category': d.category, 'vector': d.vector
         }
-      }), (d:any) => {
+      }), (d: any) => {
         return d.varName
       });
 
@@ -682,9 +692,9 @@ class attributeTable {
       .data(this.firstCol.map((d, i) => {
         return {
           'name': d.name, 'data': d.data, 'ind': i, 'type': d.type,
-          'ids': d.ids, 'stats': d.stats, 'varName': d.name, 'category': d.category, 'vector':d.vector
+          'ids': d.ids, 'stats': d.stats, 'varName': d.name, 'category': d.category, 'vector': d.vector
         }
-      }), (d:any) => {
+      }), (d: any) => {
         return d.varName
       });
 
@@ -705,15 +715,15 @@ class attributeTable {
             'id': d.ids[i],
             'name': d.name,
             'data': e,
-            'ind':i,
+            'ind': i,
             'type': d.type,
             'stats': d.stats,
             'varName': d.name,
             'category': d.category,
-            'vector':d.vector
+            'vector': d.vector
           }
         })
-      }, (d:any) => {
+      }, (d: any) => {
         return d.id[0]
       });
 
@@ -729,7 +739,7 @@ class attributeTable {
 
     firstCells
       .transition(t)
-      .attr('transform', (cell: any,i) => {
+      .attr('transform', (cell: any, i) => {
         return ('translate(0, ' + y(this.rowOrder[i]) + ' )'); //the x translation is taken care of by the group this cell is nested in.
       });
 
@@ -738,7 +748,6 @@ class attributeTable {
     firstCells.each(function (cell) {
       self.renderDataDensCell(select(this), cell);
     });
-
 
 
     //create table Lines
@@ -773,15 +782,15 @@ class attributeTable {
             'id': d.ids[i],
             'name': d.name,
             'data': e,
-            'ind':i,
+            'ind': i,
             'type': d.type,
             'stats': d.stats,
             'varName': d.name,
             'category': d.category,
-            'vector':d.vector
+            'vector': d.vector
           }
         })
-      }, (d:any) => {
+      }, (d: any) => {
         return d.id[0]
       });
 
@@ -799,7 +808,7 @@ class attributeTable {
 
     cells
       .transition(t)
-      .attr('transform', (cell: any,i) => {
+      .attr('transform', (cell: any, i) => {
         return ('translate(0, ' + y(this.rowOrder[i]) + ' )'); //the x translation is taken care of by the group this cell is nested in.
       });
 
@@ -815,8 +824,8 @@ class attributeTable {
       else if (cell.type === VALUE_TYPE_STRING) {
         self.renderStringCell(select(this), cell);
       }
-      else if (cell.name === 'KindredID'){
-        self.renderFamilyIDCell(select(this),cell)
+      else if (cell.name === 'KindredID') {
+        self.renderFamilyIDCell(select(this), cell)
       }
       else if (cell.type === 'id' || cell.type === 'idtype') {
 
@@ -830,7 +839,7 @@ class attributeTable {
 
 
     // If a sortAttribute has been set, sort by that attribute
-    if (this.sortAttribute.data){
+    if (this.sortAttribute.data) {
       this.sortRows(this.sortAttribute.data, this.sortAttribute.ascending);
     }
   }
@@ -842,61 +851,74 @@ class attributeTable {
    * @param d data to be sorted
    * @param ascending, boolean flag set to true if sort order is ascending
    */
-  private sortRows(d:any,ascending){
+  private sortRows(d: any, ascending) {
 
     let t2 = transition('t2').duration(600).ease(easeLinear);
 
     //get data from colData array
-    const toSort = this.colData.find((c)=>{return c.name === d.name}).data;
+    const toSort = this.colData.find((c) => {
+      return c.name === d.name
+    }).data;
 
     // temporary array holds objects with position and sort-value
-    const mapped = toSort.map(function(el, i) {
-      if (d.type === VALUE_TYPE_REAL || d.type === VALUE_TYPE_INT){
-        return isNaN(+mean(el)) ? { index: i, value:undefined} :  { index: i, value: +mean(el)};
-      } else if (d.type === VALUE_TYPE_STRING){
-        return (isUndefined(el[0]) || el[0].length === 0) ? { index: i, value: undefined} : { index: i, value: el[0].toLowerCase()};
-      } else if (d.type === VALUE_TYPE_CATEGORICAL){
-        return { index: i, value: +(el.filter(e=>{return e === d.category}).length /el.length) };
-      } else if (d.type == 'idtype'){
-        let equalValues = el.reduce(function(a, b){ return (a === b) ? a : NaN; }); //check for array that has all equal values in an aggregate (such as KindredId);
-        return isNaN(equalValues) ? { index: i, value: undefined} : {index: i, value: equalValues};
+    const mapped = toSort.map(function (el, i) {
+      if (d.type === VALUE_TYPE_REAL || d.type === VALUE_TYPE_INT) {
+        return isNaN(+mean(el)) ? {index: i, value: undefined} : {index: i, value: +mean(el)};
+      } else if (d.type === VALUE_TYPE_STRING) {
+        return (isUndefined(el[0]) || el[0].length === 0) ? {index: i, value: undefined} : {
+            index: i,
+            value: el[0].toLowerCase()
+          };
+      } else if (d.type === VALUE_TYPE_CATEGORICAL) {
+        return {
+          index: i, value: +(el.filter(e => {
+            return e === d.category
+          }).length / el.length)
+        };
+      } else if (d.type == 'idtype') {
+        let equalValues = el.reduce(function (a, b) {
+          return (a === b) ? a : NaN;
+        }); //check for array that has all equal values in an aggregate (such as KindredId);
+        return isNaN(equalValues) ? {index: i, value: undefined} : {index: i, value: equalValues};
       }
 
     })
 
-    let equalValues = mapped.reduce(function(a, b){return ( a.value === b.value) ? a : NaN; }); //check for array that has all equal values in an aggregate (such as KindredId);
+    let equalValues = mapped.reduce(function (a, b) {
+      return ( a.value === b.value) ? a : NaN;
+    }); //check for array that has all equal values in an aggregate (such as KindredId);
 
     //All values are the same, no sorting needed;
-    if (!isNaN(equalValues.value)){
+    if (!isNaN(equalValues.value)) {
       return;
     }
 
     select('#revertTreeOrder')
       .transition(t2.transition().duration(500).ease(easeLinear))
-      .attr('visibility','visible')
+      .attr('visibility', 'visible')
 
     // sorting the mapped array containing the reduced values
-    if (ascending){
-      mapped.sort(function(a, b) {
+    if (ascending) {
+      mapped.sort(function (a, b) {
         if (a.value == b.value) return 0;
-        if (b.value == undefined || a.value<b.value) return -1;
-        if (a.value == undefined || a.value>b.value) return  1;
+        if (b.value == undefined || a.value < b.value) return -1;
+        if (a.value == undefined || a.value > b.value) return 1;
 
       });
-    } else{
-      mapped.sort(function(a, b) {
+    } else {
+      mapped.sort(function (a, b) {
         if (a.value == b.value) return 0;
-        if (b.value == undefined || a.value<b.value) return 1;
-        if (a.value == undefined || a.value>b.value) return -1;
+        if (b.value == undefined || a.value < b.value) return 1;
+        if (a.value == undefined || a.value > b.value) return -1;
       });
     }
 
 // container for the resulting order
-    const sortedIndexes = mapped.map(function(el){
+    const sortedIndexes = mapped.map(function (el) {
       return el.index;
     });
 
-    const sortedArray = mapped.map(function(el){
+    const sortedArray = mapped.map(function (el) {
       return toSort[el.index];
     });
 
@@ -904,8 +926,8 @@ class attributeTable {
 
     select('#columns')
       .selectAll('.cell')
-    .transition(t2)
-      .attr('transform',(cell: any) => {
+      .transition(t2)
+      .attr('transform', (cell: any) => {
         return ('translate(0, ' + this.y(this.rowOrder[sortedIndexes.indexOf(cell.ind)]) + ' )'); //the x translation is taken care of by the group this cell is nested in.
       });
 
@@ -913,25 +935,27 @@ class attributeTable {
 
     //translate tableGroup to make room for the slope lines.
     select('#tableGroup')
-    .transition(t2)
-      .attr('transform',(cell: any) => {
+      .transition(t2)
+      .attr('transform', (cell: any) => {
         return ('translate(' + Config.slopeChartWidth + ' ,0)');
       });
 
 
     selectAll('.slopeLine')
-    .transition(t2)
+      .transition(t2)
       .attr('d', (d: any) => {
-        return this.slopeChart({y:d.y, ind:sortedIndexes.indexOf(d.ind), width:Config.slopeChartWidth})
+        return this.slopeChart({y: d.y, ind: sortedIndexes.indexOf(d.ind), width: Config.slopeChartWidth})
       });
 
     select('#tableGroup')
       .selectAll('.highlightBar')
-    .transition(t2)
+      .transition(t2)
       .attr('y', (d: any) => {
-        return this.y(this.rowOrder[sortedIndexes.indexOf(d.i)])})
+        return this.y(this.rowOrder[sortedIndexes.indexOf(d.i)])
+      })
 
   }
+
   /**
    *
    * This function adds the 'sorting' glyphs to the top of the columns in the table.
@@ -939,7 +963,7 @@ class attributeTable {
    * @param element d3 selection of the current column header element.
    * @param cellData the data bound to the column header element being passed in.
    */
-  private addSortingIcons(element,cellData){
+  private addSortingIcons(element, cellData) {
 
     let icon = element.selectAll('.descending')
       .data([cellData]);
@@ -947,54 +971,58 @@ class attributeTable {
 
     let iconEnter = icon.enter()
       .append('text')
-      .classed('sortIcon',true)
-      .classed('descending',true);
+      .classed('sortIcon', true)
+      .classed('descending', true);
 
     icon = iconEnter.merge(icon);
 
     icon
       .text('\uf0dd')
       .attr('y', this.rowHeight * 1.8 + 20)
-      .attr('x', (d) =>{return this.colWidths[d.type]/2-5})
+      .attr('x', (d) => {
+        return this.colWidths[d.type] / 2 - 5
+      })
 
     icon = element.selectAll('.ascending')
       .data([cellData]);
 
     iconEnter = icon.enter()
       .append('text')
-      .classed('sortIcon',true)
-      .classed('ascending',true)
+      .classed('sortIcon', true)
+      .classed('ascending', true)
 
 
     icon = iconEnter.merge(icon);
 
-      icon
+    icon
       .attr('font-family', 'FontAwesome')
       .text('\uf0de')
       .attr('y', this.rowHeight * 1.8 + 30)
-      .attr('x', (d) =>{return this.colWidths[cellData.type]/2+5})
+      .attr('x', (d) => {
+        return this.colWidths[cellData.type] / 2 + 5
+      })
 
     element.selectAll('.sortIcon')
       .attr('font-family', 'FontAwesome')
-      .attr('font-size',17)
+      .attr('font-size', 17)
       .attr('text-anchor', 'middle')
 
     let self = this;
 
     selectAll('.sortIcon')
-      .on('click', function(d){
+      .on('click', function (d) {
 
         // Set 'sortAttribute'
         self.sortAttribute.ascending = select(this).classed('ascending');
         self.sortAttribute.data = d;
 
         selectAll('.sortIcon')
-          .classed('sortSelected',false)
+          .classed('sortSelected', false)
 
         select(this)
-          .classed('sortSelected',true)
+          .classed('sortSelected', true)
 
-        self.sortRows(d,select(this).classed('ascending'))
+        self.sortRows(d, select(this).classed('ascending'))
 
       })
 
@@ -1013,7 +1041,7 @@ class attributeTable {
     element.selectAll('text').remove();
     element.selectAll('circle').remove();
 
-    this.addSortingIcons(element,headerData);
+    this.addSortingIcons(element, headerData);
   };
 
 
@@ -1030,10 +1058,8 @@ class attributeTable {
     element.selectAll('text').remove();
     element.selectAll('circle').remove();
 
-    this.addSortingIcons(element,headerData);
+    this.addSortingIcons(element, headerData);
   };
-
-
 
 
   /**
@@ -1073,7 +1099,7 @@ class attributeTable {
 
     }
 
-    this.addSortingIcons(element,headerData);
+    this.addSortingIcons(element, headerData);
 
     element.select('.histogram')
       .attr('opacity', 0)
@@ -1183,7 +1209,7 @@ class attributeTable {
         .call(xAxis)
     }
 
-    this.addSortingIcons(element,headerData);
+    this.addSortingIcons(element, headerData);
 
     element.selectAll('.histogram')
       .attr('width', binWidth * 0.8)
@@ -1230,7 +1256,6 @@ class attributeTable {
       .attr('text-anchor', 'middle')
 
 
-
   };
 
 
@@ -1251,10 +1276,13 @@ class attributeTable {
     let numValidValues = cellData.data.reduce((a, v) => {
       return v ? a + 1 : a
     }, 0);
+
     let numValues = cellData.data.filter((c) => {
-      return (c == cellData.category)
+      return (c === cellData.category)
     }).length
 
+    // console.log('category is ', cellData.category , ' . Data is ', cellData.data, ' numValues is ', numValues)
+    // console.log('cellData is ', cellData);
     element.selectAll('rect').remove(); //Hack. don't know why the height of the rects isn' being updated.
 
     if (numValidValues < 1) {
@@ -1296,31 +1324,28 @@ class attributeTable {
       .attr('height', rowHeight)
       .attr('y', 0)
       .attr('fill', (d) => {
-          let attr = this.tableManager.primaryAttribute;
-          if (attr && attr.name === cellData.varName) {
+          let attr;
 
-            let nonUndefinedData = cellData.data.find((d) => {
-              return d !== undefined
-            });
+          let primary = this.tableManager.primaryAttribute;
+          let secondary = this.tableManager.secondaryAttribute;
+          if (primary && primary.name === cellData.varName) {
+            attr = primary;
+          } else if (secondary && secondary.name === cellData.varName) {
+            attr = secondary;
+          }
 
-            let ind = attr.categories.indexOf(nonUndefinedData);
-            return attr.color[ind]
-          } else {
-            attr = this.tableManager.secondaryAttribute;
-            if (attr && attr.name === cellData.varName) {
-              let nonUndefinedData = cellData.data.find((d) => {
-                return d !== undefined
-              });
-              let ind = attr.categories.indexOf(nonUndefinedData);
-              return attr.color[ind]
+          if (attr) {
+            let ind = attr.categories.indexOf(cellData.category);
+            if (ind === 0) {
+              return attr.color[1]
+            } else {
+              return attr.color[0]
             }
           }
           return '#dfdfdf';
         }
       )
 
-
-    // .classed('aggregate',()=>{return cellData.data.length >1})
 
     element
       .select('.categorical')
@@ -1330,32 +1355,27 @@ class attributeTable {
       .classed('aggregate', () => {
         return cellData.data.length > 1
       })
-      .attr('fill', (d) => {
-          let attr = this.tableManager.primaryAttribute;
-          if (attr && attr.name === cellData.varName) {
 
-            let nonUndefinedData = cellData.data.find((d) => {
-              return d !== undefined
-            });
+      .attr('fill', () => {
+          let attr;
 
-            let ind = attr.categories.indexOf(nonUndefinedData);
-            // console.log(attr.categories,nonUndefinedData,ind)
-            return attr.color[ind]
-          } else {
-            attr = this.tableManager.secondaryAttribute;
-            if (attr && attr.name === cellData.varName) {
-              let nonUndefinedData = cellData.data.find((d) => {
-                return d !== undefined
-              });
-              let ind = attr.categories.indexOf(nonUndefinedData);
+          let primary = this.tableManager.primaryAttribute;
+          let secondary = this.tableManager.secondaryAttribute;
+          if (primary && primary.name === cellData.varName) {
+            attr = primary;
+          } else if (secondary && secondary.name === cellData.varName) {
+            attr = secondary;
+          }
+
+          if (attr) {
+            let ind = attr.categories.indexOf(cellData.category);
+            if (ind > -1) {
               return attr.color[ind]
             }
           }
-          return '#767a7a';
+          return '#767a7a'
         }
       )
-
-    // .classed('affected',()=>{return this.tableManager.affectedState.name === cellData.varName})
   }
 
   /**
@@ -1403,18 +1423,20 @@ class attributeTable {
   }
 
 
-  private renderFamilyIDCell(element,cellData){
+  private renderFamilyIDCell(element, cellData) {
 
-    let equalValues = cellData.data.reduce(function(a, b){ return (a === b) ? a : NaN; }); //check for array that has all equal values in an aggregate (such as KindredId);
+    let equalValues = cellData.data.reduce(function (a, b) {
+      return (a === b) ? a : NaN;
+    }); //check for array that has all equal values in an aggregate (such as KindredId);
 
-    if (isNaN(equalValues)){
+    if (isNaN(equalValues)) {
       console.log('Found Duplicate KindredIDs in aggregate row!')
       return;
     }
 
     cellData.data = equalValues; //set the value of this cell as the KindredID
 
-    this.renderDataDensCell(element,cellData);
+    this.renderDataDensCell(element, cellData);
 
   }
 
@@ -1523,7 +1545,10 @@ class attributeTable {
 
     element.selectAll('.quant_ellipse')
       .attr('cx',
-        (d: any) => { if (isNaN(d.value)){console.log(d)}
+        (d: any) => {
+          if (isNaN(d.value)) {
+            console.log(d)
+          }
           return this.xScale(d.value);
           ;
         })
@@ -1639,7 +1664,9 @@ class attributeTable {
 
     let numValues = cellData.data.reduce((a, v) => v ? a + 1 : a, 0);
 
-    let equalValues = cellData.data.reduce(function(a, b){ return (a === b) ? a : NaN; }); //check for array that has all equal values in an aggregate (such as KindredId)
+    let equalValues = cellData.data.reduce(function (a, b) {
+      return (a === b) ? a : NaN;
+    }); //check for array that has all equal values in an aggregate (such as KindredId)
 
     if (numValues === 0) {
       return;
@@ -1693,31 +1720,30 @@ class attributeTable {
 
   private slopeChart(d) {
 
-      let slopeWidth = d.width;
+    let slopeWidth = d.width;
 
-      let nx = slopeWidth*0.2;
-      let width = slopeWidth;
+    let nx = slopeWidth * 0.2;
+    let width = slopeWidth;
 
-      let linedata = [{
-        x: 0,
-        y: this.y(d.y) + (this.rowHeight/2)
+    let linedata = [{
+      x: 0,
+      y: this.y(d.y) + (this.rowHeight / 2)
+    },
+      {
+        x: nx,
+        y: this.y(d.y) + (this.rowHeight / 2)
       },
-        {
-          x: nx,
-          y: this.y(d.y) + (this.rowHeight/2)
-        },
-        {
-          x:  width - nx,
-          y: this.y(this.rowOrder[d.ind]) + (this.rowHeight/2)
-        },
-        {
-          x:  width,
-          y: this.y(this.rowOrder[d.ind]) + (this.rowHeight/2)
-        }];
+      {
+        x: width - nx,
+        y: this.y(this.rowOrder[d.ind]) + (this.rowHeight / 2)
+      },
+      {
+        x: width,
+        y: this.y(this.rowOrder[d.ind]) + (this.rowHeight / 2)
+      }];
 
-      return this.lineFunction(linedata);
+    return this.lineFunction(linedata);
   }
-
 
 
 //

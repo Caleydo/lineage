@@ -26,7 +26,7 @@ import {
   TABLE_VIS_ROWS_CHANGED_EVENT
 } from './tableManager';
 import {isUndefined} from 'util';
-import {is} from '../../phovea_core/src/range/index';
+
 
 /**
  * Creates the attribute table view

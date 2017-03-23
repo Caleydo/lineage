@@ -1223,22 +1223,22 @@ class GenealogyTree {
       .classed('primary', true)
       .classed('attributeBar', true)
 
-    allNodesEnter
-      .filter(function (d: any) {
-        return !d['hidden'];
-      })
-      .append('rect')
-      .classed('secondary', true)
-      .classed('attributeFrame', true)
-
-
-    allNodesEnter
-      .filter(function (d: any) {
-        return !d['hidden'];
-      })
-      .append('rect')
-      .classed('secondary', true)
-      .classed('attributeBar', true)
+    // allNodesEnter
+    //   .filter(function (d: any) {
+    //     return !d['hidden'];
+    //   })
+    //   .append('rect')
+    //   .classed('secondary', true)
+    //   .classed('attributeFrame', true)
+    //
+    //
+    // allNodesEnter
+    //   .filter(function (d: any) {
+    //     return !d['hidden'];
+    //   })
+    //   .append('rect')
+    //   .classed('secondary', true)
+    //   .classed('attributeBar', true)
 
 
     //leaf nodes, go into kidGrid
@@ -1323,7 +1323,7 @@ class GenealogyTree {
 
     //attribute frames
     allNodes.selectAll('.attributeFrame')
-      .attr('width', Config.glyphSize)
+      .attr('width', Config.glyphSize*2)
       .attr('y', (d) => {
         return d['sex'] === Sex.Female ? (-Config.glyphSize) : 0
       })
@@ -1334,7 +1334,7 @@ class GenealogyTree {
       .attr('y', (d) => {
         return d['sex'] === Sex.Female ? (-Config.glyphSize) : 0
       })
-      .attr('width', Config.glyphSize)
+      .attr('width', Config.glyphSize *2)
 
 
     allNodes.selectAll('.attributeFrame').filter('.primary')
@@ -1349,16 +1349,16 @@ class GenealogyTree {
       })
 
 
-    allNodes.selectAll('.attributeFrame').filter('.secondary')
-      .attr('height', (d) => {
-        let height = 0;
-        let attr = this.secondaryAttribute;
-
-        if (attr) {
-          height = Config.glyphSize * 2;
-        }
-        return height;
-      })
+    // allNodes.selectAll('.attributeFrame').filter('.secondary')
+    //   .attr('height', (d) => {
+    //     let height = 0;
+    //     let attr = this.secondaryAttribute;
+    //
+    //     if (attr) {
+    //       height = Config.glyphSize * 2;
+    //     }
+    //     return height;
+    //   })
 
     allNodes.selectAll('.attributeBar').filter('.primary')
       .attr('height', (d: any) => {
@@ -1410,38 +1410,38 @@ class GenealogyTree {
         }
       })
 
-    allNodes.selectAll('.attributeBar').filter('.secondary')
-      .attr('height', (d) => {
-        let height = 0;
-        let attr = this.secondaryAttribute;
-
-        if (attr && attr.type === VALUE_TYPE_CATEGORICAL) {
-          height = Config.glyphSize * 2;
-        } else if (attr && d[attr.name] && (attr.type === VALUE_TYPE_INT || attr.type === VALUE_TYPE_REAL)) {
-          this.attributeBarY.domain([attr.stats.min, attr.stats.max]);
-          height = this.attributeBarY(d[attr.name]);
-        }
-        return height
-      })
-      .attr('y', (d) => {
-        let y = 0;
-        let attr = this.secondaryAttribute;
-        if (attr && d[attr.name] && (attr.type === VALUE_TYPE_INT || attr.type === VALUE_TYPE_REAL)) {
-          this.attributeBarY.domain([attr.stats.min, attr.stats.max]);
-          y = Config.glyphSize * 2 - this.attributeBarY(d[attr.name]);
-        }
-        return d['sex'] === Sex.Female ? (-Config.glyphSize) + y : y
-      })
-      .attr('fill', (d) => {
-        let attr = this.secondaryAttribute;
-        if (attr && d[attr.name] && attr.type === VALUE_TYPE_CATEGORICAL) {
-          // console.log(d[attr.name],attr.categories)
-          let ind = attr.categories.indexOf(d[attr.name]);
-          return attr.color[ind]
-        } else if (attr && d[attr.name] && (attr.type === VALUE_TYPE_INT || attr.type === VALUE_TYPE_REAL)) {
-          return attr.color
-        }
-      })
+    // allNodes.selectAll('.attributeBar').filter('.secondary')
+    //   .attr('height', (d) => {
+    //     let height = 0;
+    //     let attr = this.secondaryAttribute;
+    //
+    //     if (attr && attr.type === VALUE_TYPE_CATEGORICAL) {
+    //       height = Config.glyphSize * 2;
+    //     } else if (attr && d[attr.name] && (attr.type === VALUE_TYPE_INT || attr.type === VALUE_TYPE_REAL)) {
+    //       this.attributeBarY.domain([attr.stats.min, attr.stats.max]);
+    //       height = this.attributeBarY(d[attr.name]);
+    //     }
+    //     return height
+    //   })
+    //   .attr('y', (d) => {
+    //     let y = 0;
+    //     let attr = this.secondaryAttribute;
+    //     if (attr && d[attr.name] && (attr.type === VALUE_TYPE_INT || attr.type === VALUE_TYPE_REAL)) {
+    //       this.attributeBarY.domain([attr.stats.min, attr.stats.max]);
+    //       y = Config.glyphSize * 2 - this.attributeBarY(d[attr.name]);
+    //     }
+    //     return d['sex'] === Sex.Female ? (-Config.glyphSize) + y : y
+    //   })
+    //   .attr('fill', (d) => {
+    //     let attr = this.secondaryAttribute;
+    //     if (attr && d[attr.name] && attr.type === VALUE_TYPE_CATEGORICAL) {
+    //       // console.log(d[attr.name],attr.categories)
+    //       let ind = attr.categories.indexOf(d[attr.name]);
+    //       return attr.color[ind]
+    //     } else if (attr && d[attr.name] && (attr.type === VALUE_TYPE_INT || attr.type === VALUE_TYPE_REAL)) {
+    //       return attr.color
+    //     }
+    //   })
 
 
     allNodes.selectAll('.primary')
@@ -1450,11 +1450,11 @@ class GenealogyTree {
         return d['sex'] === Sex.Female ? Config.glyphSize * 2 : Config.glyphSize * 3
       })
 
-    allNodes.selectAll('.secondary')
-      .attr('x', (d) => {
-        // return d['sex'] === Sex.Female ? -Config.glyphSize * 3 : -Config.glyphSize*2
-        return d['sex'] === Sex.Female ? Config.glyphSize * 3.5 : Config.glyphSize * 4.5
-      })
+    // allNodes.selectAll('.secondary')
+    //   .attr('x', (d) => {
+    //     // return d['sex'] === Sex.Female ? -Config.glyphSize * 3 : -Config.glyphSize*2
+    //     return d['sex'] === Sex.Female ? Config.glyphSize * 3.5 : Config.glyphSize * 4.5
+    //   })
 
 
   }

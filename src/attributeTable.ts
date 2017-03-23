@@ -1289,25 +1289,21 @@ class attributeTable {
       .attr('fill', (d) => {
           let attr = this.tableManager.primaryAttribute;
           if (attr && attr.name === cellData.varName) {
-            let ind = attr.categories.indexOf(cellData.data.filter((d) => {
+
+            let nonUndefinedData = cellData.data.find((d) => {
               return d !== undefined
-            })[0]);
-            if (ind === 0) {
-              return attr.color[1]
-            } else {
-              return attr.color[0]
-            }
+            });
+
+            let ind = attr.categories.indexOf(nonUndefinedData);
+            return attr.color[ind]
           } else {
             attr = this.tableManager.secondaryAttribute;
             if (attr && attr.name === cellData.varName) {
-              let ind = attr.categories.indexOf(cellData.data.filter((d) => {
+              let nonUndefinedData = cellData.data.find((d) => {
                 return d !== undefined
-              })[0]);
-              if (ind === 0) {
-                return attr.color[1]
-              } else {
-                return attr.color[0]
-              }
+              });
+              let ind = attr.categories.indexOf(nonUndefinedData);
+              return attr.color[ind]
             }
           }
           return '#dfdfdf';
@@ -1325,30 +1321,30 @@ class attributeTable {
       .classed('aggregate', () => {
         return cellData.data.length > 1
       })
-      // .transition(t)
       .attr('fill', (d) => {
-          let attr;
+          let attr = this.tableManager.primaryAttribute;
+          if (attr && attr.name === cellData.varName) {
 
-          let primary = this.tableManager.primaryAttribute;
-          let secondary = this.tableManager.secondaryAttribute;
-          if (primary && primary.name === cellData.varName) {
-            attr = primary;
-          } else if (secondary && secondary.name === cellData.varName) {
-            attr = secondary;
-          }
-
-          if (attr) {
-            let ind = attr.categories.indexOf(cellData.data.filter((d) => {
+            let nonUndefinedData = cellData.data.find((d) => {
               return d !== undefined
-            })[0]);
-            if (ind > -1) {
+            });
+
+            let ind = attr.categories.indexOf(nonUndefinedData);
+            console.log(attr.categories,nonUndefinedData,ind)
+            return attr.color[ind]
+          } else {
+            attr = this.tableManager.secondaryAttribute;
+            if (attr && attr.name === cellData.varName) {
+              let nonUndefinedData = cellData.data.find((d) => {
+                return d !== undefined
+              });
+              let ind = attr.categories.indexOf(nonUndefinedData);
               return attr.color[ind]
             }
           }
-
+          return '#dfdfdf';
         }
       )
-
 
     // .classed('affected',()=>{return this.tableManager.affectedState.name === cellData.varName})
   }

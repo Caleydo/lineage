@@ -197,7 +197,6 @@ export default class TableManager {
       const value = selectedAttribute.data[index];
       return value;
     } else {
-      console.log(ids,personID)
       return undefined;
     }
   }

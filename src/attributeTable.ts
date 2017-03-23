@@ -80,7 +80,7 @@ class attributeTable {
   private catOffset = 30;
 
   //Keeps track of whether the table is sorted by a certain attribute;
-  private sortAttribute={ascending:undefined,data:undefined}; //ascending: boolean for sort direction is ascending, data: data associated to that column
+  private sortAttribute={ascending:undefined,data:undefined,name:undefined}; //ascending: boolean for sort direction is ascending, data: data associated to that column
 
   private idScale = scaleLinear(); //used to size the bars in the first col of the table;
 
@@ -215,11 +215,11 @@ class attributeTable {
             });
 
 
-          selectAll('.slopeLine')
-            .transition(t2)
-            .attr('d', (d: any) => {
-              return this.slopeChart({y:d.y, ind:d.ind, width:Config.collapseSlopeChartWidth})
-            });
+          // selectAll('.slopeLine')
+          //   .transition(t2)
+          //   .attr('d', (d: any) => { console.log('collapsedWidth')
+          //     return this.slopeChart({y:d.y, ind:d.ind, width:Config.collapseSlopeChartWidth})
+          //   });
 
           select('#tableGroup').selectAll('.highlightBar')
             .transition(t2)
@@ -393,6 +393,8 @@ class attributeTable {
           this.colOffsets.push(maxOffset + this.buffer * 2 + this.colWidths[type]);
 
           colDataAccum.push(col);
+
+          console.log('pushing col for ', col.name, ' which has ', col.data.length , ' items.')
         }
 
 
@@ -512,6 +514,8 @@ class attributeTable {
 
   //renders the DOM elements
   private async render() {
+
+    console.log('this.colData has ' , this.colData.length , ' cols');
     let t = transition('t').duration(500).ease(easeLinear);
     let self = this;
 
@@ -631,9 +635,8 @@ class attributeTable {
 
     slopeLines = slopeLinesEnter.merge(slopeLines)
 
-    slopeLines
+    // slopeLines
       .attr('class', 'slopeLine')
-      .transition(t)
       .attr('d', (d:any) => {
         return this.slopeChart(d)
       });
@@ -642,7 +645,7 @@ class attributeTable {
 // TABLE
     //Bind data to the col groups
     let cols = select('#columns').selectAll('.dataCols')
-      .data(this.colData.map((d, i) => {
+      .data(this.colData.map((d, i) => { console.log('binding ', d.data.length, ' elements')
         return {
           'name': d.name, 'data': d.data, 'ind': i, 'type': d.type,
           'ids': d.ids, 'stats': d.stats, 'varName': d.name, 'category': d.category, 'vector':d.vector
@@ -758,7 +761,7 @@ class attributeTable {
 
     //Bind data to the cells
     let cells = cols.selectAll('.cell')
-      .data((d) => {
+      .data((d) => { console.log('binding ', d.name , ' which has ', d.data.length ,' items')
         return d.data.map((e, i) => {
           return {
             'id': d.ids[i],
@@ -783,6 +786,8 @@ class attributeTable {
       .attr('class', 'cell');
 
     cells = cellsEnter.merge(cells);
+
+    console.log('there are a total of ', cells.size() , 'cells')
 
     cellsEnter.attr('opacity', 0);
 
@@ -815,32 +820,13 @@ class attributeTable {
         self.renderDataDensCell(select(this), cell);
       }
 
-
     });
 
 
-
-  selectAll('.sortIcon')
-    .on('click', function(d){
-
-      // Set 'sortAttribute'
-      self.sortAttribute.ascending = select(this).classed('ascending');
-      self.sortAttribute.data = d;
-
-      selectAll('.sortIcon')
-        .classed('sortSelected',false)
-
-      select(this)
-        .classed('sortSelected',true)
-
-      self.sortRows(d,select(this).classed('ascending'))
-
-    })
-
     // If a sortAttribute has been set, sort by that attribute
-    // if (this.sortAttribute.data){
-    //   this.sortRows(this.sortAttribute.data, this.sortAttribute.ascending);
-    // }
+    if (this.sortAttribute.data){
+      this.sortRows(this.sortAttribute.data, this.sortAttribute.ascending);
+    }
   }
 
   /**
@@ -852,14 +838,20 @@ class attributeTable {
    */
   private sortRows(d:any,ascending){
 
+    console.log('sorting rows based on ', d.name)
+
     // console.log()
 
     let t2 = transition('t2').duration(600).ease(easeLinear);
 
-    // the array to be sorted
-    const toSort  = d.data;
+    //get data from colData array
+    const toSort = this.colData.find((c)=>{return c.name === d.name}).data;
 
-    console.log('data is ' , d.data)
+    console.log(toSort)
+
+    // const toSort  = d.data;
+
+    // console.log('data is ' , d.data)
 
     // temporary array holds objects with position and sort-value
     const mapped = toSort.map(function(el, i) {
@@ -876,6 +868,8 @@ class attributeTable {
 
     })
 
+
+
     let equalValues = mapped.reduce(function(a, b){return ( a.value === b.value) ? a : NaN; }); //check for array that has all equal values in an aggregate (such as KindredId);
 
     //All values are the same, no sorting needed;
@@ -888,6 +882,7 @@ class attributeTable {
       .attr('visibility','visible')
 
     console.log('original indexes prior to sorting were:' , mapped.map(e=>{return e.index}));
+    console.log('original values prior to sorting were:' , mapped.map(d=>{return d.value}));
 
     // sorting the mapped array containing the reduced values
     if (ascending){
@@ -906,6 +901,8 @@ class attributeTable {
     }
 
 
+    console.log('sorted values were:' , mapped.map(d=>{return d.value}));
+
 // container for the resulting order
     const sortedIndexes = mapped.map(function(el){
       return el.index;
@@ -915,11 +912,20 @@ class attributeTable {
       return toSort[el.index];
     });
 
+    console.log(sortedArray.map(d=>{return d}));
+
+    let cellSelection = select('#columns').selectAll('.cell');
+
+    console.log('size of cell selection is ', cellSelection.size() );
+
+    // cellSelection.each((c:any)=>{console.log(c.name,c.category,c.ind)});
+
+    console.log(this.rowOrder,sortedIndexes)
 
     select('#columns')
       .selectAll('.cell')
-    // .transition(t2)
-      .attr('transform',(cell: any) => {
+    .transition(t2)
+      .attr('transform',(cell: any) => { //console.log(max(sortedIndexes),cell, cell.ind)
         return ('translate(0, ' + this.y(this.rowOrder[sortedIndexes.indexOf(cell.ind)]) + ' )'); //the x translation is taken care of by the group this cell is nested in.
       });
 
@@ -927,21 +933,21 @@ class attributeTable {
 
     //translate tableGroup to make room for the slope lines.
     select('#tableGroup')
-    // .transition(t2)
+    .transition(t2)
       .attr('transform',(cell: any) => {
         return ('translate(' + Config.slopeChartWidth + ' ,0)');
       });
 
 
     selectAll('.slopeLine')
-    // .transition(t2)
+    .transition(t2)
       .attr('d', (d: any) => {
         return this.slopeChart({y:d.y, ind:sortedIndexes.indexOf(d.ind), width:Config.slopeChartWidth})
       });
 
     select('#tableGroup')
       .selectAll('.highlightBar')
-    // .transition(t2)
+    .transition(t2)
       .attr('y', (d: any) => {
         return this.y(this.rowOrder[sortedIndexes.indexOf(d.i)])})
 
@@ -967,7 +973,7 @@ class attributeTable {
     icon = iconEnter.merge(icon);
 
     icon
-      .text(function(d) { return '\uf0dd' })
+      .text('\uf0dd')
       .attr('y', this.rowHeight * 1.8 + 20)
       .attr('x', (d) =>{return this.colWidths[d.type]/2-5})
 
@@ -984,7 +990,7 @@ class attributeTable {
 
       icon
       .attr('font-family', 'FontAwesome')
-      .text(function(d) { return '\uf0de' })
+      .text('\uf0de')
       .attr('y', this.rowHeight * 1.8 + 30)
       .attr('x', (d) =>{return this.colWidths[cellData.type]/2+5})
 
@@ -992,6 +998,25 @@ class attributeTable {
       .attr('font-family', 'FontAwesome')
       .attr('font-size',17)
       .attr('text-anchor', 'middle')
+
+    let self = this;
+
+    selectAll('.sortIcon')
+      .on('click', function(d){
+
+        // Set 'sortAttribute'
+        self.sortAttribute.ascending = select(this).classed('ascending');
+        self.sortAttribute.data = d;
+
+        selectAll('.sortIcon')
+          .classed('sortSelected',false)
+
+        select(this)
+          .classed('sortSelected',true)
+
+        self.sortRows(d,select(this).classed('ascending'))
+
+      })
 
   }
 
@@ -1692,6 +1717,8 @@ class attributeTable {
 
   private slopeChart(d) {
 
+
+      console.log('setting chart with a width of ', d.width)
       let slopeWidth = d.width;
 
       let nx = slopeWidth*0.2;

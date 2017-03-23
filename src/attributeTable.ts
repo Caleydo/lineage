@@ -26,6 +26,7 @@ import {
   TABLE_VIS_ROWS_CHANGED_EVENT
 } from './tableManager';
 import {isUndefined} from 'util';
+import {is} from '../../phovea_core/src/range/index';
 
 /**
  * Creates the attribute table view
@@ -1498,7 +1499,7 @@ class attributeTable {
       .selectAll('ellipse')
       .data((d) => {
         let cellArray = cellData.data.filter((f) => {
-          return !isNullOrUndefined((f))
+          return !isNaN(f) && !isNullOrUndefined((f))
         })
           .map((e, i) => {
             return {'id': d.id[i], 'name': d.name, 'stats': d.stats, 'value': e}
@@ -1517,7 +1518,7 @@ class attributeTable {
 
     element.selectAll('.quant_ellipse')
       .attr('cx',
-        (d: any) => {
+        (d: any) => { if (isNaN(d.value)){console.log(d)}
           return this.xScale(d.value);
           ;
         })

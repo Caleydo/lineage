@@ -215,11 +215,11 @@ class attributeTable {
             });
 
 
-          // selectAll('.slopeLine')
-          //   .transition(t2)
-          //   .attr('d', (d: any) => { console.log('collapsedWidth')
-          //     return this.slopeChart({y:d.y, ind:d.ind, width:Config.collapseSlopeChartWidth})
-          //   });
+          selectAll('.slopeLine')
+            .transition(t2)
+            .attr('d', (d: any) => { console.log('collapsedWidth')
+              return this.slopeChart({y:d.y, ind:d.ind, width:Config.collapseSlopeChartWidth})
+            });
 
           select('#tableGroup').selectAll('.highlightBar')
             .transition(t2)

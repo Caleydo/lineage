@@ -1342,7 +1342,7 @@ class attributeTable {
               return attr.color[ind]
             }
           }
-          return '#dfdfdf';
+          return '#767a7a';
         }
       )
 

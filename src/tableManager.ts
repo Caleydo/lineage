@@ -356,10 +356,28 @@ export default class TableManager {
         const categories = categoriesVec.map((c) => {
           return c.name;
         });
+        let category;
+
+        if (categories.find(d => {
+            return d === 'Y'
+          })) {
+          category = 'Y'
+        } else if (categories.find(d => {
+            return d === 'TRUE'
+          })) {
+          category = 'TRUE'
+        } else if (categories.find(d => {
+            return d === 'F'
+          })) {
+          category = 'F'
+        } else {
+          category = categories[0];
+        }
+
         isAffectedCallbackFcn = (attr: string) => {
-          return attr === categories[0];
-        }; //randomly pick the second category
-        threshold = categories[0];
+          return attr === category;
+        };
+        threshold = category;
       } else if (varType === VALUE_TYPE_STRING) {
         isAffectedCallbackFcn = (attr: string) => {
           return attr !== undefined && attr.length > 0;
@@ -402,18 +420,16 @@ export default class TableManager {
 
     let familyRange=[]
 
-    //Temporarily only plot the first family
-    let family = this.familyInfo.find((family) => {return family.id === chosenFamilyIDs[0]});
-    familyRange = familyRange.concat(family.range);
-
-
-
-    // chosenFamilyIDs.forEach((id, i) => {
-    //   let family = this.familyInfo.filter((family) => {
-    //     return family.id === chosenFamilyIDs[i];
-    //   })[0];
-    //     familyRange = familyRange.concat(family.range)
-    // })
+    // //Temporarily only plot the first family
+    // let family = this.familyInfo.find((family) => {return family.id === chosenFamilyIDs[0]});
+    // familyRange = familyRange.concat(family.range);
+    //
+    chosenFamilyIDs.forEach((id, i) => {
+      let family = this.familyInfo.filter((family) => {
+        return family.id === chosenFamilyIDs[i];
+      })[0];
+        familyRange = familyRange.concat(family.range)
+    })
 
     this._activeGraphRows = range.list(familyRange);
 

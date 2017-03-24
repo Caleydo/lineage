@@ -114,7 +114,6 @@ class Histogram {
    * Set categorical bar as selected.
    */
   public setSelected(category){
-
     if (this.type !== VALUE_TYPE_CATEGORICAL){
       return;
     }

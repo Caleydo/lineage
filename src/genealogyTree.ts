@@ -540,7 +540,7 @@ class GenealogyTree {
     // Attach lifeLines groups
     let allLifeLines = lifeLineGroup.selectAll('.lifeLine')
       .data(this.data.nodes, function (d: Node) {
-        return d.id.toString();
+        return d.id;
       });
 
     allLifeLines.exit().transition().duration(400).style('opacity', 0).remove();
@@ -931,14 +931,18 @@ class GenealogyTree {
 
 
     selectAll('.bars')
-      .on('contextmenu', (d) => {
+      // .on('contextmenu', (d) => {
+      //   this.data.hideNodes(Math.round(d['y']), true);
+      //   // this.data.collapseFamilies(d['familyIds'].slice(-1))
+      //   this.update_visible_nodes();
+      //   event.preventDefault();
+      //
+      // })
+      .on('dblclick', (d) => {
         this.data.hideNodes(Math.round(d['y']), true);
         // this.data.collapseFamilies(d['familyIds'].slice(-1))
         this.update_visible_nodes();
         event.preventDefault();
-
-      })
-      .on('dblclick', () => {
       });
 
     //Set click callback on background bars

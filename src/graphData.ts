@@ -414,10 +414,6 @@ class GraphData {
     }
 
     //Find oldest person in this set of nodes and set as founder
-    /// / const founder = nodeList.reduce((a, b) => {
-    //   return a.bdate < b.bdate ? a : b;
-    // });
-
     const founder = nodeList.find((n)=>{ return n.bdate === min(nodeList,n=>{return n.bdate})});
 
     founder.y = nodeList.length; //Set first y index;
@@ -521,6 +517,7 @@ class GraphData {
    * Currently has a single value that indicates true.
    */
   private defineAffected(affectedState) {
+    console.log(affectedState, 'affectedState')
     this.nodes.forEach((node) => {
       const data = this.tableManager.getAttribute(affectedState.name, node.id);
       node.affected = affectedState.isAffected(data);

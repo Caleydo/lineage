@@ -14,6 +14,12 @@ import {
   min
 } from 'd3-array';
 
+import {
+  event
+} from 'd3-selection';
+
+import IFamilyInfo from './tableManager';
+
 import {FAMILY_INFO_UPDATED} from './tableManager';
 
 
@@ -28,6 +34,10 @@ class FamilySelector {
 
   private casesScale = scaleLinear();  //yscale for cases
 
+  private selectedFamilyIds: Number[] = []; //array of selected families
+
+  private familyInfo: IFamilyInfo;
+
   constructor(parent: Element) {
     this.$node = select(parent);
   }
@@ -37,9 +47,9 @@ class FamilySelector {
    * that is resolved as soon the view is completely initialized.
    * @returns {Promise<FamilySelector>}
    */
-  init(dataObject) {
+  init(tableManager) {
     this.build();
-    this.updateTable(dataObject);
+    this.updateTable(tableManager);
 
     events.on(FAMILY_INFO_UPDATED,(evt,tableManagerObject)=>{ this.updateTable(tableManagerObject)});
 
@@ -70,7 +80,7 @@ class FamilySelector {
     // append the header row
     thead.append('tr')
       .selectAll('th')
-      .data(['FamilyID', '# People', '# Cases'])
+      .data(['FamilyID', '# People', '#POI', '#A1'])
       .enter()
       .append('th')
       .text(function (column) {
@@ -82,22 +92,25 @@ class FamilySelector {
   /**
    * Build the table and populate with list of families.
    */
-  private updateTable(data) {
+  private updateTable(tableManager) {
 
     let self = this;
+
+    this.familyInfo = tableManager.familyInfo;
+    let data = tableManager;
 
     // console.log('family info is ' , data.familyInfo);
 
     let maxValue = max(data.familyInfo,(d:any)=>{return +d.size});
 
     this.peopleScale
-      .range([0,100])
+      .range([0,40])
       .domain([0,maxValue])
 
     maxValue = max(data.familyInfo,(d:any)=>{return +d.affected});
 
     this.casesScale
-      .range([0,50])
+      .range([0,40])
       .domain([0,maxValue]);
 
     // create a row for each object in the data
@@ -115,11 +128,10 @@ class FamilySelector {
     // create a cell in each row for each column
     let cells = rows.selectAll('td')
       .data((d) => {
-        return [{'id': d['id'], 'value': d['id'], 'type': 'id'}, {
-          'id': d['id'],
-          'value': d['size'],
-          'type': 'size'
-        }, {'id': d['id'], 'value': d['affected'], 'type': 'cases'}];
+        return [{'id': d['id'], 'value': d['id'], 'type': 'id'},
+          {'id': d['id'],'value': d['size'],'type': 'size'},
+          {'id': d['id'], 'value': d['affected'], 'type': 'affected'},
+          {'id': d['id'], 'value': d['primary'], 'type': 'primary'}];
       });
 
     let cellsEnter = cells
@@ -134,7 +146,7 @@ class FamilySelector {
 
     selectAll('td').each(function(cell:any) {
 
-      if (cell.type === 'size' || cell.type === 'cases'){
+      if (cell.type === 'size' || cell.type === 'affected'){
         if (select(this).selectAll('svg').size() === 0){
           select(this).append('svg').append('rect')
         }
@@ -183,18 +195,34 @@ class FamilySelector {
       .style('text-align', 'center');
 
 
-    selectAll('td').on('click', (d) => {
-      select('tbody').selectAll('tr').classed('selected', false);
+    selectAll('td').on('click', (d:any) => {
+
+      //'Unselect all other families if ctrl was not pressed
+      if (!event.metaKey) {
+        select('tbody').selectAll('tr').classed('selected', false);
+        this.selectedFamilyIds = [];
+      }
+
+      this.selectedFamilyIds.push(d.id)
+
+      // console.log(typeof (d.id))
+
+
       select('tbody').selectAll('tr').filter((row) => {
-        return row['id'] === d['id'];
+        return row['id'] === d.id;
       }).classed('selected', true);
-      data.selectFamily(d['id']);
+
+      tableManager.selectFamily(this.selectedFamilyIds);
+
     });
 
-    if (selectAll('.selected').size() == 0){
-      select('tbody').selectAll('tr').filter((row) => {
-        return row['id'] === 38;
+    if (selectAll('.selected').size() == 0){ // or if (this.selectedFamilyIDs.length === 0)
+      select('tbody').selectAll('tr').filter((row,i) => {
+        return row['id'] === this.familyInfo[0].id; //select the first family as a default;
       }).classed('selected', true);
+
+      this.selectedFamilyIds = [this.familyInfo[0].id]
+      // tableManager.selectFamily(this.selectedFamilyIds);
     }
 
 

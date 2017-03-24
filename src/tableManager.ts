@@ -391,19 +391,26 @@ export default class TableManager {
    * This function changes the range of rows to display on the selected family.
    * @param chosenFamilyID the numeric value of the familyID, uses the first family ID when none is specified
    */
-  public async selectFamily(chosenFamilyID?: number) {
+  public async selectFamily(chosenFamilyIDs?: number[]) {
     let family;
 
+    console.log('chosen Family ID is ', chosenFamilyIDs)
 
-    if (chosenFamilyID == null) {
-      family = this.familyInfo[0];
-    } else {
-      family = this.familyInfo.filter((family) => {
-        return family.id === chosenFamilyID;
-      })[0];
+
+    if (chosenFamilyIDs == null) {
+      chosenFamilyIDs = [this.familyInfo[0].id];
     }
 
-    this._activeGraphRows = range.list(family.range);
+    let familyRange=[];
+
+    chosenFamilyIDs.forEach((id, i) => {
+      let family = this.familyInfo.filter((family) => {
+        return family.id === chosenFamilyIDs[i];
+      })[0];
+        familyRange = familyRange.concat(family.range)
+    })
+
+    this._activeGraphRows = range.list(familyRange);
 
     await this.refreshActiveGraphView();
 
@@ -435,7 +442,7 @@ export default class TableManager {
   public async updateFamilyStats() {
 
     const attributeVector = await this.getAttributeVector(this.affectedState.name, true); //get Attribute Vector for all families
-    const kindredIDVector = await this.getAttributeVector('KindredID', true);
+    const kindredIDVector = await this.getAttributeVector('KindredID', true); //get FamilyID vector for all families
 
     const familyIDs: number[] = <number[]> await kindredIDVector.data();
     const attributeData = await attributeVector.data();
@@ -449,6 +456,21 @@ export default class TableManager {
       });
       this.familyInfo[index].affected = affected.length;
     });
+
+    // //If Primary Attribute Has been defined
+    // if (this.primaryAttribute){
+    //
+    //   const primaryAttributeVector = await this.getAttributeVector(this.primaryAttribute.name, true); //get Attribute Vector for all families
+    //   const primaryAttributeData = await primaryAttributeVector.data();
+    //
+    //   uniqueFamilyIDs.forEach((id, index) => {
+    //     //Return people that are in this family and are affected
+    //     const primaryAffected = familyIDs.filter((d, i) => {
+    //       return d === id && this.affectedState.isAffected(primaryAttributeData[i]);
+    //     });
+    //     this.familyInfo[index].affected = affected.length;
+    //   });
+    // }
 
     events.fire(FAMILY_INFO_UPDATED, this);
   }
@@ -524,9 +546,7 @@ export default class TableManager {
 
     await this.refreshActiveGraphView();
 
-    await this.selectFamily();
-
-
+    await this.selectFamily(); //call to selectFamily is now made from the familySelector object
   }
 
   /**

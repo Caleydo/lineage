@@ -61,7 +61,7 @@ import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL} from 'phovea_co
 import Node from './Node';
 import {Sex} from './Node';
 
-export const CURRENT_YEAR = 2014;
+export const CURRENT_YEAR = 2017;
 
 /**
  * The visualization showing the genealogy graph
@@ -869,8 +869,8 @@ class GenealogyTree {
 
     selectAll('.bars')
       .selectAll('.highlightBar')
-      .attr('width', (d) => {
-        return (max(this.x.range()) - this.x(d['x']) + this.margin.right);
+      .attr('width', (d:any) => {
+        return (max(this.x.range()) - this.x(d.x) + this.margin.right);
       })
       .attr('x', (d) => {
         return this.xPOS(d)
@@ -893,6 +893,8 @@ class GenealogyTree {
     selectAll('.bars')
       .selectAll('.backgroundBar')
       .on('mouseover', function (d: any) {
+
+        // console.log('moused over ' , Math.round(d.y))
 
         selectAll('.slopeLine').classed('selectedSlope', false);
         // FIXME is any a node?

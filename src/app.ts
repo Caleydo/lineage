@@ -56,7 +56,7 @@ export class App {
 
     /** =====  PRIVATE CASES - WORKS ONLY WITH THE RIGHT DATA LOCALLY ===== */
     //await tableManager.loadData('TenFamiliesDescendAnon', 'TenFamiliesAttributes');
-    //await tableManager.loadData('FiftyFamiliesDescendAnon', 'FiftyFamiliesAttributes');
+    // await tableManager.loadData('FiftyFamiliesDescendAnon', 'FiftyFamiliesAttributes');
     // await tableManager.loadData('AllFamiliesDescendAnon', 'AllFamiliesAttributes');
     /** ============= */
 

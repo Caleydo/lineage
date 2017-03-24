@@ -75,9 +75,11 @@ class GraphData {
 
     // console.log('There are ', toDecycle.filter(n=>{return !n.visited}).length , ' unvisited nodes');
     //Find oldest person in the graph as the starting point. No Y values have been assigned yet.
-    const startNode = toDecycle.reduce((a, b) => {
-      return a.bdate < b.bdate ? a : b;
-    });
+    // const startNode = toDecycle.reduce((a, b) => {
+    //   return a.bdate < b.bdate ? a : b;
+    // });
+
+    const startNode = toDecycle.find((n)=>{ return n.bdate === min(toDecycle,n=>{return n.bdate})});
     this.removeCyclesHelper(startNode);
 
     this.removeCycles();
@@ -209,6 +211,8 @@ class GraphData {
    */
   private clearVisitedBranch(node) {
 
+    node.visited = false;
+
     if (!node.hasChildren) {
       return;
     }
@@ -232,6 +236,8 @@ class GraphData {
    *
    */
   public async createTree() {
+
+    console.log('1')
 
     this.nodes = [];
     const columns = this.graphTable.cols();
@@ -263,31 +269,39 @@ class GraphData {
     });
 
 
-    console.log('affected state is ', this.tableManager.affectedState)
+    // console.log('affected state is ', this.tableManager.affectedState)
     this.defineAffected(this.tableManager.affectedState);
 
+    console.log('2')
 
     this.buildTree();
 
+    console.log('3')
+
     //Create fake birthdays for people w/o a bdate.
     this.nodes.forEach((n) => {
-      if (+n.bdate === 0 || isNaN(n.bdate)) { //random number
+      if (n.bdate === 0 || isNaN(n.bdate)) { //random number
         // subtract 20 from the age of the first kid
         if (n.hasChildren) {
           n.bdate = n.children[0].bdate - 20;
           n.x = n.bdate;
         } else {
           // The not-so-nice case when we don't have an age and no children
-          n.x = CURRENT_YEAR;
+          n.x = CURRENT_YEAR-3;
+          n.bdate = CURRENT_YEAR-3;
         }
       }
     });
 
-    //Remove cycles by creating duplicate nodes where necessary
-    this.removeCycles();
 
+    console.log('4')
+    //Remove cycles by creating duplicate nodes where necessary
+    // this.removeCycles();
+
+    console.log('5')
     //Linearize Tree and pass y values to the attributeData Object
     this.linearizeTree();
+
 
     //Create dictionary of person to y values
     this.exportYValues();
@@ -297,6 +311,8 @@ class GraphData {
       d.originalX = +d.x; //keeps track of nodes original x position
       d.originalY = +d.y; //keeps track of nodes original y position - can change for kid grids on hide.
     });
+
+    console.log('6')
   };
 
 
@@ -391,14 +407,19 @@ class GraphData {
     const nodeList = this.nodes.filter((n) => {
       return n.y === undefined;
     });
+
+    // console.log('node list still has ', nodeList.length , ' items')
     if (nodeList.length === 0) {
       return;
     }
 
     //Find oldest person in this set of nodes and set as founder
-    const founder = nodeList.reduce((a, b) => {
-      return +a.bdate < +b.bdate ? a : b;
-    });
+    /// / const founder = nodeList.reduce((a, b) => {
+    //   return a.bdate < b.bdate ? a : b;
+    // });
+
+    const founder = nodeList.find((n)=>{ return n.bdate === min(nodeList,n=>{return n.bdate})});
+
     founder.y = nodeList.length; //Set first y index;
     this.linearizeHelper(founder);
 
@@ -413,10 +434,14 @@ class GraphData {
    *
    */
   private linearizeHelper(node: Node) {
+
+
+    // console.log('calling LH')
     if (node.y === undefined) {
       node.y = min(this.nodes, (n: any) => {
           return n.y;
         }) + (-1);
+      // console.log('assigning ', node.y)
     }
 
     //sort children by age to minimize edge crossings
@@ -432,12 +457,14 @@ class GraphData {
           s.y = min(this.nodes, (n: any) => {
               return n.y;
             }) + (-1);
+          // console.log('assigning spouse ', s.y)
         }
         s.spouse.forEach((ss) => {
           if (ss.y === undefined) {
             ss.y = min(this.nodes, (n: any) => {
                 return n.y;
               }) + (-1);
+            // console.log('assigning spouses spouse ', ss.y)
           }
         });
       });
@@ -480,6 +507,8 @@ class GraphData {
     if (!node.hasChildren) {
       return;
     }
+
+
   }
 
 

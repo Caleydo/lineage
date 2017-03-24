@@ -211,7 +211,7 @@ class GraphData {
    */
   private clearVisitedBranch(node) {
 
-    node.visited = false;
+    // node.visited = false;
 
     if (!node.hasChildren) {
       return;
@@ -296,7 +296,7 @@ class GraphData {
 
     console.log('4')
     //Remove cycles by creating duplicate nodes where necessary
-    // this.removeCycles();
+    this.removeCycles();
 
     console.log('5')
     //Linearize Tree and pass y values to the attributeData Object

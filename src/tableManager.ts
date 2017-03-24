@@ -392,7 +392,6 @@ export default class TableManager {
    * @param chosenFamilyID the numeric value of the familyID, uses the first family ID when none is specified
    */
   public async selectFamily(chosenFamilyIDs?: number[]) {
-    let family;
 
     console.log('chosen Family ID is ', chosenFamilyIDs)
 
@@ -401,14 +400,20 @@ export default class TableManager {
       chosenFamilyIDs = [this.familyInfo[0].id];
     }
 
-    let familyRange=[];
+    let familyRange=[]
 
-    chosenFamilyIDs.forEach((id, i) => {
-      let family = this.familyInfo.filter((family) => {
-        return family.id === chosenFamilyIDs[i];
-      })[0];
-        familyRange = familyRange.concat(family.range)
-    })
+    //Temporarily only plot the first family
+    let family = this.familyInfo.find((family) => {return family.id === chosenFamilyIDs[0]});
+    familyRange = familyRange.concat(family.range);
+
+
+
+    // chosenFamilyIDs.forEach((id, i) => {
+    //   let family = this.familyInfo.filter((family) => {
+    //     return family.id === chosenFamilyIDs[i];
+    //   })[0];
+    //     familyRange = familyRange.concat(family.range)
+    // })
 
     this._activeGraphRows = range.list(familyRange);
 

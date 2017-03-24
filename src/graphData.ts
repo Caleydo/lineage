@@ -80,6 +80,7 @@ class GraphData {
     // });
 
     const startNode = toDecycle.find((n)=>{ return n.bdate === min(toDecycle,n=>{return n.bdate})});
+    console.log('starting at ', startNode.id)
     this.removeCyclesHelper(startNode);
 
     this.removeCycles();
@@ -129,10 +130,15 @@ class GraphData {
       this.nodes.push(duplicateNode);
 
 
+      console.log('L132')
       //clear visited status of this persons spouse(s) and the branch starting at this couple;
+      // console.log('clearing visited status of', node.id)
+      node.visited = false;
       this.clearVisitedBranch(node);
+      console.log('L136')
     }
 
+    // console.log('visiting', node.id)
     node.visited = true;
 
     node.spouse.forEach((s: Node) => {
@@ -188,6 +194,8 @@ class GraphData {
           this.nodes.push(duplicateNode);
 
           //clear visited status of this persons spouse(s) and the branch starting at this couple;
+          // console.log('clearing visited of', toDuplicate.id)
+          toDuplicate.visited = false;
           this.clearVisitedBranch(toDuplicate);
 
         }
@@ -196,7 +204,12 @@ class GraphData {
       s.visited = true;
     });
 
+    // console.log('node children for ', node.id,  ' are' , node.children.map((c) => {
+    //   return (c.id)
+    // }))
+
     node.children.forEach((c) => {
+      // console.log('applying RCH on ', c.id)
       this.removeCyclesHelper(c);
     });
 
@@ -211,20 +224,24 @@ class GraphData {
    */
   private clearVisitedBranch(node) {
 
-    // node.visited = false;
+    // console.log('L220. Visiting ', node.id)
 
     if (!node.hasChildren) {
       return;
     }
     //set all spouses to false
     node.spouse.forEach((s) => {
+      // console.log('clearing visited of spouse within CVB', s.id)
       s.visited = false;
     });
 
     //recursively call this function on the children
     node.children.forEach((c) => {
       c.visited = false;
+      // console.log('L233')
+      // console.log('clearing visited of children within CVB', c.id)
       this.clearVisitedBranch(c);
+      // console.log('L235')
     });
   }
 
@@ -237,14 +254,20 @@ class GraphData {
    */
   public async createTree() {
 
-    console.log('1')
+    // console.log('step1')
 
     this.nodes = [];
     const columns = this.graphTable.cols();
-    const nrow = this.graphTable.nrow;
+    // const nrow = this.graphTable.nrow;
 
 
     this.ids = await columns[0].names();
+
+    let idRanges  = await columns[0].ids();
+
+    let uniqueIDs = idRanges.dim(0).asList().map(d=>{return d.toString()});
+
+
 
     const columnDesc = this.graphTable.desc.columns;
     const columnNameToIndex: {[name: string]: number} = {};
@@ -253,11 +276,13 @@ class GraphData {
       //console.log(columns[i]);
       const name = columnDesc[i].name;
       columnNameToIndex[name] = i;
+      // console.log(name,i,columnNameToIndex[name])
     }
 
     let i = 0;
-    for (const row of await this.graphTable.data(range(0, nrow, 1))) {
-      const node = new Node(this.ids[i]);
+    for (const row of await this.graphTable.data()) {
+      // const node = new Node(this.ids[i]);
+      const node = new Node(uniqueIDs[i]);
       this.nodes.push(node);
       node.initialize(columnNameToIndex, row);
       i++;
@@ -272,11 +297,11 @@ class GraphData {
     // console.log('affected state is ', this.tableManager.affectedState)
     this.defineAffected(this.tableManager.affectedState);
 
-    console.log('2')
+    // console.log('step2')
 
     this.buildTree();
 
-    console.log('3')
+    // console.log('step3')
 
     //Create fake birthdays for people w/o a bdate.
     this.nodes.forEach((n) => {
@@ -294,11 +319,11 @@ class GraphData {
     });
 
 
-    console.log('4')
+    // console.log('step4')
     //Remove cycles by creating duplicate nodes where necessary
     this.removeCycles();
 
-    console.log('5')
+    // console.log('step5')
     //Linearize Tree and pass y values to the attributeData Object
     this.linearizeTree();
 
@@ -312,7 +337,7 @@ class GraphData {
       d.originalY = +d.y; //keeps track of nodes original y position - can change for kid grids on hide.
     });
 
-    console.log('6')
+    // console.log('step6')
   };
 
 
@@ -517,7 +542,7 @@ class GraphData {
    * Currently has a single value that indicates true.
    */
   private defineAffected(affectedState) {
-    console.log(affectedState, 'affectedState')
+    // console.log(affectedState, 'affectedState')
     this.nodes.forEach((node) => {
       const data = this.tableManager.getAttribute(affectedState.name, node.id);
       node.affected = affectedState.isAffected(data);
@@ -546,12 +571,17 @@ class GraphData {
         const maNode = this.nodes.find((d) => {
           return d.id === node.maID;
         });
+        // if (maNode)
+        // console.log(maNode, node )
         const paNode = this.nodes.find((d) => {
           return d.id === node.paID;
         });
+        // if (paNode)
+        //   console.log(paNode, node)
+
 
         //No parents found
-        if (maNode === undefined || paNode === undefined) {
+        if ((maNode === undefined || paNode === undefined) && (maNode !== node && paNode !== node)) {
           node.ma = undefined;
           node.pa = undefined;
           // console.log('no parents :( ')
@@ -580,9 +610,13 @@ class GraphData {
             paNode.spouse.push(maNode);
           }
 
+
           //Set flag for people with children so they are not placed in the kidGrid
           maNode.hasChildren = true;
           paNode.hasChildren = true;
+
+          // console.log(node.id ,  ' is a child of ', maNode.id , ' and ', paNode.id)
+
 
           //Add child to array of children of each parent
           maNode.children.push(node);

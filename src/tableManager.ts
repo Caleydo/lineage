@@ -597,6 +597,8 @@ export default class TableManager {
     // console.log('Active Graph View refreshed to include rows ' , this._activeGraphRows.dim(0).asList() ,  ' and  cols ',  this.activeGraphColumns.dim(0).asList())
     const graphRange = range.join(this._activeGraphRows, this.activeGraphColumns);
     this.graphTable = await this.table.view(graphRange); //view on graph table
+
+
   }
 
 

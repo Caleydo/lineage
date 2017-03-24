@@ -218,7 +218,7 @@ class AttributePanel {
         if (obj.threshold !== undefined) { //setAffectedState returned a default value. Was not set by user brushing or selecting bar;
 
           //New POI has been set, remove all other brush and rect selection interactions;
-          this.histograms.map((hist)=>{hist.clearInteraction()});\
+          this.histograms.map((hist)=>{hist.clearInteraction()});
           if (obj.type === VALUE_TYPE_CATEGORICAL) {
             hist.setSelected(obj.threshold);
           } else if (obj.type === VALUE_TYPE_REAL || obj.type === VALUE_TYPE_INT){

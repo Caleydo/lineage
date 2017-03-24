@@ -286,6 +286,10 @@ class attributeTable {
     //Find y indexes of all rows
     let allRows = Object.keys(y2personDict).map(Number);
 
+    // console.log('allrows', allRows)
+
+
+
 
     //Set height of svg
     this.height = Config.glyphSize * 3 * (max(allRows) - min(allRows) + 1);
@@ -331,14 +335,17 @@ class attributeTable {
     let colDataAccum = [];
 
     for (const vector of orderedCols) {
-      const data = await vector.data(range.all());
+      const data = await vector.data();
+      let peopleIDs = await vector.names();
+
+      let idRanges  = await vector.ids();
+
+      let uniqueIDs = idRanges.dim(0).asList().map(d=>{return d.toString()});
+
+      console.log('col name is ', vector.desc.name, 'vector.data() size is ', data.length, 'vector.names() size is ', peopleIDs.length, 'vector.ids() size is ', uniqueIDs.length)
+
       const type = vector.valuetype.type;
       const name = vector.desc.name;
-
-      // console.log(name,data)
-
-
-      let peopleIDs = await vector.names()
 
       if (type === VALUE_TYPE_CATEGORICAL) {
         //Build col offsets array ;
@@ -438,6 +445,7 @@ class attributeTable {
           people.map((person) => {
             const ind = peopleIDs.lastIndexOf(person); //find this person in the attribute data
             if (ind > -1) {
+              // console.log(peopleIDs, col.data)
               colData.push(data[ind]);
             } else {
               colData.push(undefined);
@@ -493,6 +501,9 @@ class attributeTable {
           people.map((person) => {
             let ind = peopleIDs.indexOf(person) //find this person in the attribute data
             if (ind > -1) {
+              if (isUndefined(data[ind])){
+                console.log('problem')
+              }
               colData.push(data[ind].toString())
             } else {
               colData.push(undefined);

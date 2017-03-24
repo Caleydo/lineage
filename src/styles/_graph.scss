@@ -433,15 +433,15 @@ rect.selected{
   stroke:#9b9a99;
 }
 
-.nodeLabel,
-.ageLabel,
-.nodeIcon,
-.lifeRect,
-.nodeLine,
-.highlightBar,
-.kidGrid{
-	pointer-events: none;
-}
+//.nodeLabel,
+//.ageLabel,
+//.nodeIcon,
+//.lifeRect,
+//.nodeLine,
+//.highlightBar,
+//.kidGrid{
+//	pointer-events: none;
+//}
 
 .node:hover .male,
 .node:hover .female {

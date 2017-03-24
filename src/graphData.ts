@@ -261,11 +261,12 @@ class GraphData {
     // const nrow = this.graphTable.nrow;
 
 
-    this.ids = await columns[0].names();
+    let peopleIDs = await columns[0].names();
 
     let idRanges  = await columns[0].ids();
 
-    let uniqueIDs = idRanges.dim(0).asList().map(d=>{return d.toString()});
+
+   this.ids = idRanges.dim(0).asList().map(d=>{return d.toString()});
 
 
 
@@ -281,8 +282,8 @@ class GraphData {
 
     let i = 0;
     for (const row of await this.graphTable.data()) {
-      const node = new Node(this.ids[i]);
-      // const node = new Node(uniqueIDs[i]);
+      // const node = new Node(this.ids[i]);
+      const node = new Node(peopleIDs[i]);
       this.nodes.push(node);
       node.initialize(columnNameToIndex, row);
       i++;

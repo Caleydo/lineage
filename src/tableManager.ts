@@ -418,20 +418,28 @@ export default class TableManager {
       chosenFamilyIDs = [this.familyInfo[0].id];
     }
 
-    let familyRange=[]
+    // let familyRange: number[] =[];
 
-    // //Temporarily only plot the first family
-    // let family = this.familyInfo.find((family) => {return family.id === chosenFamilyIDs[0]});
-    // familyRange = familyRange.concat(family.range);
-    //
+    //Temporarily only plot the first family
+    let family = this.familyInfo.find((family) => {return family.id === chosenFamilyIDs[0]});
+    let familyRange = range.list(family.range) //familyRange.concat(family.range);
+
     chosenFamilyIDs.forEach((id, i) => {
-      let family = this.familyInfo.filter((family) => {
+      let family = this.familyInfo.find((family) => {
         return family.id === chosenFamilyIDs[i];
-      })[0];
-        familyRange = familyRange.concat(family.range)
+      });
+      // let range: number[] = family.range
+      //   familyRange = familyRange.concat(range)
+      if (i>0){
+        familyRange = familyRange.union(range.list(family.range));
+      }
     })
 
-    this._activeGraphRows = range.list(familyRange);
+    //In case families were chosen out of order. Provided ranges must be in order;
+    // familyRange.sort(function(a, b) {return a - b;})
+
+    // this._activeGraphRows = range.list(familyRange);
+    this._activeGraphRows = familyRange;
 
     await this.refreshActiveGraphView();
 

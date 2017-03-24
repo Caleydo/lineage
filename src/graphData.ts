@@ -80,7 +80,7 @@ class GraphData {
     // });
 
     const startNode = toDecycle.find((n)=>{ return n.bdate === min(toDecycle,n=>{return n.bdate})});
-    console.log('starting at ', startNode.id)
+    // console.log('starting at ', startNode.id)
     this.removeCyclesHelper(startNode);
 
     this.removeCycles();
@@ -281,8 +281,8 @@ class GraphData {
 
     let i = 0;
     for (const row of await this.graphTable.data()) {
-      // const node = new Node(this.ids[i]);
-      const node = new Node(uniqueIDs[i]);
+      const node = new Node(this.ids[i]);
+      // const node = new Node(uniqueIDs[i]);
       this.nodes.push(node);
       node.initialize(columnNameToIndex, row);
       i++;

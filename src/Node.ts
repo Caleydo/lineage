@@ -91,7 +91,7 @@ export default class Node {
   /** Default initialization for attributes */
   constructor(id: string) {
     this.type = 'single';
-    this.id;
+    this.id = id;
     this.uniqueID = id;
     this.hidden = false;
     this.aggregated = false;

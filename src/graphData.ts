@@ -824,6 +824,8 @@ class GraphData {
           } else {
             node.y = ma.y;
           }
+          console.log('ma is ', ma.y)
+          console.log('setting node y for ', node.id,  ' to ', node.y)
           node.x = pa.x; //place kid grid in front of father icon since they are both aligned
         }
 

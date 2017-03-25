@@ -62,6 +62,7 @@ import Node from './Node';
 import {Sex} from './Node';
 import {isNull} from 'util';
 import {isNullOrUndefined} from 'util';
+import {search} from '../../phovea_core/src/internal/array';
 
 export const CURRENT_YEAR = 2017;
 
@@ -102,6 +103,10 @@ class GenealogyTree {
   private kidGridYScale = scaleLinear()
     .domain([1, this.kidGridSize / 2])
     .range([-Config.hiddenGlyphSize / 3, Config.hiddenGlyphSize]);
+
+  private parentGridScale = scaleLinear()
+    .domain([1, 8])
+    .range([0, Config.glyphSize * 8]);
 
 
   //Axis for the visible nodes
@@ -245,19 +250,19 @@ class GenealogyTree {
 
     const slopeGradient = svg.append('defs')
       .append('linearGradient')
-      .attr('id','linear')
-        .attr('x1','0%')
-      .attr('y1','0%')
-      .attr('x2','100%')
-      .attr('y2','0%');
+      .attr('id', 'linear')
+      .attr('x1', '0%')
+      .attr('y1', '0%')
+      .attr('x2', '100%')
+      .attr('y2', '0%');
 
     slopeGradient.append('stop')
       .attr('offset', '0%')
-      .attr('stop-color','#05a')
+      .attr('stop-color', '#05a')
 
     slopeGradient.append('stop')
       .attr('offset', '0%')
-      .attr('stop-color','#0a5')
+      .attr('stop-color', '#0a5')
 
 
     const kidGridGradient = svg.append('defs')
@@ -498,9 +503,9 @@ class GenealogyTree {
 
     let parentEdgePaths = edgeGroup.selectAll('.parentEdges')// only draw parent parent edges if neither parent is aggregated
       .data(parentParentEdges
-          .filter(function (d:Node) {
-          return (!d.ma.hidden && !d.pa.hidden)  || (!d.ma.affected && !d.pa.affected)
-        })
+          .filter(function (d: Node) {
+            return (!d.ma.hidden && !d.pa.hidden) || (!d.ma.affected && !d.pa.affected)
+          })
         , function (d: any) {
           return d.id;
         });
@@ -687,7 +692,9 @@ class GenealogyTree {
     // Attach kidGrid groups
     let allKidGrids = kidGridGroup.selectAll('.kidGrid')
       .data(this.data.nodes.filter(function (d: Node) {
-        let hasUnaffectedSpouse = d.spouse.find(s=>{return s.sex == Sex.Male || s.affected});
+        let hasUnaffectedSpouse = d.spouse.find(s => {
+          return s.sex == Sex.Male || s.affected
+        });
         return d.aggregated && d.hasChildren && !d.affected && isNullOrUndefined(hasUnaffectedSpouse);
       }), function (d) {
         return d['id'];
@@ -762,7 +769,7 @@ class GenealogyTree {
     let hiddenBars = hiddenHighlightBarGroup.selectAll('.bars')
       .data(this.data.nodes.filter((n) => {
         return n.hidden && n.hasChildren //&& n.sex === Sex.Male
-      }), function (d:Node) {
+      }), function (d: Node) {
         return d.id;
       });
 
@@ -860,7 +867,7 @@ class GenealogyTree {
 
     selectAll('.bars')
       .selectAll('.highlightBar')
-      .attr('width', (d:any) => {
+      .attr('width', (d: any) => {
         return (max(this.x.range()) - this.x(d.x) + this.margin.right);
       })
       .attr('x', (d) => {
@@ -922,13 +929,13 @@ class GenealogyTree {
 
 
     selectAll('.bars')
-      // .on('contextmenu', (d) => {
-      //   this.data.hideNodes(Math.round(d['y']), true);
-      //   // this.data.collapseFamilies(d['familyIds'].slice(-1))
-      //   this.update_visible_nodes();
-      //   event.preventDefault();
-      //
-      // })
+    // .on('contextmenu', (d) => {
+    //   this.data.hideNodes(Math.round(d['y']), true);
+    //   // this.data.collapseFamilies(d['familyIds'].slice(-1))
+    //   this.update_visible_nodes();
+    //   event.preventDefault();
+    //
+    // })
       .on('dblclick', (d) => {
         this.data.hideNodes(Math.round(d['y']), true);
         // this.data.collapseFamilies(d['familyIds'].slice(-1))
@@ -961,7 +968,6 @@ class GenealogyTree {
         let wasSelected = selectAll('.highlightBar').filter((e: any) => {
           return e.y === d.y || e.y === Math.round(d.y)
         }).classed('selected');
-
 
 
         //'Unselect all other background bars if ctrl was not pressed
@@ -1017,15 +1023,70 @@ class GenealogyTree {
         return !(d['hidden'] && !d['hasChildren'])
       })
       .transition(t)
-      .attr('transform', (node) => {
+      .attr('transform', (node: Node) => {
         let xpos = this.xPOS(node);
         let ypos = this.yPOS(node);
 
         let xoffset = 0;
+
+        //Position Parent Grid;
+        if (node.hidden && node.hasChildren && (node.spouse.length > 1 || node.spouse[0].spouse.length > 1)) {
+
+          let parentCount: number = 0;
+          let searchSpouse;
+          let ind;
+          this.data.parentParentEdges.forEach((d) => {
+            let ss = node.spouse.find(n => {
+              return n === d.ma
+            });
+            if (ss && node.sex == Sex.Male) {
+              if (!searchSpouse){
+                searchSpouse = ss;
+                parentCount = parentCount + 1
+              } else {
+                if ( ss === searchSpouse){
+                  parentCount = parentCount + 1
+                }
+              }
+
+              if (d.pa === node && node.sex === Sex.Male) {
+                ind = parentCount;
+              }
+            } else {
+              let ss = node.spouse.find(n => {
+                  return n === d.pa
+                });
+              if (ss && node.sex == Sex.Female) {
+
+                if (!searchSpouse){
+                  searchSpouse = ss;
+                  parentCount = parentCount + 1
+                } else {
+                  if ( ss === searchSpouse){
+                    parentCount = parentCount + 1
+                  }
+                }
+                if (d.ma === node && node.sex === Sex.Female) {
+                  ind = parentCount;
+                }
+
+              }
+            }
+
+          })
+
+          if (ind > 1) {
+            xoffset = this.parentGridScale(ind);
+          }
+        }
+
+        if (xoffset >0){
+          console.log('xoffset for ', node.id ,  ' is ', xoffset)
+        }
         // if (!node['affected'] && node['spouse'].length > 0 && node['spouse'][0]['affected'] && node['hidden']) {
         //   xoffset = Config.glyphSize * 2;
         // }
-        return 'translate(' + (xpos + xoffset) + ',' + ypos + ')';
+        return 'translate(' + (xpos - xoffset) + ',' + ypos + ')';
       })
 
 
@@ -1034,24 +1095,23 @@ class GenealogyTree {
       return d.hidden && !d.hasChildren && d.ma && d.pa
     })
       .transition(t)
-      .attr('transform', (node) => {
+      .attr('transform', (node: Node) => {
         let xpos = this.xPOS(node);
         let ypos = this.yPOS(node);
 
         let childCount = 0;
 
-        let ma = node['ma'];
-        let pa = node['pa'];
+        let ma = node.ma;
+        let pa = node.pa;
 
         let xind;
         let yind;
 
-        let gender = node['sex'];
+        let gender = node.sex;
         this.data.parentChildEdges.forEach((d, i) => {
-
           if (d.ma === ma && d.pa === pa) {
-            //Only count unaffected children so as to avoid gaps in the kid Grid
-            if (!d.target.affected && d.target.sex === gender)
+            //Only count unaffected children that do not have children of their own so as to avoid gaps in the kid Grid
+            if (!d.target.affected && d.target.sex === gender && !d.target.hasChildren)
               childCount = childCount + 1
             if (d.target === node) {
 
@@ -1061,14 +1121,13 @@ class GenealogyTree {
                 yind = this.kidGridSize / 2;
 
               xind = Math.ceil(childCount / 2);
-
             }
           }
         })
 
-        let xoffset = 0 ;
+        let xoffset = 0;
 
-        if (node['ma']['affected'] && node['pa']['affected']) {
+        if (node.ma.affected && node.pa.affected) {
           xoffset = Config.glyphSize * 2;
         }
         // else if (node['ma']['affected'] || node['pa']['affected']) {
@@ -1164,14 +1223,14 @@ class GenealogyTree {
 
     //Add couples line
     allNodesEnter.filter(function (d: Node) {
-      let hasUnaffectedSpouse = d.spouse.find(s=>{return s.sex == Sex.Male && !s.affected});
+      let hasUnaffectedSpouse = d.spouse.find(s => {
+        return s.sex == Sex.Male && !s.affected
+      });
       return d.hasChildren && !d.affected && isNullOrUndefined(hasUnaffectedSpouse);
     })
       .append('line')
       .attr('class', 'couplesLine')
       .attr('visibility', 'hidden')
-
-
 
 
     allNodes.selectAll('.couplesLine')
@@ -1185,9 +1244,15 @@ class GenealogyTree {
         return d.sex === Sex.Female ? Config.glyphSize * .9 : Config.glyphSize * 1.3;
       })
       .attr('y2', function (d: Node) {
-        let hasAffectedSpouse = d.spouse.find(s=>{return s.affected});
+        let hasAffectedSpouse = d.spouse.map((s) => {
+          return s.spouse.find(ss => {
+            return ss.affected
+          })
+        }).find(s => {
+          return s && s.affected
+        });
 
-        return (d.sex === Sex.Female || hasAffectedSpouse) ? Config.glyphSize * 3.5: Config.glyphSize * 2.2;
+        return (d.sex === Sex.Female || hasAffectedSpouse) ? Config.glyphSize * 3.5 : Config.glyphSize * 2.2;
       })
       .attr('stroke-width', 2)
 
@@ -1337,7 +1402,7 @@ class GenealogyTree {
       .attr('y', (d) => {
         return d['sex'] === Sex.Female ? (-Config.glyphSize) : 0
       })
-      .attr('width', Config.glyphSize )
+      .attr('width', Config.glyphSize)
 
 
     allNodes.selectAll('.attributeFrame').filter('.primary')
@@ -1778,7 +1843,7 @@ class GenealogyTree {
     });
 
     events.on(POI_SELECTED, (evt, affectedState) => {
-      console.log('POI',affectedState.name);
+      console.log('POI', affectedState.name);
       // this.data.uncollapseAll();
       this.data.defineAffected(affectedState);
       // this.data.collapseAll();

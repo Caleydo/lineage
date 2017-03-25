@@ -52,11 +52,10 @@ export class App {
 
 
     /** =====  PUBLIC CASE ===== */
-    await tableManager.loadData('TwoFamiliesDescendAnon', 'TwoFamiliesAttributes');
 
     /** =====  PRIVATE CASES - WORKS ONLY WITH THE RIGHT DATA LOCALLY ===== */
-    //await tableManager.loadData('TenFamiliesDescendAnon', 'TenFamiliesAttributes');
-    // await tableManager.loadData('FiftyFamiliesDescendAnon', 'FiftyFamiliesAttributes');
+    await tableManager.loadData('TenFamiliesDescendAnon', 'TenFamiliesAttrAnon');
+    // await tableManager.loadData('TenFamiliesDescend', 'TenFamiliesAttr');
     // await tableManager.loadData('AllFamiliesDescendAnon', 'AllFamiliesAttributes');
     /** ============= */
 

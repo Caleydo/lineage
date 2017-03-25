@@ -731,7 +731,7 @@ class GraphData {
       return node.originalY <= startYIndex && node.originalY >= endIndex;
     }).forEach((node, i) => {
 
-      //non affected leaf nodes
+      //non affected leaf nodes that have a mother and father
       if (!node.hasChildren && !node.affected && node.ma && node.pa) {
 
         const ma = node.ma;
@@ -763,12 +763,12 @@ class GraphData {
             }
           } else {
             if (node.sex === Sex.Male) {
-              node.y = Y - 0.2;
+              node.y = pa.y - 0.2;
             } else {
-              node.y = Y + .2;
+              node.y = pa.y + .2;
             }
           }
-          node.x = pa.x; //place kidGrid in front of father icon
+          node.x = ma.x; //align kidGrid with affected node (in this case ma)
 
         } else if (pa.affected) { //Only father is affected
           if (!aggregate) {
@@ -779,12 +779,12 @@ class GraphData {
             }
           } else {
             if (node.sex === Sex.Male) {
-              node.y = Y - 0.2;
+              node.y = ma.y - 0.2;
             } else {
-              node.y = Y + .2;
+              node.y = ma.y + .2;
             }
           }
-          node.x = ma.x; //place kidGrid in front of mother icon
+          node.x = pa.x; //align kidGrid with affected node (in this case pa)
         } else {//Neither parent is affected
           if (node.sex === Sex.Male) {
             node.y = pa.y;
@@ -795,15 +795,62 @@ class GraphData {
         }
 
       } else { //Affected nodes and non-leaf nodes
-        //Non-leaf and non-affected nodes
-        if (!node.affected) {
+        //Non-leaf and affected nodes
+        if (node.affected) {
+          //previous node
+          let previousNode = this.nodes.find(n=>{return n.y === min(this.nodes.filter(n=>{return n.y > Y}),n=>{return n.y})});
 
+          console.log('prev node is ', previousNode.id, previousNode.affected)
+          if (aggregate && previousNode && !previousNode.affected) {
+            // console.log('Y Shift L802', node.id)
+
+            Y = Y - 1;
+          }
+
+          node.y = Y;
           const spouses = node.spouse;
 
-          if (spouses.length > 0) { //they had at least one partner
+          // if (spouses.length > 0) {
+          //   Y = Y - 1;
+          // }
 
-            const spouse = spouses[0];
-            // spouses.map((spouse) => {
+            spouses.map((spouse)=> {
+              // const spouse = spouses[0];
+              if (!spouse.affected && aggregate) {
+                if (spouse.sex === Sex.Male) {
+                  spouse.y = Y - 0.2;
+                } else {
+                  // console.log('setting spouses y to ', Y + 0.2)
+                  spouse.y = Y + 0.2;
+                }
+                // console.log('setting spouses x to ', node.x)
+                spouse.x = node.x;
+              }
+            });
+          // }
+
+
+        } else { //Non Affected Nodes
+          const spouses = node.spouse;
+
+          //determine if there is an affected spouse in this group.
+          let affectedSpouse = spouses.find(s=>{return s.affected});
+
+          if (affectedSpouse){
+            //set this entire family' x position to the affected spouse
+            //if there is more than one affected spouse we're setting all the non affected spouses to the x value of the first one.
+            spouses.map((spouse) => {
+              spouse.x = affectedSpouse.x
+            })
+          } else { //set this entire family' x position to the first dad;
+            let firstDad = [node].concat(spouses).find(s=>{return s.sex === Sex.Male});
+            spouses.map((spouse) => {
+              spouse.x = firstDad.x
+            })
+          }
+
+            // const spouse = spouses[0];
+            spouses.map((spouse) => {
             //Affected Spouse
             if (spouse.affected && !aggregate) { //what happens if person has more than one affected spouse? where to place him/her then?
               // node.y = spouse.y;
@@ -812,43 +859,35 @@ class GraphData {
               } else {
                 node.y = spouse.y + 0.2;
               }
+              // console.log('1. setting y to ', node.y)
             } else { //Non affected Spouse
+
               if (node.sex === Sex.Male) {
                 node.y = Y - 0.2;
               } else {
                 node.y = Y + 0.2;
               }
+              // console.log('2. setting y to ', node.y)
             }
-            // });
-          }
-        } else { //Affected Nodes
-          if (aggregate && i > 0 && !this.nodes[i - 1].affected) {
-            Y = Y - 1;
-          }
-          node.y = Y;
-          const spouses = node.spouse;
+            });
+          // }
 
-          if (spouses.length > 0) {
-            const spouse = spouses[0];
-            if (!spouse.affected && !aggregate) {
-              if (spouse.sex === Sex.Male) {
-                spouse.y = Y - 0.2;
-              } else {
-                spouse.y = Y + 0.2;
-              }
-              spouse.x = node.x;
-            }
-          }
+          // Ensure there are no affected parents in this family, then set all the spouses to the x position of one of the dads.
+          //Place Mom and Dad Nodes on top of Each other (at the dad's x location)
+          // if (node.sex === Sex.Female && node.spouse.length > 0 && !node.affected && !node.spouse[0].affected) {
+          //   node.x = node.spouse[0].x; //need to figure out how to handle multi spouse situations 2/23/2017
+          // }
+
+
         }
 
-        //Place Mom and Dad Nodes on top of Each other (at the dad's x location)
-        if (node.sex === Sex.Female && node.spouse.length > 0 && !node.affected && !node.spouse[0].affected) {
-          node.x = node.spouse[0].x; //need to figure out how to handle multi spouse situations 2/23/2017
-        }
+
+
 
       }
 
       if (node.affected) {
+        // console.log('Y shift L886', node.id)
         Y = Y - 1;
       } else {
         //Check if you are at the end of a branch w/ only unaffected leaf children.
@@ -856,17 +895,21 @@ class GraphData {
           return GraphData.hasAffectedChildren(s) || acc;
         }, false));
 
+        // let hasAffectedSpouse = node.spouse.reduce((acc, spouse) => {
+        //   return acc && !spouse.affected;
+        // }, true);
+
+        let hasAffectedSpouse = node.spouse.find(n=>{return n.affected})
 
         //If current node has only unaffected leaf children and does not have any affected spouses and is not a leaf
-        const newBranch = unaffectedLeafChildren && node.hasChildren &&
-          node.spouse.reduce((acc, spouse) => {
-            return acc && !spouse.affected;
-          }, true)
+        const newBranch = unaffectedLeafChildren && node.hasChildren
+          // && isUndefined(hasAffectedSpouse)
           && node.originalY < max(node.spouse.map((s) => {
             return s.originalY;
           }));
 
         if (newBranch) {
+          console.log('newBranch for ', node.id)
           Y = Y - 1;
         }
 
@@ -895,16 +938,18 @@ class GraphData {
    */
   private trimTree() {
     let toCollapse = 0;
-    range(1, this.nodes.length, 1).forEach((y) => {
-
+    range(1,this.nodes.length, 1).forEach((y) => {
+      // console.log(y);
       //find any nodes that are in that row
-      const rowNodes = this.nodes.filter((d) => {
+      const rowNodes = this.nodes.find((d) => {
         return Math.round(d.y) === y;
-      }).length;
+      });
 
-      if (rowNodes < 1) { //found an empty Row
+      if (!rowNodes) { //found an empty Row
+        // console.log('row ', y , ' is empty')
         toCollapse = toCollapse + 1;
       } else if (toCollapse > 0) {
+        // console.log('will collapse', toCollapse)
         this.nodes.forEach((node) => {
           if (Math.round(node.y) >= y) {
             node.y = node.y - toCollapse;

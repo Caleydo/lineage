@@ -455,7 +455,7 @@ class GenealogyTree {
 
     let edgeGroup = select('#genealogyTree').select('#edges');
 
-    //Only draw parentedges if target node is not
+    //Only draw parentedges if target node is not hidden
     let edgePaths = edgeGroup.selectAll('.edges')
       .data(childParentEdges.filter(function (d) {
         return (!(d['target']['hidden'] && !d['target']['hasChildren']))
@@ -496,9 +496,9 @@ class GenealogyTree {
 
     let parentEdgePaths = edgeGroup.selectAll('.parentEdges')// only draw parent parent edges if neither parent is aggregated
       .data(parentParentEdges
-        //   .filter(function (d) {
-        //   return !d['ma']['aggregated'] || !d['pa']['aggregated']
-        // })
+          .filter(function (d:Node) {
+          return (!d.ma.hidden && !d.pa.hidden)  || (!d.ma.affected && !d.pa.affected)
+        })
         , function (d: any) {
           return d.id;
         });
@@ -770,9 +770,9 @@ class GenealogyTree {
     // Attach highlight Bars
     let hiddenBars = hiddenHighlightBarGroup.selectAll('.bars')
       .data(this.data.nodes.filter((n) => {
-        return n.hidden && n.hasChildren && n.sex === Sex.Male
-      }), function (d) {
-        return d['id'];
+        return n.hidden && n.hasChildren //&& n.sex === Sex.Male
+      }), function (d:Node) {
+        return d.id;
       });
 
     hiddenBars.exit().remove();
@@ -1031,9 +1031,9 @@ class GenealogyTree {
         let ypos = this.yPOS(node);
 
         let xoffset = 0;
-        if (!node['affected'] && node['spouse'].length > 0 && node['spouse'][0]['affected'] && node['hidden']) {
-          xoffset = Config.glyphSize * 2;
-        }
+        // if (!node['affected'] && node['spouse'].length > 0 && node['spouse'][0]['affected'] && node['hidden']) {
+        //   xoffset = Config.glyphSize * 2;
+        // }
         return 'translate(' + (xpos + xoffset) + ',' + ypos + ')';
       })
 
@@ -1075,17 +1075,19 @@ class GenealogyTree {
           }
         })
 
-        let xoffset;
+        let xoffset = 0 ;
 
         if (node['ma']['affected'] && node['pa']['affected']) {
           xoffset = Config.glyphSize * 2;
-        } else if (node['ma']['affected'] || node['pa']['affected']) {
-          xoffset = Config.glyphSize * 3.5;
-        } else {
+        }
+        // else if (node['ma']['affected'] || node['pa']['affected']) {
+        //   xoffset = Config.glyphSize * 3.5;
+        // }
+        else {
           xoffset = Config.glyphSize * 1.5;
         }
-        return 'translate(' + (xpos + xoffset + this.kidGridXScale(xind)) + ',' + (ypos + +this.kidGridYScale(yind)) + ')';
-
+        return 'translate(' + (xpos + xoffset + this.kidGridXScale(xind) ) + ',' + (ypos + +this.kidGridYScale(yind)) + ')';
+//
       })
 
     allNodes
@@ -1178,21 +1180,21 @@ class GenealogyTree {
       .attr('visibility', 'hidden')
 
 
-    allNodes.selectAll('.couplesLine')
-      .attr('x1', (d: any) => {
-        return d['sex'] === Sex.Female ? Config.glyphSize * 0.8 : Config.glyphSize * 1.3;
-      })
-      .attr('y1', function (d: any) {
-        return d['sex'] === Sex.Female ? ( -Config.glyphSize * 1.8) : -Config.glyphSize * 0.2;
-      })
-      .attr('x2', (d: any) => {
-        return d['sex'] === Sex.Female ? Config.glyphSize * 0.8 : Config.glyphSize * 1.3;
-      })
-      .attr('y2', function (d: any) {
-
-        return d['sex'] === Sex.Female ? Config.glyphSize * 0.6 : Config.glyphSize * 2.2;
-      })
-      .attr('stroke-width', 2)
+    // allNodes.selectAll('.couplesLine')
+    //   .attr('x1', (d: any) => {
+    //     return d['sex'] === Sex.Female ? Config.glyphSize * .9 : Config.glyphSize * 1.3;
+    //   })
+    //   .attr('y1', function (d: any) {
+    //     return d['sex'] === Sex.Female ? ( -Config.glyphSize * 1.8) : -Config.glyphSize * 0.2;
+    //   })
+    //   .attr('x2', (d: any) => {
+    //     return d['sex'] === Sex.Female ? Config.glyphSize * .9 : Config.glyphSize * 1.3;
+    //   })
+    //   .attr('y2', function (d: any) {
+    //
+    //     return d['sex'] === Sex.Female ? Config.glyphSize * 3: Config.glyphSize * 2.2;
+    //   })
+    //   .attr('stroke-width', 2)
 
 
     //Add Male Node glyphs

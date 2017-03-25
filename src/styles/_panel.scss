@@ -1,8 +1,10 @@
 $darkgray-color: #4f4f4d;
-$primary-color : #20567c;
-$primary-color-light : #a3ccf0;
+$primary-color : #3b6152;
+$primary-color-light : #598e7c;
 $secondary-color: #9f295d;
 $secondary-color-light : #ffd6b3;
+
+$affected-node-color: #285880;
 
 #data_selection {
   float: left;
@@ -392,9 +394,9 @@ $secondary-color-light : #ffd6b3;
 //}
 
 .attribute_svg  rect.picked {
-  //fill: rgb(127,134,134);
-  stroke: #df7813;
-  stroke-width: 5px;
+  fill: $affected-node-color;
+  //stroke: #df7813;
+  //stroke-width: 5px;
 
 }
 

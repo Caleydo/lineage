@@ -411,7 +411,7 @@ export default class TableManager {
    */
   public async selectFamily(chosenFamilyIDs?: number[]) {
 
-    console.log('chosen Family ID is ', chosenFamilyIDs)
+    // console.log('chosen Family ID is ', chosenFamilyIDs)
 
 
     if (chosenFamilyIDs == null) {

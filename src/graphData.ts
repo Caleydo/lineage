@@ -69,22 +69,14 @@ class GraphData {
     });
 
     if (toDecycle.length === 0) {
-      // console.log('all nodes visited')
       return;
     }
-
-    // console.log('There are ', toDecycle.filter(n=>{return !n.visited}).length , ' unvisited nodes');
-    //Find oldest person in the graph as the starting point. No Y values have been assigned yet.
-    // const startNode = toDecycle.reduce((a, b) => {
-    //   return a.bdate < b.bdate ? a : b;
-    // });
-
     const startNode = toDecycle.find((n) => {
       return n.bdate === min(toDecycle, n => {
           return n.bdate
         })
     });
-    // console.log('starting at ', startNode.id)
+
     this.removeCyclesHelper(startNode);
 
     this.removeCycles();
@@ -94,6 +86,8 @@ class GraphData {
 
     if (node.visited) {
       console.log('found child cycle with ', node.id);
+
+
       //Create Duplicate Node in the 'child' role and leave the current one as the parent/spouse
       const duplicateNode = Object.assign({}, node);
 
@@ -752,7 +746,7 @@ class GraphData {
         let unaffectedSpouses = n.spouse.filter(n=>{return !n.affected});
         let allSpouses = [n].concat(affectedSpouses).concat(unaffectedSpouses);
 
-        allYs.forEach((y,i)=>{console.log('setting y of ' , allSpouses[i].id , ' to ' , y ); allSpouses[i].y = y});
+        // allYs.forEach((y,i)=>{console.log('setting y of ' , allSpouses[i].id , ' to ' , y ); allSpouses[i].y = y});
       }
     })
 

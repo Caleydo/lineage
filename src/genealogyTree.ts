@@ -892,30 +892,46 @@ class GenealogyTree {
       .selectAll('.backgroundBar')
       .on('mouseover', function (d: any) {
 
-        // console.log('moused over ' , Math.round(d.y))
+        function selected(e:Node) {
+          let returnValue = false;
+          //Highlight the current row in the graph and tabl
+          if (e.y === Math.round(d.y))
+            returnValue =  true;
+          //Highlight any duplicates for this node
+          d.duplicates.forEach(dup=>{
+            if (Math.round(dup.y) === Math.round(e.y))
+              returnValue =  true;
+          });
+
+          return returnValue;
+        }
 
         selectAll('.slopeLine').classed('selectedSlope', false);
-        // FIXME is any a node?
-        selectAll('.slopeLine').filter((e: any) => {
-          return e.y === d.y || e.y === Math.round(d.y);
+
+        selectAll('.slopeLine').filter((e: Node) => {
+
+          return  e.y === Math.round(d.y);
         }).classed('selectedSlope', true)
 
         //Set opacity of corresponding highlightBar
-        selectAll('.highlightBar').filter((e: any) => {
-          return e.y === d.y || e.y === Math.round(d.y);
-        }).attr('opacity', .2);
+        selectAll('.highlightBar').filter(selected).attr('opacity', .2);
 
         //Set the age label on the lifeLine of this row to visible
-        selectAll('.lifeLine').filter((e) => {
+        selectAll('.lifeLine').filter((e:Node) => {
           return e === d;
-        }).filter((d) => {
-          return !d['aggregated'] && !d['hidden']
+        }).filter((d:Node) => {
+          return !d.aggregated && !d.hidden
         }).select('.lifeRect').select('.ageLabel').attr('visibility', 'visible');
+
+        //If there are duplicate nodes, highlight them:
+        if (d.duplicates.length>0){
+          console.log('there are duplicates')
+        }
 
         // events.fire('row_mouseover', Math.round(d.y));
       })
       // FIXME is any a node?
-      .on('mouseout', (d: any) => {
+      .on('mouseout', () => {
 
         selectAll('.slopeLine').classed('selectedSlope', false);
 
@@ -1081,7 +1097,7 @@ class GenealogyTree {
         }
 
         if (xoffset >0){
-          console.log('xoffset for ', node.id ,  ' is ', xoffset)
+          // console.log('xoffset for ', node.id ,  ' is ', xoffset)
         }
         // if (!node['affected'] && node['spouse'].length > 0 && node['spouse'][0]['affected'] && node['hidden']) {
         //   xoffset = Config.glyphSize * 2;
@@ -1223,10 +1239,12 @@ class GenealogyTree {
 
     //Add couples line
     allNodesEnter.filter(function (d: Node) {
-      let hasUnaffectedSpouse = d.spouse.find(s => {
+      let hasUnaffectedMaleSpouse = d.spouse.find(s => {
         return s.sex == Sex.Male && !s.affected
       });
-      return d.hasChildren && !d.affected && isNullOrUndefined(hasUnaffectedSpouse);
+
+
+      return d.hasChildren && !d.affected && isNullOrUndefined(hasUnaffectedMaleSpouse);
     })
       .append('line')
       .attr('class', 'couplesLine')
@@ -1290,23 +1308,6 @@ class GenealogyTree {
       .append('rect')
       .classed('primary', true)
       .classed('attributeBar', true)
-
-    // allNodesEnter
-    //   .filter(function (d: any) {
-    //     return !d['hidden'];
-    //   })
-    //   .append('rect')
-    //   .classed('secondary', true)
-    //   .classed('attributeFrame', true)
-    //
-    //
-    // allNodesEnter
-    //   .filter(function (d: any) {
-    //     return !d['hidden'];
-    //   })
-    //   .append('rect')
-    //   .classed('secondary', true)
-    //   .classed('attributeBar', true)
 
 
     //leaf nodes, go into kidGrid
@@ -1381,6 +1382,24 @@ class GenealogyTree {
       })
       .attr('stroke', 'none')
       .style('font-size', Config.glyphSize);
+
+
+    //Add icons for duplicate nodes
+
+    allNodesEnter
+      .filter((n:Node)=>{return n.duplicates.length>0})
+      .append('text')
+      .classed('duplicateIcon', true)
+
+    selectAll('.duplicateIcon')
+      .text('\uf0dd')
+      .attr('y', Config.glyphSize*3)
+      .attr('x',Config.glyphSize)
+      .attr('font-family', 'FontAwesome')
+      .attr('font-size', 30)
+      .attr('text-anchor', 'middle')
+
+
 
   }
 

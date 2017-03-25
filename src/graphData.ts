@@ -79,7 +79,11 @@ class GraphData {
     //   return a.bdate < b.bdate ? a : b;
     // });
 
-    const startNode = toDecycle.find((n)=>{ return n.bdate === min(toDecycle,n=>{return n.bdate})});
+    const startNode = toDecycle.find((n) => {
+      return n.bdate === min(toDecycle, n => {
+          return n.bdate
+        })
+    });
     // console.log('starting at ', startNode.id)
     this.removeCyclesHelper(startNode);
 
@@ -263,11 +267,12 @@ class GraphData {
 
     let peopleIDs = await columns[0].names();
 
-    let idRanges  = await columns[0].ids();
+    let idRanges = await columns[0].ids();
 
 
-   this.ids = idRanges.dim(0).asList().map(d=>{return d.toString()});
-
+    this.ids = idRanges.dim(0).asList().map(d => {
+      return d.toString()
+    });
 
 
     const columnDesc = this.graphTable.desc.columns;
@@ -313,8 +318,8 @@ class GraphData {
           n.x = n.bdate;
         } else {
           // The not-so-nice case when we don't have an age and no children
-          n.x = CURRENT_YEAR-3;
-          n.bdate = CURRENT_YEAR-3;
+          n.x = CURRENT_YEAR - 3;
+          n.bdate = CURRENT_YEAR - 3;
         }
       }
     });
@@ -440,7 +445,11 @@ class GraphData {
     }
 
     //Find oldest person in this set of nodes and set as founder
-    const founder = nodeList.find((n)=>{ return n.bdate === min(nodeList,n=>{return n.bdate})});
+    const founder = nodeList.find((n) => {
+      return n.bdate === min(nodeList, n => {
+          return n.bdate
+        })
+    });
 
     founder.y = nodeList.length; //Set first y index;
     this.linearizeHelper(founder);
@@ -727,9 +736,33 @@ class GraphData {
     });
 
     //Assign a row for each affected case within the range to be collapsed;
-    this.nodes.filter((node) => {
+    let filteredNodes = this.nodes.filter((node) => {
       return node.originalY <= startYIndex && node.originalY >= endIndex;
-    }).forEach((node, i) => {
+    });
+
+    // TODO Find a better way of doing this!
+
+    //re_order couples so affected people have higher ys. This ensure correct positioning of parent and kid grids;
+    filteredNodes.forEach((n:Node)=>{
+      if (n.affected){
+
+        let allYs = [n].concat(n.spouse).map(n=>{return n.y}).sort((a,b)=>{return b-a});
+
+        let affectedSpouses = n.spouse.filter(n=>{return n.affected});
+        let unaffectedSpouses = n.spouse.filter(n=>{return !n.affected});
+        let allSpouses = [n].concat(affectedSpouses).concat(unaffectedSpouses);
+
+        allYs.forEach((y,i)=>{console.log('setting y of ' , allSpouses[i].id , ' to ' , y ); allSpouses[i].y = y});
+      }
+    })
+
+    filteredNodes.sort((a, b) => {
+      return b.y - a.y;
+    });
+
+    // TODO end
+
+    filteredNodes.forEach((node, i) => {
 
       //non affected leaf nodes that have a mother and father
       if (!node.hasChildren && !node.affected && node.ma && node.pa) {
@@ -763,9 +796,9 @@ class GraphData {
             }
           } else {
             if (node.sex === Sex.Male) {
-              node.y = pa.y - 0.2;
+              node.y = Math.round(pa.y) - 0.2;
             } else {
-              node.y = pa.y + .2;
+              node.y = Math.round(pa.y) + .2;
             }
           }
           node.x = ma.x; //align kidGrid with affected node (in this case ma)
@@ -779,9 +812,9 @@ class GraphData {
             }
           } else {
             if (node.sex === Sex.Male) {
-              node.y = ma.y - 0.2;
+              node.y = Math.round(ma.y) - 0.2;
             } else {
-              node.y = ma.y + .2;
+              node.y = Math.round(ma.y) + .2;
             }
           }
           node.x = pa.x; //align kidGrid with affected node (in this case pa)
@@ -798,35 +831,35 @@ class GraphData {
         //Non-leaf and affected nodes
         if (node.affected) {
           //previous node
-          let previousNode = this.nodes.find(n=>{return n.y === min(this.nodes.filter(n=>{return n.y > Y}),n=>{return n.y})});
+          let previousNode = this.nodes.find(n => {
+            return n.y === min(this.nodes.filter(n => {
+                return n.y > Y
+              }), n => {
+                return n.y
+              })
+          });
 
           console.log('prev node is ', previousNode.id, previousNode.affected)
           if (aggregate && previousNode && !previousNode.affected) {
-            // console.log('Y Shift L802', node.id)
-
             Y = Y - 1;
           }
 
           node.y = Y;
           const spouses = node.spouse;
 
-          // if (spouses.length > 0) {
-          //   Y = Y - 1;
-          // }
-
-            spouses.map((spouse)=> {
-              // const spouse = spouses[0];
-              if (!spouse.affected && aggregate) {
-                if (spouse.sex === Sex.Male) {
-                  spouse.y = Y - 0.2;
-                } else {
-                  // console.log('setting spouses y to ', Y + 0.2)
-                  spouse.y = Y + 0.2;
-                }
-                // console.log('setting spouses x to ', node.x)
-                spouse.x = node.x;
+          spouses.map((spouse) => {
+            // const spouse = spouses[0];
+            if (!spouse.affected && aggregate) {
+              if (spouse.sex === Sex.Male) {
+                spouse.y = Y - 0.2;
+              } else {
+                // console.log('setting spouses y to ', Y + 0.2)
+                spouse.y = Y + 0.2;
               }
-            });
+              // console.log('setting spouses x to ', node.x)
+              spouse.x = node.x;
+            }
+          });
           // }
 
 
@@ -834,42 +867,54 @@ class GraphData {
           const spouses = node.spouse;
 
           //determine if there is an affected spouse in this group.
-          let affectedSpouse = spouses.find(s=>{return s.affected});
+          let affectedSpouse = spouses.find(s => {
+            return s.affected
+          });
 
-          if (affectedSpouse){
+          if (affectedSpouse) {
             //set this entire family' x position to the affected spouse
             //if there is more than one affected spouse we're setting all the non affected spouses to the x value of the first one.
             spouses.map((spouse) => {
               spouse.x = affectedSpouse.x
             })
+            //Set this nodes y position to affected spouse -1;
+              if (node.sex === Sex.Male) {
+                node.y = affectedSpouse.y - 1.2;
+              } else {
+                node.y = affectedSpouse.y - 0.8;
+              }
+
           } else { //set this entire family' x position to the first dad;
-            let firstDad = [node].concat(spouses).find(s=>{return s.sex === Sex.Male});
+            let firstDad = [node].concat(spouses).find(s => {
+              return s.sex === Sex.Male
+            });
             spouses.map((spouse) => {
               spouse.x = firstDad.x
             })
-          }
+
 
             // const spouse = spouses[0];
             spouses.map((spouse) => {
-            //Affected Spouse
-            if (spouse.affected && !aggregate) { //what happens if person has more than one affected spouse? where to place him/her then?
-              // node.y = spouse.y;
-              if (node.sex === Sex.Male) {
-                node.y = spouse.y - 0.2;
-              } else {
-                node.y = spouse.y + 0.2;
-              }
-              // console.log('1. setting y to ', node.y)
-            } else { //Non affected Spouse
+              //Affected Spouse
+              if (spouse.affected && !aggregate) { //what happens if person has more than one affected spouse? where to place him/her then?
+                // node.y = spouse.y;
+                if (node.sex === Sex.Male) {
+                  node.y = spouse.y - 0.2;
+                } else {
+                  node.y = spouse.y + 0.2;
+                }
+                // console.log('1. setting y to ', node.y)
+              } else { //Non affected Spouse
 
-              if (node.sex === Sex.Male) {
-                node.y = Y - 0.2;
-              } else {
-                node.y = Y + 0.2;
+                if (node.sex === Sex.Male) {
+                  node.y = Y - 0.2;
+                } else {
+                  node.y = Y + 0.2;
+                }
+                // console.log('2. setting y to ', node.y)
               }
-              // console.log('2. setting y to ', node.y)
-            }
             });
+          }
           // }
 
           // Ensure there are no affected parents in this family, then set all the spouses to the x position of one of the dads.
@@ -880,8 +925,6 @@ class GraphData {
 
 
         }
-
-
 
 
       }
@@ -899,7 +942,9 @@ class GraphData {
         //   return acc && !spouse.affected;
         // }, true);
 
-        let hasAffectedSpouse = node.spouse.find(n=>{return n.affected})
+        let hasAffectedSpouse = node.spouse.find(n => {
+          return n.affected
+        })
 
         //If current node has only unaffected leaf children and does not have any affected spouses and is not a leaf
         const newBranch = unaffectedLeafChildren && node.hasChildren
@@ -938,7 +983,7 @@ class GraphData {
    */
   private trimTree() {
     let toCollapse = 0;
-    range(1,this.nodes.length, 1).forEach((y) => {
+    range(1, this.nodes.length, 1).forEach((y) => {
       // console.log(y);
       //find any nodes that are in that row
       const rowNodes = this.nodes.find((d) => {

@@ -60,6 +60,8 @@ import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL} from 'phovea_co
 // import {TABLE_SORTED_EVENT} from './attributeTable'
 import Node from './Node';
 import {Sex} from './Node';
+import {isNull} from 'util';
+import {isNullOrUndefined} from 'util';
 
 export const CURRENT_YEAR = 2017;
 
@@ -684,20 +686,9 @@ class GenealogyTree {
 
     // Attach kidGrid groups
     let allKidGrids = kidGridGroup.selectAll('.kidGrid')
-      .data(this.data.filter((d: any) => {
-        if (d['sex'] === Sex.Female)
-          return false;
-        if (!d['hasChildren'])
-          return false;
-
-        let hasGrid = true; //change to false to only put kid grids on parents of leaf nodes
-        this.data.parentChildEdges.forEach((edge) => {
-          if (edge['pa'] === d && !edge['target']['hasChildren']) {
-            hasGrid = true;
-          }
-        })
-        return hasGrid;
-
+      .data(this.data.nodes.filter(function (d: Node) {
+        let hasUnaffectedSpouse = d.spouse.find(s=>{return s.sex == Sex.Male || s.affected});
+        return d.aggregated && d.hasChildren && !d.affected && isNullOrUndefined(hasUnaffectedSpouse);
       }), function (d) {
         return d['id'];
       });
@@ -1172,29 +1163,33 @@ class GenealogyTree {
     // })
 
     //Add couples line
-    allNodesEnter.filter(function (d: any) {
-      return d['hasChildren'];
+    allNodesEnter.filter(function (d: Node) {
+      let hasUnaffectedSpouse = d.spouse.find(s=>{return s.sex == Sex.Male && !s.affected});
+      return d.hasChildren && !d.affected && isNullOrUndefined(hasUnaffectedSpouse);
     })
       .append('line')
       .attr('class', 'couplesLine')
       .attr('visibility', 'hidden')
 
 
-    // allNodes.selectAll('.couplesLine')
-    //   .attr('x1', (d: any) => {
-    //     return d['sex'] === Sex.Female ? Config.glyphSize * .9 : Config.glyphSize * 1.3;
-    //   })
-    //   .attr('y1', function (d: any) {
-    //     return d['sex'] === Sex.Female ? ( -Config.glyphSize * 1.8) : -Config.glyphSize * 0.2;
-    //   })
-    //   .attr('x2', (d: any) => {
-    //     return d['sex'] === Sex.Female ? Config.glyphSize * .9 : Config.glyphSize * 1.3;
-    //   })
-    //   .attr('y2', function (d: any) {
-    //
-    //     return d['sex'] === Sex.Female ? Config.glyphSize * 3: Config.glyphSize * 2.2;
-    //   })
-    //   .attr('stroke-width', 2)
+
+
+    allNodes.selectAll('.couplesLine')
+      .attr('x1', (d: Node) => {
+        return d.sex === Sex.Female ? Config.glyphSize * .9 : Config.glyphSize * 1.3;
+      })
+      .attr('y1', function (d: Node) {
+        return d.sex === Sex.Female ? ( -Config.glyphSize * 1.8) : -Config.glyphSize * 0.2;
+      })
+      .attr('x2', (d: Node) => {
+        return d.sex === Sex.Female ? Config.glyphSize * .9 : Config.glyphSize * 1.3;
+      })
+      .attr('y2', function (d: Node) {
+        let hasAffectedSpouse = d.spouse.find(s=>{return s.affected});
+
+        return (d.sex === Sex.Female || hasAffectedSpouse) ? Config.glyphSize * 3.5: Config.glyphSize * 2.2;
+      })
+      .attr('stroke-width', 2)
 
 
     //Add Male Node glyphs
@@ -1467,89 +1462,6 @@ class GenealogyTree {
 
   }
 
-  // private addSlopeChart(){
-  //
-  //   //Find y indexes of all rows
-  //   let allPeople = Object.keys(this.data.yValues).map(Number);
-  //
-  //   //Create a dictionary of y value to people
-  //   let y2personDict = {};
-  //   let yDict = this.data.yValues;
-  //
-  //   // console.log('yDict', yDict)
-  //   allPeople.forEach((person) => {
-  //     if (person in yDict) { //may not be if dangling nodes were removed
-  //       //Handle Duplicate Nodes
-  //       yDict[person].forEach((y) => {
-  //         if (y in y2personDict) {
-  //           y2personDict[y].push(person);
-  //         } else {
-  //           y2personDict[y] = [person];
-  //         }
-  //       })
-  //     }
-  //   });
-  //
-  //   //Find y indexes of all rows
-  //   let rowOrder = Object.keys(y2personDict).map(Number);
-  //
-  //   this.y2personDict = y2personDict;
-  //
-  //   let t = transition('t').duration(500).ease(easeLinear);
-  //
-  //   //create slope Lines
-  //   // //Bind data to the cells
-  //   let slopeLines = select('#slopeChart').selectAll('.slopeLine')
-  //     .data(rowOrder.map((d: any,i) => {
-  //       let nodes = y2personDict[d].map((id)=>{return this.data.nodes.filter((n)=>{return n.id == id.toString()})})
-  //         return {y:d, ind:i, x:max(nodes,(n:Node)=>{return n[0].ddate})}}),(d:any)=> {return d.y});
-  //
-  //   slopeLines.exit().remove();
-  //
-  //   let slopeLinesEnter = slopeLines.enter().append('path') ;
-  //
-  //   slopeLines = slopeLinesEnter.merge(slopeLines)
-  //
-  //   slopeLines
-  //     .attr('class', 'slopeLine')
-  //     .transition(t)
-  //     .attr('d', (d:any) => {
-  //       return this.slopeChart(d,rowOrder)
-  //     })
-  //     .style('stroke-linecap','round')
-  //     // .style('stroke','url(#slopeGradient)');
-  // }
-
-  // //Path generator for Slope Chart Lines
-  // private slopeChart(d,rowOrder) {
-  //
-  //   let nx = Config.slopeChartWidth*0.3;
-  //   let width = Config.slopeChartWidth;
-  //   // let endpoint = this.width + 40;
-  //
-  //   let linedata = [{
-  //     x: this.x(d.x),
-  //     y: this.y(rowOrder[d.ind])
-  //   },
-  //     {
-  //         x: this.width,
-  //         y:this.y(rowOrder[d.ind])
-  //       },
-  //       {
-  //         x:  this.width + Config.slopeChartWidth - nx,
-  //         y: this.y(d.y)
-  //       },
-  //     {
-  //       x: this.width + Config.slopeChartWidth,
-  //       y: this.y(d.y)
-  //     }];
-  //
-  //
-  //   return this.slopeLineFunction(linedata);
-  // }
-
-
-
   /**
    *
    * This function updates the nodes in the genealogy tree
@@ -1561,7 +1473,7 @@ class GenealogyTree {
     this.addHightlightBars();
     this.addLifeLines();
     this.fillAttributeBars();
-    // this.addSlopeChart();
+    this.addKidGrids();
   }
 
   private update_time_axis() {

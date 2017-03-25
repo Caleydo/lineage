@@ -66,6 +66,21 @@ td rect{
   fill:#b5b7b7;
 }
 
+.duplicateLine{
+  stroke: #bd6012;
+  stroke-width:2px;
+  opacity:.4;
+  stroke-dasharray: 2px;
+}
+
+
+.duplicateIcon {
+  fill: #bd6012;
+  stroke:none;
+  opacity:.95;
+  font-size:20px;
+}
+
 .sortIcon.sortSelected{
   fill: #535454;
 }

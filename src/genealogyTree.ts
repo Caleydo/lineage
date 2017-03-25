@@ -892,15 +892,15 @@ class GenealogyTree {
       .selectAll('.backgroundBar')
       .on('mouseover', function (d: any) {
 
-        function selected(e:Node) {
+        function selected(e: Node) {
           let returnValue = false;
           //Highlight the current row in the graph and tabl
           if (e.y === Math.round(d.y))
-            returnValue =  true;
+            returnValue = true;
           //Highlight any duplicates for this node
-          d.duplicates.forEach(dup=>{
+          d.duplicates.forEach(dup => {
             if (Math.round(dup.y) === Math.round(e.y))
-              returnValue =  true;
+              returnValue = true;
           });
 
           return returnValue;
@@ -910,28 +910,29 @@ class GenealogyTree {
 
         selectAll('.slopeLine').filter((e: Node) => {
 
-          return  e.y === Math.round(d.y);
+          return e.y === Math.round(d.y);
         }).classed('selectedSlope', true)
 
         //Set opacity of corresponding highlightBar
         selectAll('.highlightBar').filter(selected).attr('opacity', .2);
 
         //Set the age label on the lifeLine of this row to visible
-        selectAll('.lifeLine').filter((e:Node) => {
+        selectAll('.lifeLine').filter((e: Node) => {
           return e === d;
-        }).filter((d:Node) => {
+        }).filter((d: Node) => {
           return !d.aggregated && !d.hidden
         }).select('.lifeRect').select('.ageLabel').attr('visibility', 'visible');
 
-        //If there are duplicate nodes, highlight them:
-        if (d.duplicates.length>0){
-          console.log('there are duplicates')
-        }
+        selectAll('.duplicateLine').filter(selected).attr('visibility', 'visible');
+        selectAll('.duplicateIcon').filter(selected).attr('visibility', 'visible');
 
         // events.fire('row_mouseover', Math.round(d.y));
       })
       // FIXME is any a node?
       .on('mouseout', () => {
+
+        selectAll('.duplicateLine').attr('visibility', 'hidden');
+        selectAll('.duplicateIcon').attr('visibility', 'hidden');
 
         selectAll('.slopeLine').classed('selectedSlope', false);
 
@@ -1056,11 +1057,11 @@ class GenealogyTree {
               return n === d.ma
             });
             if (ss && node.sex == Sex.Male) {
-              if (!searchSpouse){
+              if (!searchSpouse) {
                 searchSpouse = ss;
                 parentCount = parentCount + 1
               } else {
-                if ( ss === searchSpouse){
+                if (ss === searchSpouse) {
                   parentCount = parentCount + 1
                 }
               }
@@ -1070,15 +1071,15 @@ class GenealogyTree {
               }
             } else {
               let ss = node.spouse.find(n => {
-                  return n === d.pa
-                });
+                return n === d.pa
+              });
               if (ss && node.sex == Sex.Female) {
 
-                if (!searchSpouse){
+                if (!searchSpouse) {
                   searchSpouse = ss;
                   parentCount = parentCount + 1
                 } else {
-                  if ( ss === searchSpouse){
+                  if (ss === searchSpouse) {
                     parentCount = parentCount + 1
                   }
                 }
@@ -1096,7 +1097,7 @@ class GenealogyTree {
           }
         }
 
-        if (xoffset >0){
+        if (xoffset > 0) {
           // console.log('xoffset for ', node.id ,  ' is ', xoffset)
         }
         // if (!node['affected'] && node['spouse'].length > 0 && node['spouse'][0]['affected'] && node['hidden']) {
@@ -1386,19 +1387,71 @@ class GenealogyTree {
 
     //Add icons for duplicate nodes
 
-    allNodesEnter
-      .filter((n:Node)=>{return n.duplicates.length>0})
+    // let dupNodes = this.data.nodes.filter((n:Node)=>{return n.duplicates.length>0});
+    // let dupData = dupNodes.map((n:Node)=>{n.duplicates.forEach((dup)=>{console.log(n,dup); return {node:n, duplicate:dup}})});
+    //
+    // console.log(dupNodes,dupData);
+    //
+    // let dupIcons = selectAll('.duplicateIcon')
+    //   .data([0,1,2,3]);
+    //
+    // let dupIconsEnter = dupIcons
+    //   .enter()
+
+    allNodesEnter.filter((n: Node) => {
+      return n.duplicates.length > 0
+    })
       .append('text')
-      .classed('duplicateIcon', true)
+      .classed('duplicateIcon', true);
+
+    allNodesEnter.filter((n: Node) => {
+      return n.duplicates.length > 0
+    })
+      .append('line')
+      .classed('duplicateLine', true);
+
+
+    selectAll('.duplicateLine')
+      .attr('x1',Config.glyphSize)
+      .attr('y1',(n:Node)=>{
+        if (n.duplicates.find(d=>{return d.y !== n.y}).y <n.y)
+          return -Config.glyphSize
+        return +3*Config.glyphSize
+      })
+      .attr('x2',Config.glyphSize)
+      .attr('y2',(n:Node)=>{
+        if (n.duplicates.find(d=>{return d.y !== n.y}).y <n.y){
+          return this.y(n.duplicates.find(d=>{return d.y !== n.y}).y)- this.y(n.y) + 2*Config.glyphSize
+        } else {
+          return this.y(n.duplicates.find(d=>{return d.y !== n.y}).y)- this.y(n.y) - 3*Config.glyphSize
+        }})
+      .attr('visibility', 'hidden')
+
+
+    // dupIcons = dupIconsEnter.merge(dupIcons);
 
     selectAll('.duplicateIcon')
       .text('\uf0dd')
-      .attr('y', Config.glyphSize*3)
-      .attr('x',Config.glyphSize)
+      .attr('y', (n: Node) => {
+        if (n.y > n.duplicates.find(d=>{return d.y !== n.y}).y)
+          return Config.glyphSize
+        else
+          return Config.glyphSize * 3
+      })
+      .attr('x', (n: Node) => {
+        if (n.y > n.duplicates.find(d=>{return d.y !== n.y}).y)
+          return -Config.glyphSize
+        else
+          return Config.glyphSize
+      })
       .attr('font-family', 'FontAwesome')
-      .attr('font-size', 30)
+      // .attr('font-size', 30)
       .attr('text-anchor', 'middle')
-
+      .attr("transform", (n: Node) => {
+        if (n.y > n.duplicates.find(d=>{return d.y !== n.y}).y)
+          return 'rotate(' + 180 + ')'
+      })
+      .attr('visibility', 'hidden')
 
 
   }

@@ -358,7 +358,7 @@ class AttributePanel {
     }
 
   }
-  
+
   /***
    * This function takes an svg as an input and populate it with vis element
    * for a specific attribute

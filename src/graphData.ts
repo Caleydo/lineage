@@ -717,7 +717,7 @@ class GraphData {
 
 
     //Assign Child Y and X Values
-    let childY;
+    let childY; 
 
     //If node is affected, find unaffected spouse
     if (node.affected){
@@ -736,7 +736,8 @@ class GraphData {
     //Assign y levels to leaf children;
     node.children.map((child:Node)=>{
       if (isUndefined(child.y) && !child.affected && !child.hasChildren) {
-        child.y = childY
+        child.y = childY;
+        child.x = xValue;
         child.hidden = true;
         child.aggregated = aggregate;
       } else {

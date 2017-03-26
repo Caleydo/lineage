@@ -762,7 +762,7 @@ class GenealogyTree {
       .style('stroke', 'none')
   }
 
-  private addHightlightBars() {
+  private addHightlightBars2() {
 
     const highlightBarGroup = select('#genealogyTree').select('#highlightBars');
     const hiddenHighlightBarGroup = select('#genealogyTree').select('#hiddenHighlightBars');
@@ -961,7 +961,8 @@ class GenealogyTree {
         // this.data.nodes.forEach(n=>{console.log('y', n.y)})
         // this.data.hideNodes(Math.round(d['y']), true);
         // this.data.collapseFamilies(d['familyIds'].slice(-1))
-        this.update_visible_nodes();
+        // this.update_visible_nodes();
+        this.update_graph();
         event.preventDefault();
       });
 
@@ -1013,9 +1014,216 @@ class GenealogyTree {
 
   }
 
+
+  private addHightlightBars() {
+
+    let yRange: number[] = [min(this.data.nodes, function (d: any) {
+      return Math.round(+d.y);
+    }), max(this.data.nodes, function (d: any) {
+      return Math.round(+d.y);
+    })];
+
+    //Create data to bind to highlightBars
+    let yData: any [] =[];
+    for (var i = yRange[0]; i <= yRange[1] ; i++) {
+      yData.push({y:i});
+    }
+
+    const highlightBarGroup = select('#genealogyTree').select('#highlightBars');
+
+    // Attach highlight Bars
+    let allBars = highlightBarGroup.selectAll('.bars')
+      .data(yData,d=>{return d.y});
+
+    allBars.exit().remove();
+
+    const allBarsEnter = allBars
+      .enter()
+      .append('g')
+      .classed('bars', true);
+
+    allBarsEnter
+      .append('rect')
+      .classed('backgroundBar', true);
+
+    allBarsEnter
+      .append('rect')
+      .classed('highlightBar', true)
+
+    allBars = allBarsEnter.merge(allBars);
+
+    //Position all bars:
+    selectAll('.bars')
+      .attr('transform', (row:any) => {
+        return 'translate(0,' + (this.y(row.y) -Config.glyphSize) + ')';
+      })
+
+
+    selectAll('.bars')
+      .selectAll('.backgroundBar')
+      .attr('width', () => {
+        return (max(this.x.range()) - min(this.x.range()) + this.margin.right);
+      })
+      .attr('height', Config.glyphSize * 2)
+      // .attr('transform', (d: any) => {
+      //   return d.sex === Sex.Male ? 'translate(' + Config.glyphSize + ',0)' : 'translate(' + 0 + ',' + (-Config.glyphSize) + ')';
+      // })
+
+    selectAll('.bars')
+      .selectAll('.highlightBar')
+      .attr('width', (row: any) => {
+        //find all nodes in this row
+        let yNodes = this.data.nodes.filter((n:Node)=>{return n.y === row.y});
+        return (max(this.x.range()) - this.x(min(yNodes,(d:Node)=>{return d.x})) + this.margin.right);
+      })
+      .attr('x', (row:any) => {
+        // find all nodes in this row
+        let yNodes = this.data.nodes.filter((n:Node)=>{return n.y === row.y});
+        return this.x(min(yNodes,(d:Node)=>{return d.x}));
+      })
+      .attr('height', Config.glyphSize * 2)
+      // .attr('transform', (d: any) => {
+      //   return d.sex === Sex.Male ? 'translate(' + Config.glyphSize + ',0)' : 'translate(' + 0 + ',' + (-Config.glyphSize) + ')';
+      // })
+
+
+    //Set both the background bar and the highlight bar to opacity 0;
+    selectAll('.bars')
+      .selectAll('.backgroundBar')
+      .attr('opacity', 0);
+
+    selectAll('.bars')
+      .selectAll('.highlightBar')
+      .attr('opacity', 0);
+
+    selectAll('.bars')
+      .selectAll('.backgroundBar')
+      .on('mouseover', function (d: any) {
+
+        function selected(e: Node) {
+          let returnValue = false;
+          //Highlight the current row in the graph and tabl
+          if (e.y === Math.round(d.y))
+            returnValue = true;
+          //Highlight any duplicates for this node
+          // d.duplicates.forEach(dup => {
+          //   if (Math.round(dup.y) === Math.round(e.y))
+          //     returnValue = true;
+          // });
+
+          return returnValue;
+        }
+
+        selectAll('.slopeLine').classed('selectedSlope', false);
+
+        selectAll('.slopeLine').filter((e: Node) => {
+
+          return e.y === Math.round(d.y);
+        }).classed('selectedSlope', true)
+
+        //Set opacity of corresponding highlightBar
+        selectAll('.highlightBar').filter(selected).attr('opacity', .2);
+
+        //Set the age label on the lifeLine of this row to visible
+        selectAll('.lifeLine').filter((e: Node) => {
+          return e === d;
+        }).filter((d: Node) => {
+          return !d.aggregated && !d.hidden
+        }).select('.lifeRect').select('.ageLabel').attr('visibility', 'visible');
+
+        selectAll('.duplicateLine').filter(selected).attr('visibility', 'visible');
+
+        // events.fire('row_mouseover', Math.round(d.y));
+      })
+      // FIXME is any a node?
+      .on('mouseout', () => {
+
+        selectAll('.duplicateLine').attr('visibility', 'hidden');
+
+        selectAll('.slopeLine').classed('selectedSlope', false);
+
+        //Hide all the highlightBars
+        selectAll('.highlightBar').attr('opacity', 0);
+
+        selectAll('.ageLabel').attr('visibility', 'hidden');
+
+        // events.fire('row_mouseout', d.y);
+      })
+
+
+    selectAll('.bars')
+    // .on('contextmenu', (d) => {
+    //   this.data.hideNodes(Math.round(d['y']), true);
+    //   // this.data.collapseFamilies(d['familyIds'].slice(-1))
+    //   this.update_visible_nodes();
+    //   event.preventDefault();
+    //
+    // })
+      .on('dblclick', (d) => {
+
+        this.data.aggregateTreeWrapper(true);
+
+        // this.data.nodes.forEach(n=>{console.log('y', n.y)})
+        // this.data.hideNodes(Math.round(d['y']), true);
+        // this.data.collapseFamilies(d['familyIds'].slice(-1))
+        // this.update_visible_nodes();
+        this.update_graph();
+        event.preventDefault();
+      });
+
+    //Set click callback on background bars
+    selectAll('.bars')
+      .on('click', (d: any) => {
+
+        console.log(d)
+
+        if (event.altKey) {
+
+          this.data.hideNodes(Math.round(d['y']), false);
+
+          this.update_time_axis();
+          this.update_visible_nodes();
+
+          // Perhaps change to only unselected bars that are part of this newly aggregated/expanded set?
+          selectAll('.highlightBar').classed('selected', false);
+
+          events.fire('graphLayout_changed')
+
+          return;
+        }
+        if (event.defaultPrevented) return; // dragged
+
+        let wasSelected = selectAll('.highlightBar').filter((e: any) => {
+          return e.y === d.y || e.y === Math.round(d.y)
+        }).classed('selected');
+
+
+        //'Unselect all other background bars if ctrl was not pressed
+        if (!event.metaKey) {
+          selectAll('.slopeLine').classed('clickedSlope', false)
+          selectAll('.highlightBar').classed('selected', false);
+        }
+
+        selectAll('.slopeLine').filter((e: any) => {
+          return e.y === d.y || e.y === Math.round(d.y)
+        }).classed('clickedSlope', function () {
+          return (!wasSelected);
+        })
+
+        selectAll('.highlightBar').filter((e: any) => {
+          return e.y === d.y || e.y === Math.round(d.y)
+        }).classed('selected', function () {
+          return (!wasSelected);
+        })
+      })
+
+  }
+
+
+
+
+
   private addNodes() {
-
-
     let nodes = this.data.nodes;
 
     let t = transition('t').duration(500).ease(easeLinear);
@@ -1536,6 +1744,530 @@ class GenealogyTree {
 
   }
 
+
+
+  private addNodes2() {
+    let nodes = this.data.nodes;
+
+    let t = transition('t').duration(500).ease(easeLinear);
+
+    //Separate groups for separate layers
+    const nodeGroup = select('#genealogyTree').select('#nodes');
+
+    // Attach node groups
+    let allNodes = nodeGroup.selectAll('.node')
+      .data(nodes, function (d) {
+        return d['id'];
+      });
+
+    allNodes.exit().transition().duration(400).style('opacity', 0).remove();
+
+    const allNodesEnter = allNodes
+      .enter()
+      .append('g');
+
+    allNodes = allNodesEnter.merge(allNodes);
+
+    allNodesEnter.attr('opacity', 0);
+
+    //Position and Color all Nodes
+    allNodes
+      .filter((d) => {
+        return !(d['hidden'] && !d['hasChildren'])
+      })
+      .transition(t)
+      .attr('transform', (node: Node) => {
+        let xpos = this.xPOS(node);
+        let ypos = this.yPOS(node);
+
+        let xoffset = 0;
+
+        //Position Parent Grid;
+        if (node.hidden && node.hasChildren && (node.spouse.length > 1 || node.spouse[0].spouse.length > 1)) {
+
+          let parentCount: number = 0;
+          let searchSpouse;
+          let ind;
+          this.data.parentParentEdges.forEach((d) => {
+            let ss = node.spouse.find(n => {
+              return n === d.ma
+            });
+            if (ss && node.sex == Sex.Male) {
+              if (!searchSpouse) {
+                searchSpouse = ss;
+                parentCount = parentCount + 1
+              } else {
+                if (ss === searchSpouse) {
+                  parentCount = parentCount + 1
+                }
+              }
+
+              if (d.pa === node && node.sex === Sex.Male) {
+                ind = parentCount;
+              }
+            } else {
+              let ss = node.spouse.find(n => {
+                return n === d.pa
+              });
+              if (ss && node.sex == Sex.Female) {
+
+                if (!searchSpouse) {
+                  searchSpouse = ss;
+                  parentCount = parentCount + 1
+                } else {
+                  if (ss === searchSpouse) {
+                    parentCount = parentCount + 1
+                  }
+                }
+                if (d.ma === node && node.sex === Sex.Female) {
+                  ind = parentCount;
+                }
+
+              }
+            }
+
+          })
+
+          if (ind > 1) {
+            xoffset = this.parentGridScale(ind);
+          }
+        }
+
+        if (xoffset > 0) {
+          // console.log('xoffset for ', node.id ,  ' is ', xoffset)
+        }
+        // if (!node['affected'] && node['spouse'].length > 0 && node['spouse'][0]['affected'] && node['hidden']) {
+        //   xoffset = Config.glyphSize * 2;
+        // }
+        return 'translate(' + (xpos - xoffset) + ',' + ypos + ')';
+      })
+
+
+    //Position  Kid Grid Nodes (i.e leaf siblings)
+    allNodes.filter((d: any) => {
+      return d.hidden && !d.hasChildren && d.ma && d.pa
+    })
+      .transition(t)
+      .attr('transform', (node: Node) => {
+        let xpos = this.xPOS(node);
+        let ypos = this.yPOS(node);
+
+        let childCount = 0;
+
+        let ma = node.ma;
+        let pa = node.pa;
+
+        let xind;
+        let yind;
+
+        let gender = node.sex;
+        this.data.parentChildEdges.forEach((d, i) => {
+          if (d.ma === ma && d.pa === pa) {
+            //Only count unaffected children that do not have children of their own so as to avoid gaps in the kid Grid
+            if (!d.target.affected && d.target.sex === gender && !d.target.hasChildren)
+              childCount = childCount + 1
+            if (d.target === node) {
+
+              yind = childCount % (this.kidGridSize / 2);
+
+              if (yind === 0)
+                yind = this.kidGridSize / 2;
+
+              xind = Math.ceil(childCount / 2);
+            }
+          }
+        })
+
+        let xoffset = 0;
+
+        if (node.ma.affected && node.pa.affected) {
+          xoffset = Config.glyphSize * 2;
+        }
+        // else if (node['ma']['affected'] || node['pa']['affected']) {
+        //   xoffset = Config.glyphSize * 3.5;
+        // }
+        else {
+          xoffset = Config.glyphSize * 1.5;
+        }
+        return 'translate(' + (xpos + xoffset + this.kidGridXScale(xind) ) + ',' + (ypos + +this.kidGridYScale(yind)) + ')';
+//
+      })
+
+    allNodes
+      .transition(t.transition().ease(easeLinear))
+      .attr('opacity', 1);
+
+    //AllNodes
+    allNodes
+      .classed('node', true)
+      .classed('aggregated', (d) => {
+        return d['aggregated'];
+      })
+      .classed('collapsed', (d) => {
+        return d['hidden'];
+      });
+
+    //Add cross through lines for deceased people
+    allNodesEnter.filter(function (d: any) {
+      return (d.ddate);
+    })
+      .append('line')
+      .attr('class', 'nodeLine')
+
+    //Node lines for deceased and uncollapsed nodes
+    allNodes.selectAll('.nodeLine')
+      .attr('x1', function (d: any) {
+        return d.sex === Sex.Female ? -Config.glyphSize : -Config.glyphSize / 3;
+      })
+      .attr('y1', function (d: any) {
+        return d.sex === Sex.Female ? -Config.glyphSize : -Config.glyphSize / 3;
+      })
+      .attr('x2', function (d: any) {
+        return d.sex === Sex.Female ? Config.glyphSize : Config.glyphSize * 2.3;
+      })
+      .attr('y2', function (d: any) {
+        return d.sex === Sex.Female ? Config.glyphSize : Config.glyphSize * 2.3;
+      })
+      .attr('stroke-width', 3)
+      .attr('stroke', function (d: any) {
+        return (d.affected) ? 'red' : '#e2e1e0';
+      })
+
+
+    //Node Lines for kid grid
+    allNodes.selectAll('.nodeLine').filter((d) => {
+      return d['hidden'] && !d['hasChildren']
+    })
+      .attr('x1', function (d: any) {
+        return d.sex === Sex.Female ? -Config.hiddenGlyphSize / 1.5 : -Config.hiddenGlyphSize / 3;
+      })
+      .attr('y1', function (d: any) {
+        return d.sex === Sex.Female ? -Config.hiddenGlyphSize / 1.5 : -Config.hiddenGlyphSize / 3;
+      })
+      .attr('x2', function (d: any) {
+        return d.sex === Sex.Female ? Config.hiddenGlyphSize / 1.5 : Config.hiddenGlyphSize * 1.3;
+      })
+      .attr('y2', function (d: any) {
+        return d.sex === Sex.Female ? Config.hiddenGlyphSize / 1.5 : Config.hiddenGlyphSize * 1.3;
+      })
+      .attr('stroke-width', 1);
+
+
+    //Node Lines for non kid-grid hidden nodes
+    allNodes.selectAll('.nodeLine').filter((d) => {
+      return d['hidden'] && d['hasChildren']
+    })
+      .attr('x1', function (d: any) {
+        return d.sex === Sex.Female ? -Config.hiddenGlyphSize : -Config.hiddenGlyphSize / 3;
+      })
+      .attr('y1', function (d: any) {
+        return d.sex === Sex.Female ? -Config.hiddenGlyphSize : -Config.hiddenGlyphSize / 3;
+      })
+      .attr('x2', function (d: any) {
+        return d.sex === Sex.Female ? Config.hiddenGlyphSize : Config.hiddenGlyphSize * 1.8;
+      })
+      .attr('y2', function (d: any) {
+        return d.sex === Sex.Female ? Config.hiddenGlyphSize : Config.hiddenGlyphSize * 1.8;
+      })
+      .attr('stroke-width', 1)
+    // .attr('stroke', function (d: any) {
+    //   return (d.affected) ? 'red' : '#e2e1e0';
+    // })
+
+    // //Add couples line
+    // allNodesEnter.filter(function (d: Node) {
+    //   let hasUnaffectedMaleSpouse = d.spouse.find(s => {
+    //     return s.sex == Sex.Male && !s.affected
+    //   });
+    //
+    //
+    //   return d.hasChildren && !d.affected && isNullOrUndefined(hasUnaffectedMaleSpouse);
+    // })
+    //   .append('line')
+    //   .attr('class', 'couplesLine')
+    //   .attr('visibility', 'hidden')
+
+
+    allNodes.selectAll('.couplesLine')
+      .attr('x1', (d: Node) => {
+        return d.sex === Sex.Female ? Config.glyphSize * .9 : Config.glyphSize * 1.3;
+      })
+      .attr('y1', function (d: Node) {
+        return d.sex === Sex.Female ? ( -Config.glyphSize * 1.8) : -Config.glyphSize * 0.2;
+      })
+      .attr('x2', (d: Node) => {
+        return d.sex === Sex.Female ? Config.glyphSize * .9 : Config.glyphSize * 1.3;
+      })
+      .attr('y2', function (d: Node) {
+        let hasAffectedSpouse = d.spouse.map((s) => {
+          return s.spouse.find(ss => {
+            return ss.affected
+          })
+        }).find(s => {
+          return s && s.affected
+        });
+
+        return (d.sex === Sex.Female || hasAffectedSpouse) ? Config.glyphSize * 3.5 : Config.glyphSize * 2.2;
+      })
+      .attr('stroke-width', 2)
+
+
+    //Add Male Node glyphs
+    allNodesEnter.filter(function (d: any) {
+      return d['sex'] === Sex.Male;
+    })
+      .append('rect')
+      .classed('male', true)
+      .classed('nodeIcon', true)
+
+
+    //Size hidden nodes differently
+    //regular nodes
+    allNodes.selectAll('.male')
+      .attr('width', Config.glyphSize * 2)
+      .attr('height', Config.glyphSize * 2);
+
+
+    //Add Attribute Bars next to node glyphs
+    allNodesEnter
+      .filter(function (d: any) {
+        return !d['hidden'];
+      })
+      .append('rect')
+      .classed('primary', true)
+      .classed('attributeFrame', true)
+
+
+    allNodesEnter
+      .filter(function (d: any) {
+        return !d['hidden'];
+      })
+      .append('rect')
+      .classed('primary', true)
+      .classed('attributeBar', true)
+
+
+    //leaf nodes, go into kidGrid
+    allNodes.selectAll('.male')
+      .filter((d) => {
+        return d['hidden'] && !d['hasChildren']
+      })
+      .attr('width', Config.hiddenGlyphSize * 1)
+      .attr('height', Config.hiddenGlyphSize * 1);
+
+
+    //non kid grid nodes, higher up in the tree
+    allNodes.selectAll('.male')
+      .filter((d) => {
+        return d['hidden'] && d['hasChildren']
+      })
+      .attr('width', Config.glyphSize * .75)
+      .attr('height', Config.glyphSize * .75);
+
+
+    //Add female node glyphs
+    allNodesEnter.filter(function (d: any) {
+      return d['sex'] === Sex.Female;
+    })
+      .append('circle')
+      .classed('female', true)
+      .classed('nodeIcon', true)
+
+    //unhidden nodes
+    allNodes.selectAll('.female')
+      .attr('r', Config.glyphSize);
+
+    //kidGrid nodes
+    allNodes.selectAll('.female')
+      .filter((d) => {
+        return d['hidden'] && !d['hasChildren']
+      })
+      .attr('r', Config.hiddenGlyphSize / 2);
+
+    //Hidden nodes (not in kid grid) farther up the tree
+    allNodes.selectAll('.female')
+      .filter((d) => {
+        return d['hidden'] && d['hasChildren']
+      })
+      .attr('r', Config.glyphSize * .45);
+
+
+    allNodes
+      .classed('affected', (n: any) => {
+        return n.affected
+      })
+
+
+    allNodesEnter
+      .append('text')
+      .attr('class', 'nodeLabel');
+
+    allNodes.selectAll('.nodeLabel')
+    // .attr('visibility','hidden')
+      .text((d: any) => {
+        return '';
+        // return d.id
+      })
+      .attr('dx', function (d) {
+        return d['sex'] === Sex.Male ? Config.glyphSize / 2 : -Config.glyphSize / 2;
+      })
+      .attr('dy', function (d) {
+        return d['sex'] === Sex.Male ? 1.3 * Config.glyphSize : Config.glyphSize / 2.75;
+      })
+      .attr('fill', function (d: any) {
+        return (d.affected) ? 'white' : 'black';
+      })
+      .attr('stroke', 'none')
+      .style('font-size', Config.glyphSize);
+
+
+    allNodesEnter.filter((n: Node) => {
+      return n.duplicates.length > 0
+    })
+      .append('text')
+      .classed('duplicateIcon', true);
+
+    allNodesEnter.filter((n: Node) => {
+      return n.duplicates.length > 0
+    })
+      .append('line')
+      .classed('duplicateLine', true);
+
+
+    selectAll('.duplicateLine')
+      .attr('x1',(n:Node)=>{
+
+        let dupNode = n.duplicates.find(d=>{return d.y !== n.y});
+        if (dupNode.y > n.y)
+          return;
+
+        let glyphSize;
+        let offset =0;
+
+        if (n.hidden)
+          glyphSize = Config.hiddenGlyphSize;
+        else
+          glyphSize = Config.glyphSize;
+
+
+        //Add offset for kid grids
+        if (!n.hasChildren && n.hidden){
+          offset = glyphSize * 3;
+        }
+
+        if (dupNode.x <n.x)
+          return glyphSize - offset
+        return glyphSize + offset
+      })
+      .attr('y1',
+        (n:Node)=>{
+
+          let dupNode = n.duplicates.find(d=>{return d.y !== n.y});
+          if (dupNode.y > n.y)
+            return;
+
+          let glyphSize;
+          if (n.hidden)
+            glyphSize = Config.hiddenGlyphSize;
+          else
+            glyphSize = Config.glyphSize;
+
+          if (dupNode.y <n.y)
+            return -glyphSize
+          return +3*glyphSize
+        })
+      .attr('x2',(n:Node)=>{
+
+        let dupNode = n.duplicates.find(d=>{return d.y !== n.y});
+        if (dupNode.y > n.y)
+          return;
+
+
+        let glyphSize;
+        let offset =0;
+
+        if (n.hidden) {
+          glyphSize = Config.hiddenGlyphSize;
+        }
+        else
+          glyphSize = Config.glyphSize;
+
+        //Add offset for kid grids
+        if (!dupNode.hasChildren && dupNode.hidden){
+          offset = glyphSize * 3;
+        }
+
+        if (dupNode.x <=n.x){
+          return this.x(dupNode.x)- this.x(n.x) +glyphSize + offset
+        } else {
+          return  this.x(dupNode.x) - this.x(n.x) +glyphSize - offset;
+        }})
+      .attr('y2',(n:Node)=>{
+
+        let dupNode = n.duplicates.find(d=>{return d.y !== n.y});
+        if (dupNode.y > n.y)
+          return;
+
+        let glyphSize;
+        if (n.hidden)
+          glyphSize = Config.hiddenGlyphSize;
+        else
+          glyphSize = Config.glyphSize;
+
+        return this.y(n.duplicates.find(d=>{return d.y !== n.y}).y)- this.y(n.y)
+      })
+      .attr('visibility', 'hidden')
+
+
+    // dupIcons = dupIconsEnter.merge(dupIcons);
+
+    selectAll('.duplicateIcon')
+      .text('\uf0dd')
+      .attr('y', (n: Node) => {
+        let glyphSize;
+        if (n.hidden)
+          glyphSize = Config.hiddenGlyphSize*.75;
+        // if (n.hidden && !n.hasChildren)
+        //   glyphSize = Config.hiddenGlyphSize*.5;
+        else
+          glyphSize = Config.glyphSize;
+
+        if (n.y > n.duplicates.find(d=>{return d.y !== n.y}).y)
+          return glyphSize
+        else
+          return glyphSize * 3
+      })
+      .attr('x', (n: Node) => {
+        let glyphSize;
+        if (n.hidden)
+          glyphSize = Config.hiddenGlyphSize*.75;
+        // if (n.hidden && !n.hasChildren)
+        //   glyphSize = Config.hiddenGlyphSize*.5;
+        else
+          glyphSize = Config.glyphSize;
+
+
+        if (n.y > n.duplicates.find(d=>{return d.y !== n.y}).y)
+          return -glyphSize
+        else
+          return glyphSize
+      })
+      // .attr('y',0)
+      // .attr('x',0)
+      .attr('font-family', 'FontAwesome')
+      .attr('font-size', (d:Node)=>{
+        if (d.hidden){return Config.hiddenGlyphSize*2} else {return Config.glyphSize*2.5}})
+      .attr('text-anchor', 'middle')
+      // .attr('text-anchor','start')
+      .attr("transform", (n: Node) => {
+        if (n.y > (n.duplicates.find(d=>{return d.y !== n.y}).y))
+          return 'rotate(' + 180 + ')'
+      })
+
+
+  }
+
+
   private fillAttributeBars() {
 
     let nodeGroup = select('#genealogyTree').select('#nodes');
@@ -1688,9 +2420,9 @@ class GenealogyTree {
   private update_nodes() {
     this.addNodes();
     this.addHightlightBars();
-    this.addLifeLines();
-    this.fillAttributeBars();
-    this.addKidGrids();
+    // this.addLifeLines();
+    // this.fillAttributeBars();
+    // this.addKidGrids();
   }
 
   private update_time_axis() {
@@ -1989,7 +2721,8 @@ class GenealogyTree {
       } else {
         this.secondaryAttribute = attribute;
       }
-      this.update_visible_nodes();
+      this.update_graph();
+      // this.update_visible_nodes();
 
       this.update_legend();
     });

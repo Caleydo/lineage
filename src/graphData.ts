@@ -592,11 +592,16 @@ class GraphData {
     }
 
     //Find oldest person in this set of nodes and set as founder
-    const startNode = nodeList.find((n) => {
+    let startNode = nodeList.find((n) => {
       return n.bdate === min(nodeList, n => {
           return n.bdate
         })
     });
+
+    //If starting node is not the 'center' of the founding spouses
+    if (startNode.spouse.length> 0 && startNode.spouse[0].spouse.length>1){
+      startNode = startNode.spouse[0]
+    }
 
     let minY = min(this.nodes, (n: any) => {
         return n.y;
@@ -608,7 +613,7 @@ class GraphData {
       startNode.y = minY -1; //Set first y index;
     }
 
-    if (!startNode.affected){
+    if (!startNode.affected && startNode.hasChildren){
       startNode.hidden = true;
       startNode.aggregated = aggregate;
     }
@@ -690,6 +695,7 @@ class GraphData {
 
     //Iterate through spouses again and assign any undefined y values to the current y
     node.spouse.map(s=>{
+
       if (isUndefined(s.y) && !s.affected) {
         //If current node is affected, place spouses above it:
         if (node.affected){
@@ -705,11 +711,11 @@ class GraphData {
     //Assign all spouses to the x level of either the affected spouse or if not, a token male in the couple.
 
     //Align node's x value to youngest affected spouse:
-    let xValue = min([node,node.spouse].filter((n:Node)=>{return n.affected}),(n:Node)=>{return n.x});
+    let xValue = max([node,node.spouse].filter((n:Node)=>{return n.affected}),(n:Node)=>{return n.x});
 
     //No affected spouse
     if (isUndefined(xValue)){
-      xValue = [node].concat(node.spouse).find((n:Node)=>{return n.sex === Sex.Male}).x;
+      xValue = min([node].concat(node.spouse).filter((n:Node)=>{return n.sex === Sex.Male}),(n:Node)=>{return n.x});
     }
 
     //Align all spouses along a same X;
@@ -717,7 +723,7 @@ class GraphData {
 
 
     //Assign Child Y and X Values
-    let childY; 
+    let childY;
 
     //If node is affected, find unaffected spouse
     if (node.affected){

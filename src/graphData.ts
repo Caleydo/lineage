@@ -620,7 +620,7 @@ class GraphData {
 
     this.aggregateHelper(startNode, aggregate);
 
-    //Recursively call linearizeTree to handle any nodes that were not assigned a y value.
+    //Recursively call aggregateTree to handle any nodes that were not assigned a y value.
     this.aggregateTree(aggregate);
   }
 
@@ -641,10 +641,24 @@ class GraphData {
     }
 
     //If node is affected and has not yet been assigned a row, give it's own row
-    if (isUndefined(node.y) && node.affected) {
-      node.y = min(this.nodes, (n: any) => {
+    if (isUndefined(node.y) && node.affected ) {
+
+      //find all nodes in the last row, will only be one if it is affected
+      const lastAssignedNodes: Node[] = this.nodes.filter((n:Node)=>{return n.y === min(this.nodes, (nd: Node) => {return nd.y;})});
+
+      //of all the nodes in the last row, find an affected one;
+      let isLastNodeAffected: Node = lastAssignedNodes.find((n:Node)=>{return n.affected});
+
+      if (aggregate || !isUndefined(isLastNodeAffected)){
+        node.y = min(this.nodes, (n: any) => {
           return n.y;
         }) + (-1);
+      }
+      else{        
+          node.y = min(this.nodes, (n: any) => {
+            return n.y;
+          });
+      }
     }
 
     //Handle spouses
@@ -658,10 +672,13 @@ class GraphData {
     });
 
     //If node has any affected spouses, place node above them.
-    if (isUndefined(node.y) && node.spouse.filter(n=>{return n.affected}).length>0){
+    if (aggregate && isUndefined(node.y) && node.spouse.filter(n=>{return n.affected}).length>0){
       node.y = min(this.nodes, (n: any) => {
         return n.y;
-      }) + (-1);
+      });
+      if (aggregate){
+        node.y = node.y -1;
+      }
 
       node.hidden = true;
       node.aggregated = aggregate;
@@ -670,15 +687,20 @@ class GraphData {
     //find all nodes in the last row, will only be one if it is affected
     const lastAssignedNodes: Node[] = this.nodes.filter((n:Node)=>{return n.y === min(this.nodes, (nd: Node) => {return nd.y;})});
 
-    //of all the nodes in the last row, find the one at the far right (latest bdate)
-    const lastAssignedNode: Node = lastAssignedNodes.find((n:Node)=>{return n.bdate === max(lastAssignedNodes, (nd: Node) => {return nd.bdate;})});
+    //of all the nodes in the last row, find either the affect one, or the one at the far right (latest bdate)
+    let lastAssignedNode: Node = lastAssignedNodes.find((n:Node)=>{return n.affected});
 
+    if (isUndefined(lastAssignedNode)){
+      lastAssignedNode = lastAssignedNodes.find((n:Node)=>{return n.bdate === max(lastAssignedNodes, (nd: Node) => {return nd.bdate;})});
+    }
 
     //if the last assigned Node is affected or if it is an unaffected leaf, start a new row; This does not apply when hiding.
     if (isUndefined(node.y) && (lastAssignedNode.affected || (!lastAssignedNode.hasChildren && !lastAssignedNode.affected))){
+
       node.y = min(this.nodes, (n: any) => {
-          return n.y;
-        }) + (-1);
+        return n.y;
+      }) - 1;
+
       node.hidden = true;
       node.aggregated = aggregate;
     } else if (isUndefined(node.y)){
@@ -698,7 +720,7 @@ class GraphData {
 
       if (isUndefined(s.y) && !s.affected) {
         //If current node is affected, place spouses above it:
-        if (node.affected){
+        if (node.affected && aggregate){
           s.y = minY -1;
         }else { //place spouses alongside it;
           s.y = node.y
@@ -733,7 +755,10 @@ class GraphData {
       } else{
         childY = min(this.nodes, (n: any) => {
             return n.y;
-          }) + (-1);
+          });
+        if (aggregate){
+          childY = childY-1;
+        }
       }
     } else {
       childY = node.y

@@ -1065,9 +1065,6 @@ class GenealogyTree {
         return (max(this.x.range()) - min(this.x.range()) + this.margin.right);
       })
       .attr('height', Config.glyphSize * 2)
-      // .attr('transform', (d: any) => {
-      //   return d.sex === Sex.Male ? 'translate(' + Config.glyphSize + ',0)' : 'translate(' + 0 + ',' + (-Config.glyphSize) + ')';
-      // })
 
     selectAll('.bars')
       .selectAll('.highlightBar')
@@ -1082,9 +1079,6 @@ class GenealogyTree {
         return this.x(min(yNodes,(d:Node)=>{return d.x}));
       })
       .attr('height', Config.glyphSize * 2)
-      // .attr('transform', (d: any) => {
-      //   return d.sex === Sex.Male ? 'translate(' + Config.glyphSize + ',0)' : 'translate(' + 0 + ',' + (-Config.glyphSize) + ')';
-      // })
 
 
     //Set both the background bar and the highlight bar to opacity 0;
@@ -1095,6 +1089,8 @@ class GenealogyTree {
     selectAll('.bars')
       .selectAll('.highlightBar')
       .attr('opacity', 0);
+
+
 
     selectAll('.bars')
       .selectAll('.backgroundBar')
@@ -1162,32 +1158,27 @@ class GenealogyTree {
       .on('dblclick', (d) => {
 
         this.data.aggregateTreeWrapper(true);
-
-        // this.data.nodes.forEach(n=>{console.log('y', n.y)})
-        // this.data.hideNodes(Math.round(d['y']), true);
-        // this.data.collapseFamilies(d['familyIds'].slice(-1))
-        // this.update_visible_nodes();
         this.update_graph();
         event.preventDefault();
-      });
-
-    //Set click callback on background bars
-    selectAll('.bars')
+      })
       .on('click', (d: any) => {
 
         console.log(d)
 
         if (event.altKey) {
 
-          this.data.hideNodes(Math.round(d['y']), false);
+          // this.data.hideNodes(Math.round(d['y']), false);
+          this.data.aggregateTreeWrapper(false);
 
-          this.update_time_axis();
-          this.update_visible_nodes();
+          // this.update_time_axis();
+          // this.update_visible_nodes();
+
+          this.update_graph();
 
           // Perhaps change to only unselected bars that are part of this newly aggregated/expanded set?
           selectAll('.highlightBar').classed('selected', false);
 
-          events.fire('graphLayout_changed')
+          // events.fire('graphLayout_changed')
 
           return;
         }
@@ -1611,135 +1602,135 @@ class GenealogyTree {
       .classed('duplicateLine', true);
 
 
-    selectAll('.duplicateLine')
-      .attr('x1',(n:Node)=>{
-
-        let dupNode = n.duplicates.find(d=>{return d.y !== n.y});
-        if (dupNode.y > n.y)
-          return;
-
-        let glyphSize;
-        let offset =0;
-
-        if (n.hidden)
-          glyphSize = Config.hiddenGlyphSize;
-        else
-          glyphSize = Config.glyphSize;
-
-
-        //Add offset for kid grids
-        if (!n.hasChildren && n.hidden){
-          offset = glyphSize * 3;
-        }
-
-        if (dupNode.x <n.x)
-            return glyphSize - offset
-        return glyphSize + offset
-      })
-      .attr('y1',
-        (n:Node)=>{
-
-          let dupNode = n.duplicates.find(d=>{return d.y !== n.y});
-          if (dupNode.y > n.y)
-            return;
-
-          let glyphSize;
-        if (n.hidden)
-          glyphSize = Config.hiddenGlyphSize;
-        else
-          glyphSize = Config.glyphSize;
-
-          if (dupNode.y <n.y)
-          return -glyphSize
-        return +3*glyphSize
-      })
-      .attr('x2',(n:Node)=>{
-
-        let dupNode = n.duplicates.find(d=>{return d.y !== n.y});
-        if (dupNode.y > n.y)
-          return;
-
-
-        let glyphSize;
-        let offset =0;
-
-        if (n.hidden) {
-          glyphSize = Config.hiddenGlyphSize;
-        }
-        else
-          glyphSize = Config.glyphSize;
-
-        //Add offset for kid grids
-        if (!dupNode.hasChildren && dupNode.hidden){
-          offset = glyphSize * 3;
-        }
-
-        if (dupNode.x <=n.x){
-          return this.x(dupNode.x)- this.x(n.x) +glyphSize + offset
-        } else {
-          return  this.x(dupNode.x) - this.x(n.x) +glyphSize - offset;
-        }})
-      .attr('y2',(n:Node)=>{
-
-        let dupNode = n.duplicates.find(d=>{return d.y !== n.y});
-        if (dupNode.y > n.y)
-          return;
-
-        let glyphSize;
-        if (n.hidden)
-          glyphSize = Config.hiddenGlyphSize;
-        else
-          glyphSize = Config.glyphSize;
-
-          return this.y(n.duplicates.find(d=>{return d.y !== n.y}).y)- this.y(n.y)
-      })
-      .attr('visibility', 'hidden')
+    // selectAll('.duplicateLine')
+    //   .attr('x1',(n:Node)=>{
+    //
+    //     let dupNode = n.duplicates.find(d=>{return d.y !== n.y});
+    //     if (dupNode.y > n.y)
+    //       return;
+    //
+    //     let glyphSize;
+    //     let offset =0;
+    //
+    //     if (n.hidden)
+    //       glyphSize = Config.hiddenGlyphSize;
+    //     else
+    //       glyphSize = Config.glyphSize;
+    //
+    //
+    //     //Add offset for kid grids
+    //     if (!n.hasChildren && n.hidden){
+    //       offset = glyphSize * 3;
+    //     }
+    //
+    //     if (dupNode.x <n.x)
+    //         return glyphSize - offset
+    //     return glyphSize + offset
+    //   })
+    //   .attr('y1',
+    //     (n:Node)=>{
+    //
+    //       let dupNode = n.duplicates.find(d=>{return d.y !== n.y});
+    //       if (dupNode.y > n.y)
+    //         return;
+    //
+    //       let glyphSize;
+    //     if (n.hidden)
+    //       glyphSize = Config.hiddenGlyphSize;
+    //     else
+    //       glyphSize = Config.glyphSize;
+    //
+    //       if (dupNode.y <n.y)
+    //       return -glyphSize
+    //     return +3*glyphSize
+    //   })
+    //   .attr('x2',(n:Node)=>{
+    //
+    //     let dupNode = n.duplicates.find(d=>{return d.y !== n.y});
+    //     if (dupNode.y > n.y)
+    //       return;
+    //
+    //
+    //     let glyphSize;
+    //     let offset =0;
+    //
+    //     if (n.hidden) {
+    //       glyphSize = Config.hiddenGlyphSize;
+    //     }
+    //     else
+    //       glyphSize = Config.glyphSize;
+    //
+    //     //Add offset for kid grids
+    //     if (!dupNode.hasChildren && dupNode.hidden){
+    //       offset = glyphSize * 3;
+    //     }
+    //
+    //     if (dupNode.x <=n.x){
+    //       return this.x(dupNode.x)- this.x(n.x) +glyphSize + offset
+    //     } else {
+    //       return  this.x(dupNode.x) - this.x(n.x) +glyphSize - offset;
+    //     }})
+    //   .attr('y2',(n:Node)=>{
+    //
+    //     let dupNode = n.duplicates.find(d=>{return d.y !== n.y});
+    //     if (dupNode.y > n.y)
+    //       return;
+    //
+    //     let glyphSize;
+    //     if (n.hidden)
+    //       glyphSize = Config.hiddenGlyphSize;
+    //     else
+    //       glyphSize = Config.glyphSize;
+    //
+    //       return this.y(n.duplicates.find(d=>{return d.y !== n.y}).y)- this.y(n.y)
+    //   })
+    //   .attr('visibility', 'hidden')
 
 
     // dupIcons = dupIconsEnter.merge(dupIcons);
 
-    selectAll('.duplicateIcon')
-      .text('\uf0dd')
-      .attr('y', (n: Node) => {
-        let glyphSize;
-        if (n.hidden)
-          glyphSize = Config.hiddenGlyphSize*.75;
-        // if (n.hidden && !n.hasChildren)
-        //   glyphSize = Config.hiddenGlyphSize*.5;
-        else
-          glyphSize = Config.glyphSize;
-
-        if (n.y > n.duplicates.find(d=>{return d.y !== n.y}).y)
-          return glyphSize
-        else
-          return glyphSize * 3
-      })
-      .attr('x', (n: Node) => {
-        let glyphSize;
-        if (n.hidden)
-          glyphSize = Config.hiddenGlyphSize*.75;
-        // if (n.hidden && !n.hasChildren)
-        //   glyphSize = Config.hiddenGlyphSize*.5;
-        else
-          glyphSize = Config.glyphSize;
-
-
-        if (n.y > n.duplicates.find(d=>{return d.y !== n.y}).y)
-          return -glyphSize
-        else
-          return glyphSize
-      })
-      // .attr('y',0)
-      // .attr('x',0)
-      .attr('font-family', 'FontAwesome')
-      .attr('font-size', (d:Node)=>{
-        if (d.hidden){return Config.hiddenGlyphSize*2} else {return Config.glyphSize*2.5}})
-      .attr('text-anchor', 'middle')
-      // .attr('text-anchor','start')
-      .attr("transform", (n: Node) => {
-        if (n.y > (n.duplicates.find(d=>{return d.y !== n.y}).y))
-          return 'rotate(' + 180 + ')'
-      })
+    // selectAll('.duplicateIcon')
+    //   .text('\uf0dd')
+    //   .attr('y', (n: Node) => {
+    //     let glyphSize;
+    //     if (n.hidden)
+    //       glyphSize = Config.hiddenGlyphSize*.75;
+    //     // if (n.hidden && !n.hasChildren)
+    //     //   glyphSize = Config.hiddenGlyphSize*.5;
+    //     else
+    //       glyphSize = Config.glyphSize;
+    //
+    //     if (n.y > n.duplicates.find(d=>{return d.y !== n.y}).y)
+    //       return glyphSize
+    //     else
+    //       return glyphSize * 3
+    //   })
+    //   .attr('x', (n: Node) => {
+    //     let glyphSize;
+    //     if (n.hidden)
+    //       glyphSize = Config.hiddenGlyphSize*.75;
+    //     // if (n.hidden && !n.hasChildren)
+    //     //   glyphSize = Config.hiddenGlyphSize*.5;
+    //     else
+    //       glyphSize = Config.glyphSize;
+    //
+    //
+    //     if (n.y > n.duplicates.find(d=>{return d.y !== n.y}).y)
+    //       return -glyphSize
+    //     else
+    //       return glyphSize
+    //   })
+    //   // .attr('y',0)
+    //   // .attr('x',0)
+    //   .attr('font-family', 'FontAwesome')
+    //   .attr('font-size', (d:Node)=>{
+    //     if (d.hidden){return Config.hiddenGlyphSize*2} else {return Config.glyphSize*2.5}})
+    //   .attr('text-anchor', 'middle')
+    //   // .attr('text-anchor','start')
+    //   .attr("transform", (n: Node) => {
+    //     if (n.y > (n.duplicates.find(d=>{return d.y !== n.y}).y))
+    //       return 'rotate(' + 180 + ')'
+    //   })
 
 
   }

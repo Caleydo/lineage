@@ -689,16 +689,20 @@ class GenealogyTree {
 
     const kidGridGroup = select('#genealogyTree').select('#kidGrids');
 
+    let filteredData = this.data.nodes.filter(function (d: Node) {
+      let hasUnaffectedSpouse = d.spouse.find(s => {
+        return s.sex == Sex.Male || s.affected
+      });
+      return d.aggregated && d.hasChildren && !d.affected && isNullOrUndefined(hasUnaffectedSpouse);
+    });
+
     // Attach kidGrid groups
     let allKidGrids = kidGridGroup.selectAll('.kidGrid')
-      .data(this.data.nodes.filter(function (d: Node) {
-        let hasUnaffectedSpouse = d.spouse.find(s => {
-          return s.sex == Sex.Male || s.affected
-        });
-        return d.aggregated && d.hasChildren && !d.affected && isNullOrUndefined(hasUnaffectedSpouse);
-      }), function (d:Node) {
+      .data(filteredData, function (d:Node) {
         return d.id;
       });
+
+    console.log('kid grid for' , filteredData.length ,' nodes')
 
     const allKidGridsEnter = allKidGrids
       .enter()

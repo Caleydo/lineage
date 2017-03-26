@@ -295,7 +295,7 @@ class AttributePanel {
 
     });
 
-    selectAll('.badge').on('click', function () {
+    selectAll('.badge').on('click',function (){
       const badge = select(this).attr('id'); //$(this).id();
       const attribute = $(this).closest('strong').contents()[0];
       //reset badge display for previously clicked badges
@@ -331,8 +331,6 @@ class AttributePanel {
         select('#' + attribute.nodeValue).classed('selectedDIV',true)
         events.fire('poi_selected', {'name':attribute.nodeValue});
       }
-
-
     });
 
     /** Generate SVG for these type only**/
@@ -360,8 +358,7 @@ class AttributePanel {
     }
 
   }
-
-
+  
   /***
    * This function takes an svg as an input and populate it with vis element
    * for a specific attribute

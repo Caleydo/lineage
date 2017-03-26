@@ -955,7 +955,11 @@ class GenealogyTree {
     //
     // })
       .on('dblclick', (d) => {
-        this.data.hideNodes(Math.round(d['y']), true);
+
+        this.data.aggregateTreeWrapper(true);
+
+        // this.data.nodes.forEach(n=>{console.log('y', n.y)})
+        // this.data.hideNodes(Math.round(d['y']), true);
         // this.data.collapseFamilies(d['familyIds'].slice(-1))
         this.update_visible_nodes();
         event.preventDefault();
@@ -1239,18 +1243,18 @@ class GenealogyTree {
     //   return (d.affected) ? 'red' : '#e2e1e0';
     // })
 
-    //Add couples line
-    allNodesEnter.filter(function (d: Node) {
-      let hasUnaffectedMaleSpouse = d.spouse.find(s => {
-        return s.sex == Sex.Male && !s.affected
-      });
-
-
-      return d.hasChildren && !d.affected && isNullOrUndefined(hasUnaffectedMaleSpouse);
-    })
-      .append('line')
-      .attr('class', 'couplesLine')
-      .attr('visibility', 'hidden')
+    // //Add couples line
+    // allNodesEnter.filter(function (d: Node) {
+    //   let hasUnaffectedMaleSpouse = d.spouse.find(s => {
+    //     return s.sex == Sex.Male && !s.affected
+    //   });
+    //
+    //
+    //   return d.hasChildren && !d.affected && isNullOrUndefined(hasUnaffectedMaleSpouse);
+    // })
+    //   .append('line')
+    //   .attr('class', 'couplesLine')
+    //   .attr('visibility', 'hidden')
 
 
     allNodes.selectAll('.couplesLine')

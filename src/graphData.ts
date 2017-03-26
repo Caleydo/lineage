@@ -539,6 +539,216 @@ class GraphData {
 
   /**
    *
+   * This function prepares the tree for aggregation, cleans up the results and updates the tableManager.
+   */
+  private aggregateTreeWrapper(aggregate:boolean){
+
+    // startNode.aggregateBranch = true; //set flag to start aggregating from this node;
+
+    //Clear tree of y values and aggregated and hidden flags;
+    this.nodes.forEach(n=>{
+      n.y = undefined
+      n.aggregated = false;
+      n.hidden = false;
+    })
+
+    this.aggregateTree(aggregate);
+
+    //clean out extra rows at the top of the tree;
+    let minY = min(this.nodes, (n: any) => {
+      return n.y;
+    }) -1;
+
+    this.nodes.forEach(n=>{n.y = n.y - minY});
+
+    const idRange = [];
+    this.nodes.forEach((n: any) => {
+      if (!(!n.aggregated && n.hidden)) {
+        const ind: number = this.ids.indexOf(n.id);
+        idRange.push(n.id);
+      }
+    });
+
+    this.exportYValues();
+    this.tableManager.activeGraphRows = (idRange);
+
+  }
+
+
+  /**
+   *
+   * This function aggregates all nodes in the branch starting at a given node X.
+   *@param Node to start aggregating at
+   */
+  private aggregateTree(aggregate:boolean) {
+
+    //Only look at nodes who have not yet been assigned a y value
+    const nodeList = this.nodes.filter((n) => {
+      return n.y === undefined;
+    });
+
+    if (nodeList.length === 0) {
+      return;
+    }
+
+    //Find oldest person in this set of nodes and set as founder
+    const startNode = nodeList.find((n) => {
+      return n.bdate === min(nodeList, n => {
+          return n.bdate
+        })
+    });
+
+    let minY = min(this.nodes, (n: any) => {
+        return n.y;
+      });
+
+    if (isUndefined(minY)){
+      startNode.y = nodeList.length; //Set first y index;
+    } else{
+      startNode.y = minY -1; //Set first y index;
+    }
+
+    if (!startNode.affected){
+      startNode.hidden = true;
+      startNode.aggregated = aggregate;
+    }
+
+    this.aggregateHelper(startNode, aggregate);
+
+    //Recursively call linearizeTree to handle any nodes that were not assigned a y value.
+    this.aggregateTree(aggregate);
+  }
+
+
+  /**
+   *
+   * This is a recursive helper function for aggregateTree()
+   * @param node - node that needs to be aggregated;
+   * @param aggregate - boolean that indicates whether to aggregate (true) or hide (false);
+   *
+   */
+  private aggregateHelper(node: Node, aggregate:boolean) {
+
+
+    //Base case are leaf nodes. Reached end of this branch.
+    if (!node.affected && !node.hasChildren) {
+      return;
+    }
+
+    //If node is affected and has not yet been assigned a row, give it's own row
+    if (isUndefined(node.y) && node.affected) {
+      node.y = min(this.nodes, (n: any) => {
+          return n.y;
+        }) + (-1);
+    }
+
+    //Handle spouses
+    // If any spouse are affected, give them their own row.
+    node.spouse.map(s=>{
+      if (isUndefined(s.y) && s.affected) {
+        s.y = min(this.nodes, (n: any) => {
+            return n.y;
+          }) + (-1);
+      }
+    });
+
+    //If node has any affected spouses, place node above them.
+    if (isUndefined(node.y) && node.spouse.filter(n=>{return n.affected}).length>0){
+      node.y = min(this.nodes, (n: any) => {
+        return n.y;
+      }) + (-1);
+
+      node.hidden = true;
+      node.aggregated = aggregate;
+    }
+
+    //find all nodes in the last row, will only be one if it is affected
+    const lastAssignedNodes: Node[] = this.nodes.filter((n:Node)=>{return n.y === min(this.nodes, (nd: Node) => {return nd.y;})});
+
+    //of all the nodes in the last row, find the one at the far right (latest bdate)
+    const lastAssignedNode: Node = lastAssignedNodes.find((n:Node)=>{return n.bdate === max(lastAssignedNodes, (nd: Node) => {return nd.bdate;})});
+
+
+    //if the last assigned Node is affected or if it is an unaffected leaf, start a new row; This does not apply when hiding.
+    if (isUndefined(node.y) && (lastAssignedNode.affected || (!lastAssignedNode.hasChildren && !lastAssignedNode.affected))){
+      node.y = min(this.nodes, (n: any) => {
+          return n.y;
+        }) + (-1);
+      node.hidden = true;
+      node.aggregated = aggregate;
+    } else if (isUndefined(node.y)){
+      node.y = min(this.nodes, (n: any) => {
+        return n.y;
+      })
+      node.hidden = true;
+      node.aggregated = aggregate;
+    }
+
+    let minY = min(this.nodes, (n: any) => {
+      return n.y;
+    });
+
+    //Iterate through spouses again and assign any undefined y values to the current y
+    node.spouse.map(s=>{
+      if (isUndefined(s.y) && !s.affected) {
+        //If current node is affected, place spouses above it:
+        if (node.affected){
+          s.y = minY -1;
+        }else { //place spouses alongside it;
+          s.y = node.y
+        }
+        s.hidden = true;
+        s.aggregated = aggregate;
+      }
+    });
+
+    //Assign all spouses to the x level of either the affected spouse or if not, a token male in the couple.
+
+    //Align node's x value to youngest affected spouse:
+    let xValue = min([node,node.spouse].filter((n:Node)=>{return n.affected}),(n:Node)=>{return n.x});
+
+    //No affected spouse
+    if (isUndefined(xValue)){
+      xValue = [node].concat(node.spouse).find((n:Node)=>{return n.sex === Sex.Male}).x;
+    }
+
+    //Align all spouses along a same X;
+    [node].concat(node.spouse).forEach((n:Node)=>{n.x = xValue});
+
+
+    //Assign Child Y and X Values
+    let childY;
+
+    //If node is affected, find unaffected spouse
+    if (node.affected){
+      let unaffectedSpouse = node.spouse.find((n)=>{return !n.affected})
+      if (!isUndefined(unaffectedSpouse)){
+        childY = unaffectedSpouse.y;
+      } else{
+        childY = min(this.nodes, (n: any) => {
+            return n.y;
+          }) + (-1);
+      }
+    } else {
+      childY = node.y
+    }
+
+    //Assign y levels to leaf children;
+    node.children.map((child:Node)=>{
+      if (isUndefined(child.y) && !child.affected && !child.hasChildren) {
+        child.y = childY
+        child.hidden = true;
+        child.aggregated = aggregate;
+      } else {
+        this.aggregateHelper(child,aggregate)
+      }
+    })
+
+  }
+
+
+  /**
+   *
    * This function defined the 'affected' state based on a user defined attribute.
    *
    * @param attribute attribute to be used to define 'affected' state of nodes.
@@ -737,13 +947,21 @@ class GraphData {
     // TODO Find a better way of doing this!
 
     //re_order couples so affected people have higher ys. This ensure correct positioning of parent and kid grids;
-    filteredNodes.forEach((n:Node)=>{
-      if (n.affected){
+    filteredNodes.forEach((n: Node) => {
+      if (n.affected) {
 
-        let allYs = [n].concat(n.spouse).map(n=>{return n.y}).sort((a,b)=>{return b-a});
+        let allYs = [n].concat(n.spouse).map(n => {
+          return n.y
+        }).sort((a, b) => {
+          return b - a
+        });
 
-        let affectedSpouses = n.spouse.filter(n=>{return n.affected});
-        let unaffectedSpouses = n.spouse.filter(n=>{return !n.affected});
+        let affectedSpouses = n.spouse.filter(n => {
+          return n.affected
+        });
+        let unaffectedSpouses = n.spouse.filter(n => {
+          return !n.affected
+        });
         let allSpouses = [n].concat(affectedSpouses).concat(unaffectedSpouses);
 
         // allYs.forEach((y,i)=>{console.log('setting y of ' , allSpouses[i].id , ' to ' , y ); allSpouses[i].y = y});
@@ -819,7 +1037,7 @@ class GraphData {
             node.y = ma.y;
           }
           console.log('ma is ', ma.y)
-          console.log('setting node y for ', node.id,  ' to ', node.y)
+          console.log('setting node y for ', node.id, ' to ', node.y)
           node.x = pa.x; //place kid grid in front of father icon since they are both aligned
         }
 
@@ -873,11 +1091,11 @@ class GraphData {
               spouse.x = affectedSpouse.x
             })
             //Set this nodes y position to affected spouse -1;
-              if (node.sex === Sex.Male) {
-                node.y = affectedSpouse.y - 1.2;
-              } else {
-                node.y = affectedSpouse.y - 0.8;
-              }
+            if (node.sex === Sex.Male) {
+              node.y = affectedSpouse.y - 1.2;
+            } else {
+              node.y = affectedSpouse.y - 0.8;
+            }
 
           } else { //set this entire family' x position to the first dad;
             let firstDad = [node].concat(spouses).find(s => {

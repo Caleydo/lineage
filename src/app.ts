@@ -54,9 +54,10 @@ export class App {
     /** =====  PUBLIC CASE ===== */
 
     /** =====  PRIVATE CASES - WORKS ONLY WITH THE RIGHT DATA LOCALLY ===== */
+
     await tableManager.loadData('TenFamiliesDescendAnon', 'TenFamiliesAttrAnon');
     // await tableManager.loadData('TenFamiliesDescend', 'TenFamiliesAttr');
-    // await tableManager.loadData('AllFamiliesDescendAnon', 'AllFamiliesAttributes');
+    //await tableManager.loadData('AllFamiliesDescend', 'AllFamiliesAttributes');
     /** ============= */
 
     const graphDataObj = graphData.create(tableManager);

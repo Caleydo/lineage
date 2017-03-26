@@ -91,7 +91,7 @@ export default class Node {
   /** Default initialization for attributes */
   constructor(id: string) {
     this.type = 'single';
-    this.id;
+    this.id = id;
     this.uniqueID = id;
     this.hidden = false;
     this.aggregated = false;
@@ -112,7 +112,7 @@ export default class Node {
   /** Initialize the node based on rows */
   public initialize(columnNameToIndex: any, row: any) {
     this.sex = (row[columnNameToIndex.sex] === 'M') ? Sex.Male : Sex.Female;
-    this.id =row[columnNameToIndex.PersonID].toString();
+    this.id =row[columnNameToIndex.RelativeID].toString();
     this.bdate = +row[columnNameToIndex.bdate];
     this.ddate = +row[columnNameToIndex.ddate];
     this.x = +row[columnNameToIndex.bdate];

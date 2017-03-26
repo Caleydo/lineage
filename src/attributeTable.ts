@@ -342,7 +342,7 @@ class attributeTable {
 
       let uniqueIDs = idRanges.dim(0).asList().map(d=>{return d.toString()});
 
-      console.log('col name is ', vector.desc.name, 'vector.data() size is ', data.length, 'vector.names() size is ', peopleIDs.length, 'vector.ids() size is ', uniqueIDs.length)
+      // console.log('col name is ', vector.desc.name, 'vector.data() size is ', data.length, 'vector.names() size is ', peopleIDs.length, 'vector.ids() size is ', uniqueIDs.length)
 
       const type = vector.valuetype.type;
       const name = vector.desc.name;

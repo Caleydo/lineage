@@ -121,7 +121,7 @@ export default class TableManager {
   //   ['KindredID','PersonID', 'Asthma', 'Bipolar', 'sex', 'deceased', 'suicide', 'gen', 'Age', 'FirstBMI', 'AgeFirstBMI', 'race', 'cause_death', 'weapon']; //set of default cols to read in, minimizes load time for large files;
 
   private defaultCols: String[] =
-    ['KindredID','PersonID', 'Asthma', 'Bipolar', 'sex', 'deceased', 'suicide', 'gen', 'Age', 'FirstBMI', 'AgeFirstBMI', 'cause_death', 'weapon']; //set of default cols to read in, minimizes load time for large files;
+    ['RelativeID','KindredID', 'Asthma', 'Bipolar', 'sex', 'deceased', 'suicide', 'gen', 'Age', 'FirstBMI', 'AgeFirstBMI', 'cause_death', 'weapon']; //set of default cols to read in, minimizes load time for large files;
 
 
   public colOrder: String[]; //array that keeps track which attributes are displayed in the panel and in the table and their correct order.
@@ -411,27 +411,35 @@ export default class TableManager {
    */
   public async selectFamily(chosenFamilyIDs?: number[]) {
 
-    console.log('chosen Family ID is ', chosenFamilyIDs)
+    // console.log('chosen Family ID is ', chosenFamilyIDs)
 
 
     if (chosenFamilyIDs == null) {
       chosenFamilyIDs = [this.familyInfo[0].id];
     }
 
-    let familyRange=[]
+    // let familyRange: number[] =[];
 
-    // //Temporarily only plot the first family
-    // let family = this.familyInfo.find((family) => {return family.id === chosenFamilyIDs[0]});
-    // familyRange = familyRange.concat(family.range);
-    //
+    //Temporarily only plot the first family
+    let family = this.familyInfo.find((family) => {return family.id === chosenFamilyIDs[0]});
+    let familyRange = range.list(family.range) //familyRange.concat(family.range);
+
     chosenFamilyIDs.forEach((id, i) => {
-      let family = this.familyInfo.filter((family) => {
+      let family = this.familyInfo.find((family) => {
         return family.id === chosenFamilyIDs[i];
-      })[0];
-        familyRange = familyRange.concat(family.range)
+      });
+      // let range: number[] = family.range
+      //   familyRange = familyRange.concat(range)
+      if (i>0){
+        familyRange = familyRange.union(range.list(family.range));
+      }
     })
 
-    this._activeGraphRows = range.list(familyRange);
+    //In case families were chosen out of order. Provided ranges must be in order;
+    // familyRange.sort(function(a, b) {return a - b;})
+
+    // this._activeGraphRows = range.list(familyRange);
+    this._activeGraphRows = familyRange;
 
     await this.refreshActiveGraphView();
 

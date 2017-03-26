@@ -249,11 +249,14 @@ class AttributePanel {
     }
 
     // we first add a div that holds the li and the svg
-    const attributeElm = select(list).append('div');
+    const attributeElm = select(list).append('div')
+      .classed('attrDiv',true)
+      .attr('id', columnName);
 
     //append the header as a menu option
     const attrHeader = attributeElm.append('li')
       .classed('collapsed active', true)
+      .style('background','none')
       .attr('data-target', '#' + columnName);
     // .attr('data-toggle', 'collapse');
 
@@ -266,8 +269,7 @@ class AttributePanel {
       .html(`<div class=' attr_badges pull-right'>
                 <!--<span class=' badge' id ='add_remove'>-</span> -->
                         
-                <span class=' badge' id ='primary'>A1</span>
-                <span class=' badge' id ='secondary'>A2</span>
+                <span class=' badge' id ='primary'>A</span>
                 <span class=' badge' id ='poi'>POI</span>
                  
               </div>`);
@@ -321,11 +323,16 @@ class AttributePanel {
       event.stopPropagation();
 
       if (badge === 'primary' || badge === 'secondary') {
-
         events.fire('primary_secondary_selected', {'name':attribute.nodeValue,  'primary_secondary':badge});
       } else if (badge === 'poi') {
+        selectAll('.attrDiv').classed('selectedDIV',false)
+
+        //set class to this div to color appropriately.
+        select('#' + attribute.nodeValue).classed('selectedDIV',true)
         events.fire('poi_selected', {'name':attribute.nodeValue});
       }
+
+
     });
 
     /** Generate SVG for these type only**/

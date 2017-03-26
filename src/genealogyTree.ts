@@ -696,18 +696,17 @@ class GenealogyTree {
           return s.sex == Sex.Male || s.affected
         });
         return d.aggregated && d.hasChildren && !d.affected && isNullOrUndefined(hasUnaffectedSpouse);
-      }), function (d) {
-        return d['id'];
+      }), function (d:Node) {
+        return d.id;
       });
-
-
-    allKidGrids.exit().transition().duration(400).style('opacity', 0).remove();
 
     const allKidGridsEnter = allKidGrids
       .enter()
       .append('rect');
 
     allKidGrids = allKidGridsEnter.merge(allKidGrids);
+
+    allKidGrids.exit().transition().duration(400).style('opacity', 0).remove();
 
     allKidGrids
       .classed('collapsed', (d) => {
@@ -924,7 +923,6 @@ class GenealogyTree {
         }).select('.lifeRect').select('.ageLabel').attr('visibility', 'visible');
 
         selectAll('.duplicateLine').filter(selected).attr('visibility', 'visible');
-        selectAll('.duplicateIcon').filter(selected).attr('visibility', 'visible');
 
         // events.fire('row_mouseover', Math.round(d.y));
       })
@@ -932,7 +930,6 @@ class GenealogyTree {
       .on('mouseout', () => {
 
         selectAll('.duplicateLine').attr('visibility', 'hidden');
-        selectAll('.duplicateIcon').attr('visibility', 'hidden');
 
         selectAll('.slopeLine').classed('selectedSlope', false);
 
@@ -1385,19 +1382,6 @@ class GenealogyTree {
       .style('font-size', Config.glyphSize);
 
 
-    //Add icons for duplicate nodes
-
-    // let dupNodes = this.data.nodes.filter((n:Node)=>{return n.duplicates.length>0});
-    // let dupData = dupNodes.map((n:Node)=>{n.duplicates.forEach((dup)=>{console.log(n,dup); return {node:n, duplicate:dup}})});
-    //
-    // console.log(dupNodes,dupData);
-    //
-    // let dupIcons = selectAll('.duplicateIcon')
-    //   .data([0,1,2,3]);
-    //
-    // let dupIconsEnter = dupIcons
-    //   .enter()
-
     allNodesEnter.filter((n: Node) => {
       return n.duplicates.length > 0
     })
@@ -1412,19 +1396,87 @@ class GenealogyTree {
 
 
     selectAll('.duplicateLine')
-      .attr('x1',Config.glyphSize)
-      .attr('y1',(n:Node)=>{
-        if (n.duplicates.find(d=>{return d.y !== n.y}).y <n.y)
-          return -Config.glyphSize
-        return +3*Config.glyphSize
+      .attr('x1',(n:Node)=>{
+
+        let dupNode = n.duplicates.find(d=>{return d.y !== n.y});
+        if (dupNode.y > n.y)
+          return;
+
+        let glyphSize;
+        let offset =0;
+
+        if (n.hidden)
+          glyphSize = Config.hiddenGlyphSize;
+        else
+          glyphSize = Config.glyphSize;
+
+
+        //Add offset for kid grids
+        if (!n.hasChildren && n.hidden){
+          offset = glyphSize * 3;
+        }
+
+        if (dupNode.x <n.x)
+            return glyphSize - offset
+        return glyphSize + offset
       })
-      .attr('x2',Config.glyphSize)
-      .attr('y2',(n:Node)=>{
-        if (n.duplicates.find(d=>{return d.y !== n.y}).y <n.y){
-          return this.y(n.duplicates.find(d=>{return d.y !== n.y}).y)- this.y(n.y) + 2*Config.glyphSize
+      .attr('y1',
+        (n:Node)=>{
+
+          let dupNode = n.duplicates.find(d=>{return d.y !== n.y});
+          if (dupNode.y > n.y)
+            return;
+
+          let glyphSize;
+        if (n.hidden)
+          glyphSize = Config.hiddenGlyphSize;
+        else
+          glyphSize = Config.glyphSize;
+
+          if (dupNode.y <n.y)
+          return -glyphSize
+        return +3*glyphSize
+      })
+      .attr('x2',(n:Node)=>{
+
+        let dupNode = n.duplicates.find(d=>{return d.y !== n.y});
+        if (dupNode.y > n.y)
+          return;
+
+
+        let glyphSize;
+        let offset =0;
+
+        if (n.hidden) {
+          glyphSize = Config.hiddenGlyphSize;
+        }
+        else
+          glyphSize = Config.glyphSize;
+
+        //Add offset for kid grids
+        if (!dupNode.hasChildren && dupNode.hidden){
+          offset = glyphSize * 3;
+        }
+
+        if (dupNode.x <=n.x){
+          return this.x(dupNode.x)- this.x(n.x) +glyphSize + offset
         } else {
-          return this.y(n.duplicates.find(d=>{return d.y !== n.y}).y)- this.y(n.y) - 3*Config.glyphSize
+          return  this.x(dupNode.x) - this.x(n.x) +glyphSize - offset;
         }})
+      .attr('y2',(n:Node)=>{
+
+        let dupNode = n.duplicates.find(d=>{return d.y !== n.y});
+        if (dupNode.y > n.y)
+          return;
+
+        let glyphSize;
+        if (n.hidden)
+          glyphSize = Config.hiddenGlyphSize;
+        else
+          glyphSize = Config.glyphSize;
+
+          return this.y(n.duplicates.find(d=>{return d.y !== n.y}).y)- this.y(n.y)
+      })
       .attr('visibility', 'hidden')
 
 
@@ -1433,25 +1485,45 @@ class GenealogyTree {
     selectAll('.duplicateIcon')
       .text('\uf0dd')
       .attr('y', (n: Node) => {
-        if (n.y > n.duplicates.find(d=>{return d.y !== n.y}).y)
-          return Config.glyphSize
+        let glyphSize;
+        if (n.hidden)
+          glyphSize = Config.hiddenGlyphSize*.75;
+        // if (n.hidden && !n.hasChildren)
+        //   glyphSize = Config.hiddenGlyphSize*.5;
         else
-          return Config.glyphSize * 3
+          glyphSize = Config.glyphSize;
+
+        if (n.y > n.duplicates.find(d=>{return d.y !== n.y}).y)
+          return glyphSize
+        else
+          return glyphSize * 3
       })
       .attr('x', (n: Node) => {
-        if (n.y > n.duplicates.find(d=>{return d.y !== n.y}).y)
-          return -Config.glyphSize
+        let glyphSize;
+        if (n.hidden)
+          glyphSize = Config.hiddenGlyphSize*.75;
+        // if (n.hidden && !n.hasChildren)
+        //   glyphSize = Config.hiddenGlyphSize*.5;
         else
-          return Config.glyphSize
-      })
-      .attr('font-family', 'FontAwesome')
-      // .attr('font-size', 30)
-      .attr('text-anchor', 'middle')
-      .attr("transform", (n: Node) => {
+          glyphSize = Config.glyphSize;
+
+
         if (n.y > n.duplicates.find(d=>{return d.y !== n.y}).y)
+          return -glyphSize
+        else
+          return glyphSize
+      })
+      // .attr('y',0)
+      // .attr('x',0)
+      .attr('font-family', 'FontAwesome')
+      .attr('font-size', (d:Node)=>{
+        if (d.hidden){return Config.hiddenGlyphSize*2} else {return Config.glyphSize*2.5}})
+      .attr('text-anchor', 'middle')
+      // .attr('text-anchor','start')
+      .attr("transform", (n: Node) => {
+        if (n.y > (n.duplicates.find(d=>{return d.y !== n.y}).y))
           return 'rotate(' + 180 + ')'
       })
-      .attr('visibility', 'hidden')
 
 
   }

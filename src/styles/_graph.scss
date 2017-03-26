@@ -1,6 +1,6 @@
 $edge-color: #4f4f4d;
 $node-color: #6f7373;
-$affected-node-color: rgb(48, 50, 50);
+$affected-node-color: #285880;
 
 
 .node.affected .nodeIcon{
@@ -75,10 +75,10 @@ td rect{
 
 
 .duplicateIcon {
-  fill: #bd6012;
+  fill: #535250;
   stroke:none;
   opacity:.95;
-  font-size:20px;
+  //font-size:20px;
 }
 
 .sortIcon.sortSelected{
@@ -448,15 +448,15 @@ rect.selected{
   stroke:#9b9a99;
 }
 
-//.nodeLabel,
-//.ageLabel,
+.nodeLabel,
+.ageLabel,
 //.nodeIcon,
-//.lifeRect,
-//.nodeLine,
-//.highlightBar,
-//.kidGrid{
-//	pointer-events: none;
-//}
+.lifeRect,
+.nodeLine,
+.highlightBar,
+.kidGrid{
+	pointer-events: none;
+}
 
 .node:hover .male,
 .node:hover .female {
@@ -464,6 +464,10 @@ rect.selected{
      //stroke:red;
   //fill:none;
   }
+
+.selectedDIV{
+  background-color: rgba(177, 176, 174, 0.2);
+}
 
 .edges{
     stroke:$edge-color;

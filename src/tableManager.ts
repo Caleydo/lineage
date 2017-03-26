@@ -80,14 +80,30 @@ export const FAMILY_INFO_UPDATED = 'family_stats_updated';
 export const COL_ORDER_CHANGED_EVENT = 'col_ordering_changed';
 
 
-export const PRIMARY_COLOR = '#335b8e';
-export const PRIMARY_COLOR_2 = '#b5b867';
+// export const PRIMARY_COLOR = '#335b8e';
+// export const PRIMARY_COLOR_2 = '#b5b867';
+//
+// export const SECONDARY_COLOR = '#9f295d';
+// export const SECONDARY_COLOR_2 = '#e7a396';
+//
+// export const PRIMARY_CATEGORICAL_COLORS = ['#b5b867', '#ffea59', '#b7dbdb', '#335b8e', '#6ca18f'];
+// export const SECONDARY_CATEGORICAL_COLORS = ['#e7a396', '#9f295d', '#d9a34b', '#ecd1ca', '#430e00']; //
+//
 
-export const SECONDARY_COLOR = '#9f295d';
-export const SECONDARY_COLOR_2 = '#e7a396';
+export const POI_COLOR = '#337CAF';
 
-export const PRIMARY_CATEGORICAL_COLORS = ['#b5b867', '#ffea59', '#b7dbdb', '#335b8e', '#6ca18f'];
-export const SECONDARY_CATEGORICAL_COLORS = ['#e7a396', '#9f295d', '#d9a34b', '#ecd1ca', '#430e00']; //
+export const PRIMARY_COLOR =  '#598e7c';
+export const PRIMARY_COLOR_2 =  '#b5b867';
+export const PRIMARY_COLOR_3 = '#9f0e72';
+export const PRIMARY_COLOR_4 = '#e7a396';
+export const PRIMARY_COLOR_5 = '#882c00';
+export const PRIMARY_COLOR_6 = '#B7DBDB';
+// export const PRIMARY_COLOR_7 = '#337CAF';
+
+
+export const PRIMARY_CATEGORICAL_COLORS = [PRIMARY_COLOR, PRIMARY_COLOR_2, PRIMARY_COLOR_3, PRIMARY_COLOR_4, PRIMARY_COLOR_5, PRIMARY_COLOR_6];
+
+
 
 /**
  * This class manages the data structure for the graph, the table visualization and the attribute selection panel.
@@ -240,12 +256,14 @@ export default class TableManager {
       binaryColorChoice1 = PRIMARY_COLOR;
       binaryColorChoice2 = PRIMARY_COLOR_2;
       multipleColorChoice = PRIMARY_CATEGORICAL_COLORS;
-    } else if (primarySecondary === 'secondary') {
-      binaryColorChoice1 = SECONDARY_COLOR;
-      binaryColorChoice2 = SECONDARY_COLOR_2;
-
-      multipleColorChoice = SECONDARY_CATEGORICAL_COLORS;
     }
+
+    // else if (primarySecondary === 'secondary') {
+    //   binaryColorChoice1 = SECONDARY_COLOR;
+    //   binaryColorChoice2 = SECONDARY_COLOR_2;
+    //
+    //   multipleColorChoice = SECONDARY_CATEGORICAL_COLORS;
+    // }
 
 
     let attributeVector;

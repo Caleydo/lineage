@@ -835,7 +835,6 @@ class GraphData {
               })
           });
 
-          console.log('prev node is ', previousNode.id, previousNode.affected)
           if (aggregate && previousNode && !previousNode.affected) {
             Y = Y - 1;
           }

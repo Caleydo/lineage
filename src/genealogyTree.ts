@@ -1224,8 +1224,8 @@ class GenealogyTree {
 
     // Attach node groups
     let allNodes = nodeGroup.selectAll('.node')
-      .data(nodes, function (d) {
-        return d['id'];
+      .data(nodes, function (d:Node) {
+        return d.uniqueID;
       });
 
     allNodes.exit().transition().duration(400).style('opacity', 0).remove();

@@ -10,6 +10,10 @@ import {
   range,
 } from 'd3-array';
 
+import {
+  Config
+} from './config';
+
 import * as events from 'phovea_core/src/event';
 import * as Range from 'phovea_core/src/range';
 import {VIEW_CHANGED_EVENT, default as TableManager} from './tableManager';
@@ -281,8 +285,8 @@ class GraphData {
 
     let i = 0;
     for (const row of await this.graphTable.data()) {
-      // const node = new Node(this.ids[i]);
-      const node = new Node(peopleIDs[i]);
+      const node = new Node(this.ids[i]);
+      // const node = new Node(peopleIDs[i]);
       this.nodes.push(node);
       node.initialize(columnNameToIndex, row);
       i++;
@@ -561,6 +565,27 @@ class GraphData {
 
     this.nodes.forEach(n=>{n.y = n.y - minY});
 
+    //Adjust y position for non affected nodes in the tree;
+    this.nodes.forEach((n:Node)=>{
+      if (n.hidden && !n.affected){
+        if (n.sex === Sex.Male){
+          n.y = n.y-0.2;
+        }
+        if (n.sex === Sex.Female){
+          n.y = n.y+0.2;
+        }
+      }
+    });
+
+    if (!aggregate){
+      //Adjust x position for spouses of affected nodes;
+      this.nodes.forEach((n:Node)=>{
+        if (n.hidden && !n.affected && n.hasChildren && n.spouse.find(s=>{return s.affected})){
+            n.x = n.x- Config.glyphSize*.6;
+        }
+      });
+    }
+
     const idRange = [];
     this.nodes.forEach((n: any) => {
       if (!(!n.aggregated && n.hidden)) {
@@ -643,23 +668,25 @@ class GraphData {
     //If node is affected and has not yet been assigned a row, give it's own row
     if (isUndefined(node.y) && node.affected ) {
 
-      //find all nodes in the last row, will only be one if it is affected
-      const lastAssignedNodes: Node[] = this.nodes.filter((n:Node)=>{return n.y === min(this.nodes, (nd: Node) => {return nd.y;})});
-
-      //of all the nodes in the last row, find an affected one;
-      let isLastNodeAffected: Node = lastAssignedNodes.find((n:Node)=>{return n.affected});
+      //find any affected nodes in the last row
+      let isLastNodeAffected: Node =  this.nodes.filter((n:Node)=>{return n.y === min(this.nodes, (nd: Node) => {return nd.y;})}).find((n:Node)=>{return n.affected})
 
       if (aggregate || !isUndefined(isLastNodeAffected)){
         node.y = min(this.nodes, (n: any) => {
           return n.y;
         }) + (-1);
       }
-      else{        
+      else{
           node.y = min(this.nodes, (n: any) => {
             return n.y;
           });
       }
     }
+
+
+    let minY = min(this.nodes, (n: any) => {
+      return n.y;
+    });
 
     //Handle spouses
     // If any spouse are affected, give them their own row.
@@ -667,12 +694,20 @@ class GraphData {
       if (isUndefined(s.y) && s.affected) {
         s.y = min(this.nodes, (n: any) => {
             return n.y;
-          }) + (-1);
+          })
+        if (aggregate){
+          s.y = s.y-1;
+        } else {
+          node.y = minY;
+          node.hidden = true;
+          node.aggregated = aggregate;
+        }
       }
     });
 
     //If node has any affected spouses, place node above them.
     if (aggregate && isUndefined(node.y) && node.spouse.filter(n=>{return n.affected}).length>0){
+
       node.y = min(this.nodes, (n: any) => {
         return n.y;
       });
@@ -711,7 +746,7 @@ class GraphData {
       node.aggregated = aggregate;
     }
 
-    let minY = min(this.nodes, (n: any) => {
+    minY = min(this.nodes, (n: any) => {
       return n.y;
     });
 
@@ -733,15 +768,18 @@ class GraphData {
     //Assign all spouses to the x level of either the affected spouse or if not, a token male in the couple.
 
     //Align node's x value to youngest affected spouse:
-    let xValue = max([node,node.spouse].filter((n:Node)=>{return n.affected}),(n:Node)=>{return n.x});
+    let affectedSpouseXValue = max([node,node.spouse].filter((n:Node)=>{return n.affected}),(n:Node)=>{return n.x});
 
+    let xValue = affectedSpouseXValue;
     //No affected spouse
-    if (isUndefined(xValue)){
-      xValue = min([node].concat(node.spouse).filter((n:Node)=>{return n.sex === Sex.Male}),(n:Node)=>{return n.x});
+    if (isUndefined(affectedSpouseXValue)){
+      xValue = node.x;
     }
 
     //Align all spouses along a same X;
-    [node].concat(node.spouse).forEach((n:Node)=>{n.x = xValue});
+    [node].concat(node.spouse).forEach((n:Node)=>{
+      n.x = xValue;
+    });
 
 
     //Assign Child Y and X Values

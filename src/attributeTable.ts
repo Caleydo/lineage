@@ -179,7 +179,7 @@ class attributeTable {
     //Add button to slopeChart Div that says 'revert to Tree Order'
     let button = select('#slopeLines')
       .append('g')
-      .attr('transform', 'translate(45,' + (-60) + ')')
+      .attr('transform', 'translate(45,' + (-105) + ')')
       .attr('id', 'revertTreeOrder')
       .attr('visibility', 'hidden')
       .append('svg');
@@ -321,16 +321,6 @@ class attributeTable {
     });
 
     this.firstCol = [col];
-
-    // console.log('first col data is ', col.data)
-
-    // let maxOffset = max(this.colOffsets) //+ Config.slopeChartWidth;
-    // this.colOffsets.push(maxOffset + this.buffer * 2 + this.colWidths[col.type]);
-
-    // this.colOffsets.push(maxOffset);
-
-    //Set first col as the number of people per row. Can't move this col's  position.
-    // let colDataAccum = [col];
 
     let colDataAccum = [];
 

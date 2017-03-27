@@ -358,9 +358,10 @@ class GenealogyTree {
       .attr('transform', 'translate(' + this.margin.left + ',' + this.margin.axisTop + ')')
       .attr('id', 'axis');
 
-    //Create group for legend
-    const legend = axis.append('g')
-      .attr('id', 'legend');
+
+
+
+
 
     // legend
     //   .append('rect')
@@ -373,6 +374,83 @@ class GenealogyTree {
       .attr('height', Config.legendHeight)
       .attr('y', -Config.legendHeight)
       .attr('fill', 'white');
+
+    //Create group for legend
+    const legend = axis.append('g')
+      .attr('id', 'legend');
+
+    //Add button to slopeChart Div that says 'revert to Tree Order'
+    let button = legend
+      .append('g')
+      .attr('transform', 'translate(0,'  + (-65) + ')')
+      .attr('id', 'treeButtons')
+
+    button.append('rect')
+      .attr('width', 120)
+      .attr('height', 25)
+      .attr('x', this.width*0.1)
+      .attr('rx', 10)
+      .attr('ry', 20)
+      .attr('fill', '#959492')
+      .attr('y', 0)
+      .attr('opacity', .1)
+      .on('click', (d) => {
+        this.data.aggregateTreeWrapper(undefined, true);
+      })
+
+    button.append('text')
+      .classed('histogramLabel', true)
+      .attr('x', this.width*0.1+60)
+      .attr('y', 15)
+      .text('Aggregate All')
+      .attr('text-anchor', 'middle')
+
+
+    button.append('rect')
+      .attr('width', 120)
+      .attr('height', 25)
+      .attr('x', this.width*0.35)
+      .attr('rx', 10)
+      .attr('ry', 20)
+      .attr('fill', '#959492')
+      .attr('y', 0)
+      .attr('opacity', .1)
+      .on('click', (d) => {
+        this.data.aggregateTreeWrapper(undefined, false);
+      })
+
+    button.append('text')
+      .classed('histogramLabel', true)
+      .attr('x', this.width*0.35+60)
+      .attr('y', 15)
+      .text('Hide All')
+      .attr('text-anchor', 'middle')
+
+
+
+    button.append('rect')
+      .attr('width', 120)
+      .attr('height', 25)
+      .attr('x', this.width*0.6)
+      .attr('rx', 10)
+      .attr('ry', 20)
+      .attr('fill', '#959492')
+      .attr('y', 0)
+      .attr('opacity', .1)
+      .on('click', (d) => {
+        this.data.aggregateTreeWrapper(undefined, undefined);
+      })
+
+    button.append('text')
+      .classed('histogramLabel', true)
+      .attr('x', this.width*0.6+60)
+      .attr('y', 15)
+      .text('Expand All')
+      .attr('text-anchor', 'middle')
+
+
+
+
 
     axis.append('g')
       .attr('id', 'visible_axis')
@@ -893,13 +971,6 @@ class GenealogyTree {
     selectAll('.bars')
       .selectAll('.highlightBar')
       .attr('opacity', 0)
-    // .attr('opacity', (d:any)=>{
-    //   if (d.y % 2 == 0){
-    //   return 0.2
-    // } else {
-    //     return 0;
-    //   }
-    // });
 
 
     selectAll('.bars')

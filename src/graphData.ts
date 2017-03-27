@@ -568,20 +568,31 @@ class GraphData {
   /**
    *
    * This function prepares the tree for aggregation, cleans up the results and updates the tableManager.
+   * @param nodeID, starting node for the aggregate/hide/expand operation. If undefined, apply to entire tree.
+   * @pram aggregate, true for aggregation, false for hiding, undefined for expand.
    */
   private aggregateTreeWrapper(nodeID: string, aggregate:boolean){
 
+      let applyToAll = false;
 
-      //find node
-      let node = this.nodes.find((n:Node)=>{return n.uniqueID === nodeID});
+      if (isUndefined(nodeID)){
+        applyToAll = true;
+      } else {
 
-      //If node is not descendant, find descendant;
-    if (!node.ma && !node.pa){
-      node = node.spouse[0];
-    }
 
-      //Toggle state of aggregate branch for this node;
-      node.aggregateBranch = (!node.aggregateBranch);
+        //find node
+        let node = this.nodes.find((n: Node) => {
+          return n.uniqueID === nodeID
+        });
+
+        //If node is not descendant, find descendant;
+        if (!node.ma && !node.pa) {
+          node = node.spouse[0];
+        }
+
+        //Toggle state of aggregate branch for this node;
+        node.aggregateBranch = (!node.aggregateBranch);
+      }
 
     //Clear tree of y values and aggregated and hidden flags;
     this.nodes.forEach(n=>{
@@ -591,7 +602,7 @@ class GraphData {
       n.x = n.originalX;
     })
 
-    this.aggregateTree(aggregate);
+    this.aggregateTree(applyToAll, aggregate);
 
     //clean out extra rows at the top of the tree;
     let minY = min(this.nodes, (n: any) => {
@@ -638,9 +649,10 @@ class GraphData {
   /**
    *
    * This function aggregates all nodes in the branch starting at a given node X.
-   *@param Node to start aggregating at
+   *@param aggregate, true for aggregation, false for hiding.
+   * @param applyToAll, boolean flag indicating if operation should be applie to entire tree;
    */
-  private aggregateTree(aggregate:boolean) {
+  private aggregateTree(applyToAll, aggregate:boolean) {
 
     //Only look at nodes who have not yet been assigned a y value
     const nodeList = this.nodes.filter((n) => {
@@ -673,7 +685,7 @@ class GraphData {
       startNode.y = minY -1; //Set first y index;
     }
 
-    if (!startNode.affected && startNode.hasChildren && startNode.aggregateBranch){
+    if (!startNode.affected && startNode.hasChildren && (startNode.aggregateBranch || applyToAll)){
       startNode.hidden = true;
       startNode.aggregated = aggregate;
     }
@@ -681,7 +693,7 @@ class GraphData {
     this.aggregateHelper(startNode, aggregate);
 
     //Recursively call aggregateTree to handle any nodes that were not assigned a y value.
-    this.aggregateTree(aggregate);
+    this.aggregateTree(applyToAll, aggregate);
   }
 
 
@@ -696,7 +708,7 @@ class GraphData {
 
 
     // FIXME find a better way of propagating the 'to aggregate' state
-    if (!node.aggregateBranch && (node.ma && !node.ma.hidden)){
+    if (isUndefined(aggregate) || (!node.aggregateBranch && (node.ma && !node.ma.hidden))){
       this.linearizeLogic(node);
       node.children.forEach((child:Node)=>{
         this.aggregateHelper(child, aggregate)

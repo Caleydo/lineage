@@ -29,10 +29,11 @@ $affected-node-color: #285880;
 
 #legend{
   //fill: #e7e7e7;
-  fill:#4f4f4f;
+  fill: #626262;
   opacity:.9;
-  stroke: #b6b6b6;
-  stroke-width: 2px;
+  stroke:none;
+  //stroke: #b6b6b6;
+  //stroke-width: 2px;
 }
 
 td rect{
@@ -528,7 +529,8 @@ visibility:hidden;
   cursor:pointer;
 }
 
-#revertTreeOrder text{
+#revertTreeOrder text,
+#treeButtons text{
   pointer-events: none;
 }
 

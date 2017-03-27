@@ -90,7 +90,7 @@ export const COL_ORDER_CHANGED_EVENT = 'col_ordering_changed';
 // export const SECONDARY_CATEGORICAL_COLORS = ['#e7a396', '#9f295d', '#d9a34b', '#ecd1ca', '#430e00']; //
 //
 
-export const POI_COLOR = '#337CAF';
+export const POI_COLOR = '#285880';
 
 export const PRIMARY_COLOR =  '#598e7c';
 export const PRIMARY_COLOR_2 =  '#b5b867';
@@ -249,21 +249,21 @@ export default class TableManager {
   }
 
 
-  public async setPrimarySecondaryAttribute(attributeName, primarySecondary) {
+  public async setPrimarySecondaryAttribute(attributeName, primaryPOI) {
 
     let binaryColorChoice1, binaryColorChoice2, multipleColorChoice;
-    if (primarySecondary === 'primary') {
+    if (primaryPOI === 'primary') {
       binaryColorChoice1 = PRIMARY_COLOR;
       binaryColorChoice2 = PRIMARY_COLOR_2;
       multipleColorChoice = PRIMARY_CATEGORICAL_COLORS;
     }
 
-    // else if (primarySecondary === 'secondary') {
-    //   binaryColorChoice1 = SECONDARY_COLOR;
-    //   binaryColorChoice2 = SECONDARY_COLOR_2;
-    //
-    //   multipleColorChoice = SECONDARY_CATEGORICAL_COLORS;
-    // }
+    else if (primaryPOI === 'poi') {
+      binaryColorChoice1 = POI_COLOR;
+      binaryColorChoice2 = POI_COLOR;
+
+      multipleColorChoice = [POI_COLOR,POI_COLOR,POI_COLOR,POI_COLOR,POI_COLOR,POI_COLOR];
+    }
 
 
     let attributeVector;
@@ -281,7 +281,7 @@ export default class TableManager {
 
     //Store data and associated personIDs for graph rendering of attribute bars
     const attributeDefinition: IPrimaryAttribute = {
-      name: attributeName, primary: primarySecondary === 'primary', type: attributeVector.valuetype.type,
+      name: attributeName, primary: primaryPOI === 'primary', type: attributeVector.valuetype.type,
       'data': await attributeVector.data(), 'personIDs': (await attributeVector.names())
     };
 
@@ -307,7 +307,7 @@ export default class TableManager {
     }
     // console.log(Attribute)
 
-    this[primarySecondary + 'Attribute'] = attributeDefinition;
+    this[primaryPOI + 'Attribute'] = attributeDefinition;
 
     events.fire(PRIMARY_SECONDARY_SELECTED, attributeDefinition);
 

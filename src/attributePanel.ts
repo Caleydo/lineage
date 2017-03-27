@@ -30,6 +30,8 @@ class AttributePanel {
   private histograms = [];
   private attributeState = [];
 
+  private allColumns;
+
   private tableManager;
 
   private collapsed = false;
@@ -71,7 +73,13 @@ class AttributePanel {
       // console.log(orderedCols);
     })
 
-    this.columns = orderedCols;
+    this.columns = orderedCols.concat(allCols.filter((c)=>{return orderedCols.indexOf(c)<0}));
+
+    this.allColumns = orderedCols.concat(allCols.filter((c)=>{return orderedCols.indexOf(c)<0}));
+
+    console.log('this.columns length is ', this.columns.length);
+
+
 
     this.update();
     this.build();
@@ -172,8 +180,9 @@ class AttributePanel {
 
     });
 
+    console.log('col length is ', this.activeColumns.length)
     // populate the panel with attributes
-    this.columns.forEach((column) => {
+    this.allColumns.forEach((column) => {
       this.addAttribute(column.desc.name, column.desc.value.type);
     });
 
@@ -247,6 +256,8 @@ class AttributePanel {
     } else {
       list = '#inactive-menu-content';
     }
+
+    console.log('list is ', list)
 
     // we first add a div that holds the li and the svg
     const attributeElm = select(list).append('div')
@@ -359,6 +370,7 @@ class AttributePanel {
 
   }
 
+
   /***
    * This function takes an svg as an input and populate it with vis element
    * for a specific attribute
@@ -374,7 +386,7 @@ class AttributePanel {
     // since we don't have indices for columns, we are iterating though
     // columns and get the matched one
 
-    this.columns.forEach(col => {
+    this.allColumns.forEach(col => {
       if (col.desc.name === attributeName) {
         dataVec = col;
       }

@@ -987,7 +987,8 @@ class GenealogyTree {
     let parents = [n].concat(n.spouse);
 
     //All parents are affected and they have at least one aggregated child
-    if (isUndefined(parents.find((p:Node)=>{return !p.affected})) && n.hasChildren && !isUndefined(n.children.find((child:Node)=>{return child.aggregated}))){
+    if (isUndefined(parents.find((p:Node)=>{return !p.affected}))){
+      if (n.hasChildren && !isUndefined(n.children.find((child:Node)=>{return !child.hasChildren && !child.affected}))){
       // return {'x':max(parents,(p:Node)=>{return p.x}), 'y':min(parents,(p:Node)=>{return p.y})-1};
       let girls = n.children.filter((child:Node)=>{return child.sex === Sex.Female}); let boys = n.children.filter((child:Node)=>{return child.sex === Sex.Male});
       let maxKidGridRows = max([girls.length,boys.length]);
@@ -997,12 +998,14 @@ class GenealogyTree {
         'id':n.uniqueID,
         'extend':true,
       'kids':min([4,maxKidGridRows])};
+      }
     } else { //There is at least one unaffected parent;
       let unaffectedParent = parents.find((p:Node)=>{return !p.affected});
       let affectedParent = parents.find((p:Node)=>{return p.affected});
 
       let girls = n.children.filter((child:Node)=>{return child.sex === Sex.Female}); let boys = n.children.filter((child:Node)=>{return child.sex === Sex.Male});
       let maxKidGridRows = max([girls.length,boys.length]);
+
 
       if (unaffectedParent.aggregated){
         if (isUndefined(affectedParent)){
@@ -1087,7 +1090,7 @@ class GenealogyTree {
     backgroundRects.exit().remove();
 
 
-    backgroundRects
+    backgroundRects.select('.rect')
       .attr('x', (d:any) => {
         return this.x(d.x) - Config.glyphSize*1.2;
       })

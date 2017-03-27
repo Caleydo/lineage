@@ -464,51 +464,7 @@ class GraphData {
    */
   private linearizeHelper(node: Node) {
 
-
-    // console.log('calling LH')
-    if (node.y === undefined) {
-      node.y = min(this.nodes, (n: any) => {
-          return n.y;
-        }) + (-1);
-      // console.log('assigning ', node.y)
-    }
-
-    //sort children by age to minimize edge crossings
-    node.children.sort((a, b) => {
-      return b.bdate - a.bdate;
-    });
-
-    //Assign y position of all spouses.
-    if (node.spouse.length > 0) {
-      // node.spouse[0].y = min(this.nodes,(n:any)=>{return n.y})+(-1)
-      node.spouse.forEach((s) => {
-        if (s.y === undefined) {
-          s.y = min(this.nodes, (n: any) => {
-              return n.y;
-            }) + (-1);
-          // console.log('assigning spouse ', s.y)
-        }
-        s.spouse.forEach((ss) => {
-          if (ss.y === undefined) {
-            ss.y = min(this.nodes, (n: any) => {
-                return n.y;
-              }) + (-1);
-            // console.log('assigning spouses spouse ', ss.y)
-          }
-        });
-      });
-
-      //If person has two spouses, put this one in the middle.
-      if (node.spouse.length === 2) {
-        const ys = [node.y].concat(node.spouse.map((s) => {
-          return s.y;
-        }));
-        ys.sort();
-        node.y = ys[1];
-        node.spouse[0].y = ys[0];
-        node.spouse[1].y = ys[2];
-      }
-    }
+    this.linearizeLogic(node);
 
     node.children
     // .filter((c)=>{return (c.ma === node && c.pa === s) || (c.pa === node && c.ma === s)})
@@ -537,6 +493,54 @@ class GraphData {
       return;
     }
 
+  }
+
+  /**
+   *
+   * This is the logic behind linearizing a single node and it's spouses.
+   * @param node - node that needs to be linearized;
+   *
+   */
+  private linearizeLogic(node:Node){
+
+    // console.log('calling LH')
+    if (node.y === undefined) {
+      node.y = min(this.nodes, (n: any) => {
+          return n.y;
+        }) + (-1);
+      // console.log('assigning ', node.y)
+    }
+
+    //Assign y position of all spouses.
+    if (node.spouse.length > 0) {
+      // node.spouse[0].y = min(this.nodes,(n:any)=>{return n.y})+(-1)
+      node.spouse.forEach((s) => {
+        if (s.y === undefined) {
+          s.y = min(this.nodes, (n: any) => {
+              return n.y;
+            }) + (-1);
+        }
+        s.spouse.forEach((ss) => {
+          if (ss.y === undefined) {
+            ss.y = min(this.nodes, (n: any) => {
+                return n.y;
+              }) + (-1);
+            // console.log('assigning spouses spouse ', ss.y)
+          }
+        });
+      });
+
+      //If person has two spouses, put this one in the middle.
+      if (node.spouse.length === 2) {
+        const ys = [node.y].concat(node.spouse.map((s) => {
+          return s.y;
+        }));
+        ys.sort();
+        node.y = ys[1];
+        node.spouse[0].y = ys[0];
+        node.spouse[1].y = ys[2];
+      }
+    }
 
   }
 
@@ -545,9 +549,12 @@ class GraphData {
    *
    * This function prepares the tree for aggregation, cleans up the results and updates the tableManager.
    */
-  private aggregateTreeWrapper(aggregate:boolean){
+  private aggregateTreeWrapper(nodeID: string, aggregate:boolean){
 
-    // startNode.aggregateBranch = true; //set flag to start aggregating from this node;
+
+      //find node
+      let node = this.nodes.find((n:Node)=>{return n.uniqueID === nodeID});
+      node.aggregateBranch = true;
 
     //Clear tree of y values and aggregated and hidden flags;
     this.nodes.forEach(n=>{
@@ -638,7 +645,7 @@ class GraphData {
       startNode.y = minY -1; //Set first y index;
     }
 
-    if (!startNode.affected && startNode.hasChildren){
+    if (!startNode.affected && startNode.hasChildren && startNode.aggregateBranch){
       startNode.hidden = true;
       startNode.aggregated = aggregate;
     }
@@ -659,7 +666,22 @@ class GraphData {
    */
   private aggregateHelper(node: Node, aggregate:boolean) {
 
+    if (!node.aggregateBranch){
+      this.linearizeLogic(node)
 
+      //Assign y levels to leaf children;
+      node.children.map((child:Node)=>{
+        if (isUndefined(child.y) && !child.affected && !child.hasChildren) {
+          this.linearizeLogic(node)
+        } else {
+          this.aggregateHelper(child,aggregate)
+        }
+      });
+
+      return
+    }
+
+    console.log('get here?')
     //Base case are leaf nodes. Reached end of this branch.
     if (!node.affected && !node.hasChildren) {
       return;
@@ -850,7 +872,7 @@ class GraphData {
     this.parentParentEdges = [];
 
     this.nodes
-      .forEach((node) => {
+      .forEach((node:Node) => {
         //Check if there are mother and father nodes in this family (founder won't have them for example)
         const maNode = this.nodes.find((d) => {
           return d.id === node.maID;
@@ -894,7 +916,6 @@ class GraphData {
             paNode.spouse.push(maNode);
           }
 
-
           //Set flag for people with children so they are not placed in the kidGrid
           maNode.hasChildren = true;
           paNode.hasChildren = true;
@@ -915,6 +936,15 @@ class GraphData {
           });
         }
       });
+
+
+    //sort children by age to minimize edge crossings
+    this.nodes.forEach((node:Node)=>{
+      node.children.sort((a, b) => {
+        return b.bdate - a.bdate;
+      });
+    })
+
   }
   ;
 

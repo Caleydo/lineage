@@ -409,6 +409,18 @@ class GraphData {
     //Create hashmap of personID to y value;
     const dict = {};
 
+    // this.nodes.forEach((node) => {
+    //   //Remove danglers
+    //   // if (node.hasChildren || (!isUndefined(node.ma) && !isUndefined(node.pa))) {
+    //   if (node.uniqueID in dict) {
+    //     dict[node.uniqueID].push(Math.round(node.y));
+    //   } else {
+    //     dict[node.uniqueID] = [Math.round(node.y)];
+    //   }
+    //   // }
+    // });
+
+
     this.nodes.forEach((node) => {
       //Remove danglers
       // if (node.hasChildren || (!isUndefined(node.ma) && !isUndefined(node.pa))) {
@@ -419,6 +431,7 @@ class GraphData {
       }
       // }
     });
+
 
     //Assign y values to the tableManager object
     this.tableManager.yValues = dict;

@@ -265,6 +265,13 @@ class attributeTable {
     //This are the rows that every col in the table should have;
     let graphIDs = await graphView.col(0).names();
 
+    // graphIDs = graphIDs.dim(0).asList().map(d => {
+    //   return d.toString()
+    // });
+
+
+
+
     //Create a dictionary of y value to people
     let y2personDict = {};
     let yDict = this.tableManager.yValues;
@@ -312,6 +319,7 @@ class attributeTable {
     let maxAggregates = 1;
     for (let key of allRows) {
       col.data.push(y2personDict[key].length.toString());
+      console.log('data1', col.data[col.data.length-1])
       maxAggregates = max([maxAggregates, y2personDict[key].length])
     }
     this.idScale.domain([1, maxAggregates]);

@@ -63,6 +63,7 @@ import {Sex} from './Node';
 import {isNull} from 'util';
 import {isNullOrUndefined} from 'util';
 import {search} from '../../phovea_core/src/internal/array';
+import {isUndefined} from 'util';
 
 export const CURRENT_YEAR = 2017;
 
@@ -637,154 +638,7 @@ class GenealogyTree {
 
   };
 
-  /**
-   *
-   * This function adds the lifeLines to the graph
-   */
-  private addLifeLines() {
 
-    const lifeLineGroup = select('#genealogyTree').select('#lifeLines');
-
-    // Attach lifeLines groups
-    let allLifeLines = lifeLineGroup.selectAll('.lifeLine')
-      .data(this.data.nodes, function (d: Node) {
-        return d.id;
-      });
-
-    allLifeLines.exit().transition().duration(400).style('opacity', 0).remove();
-
-    const allLifeLinesEnter = allLifeLines
-      .enter()
-      .append('g');
-
-    allLifeLines = allLifeLinesEnter.merge(allLifeLines);
-
-    //AllNodes
-    allLifeLines
-      .classed('lifeLine', true)
-      .classed('aggregated', (d) => {
-        return d.aggregated;
-      })
-      .classed('collapsed', (d) => {
-        return d.hidden;
-      });
-
-    //Add life line groups
-    const lifeRectsEnter = allLifeLinesEnter.filter((d) => {
-      return d.type === 'single' && !d.hidden;
-    }).append('g')
-      .classed('lifeRect', true);
-
-
-    let lifeRects = allLifeLines.selectAll('.lifeRect').filter((d: Node) => {
-      return !d.hidden;
-    });
-
-    lifeRects.exit().remove();
-
-    lifeRects
-      .transition()
-      .attr('transform', (d: Node) => {
-        // console.log('lifeLine Data is ' , d)
-        return d.sex === Sex.Male ? 'translate(' + (this.xPOS(d) + Config.glyphSize) + ',' + this.yPOS(d) + ')'
-          : 'translate(' + this.xPOS(d) + ',' + (this.yPOS(d) - Config.glyphSize) + ')';
-      });
-
-    //Add actual life lines
-    lifeRectsEnter
-      .append('rect');
-
-    lifeRects.selectAll('rect')
-      .attr('y', Config.glyphSize)
-      .attr('width', (d: Node) => {
-        let ageAtDeath = Math.abs(this.x(d.ddate) - this.x(d.bdate));
-        let ageToday = Math.abs(this.x(CURRENT_YEAR) - this.x(d.bdate));
-        if (isNaN(ageAtDeath) && isNaN(ageToday)) {
-          return 0;
-        }
-        return (d.ddate) ? ageAtDeath : ageToday;
-      })
-      .attr('height', Config.glyphSize / 8)
-      .style('fill', (d: any) => {
-        return '#9e9d9b';
-        // if (d.affected)
-        //   return '#484646';
-        // if (d.deceased)
-        //   return '#9e9d9b';
-        // else
-        //   return 'url(#gradient)'
-      })
-      .style('opacity', .6);
-    //         .style('stroke','none')
-
-    //Add label to lifelines
-    lifeRectsEnter
-      .append('text')
-      .attr('class', 'ageLabel');
-
-    lifeRects.selectAll('.ageLabel')
-    // .attr('y', glyphSize )
-      .attr('dy', Config.glyphSize * 0.8)
-      .attr('dx', (d) => {
-
-        let ageAtDeath = Math.abs(this.x(d['ddate']) - this.x(d['bdate']));
-        let ageToday = Math.abs(this.x(CURRENT_YEAR) - this.x(d['bdate']))
-
-        if (isNaN(ageAtDeath) && isNaN(ageToday)) {
-          return '';
-        }
-
-        return (+d['ddate']) ? ageAtDeath : ageToday;
-//                 return Math.abs(this.x(d['ddate']) - this.x(d['bdate']));
-      })
-      .attr('text-anchor', 'end')
-      .text(function (d) {
-        let ageAtDeath = (d['ddate'] - d['bdate']);
-        let ageToday = (CURRENT_YEAR - d['bdate']);
-        if (isNaN(ageAtDeath) && isNaN(ageToday)) {
-          return '';
-        }
-        return (+d['ddate']) ? ageAtDeath : ageToday;
-
-//                 return Math.abs(+d['ddate'] - +d['bdate']);
-      })
-      .attr('fill', function (d: any) {
-        return (d.affected) ? 'black' : '#9e9d9b';
-      })
-      .style('font-size', Config.glyphSize * 1.5)
-      .style('font-weight', 'bold')
-      .attr('visibility', 'hidden');
-
-
-    //Add cross at the end of lifelines for deceased people
-    lifeRectsEnter.filter(function (d: any) {
-      return (d.ddate);
-    })
-      .append('line')
-      .attr('class', 'endOfTheLine');
-
-
-    lifeRects.selectAll('.endOfTheLine')
-      .attr('x1', (d: any) => {
-        return (Math.abs(this.x(d['ddate']) - this.x(d['bdate'])) + Config.glyphSize / 3);
-      })
-      .attr('y1', function (d: any) {
-        return Config.glyphSize * 1.5;
-      })
-      .attr('x2', (d: any) => {
-        return Math.abs(this.x(d['ddate']) - this.x(d['bdate']) - Config.glyphSize / 3);
-      })
-      .attr('y2', function (d: any) {
-
-        return (Config.glyphSize / 2);
-      })
-      .attr('stroke-width', 1)
-      .attr('stroke', function (d: any) {
-        return '#9e9d9b';
-      })
-      .attr('opacity', .6)
-
-  }
 
   private addKidGrids() {
 
@@ -1094,6 +948,102 @@ class GenealogyTree {
   }
 
 
+
+
+  //Function that returns the x and y position for the couples line and kid grid of a given family.
+  private getFamilyPos(n:Node){
+
+    //Not a direct ancestor
+    if (isUndefined(n.ma) || isUndefined(n.pa)){
+      return undefined
+    }
+
+    // No children or no unaffected children
+    if (!n.hasChildren  || isUndefined(n.children.find((c:Node) => { return !c.affected}))){
+      return undefined;
+    }
+
+    //No leaf children
+    if (n.hasChildren && isUndefined(n.children.find((c:Node)=>{return !c.hasChildren}))){
+      return undefined;
+    }
+
+    //Dangling Node
+    if (n.spouse.length === 0){
+      return undefined
+    }
+
+
+    let parents = [n].concat(n.spouse);
+
+    //All parents are affected and they have at least one aggregated child
+    if (isUndefined(parents.find((p:Node)=>{return !p.affected})) && !isUndefined(n.children.find((child:Node)=>{return child.aggregated}))){
+      // return {'x':max(parents,(p:Node)=>{return p.x}), 'y':min(parents,(p:Node)=>{return p.y})-1};
+      return {'x':n.children.find((c:Node) => { return !c.affected}).x, 'y':Math.round(n.children.find((c:Node) => { return !c.affected}).y),'id':n.uniqueID};
+    } else { //There is at least one unaffected parent;
+      let unaffectedParent = parents.find((p:Node)=>{return !p.affected});
+      if (unaffectedParent.aggregated){
+        return {'x':unaffectedParent.x, 'y':Math.round(unaffectedParent.y),'id':n.uniqueID}
+      } else {
+        return undefined;
+      }
+
+    }
+
+
+  }
+
+  private addCouplesLines() {
+
+    let t = transition('t').duration(500).ease(easeLinear);
+
+    const couplesLinesGroup = select('#genealogyTree').select('#nodes');
+
+    let couplesData = [];
+
+    this.data.nodes.forEach((n:Node)=>{
+      let familyPos = this.getFamilyPos(n);
+      if (!isUndefined(familyPos)){
+        couplesData.push(familyPos);
+      }
+    })
+
+    // Attach aggregateBars
+    let couplesLines = couplesLinesGroup.selectAll('.couplesLine')
+      .data(couplesData, d => {return d.id});
+
+
+    const couplesLinesEnter = couplesLines
+      .enter()
+      .append('line')
+      .attr('class', 'couplesLine')
+      // .attr('visibility', 'hidden')
+
+    couplesLines = couplesLinesEnter.merge(couplesLines)
+
+    couplesLines.exit().remove();
+
+
+    couplesLines
+      .attr('x1', (d:any) => {
+        return this.x(d.x) + Config.glyphSize*.7;
+        // return d.sex === Sex.Female ? Config.glyphSize * .9 : Config.glyphSize * 1.3;
+      })
+      .attr('y1', (d:any)=> {
+        return this.y(d.y-0.4)
+        // return d.sex === Sex.Female ? ( -Config.glyphSize * 1.8) : -Config.glyphSize * 0.2;
+      })
+      .attr('x2', (d:any) => {
+        return this.x(d.x) + Config.glyphSize*.7;
+        // return d.sex === Sex.Female ? Config.glyphSize * .9 : Config.glyphSize * 1.3;
+      })
+      .attr('y2', (d:any) =>{
+        return this.y(d.y+0.4)
+      })
+      .attr('stroke-width', 2)
+  }
+
+
   private addNodes() {
 
     let self = this;
@@ -1335,44 +1285,6 @@ class GenealogyTree {
         return d.sex === Sex.Female ? lineGlyphSize * f2 : lineGlyphSize * m2;
       })
       .attr('stroke-width', strokeWidth)
-
-
-    // //Add couples line
-    // allNodesEnter.filter(function (d: Node) {
-    //   let hasUnaffectedMaleSpouse = d.spouse.find(s => {
-    //     return s.sex == Sex.Male && !s.affected
-    //   });
-    //
-    //
-    //   return d.hasChildren && !d.affected && isNullOrUndefined(hasUnaffectedMaleSpouse);
-    // })
-    //   .append('line')
-    //   .attr('class', 'couplesLine')
-    //   .attr('visibility', 'hidden')
-
-
-    // element.selectAll('.couplesLine')
-    //   .attr('x1', (d: Node) => {
-    //     return d.sex === Sex.Female ? Config.glyphSize * .9 : Config.glyphSize * 1.3;
-    //   })
-    //   .attr('y1', function (d: Node) {
-    //     return d.sex === Sex.Female ? ( -Config.glyphSize * 1.8) : -Config.glyphSize * 0.2;
-    //   })
-    //   .attr('x2', (d: Node) => {
-    //     return d.sex === Sex.Female ? Config.glyphSize * .9 : Config.glyphSize * 1.3;
-    //   })
-    //   .attr('y2', function (d: Node) {
-    //     let hasAffectedSpouse = d.spouse.map((s) => {
-    //       return s.spouse.find(ss => {
-    //         return ss.affected
-    //       })
-    //     }).find(s => {
-    //       return s && s.affected
-    //     });
-    //
-    //     return (d.sex === Sex.Female || hasAffectedSpouse) ? Config.glyphSize * 3.5 : Config.glyphSize * 2.2;
-    //   })
-    //   .attr('stroke-width', 2)
 
 
     //Add cross through lines for deceased people
@@ -1736,693 +1648,6 @@ class GenealogyTree {
   }
 
 
-  private addNodes2() {
-    let nodes = this.data.nodes;
-
-    let t = transition('t').duration(500).ease(easeLinear);
-
-    //Separate groups for separate layers
-    const nodeGroup = select('#genealogyTree').select('#nodes');
-
-    // Attach node groups
-    let allNodes = nodeGroup.selectAll('.node')
-      .data(nodes, function (d) {
-        return d['id'];
-      });
-
-    allNodes.exit().transition().duration(400).style('opacity', 0).remove();
-
-    const allNodesEnter = allNodes
-      .enter()
-      .append('g');
-
-    allNodes = allNodesEnter.merge(allNodes);
-
-    allNodesEnter.attr('opacity', 0);
-
-    //Position and Color all Nodes
-    allNodes
-      .filter((d) => {
-        return !(d['hidden'] && !d['hasChildren'])
-      })
-      .transition(t)
-      .attr('transform', (node: Node) => {
-        let xpos = this.xPOS(node);
-        let ypos = this.yPOS(node);
-
-        let xoffset = 0;
-
-        //Position Parent Grid;
-        if (node.hidden && node.hasChildren && (node.spouse.length > 1 || node.spouse[0].spouse.length > 1)) {
-
-          let parentCount: number = 0;
-          let searchSpouse;
-          let ind;
-          this.data.parentParentEdges.forEach((d) => {
-            let ss = node.spouse.find(n => {
-              return n === d.ma
-            });
-            if (ss && node.sex == Sex.Male) {
-              if (!searchSpouse) {
-                searchSpouse = ss;
-                parentCount = parentCount + 1
-              } else {
-                if (ss === searchSpouse) {
-                  parentCount = parentCount + 1
-                }
-              }
-
-              if (d.pa === node && node.sex === Sex.Male) {
-                ind = parentCount;
-              }
-            } else {
-              let ss = node.spouse.find(n => {
-                return n === d.pa
-              });
-              if (ss && node.sex == Sex.Female) {
-
-                if (!searchSpouse) {
-                  searchSpouse = ss;
-                  parentCount = parentCount + 1
-                } else {
-                  if (ss === searchSpouse) {
-                    parentCount = parentCount + 1
-                  }
-                }
-                if (d.ma === node && node.sex === Sex.Female) {
-                  ind = parentCount;
-                }
-
-              }
-            }
-
-          })
-
-          if (ind > 1) {
-            xoffset = this.parentGridScale(ind);
-          }
-        }
-
-        if (xoffset > 0) {
-          // console.log('xoffset for ', node.id ,  ' is ', xoffset)
-        }
-        // if (!node['affected'] && node['spouse'].length > 0 && node['spouse'][0]['affected'] && node['hidden']) {
-        //   xoffset = Config.glyphSize * 2;
-        // }
-        return 'translate(' + (xpos - xoffset) + ',' + ypos + ')';
-      })
-
-
-    //Position  Kid Grid Nodes (i.e leaf siblings)
-    allNodes.filter((d: any) => {
-      return d.hidden && !d.hasChildren && d.ma && d.pa
-    })
-      .transition(t)
-      .attr('transform', (node: Node) => {
-        let xpos = this.xPOS(node);
-        let ypos = this.yPOS(node);
-
-        let childCount = 0;
-
-        let ma = node.ma;
-        let pa = node.pa;
-
-        let xind;
-        let yind;
-
-        let gender = node.sex;
-        this.data.parentChildEdges.forEach((d, i) => {
-          if (d.ma === ma && d.pa === pa) {
-            //Only count unaffected children that do not have children of their own so as to avoid gaps in the kid Grid
-            if (!d.target.affected && d.target.sex === gender && !d.target.hasChildren)
-              childCount = childCount + 1
-            if (d.target === node) {
-
-              yind = childCount % (this.kidGridSize / 2);
-
-              if (yind === 0)
-                yind = this.kidGridSize / 2;
-
-              xind = Math.ceil(childCount / 2);
-            }
-          }
-        })
-
-        let xoffset = 0;
-
-        if (node.ma.affected && node.pa.affected) {
-          xoffset = Config.glyphSize * 2;
-        }
-        // else if (node['ma']['affected'] || node['pa']['affected']) {
-        //   xoffset = Config.glyphSize * 3.5;
-        // }
-        else {
-          xoffset = Config.glyphSize * 1.5;
-        }
-        return 'translate(' + (xpos + xoffset + this.kidGridXScale(xind) ) + ',' + (ypos + +this.kidGridYScale(yind)) + ')';
-//
-      })
-
-    allNodes
-      .transition(t.transition().ease(easeLinear))
-      .attr('opacity', 1);
-
-    //AllNodes
-    allNodes
-      .classed('node', true)
-      .classed('aggregated', (d) => {
-        return d['aggregated'];
-      })
-      .classed('collapsed', (d) => {
-        return d['hidden'];
-      });
-
-    //Add cross through lines for deceased people
-    allNodesEnter.filter(function (d: any) {
-      return (d.ddate);
-    })
-      .append('line')
-      .attr('class', 'nodeLine')
-
-    //Node lines for deceased and uncollapsed nodes
-    allNodes.selectAll('.nodeLine')
-      .attr('x1', function (d: any) {
-        return d.sex === Sex.Female ? -Config.glyphSize : -Config.glyphSize / 3;
-      })
-      .attr('y1', function (d: any) {
-        return d.sex === Sex.Female ? -Config.glyphSize : -Config.glyphSize / 3;
-      })
-      .attr('x2', function (d: any) {
-        return d.sex === Sex.Female ? Config.glyphSize : Config.glyphSize * 2.3;
-      })
-      .attr('y2', function (d: any) {
-        return d.sex === Sex.Female ? Config.glyphSize : Config.glyphSize * 2.3;
-      })
-      .attr('stroke-width', 3)
-      .attr('stroke', function (d: any) {
-        return (d.affected) ? 'red' : '#e2e1e0';
-      })
-
-
-    //Node Lines for kid grid
-    allNodes.selectAll('.nodeLine').filter((d) => {
-      return d['hidden'] && !d['hasChildren']
-    })
-      .attr('x1', function (d: any) {
-        return d.sex === Sex.Female ? -Config.hiddenGlyphSize / 1.5 : -Config.hiddenGlyphSize / 3;
-      })
-      .attr('y1', function (d: any) {
-        return d.sex === Sex.Female ? -Config.hiddenGlyphSize / 1.5 : -Config.hiddenGlyphSize / 3;
-      })
-      .attr('x2', function (d: any) {
-        return d.sex === Sex.Female ? Config.hiddenGlyphSize / 1.5 : Config.hiddenGlyphSize * 1.3;
-      })
-      .attr('y2', function (d: any) {
-        return d.sex === Sex.Female ? Config.hiddenGlyphSize / 1.5 : Config.hiddenGlyphSize * 1.3;
-      })
-      .attr('stroke-width', 1);
-
-
-    //Node Lines for non kid-grid hidden nodes
-    allNodes.selectAll('.nodeLine').filter((d) => {
-      return d['hidden'] && d['hasChildren']
-    })
-      .attr('x1', function (d: any) {
-        return d.sex === Sex.Female ? -Config.hiddenGlyphSize : -Config.hiddenGlyphSize / 3;
-      })
-      .attr('y1', function (d: any) {
-        return d.sex === Sex.Female ? -Config.hiddenGlyphSize : -Config.hiddenGlyphSize / 3;
-      })
-      .attr('x2', function (d: any) {
-        return d.sex === Sex.Female ? Config.hiddenGlyphSize : Config.hiddenGlyphSize * 1.8;
-      })
-      .attr('y2', function (d: any) {
-        return d.sex === Sex.Female ? Config.hiddenGlyphSize : Config.hiddenGlyphSize * 1.8;
-      })
-      .attr('stroke-width', 1)
-    // .attr('stroke', function (d: any) {
-    //   return (d.affected) ? 'red' : '#e2e1e0';
-    // })
-
-    // //Add couples line
-    // allNodesEnter.filter(function (d: Node) {
-    //   let hasUnaffectedMaleSpouse = d.spouse.find(s => {
-    //     return s.sex == Sex.Male && !s.affected
-    //   });
-    //
-    //
-    //   return d.hasChildren && !d.affected && isNullOrUndefined(hasUnaffectedMaleSpouse);
-    // })
-    //   .append('line')
-    //   .attr('class', 'couplesLine')
-    //   .attr('visibility', 'hidden')
-
-
-    allNodes.selectAll('.couplesLine')
-      .attr('x1', (d: Node) => {
-        return d.sex === Sex.Female ? Config.glyphSize * .9 : Config.glyphSize * 1.3;
-      })
-      .attr('y1', function (d: Node) {
-        return d.sex === Sex.Female ? ( -Config.glyphSize * 1.8) : -Config.glyphSize * 0.2;
-      })
-      .attr('x2', (d: Node) => {
-        return d.sex === Sex.Female ? Config.glyphSize * .9 : Config.glyphSize * 1.3;
-      })
-      .attr('y2', function (d: Node) {
-        let hasAffectedSpouse = d.spouse.map((s) => {
-          return s.spouse.find(ss => {
-            return ss.affected
-          })
-        }).find(s => {
-          return s && s.affected
-        });
-
-        return (d.sex === Sex.Female || hasAffectedSpouse) ? Config.glyphSize * 3.5 : Config.glyphSize * 2.2;
-      })
-      .attr('stroke-width', 2)
-
-
-    //Add Male Node glyphs
-    allNodesEnter.filter(function (d: any) {
-      return d['sex'] === Sex.Male;
-    })
-      .append('rect')
-      .classed('male', true)
-      .classed('nodeIcon', true)
-
-
-    //Size hidden nodes differently
-    //regular nodes
-    allNodes.selectAll('.male')
-      .attr('width', Config.glyphSize * 2)
-      .attr('height', Config.glyphSize * 2);
-
-
-    //Add Attribute Bars next to node glyphs
-    allNodesEnter
-      .filter(function (d: any) {
-        return !d['hidden'];
-      })
-      .append('rect')
-      .classed('primary', true)
-      .classed('attributeFrame', true)
-
-
-    allNodesEnter
-      .filter(function (d: any) {
-        return !d['hidden'];
-      })
-      .append('rect')
-      .classed('primary', true)
-      .classed('attributeBar', true)
-
-
-    //leaf nodes, go into kidGrid
-    allNodes.selectAll('.male')
-      .filter((d) => {
-        return d['hidden'] && !d['hasChildren']
-      })
-      .attr('width', Config.hiddenGlyphSize * 1)
-      .attr('height', Config.hiddenGlyphSize * 1);
-
-
-    //non kid grid nodes, higher up in the tree
-    allNodes.selectAll('.male')
-      .filter((d) => {
-        return d['hidden'] && d['hasChildren']
-      })
-      .attr('width', Config.glyphSize * .75)
-      .attr('height', Config.glyphSize * .75);
-
-
-    //Add female node glyphs
-    allNodesEnter.filter(function (d: any) {
-      return d['sex'] === Sex.Female;
-    })
-      .append('circle')
-      .classed('female', true)
-      .classed('nodeIcon', true)
-
-    //unhidden nodes
-    allNodes.selectAll('.female')
-      .attr('r', Config.glyphSize);
-
-    //kidGrid nodes
-    allNodes.selectAll('.female')
-      .filter((d) => {
-        return d['hidden'] && !d['hasChildren']
-      })
-      .attr('r', Config.hiddenGlyphSize / 2);
-
-    //Hidden nodes (not in kid grid) farther up the tree
-    allNodes.selectAll('.female')
-      .filter((d) => {
-        return d['hidden'] && d['hasChildren']
-      })
-      .attr('r', Config.glyphSize * .45);
-
-
-    allNodes
-      .classed('affected', (n: any) => {
-        return n.affected
-      })
-
-
-    allNodesEnter
-      .append('text')
-      .attr('class', 'nodeLabel');
-
-    allNodes.selectAll('.nodeLabel')
-    // .attr('visibility','hidden')
-      .text((d: any) => {
-        return '';
-        // return d.id
-      })
-      .attr('dx', function (d) {
-        return d['sex'] === Sex.Male ? Config.glyphSize / 2 : -Config.glyphSize / 2;
-      })
-      .attr('dy', function (d) {
-        return d['sex'] === Sex.Male ? 1.3 * Config.glyphSize : Config.glyphSize / 2.75;
-      })
-      .attr('fill', function (d: any) {
-        return (d.affected) ? 'white' : 'black';
-      })
-      .attr('stroke', 'none')
-      .style('font-size', Config.glyphSize);
-
-
-    allNodesEnter.filter((n: Node) => {
-      return n.duplicates.length > 0
-    })
-      .append('text')
-      .classed('duplicateIcon', true);
-
-    allNodesEnter.filter((n: Node) => {
-      return n.duplicates.length > 0
-    })
-      .append('line')
-      .classed('duplicateLine', true);
-
-
-    selectAll('.duplicateLine')
-      .attr('x1', (n: Node) => {
-
-        let dupNode = n.duplicates.find(d => {
-          return d.y !== n.y
-        });
-        if (dupNode.y > n.y)
-          return;
-
-        let glyphSize;
-        let offset = 0;
-
-        if (n.hidden)
-          glyphSize = Config.hiddenGlyphSize;
-        else
-          glyphSize = Config.glyphSize;
-
-
-        //Add offset for kid grids
-        if (!n.hasChildren && n.hidden) {
-          offset = glyphSize * 3;
-        }
-
-        if (dupNode.x < n.x)
-          return glyphSize - offset
-        return glyphSize + offset
-      })
-      .attr('y1',
-        (n: Node) => {
-
-          let dupNode = n.duplicates.find(d => {
-            return d.y !== n.y
-          });
-          if (dupNode.y > n.y)
-            return;
-
-          let glyphSize;
-          if (n.hidden)
-            glyphSize = Config.hiddenGlyphSize;
-          else
-            glyphSize = Config.glyphSize;
-
-          if (dupNode.y < n.y)
-            return -glyphSize
-          return +3 * glyphSize
-        })
-      .attr('x2', (n: Node) => {
-
-        let dupNode = n.duplicates.find(d => {
-          return d.y !== n.y
-        });
-        if (dupNode.y > n.y)
-          return;
-
-
-        let glyphSize;
-        let offset = 0;
-
-        if (n.hidden) {
-          glyphSize = Config.hiddenGlyphSize;
-        }
-        else
-          glyphSize = Config.glyphSize;
-
-        //Add offset for kid grids
-        if (!dupNode.hasChildren && dupNode.hidden) {
-          offset = glyphSize * 3;
-        }
-
-        if (dupNode.x <= n.x) {
-          return this.x(dupNode.x) - this.x(n.x) + glyphSize + offset
-        } else {
-          return this.x(dupNode.x) - this.x(n.x) + glyphSize - offset;
-        }
-      })
-      .attr('y2', (n: Node) => {
-
-        let dupNode = n.duplicates.find(d => {
-          return d.y !== n.y
-        });
-        if (dupNode.y > n.y)
-          return;
-
-        let glyphSize;
-        if (n.hidden)
-          glyphSize = Config.hiddenGlyphSize;
-        else
-          glyphSize = Config.glyphSize;
-
-        return this.y(n.duplicates.find(d => {
-            return d.y !== n.y
-          }).y) - this.y(n.y)
-      })
-      .attr('visibility', 'hidden')
-
-
-    // dupIcons = dupIconsEnter.merge(dupIcons);
-
-    selectAll('.duplicateIcon')
-      .text('\uf0dd')
-      .attr('y', (n: Node) => {
-        let glyphSize;
-        if (n.hidden)
-          glyphSize = Config.hiddenGlyphSize * .75;
-        // if (n.hidden && !n.hasChildren)
-        //   glyphSize = Config.hiddenGlyphSize*.5;
-        else
-          glyphSize = Config.glyphSize;
-
-        if (n.y > n.duplicates.find(d => {
-            return d.y !== n.y
-          }).y)
-          return glyphSize
-        else
-          return glyphSize * 3
-      })
-      .attr('x', (n: Node) => {
-        let glyphSize;
-        if (n.hidden)
-          glyphSize = Config.hiddenGlyphSize * .75;
-        // if (n.hidden && !n.hasChildren)
-        //   glyphSize = Config.hiddenGlyphSize*.5;
-        else
-          glyphSize = Config.glyphSize;
-
-
-        if (n.y > n.duplicates.find(d => {
-            return d.y !== n.y
-          }).y)
-          return -glyphSize
-        else
-          return glyphSize
-      })
-      // .attr('y',0)
-      // .attr('x',0)
-      .attr('font-family', 'FontAwesome')
-      .attr('font-size', (d: Node) => {
-        if (d.hidden) {
-          return Config.hiddenGlyphSize * 2
-        } else {
-          return Config.glyphSize * 2.5
-        }
-      })
-      .attr('text-anchor', 'middle')
-      // .attr('text-anchor','start')
-      .attr("transform", (n: Node) => {
-        if (n.y > (n.duplicates.find(d => {
-            return d.y !== n.y
-          }).y))
-          return 'rotate(' + 180 + ')'
-      })
-
-
-  }
-
-
-  private fillAttributeBars() {
-
-    let nodeGroup = select('#genealogyTree').select('#nodes');
-    let allNodes = nodeGroup.selectAll('.node');
-
-    //attribute frames
-    allNodes.selectAll('.attributeFrame')
-      .attr('width', Config.glyphSize)
-      .attr('y', (d) => {
-        return d['sex'] === Sex.Female ? (-Config.glyphSize) : 0
-      })
-      .attr('fill', 'white')
-
-    //attribute Bars
-    allNodes.selectAll('.attributeBar')
-      .attr('y', (d) => {
-        return d['sex'] === Sex.Female ? (-Config.glyphSize) : 0
-      })
-      .attr('width', Config.glyphSize)
-
-
-    allNodes.selectAll('.attributeFrame').filter('.primary')
-      .attr('height', (d) => {
-        let height = 0;
-        let attr = this.primaryAttribute;
-
-        if (attr) {
-          height = Config.glyphSize * 2;
-        }
-        return height
-      })
-
-
-    // allNodes.selectAll('.attributeFrame').filter('.secondary')
-    //   .attr('height', (d) => {
-    //     let height = 0;
-    //     let attr = this.secondaryAttribute;
-    //
-    //     if (attr) {
-    //       height = Config.glyphSize * 2;
-    //     }
-    //     return height;
-    //   })
-
-    allNodes.selectAll('.attributeBar').filter('.primary')
-      .attr('height', (d: any) => {
-        let height = 0;
-        let attr = this.primaryAttribute;
-
-        if (attr) {
-          let data = this.data.getAttribute(attr.name, d.id);
-
-          if (attr && attr.type === VALUE_TYPE_CATEGORICAL) {
-            height = Config.glyphSize * 2;
-          } else if (attr && data && (attr.type === VALUE_TYPE_INT || attr.type === VALUE_TYPE_REAL)) {
-            this.attributeBarY.domain([attr.stats.min, attr.stats.max]);
-            height = this.attributeBarY(data);
-          }
-        }
-
-        return height;
-
-      })
-      .attr('y', (d: any) => {
-        let y = 0;
-        let attr = this.primaryAttribute;
-
-        if (attr) {
-          let data = this.data.getAttribute(attr.name, d.id);
-          if (attr && data && (attr.type === VALUE_TYPE_INT || attr.type === VALUE_TYPE_REAL)) {
-            this.attributeBarY.domain([attr.stats.min, attr.stats.max]);
-            y = Config.glyphSize * 2 - this.attributeBarY(data);
-          }
-
-
-          return d['sex'] === Sex.Female ? (-Config.glyphSize) + y : y
-
-        }
-      })
-      .attr('fill', (d: any) => {
-        let attr = this.primaryAttribute;
-
-        if (attr) {
-          let data = this.data.getAttribute(attr.name, d.id);
-          if (attr && data && attr.type === VALUE_TYPE_CATEGORICAL) {
-            let ind = attr.categories.indexOf(data);
-            return attr.color[ind]
-          } else if (attr && data && (attr.type === VALUE_TYPE_INT || attr.type === VALUE_TYPE_REAL)) {
-            return attr.color
-          }
-
-        }
-      })
-
-    // allNodes.selectAll('.attributeBar').filter('.secondary')
-    //   .attr('height', (d) => {
-    //     let height = 0;
-    //     let attr = this.secondaryAttribute;
-    //
-    //     if (attr && attr.type === VALUE_TYPE_CATEGORICAL) {
-    //       height = Config.glyphSize * 2;
-    //     } else if (attr && d[attr.name] && (attr.type === VALUE_TYPE_INT || attr.type === VALUE_TYPE_REAL)) {
-    //       this.attributeBarY.domain([attr.stats.min, attr.stats.max]);
-    //       height = this.attributeBarY(d[attr.name]);
-    //     }
-    //     return height
-    //   })
-    //   .attr('y', (d) => {
-    //     let y = 0;
-    //     let attr = this.secondaryAttribute;
-    //     if (attr && d[attr.name] && (attr.type === VALUE_TYPE_INT || attr.type === VALUE_TYPE_REAL)) {
-    //       this.attributeBarY.domain([attr.stats.min, attr.stats.max]);
-    //       y = Config.glyphSize * 2 - this.attributeBarY(d[attr.name]);
-    //     }
-    //     return d['sex'] === Sex.Female ? (-Config.glyphSize) + y : y
-    //   })
-    //   .attr('fill', (d) => {
-    //     let attr = this.secondaryAttribute;
-    //     if (attr && d[attr.name] && attr.type === VALUE_TYPE_CATEGORICAL) {
-    //       // console.log(d[attr.name],attr.categories)
-    //       let ind = attr.categories.indexOf(d[attr.name]);
-    //       return attr.color[ind]
-    //     } else if (attr && d[attr.name] && (attr.type === VALUE_TYPE_INT || attr.type === VALUE_TYPE_REAL)) {
-    //       return attr.color
-    //     }
-    //   })
-
-
-    allNodes.selectAll('.primary')
-      .attr('x', (d) => {
-        // return d['sex'] === Sex.Female ? -Config.glyphSize * 2 : -Config.glyphSize
-        return d['sex'] === Sex.Female ? Config.glyphSize * 2 : Config.glyphSize * 3
-      })
-
-    // allNodes.selectAll('.secondary')
-    //   .attr('x', (d) => {
-    //     // return d['sex'] === Sex.Female ? -Config.glyphSize * 3 : -Config.glyphSize*2
-    //     return d['sex'] === Sex.Female ? Config.glyphSize * 3.5 : Config.glyphSize * 4.5
-    //   })
-
-
-  }
-
   /**
    *
    * This function updates the nodes in the genealogy tree
@@ -2432,8 +1657,8 @@ class GenealogyTree {
   private update_nodes() {
     this.addNodes();
     this.addHightlightBars();
-    // this.addLifeLines();
-    // this.fillAttributeBars();
+    this.addCouplesLines()
+
     // this.addKidGrids();
   }
 

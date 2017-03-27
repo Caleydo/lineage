@@ -783,7 +783,7 @@ class GenealogyTree {
         y: i, x: min(yNodes, (d: Node) => {
           return d.x
         })
-      });
+      , id:yNodes[0].uniqueID});
     }
 
     //Create data to bind to aggregateBars
@@ -805,9 +805,8 @@ class GenealogyTree {
 
     // Attach aggregateBars
     let aggregateBars = highlightBarGroup.selectAll('.aggregateBar')
-      .data(aggregateBarData, d => {
-        return d.y
-      });
+      .data(aggregateBarData, d => {return d.y});
+
 
     aggregateBars.exit().remove();
 
@@ -833,9 +832,7 @@ class GenealogyTree {
 
     // Attach highlight Bars
     let allBars = highlightBarGroup.selectAll('.bars')
-      .data(yData, d => {
-        return d.y
-      });
+      .data(yData,d =>{return d.id});
 
     allBars.exit().remove();
 
@@ -861,14 +858,14 @@ class GenealogyTree {
       })
 
 
-    selectAll('.bars')
+    allBars
       .selectAll('.backgroundBar')
       .attr('width', () => {
         return (max(this.x.range()) - min(this.x.range()) + this.margin.right);
       })
       .attr('height', Config.glyphSize * 2)
 
-    selectAll('.bars')
+    allBars
       .selectAll('.highlightBar')
       .attr('width', (row: any) => {
         return (max(this.x.range()) - this.x(row.x) + this.margin.right);

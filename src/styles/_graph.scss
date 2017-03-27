@@ -301,6 +301,12 @@ label {
     fill:#ffc800
 }
 
+.aggregateBar{
+  stroke-width:0px;
+  fill: #d6d5d3;
+  opacity:.2;
+}
+
 rect.selected{
 //     stroke:  #ff6400;
     stroke-width:0px;
@@ -334,7 +340,7 @@ rect.selected{
   font-size:12px;
 }
 
-.node .lifeRect rect
+.node .ageLineGroup rect
 {
 	stroke:none;
   }
@@ -360,22 +366,6 @@ rect.selected{
   stroke-width: 3;
   stroke-linecap: round;
 }
-//
-//.brush .selection{
-//
-//  fill:#ff6400;
-//  //stroke-width: 4px ;
-//}
-//
-//.brushAxis text{
-//  fill:#ff6400
-//}
-
-.phantom{
-	.lifeRect{
-		visibility: hidden
-	}
-}
 
 .brushAxis path{
   stroke: none;
@@ -397,15 +387,24 @@ rect.selected{
 
 }
 
+.ageLine, .endOfTheLine{
+  fill:#9e9d9b;
+  opacity:.6;
+}
 
+
+.endOfTheLine{
+  stroke-width:1;
+  stroke:#9e9d9b
+}
 
 //.aggregate{
 // 	opacity:.2;
 //}
 
 //Hide Life Line for Aggregated and Hidden Nodes;
-.aggregated .lifeRect,
-.collapsed .lifeRect,
+.aggregated .ageLineGroup,
+.collapsed .ageLineGroup,
 .collapsed .attributeBar,
 .collapsed .attributeFrame{
 	visibility:hidden;
@@ -426,7 +425,7 @@ rect.selected{
 	stroke:#282828;
 }
 
-.lifeRect text{
+.ageLineGroup text{
   stroke:none;
 }
 
@@ -449,9 +448,10 @@ rect.selected{
 }
 
 .nodeLabel,
+.aggregateBar,
 .ageLabel,
 //.nodeIcon,
-.lifeRect,
+.ageLineGroup,
 .nodeLine,
 .highlightBar,
 .kidGrid{

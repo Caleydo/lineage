@@ -643,7 +643,8 @@ class attributeTable {
       })
       .attr('width', max(this.colOffsets))
       .attr('height', this.rowHeight)
-      .attr('opacity', 0);
+      .attr('opacity',0);
+      // .attr('opacity', 0);
 
     //create slope Lines
     // //Bind data to the cells
@@ -1124,7 +1125,7 @@ class attributeTable {
             if (attr && attr.name === headerData.varName) {
               return attr.color[1]
             } else {
-              attr = this.tableManager.secondaryAttribute;
+              attr = this.tableManager.affectedState;
               if (attr && attr.name === headerData.varName) {
                 return attr.color[1]
               }
@@ -1239,7 +1240,7 @@ class attributeTable {
           if (attr && attr.name === headerData.name) {
             return attr.color
           } else {
-            attr = this.tableManager.secondaryAttribute;
+            attr = this.tableManager.affectedState;
             if (attr && attr.name === headerData.name) {
               return attr.color
             }
@@ -1338,12 +1339,13 @@ class attributeTable {
           let attr;
 
           let primary = this.tableManager.primaryAttribute;
-          let secondary = this.tableManager.secondaryAttribute;
+          let poi = this.tableManager.affectedState;
           if (primary && primary.name === cellData.varName) {
             attr = primary;
-          } else if (secondary && secondary.name === cellData.varName) {
-            attr = secondary;
           }
+          // else if (poi && poi.name === cellData.varName) {
+          //   attr = poi;
+          // }
 
           if (attr) {
             let ind = attr.categories.indexOf(cellData.category);
@@ -1371,12 +1373,13 @@ class attributeTable {
           let attr;
 
           let primary = this.tableManager.primaryAttribute;
-          let secondary = this.tableManager.secondaryAttribute;
+          let poi = this.tableManager.affectedState;
           if (primary && primary.name === cellData.varName) {
             attr = primary;
-          } else if (secondary && secondary.name === cellData.varName) {
-            attr = secondary;
           }
+          // else if (poi && poi.name === cellData.varName) {
+          //   attr = poi;
+          // }
 
           if (attr) {
             let ind = attr.categories.indexOf(cellData.category);
@@ -1574,7 +1577,7 @@ class attributeTable {
 
             return attr.color
           } else {
-            attr = this.tableManager.secondaryAttribute;
+            attr = this.tableManager.affectedState;
             if (attr && attr.name === cellData.name) {
               return attr.color
             }

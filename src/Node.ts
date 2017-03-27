@@ -29,6 +29,9 @@ export default class Node {
   /** keeps track of nodes original x position - can change for kid grids on hide. */
   originalX: number;
 
+  /** flag to indicate a starting point of aggregation. used to recreate aggregate states when POI is changed*/
+  aggregateBranch: boolean;
+
   // ------ Attributes of the node from the data  ------
   sex: Sex;
   /** Year of Birth */
@@ -107,6 +110,7 @@ export default class Node {
     this.duplicates = [];
     this.visited = false;
     this.deceased = 'Y';
+    this.aggregateBranch = false;
   }
 
   /** Initialize the node based on rows */

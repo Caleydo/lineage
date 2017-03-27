@@ -921,7 +921,7 @@ class GenealogyTree {
 
     aggregateBars = aggregateBarsEnter.merge(aggregateBars);
 
-    selectAll('.aggregateBar')
+    aggregateBars
       .transition(t)
       .attr('transform', (row: any) => {
         return 'translate(0,' + (this.y(row.y) - Config.glyphSize * 1.25) + ')';
@@ -962,21 +962,21 @@ class GenealogyTree {
     allBars = allBarsEnter.merge(allBars);
 
     //Position all bars:
-    selectAll('.bars')
+    allBars
       .attr('transform', (row: any) => {
         return 'translate(0,' + (this.y(row.y) - Config.glyphSize) + ')';
       })
 
 
     allBars
-      .selectAll('.backgroundBar')
+      .select('.backgroundBar')
       .attr('width', () => {
         return (max(this.x.range()) - min(this.x.range()) + this.margin.right);
       })
       .attr('height', Config.glyphSize * 2)
 
     allBars
-      .selectAll('.highlightBar')
+      .select('.highlightBar')
       .attr('width', (row: any) => {
         return (max(this.x.range()) - this.x(row.x) + this.margin.right);
       })

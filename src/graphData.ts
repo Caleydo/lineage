@@ -420,10 +420,6 @@ class GraphData {
       // }
     });
 
-    // console.log(dict);
-
-    console.log(dict);
-
     //Assign y values to the tableManager object
     this.tableManager.yValues = dict;
     this.yValues = dict; //store dict for tree to use when creating slope chart
@@ -580,8 +576,6 @@ class GraphData {
       if (isUndefined(nodeID)){
         applyToAll = true;
       } else {
-
-
         //find node
         let node = this.nodes.find((n: Node) => {
           return n.uniqueID === nodeID
@@ -593,8 +587,9 @@ class GraphData {
         }
 
         //Toggle state of aggregate branch for this node;
-        node.aggregateBranch = (!node.aggregateBranch);
+        node.aggregateBranch = aggregate;
       }
+
 
     //Clear tree of y values and aggregated and hidden flags;
     this.nodes.forEach(n=>{
@@ -602,6 +597,11 @@ class GraphData {
       n.aggregated = false;
       n.hidden = false;
       n.x = n.originalX;
+      //Set aggregate/hide/expand flag for each node
+      if (applyToAll){
+        n.aggregateBranch =aggregate;
+      }
+
     })
 
     this.aggregateTree(applyToAll, aggregate);
@@ -625,6 +625,7 @@ class GraphData {
       }
     });
 
+    //Hide Mode
     if (!aggregate){
       //Adjust x position for spouses of affected nodes;
       this.nodes.forEach((n:Node)=>{
@@ -651,8 +652,9 @@ class GraphData {
   /**
    *
    * This function aggregates all nodes in the branch starting at a given node X.
-   *@param aggregate, true for aggregation, false for hiding.
-   * @param applyToAll, boolean flag indicating if operation should be applie to entire tree;
+   * @param applyToAll, boolean flag indicating if operation should be apply to entire tree;
+   *@param aggregate, true for aggregation, false for hiding, undefined for expand.
+   *
    */
   private aggregateTree(applyToAll, aggregate:boolean) {
 
@@ -672,8 +674,9 @@ class GraphData {
         })
     });
 
-    //If starting node is not the 'center' of the founding spouses
-    if (startNode.spouse.length> 0 && startNode.spouse[0].spouse.length>1){
+
+    //If starting node is not the 'center' of the founding spouses or is not a direct descendat
+    if (startNode.spouse.length> 0 && (startNode.spouse[0].spouse.length>1 || isUndefined(startNode.ma))){
       startNode = startNode.spouse[0]
     }
 
@@ -687,7 +690,7 @@ class GraphData {
       startNode.y = minY -1; //Set first y index;
     }
 
-    if (!startNode.affected && startNode.hasChildren && (startNode.aggregateBranch || applyToAll)){
+    if (!isUndefined(aggregate) && !startNode.affected && startNode.hasChildren && (startNode.aggregateBranch || applyToAll)){
       startNode.hidden = true;
       startNode.aggregated = aggregate;
       this.aggregateHelper(startNode, aggregate,true);

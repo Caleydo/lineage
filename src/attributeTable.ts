@@ -643,7 +643,8 @@ class attributeTable {
       })
       .attr('width', max(this.colOffsets))
       .attr('height', this.rowHeight)
-      .attr('opacity', 0);
+      .attr('opacity',0);
+      // .attr('opacity', 0);
 
     //create slope Lines
     // //Bind data to the cells

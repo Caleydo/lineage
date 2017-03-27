@@ -96,6 +96,7 @@ class GraphData {
       const duplicateNode = Object.assign({}, node);
 
       duplicateNode.id = node.id;
+      duplicateNode.uniqueID = Math.random().toString();
 
       //Add each node to the other's 'duplicate' array
       node.duplicates.push(duplicateNode);
@@ -645,7 +646,7 @@ class GraphData {
       startNode.y = minY -1; //Set first y index;
     }
 
-    if (!startNode.affected && startNode.hasChildren && startNode.aggregateBranch){
+    if (!startNode.affected && startNode.hasChildren){ // && startNode.aggregateBranch){
       startNode.hidden = true;
       startNode.aggregated = aggregate;
     }

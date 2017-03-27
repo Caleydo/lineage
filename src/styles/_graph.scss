@@ -323,7 +323,8 @@ rect.selected{
 }
 
 .couplesLine{
-  stroke: rgba(17, 24, 36, 1);
+  stroke:#4f4f4d;
+
 }
 /*
 .node{
@@ -415,6 +416,11 @@ rect.selected{
 .collapsed .couplesLine{
 	visibility:visible;
 }
+
+//.kidGrids{
+//  fill: #fffefb;
+//}
+
 
 
 //.collapsed .backgroundBar{

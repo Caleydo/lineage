@@ -319,7 +319,6 @@ class attributeTable {
     let maxAggregates = 1;
     for (let key of allRows) {
       col.data.push(y2personDict[key].length.toString());
-      console.log('data1', col.data[col.data.length-1])
       maxAggregates = max([maxAggregates, y2personDict[key].length])
     }
     this.idScale.domain([1, maxAggregates]);

@@ -277,22 +277,32 @@ class GenealogyTree {
 
     kidGridGradient.append('stop')
       .attr('offset', '0%')
-      .attr('stop-color', '#f2f3f4')
+      .attr('stop-color', '#f7f7f6')
+      .attr('stop-opacity', 0);
+
+    kidGridGradient.append('stop')
+      .attr('offset', '10%')
+      .attr('stop-color', '#f7f7f6')
       .attr('stop-opacity', 1);
 
     kidGridGradient.append('stop')
       .attr('offset', '20%')
-      .attr('stop-color', '#f2f3f4')
+      .attr('stop-color', '#f7f7f6')
+      .attr('stop-opacity', 1);
+
+    kidGridGradient.append('stop')
+      .attr('offset', '60%')
+      .attr('stop-color', '#f7f7f6')
       .attr('stop-opacity', 1);
 
     kidGridGradient.append('stop')
       .attr('offset', '75%')
-      .attr('stop-color', 'white')
+      .attr('stop-color', '#f7f7f6')
       .attr('stop-opacity', 1);
 
     kidGridGradient.append('stop')
       .attr('offset', '100%')
-      .attr('stop-color', '#f2f3f4')
+      .attr('stop-color', '#f7f7f6')
       .attr('stop-opacity', 0);
 
     //Add scroll listener for the graph table div
@@ -958,15 +968,15 @@ class GenealogyTree {
       return undefined
     }
 
-    // No children or no unaffected children
-    if (!n.hasChildren  || isUndefined(n.children.find((c:Node) => { return !c.affected}))){
-      return undefined;
-    }
-
-    //No leaf children
-    if (n.hasChildren && isUndefined(n.children.find((c:Node)=>{return !c.hasChildren}))){
-      return undefined;
-    }
+    // // No children or no unaffected children
+    // if (!n.hasChildren  || isUndefined(n.children.find((c:Node) => { return !c.affected}))){
+    //   return undefined;
+    // }
+    //
+    // //No leaf children
+    // if (n.hasChildren && isUndefined(n.children.find((c:Node)=>{return !c.hasChildren}))){
+    //   return undefined;
+    // }
 
     //Dangling Node
     if (n.spouse.length === 0){
@@ -977,13 +987,31 @@ class GenealogyTree {
     let parents = [n].concat(n.spouse);
 
     //All parents are affected and they have at least one aggregated child
-    if (isUndefined(parents.find((p:Node)=>{return !p.affected})) && !isUndefined(n.children.find((child:Node)=>{return child.aggregated}))){
+    if (isUndefined(parents.find((p:Node)=>{return !p.affected})) && n.hasChildren && !isUndefined(n.children.find((child:Node)=>{return child.aggregated}))){
       // return {'x':max(parents,(p:Node)=>{return p.x}), 'y':min(parents,(p:Node)=>{return p.y})-1};
-      return {'x':n.children.find((c:Node) => { return !c.affected}).x, 'y':Math.round(n.children.find((c:Node) => { return !c.affected}).y),'id':n.uniqueID};
+      let girls = n.children.filter((child:Node)=>{return child.sex === Sex.Female}); let boys = n.children.filter((child:Node)=>{return child.sex === Sex.Male});
+      let maxKidGridRows = max([girls.length,boys.length]);
+
+      return {'x':n.children.find((c:Node) => { return !c.affected}).x,
+        'y':Math.round(n.children.find((c:Node) => { return !c.affected}).y),
+        'id':n.uniqueID,
+        'extend':true,
+      'kids':min([4,maxKidGridRows])};
     } else { //There is at least one unaffected parent;
       let unaffectedParent = parents.find((p:Node)=>{return !p.affected});
+      let affectedParent = parents.find((p:Node)=>{return p.affected});
+
+      let girls = n.children.filter((child:Node)=>{return child.sex === Sex.Female}); let boys = n.children.filter((child:Node)=>{return child.sex === Sex.Male});
+      let maxKidGridRows = max([girls.length,boys.length]);
+
       if (unaffectedParent.aggregated){
-        return {'x':unaffectedParent.x, 'y':Math.round(unaffectedParent.y),'id':n.uniqueID}
+        if (isUndefined(affectedParent)){
+          return {'x':unaffectedParent.x, 'y':Math.round(unaffectedParent.y),'id':n.uniqueID,'extend':false,
+            'kids':min([4,maxKidGridRows])}
+        } else {
+          return {'x':unaffectedParent.x, 'y':Math.round(unaffectedParent.y),'id':n.uniqueID,'extend':true,
+            'kids':min([4,maxKidGridRows])}
+        }
       } else {
         return undefined;
       }
@@ -993,7 +1021,7 @@ class GenealogyTree {
 
   }
 
-  private addCouplesLines() {
+  private addFamilyElements() {
 
     let t = transition('t').duration(500).ease(easeLinear);
 
@@ -1008,7 +1036,7 @@ class GenealogyTree {
       }
     })
 
-    // Attach aggregateBars
+    // Attach Couples Lines
     let couplesLines = couplesLinesGroup.selectAll('.couplesLine')
       .data(couplesData, d => {return d.id});
 
@@ -1026,22 +1054,53 @@ class GenealogyTree {
 
     couplesLines
       .attr('x1', (d:any) => {
-        return this.x(d.x) + Config.glyphSize*.7;
-        // return d.sex === Sex.Female ? Config.glyphSize * .9 : Config.glyphSize * 1.3;
+        return this.x(d.x) + Config.glyphSize*.85;
       })
       .attr('y1', (d:any)=> {
         return this.y(d.y-0.4)
-        // return d.sex === Sex.Female ? ( -Config.glyphSize * 1.8) : -Config.glyphSize * 0.2;
       })
       .attr('x2', (d:any) => {
-        return this.x(d.x) + Config.glyphSize*.7;
-        // return d.sex === Sex.Female ? Config.glyphSize * .9 : Config.glyphSize * 1.3;
+        return this.x(d.x) + Config.glyphSize*.85;
       })
       .attr('y2', (d:any) =>{
+        if (d.extend){
+          return this.y(d.y+0.7)
+        }
         return this.y(d.y+0.4)
       })
       .attr('stroke-width', 2)
+
+    const kidGridsGroup = select('#genealogyTree').select('#kidGrids');
+
+    // Attach backgroundRects
+    let backgroundRects = kidGridsGroup.selectAll('.kidGrids')
+      .data(couplesData, d => {return d.id});
+
+
+    const backgroundRectsEnter = backgroundRects
+      .enter()
+      .append('rect')
+      .attr('class', 'kidGrids')
+
+    backgroundRects = backgroundRectsEnter.merge(backgroundRects)
+
+    backgroundRects.exit().remove();
+
+
+    backgroundRects
+      .attr('x', (d:any) => {
+        return this.x(d.x) - Config.glyphSize*1.2;
+      })
+      .attr('y', (d:any)=> {
+        return this.y(d.y-0.4)
+      })
+      .attr('width', (d)=>{return Config.glyphSize*2 + d.kids*Config.glyphSize})
+      .attr('height', Config.glyphSize*2.6)
+      .style('fill', 'url(#kidGridGradient)')
+
   }
+
+
 
 
   private addNodes() {
@@ -1655,9 +1714,10 @@ class GenealogyTree {
    * @param nodes array of nodes to update the tree with
    */
   private update_nodes() {
-    this.addNodes();
+
     this.addHightlightBars();
-    this.addCouplesLines()
+    this.addFamilyElements();
+    this.addNodes();
 
     // this.addKidGrids();
   }

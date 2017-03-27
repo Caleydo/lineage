@@ -1072,12 +1072,13 @@ class GenealogyTree {
         .attr('class', 'nodeLine')
     }
 
-    let m1, m2,f1, f2, strokeWidth, glyphSize, radius;
+    let m1, m2,f1, f2, strokeWidth, glyphSize, radius, lineGlyphSize;
 
     if (d['hidden'] && !d['hasChildren']){
       f1 = 2/3; m1 = 1/3;
-      f2 = 2/3; m2 = 2.3;
+      f2 = 2/3; m2 = 1.3;
       strokeWidth = 1;
+      lineGlyphSize = Config.hiddenGlyphSize;
       glyphSize = Config.hiddenGlyphSize;
       radius = Config.hiddenGlyphSize / 2
 
@@ -1085,6 +1086,7 @@ class GenealogyTree {
       f1 = 1; m1 = 1/3;
       f2 = 1; m2 = 1.8;
       strokeWidth = 1;
+      lineGlyphSize = Config.hiddenGlyphSize;
       glyphSize = Config.glyphSize * .75;
       radius = Config.glyphSize*.45
 
@@ -1092,6 +1094,7 @@ class GenealogyTree {
       f1 = 1; m1 = 1/3;
       f2 = 1; m2 = 2.3;
       strokeWidth = 3;
+      lineGlyphSize = Config.glyphSize;
       glyphSize = Config.glyphSize*2;
       radius = Config.glyphSize;
     }
@@ -1099,16 +1102,16 @@ class GenealogyTree {
     //Node lines for deceased and uncollapsed nodes
     element.selectAll('.nodeLine')
       .attr('x1', function (d: any) {
-        return d.sex === Sex.Female ? -Config.glyphSize*f1 : -Config.glyphSize*m1;
+        return d.sex === Sex.Female ? -lineGlyphSize*f1 : -lineGlyphSize*m1;
       })
       .attr('y1', function (d: any) {
-        return d.sex === Sex.Female ? -Config.glyphSize*f1 : -Config.glyphSize*m1;
+        return d.sex === Sex.Female ? -lineGlyphSize*f1 : -lineGlyphSize*m1;
       })
       .attr('x2', function (d: any) {
-        return d.sex === Sex.Female ? Config.glyphSize *f2: Config.glyphSize *m2;
+        return d.sex === Sex.Female ? lineGlyphSize*f2: lineGlyphSize *m2;
       })
       .attr('y2', function (d: any) {
-        return d.sex === Sex.Female ? Config.glyphSize*f2 : Config.glyphSize * m2;
+        return d.sex === Sex.Female ? lineGlyphSize*f2 : lineGlyphSize * m2;
       })
       .attr('stroke-width', strokeWidth)
 
@@ -1168,6 +1171,12 @@ class GenealogyTree {
 
     element.selectAll('.nodeIcon').on('click',(d)=>{
       console.log('clicked on node', d)
+
+      this.data.aggregateTreeWrapper(d.uniqueID, true);
+      this.update_graph();
+      event.preventDefault();
+
+
     })
 
     //Size hidden nodes differently

@@ -666,22 +666,22 @@ class GraphData {
    */
   private aggregateHelper(node: Node, aggregate:boolean) {
 
-    if (!node.aggregateBranch){
-      this.linearizeLogic(node)
+    // if (!node.aggregateBranch){
+    //   this.linearizeLogic(node)
+    //
+    //   //Assign y levels to leaf children;
+    //   node.children.map((child:Node)=>{
+    //     if (isUndefined(child.y) && !child.affected && !child.hasChildren) {
+    //       this.linearizeLogic(node)
+    //     } else {
+    //       this.aggregateHelper(child,aggregate)
+    //     }
+    //   });
+    //
+    //   return
+    // }
 
-      //Assign y levels to leaf children;
-      node.children.map((child:Node)=>{
-        if (isUndefined(child.y) && !child.affected && !child.hasChildren) {
-          this.linearizeLogic(node)
-        } else {
-          this.aggregateHelper(child,aggregate)
-        }
-      });
-
-      return
-    }
-
-    console.log('get here?')
+    // console.log('get here?')
     //Base case are leaf nodes. Reached end of this branch.
     if (!node.affected && !node.hasChildren) {
       return;

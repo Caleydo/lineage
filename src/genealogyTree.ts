@@ -396,6 +396,7 @@ class GenealogyTree {
       .attr('opacity', .1)
       .on('click', (d) => {
         this.data.aggregateTreeWrapper(undefined, true);
+        this.update_graph();
       })
 
     button.append('text')
@@ -417,6 +418,7 @@ class GenealogyTree {
       .attr('opacity', .1)
       .on('click', (d) => {
         this.data.aggregateTreeWrapper(undefined, false);
+        this.update_graph();
       })
 
     button.append('text')
@@ -439,6 +441,7 @@ class GenealogyTree {
       .attr('opacity', .1)
       .on('click', (d) => {
         this.data.aggregateTreeWrapper(undefined, undefined);
+        this.update_graph();
       })
 
     button.append('text')
@@ -1025,6 +1028,47 @@ class GenealogyTree {
         selectAll('.ageLabel').attr('visibility', 'hidden');
 
         // events.fire('row_mouseout', d.y);
+      })
+      .on('click', (d: any) => {
+
+        // if (event.altKey) {
+        //
+        //   this.data.hideNodes(Math.round(d['y']), false);
+        //
+        //   this.update_time_axis();
+        //   this.update_visible_nodes();
+        //
+        //   // Perhaps change to only unselected bars that are part of this newly aggregated/expanded set?
+        //   selectAll('.highlightBar').classed('selected', false);
+        //
+        //   events.fire('graphLayout_changed')
+        //
+        //   return;
+        // }
+        if (event.defaultPrevented) return; // dragged
+
+        let wasSelected = selectAll('.highlightBar').filter((e: any) => {
+          return e.y === d.y || e.y === Math.round(d.y)
+        }).classed('selected');
+
+
+        //'Unselect all other background bars if ctrl was not pressed
+        if (!event.metaKey) {
+          selectAll('.slopeLine').classed('clickedSlope', false)
+          selectAll('.highlightBar').classed('selected', false);
+        }
+
+        selectAll('.slopeLine').filter((e: any) => {
+          return e.y === d.y || e.y === Math.round(d.y)
+        }).classed('clickedSlope', function () {
+          return (!wasSelected);
+        })
+
+        selectAll('.highlightBar').filter((e: any) => {
+          return e.y === d.y || e.y === Math.round(d.y)
+        }).classed('selected', function () {
+          return (!wasSelected);
+        })
       })
 
   }

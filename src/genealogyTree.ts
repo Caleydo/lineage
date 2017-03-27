@@ -908,7 +908,7 @@ class GenealogyTree {
 
         function selected(e: Node) {
           let returnValue = false;
-          //Highlight the current row in the graph and tabl
+          //Highlight the current row in the graph and table
           if (e.y === Math.round(d.y))
             returnValue = true;
           //Highlight any duplicates for this node
@@ -1310,8 +1310,12 @@ class GenealogyTree {
         let height = 0;
         let attr = this.primaryAttribute;
 
+
         if (attr) {
-          height = Config.glyphSize * 2;
+          let data = this.data.getAttribute(attr.name, d.id);
+          if (data){
+            height = Config.glyphSize * 2;
+          }
         }
         return height
       })
@@ -1330,7 +1334,7 @@ class GenealogyTree {
         if (attr) {
           let data = this.data.getAttribute(attr.name, d.id);
 
-          if (attr && attr.type === VALUE_TYPE_CATEGORICAL) {
+          if (attr && data && attr.type === VALUE_TYPE_CATEGORICAL) {
             height = Config.glyphSize * 2;
           } else if (attr && data && (attr.type === VALUE_TYPE_INT || attr.type === VALUE_TYPE_REAL)) {
             this.attributeBarY.domain([attr.stats.min, attr.stats.max]);

@@ -575,6 +575,11 @@ class GraphData {
       //find node
       let node = this.nodes.find((n:Node)=>{return n.uniqueID === nodeID});
 
+      //If node is not descendant, find descendant;
+    if (!node.ma && !node.pa){
+      node = node.spouse[0];
+    }
+
       //Toggle state of aggregate branch for this node;
       node.aggregateBranch = (!node.aggregateBranch);
 
@@ -690,6 +695,7 @@ class GraphData {
   private aggregateHelper(node: Node, aggregate:boolean) {
 
 
+    // FIXME find a better way of propagating the 'to aggregate' state
     if (!node.aggregateBranch && (node.ma && !node.ma.hidden)){
       this.linearizeLogic(node);
       node.children.forEach((child:Node)=>{

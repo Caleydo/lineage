@@ -385,7 +385,9 @@ class GenealogyTree {
       .attr('transform', 'translate(0,'  + (-65) + ')')
       .attr('id', 'treeButtons')
 
+    let self = this;
     button.append('rect')
+      .classed('button',true)
       .attr('width', 120)
       .attr('height', 25)
       .attr('x', this.width*0.1)
@@ -394,9 +396,14 @@ class GenealogyTree {
       .attr('fill', '#959492')
       .attr('y', 0)
       .attr('opacity', .1)
-      .on('click', (d) => {
-        this.data.aggregateTreeWrapper(undefined, true);
-        this.update_graph();
+      .on('click', function (d) {
+        selectAll('.button').attr('fill', '#959492')
+        .attr('opacity', .1)
+        select(this)
+          .attr('fill','#3b3b3b')
+          .attr('opacity', .3)
+        self.data.aggregateTreeWrapper(undefined, true);
+        self.update_graph();
       })
 
     button.append('text')
@@ -408,6 +415,7 @@ class GenealogyTree {
 
 
     button.append('rect')
+      .classed('button',true)
       .attr('width', 120)
       .attr('height', 25)
       .attr('x', this.width*0.35)
@@ -416,9 +424,15 @@ class GenealogyTree {
       .attr('fill', '#959492')
       .attr('y', 0)
       .attr('opacity', .1)
-      .on('click', (d) => {
-        this.data.aggregateTreeWrapper(undefined, false);
-        this.update_graph();
+      .on('click', function (d) {
+        selectAll('.button')
+          .attr('fill', '#959492')
+        .attr('opacity', .1)
+        select(this)
+          .attr('fill','#3b3b3b')
+          .attr('opacity', .3)
+        self.data.aggregateTreeWrapper(undefined, false);
+        self.update_graph();
       })
 
     button.append('text')
@@ -431,6 +445,7 @@ class GenealogyTree {
 
 
     button.append('rect')
+      .classed('button',true)
       .attr('width', 120)
       .attr('height', 25)
       .attr('x', this.width*0.6)
@@ -439,9 +454,14 @@ class GenealogyTree {
       .attr('fill', '#959492')
       .attr('y', 0)
       .attr('opacity', .1)
-      .on('click', (d) => {
-        this.data.aggregateTreeWrapper(undefined, undefined);
-        this.update_graph();
+      .on('click', function (d) {
+        selectAll('.button').attr('fill', '#959492')
+        .attr('opacity', .1)
+        select(this)
+          .attr('fill','#3b3b3b')
+          .attr('opacity', .3)
+        self.data.aggregateTreeWrapper(undefined, undefined);
+        self.update_graph();
       })
 
     button.append('text')

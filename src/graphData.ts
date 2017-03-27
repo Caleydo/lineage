@@ -688,9 +688,11 @@ class GraphData {
     if (!startNode.affected && startNode.hasChildren && (startNode.aggregateBranch || applyToAll)){
       startNode.hidden = true;
       startNode.aggregated = aggregate;
+      this.aggregateHelper(startNode, aggregate,true);
+    }else{
+      this.aggregateHelper(startNode, aggregate,false);
     }
 
-    this.aggregateHelper(startNode, aggregate);
 
     //Recursively call aggregateTree to handle any nodes that were not assigned a y value.
     this.aggregateTree(applyToAll, aggregate);
@@ -704,14 +706,14 @@ class GraphData {
    * @param aggregate - boolean that indicates whether to aggregate (true) or hide (false);
    *
    */
-  private aggregateHelper(node: Node, aggregate:boolean) {
+  private aggregateHelper(node: Node, aggregate:boolean, continueAggregation:boolean) {
 
 
     // FIXME find a better way of propagating the 'to aggregate' state
-    if (isUndefined(aggregate) || (!node.aggregateBranch && (node.ma && !node.ma.hidden))){
+    if (isUndefined(aggregate) || (!node.aggregateBranch && !continueAggregation)){
       this.linearizeLogic(node);
       node.children.forEach((child:Node)=>{
-        this.aggregateHelper(child, aggregate)
+        this.aggregateHelper(child, aggregate,false)
       })
     } else {
       //Base case are leaf nodes. Reached end of this branch.
@@ -888,7 +890,7 @@ class GraphData {
           child.hidden = true;
           child.aggregated = aggregate;
         } else {
-          this.aggregateHelper(child, aggregate)
+          this.aggregateHelper(child, aggregate,true)
         }
       })
     }

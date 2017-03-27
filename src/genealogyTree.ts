@@ -764,6 +764,8 @@ class GenealogyTree {
 
   private addHightlightBars() {
 
+    let t = transition('t').duration(500).ease(easeLinear);
+
     const highlightBarGroup = select('#genealogyTree').select('#highlightBars');
 
     let yRange: number[] = [min(this.data.nodes, function (d: any) {
@@ -813,11 +815,13 @@ class GenealogyTree {
     const aggregateBarsEnter = aggregateBars
       .enter()
       .append('rect')
-      .classed('aggregateBar', true);
+      .classed('aggregateBar', true)
+      .attr('opacity',0);
 
     aggregateBars = aggregateBarsEnter.merge(aggregateBars);
 
     selectAll('.aggregateBar')
+      .transition(t)
       .attr('transform', (row: any) => {
         return 'translate(0,' + (this.y(row.y) - Config.glyphSize * 1.25) + ')';
       })
@@ -828,6 +832,11 @@ class GenealogyTree {
         return this.x(row.x);
       })
       .attr('height', Config.glyphSize * 2.5)
+
+
+    aggregateBars
+      .transition(t.transition())
+      .attr('opacity',1);
 
 
     // Attach highlight Bars
@@ -1261,6 +1270,16 @@ class GenealogyTree {
     }
 
     element.selectAll('.nodeIcon').on('click', (d) => {
+
+
+      if (event.altKey) {
+        this.data.aggregateTreeWrapper(d.uniqueID, false);
+        this.update_graph();
+        event.preventDefault();
+
+        return;
+      }
+
       console.log('clicked on node', d)
 
       this.data.aggregateTreeWrapper(d.uniqueID, true);

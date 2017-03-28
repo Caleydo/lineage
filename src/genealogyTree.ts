@@ -1277,7 +1277,7 @@ class GenealogyTree {
         .attr('class', 'ageLabel');
 
       //Add cross at the end of lifelines for deceased people
-      if (d.ddate) {
+      if (d.ddate < CURRENT_YEAR) {
         ageLineGroup
           .append('line')
           .attr('class', 'endOfTheLine');

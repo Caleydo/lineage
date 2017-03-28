@@ -552,7 +552,7 @@ class attributeTable {
           'max': d.max, 'min': d.min, 'mean': d.mean, 'category': d.category, 'isSorted': d.isSorted
         }
       }), (d: any) => {
-        return d.name
+        return d.name;
       });
 
     headers.exit().attr('opacity', 0).remove(); // should remove headers of removed col's
@@ -569,16 +569,16 @@ class attributeTable {
         if (d.category && d.category !== 'TRUE' && d.category !== 'Y')
           return d.name + ' (' + d.category + ')'
         else
-          return d.name
+          return d.name //.slice(0,15)
 
       })
 
       .attr('transform', (d, i) => {
         let offset = this.colOffsets[i] + (this.colWidths[d.type] / 2);
-        return (d.type === VALUE_TYPE_CATEGORICAL || d.type === 'dataDensity') ? 'translate(' + offset + ',0) rotate(-30)' : 'translate(' + offset + ',0)';
+        return (d.type === VALUE_TYPE_CATEGORICAL || d.type === 'dataDensity' || d.name.length>10) ? 'translate(' + offset + ',0) rotate(-40)' : 'translate(' + offset + ',0)';
       })
       .attr('text-anchor', (d) => {
-        return (d.type === VALUE_TYPE_CATEGORICAL || d.type === 'dataDensity') ? 'start' : 'middle'
+        return (d.type === VALUE_TYPE_CATEGORICAL || d.type === 'dataDensity' || d.name.length>10) ? 'start' : 'middle'
       })
 
 

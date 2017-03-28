@@ -141,7 +141,7 @@ export default class TableManager {
   //   ['KindredID','PersonID', 'Asthma', 'Bipolar', 'sex', 'deceased', 'suicide', 'gen', 'Age', 'FirstBMI', 'AgeFirstBMI', 'race', 'cause_death', 'weapon']; //set of default cols to read in, minimizes load time for large files;
 
   private defaultCols: String[] =
-    ['KindredID', 'RelativeID','sex', 'deceased', 'suicide', 'Asthma', 'Bipolar', 'gen', 'Age', 'FirstBMI', 'AgeFirstBMI', 'race','cause_death', 'weapon']; //set of default cols to read in, minimizes load time for large files;
+    ['KindredID', 'RelativeID', 'sex', 'deceased', 'suicide', 'Depression', 'Age1D_Depression', 'Nr.Diag_Depression', 'Asthma', 'Age1D_Asthma', 'Nr.Diag_Asthma',  'Bipolar', 'MaxBMI', 'AgeMaxBMI', 'race','cause_death', 'weapon']; //set of default cols to read in, minimizes load time for large files;
 
 
   public colOrder: String[]; //array that keeps track which attributes are displayed in the panel and in the table and their correct order.

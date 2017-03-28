@@ -1813,7 +1813,7 @@ class GenealogyTree {
 
     if (node['sex'] === Sex.Male) {
       if (node['hidden'] && node['hasChildren'])
-        return this.x(node.x) - Config.hiddenGlyphSize;
+        return this.x(node.x) - Config.hiddenGlyphSize*.8;
       if (!node['hidden'])
         return this.x(node.x) - Config.glyphSize;
       if (node['hidden'] && !node['hasChildren'])

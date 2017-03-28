@@ -21,8 +21,7 @@ interface IAffectedState {
   data: any [];
   personIDs: Number [];
   isAffected(b: string | Number): boolean;
-
-  attributeInfo:any;
+  attributeInfo: IPrimaryAttribute;
 }
 
 interface IPrimaryAttribute {
@@ -158,7 +157,7 @@ export default class TableManager {
 
 
   //Keeps track of selected primary/secondary variable
-  private primaryAttribute: attribute;
+  private primaryAttribute: IPrimaryAttribute;
 
 
   /**
@@ -304,8 +303,7 @@ export default class TableManager {
     // console.log(Attribute)
 
     // this.primaryAttribute = attributeDefinition;
-    let primaryPOI = 'primary'
-    this[primaryPOI + 'Attribute'] = attributeDefinition;
+    this.primaryAttribute = attributeDefinition;
 
     events.fire(PRIMARY_SELECTED, attributeDefinition);
 

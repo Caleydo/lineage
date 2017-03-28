@@ -16,7 +16,7 @@ import {
 
 import * as events from 'phovea_core/src/event';
 import * as Range from 'phovea_core/src/range';
-import {VIEW_CHANGED_EVENT, default as TableManager} from './tableManager';
+import {VIEW_CHANGED_EVENT, FAMILY_SELECTED_EVENT, default as TableManager} from './tableManager';
 import {isUndefined} from 'util';
 import Node from './Node';
 import {Sex} from './Node';
@@ -49,12 +49,16 @@ class GraphData {
 
   private setListeners() {
 
-    events.on(VIEW_CHANGED_EVENT, () => {
+    events.on(FAMILY_SELECTED_EVENT, () => {
+      console.log('family was selected')
       this.graphTable = this.tableManager.graphTable;
 
       //Once tree has been created for the new family, fire redraw tree event.
       this.createTree().then(() => {
-        events.fire('redraw_tree', this);
+        console.log('about to aggregate')
+        this.aggregateTreeWrapper(undefined, false); //default to hidden state;
+        console.log('done aggregating')
+        // events.fire('redraw_tree', this);
       }).catch(function (error) {
         console.log('Error: ' + error);
       });

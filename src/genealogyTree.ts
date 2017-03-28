@@ -55,7 +55,7 @@ import {
   Config
 } from './config';
 
-import {PRIMARY_SECONDARY_SELECTED, POI_SELECTED} from './tableManager';
+import {PRIMARY_SECONDARY_SELECTED, POI_SELECTED, TABLE_VIS_ROWS_CHANGED_EVENT} from './tableManager';
 import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL} from 'phovea_core/src/datatype';
 // import {TABLE_SORTED_EVENT} from './attributeTable'
 import Node from './Node';
@@ -399,6 +399,7 @@ class GenealogyTree {
     let self = this;
     button.append('rect')
       .classed('button',true)
+      .attr('id','aggregateAllButton')
       .attr('width', 120)
       .attr('height', 25)
       .attr('x', this.width*0.1)
@@ -427,6 +428,7 @@ class GenealogyTree {
 
     button.append('rect')
       .classed('button',true)
+      .attr('id','hideAllButton')
       .attr('width', 120)
       .attr('height', 25)
       .attr('x', this.width*0.35)
@@ -457,6 +459,7 @@ class GenealogyTree {
 
     button.append('rect')
       .classed('button',true)
+      .attr('id','expandAllButton')
       .attr('width', 120)
       .attr('height', 25)
       .attr('x', this.width*0.6)
@@ -647,85 +650,6 @@ class GenealogyTree {
       .attr('opacity', 1);
 
   };
-
-
-
-  private addKidGrids() {
-
-    const kidGridGroup = select('#genealogyTree').select('#kidGrids');
-
-    let filteredData = this.data.nodes.filter(function (d: Node) {
-      let hasUnaffectedSpouse = d.spouse.find(s => {
-        return s.sex == Sex.Male || s.affected
-      });
-      return d.aggregated && d.hasChildren && !d.affected && isNullOrUndefined(hasUnaffectedSpouse);
-    });
-
-    // Attach kidGrid groups
-    let allKidGrids = kidGridGroup.selectAll('.kidGrid')
-      .data(filteredData, function (d: Node) {
-        return d.id;
-      });
-
-    console.log('kid grid for', filteredData.length, ' nodes')
-
-    const allKidGridsEnter = allKidGrids
-      .enter()
-      .append('rect');
-
-    allKidGrids = allKidGridsEnter.merge(allKidGrids);
-
-    allKidGrids.exit().transition().duration(400).style('opacity', 0).remove();
-
-    allKidGrids
-      .classed('collapsed', (d) => {
-        return d['hidden'];
-      })
-      .classed('kidGrid', true)
-
-
-    select('#kidGrids').selectAll('.kidGrid')
-      .attr('width', (d) => {
-        let gridSize = Config.glyphSize * 2;
-
-
-        this.data.parentChildEdges.forEach((edge) => {
-          if (edge['pa'] === d && !edge['target']['hasChildren']) {
-            gridSize = Config.glyphSize * 3;
-          }
-        })
-
-        if (!d['affected'] && d['hidden'] && d['spouse'][0]['affected']) {
-          gridSize = gridSize * 2;
-        }
-
-        if (d['affected'] && !d['spouse'][0]['affected']) {
-          gridSize = gridSize * 2;
-        }
-        ;
-
-        return gridSize;
-      })
-      .attr('height', Config.glyphSize * 2)
-      .transition()
-      .attr('x', (d) => {
-        if (!d['affected'] && d['spouse'][0]['affected']) {
-          return this.x(d['spouse'][0]['x']);
-        } else {
-          return this.x(d['x']);
-        }
-      })
-      .attr('y', (d) => {
-        if (d['affected'] && d['spouse'][0]['affected']) {
-          return min([this.yPOS(d), this.yPOS(d['spouse'][0])]);
-        } else {
-          return this.yPOS(d);
-        }
-
-      })
-      .style('fill', 'url(#kidGridGradient)')
-      .style('stroke', 'none')
-  }
 
   private addHightlightBars() {
 
@@ -956,9 +880,6 @@ class GenealogyTree {
       })
 
   }
-
-
-
 
   //Function that returns the x and y position for the couples line and kid grid of a given family.
   private getFamilyPos(n:Node){
@@ -1997,7 +1918,7 @@ class GenealogyTree {
     //   })
     // });
 
-    events.on('redraw_tree', (evt, item) => {
+    events.on(TABLE_VIS_ROWS_CHANGED_EVENT, (evt, item) => {
       this.update();
     });
 

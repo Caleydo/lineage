@@ -205,9 +205,6 @@ class FamilySelector {
 
       this.selectedFamilyIds.push(d.id)
 
-      // console.log(typeof (d.id))
-
-
       select('tbody').selectAll('tr').filter((row) => {
         return row['id'] === d.id;
       }).classed('selected', true);

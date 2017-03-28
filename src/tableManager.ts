@@ -78,6 +78,7 @@ export const PRIMARY_SECONDARY_SELECTED = 'primary_secondary_attribute_event';
 export const POI_SELECTED = 'affected_attribute_event';
 export const FAMILY_INFO_UPDATED = 'family_stats_updated';
 export const COL_ORDER_CHANGED_EVENT = 'col_ordering_changed';
+export const FAMILY_SELECTED_EVENT = 'family_selected_event';
 
 
 // export const PRIMARY_COLOR = '#335b8e';
@@ -429,6 +430,8 @@ export default class TableManager {
    */
   public async selectFamily(chosenFamilyIDs?: number[]) {
 
+    console.log('selectfamily was called')
+
     // console.log('chosen Family ID is ', chosenFamilyIDs)
 
 
@@ -479,7 +482,9 @@ export default class TableManager {
 
     this.updatePOI_Primary_Secondary();
 
-    events.fire(VIEW_CHANGED_EVENT);
+    console.log('FAMILY_SELECTED_EVENT was fired')
+    // events.fire(VIEW_CHANGED_EVENT);
+    events.fire(FAMILY_SELECTED_EVENT);
   }
 
 

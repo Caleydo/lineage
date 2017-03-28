@@ -117,6 +117,7 @@ class attributeTable {
 
 
   public async update() {
+
     await this.initData();
     this.render();
   }
@@ -244,6 +245,8 @@ class attributeTable {
 
   public async initData() {
 
+    console.log('calling initData');
+
     // this.colOffsets = [-Config.slopeChartWidth];
 
     this.colOffsets = [0];
@@ -253,6 +256,7 @@ class attributeTable {
     let allCols = graphView.cols().concat(attributeView.cols());
     let colOrder = this.tableManager.colOrder;
     let orderedCols = [];
+
 
     for (const colName of colOrder) {
       for (const vector of allCols) {
@@ -268,8 +272,6 @@ class attributeTable {
     // graphIDs = graphIDs.dim(0).asList().map(d => {
     //   return d.toString()
     // });
-
-
 
 
     //Create a dictionary of y value to people
@@ -294,8 +296,6 @@ class attributeTable {
     let allRows = Object.keys(y2personDict).map(Number);
 
     // console.log('allrows', allRows)
-
-
 
 
     //Set height of svg
@@ -332,6 +332,7 @@ class attributeTable {
     let colDataAccum = [];
 
     for (const vector of orderedCols) {
+    //   orderedCols.forEach(function (vector){
       const data = await vector.data();
       let peopleIDs = await vector.names();
 
@@ -339,7 +340,7 @@ class attributeTable {
 
       let uniqueIDs = idRanges.dim(0).asList().map(d=>{return d.toString()});
 
-      console.log('col name is ', vector.desc.name, 'vector.data() size is ', data.length, 'vector.names() size is ', peopleIDs.length, 'vector.ids() size is ', uniqueIDs.length)
+      // console.log('col name is ', vector.desc.name, 'vector.data() size is ', data.length, 'vector.names() size is ', peopleIDs.length, 'vector.ids() size is ', uniqueIDs.length)
 
       const type = vector.valuetype.type;
       const name = vector.desc.name;
@@ -1855,12 +1856,14 @@ class attributeTable {
     const self = this;
 
     //
-    events.on('redraw_tree', () => {
-      self.update();
-
-    });
+    // events.on('redraw_tree', () => {
+    //   console.log(' redraw_tree calling self.update()')
+    //   self.update();
+    //
+    // });
 
     events.on(TABLE_VIS_ROWS_CHANGED_EVENT, () => {
+      console.log(' TABLE_VIS_ROWS_CHANGED_EVENT calling self.update()')
       self.update();
 
     });

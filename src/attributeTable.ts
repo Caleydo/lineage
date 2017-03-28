@@ -1489,7 +1489,8 @@ class attributeTable {
 
     this.xScale
       .domain(cellData.vector.desc.value.range)
-      .range([col_width * 0.1, col_width * 0.9]);
+      .range([col_width * 0.1, col_width * 0.9])
+      .clamp(true);
 
     //No of non-undefined elements in this array
     let numValues = cellData.data.reduce((a, v) => v ? a + 1 : a, 0);

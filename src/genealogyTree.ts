@@ -813,11 +813,11 @@ class GenealogyTree {
         selectAll('.highlightBar').filter(selected).attr('opacity', .2);
 
         //Set the age label on the lifeLine of this row to visible
-        selectAll('.lifeLine').filter((e: Node) => {
-          return e === d;
+        selectAll('.ageLineGroup').filter((e: Node) => {
+          return e.y === Math.round(d.y);
         }).filter((d: Node) => {
           return !d.aggregated && !d.hidden
-        }).select('.lifeRect').select('.ageLabel').attr('visibility', 'visible');
+        }).select('.ageLabel').attr('visibility', 'visible');
 
         selectAll('.duplicateLine').filter(selected).attr('visibility', 'visible');
 
@@ -1204,6 +1204,10 @@ class GenealogyTree {
       ageLineGroup.append('rect')
         .classed('ageLine', true)
 
+      ageLineGroup
+        .append('text')
+        .attr('class', 'ageLabel');
+
       //Add cross at the end of lifelines for deceased people
       if (d.ddate) {
         ageLineGroup
@@ -1442,47 +1446,35 @@ class GenealogyTree {
       })
 
 
-    //         .style('stroke','none')
-//
-//     //Add label to lifelines
-//     lifeRectsEnter
-//       .append('text')
-//       .attr('class', 'ageLabel');
-//
-//     lifeRects.selectAll('.ageLabel')
-//     // .attr('y', glyphSize )
-//       .attr('dy', Config.glyphSize * 0.8)
-//       .attr('dx', (d) => {
-//
-//         let ageAtDeath = Math.abs(this.x(d['ddate']) - this.x(d['bdate']));
-//         let ageToday = Math.abs(this.x(CURRENT_YEAR) - this.x(d['bdate']))
-//
-//         if (isNaN(ageAtDeath) && isNaN(ageToday)) {
-//           return '';
-//         }
-//
-//         return (+d['ddate']) ? ageAtDeath : ageToday;
-// //                 return Math.abs(this.x(d['ddate']) - this.x(d['bdate']));
-//       })
-//       .attr('text-anchor', 'end')
-//       .text(function (d) {
-//         let ageAtDeath = (d['ddate'] - d['bdate']);
-//         let ageToday = (CURRENT_YEAR - d['bdate']);
-//         if (isNaN(ageAtDeath) && isNaN(ageToday)) {
-//           return '';
-//         }
-//         return (+d['ddate']) ? ageAtDeath : ageToday;
-//
-// //                 return Math.abs(+d['ddate'] - +d['bdate']);
-//       })
-//       .attr('fill', function (d: any) {
-//         return (d.affected) ? 'black' : '#9e9d9b';
-//       })
-//       .style('font-size', Config.glyphSize * 1.5)
-//       .style('font-weight', 'bold')
-//       .attr('visibility', 'hidden');
-//
-//
+      element.select('.ageLabel')
+      .attr('dy', Config.glyphSize * 0.8)
+      .attr('dx', () => {
+
+        let ageAtDeath = Math.abs(this.x(d['ddate']) - this.x(d['bdate']));
+        let ageToday = Math.abs(this.x(CURRENT_YEAR) - this.x(d['bdate']))
+
+        if (isNaN(ageAtDeath) && isNaN(ageToday)) {
+          return '';
+        }
+
+        return (+d['ddate']) ? ageAtDeath : ageToday;
+      })
+      .attr('text-anchor', 'end')
+      .text(function () {
+        let ageAtDeath = (d['ddate'] - d['bdate']);
+        let ageToday = (CURRENT_YEAR - d['bdate']);
+        if (isNaN(ageAtDeath) && isNaN(ageToday)) {
+          return '';
+        }
+        return (+d['ddate']) ? ageAtDeath : ageToday;
+      })
+      .attr('fill', function (d: any) {
+        return (d.affected) ? 'black' : '#9e9d9b';
+      })
+      .style('font-size', Config.glyphSize * 1.5)
+      .style('font-weight', 'bold')
+      .attr('visibility', 'hidden');
+
 
 
     //

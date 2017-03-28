@@ -329,6 +329,9 @@ class GraphData {
           n.bdate = CURRENT_YEAR - 3;
         }
       }
+      if (n.ddate === 0 || isNaN(n.ddate)){
+        n.ddate = CURRENT_YEAR;
+      }
     });
 
 

@@ -352,6 +352,8 @@ class attributeTable {
         }); //get categories from index.json def
         let categories;
 
+        console.log(name,allCategories)
+
         //Only need one col for binary categories
         if (allCategories.length < 3) {
           if (allCategories.find(d => {

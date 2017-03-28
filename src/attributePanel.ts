@@ -405,6 +405,8 @@ class AttributePanel {
     // initiate this object
     await attributeHistogram.init(attributeName, dataVec, dataVec.desc.value.type);
 
+    // console.log('initializing ', attributeName, dataVec, dataVec.desc.value.type)
+
   }
 
   private update() {

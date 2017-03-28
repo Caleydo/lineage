@@ -61,6 +61,8 @@ class Histogram {
     this.categories = dataVec.desc.value.categories;
     this.data = await this.dataVec.data();
 
+    console.log(name , this.data)
+
     this.xScale = scaleLinear().range([0, this.width]).domain([0,1]);
     this.yScale = scaleLinear().range([0, this.height]).domain([0,1]);
     this.update(dataVec);
@@ -287,8 +289,8 @@ class Histogram {
     const histData: IHistogram = await categoricalDataVec.hist();
     // console.log(histData)
     const catData = [];
-    histData.forEach((d, i) => catData.push({key: histData['categories'][i], value: d}));
-    // console.log('Cate', catData);
+    histData.forEach((d, i) => {console.log(d); catData.push({key: histData['categories'][i], value: d})});
+    console.log('Cat', catData);
 
     let t = transition('t').duration(500).ease(easeLinear);
 

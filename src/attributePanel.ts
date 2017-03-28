@@ -257,8 +257,6 @@ class AttributePanel {
       list = '#inactive-menu-content';
     }
 
-    console.log('list is ', list)
-
     // we first add a div that holds the li and the svg
     const attributeElm = select(list).append('div')
       .classed('attrDiv',true)

@@ -1046,7 +1046,6 @@ class GenealogyTree {
       }
     })
 
-    console.log(couplesData)
     // Attach Couples Lines
     let couplesLines = couplesLinesGroup.selectAll('.couplesLine')
       .data(couplesData, d => {return d.id});

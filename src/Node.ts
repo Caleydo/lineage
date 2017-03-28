@@ -4,6 +4,12 @@ export enum Sex {
   Unknown
 }
 
+export enum layoutState {
+  Expanded,
+  Aggregated,
+  Hidden
+}
+
 /**
  * This class holds all attributes of a node in the genealogy graph.
  */
@@ -68,6 +74,8 @@ export default class Node {
   /** Keep track of secondary attribute and what 'affected' means for this attribute data. */
   secondary;
 
+  state: layoutState;
+
   // ----- Node State ------
 
   hidden: boolean;
@@ -111,6 +119,7 @@ export default class Node {
     this.visited = false;
     this.deceased = 'Y';
     this.aggregateBranch = false;
+    this.state = layoutState.Expanded;
   }
 
   /** Initialize the node based on rows */

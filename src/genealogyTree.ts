@@ -60,6 +60,7 @@ import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL} from 'phovea_co
 // import {TABLE_SORTED_EVENT} from './attributeTable'
 import Node from './Node';
 import {Sex} from './Node';
+import {layoutState} from './Node';
 import {isNull} from 'util';
 import {isNullOrUndefined} from 'util';
 import {search} from 'phovea_core/src';
@@ -481,7 +482,7 @@ class GenealogyTree {
         select(this)
           .attr('fill','#3b3b3b')
           .attr('opacity', .3)
-        self.data.aggregateTreeWrapper(undefined, true);
+        self.data.aggregateTreeWrapper(undefined, layoutState.Aggregated);
         self.update_graph();
       })
 
@@ -511,7 +512,7 @@ class GenealogyTree {
         select(this)
           .attr('fill','#3b3b3b')
           .attr('opacity', .3)
-        self.data.aggregateTreeWrapper(undefined, false);
+        self.data.aggregateTreeWrapper(undefined, layoutState.Hidden);
         self.update_graph();
       })
 
@@ -541,7 +542,7 @@ class GenealogyTree {
         select(this)
           .attr('fill','#3b3b3b')
           .attr('opacity', .3)
-        self.data.aggregateTreeWrapper(undefined, undefined);
+        self.data.aggregateTreeWrapper(undefined, layoutState.Expanded);
         self.update_graph();
       })
 
@@ -1372,19 +1373,19 @@ class GenealogyTree {
 
     element.selectAll('.nodeIcon')
       .on('click', (d) => {
-      if (event.altKey) {
-        this.data.aggregateTreeWrapper(d.uniqueID, false);
-        this.update_graph();
-        event.preventDefault();
-
-        return;
-      }
+      // if (event.altKey) {
+      //   this.data.aggregateTreeWrapper(d.uniqueID, false);
+      //   this.update_graph();
+      //   event.preventDefault();
+      //
+      //   return;
+      // }
 
       console.log('clicked on node', d)
 
-      this.data.aggregateTreeWrapper(d.uniqueID, true);
-      this.update_graph();
-      event.preventDefault();
+      // this.data.aggregateTreeWrapper(d.uniqueID, true);
+      // this.update_graph();
+      // event.preventDefault();
     })
       .on('mouseover', (d:Node) => {
 
@@ -1418,21 +1419,21 @@ class GenealogyTree {
             .on('click', () => {
               console.log('clicked on aggregation button')
               select('#nodeActions').attr('visibility', 'hidden');
-              this.data.aggregateTreeWrapper(d.uniqueID, true);
+              this.data.aggregateTreeWrapper(d.uniqueID, layoutState.Aggregated);
               this.update_graph();
             })
 
           select('#nodeActions').select('#hideButton')
             .on('click', () => {
               select('#nodeActions').attr('visibility', 'hidden');
-              this.data.aggregateTreeWrapper(d.uniqueID, false);
+              this.data.aggregateTreeWrapper(d.uniqueID, layoutState.Hidden);
               this.update_graph();
             })
 
           select('#nodeActions').select('#expandButton')
             .on('click', () => {
               select('#nodeActions').attr('visibility', 'hidden');
-              this.data.aggregateTreeWrapper(d.uniqueID, undefined);
+              this.data.aggregateTreeWrapper(d.uniqueID, layoutState.Expanded);
               this.update_graph();
             })
 

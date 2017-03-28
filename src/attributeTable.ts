@@ -1129,7 +1129,6 @@ class attributeTable {
               if (attr) {
                 const poi = attr; attr = attr.attributeInfo;
                if (attr.name === headerData.name) {
-                 console.log(poi,headerData)
                  if (poi.isAffected(headerData.category)){
                    const index = attr.categories.indexOf(headerData.category)
                    return attr.color[index];

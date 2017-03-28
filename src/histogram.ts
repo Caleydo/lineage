@@ -120,6 +120,8 @@ class Histogram {
     if (isNullOrUndefined(this.$node.select('.catBar').on('click'))) {
       this.addCategorySelection();
     }
+
+    this.$node.selectAll('.catBar').attr('fill','#5f6262');
     //select right bar and set classed to picked.
     this.$node.selectAll('.catBar').filter((bar)=>{ return bar.key === category; }).classed('picked',true);
     }

@@ -19,7 +19,7 @@ import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL, VALUE_TYPE_STRI
 import {line} from 'd3-shape';
 
 import {
-  PRIMARY_SECONDARY_SELECTED,
+  PRIMARY_SELECTED,
   COL_ORDER_CHANGED_EVENT,
   POI_SELECTED,
   VIEW_CHANGED_EVENT,
@@ -1122,18 +1122,20 @@ class attributeTable {
       .attr('fill', () => {
           let attr = this.tableManager.primaryAttribute;
           if (attr)
-            console.log(attr,headerData)
             if (attr && attr.name === headerData.name) {
               let index = attr.categories.indexOf(headerData.category)
               return attr.color[index]
             }
-            // else {
-            //   attr = this.tableManager.affectedState;
-            //   if (attr && attr.name === headerData.name) {
-            //     return attr.color[1]
-            //   }
-            // }
-        }
+            else {
+              attr = this.tableManager.affectedState;
+              if (attr){
+                attr = attr.attributeInfo;
+               if (attr.name === headerData.name) {
+                let index = attr.categories.indexOf(headerData.category)
+                return attr.color[index]
+              }
+            }
+        }}
       )
 
     element.select('.histogramLabel')
@@ -1244,8 +1246,8 @@ class attributeTable {
             return attr.color
           } else {
             attr = this.tableManager.affectedState;
-            if (attr && attr.name === headerData.name) {
-              return attr.color
+            if (attr && attr.attributeInfo.name === headerData.name) {
+              return attr.attributeInfo.color
             }
           }
         }
@@ -1344,9 +1346,10 @@ class attributeTable {
           if (primary && primary.name === cellData.varName) {
             attr = primary;
           }
-          // else if (poi && poi.name === cellData.varName) {
-          //   attr = poi;
-          // }
+          else if (poi && poi.name === cellData.varName) {
+            attr = poi;
+            attr = attr.attributeInfo;
+          }
 
           if (attr) {
             let ind = attr.categories.indexOf(cellData.category);
@@ -1378,9 +1381,10 @@ class attributeTable {
           if (primary && primary.name === cellData.varName) {
             attr = primary;
           }
-          // else if (poi && poi.name === cellData.varName) {
-          //   attr = poi;
-          // }
+          else if (poi && poi.name === cellData.varName) {
+            attr = poi;
+            attr = attr.attributeInfo;
+          }
 
           if (attr) {
             let ind = attr.categories.indexOf(cellData.category);
@@ -1580,8 +1584,8 @@ class attributeTable {
             return attr.color
           } else {
             attr = this.tableManager.affectedState;
-            if (attr && attr.name === cellData.name) {
-              return attr.color
+            if (attr && attr.attributeInfo.name === cellData.name) {
+              return attr.attributeInfo.color
             }
           }
         }
@@ -1867,12 +1871,15 @@ class attributeTable {
     // });
 
     events.on(TABLE_VIS_ROWS_CHANGED_EVENT, () => {
-      console.log(' TABLE_VIS_ROWS_CHANGED_EVENT calling self.update()')
       self.update();
 
     });
 
-    events.on(PRIMARY_SECONDARY_SELECTED, (evt, item) => {
+    events.on(PRIMARY_SELECTED, (evt, item) => {
+      self.render();
+    });
+
+    events.on(POI_SELECTED, (evt, item) => {
       self.render();
     });
 

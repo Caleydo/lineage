@@ -10,7 +10,7 @@ import * as histogram from './histogram';
 import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL} from 'phovea_core/src/datatype';
 import * as range from 'phovea_core/src/range';
 
-import {PRIMARY_SECONDARY_SELECTED, POI_SELECTED, COL_ORDER_CHANGED_EVENT} from './tableManager';
+import {COL_ORDER_CHANGED_EVENT} from './tableManager';
 
 
 import {Config} from './config';
@@ -210,7 +210,7 @@ class AttributePanel {
         this.tableManager[otherAttributePrimarySecondary + 'Attribute'] = undefined;
       }
 
-      this.tableManager.setPrimarySecondaryAttribute(item.name, item.primary_secondary).then((obj)=>{
+      this.tableManager.setPrimaryAttribute(item.name, item.primary_secondary).then((obj)=>{
 
         let hist = this.histograms.filter((h)=>{return h.attrName === item.name})[0];
         hist.setPrimarySecondary(obj);
@@ -315,7 +315,7 @@ class AttributePanel {
 
       // check if siblings has checked badge
       $(this).parent().children().each(function () {
-        if (select(this).attr('class').indexOf('checked_') > -1 && (badge == 'primary' || badge === 'secondary')) {
+        if (select(this).attr('class').indexOf('checked_') > -1 ){ //&& (badge == 'primary' || badge === 'secondary')) {
           console.log($(this).closest('strong').contents()[0]);
           if(!$(this).hasClass('checked_poi')) {
             $(this).removeClass().addClass('badge');

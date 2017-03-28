@@ -55,7 +55,7 @@ import {
   Config
 } from './config';
 
-import {PRIMARY_SECONDARY_SELECTED, POI_SELECTED, TABLE_VIS_ROWS_CHANGED_EVENT} from './tableManager';
+import {PRIMARY_SELECTED, POI_SELECTED, TABLE_VIS_ROWS_CHANGED_EVENT} from './tableManager';
 import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL} from 'phovea_core/src/datatype';
 // import {TABLE_SORTED_EVENT} from './attributeTable'
 import Node from './Node';
@@ -1924,48 +1924,14 @@ class GenealogyTree {
 
   private attachListeners() {
 
-    // events.on('table_row_selected', (evt, item) => {
-    //   let wasSelected = selectAll('.highlightBar').filter((d) => {
-    //     return d['id'] === item
-    //   }).classed('selected');
-    //
-    //   //'Unselect all other background bars if ctrl was not pressed
-    //   if (!event.metaKey) {
-    //     selectAll('.highlightBar').classed('selected', false);
-    //   }
-    //
-    //   selectAll('.highlightBar').filter((d) => {
-    //     return d['id'] === item
-    //   }).classed('selected', function () {
-    //     return (!wasSelected);
-    //   })
-    // });
-
     events.on(TABLE_VIS_ROWS_CHANGED_EVENT, (evt, item) => {
       this.update();
     });
 
-    // events.on(TABLE_SORTED_EVENT,(evt,item) =>{
-    //
-    //   let t = transition('t').duration(500).ease(easeLinear);
-    //
-    //   selectAll('.slopeLine')
-    //     .transition(t)
-    //     .attr('d', (d: any) => {
-    //       let nodes = this.y2personDict[item.rowOrder[item.sortedIndexes.indexOf(d.ind)]].map((id)=>{return this.data.nodes.filter((n)=>{return n.id == id.toString()})})
-    //       // console.log(max(nodes,(n:Node)=>{console.log('node is ', n[0]); return n[0].x}))
-    //       return this.slopeChart({'y':d.y, 'ind':item.sortedIndexes.indexOf(d.ind), x:max(nodes,(n:Node)=>{return n[0].ddate ? n[0].ddate : n[0].bdate})},item.rowOrder)
-    //     });
-    //
-    // })
+    events.on(PRIMARY_SELECTED, (evt, attribute) => {
 
-    events.on(PRIMARY_SECONDARY_SELECTED, (evt, attribute) => {
+      this.primaryAttribute = attribute;
 
-      if (attribute.primary) {
-        this.primaryAttribute = attribute;
-      } else {
-        this.secondaryAttribute = attribute;
-      }
       this.update_graph();
       // this.update_visible_nodes();
 
@@ -1973,38 +1939,11 @@ class GenealogyTree {
     });
 
     events.on(POI_SELECTED, (evt, affectedState) => {
-      console.log('POI', affectedState.name);
-      // this.data.uncollapseAll();
+
       this.data.defineAffected(affectedState);
-      // this.data.collapseAll();
       this.update();
     });
 
-    // events.on('table_row_hover_on', (evt, item) => {
-    //   selectAll('.highlightBar').filter((d) => {
-    //     return d['id'] === item
-    //   }).attr('opacity', .2)
-    //   selectAll('.row').filter((e) => {
-    //     return e['id'] === item
-    //   }).filter((d) => {
-    //     return !d['aggregated']
-    //   }).select('.lifeRect').select('.ageLabel').attr('visibility', 'visible');
-    //   selectAll('.row').filter((e) => {
-    //     return e['id'] === item
-    //   }).filter('.aggregated').attr('opacity', 1)
-    //   selectAll('.row').filter((e) => {
-    //     return e['id'] === item
-    //   }).select('.hex').attr('opacity', 0)
-    // });
-    //
-    // events.on('table_row_hover_off', (evt, item) => {
-    //   selectAll('.aggregated').attr('opacity', 0)
-    //   selectAll('.highlightBar').attr('opacity', 0)
-    //   selectAll('.ageLabel').attr('visibility', 'hidden');
-    //   selectAll('.row').filter((e) => {
-    //     return e['id'] === item
-    //   }).select('.hex').attr('opacity', 1)
-    // });
   }
 }
 

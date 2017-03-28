@@ -21,6 +21,8 @@ interface IAffectedState {
   data: any [];
   personIDs: Number [];
   isAffected(b: string | Number): boolean;
+
+  attributeInfo:any;
 }
 
 interface IPrimaryAttribute {
@@ -33,7 +35,7 @@ interface IPrimaryAttribute {
 }
 
 /**
- * Interface for the primary or secondary Categorical Attributes
+ * Interface for the primary Categorical and Quantitative Attributes
  */
 interface IPrimaryCatAttribute extends IPrimaryAttribute {
   categories: string[]; //Array of categories
@@ -75,7 +77,7 @@ const indexOfKindredIDColumn = 1;
 
 export const VIEW_CHANGED_EVENT = 'view_changed_event';
 export const TABLE_VIS_ROWS_CHANGED_EVENT = 'table_vis_rows_changed_event';
-export const PRIMARY_SECONDARY_SELECTED = 'primary_secondary_attribute_event';
+export const PRIMARY_SELECTED = 'primary_secondary_attribute_event';
 export const POI_SELECTED = 'affected_attribute_event';
 export const FAMILY_INFO_UPDATED = 'family_stats_updated';
 export const COL_ORDER_CHANGED_EVENT = 'col_ordering_changed';
@@ -93,6 +95,7 @@ export const FAMILY_SELECTED_EVENT = 'family_selected_event';
 //
 
 export const POI_COLOR = '#285880';
+export const POI_COLOR_2 = '#49aaf3';
 
 export const PRIMARY_COLOR =  '#598e7c';
 export const PRIMARY_COLOR_2 =  '#b5b867';
@@ -153,9 +156,9 @@ export default class TableManager {
   /** Holds the information for the 'affectedState' including variable and threshold */
   public affectedState: IAffectedState;
 
+
   //Keeps track of selected primary/secondary variable
   private primaryAttribute: attribute;
-  private secondaryAttribute: attribute;
 
 
   /**
@@ -201,10 +204,8 @@ export default class TableManager {
       selectedAttribute = this.affectedState;
     } else if (this.primaryAttribute && attribute === this.primaryAttribute.name) {
       selectedAttribute = this.primaryAttribute;
-    } else if (this.secondaryAttribute && attribute === this.secondaryAttribute.name) {
-      selectedAttribute = this.secondaryAttribute;
     } else { //Attribute is neither primary nor secondary nor POI;
-      console.log('neither POI, primary, or secondary')
+      console.log('neither POI nor primary')
       return undefined;
     }
 
@@ -251,22 +252,13 @@ export default class TableManager {
   }
 
 
-  public async setPrimarySecondaryAttribute(attributeName, primaryPOI) {
+  public async setPrimaryAttribute(attributeName) {
 
     let binaryColorChoice1, binaryColorChoice2, multipleColorChoice;
-    if (primaryPOI === 'primary') {
+
       binaryColorChoice1 = PRIMARY_COLOR;
       binaryColorChoice2 = PRIMARY_COLOR_2;
       multipleColorChoice = PRIMARY_CATEGORICAL_COLORS;
-    }
-
-    else if (primaryPOI === 'poi') {
-      binaryColorChoice1 = POI_COLOR;
-      binaryColorChoice2 = POI_COLOR;
-
-      multipleColorChoice = [POI_COLOR,POI_COLOR,POI_COLOR,POI_COLOR,POI_COLOR,POI_COLOR];
-    }
-
 
     let attributeVector;
     let categories;
@@ -282,15 +274,16 @@ export default class TableManager {
     });
 
     //Store data and associated personIDs for graph rendering of attribute bars
-    const attributeDefinition: IPrimaryAttribute = {
-      name: attributeName, primary: primaryPOI === 'primary', type: attributeVector.valuetype.type,
+    let attributeDefinition: IPrimaryAttribute = {
+      name: attributeName, primary:true, type: attributeVector.valuetype.type,
       'data': await attributeVector.data(), 'range':attributeVector.desc.value.range, 'personIDs': (await attributeVector.names())
     };
 
     const data = await attributeVector.data();
     if (attributeDefinition.type === VALUE_TYPE_CATEGORICAL) {
       const categoricalDefinition = <IPrimaryCatAttribute> attributeDefinition;
-      categories = attributeVector.desc.value.categories.map((c) => {
+      // this.primaryAttribute = <IPrimaryCatAttribute> this.primaryAttribute;
+        categories = attributeVector.desc.value.categories.map((c) => {
         return c.name;
       }); //get categories from index.json def
       // categories = Array.from(new Set(data)).sort(); //derive categories from data
@@ -303,18 +296,20 @@ export default class TableManager {
       categoricalDefinition.categories = categories;
       categoricalDefinition.color = color;
     } else if (attributeDefinition.type === VALUE_TYPE_INT || attributeDefinition.type === VALUE_TYPE_REAL) {
+      // this.primaryAttribute = <IPrimaryQuantAttribute> this.primaryAttribute;
       const quantDefinition = <IPrimaryQuantAttribute> attributeDefinition;
       quantDefinition.stats = await attributeVector.stats();
       quantDefinition.color = binaryColorChoice1;
     }
     // console.log(Attribute)
 
+    // this.primaryAttribute = attributeDefinition;
+    let primaryPOI = 'primary'
     this[primaryPOI + 'Attribute'] = attributeDefinition;
 
-    events.fire(PRIMARY_SECONDARY_SELECTED, attributeDefinition);
+    events.fire(PRIMARY_SELECTED, attributeDefinition);
 
     return attributeDefinition; //used by the attribute Panel to set the appropriate colors;
-
 
   }
 
@@ -337,15 +332,6 @@ export default class TableManager {
 
       this.primaryAttribute.data = await attributeVector.data();
       this.primaryAttribute.personIDs = (await attributeVector.names());
-
-    }
-
-    if (this.secondaryAttribute) {
-      const attributeVector = await this.getAttributeVector(this.secondaryAttribute.name);
-      const varType = attributeVector.valuetype.type;
-
-      this.secondaryAttribute.data = await attributeVector.data();
-      this.secondaryAttribute.personIDs = (await attributeVector.names());
 
     }
   }
@@ -409,13 +395,56 @@ export default class TableManager {
     const data = await attributeVector.data();
     const personIDs = (await attributeVector.names());
 
+    let binaryColorChoice1, binaryColorChoice2, multipleColorChoice;
+
+    binaryColorChoice1 = POI_COLOR;
+    binaryColorChoice2 = POI_COLOR_2;
+    multipleColorChoice = PRIMARY_CATEGORICAL_COLORS; //FIXME need to pick new colors
+
+    let categories;
+    let color;
+
+    //Store data and associated personIDs for graph rendering of attribute bars
+    let attributeDefinition: IPrimaryAttribute = {
+      name: varName, primary:false, type: varType,
+      'data': data, 'range':attributeVector.desc.value.range, 'personIDs': (await attributeVector.names())
+    };
+
+
+    if (attributeDefinition.type === VALUE_TYPE_CATEGORICAL) {
+      const categoricalDefinition = <IPrimaryCatAttribute> attributeDefinition;
+      categories = attributeVector.desc.value.categories.map((c) => {
+        return c.name;
+      });
+
+      if (categories.length === 2) {//binary categorical data
+        color = [binaryColorChoice2, binaryColorChoice1];
+      } else {
+        color = multipleColorChoice.slice(0, categories.length); //extract one color per category;
+      }
+      categoricalDefinition.categories = categories;
+      categoricalDefinition.color = color;
+
+    } else if (attributeDefinition.type === VALUE_TYPE_INT || attributeDefinition.type === VALUE_TYPE_REAL) {
+      const quantDefinition = <IPrimaryQuantAttribute> attributeDefinition;
+      quantDefinition.stats = await attributeVector.stats();
+      quantDefinition.color = binaryColorChoice1;
+    }
+
     this.affectedState = ({
       name: varName,
       type: varType,
       'isAffected': isAffectedCallbackFcn,
       'data': data,
-      'personIDs': personIDs
-    });
+      'personIDs': personIDs,
+      'attributeInfo':attributeDefinition
+  });
+
+    //if Primary Attribute was previously set to this same attribute, clear primary
+    if (this.primaryAttribute && this.primaryAttribute.name === this.affectedState.name){
+      this.primaryAttribute = undefined;
+      events.fire(PRIMARY_SELECTED, undefined);
+    }
 
     //Update family selector
     this.updateFamilyStats();

@@ -343,16 +343,6 @@ class GenealogyTree {
       .append('g')
       .attr('id', 'highlightBars');
 
-    // //create a group for slopeChart
-    // select('#genealogyTree')
-    //   .append('g')
-    //   .attr('id', 'slopeChart');
-
-    //create a group for lifeLines
-    select('#genealogyTree')
-      .append('g')
-      .attr('id', 'lifeLines');
-
     //create a group for kidGrids
     select('#genealogyTree')
       .append('g')
@@ -362,6 +352,71 @@ class GenealogyTree {
     select('#genealogyTree')
       .append('g')
       .attr('id', 'nodes');
+
+    //create a group in the fore-foreground for menus
+    select('#genealogyTree')
+      .append('g')
+      .attr('id', 'menus');
+    // .attr('transform', 'translate(' + xOffset + ' , ' + yOffset + ' )')
+
+    let button = select('#menus')
+      .append('g')
+      // .attr('transform', 'translate(' + xOffset + ' , ' + yOffset + ' )')
+      .attr('id','nodeActions')
+      // .attr('visibility','hidden')
+
+    button.append('rect')
+      .classed('nodeButton',true)
+      .attr('y', -18)
+
+    button.append('text')
+      .classed('nodeButtonText', true)
+      .attr('y',-8)
+      .attr('x',5)
+      .text('Aggregate')
+
+    button.append('rect')
+      .classed('nodeButton',true)
+      .attr('y', 0)
+
+    button.append('text')
+      .classed('nodeButtonText', true)
+      .attr('y',10)
+      .attr('x',5)
+      .text('Hide')
+
+    button.append('rect')
+      .classed('nodeButton',true)
+      .attr('y', 18)
+
+    button.append('text')
+      .classed('nodeButtonText', true)
+      .attr('y',28)
+      .attr('x',5)
+      .text('Expand')
+
+    selectAll('.nodeButtonText')
+      .attr('text-anchor', 'start')
+      .attr('fill', 'white')
+      .attr('font-size',12)
+
+    selectAll('.nodeButton')
+      .attr('width', 60)
+      .attr('height', 15)
+      .attr('fill', '#393837')
+      .attr('opacity', .8)
+      .attr('x', 0)
+      .attr('rx', 2)
+      .attr('ry', 10)
+      .on('click', function (d) {
+        // selectAll('.button').attr('fill', '#959492')
+        //   .attr('opacity', .1)
+        // select(this)
+        //   .attr('fill','#3b3b3b')
+        //   .attr('opacity', .3)
+        // self.data.aggregateTreeWrapper(undefined, true);
+        // self.update_graph();
+      })
 
 
     //Create group for all time axis
@@ -391,12 +446,12 @@ class GenealogyTree {
       .attr('id', 'legend');
 
     //Add button to slopeChart Div that says 'revert to Tree Order'
-    let button = legend
+    button = legend
       .append('g')
       .attr('transform', 'translate(0,'  + (-65) + ')')
       .attr('id', 'treeButtons')
 
-    let self = this;
+    const self = this;
     button.append('rect')
       .classed('button',true)
       .attr('id','aggregateAllButton')
@@ -1222,12 +1277,12 @@ class GenealogyTree {
     if (d.ddate && element.selectAll('.nodeLine').size() === 0) {
       element
         .append('line')
-        .attr('class', 'nodeLine')
+        .attr('class', 'nodeLine');
     }
 
     let m1, m2, f1, f2, strokeWidth, glyphSize, radius, lineGlyphSize;
 
-    if (d['hidden'] && !d['hasChildren']) {
+    if (d.hidden && !d.hasChildren) {
       f1 = 2 / 3;
       m1 = 1 / 3;
       f2 = 2 / 3;
@@ -1235,9 +1290,8 @@ class GenealogyTree {
       strokeWidth = 1;
       lineGlyphSize = Config.hiddenGlyphSize;
       glyphSize = Config.hiddenGlyphSize;
-      radius = Config.hiddenGlyphSize / 2
-
-    } else if (d['hidden'] && d['hasChildren']) {
+      radius = Config.hiddenGlyphSize / 2;
+    } else if (d.hidden && d.hasChildren) {
       f1 = 1;
       m1 = 1 / 3;
       f2 = 1;
@@ -1245,7 +1299,7 @@ class GenealogyTree {
       strokeWidth = 1;
       lineGlyphSize = Config.hiddenGlyphSize;
       glyphSize = Config.glyphSize * .75;
-      radius = Config.glyphSize * .45
+      radius = Config.glyphSize * .45;
 
     } else {
       f1 = 1;
@@ -1281,14 +1335,13 @@ class GenealogyTree {
         element
           .append('rect')
           .classed('male', true)
-          .classed('nodeIcon', true)
+          .classed('nodeIcon', true);
       } else {
         element
           .append('circle')
           .classed('female', true)
-          .classed('nodeIcon', true)
+          .classed('nodeIcon', true);
       }
-
 
       //Add Attribute Bars next to node glyphs
       element
@@ -1299,10 +1352,11 @@ class GenealogyTree {
       element
         .append('rect')
         .classed('attributeBar', true)
-        .classed('primary', true)
+        .classed('primary', true);
 
 
     }
+
 
     element.selectAll('.nodeIcon')
       .on('click', (d) => {
@@ -1320,7 +1374,7 @@ class GenealogyTree {
       this.update_graph();
       event.preventDefault();
     })
-      .on('mouseover', function (d:Node) {
+      .on('mouseover', (d:Node) => {
 
         function selected(e: Node) {
           let returnValue = false;
@@ -1334,6 +1388,17 @@ class GenealogyTree {
           });
           return returnValue;
         }
+
+        select('#nodeActions').attr('visibility', 'visible');
+
+        let xOffset, yOffset;
+        if (d.sex === Sex.Female) {
+          xOffset = 12; yOffset = -8;
+        } else {
+          xOffset = 20; yOffset = 0;
+        }
+
+        select('#nodeActions').attr('transform', 'translate(' + (this.xPOS(d) + xOffset) + ' , ' + (this.yPOS(d) + yOffset) + ' )')
 
         selectAll('.slopeLine').classed('selectedSlope', false);
 
@@ -1832,31 +1897,58 @@ class GenealogyTree {
   // }
 
 
-  private xPOS(node) {
+  /**
+   *
+   * This function returns the x position for a given node.
+   *
+   * @param node node to position
+   * @param offset optional flag to only return the offset for male/female and not the position in the whole svg.
+   */
+  private xPOS(node:Node,offset?:boolean) {
 
-    if (node['sex'] === Sex.Male) {
-      if (node['hidden'] && node['hasChildren'])
-        return this.x(node.x) - Config.hiddenGlyphSize*.8;
-      if (!node['hidden'])
-        return this.x(node.x) - Config.glyphSize;
-      if (node['hidden'] && !node['hasChildren'])
-        return this.x(node.x) - Config.hiddenGlyphSize / 2;
+    if (offset == null) {
+      offset = false;
+    }
+
+    if (node.sex === Sex.Male) {
+      if (node.hidden && node.hasChildren)
+        return !offset? this.x(node.x) - Config.hiddenGlyphSize*.8 : -Config.hiddenGlyphSize*.8;
+      if (!node.hidden)
+        return !offset? this.x(node.x) - Config.glyphSize : -Config.glyphSize;
+      if (node.hidden && !node.hasChildren)
+        return !offset? this.x(node.x) - Config.hiddenGlyphSize / 2 : -Config.hiddenGlyphSize / 2;
     }
     else
-      return this.x(node.x);
+      return !offset? this.x(node.x) : 0;
   }
 
-  private yPOS(node) {
-    if (node['sex'] === Sex.Male) {
-      if (node['hidden'] && node['hasChildren'])
-        return this.y(node.y) - Config.hiddenGlyphSize;
-      if (!node['hidden'])
-        return this.y(node.y) - Config.glyphSize;
-      if (node['hidden'] && !node['hasChildren'])
-        return this.y(node.y) - Config.hiddenGlyphSize;
+  /**
+   *
+   * This function returns the x position for a given node.
+   *
+   * @param node node to position
+   * @param offset optional flag to only return the offset for male/female and not the position in the whole svg.
+   */
+  private yPOS(node:Node,offset?) {
+
+    if (offset == null) {
+      offset = false;
     }
-    else
-      return this.y(node.y)
+
+    if (node.sex=== Sex.Male) {
+      if (node.hidden && node.hasChildren) {
+        return !offset ? this.y(node.y) - Config.hiddenGlyphSize : -Config.hiddenGlyphSize;
+      }
+      if (!node.hidden) {
+        return !offset ? this.y(node.y) - Config.glyphSize : -Config.glyphSize;
+      }
+      if (node.hidden && !node.hasChildren) {
+        return !offset ? this.y(node.y) - Config.hiddenGlyphSize : -Config.hiddenGlyphSize;
+      }
+    } else {
+      return !offset? this.y(node.y) : 0;
+    }
+
   }
 
   private elbow(d, interGenerationScale, lineFunction, curves) {

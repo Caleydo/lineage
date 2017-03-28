@@ -345,37 +345,44 @@ class GenealogyTree {
 
 
 
+    //create a group for the mouseCatcher rect
+    select('#genealogyTree')
+      .append('g')
+      .attr('id', 'mouseCatcher');
+
     //create a group in the foreground for nodes
     select('#genealogyTree')
       .append('g')
       .attr('id', 'nodes');
+
 
     //create a group in the fore-foreground for menus
     select('#genealogyTree')
       .append('g')
       .attr('id', 'menus');
 
-    //create a group for the mouseCatcher rect
-    select('#genealogyTree')
-      .append('g')
-      .attr('id', 'mouseCatcher');
 
 
-    //   // //Add invisible rectangle to serve as a mouse catcher for the menu
-    select('#mouseCatcher').append('rect')
-      .attr('width',110)
-      .attr('height',80)
-      .attr('fill','transparent')
-      // .attr('opacity',.5)
-      // .attr('visibility','hidden')
-      .on('mouseout',()=>{
-        select('#nodeActions').attr('visibility', 'hidden');
-      });
+
+    // //   // //Add invisible rectangle to serve as a mouse catcher for the menu
+    // select('#mouseCatcher').append('rect')
+    //   .attr('width',30)
+    //   .attr('height',80)
+    //   // .attr('fill','transparent')
+    //   .attr('fill', 'red')
+    //   .attr('opacity',.5)
+    //   // .attr('visibility','hidden')
+    //   .on('mouseout',()=>{
+    //     select('#nodeActions').attr('visibility', 'hidden');
+    //   });
 
     let button = select('#menus')
       .append('g')
       .attr('id','nodeActions')
       .attr('visibility','hidden')
+      // .on('mouseout',()=>{
+      //   select('#nodeActions').attr('visibility', 'hidden');
+      // });
 
     button.append('rect')
       .classed('nodeButton',true)
@@ -1409,6 +1416,7 @@ class GenealogyTree {
 
           select('#nodeActions').select('#aggregateButton')
             .on('click', () => {
+              console.log('clicked on aggregation button')
               select('#nodeActions').attr('visibility', 'hidden');
               this.data.aggregateTreeWrapper(d.uniqueID, true);
               this.update_graph();
@@ -1430,6 +1438,8 @@ class GenealogyTree {
 
           select('#mouseCatcher').attr('transform', 'translate(' + (this.xPOS(d) -20) + ' , ' + (this.yPOS(d) -35) + ' )')
 
+        } else {
+          select('#nodeActions').attr('visibility', 'hidden');
         }
 
         selectAll('.slopeLine').classed('selectedSlope', false);

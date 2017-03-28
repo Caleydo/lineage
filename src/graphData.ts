@@ -616,7 +616,7 @@ class GraphData {
 
 
     //Clear tree of y values and aggregated and hidden flags;
-    this.nodes.forEach(n=>{
+    this.nodes.forEach(n => {
       n.y = undefined
       n.aggregated = false;
       n.hidden = false;

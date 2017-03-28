@@ -1127,10 +1127,14 @@ class attributeTable {
             } else {
               attr = this.tableManager.affectedState;
               if (attr) {
-                attr = attr.attributeInfo;
+                const poi = attr; attr = attr.attributeInfo;
                if (attr.name === headerData.name) {
-                const index = attr.categories.indexOf(headerData.category)
-                return attr.color[index];
+                 console.log(poi,headerData)
+                 if (poi.isAffected(headerData.category)){
+                   const index = attr.categories.indexOf(headerData.category)
+                   return attr.color[index];
+                 }
+
               }
             }
         }}

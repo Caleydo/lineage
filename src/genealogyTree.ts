@@ -983,17 +983,17 @@ class GenealogyTree {
 
     couplesLines
       .attr('x1', (d:any) => {
-        return this.x(d.x) + Config.glyphSize*.85;
+        return this.x(d.x) + Config.glyphSize*.9;
       })
       .attr('y1', (d:any)=> {
         return this.y(d.y-0.4)
       })
       .attr('x2', (d:any) => {
-        return this.x(d.x) + Config.glyphSize*.85;
+        return this.x(d.x) + Config.glyphSize*.9;
       })
       .attr('y2', (d:any) =>{
         if (d.extend){
-          return this.y(d.y+0.7)
+          return this.y(d.y+1)
         }
         return this.y(d.y+0.4)
       })
@@ -1368,7 +1368,7 @@ class GenealogyTree {
           if (attr && data && attr.type === VALUE_TYPE_CATEGORICAL) {
             height = Config.glyphSize * 2;
           } else if (attr && data && (attr.type === VALUE_TYPE_INT || attr.type === VALUE_TYPE_REAL)) {
-            this.attributeBarY.domain([attr.stats.min, attr.stats.max]);
+            this.attributeBarY.domain(attr.range).clamp(true);
             height = this.attributeBarY(data);
           }
         }
@@ -1381,7 +1381,7 @@ class GenealogyTree {
         if (attr) {
           let data = this.data.getAttribute(attr.name, d.id);
           if (attr && data && (attr.type === VALUE_TYPE_INT || attr.type === VALUE_TYPE_REAL)) {
-            this.attributeBarY.domain([attr.stats.min, attr.stats.max]);
+            this.attributeBarY.domain(attr.range).clamp(true);
             y = Config.glyphSize * 2 - this.attributeBarY(data);
           }
           return d.sex === Sex.Female ? (-Config.glyphSize) + y : y
@@ -1774,39 +1774,39 @@ class GenealogyTree {
 
   }
 
-
-  //Function that repositions the visible nodes to fill the graph.
-  private update_visible_nodes() {
-
-    // console.log('called update_visible_nodes');
-
-    let scrollOffset = document.getElementById('graph_table').scrollTop;
-    let divHeight = document.getElementById('graph_table').offsetHeight;
-
-    // 	          console.log(divHeight, this.y(65),this.y(72), (divHeight + scrollOffset) - 75)
-
-    let minY = this.y.invert(scrollOffset) - 2;
-    let maxY = this.y.invert(divHeight + scrollOffset - 75);
-
-    let filtered_nodes = this.data.nodes.filter((d) => {
-      return d['y'] >= Math.round(minY);
-    });
-
-
-    let filtered_parentParentEdges = this.data.parentParentEdges.filter((d) => {
-      return d['ma'].y >= Math.round(minY) && d['pa'].y >= Math.round(minY);
-    });
-
-    let filtered_parentChildEdges = this.data.parentChildEdges.filter((d) => {
-      return d.target.y >= Math.round(minY);
-    });
-
-
-    //Call function that updates the position of all elements in the tree
-    this.update_graph()
-
-
-  }
+  //
+  // //Function that repositions the visible nodes to fill the graph.
+  // private update_visible_nodes() {
+  //
+  //   // console.log('called update_visible_nodes');
+  //
+  //   let scrollOffset = document.getElementById('graph_table').scrollTop;
+  //   let divHeight = document.getElementById('graph_table').offsetHeight;
+  //
+  //   // 	          console.log(divHeight, this.y(65),this.y(72), (divHeight + scrollOffset) - 75)
+  //
+  //   let minY = this.y.invert(scrollOffset) - 2;
+  //   let maxY = this.y.invert(divHeight + scrollOffset - 75);
+  //
+  //   let filtered_nodes = this.data.nodes.filter((d) => {
+  //     return d['y'] >= Math.round(minY);
+  //   });
+  //
+  //
+  //   let filtered_parentParentEdges = this.data.parentParentEdges.filter((d) => {
+  //     return d['ma'].y >= Math.round(minY) && d['pa'].y >= Math.round(minY);
+  //   });
+  //
+  //   let filtered_parentChildEdges = this.data.parentChildEdges.filter((d) => {
+  //     return d.target.y >= Math.round(minY);
+  //   });
+  //
+  //
+  //   //Call function that updates the position of all elements in the tree
+  //   this.update_graph()
+  //
+  //
+  // }
 
 
   private xPOS(node) {

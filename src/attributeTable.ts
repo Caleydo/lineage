@@ -1291,8 +1291,6 @@ class attributeTable {
       return (c === cellData.category)
     }).length
 
-    // console.log('category is ', cellData.category , ' . Data is ', cellData.data, ' numValues is ', numValues)
-    // console.log('cellData is ', cellData);
     element.selectAll('rect').remove(); //Hack. don't know why the height of the rects isn' being updated.
 
     if (numValidValues < 1) {

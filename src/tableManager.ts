@@ -28,6 +28,7 @@ interface IPrimaryAttribute {
   name: string; //attribute Name
   type: string; //Binary or MultiCategory *Should not be strings or idtypes.*
   data: any [];
+  range: any[];
   personIDs: Number [];
 }
 
@@ -283,7 +284,7 @@ export default class TableManager {
     //Store data and associated personIDs for graph rendering of attribute bars
     const attributeDefinition: IPrimaryAttribute = {
       name: attributeName, primary: primaryPOI === 'primary', type: attributeVector.valuetype.type,
-      'data': await attributeVector.data(), 'personIDs': (await attributeVector.names())
+      'data': await attributeVector.data(), 'range':attributeVector.desc.value.range, 'personIDs': (await attributeVector.names())
     };
 
     const data = await attributeVector.data();

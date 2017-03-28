@@ -27,10 +27,10 @@ $affected-node-color: #285880;
   color: #0e2231 !important;
 }
 
-#legend, .nodeActions{
+#legend, #nodeActions{
   //fill: #e7e7e7;
   fill: #626262;
-  opacity:.9;
+  opacity:1;
   stroke:none;
   //stroke: #b6b6b6;
   //stroke-width: 2px;
@@ -491,6 +491,7 @@ rect.selected{
 .ageLineGroup,
 .nodeLine,
 .highlightBar,
+.nodeButtonText,
 .kidGrid{
 	pointer-events: none;
 }

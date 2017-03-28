@@ -359,9 +359,9 @@ class attributeTable {
             })) {
             categories = ['Y']
           } else if (allCategories.find(d => {
-              return d === 'TRUE'
+              return d === 'True'
             })) {
-            categories = ['TRUE']
+            categories = ['True']
           } else if (allCategories.find(d => {
               return d === 'F'
             })) {

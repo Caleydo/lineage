@@ -968,23 +968,19 @@ class GenealogyTree {
       return undefined
     }
 
-    // // No children or no unaffected children
-    // if (!n.hasChildren  || isUndefined(n.children.find((c:Node) => { return !c.affected}))){
-    //   return undefined;
-    // }
-    //
-    // //No leaf children
-    // if (n.hasChildren && isUndefined(n.children.find((c:Node)=>{return !c.hasChildren}))){
-    //   return undefined;
-    // }
-
     //Dangling Node
     if (n.spouse.length === 0){
       return undefined
     }
 
-
+    if (n.affected && !isUndefined(n.spouse.find((s:Node)=>{return !s.aggregated && !s.affected}))){
+      return undefined;
+    }
     let parents = [n].concat(n.spouse);
+
+    if (isUndefined(parents.find((p:Node)=>{return p.hidden})) && isUndefined(n.children.find((p:Node)=>{return p.hidden}))){
+        return undefined;
+    }
 
     //All parents are affected and they have at least one aggregated child
     if (isUndefined(parents.find((p:Node)=>{return !p.affected}))){
@@ -1007,13 +1003,24 @@ class GenealogyTree {
       let maxKidGridRows = max([girls.length,boys.length]);
 
 
-      if (unaffectedParent.aggregated){
-        if (isUndefined(affectedParent)){
+      if (unaffectedParent.hidden){
+        if (isUndefined(affectedParent) && unaffectedParent.aggregated){
           return {'x':unaffectedParent.x, 'y':Math.round(unaffectedParent.y),'id':n.uniqueID,'extend':false,
             'kids':min([4,maxKidGridRows])}
         } else {
-          return {'x':unaffectedParent.x, 'y':Math.round(unaffectedParent.y),'id':n.uniqueID,'extend':true,
-            'kids':min([4,maxKidGridRows])}
+
+          if (unaffectedParent.aggregated) {
+            return {
+              'x': unaffectedParent.x, 'y': Math.round(unaffectedParent.y), 'id': n.uniqueID, 'extend': true,
+              'kids': min([4, maxKidGridRows])
+            }
+          } else {
+            return {
+              'x': unaffectedParent.x, 'y': Math.round(unaffectedParent.y), 'id': n.uniqueID, 'extend': false,
+              'kids': min([4, maxKidGridRows])
+            }
+
+          }
         }
       } else {
         return undefined;
@@ -1039,10 +1046,12 @@ class GenealogyTree {
       }
     })
 
+    console.log(couplesData)
     // Attach Couples Lines
     let couplesLines = couplesLinesGroup.selectAll('.couplesLine')
       .data(couplesData, d => {return d.id});
 
+    couplesLines.exit().remove();
 
     const couplesLinesEnter = couplesLines
       .enter()
@@ -1051,9 +1060,6 @@ class GenealogyTree {
       // .attr('visibility', 'hidden')
 
     couplesLines = couplesLinesEnter.merge(couplesLines)
-
-    couplesLines.exit().remove();
-
 
     couplesLines
       .attr('x1', (d:any) => {
@@ -1079,18 +1085,17 @@ class GenealogyTree {
     let backgroundRects = kidGridsGroup.selectAll('.kidGrids')
       .data(couplesData, d => {return d.id});
 
+    backgroundRects.exit().remove();
 
     const backgroundRectsEnter = backgroundRects
       .enter()
       .append('rect')
       .attr('class', 'kidGrids')
 
-    backgroundRects = backgroundRectsEnter.merge(backgroundRects)
-
-    backgroundRects.exit().remove();
+    backgroundRects = backgroundRectsEnter.merge(backgroundRects);
 
 
-    backgroundRects.select('.rect')
+    backgroundRects
       .attr('x', (d:any) => {
         return this.x(d.x) - Config.glyphSize*1.2;
       })
@@ -1102,9 +1107,6 @@ class GenealogyTree {
       .style('fill', 'url(#kidGridGradient)')
 
   }
-
-
-
 
   private addNodes() {
 

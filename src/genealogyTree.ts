@@ -1304,9 +1304,8 @@ class GenealogyTree {
 
     }
 
-    element.selectAll('.nodeIcon').on('click', (d) => {
-
-
+    element.selectAll('.nodeIcon')
+      .on('click', (d) => {
       if (event.altKey) {
         this.data.aggregateTreeWrapper(d.uniqueID, false);
         this.update_graph();
@@ -1320,9 +1319,41 @@ class GenealogyTree {
       this.data.aggregateTreeWrapper(d.uniqueID, true);
       this.update_graph();
       event.preventDefault();
-
-
     })
+      .on('mouseover', function (d:Node) {
+
+        function selected(e: Node) {
+          let returnValue = false;
+          //Highlight the current row in the graph and table
+          if (e.y === Math.round(d.y))
+            returnValue = true;
+          //Highlight any duplicates for this node
+          d.duplicates.forEach(dup => {
+            if (Math.round(dup.y) === Math.round(e.y))
+              returnValue = true;
+          });
+          return returnValue;
+        }
+
+        selectAll('.slopeLine').classed('selectedSlope', false);
+
+        selectAll('.slopeLine').filter((e: Node) => {
+
+          return e.y === Math.round(d.y);
+        }).classed('selectedSlope', true)
+
+        //Set opacity of corresponding highlightBar
+        selectAll('.highlightBar').filter(selected).attr('opacity', .2);
+
+        //Set the age label on the lifeLine of this row to visible
+        selectAll('.ageLineGroup').filter((e: Node) => {
+          return e.y === Math.round(d.y);
+        }).filter((d: Node) => {
+          return !d.aggregated && !d.hidden
+        }).select('.ageLabel').attr('visibility', 'visible');
+
+        selectAll('.duplicateLine').filter(selected).attr('visibility', 'visible');
+      })
 
     //Size hidden nodes differently
     //regular nodes

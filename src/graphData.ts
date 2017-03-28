@@ -92,8 +92,8 @@ class GraphData {
 
   private removeCyclesHelper(node: Node) {
 
-    if (node.visited) {
-      console.log('found child cycle with ', node.id);
+    if (node.visited && node.spouse.length>0) {
+      console.log('found child cycle with ', node.id, node.spouse);
 
 
       //Create Duplicate Node in the 'child' role and leave the current one as the parent/spouse
@@ -101,6 +101,7 @@ class GraphData {
 
       duplicateNode.id = node.id;
       duplicateNode.uniqueID = Math.random().toString();
+      duplicateNode.visited = false;
 
       //Add each node to the other's 'duplicate' array
       node.duplicates.push(duplicateNode);
@@ -137,83 +138,87 @@ class GraphData {
       this.nodes.push(duplicateNode);
 
 
-      console.log('L132')
+      // console.log('L132')
       //clear visited status of this persons spouse(s) and the branch starting at this couple;
       // console.log('clearing visited status of', node.id)
       node.visited = false;
       this.clearVisitedBranch(node);
-      console.log('L136')
+      // console.log('L136')
+    } else {
+      // console.log('setting node ', node.id, ' visited status to true')
+      node.visited = true;
+      node.spouse.forEach((s: Node) => {
+        // console.log('visited status of ', s.id, ' is ', s.visited)
+        if (s.visited) {
+          console.log('found spouse cycle between  ', node.id, ' and ', s.id);
+          //choose the person who is part of the blood family (i.e, who have a mom and dad in this family) and duplicate them.
+          let toDuplicate;
+          if (node.ma) {
+            toDuplicate = node;
+          } else if (s.ma) {
+            toDuplicate = s;
+          } else {
+            console.log('neither person has parents in this family!');
+          }
+
+
+          if (!isUndefined(toDuplicate)) {
+            const duplicateNode = Object.assign({}, toDuplicate);
+
+
+            duplicateNode.id = toDuplicate.id;
+            duplicateNode.uniqueID = Math.random().toString();
+            duplicateNode.visited = false;
+
+            //Add each node to the other's 'duplicate' array
+            toDuplicate.duplicates.push(duplicateNode);
+            duplicateNode.duplicates.push(toDuplicate);
+
+            //Remove node from parent's 'children' array
+            let childIndex = toDuplicate.ma.children.indexOf(node);
+            toDuplicate.ma.children.splice(childIndex, 1);
+
+            childIndex = toDuplicate.pa.children.indexOf(toDuplicate);
+            toDuplicate.pa.children.splice(childIndex, 1);
+
+            // Clear child/spousal links from duplicate node;
+            duplicateNode.hasChildren = false;
+            duplicateNode.children = [];
+            duplicateNode.spouse = [];
+
+            duplicateNode.ma.children.push(duplicateNode);
+            duplicateNode.pa.children.push(duplicateNode);
+
+            //Replace node with 'duplicateNode' in the parentChild edge.
+            const parentChildEdge = this.parentChildEdges.filter((e) => {
+              return e.target === toDuplicate;
+            })[0];
+            parentChildEdge.target = duplicateNode;
+
+            //clear parent references
+            toDuplicate.maId = 0;
+            toDuplicate.paID = 0;
+
+            toDuplicate.ma = undefined;
+            toDuplicate.pa = undefined;
+
+            this.nodes.push(duplicateNode);
+
+            //clear visited status of this persons spouse(s) and the branch starting at this couple;
+            // console.log('clearing visited of', toDuplicate.id)
+            toDuplicate.visited = false;
+            this.clearVisitedBranch(toDuplicate);
+
+          }
+
+        }
+
+        // console.log('setting spouse ', s.id , ' visited status to true')
+        s.visited = true;
+
+
+      });
     }
-
-    // console.log('visiting', node.id)
-    node.visited = true;
-
-    node.spouse.forEach((s: Node) => {
-      if (s.visited) {
-        console.log('found spouse cycle between  ', node.id, ' and ', s.id);
-        //choose the person who is part of the blood family (i.e, who have a mom and dad in this family) and duplicate them.
-        let toDuplicate;
-        if (node.ma) {
-          toDuplicate = node;
-        } else if (s.ma) {
-          toDuplicate = s;
-        } else {
-          console.log('neither person has parents in this family!');
-        }
-
-        if (!isUndefined(toDuplicate)) {
-          const duplicateNode = Object.assign({}, toDuplicate);
-
-          duplicateNode.id = toDuplicate.id;
-
-          //Add each node to the other's 'duplicate' array
-          toDuplicate.duplicates.push(duplicateNode);
-          duplicateNode.duplicates.push(toDuplicate);
-
-          //Remove node from parent's 'children' array
-          let childIndex = toDuplicate.ma.children.indexOf(node);
-          toDuplicate.ma.children.splice(childIndex, 1);
-
-          childIndex = toDuplicate.pa.children.indexOf(toDuplicate);
-          toDuplicate.pa.children.splice(childIndex, 1);
-
-          // Clear child/spousal links from duplicate node;
-          duplicateNode.hasChildren = false;
-          duplicateNode.children = [];
-          duplicateNode.spouse = [];
-
-          duplicateNode.ma.children.push(duplicateNode);
-          duplicateNode.pa.children.push(duplicateNode);
-
-          //Replace node with 'duplicateNode' in the parentChild edge.
-          const parentChildEdge = this.parentChildEdges.filter((e) => {
-            return e.target === toDuplicate;
-          })[0];
-          parentChildEdge.target = duplicateNode;
-
-          //clear parent references
-          toDuplicate.maId = 0;
-          toDuplicate.paID = 0;
-
-          toDuplicate.ma = undefined;
-          toDuplicate.pa = undefined;
-
-          this.nodes.push(duplicateNode);
-
-          //clear visited status of this persons spouse(s) and the branch starting at this couple;
-          // console.log('clearing visited of', toDuplicate.id)
-          toDuplicate.visited = false;
-          this.clearVisitedBranch(toDuplicate);
-
-        }
-
-      }
-      s.visited = true;
-    });
-
-    // console.log('node children for ', node.id,  ' are' , node.children.map((c) => {
-    //   return (c.id)
-    // }))
 
     node.children.forEach((c) => {
       // console.log('applying RCH on ', c.id)
@@ -238,7 +243,6 @@ class GraphData {
     }
     //set all spouses to false
     node.spouse.forEach((s) => {
-      // console.log('clearing visited of spouse within CVB', s.id)
       s.visited = false;
     });
 

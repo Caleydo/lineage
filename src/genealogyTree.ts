@@ -62,7 +62,7 @@ import Node from './Node';
 import {Sex} from './Node';
 import {isNull} from 'util';
 import {isNullOrUndefined} from 'util';
-import {search} from '../../phovea_core/src/internal/array';
+import {search} from 'phovea_core/src';
 import {isUndefined} from 'util';
 
 export const CURRENT_YEAR = 2017;

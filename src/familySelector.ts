@@ -80,7 +80,7 @@ class FamilySelector {
     // append the header row
     thead.append('tr')
       .selectAll('th')
-      .data(['FamilyID', '# People', '#POI', '#A1'])
+      .data(['FamilyID', '# People', '#POI'])
       .enter()
       .append('th')
       .text(function (column) {
@@ -104,14 +104,16 @@ class FamilySelector {
     let maxValue = max(data.familyInfo,(d:any)=>{return +d.size});
 
     this.peopleScale
-      .range([0,40])
+      .range([0,100])
       .domain([0,maxValue])
 
     maxValue = max(data.familyInfo,(d:any)=>{return +d.affected});
 
     this.casesScale
-      .range([0,40])
+      .range([0,50])
       .domain([0,maxValue]);
+
+
 
     // create a row for each object in the data
     let rows = select('tbody').selectAll('tr')
@@ -130,8 +132,7 @@ class FamilySelector {
       .data((d) => {
         return [{'id': d['id'], 'value': d['id'], 'type': 'id'},
           {'id': d['id'],'value': d['size'],'type': 'size'},
-          {'id': d['id'], 'value': d['affected'], 'type': 'affected'},
-          {'id': d['id'], 'value': d['primary'], 'type': 'primary'}];
+          {'id': d['id'], 'value': d['affected'], 'type': 'affected'}];
       });
 
     let cellsEnter = cells

@@ -71,7 +71,7 @@ interface ISelectedQuantAttribute {
 export type selectedAttribute = ISelectedCatAttribute | ISelectedQuantAttribute;
 
 //Create new type that encompasses both types of primary attributes
-export type attribute = IPrimaryCatAttribute | IPrimaryQuantAttribute;
+//export type attribute = IPrimaryCatAttribute | IPrimaryQuantAttribute;
 
 const indexOfKindredIDColumn = 1;
 
@@ -158,7 +158,7 @@ export default class TableManager {
 
 
   //Keeps track of selected primary/secondary variable
-  private primaryAttribute: attribute;
+  private primaryAttribute: IPrimaryAttribute;
 
 
   /**
@@ -205,7 +205,7 @@ export default class TableManager {
     } else if (this.primaryAttribute && attribute === this.primaryAttribute.name) {
       selectedAttribute = this.primaryAttribute;
     } else { //Attribute is neither primary nor secondary nor POI;
-      console.log('neither POI nor primary')
+      console.log('neither POI nor primary');
       return undefined;
     }
 
@@ -274,7 +274,7 @@ export default class TableManager {
     });
 
     //Store data and associated personIDs for graph rendering of attribute bars
-    let attributeDefinition: IPrimaryAttribute = {
+    const attributeDefinition: IPrimaryAttribute = {
       name: attributeName, primary:true, type: attributeVector.valuetype.type,
       'data': await attributeVector.data(), 'range':attributeVector.desc.value.range, 'personIDs': (await attributeVector.names())
     };
@@ -304,8 +304,8 @@ export default class TableManager {
     // console.log(Attribute)
 
     // this.primaryAttribute = attributeDefinition;
-    let primaryPOI = 'primary'
-    this[primaryPOI + 'Attribute'] = attributeDefinition;
+    const primaryPOI = 'primary';
+    this.primaryAttribute = attributeDefinition;
 
     events.fire(PRIMARY_SELECTED, attributeDefinition);
 
@@ -332,7 +332,6 @@ export default class TableManager {
 
       this.primaryAttribute.data = await attributeVector.data();
       this.primaryAttribute.personIDs = (await attributeVector.names());
-
     }
   }
 
@@ -364,18 +363,18 @@ export default class TableManager {
         });
         let category;
 
-        if (categories.find(d => {
-            return d === 'Y'
+        if (categories.find((d) => {
+            return d === 'Y';
           })) {
-          category = 'Y'
-        } else if (categories.find(d => {
-            return d === 'TRUE'
+          category = 'Y';
+        } else if (categories.find((d) => {
+            return d === 'TRUE';
           })) {
-          category = 'TRUE'
-        } else if (categories.find(d => {
-            return d === 'F'
+          category = 'TRUE';
+        } else if (categories.find((d) => {
+            return d === 'F';
           })) {
-          category = 'F'
+          category = 'F';
         } else {
           category = categories[0];
         }
@@ -405,7 +404,7 @@ export default class TableManager {
     let color;
 
     //Store data and associated personIDs for graph rendering of attribute bars
-    let attributeDefinition: IPrimaryAttribute = {
+    const attributeDefinition: IPrimaryAttribute = {
       name: varName, primary:false, type: varType,
       'data': data, 'range':attributeVector.desc.value.range, 'personIDs': (await attributeVector.names())
     };
@@ -441,7 +440,7 @@ export default class TableManager {
   });
 
     //if Primary Attribute was previously set to this same attribute, clear primary
-    if (this.primaryAttribute && this.primaryAttribute.name === this.affectedState.name){
+    if (this.primaryAttribute && this.primaryAttribute.name === this.affectedState.name) {
       this.primaryAttribute = undefined;
       events.fire(PRIMARY_SELECTED, undefined);
     }
@@ -460,7 +459,7 @@ export default class TableManager {
    */
   public async selectFamily(chosenFamilyIDs?: number[]) {
 
-    console.log('selectfamily was called')
+    console.log('selectfamily was called');
 
     // console.log('chosen Family ID is ', chosenFamilyIDs)
 
@@ -472,19 +471,19 @@ export default class TableManager {
     // let familyRange: number[] =[];
 
     //Temporarily only plot the first family
-    let family = this.familyInfo.find((family) => {return family.id === chosenFamilyIDs[0]});
-    let familyRange = range.list(family.range) //familyRange.concat(family.range);
+    const family = this.familyInfo.find((family) => {return family.id === chosenFamilyIDs[0];});
+    let familyRange = range.list(family.range); //familyRange.concat(family.range);
 
     chosenFamilyIDs.forEach((id, i) => {
-      let family = this.familyInfo.find((family) => {
+      const family = this.familyInfo.find((family) => {
         return family.id === chosenFamilyIDs[i];
       });
       // let range: number[] = family.range
       //   familyRange = familyRange.concat(range)
-      if (i>0){
+      if (i>0) {
         familyRange = familyRange.union(range.list(family.range));
       }
-    })
+    });
 
     //In case families were chosen out of order. Provided ranges must be in order;
     // familyRange.sort(function(a, b) {return a - b;})
@@ -512,7 +511,7 @@ export default class TableManager {
 
     this.updatePOI_Primary_Secondary();
 
-    console.log('FAMILY_SELECTED_EVENT was fired')
+    console.log('FAMILY_SELECTED_EVENT was fired');
     // events.fire(VIEW_CHANGED_EVENT);
     events.fire(FAMILY_SELECTED_EVENT);
   }

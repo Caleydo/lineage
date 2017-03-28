@@ -352,8 +352,6 @@ class attributeTable {
         }); //get categories from index.json def
         let categories;
 
-        console.log(name,allCategories)
-
         //Only need one col for binary categories
         if (allCategories.length < 3) {
           if (allCategories.find(d => {
@@ -1119,17 +1117,22 @@ class attributeTable {
       .attr('height', summaryScale(numPositiveValues))
       .attr('y', (height - summaryScale(numPositiveValues)))
       .attr('opacity', 1)
+
+
       .attr('fill', () => {
           let attr = this.tableManager.primaryAttribute;
           if (attr)
-            if (attr && attr.name === headerData.varName) {
-              return attr.color[1]
-            } else {
-              attr = this.tableManager.affectedState;
-              if (attr && attr.name === headerData.varName) {
-                return attr.color[1]
-              }
+            console.log(attr,headerData)
+            if (attr && attr.name === headerData.name) {
+              let index = attr.categories.indexOf(headerData.category)
+              return attr.color[index]
             }
+            // else {
+            //   attr = this.tableManager.affectedState;
+            //   if (attr && attr.name === headerData.name) {
+            //     return attr.color[1]
+            //   }
+            // }
         }
       )
 

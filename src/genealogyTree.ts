@@ -1463,7 +1463,7 @@ class GenealogyTree {
       .attr('height', Config.glyphSize / 8)
 
     element.select('.endOfTheLine')
-      .attr('x1', () => {console.log(d.ddate,d.bdate)
+      .attr('x1', () => {
         return (Math.abs(this.x(d.ddate) - this.x(d.bdate)) + Config.glyphSize / 3);
       })
       .attr('y1', function () {

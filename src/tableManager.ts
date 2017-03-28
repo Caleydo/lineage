@@ -394,8 +394,8 @@ export default class TableManager {
     let binaryColorChoice1, binaryColorChoice2, multipleColorChoice;
 
     binaryColorChoice1 = POI_COLOR;
-    binaryColorChoice2 = POI_COLOR_2;
-    multipleColorChoice = PRIMARY_CATEGORICAL_COLORS; //FIXME need to pick new colors
+    binaryColorChoice2 = POI_COLOR;
+    multipleColorChoice = [POI_COLOR,POI_COLOR,POI_COLOR,POI_COLOR,POI_COLOR,POI_COLOR];
 
     let categories;
     let color;
@@ -534,21 +534,6 @@ export default class TableManager {
       });
       this.familyInfo[index].affected = affected.length;
     });
-
-    // //If Primary Attribute Has been defined
-    // if (this.primaryAttribute){
-    //
-    //   const primaryAttributeVector = await this.getAttributeVector(this.primaryAttribute.name, true); //get Attribute Vector for all families
-    //   const primaryAttributeData = await primaryAttributeVector.data();
-    //
-    //   uniqueFamilyIDs.forEach((id, index) => {
-    //     //Return people that are in this family and are affected
-    //     const primaryAffected = familyIDs.filter((d, i) => {
-    //       return d === id && this.affectedState.isAffected(primaryAttributeData[i]);
-    //     });
-    //     this.familyInfo[index].affected = affected.length;
-    //   });
-    // }
 
     events.fire(FAMILY_INFO_UPDATED, this);
   }

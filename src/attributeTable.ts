@@ -334,13 +334,13 @@ class attributeTable {
     for (const vector of orderedCols) {
     //   orderedCols.forEach(function (vector){
       const data = await vector.data();
-      let peopleIDs = await vector.names();
+      const peopleIDs = await vector.names();
 
-      let idRanges  = await vector.ids();
+      const idRanges  = await vector.ids();
 
-      let uniqueIDs = idRanges.dim(0).asList().map(d=>{return d.toString()});
+      const uniqueIDs = idRanges.dim(0).asList().map(d=>{return d.toString()});
 
-      console.log('col name is ', vector.desc.name, 'vector.data() size is ', data.length, 'vector.names() size is ', peopleIDs.length, 'vector.ids() size is ', uniqueIDs.length)
+      // console.log('col name is ', vector.desc.name, 'vector.data() size is ', data.length, 'vector.names() size is ', peopleIDs.length, 'vector.ids() size is ', uniqueIDs.length)
 
       const type = vector.valuetype.type;
       const name = vector.desc.name;
@@ -1121,18 +1121,16 @@ class attributeTable {
 
       .attr('fill', () => {
           let attr = this.tableManager.primaryAttribute;
-          if (attr)
-            if (attr && attr.name === headerData.name) {
-              let index = attr.categories.indexOf(headerData.category)
+          if (attr && attr.name === headerData.name) {
+              const index = attr.categories.indexOf(headerData.category)
               return attr.color[index]
-            }
-            else {
+            } else {
               attr = this.tableManager.affectedState;
-              if (attr){
+              if (attr) {
                 attr = attr.attributeInfo;
                if (attr.name === headerData.name) {
-                let index = attr.categories.indexOf(headerData.category)
-                return attr.color[index]
+                const index = attr.categories.indexOf(headerData.category)
+                return attr.color[index];
               }
             }
         }}
@@ -1341,23 +1339,26 @@ class attributeTable {
       .attr('fill', (d) => {
           let attr;
 
-          let primary = this.tableManager.primaryAttribute;
-          let poi = this.tableManager.affectedState;
+          const primary = this.tableManager.primaryAttribute;
+          const poi = this.tableManager.affectedState;
+
           if (primary && primary.name === cellData.varName) {
             attr = primary;
-          }
-          else if (poi && poi.name === cellData.varName) {
+          }else if (poi && poi.name === cellData.varName) {
             attr = poi;
             attr = attr.attributeInfo;
           }
 
           if (attr) {
-            let ind = attr.categories.indexOf(cellData.category);
-            if (ind === 0) {
-              return attr.color[1]
-            } else {
-              return attr.color[0]
-            }
+            const ind = attr.categories.indexOf(cellData.category);
+
+            if ((poi && poi.name === cellData.varName && poi.isAffected(cellData.data[0])) || (primary && primary.name === cellData.varName)) {
+              if (ind === 0) {
+                return attr.color[1];
+              } else {
+                return attr.color[0];
+              }
+            };
           }
           return '#dfdfdf';
         }
@@ -1376,25 +1377,26 @@ class attributeTable {
       .attr('fill', () => {
           let attr;
 
-          let primary = this.tableManager.primaryAttribute;
-          let poi = this.tableManager.affectedState;
+          const primary = this.tableManager.primaryAttribute;
+          const poi = this.tableManager.affectedState;
           if (primary && primary.name === cellData.varName) {
             attr = primary;
-          }
-          else if (poi && poi.name === cellData.varName) {
+          } else if (poi && poi.name === cellData.varName) {
             attr = poi;
             attr = attr.attributeInfo;
           }
 
           if (attr) {
-            let ind = attr.categories.indexOf(cellData.category);
+            const ind = attr.categories.indexOf(cellData.category);
             if (ind > -1) {
-              return attr.color[ind]
+              if ((poi && poi.name === cellData.varName && poi.isAffected(cellData.data[0])) || (primary && primary.name === cellData.varName)) {
+                return attr.color[ind];
+              };
             }
           }
-          return '#767a7a'
+          return '#767a7a';
         }
-      )
+      );
   }
 
   /**
@@ -1457,27 +1459,6 @@ class attributeTable {
 
     this.renderDataDensCell(element, cellData);
 
-  }
-
-
-  private ColorLuminance(hex, lum) {
-
-    // validate hex string
-    hex = String(hex).replace(/[^0-9a-f]/gi, '');
-    if (hex.length < 6) {
-      hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
-    }
-    lum = lum || 0;
-
-    // convert to decimal and change luminosity
-    var rgb = '#', c, i;
-    for (i = 0; i < 3; i++) {
-      c = parseInt(hex.substr(i * 2, 2), 16);
-      c = Math.round(Math.min(Math.max(0, c + (c * lum)), 255)).toString(16);
-      rgb += ('00' + c).substr(c.length);
-    }
-
-    return rgb;
   }
 
   /**
@@ -1578,20 +1559,24 @@ class attributeTable {
       .attr('rx', radius)
       .attr('ry', radius)
       .attr('fill', () => {
-          let attr = this.tableManager.primaryAttribute;
-          if (attr && attr.name === cellData.name) {
 
-            return attr.color
-          } else {
-            attr = this.tableManager.affectedState;
-            if (attr && attr.attributeInfo.name === cellData.name) {
-              return attr.attributeInfo.color
-            }
-          }
+        let attr, ind;
+
+        const primary = this.tableManager.primaryAttribute;
+        const poi = this.tableManager.affectedState;
+
+        if (primary && primary.name === cellData.varName) {
+          attr = primary;
+        } else if (poi && poi.name === cellData.varName) {
+          attr = poi;
+          attr = attr.attributeInfo;
         }
-      )
 
-
+        if ((poi && poi.name === cellData.varName && poi.isAffected(cellData.data[0])) || (primary && primary.name === cellData.varName)) {
+          return attr.color;
+        }
+        ;
+      })
   }
 
   /**

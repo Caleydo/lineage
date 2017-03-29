@@ -232,6 +232,12 @@ class attributeTable {
             return ('translate(' + (560 + Config.collapseSlopeChartWidth) + ' ,0)');
           });
 
+        select('#colSummaries')
+          .transition(t2)
+          .attr('transform', () => {
+            return ('translate(' + (560 + Config.collapseSlopeChartWidth) + ' ,15)');
+          });
+
 
         selectAll('.slopeLine')
           .transition(t2)
@@ -300,7 +306,8 @@ class attributeTable {
         //Handle Duplicate Nodes
         yDict[person].forEach((y) => {
           if (y in y2personDict) {
-            y2personDict[y].push(person);
+              y2personDict[y].push(person);
+
           } else {
             y2personDict[y] = [person];
           }

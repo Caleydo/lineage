@@ -10,7 +10,7 @@ import * as histogram from './histogram';
 import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL} from 'phovea_core/src/datatype';
 import * as range from 'phovea_core/src/range';
 
-import {COL_ORDER_CHANGED_EVENT} from './tableManager';
+import {COL_ORDER_CHANGED_EVENT, FAMILY_SELECTED_EVENT} from './tableManager';
 
 
 import {Config} from './config';
@@ -526,7 +526,7 @@ class AttributePanel {
       });
     });
 
-    events.on('redraw_tree', () => {
+    events.on(FAMILY_SELECTED_EVENT, () => {
       this.update();
 
     });

@@ -1185,7 +1185,7 @@ class GenealogyTree {
 
         let gender = node.sex;
         this.data.parentChildEdges.forEach((d, i) => {
-          if (d.ma === ma && d.pa === pa) {
+          if (d.ma === ma || d.pa === pa) {
             //Only count unaffected children that do not have children of their own so as to avoid gaps in the kid Grid
             if (!d.target.affected && d.target.sex === gender && !d.target.hasChildren)
               childCount = childCount + 1
@@ -2197,11 +2197,10 @@ class GenealogyTree {
     });
 
     events.on(POI_SELECTED, (evt, affectedState) => {
-
+      // this.data.aggregateTreeWrapper(undefined,layoutState.Expanded);
       this.data.defineAffected(affectedState);
-      // this.data.aggregateTreeWrapper(undefined,undefined);
-
-      this.update();
+      // this.data.aggregateTreeWrapper(undefined,layoutState.Hidden);
+      this.update_graph();
     });
 
   }

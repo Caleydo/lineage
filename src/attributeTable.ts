@@ -780,10 +780,12 @@ class attributeTable {
     //Bind data to the first col group
     let firstCol = select('#slopeChart').selectAll('.dataCols')
       .data(this.firstCol.map((d, i) => {
-        return {
+        let out =  {
           'name': d.name, 'data': d.data, 'ind': i, 'type': d.type,
           'ids': d.ids, 'stats': d.stats, 'varName': d.name, 'category': d.category, 'vector': d.vector
         }
+        console.log('out', out);
+        return out;
       }), (d: any) => {
         return d.varName
       });

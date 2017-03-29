@@ -223,7 +223,10 @@ class GenealogyTree {
 
     const svg = this.$node.append('svg')
       .attr('width', this.width + this.margin.left + this.margin.right)
-      .attr('id', 'graph');
+      .attr('id', 'graph')
+      .on('click',()=>{
+        select('#nodeActions').attr('visibility', 'hidden');
+      })
 
     //Create gradients for fading life lines and kidGrids
     const gradient = svg.append('defs')
@@ -380,43 +383,29 @@ class GenealogyTree {
     let button = select('#menus')
       .append('g')
       .attr('id','nodeActions')
-      .attr('visibility','hidden')
-      // .on('mouseout',()=>{
-      //   select('#nodeActions').attr('visibility', 'hidden');
-      // });
+      // .attr('visibility','hidden')
 
     button.append('rect')
       .classed('nodeButton',true)
-      .attr('id','aggregateButton')
+      .attr('id','menuOption1')
       .attr('y', -18)
 
     button.append('text')
       .classed('nodeButtonText', true)
+      .attr('id','menuLabel1')
       .attr('y',-8)
       .attr('x',5)
-      .text('Aggregate')
 
     button.append('rect')
       .classed('nodeButton',true)
-      .attr('id','hideButton')
+      .attr('id','menuOption2')
       .attr('y', 0)
 
     button.append('text')
       .classed('nodeButtonText', true)
+      .attr('id','menuLabel2')
       .attr('y',10)
       .attr('x',5)
-      .text('Hide')
-
-    button.append('rect')
-      .classed('nodeButton',true)
-      .attr('id','expandButton')
-      .attr('y', 18)
-
-    button.append('text')
-      .classed('nodeButtonText', true)
-      .attr('y',28)
-      .attr('x',5)
-      .text('Expand')
 
     selectAll('.nodeButtonText')
       .attr('text-anchor', 'start')
@@ -1372,37 +1361,40 @@ class GenealogyTree {
 
 
     element.selectAll('.nodeIcon')
-      .on('click', (d) => {
-      // if (event.altKey) {
-      //   this.data.aggregateTreeWrapper(d.uniqueID, false);
-      //   this.update_graph();
-      //   event.preventDefault();
-      //
-      //   return;
-      // }
-
-      console.log('clicked on node', d)
-
-      // this.data.aggregateTreeWrapper(d.uniqueID, true);
-      // this.update_graph();
-      // event.preventDefault();
-    })
-      .on('mouseover', (d:Node) => {
+    //   .on('click', (d) => {
+    //   // if (event.altKey) {
+    //   //   this.data.aggregateTreeWrapper(d.uniqueID, false);
+    //   //   this.update_graph();
+    //   //   event.preventDefault();
+    //   //
+    //   //   return;
+    //   // }
+    //
+    //   console.log('clicked on node', d)
+    //
+    //   // this.data.aggregateTreeWrapper(d.uniqueID, true);
+    //   // this.update_graph();
+    //   // event.preventDefault();
+    // })
+      .on('click', (d:Node) => {
+        event.stopPropagation();
 
         function selected(e: Node) {
           let returnValue = false;
           //Highlight the current row in the graph and table
-          if (e.y === Math.round(d.y))
+          if (e.y === Math.round(d.y)){
             returnValue = true;
+          }
           //Highlight any duplicates for this node
-          d.duplicates.forEach(dup => {
-            if (Math.round(dup.y) === Math.round(e.y))
+          d.duplicates.forEach((dup) => {
+            if (Math.round(dup.y) === Math.round(e.y)){
               returnValue = true;
+            }
           });
           return returnValue;
         }
 
-        if (d.hasChildren){
+        if (d.hasChildren) {
 
           select('#nodeActions').attr('visibility', 'visible');
 
@@ -1415,29 +1407,38 @@ class GenealogyTree {
 
           select('#nodeActions').attr('transform', 'translate(' + (this.xPOS(d) + xOffset) + ' , ' + (this.yPOS(d) + yOffset) + ' )')
 
-          select('#nodeActions').select('#aggregateButton')
+          let actions;
+          if (d.state === layoutState.Expanded) {
+            actions = [{'state':layoutState.Aggregated, 'string':'Aggregate Branch'},{'state':layoutState.Hidden, 'string':'Hide Branch'}];
+          } else if (d.state === layoutState.Aggregated) {
+            actions = [{'state':layoutState.Expanded, 'string':'Expand Branch'},{'state':layoutState.Hidden, 'string':'Hide Branch'}];
+          } else if (d.state === layoutState.Hidden) {
+            actions = [{'state':layoutState.Expanded, 'string':'Expand Branch'},{'state':layoutState.Aggregated, 'string':'Aggregate Branch'}];
+          }
+
+          select('#nodeActions').select('#menuLabel1')
+            .text(actions[0].string)
+
+          select('#nodeActions').select('#menuLabel2')
+            .text(actions[1].string)
+
+
+          select('#nodeActions').select('#menuOption1')
             .on('click', () => {
-              console.log('clicked on aggregation button')
               select('#nodeActions').attr('visibility', 'hidden');
-              this.data.aggregateTreeWrapper(d.uniqueID, layoutState.Aggregated);
+              this.data.aggregateTreeWrapper(d.uniqueID, actions[0].state);
               this.update_graph();
             })
 
-          select('#nodeActions').select('#hideButton')
+          select('#nodeActions').select('#menuOption2')
             .on('click', () => {
               select('#nodeActions').attr('visibility', 'hidden');
-              this.data.aggregateTreeWrapper(d.uniqueID, layoutState.Hidden);
+              this.data.aggregateTreeWrapper(d.uniqueID, actions[1].state);
               this.update_graph();
             })
 
-          select('#nodeActions').select('#expandButton')
-            .on('click', () => {
-              select('#nodeActions').attr('visibility', 'hidden');
-              this.data.aggregateTreeWrapper(d.uniqueID, layoutState.Expanded);
-              this.update_graph();
-            })
 
-          select('#mouseCatcher').attr('transform', 'translate(' + (this.xPOS(d) -20) + ' , ' + (this.yPOS(d) -35) + ' )')
+          select('#mouseCatcher').attr('transform', 'translate(' + (this.xPOS(d) -20) + ' , ' + (this.yPOS(d) -25) + ' )')
 
         } else {
           select('#nodeActions').attr('visibility', 'hidden');

@@ -443,6 +443,10 @@ class GenealogyTree {
       .attr('y', 0)
       .attr('opacity', .1)
       .on('click', function (d) {
+
+        selectAll('.slopeLine').classed('clickedSlope', false)
+        selectAll('.highlightBar').classed('selected', false);
+        
         selectAll('.button').attr('fill', '#959492')
         .attr('opacity', .1)
         select(this)
@@ -472,6 +476,10 @@ class GenealogyTree {
       .attr('y', 0)
       .attr('opacity', .1)
       .on('click', function (d) {
+
+        selectAll('.slopeLine').classed('clickedSlope', false)
+        selectAll('.highlightBar').classed('selected', false);
+
         selectAll('.button')
           .attr('fill', '#959492')
         .attr('opacity', .1)
@@ -503,6 +511,10 @@ class GenealogyTree {
       .attr('y', 0)
       .attr('opacity', .1)
       .on('click', function (d) {
+
+        selectAll('.slopeLine').classed('clickedSlope', false)
+        selectAll('.highlightBar').classed('selected', false);
+
         selectAll('.button').attr('fill', '#959492')
         .attr('opacity', .1)
         select(this)
@@ -758,7 +770,6 @@ class GenealogyTree {
 
 
     aggregateBars
-      .transition(t.transition())
       .attr('opacity',1);
 
 
@@ -822,6 +833,7 @@ class GenealogyTree {
       function selected(e: Node) {
         let returnValue = false;
         //Highlight the current row in the graph and table
+
         if (e.y === Math.round(d.y)) {
           returnValue = true;
         }

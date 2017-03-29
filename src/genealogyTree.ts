@@ -1417,9 +1417,9 @@ class GenealogyTree {
 
           let xOffset, yOffset;
           if (d.sex === Sex.Female) {
-            xOffset = 12; yOffset = 0;
+            xOffset = 12 -130 ; yOffset = 0;
           } else {
-            xOffset = 20; yOffset = 8;
+            xOffset = 20 - 130; yOffset = 8;
           }
 
           select('#nodeActions').attr('transform', 'translate(' + (this.xPOS(d) + xOffset) + ' , ' + (this.yPOS(d) + yOffset) + ' )')
@@ -1427,18 +1427,20 @@ class GenealogyTree {
           let actions;
 
           if (d.state === layoutState.Expanded) {
-            actions = [{'state':layoutState.Aggregated, 'string':'Aggregate Branch'},{'state':layoutState.Hidden, 'string':'Hide Branch'}];
+            actions = [{'state':layoutState.Aggregated, 'string':'Aggregate Branch','offset':5},{'state':layoutState.Hidden, 'string':'Hide Branch' , 'offset':20}];
           } else if (d.state === layoutState.Aggregated) {
-            actions = [{'state':layoutState.Expanded, 'string':'Expand Branch'},{'state':layoutState.Hidden, 'string':'Hide Branch'}];
+            actions = [{'state':layoutState.Expanded, 'string':'Expand Branch', 'offset':13},{'state':layoutState.Hidden, 'string':'Hide Branch','offset':20}];
           } else if (d.state === layoutState.Hidden) {
-            actions = [{'state':layoutState.Expanded, 'string':'Expand Branch'},{'state':layoutState.Aggregated, 'string':'Aggregate Branch'}];
+            actions = [{'state':layoutState.Expanded, 'string':'Expand Branch','offset':13},{'state':layoutState.Aggregated, 'string':'Aggregate Branch','offset':5}];
           }
 
           select('#nodeActions').select('#menuLabel1')
             .text(actions[0].string)
+            .attr('x',actions[0].offset)
 
           select('#nodeActions').select('#menuLabel2')
             .text(actions[1].string)
+            .attr('x',actions[1].offset)
 
           select('#nodeActions').select('#menuOption1')
             .on('click', () => {

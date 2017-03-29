@@ -843,6 +843,7 @@ class GenealogyTree {
       .attr('opacity', 0)
 
     function highlightRows(d: any) {
+      console.log('here')
 
       function selected(e: Node) {
         let returnValue = false;
@@ -891,6 +892,7 @@ class GenealogyTree {
       .on('mouseout', clearHighlights)
       .on('click', (d: any) => {
 
+        console.log('clicked')
         if (event.defaultPrevented) return; // dragged
 
         let wasSelected = selectAll('.highlightBar').filter((e: any) => {
@@ -1488,7 +1490,10 @@ class GenealogyTree {
       })
       .on('mouseover', function (){
 
-        select(this).classed('hovered', true);
+        if (d.hasChildren){
+          select(this).classed('hovered', true);
+        }
+
 
       })
       .on('mouseout', function (){

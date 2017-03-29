@@ -695,6 +695,34 @@ class attributeTable {
 
         // events.fire('row_mouseout', d.y);
       })
+      .on('click', (d: any) => {
+
+        console.log('clicked')
+        if (event.defaultPrevented) return; // dragged
+
+        let wasSelected = selectAll('.highlightBar').filter((e: any) => {
+          return e.y === d.y || e.y === Math.round(d.y)
+        }).classed('selected');
+
+
+        //'Unselect all other background bars if ctrl was not pressed
+        if (!event.metaKey) {
+          selectAll('.slopeLine').classed('clickedSlope', false)
+          selectAll('.highlightBar').classed('selected', false);
+        }
+
+        selectAll('.slopeLine').filter((e: any) => {
+          return e.y === d.y || e.y === Math.round(d.y)
+        }).classed('clickedSlope', function () {
+          return (!wasSelected);
+        })
+
+        selectAll('.highlightBar').filter((e: any) => {
+          return e.y === d.y || e.y === Math.round(d.y)
+        }).classed('selected', function () {
+          return (!wasSelected);
+        })
+      })
 
     //create slope Lines
     // //Bind data to the cells

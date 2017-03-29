@@ -341,7 +341,9 @@ class attributeTable {
     //Creating a scale for the rects in the personID col in the table.
     let maxAggregates = 1;
     for (let key of allRows) {
-      col.data.push(y2personDict[key].length.toString());
+      //FIXME Don't know why we're getting duplicates here. 
+      let value = Array.from(new Set(y2personDict[key])).length;
+      col.data.push(value);
       maxAggregates = max([maxAggregates, y2personDict[key].length])
     }
     this.idScale.domain([1, maxAggregates]);

@@ -963,8 +963,8 @@ class attributeTable {
     } else {
       mapped.sort(function (a, b) {
         if (a.value === b.value) return 0;
-        if (b.value === undefined || a.value < b.value) return 1;
-        if (a.value === undefined || a.value > b.value) return -1;
+        if (a.value < b.value) return 1;
+        if (a.value === undefined || b.value === undefined ||  a.value > b.value) return -1;
       });
     }
 

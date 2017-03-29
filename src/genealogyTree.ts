@@ -228,7 +228,7 @@ class GenealogyTree {
 
     const headerSVG = select('#headersDIV').append('svg')
       .attr('width', 1920)
-      .attr('height',200)
+      .attr('height',170)
       .attr('id', 'headers')
 
 

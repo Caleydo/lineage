@@ -74,13 +74,35 @@ td rect{
   stroke-dasharray: 2px;
 }
 
+.duplicateIcon{
+  cursor:pointer;
+}
 
 .duplicateIcon {
   fill: #535250;
-  stroke:none;
+  //stroke:none;
   opacity:.95;
-  //font-size:20px;
+  stroke-width:1px;
+  stroke:#e8e8e8;
 }
+
+.duplicateIcon.hovered {
+  fill: #535250;
+  //stroke:none;
+  opacity:.95;
+  stroke-width:1px;
+  stroke: #e8a30b;
+}
+
+.duplicateIcon.clicked {
+  fill: #535250;
+  //stroke:none;
+  opacity:.95;
+  stroke-width:1px;
+  stroke:#bd6012;
+}
+
+
 
 .sortIcon.sortSelected{
   fill: #535454;

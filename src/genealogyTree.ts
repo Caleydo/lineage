@@ -446,7 +446,7 @@ class GenealogyTree {
 
         selectAll('.slopeLine').classed('clickedSlope', false)
         selectAll('.highlightBar').classed('selected', false);
-        
+
         selectAll('.button').attr('fill', '#959492')
         .attr('opacity', .1)
         select(this)
@@ -1329,6 +1329,18 @@ class GenealogyTree {
       })
       .attr('stroke-width', strokeWidth)
 
+    if (d.duplicates.length>0 && element.selectAll('.duplicateIcon').size() === 0) {
+      element
+        .append('text')
+        .classed('duplicateIcon', true);
+
+      // if (d.y < d.duplicates[0].y) {
+      //   element
+      //     .append('line) ')
+      //     .classed('duplicateLine', true);
+      // }
+    }
+
 
     //Add nodes
     if (element.selectAll('.nodeIcon').size() === 0) {
@@ -1617,19 +1629,6 @@ class GenealogyTree {
 
 
 
-    //
-    // allNodesEnter.filter((n: Node) => {
-    //   return n.duplicates.length > 0
-    // })
-    //   .append('text')
-    //   .classed('duplicateIcon', true);
-    //
-    // allNodesEnter.filter((n: Node) => {
-    //   return n.duplicates.length > 0
-    // })
-    //   .append('line')
-    //   .classed('duplicateLine', true);
-
 
     // selectAll('.duplicateLine')
     //   .attr('x1',(n:Node)=>{
@@ -1713,53 +1712,78 @@ class GenealogyTree {
     //
     //       return this.y(n.duplicates.find(d=>{return d.y !== n.y}).y)- this.y(n.y)
     //   })
-    //   .attr('visibility', 'hidden')
+      // .attr('visibility', 'hidden')
 
 
     // dupIcons = dupIconsEnter.merge(dupIcons);
 
-    // selectAll('.duplicateIcon')
-    //   .text('\uf0dd')
-    //   .attr('y', (n: Node) => {
-    //     let glyphSize;
-    //     if (n.hidden)
-    //       glyphSize = Config.hiddenGlyphSize*.75;
-    //     // if (n.hidden && !n.hasChildren)
-    //     //   glyphSize = Config.hiddenGlyphSize*.5;
-    //     else
-    //       glyphSize = Config.glyphSize;
-    //
-    //     if (n.y > n.duplicates.find(d=>{return d.y !== n.y}).y)
-    //       return glyphSize
-    //     else
-    //       return glyphSize * 3
-    //   })
-    //   .attr('x', (n: Node) => {
-    //     let glyphSize;
-    //     if (n.hidden)
-    //       glyphSize = Config.hiddenGlyphSize*.75;
-    //     // if (n.hidden && !n.hasChildren)
-    //     //   glyphSize = Config.hiddenGlyphSize*.5;
-    //     else
-    //       glyphSize = Config.glyphSize;
-    //
-    //
-    //     if (n.y > n.duplicates.find(d=>{return d.y !== n.y}).y)
-    //       return -glyphSize
-    //     else
-    //       return glyphSize
-    //   })
-    //   // .attr('y',0)
-    //   // .attr('x',0)
-    //   .attr('font-family', 'FontAwesome')
-    //   .attr('font-size', (d:Node)=>{
-    //     if (d.hidden){return Config.hiddenGlyphSize*2} else {return Config.glyphSize*2.5}})
-    //   .attr('text-anchor', 'middle')
-    //   // .attr('text-anchor','start')
-    //   .attr("transform", (n: Node) => {
-    //     if (n.y > (n.duplicates.find(d=>{return d.y !== n.y}).y))
-    //       return 'rotate(' + 180 + ')'
-    //   })
+    selectAll('.duplicateIcon')
+      .text('\uf0dd')
+      .attr('y', (n: Node) => {
+        let glyphSize;
+        if (n.hidden)
+          glyphSize = Config.hiddenGlyphSize*.75;
+        // if (n.hidden && !n.hasChildren)
+        //   glyphSize = Config.hiddenGlyphSize*.5;
+        else
+          glyphSize = Config.glyphSize;
+        if (n.sex === Sex.Male){
+          if (n.y > n.duplicates.find(d=>{return d.y !== n.y}).y)
+            return glyphSize -1
+          else
+            return glyphSize * 3 - 1
+        } else {
+            return glyphSize * 2 - 1
+        }
+
+      })
+      .attr('x', (n: Node) => {
+        let glyphSize;
+        if (n.hidden)
+          glyphSize = Config.hiddenGlyphSize*.75;
+        // if (n.hidden && !n.hasChildren)
+        //   glyphSize = Config.hiddenGlyphSize*.5;
+        else
+          glyphSize = Config.glyphSize;
+
+        if (n.sex === Sex.Male){
+          if (n.y > n.duplicates.find(d=>{return d.y !== n.y}).y)
+            return -glyphSize
+          else
+            return glyphSize
+        } else {
+          return 0;
+        }
+      })
+      // .attr('y',0)
+      // .attr('x',0)
+      .attr('font-family', 'FontAwesome')
+      .attr('font-size', (d:Node)=>{
+        if (d.hidden){return Config.hiddenGlyphSize*2} else {return Config.glyphSize*2.5}})
+      .attr('text-anchor', 'middle')
+      // .attr('text-anchor','start')
+      .attr('transform', (n: Node) => {
+        if (n.y > (n.duplicates.find((d) => {return d.y !== n.y;}).y)){
+          return 'rotate(' + 180 + ')';
+        }
+
+      })
+
+    selectAll('.duplicateIcon')
+      .on('mouseover',function(){
+        select(this).classed('hovered', true);
+        //show duplicate rows
+      })
+      .on('mouseout',function(){
+        select(this).classed('hovered', false);
+        //show duplicate rows
+      })
+      .on('click',function(){
+        console.log('clicked')
+        select(this).classed('hovered', false);
+        select(this).classed('clicked', true);
+      })
+
 
   }
 

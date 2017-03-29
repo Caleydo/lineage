@@ -177,6 +177,7 @@ class GenealogyTree {
   constructor(parent: Element) {
     this.$node = select(parent);
     this.self = this;
+
   }
 
   /**
@@ -220,6 +221,17 @@ class GenealogyTree {
     this.extremesXAxis = axisTop(this.x2);
 
     // window.onscroll = (e:any)=>{console.log(e,'user scrolled')}
+
+
+    //Create a static div for the headers
+    this.$node.append('div').attr('id', 'headersDIV');
+
+    const headerSVG = select('#headersDIV').append('svg')
+      .attr('width', 1920)
+      .attr('height',200)
+      .attr('id', 'headers')
+
+
 
     const svg = this.$node.append('svg')
       .attr('width', this.width + this.margin.left + this.margin.right)
@@ -323,6 +335,18 @@ class GenealogyTree {
     });
 
     //Create group for genealogy tree
+
+
+    headerSVG.append('rect')
+      .attr('width', 1900)
+      .attr('height',160)
+      .attr('fill','white')
+
+    headerSVG.append('g')
+      .attr('transform', 'translate(' + this.margin.left + ',90)')
+      .attr('id', 'headerGroup');
+
+
     svg.append('g')
       .attr('transform', 'translate(' + this.margin.left + ',' + (this.margin.top + Config.glyphSize) + ')')
       .attr('id', 'genealogyTree');
@@ -404,22 +428,10 @@ class GenealogyTree {
       .attr('ry', 10)
 
     //Create group for all time axis
-    const axis = svg.append('g')
-      .attr('transform', 'translate(' + this.margin.left + ',' + this.margin.axisTop + ')')
+    const axis = select('#headerGroup').append('g')
+      .attr('transform', 'translate(0,45)')
       .attr('id', 'axis');
 
-
-    // legend
-    //   .append('rect')
-    //   .attr('width', this.width)
-    //   .attr('height', this.margin.top - this.margin.axisTop)
-
-    axis
-      .append('rect')
-      .attr('width', this.width)
-      .attr('height', Config.legendHeight)
-      .attr('y', -Config.legendHeight)
-      .attr('fill', 'white');
 
     //Create group for legend
     const legend = axis.append('g')
@@ -1884,8 +1896,8 @@ class GenealogyTree {
     let minY = this.y.invert(scrollOffset);
     let maxY = this.y.invert(divHeight + scrollOffset - 75)
 
-    select('#axis')
-      .attr('transform', 'translate(' + this.margin.left + ',' + (scrollOffset + 130) + ')')
+    // select('#axis')
+    //   .attr('transform', 'translate(' + this.margin.left + ',' + (scrollOffset + 130) + ')')
 
     //the 75 offset is the transform applied on the group
 

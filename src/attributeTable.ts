@@ -154,13 +154,13 @@ class attributeTable {
       .attr('id', 'tableGroup')
 
     //HEADERS
-    select('#tableGroup').append('g')
-      .attr('transform', 'translate(0, ' + this.margin.axisTop + ')')
+    select('#headerGroup').append('g')
+      .attr('transform', 'translate(590, 0)')
       .attr('id', 'tableHeaders')
 
     //Column Summaries
-    select('#tableGroup').append('g')
-      .attr('transform', 'translate(0, ' + (this.margin.top - 70) + ')')
+    select('#headerGroup').append('g')
+      .attr('transform', 'translate(590, 15)')
       .attr('id', 'colSummaries')
 
     //Columns (except for the first)
@@ -186,9 +186,9 @@ class attributeTable {
 
 
     //Add button to slopeChart Div that says 'revert to Tree Order'
-    let button = select('#slopeLines')
+    let button = select('#headers')
       .append('g')
-      .attr('transform', 'translate(45,' + (-105) + ')')
+      .attr('transform', 'translate(635,70)')
       .attr('id', 'revertTreeOrder')
       .attr('visibility', 'hidden')
       .append('svg');
@@ -224,6 +224,12 @@ class attributeTable {
           .transition(t2)
           .attr('transform', () => {
             return ('translate(' + Config.collapseSlopeChartWidth + ' ,0)');
+          });
+
+        select('#tableHeaders')
+          .transition(t2)
+          .attr('transform', () => {
+            return ('translate(' + (560 + Config.collapseSlopeChartWidth) + ' ,0)');
           });
 
 
@@ -987,6 +993,18 @@ class attributeTable {
       .transition(t2)
       .attr('transform', (cell: any) => {
         return ('translate(' + Config.slopeChartWidth + ' ,0)');
+      });
+
+    select('#tableHeaders')
+      .transition(t2)
+      .attr('transform', (cell: any) => {
+        return ('translate(' + (560 + Config.slopeChartWidth)  + ' ,0)');
+      });
+
+    select('#colSummaries')
+      .transition(t2)
+      .attr('transform', (cell: any) => {
+        return ('translate(' + (560  + Config.slopeChartWidth)  + ' ,0)');
       });
 
 

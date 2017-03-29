@@ -2,6 +2,9 @@ $edge-color: #4f4f4d;
 $node-color: #6f7373;
 $affected-node-color: #285880;
 
+#headersDIV {
+  position:fixed;
+}
 
 .node.affected .nodeIcon{
   fill: $affected-node-color;

@@ -485,9 +485,10 @@ rect.selected{
 //.nodeIcon,
 .ageLineGroup,
 .nodeLine,
-.highlightBar,
+//.highlightBar,
 .nodeButtonText,
-.kidGrid{
+.kidGrid,
+.cell{
 	pointer-events: none;
 }
 

@@ -95,7 +95,7 @@ class attributeTable {
 
   private margin = Config.margin;
 
-  private rowOrder: Number[]; //keeps track of the order of rows (changes when a column is sorted)
+  private rowOrder: number[]; //keeps track of the order of rows (changes when a column is sorted)
 
   constructor(parent: Element) {
     this.$node = select(parent);
@@ -651,8 +651,37 @@ class attributeTable {
       })
       .attr('width', max(this.colOffsets))
       .attr('height', this.rowHeight)
-      .attr('opacity',0);
-      // .attr('opacity', 0);
+      .attr('opacity',0)
+      // .attr('fill', 'transparent')
+      .on('mouseover',(d) => {
+        function selected(e:any) {
+          let returnValue = false;
+          //Highlight the current row in the graph and table
+          if (e.y === Math.round(d.y)){
+            returnValue = true;
+          }
+
+          return returnValue;
+        }
+
+        selectAll('.slopeLine').classed('selectedSlope', false);
+
+        selectAll('.slopeLine').filter((e:any) => {
+          return e.y === Math.round(d.y);
+        }).classed('selectedSlope', true)
+
+        //Set opacity of corresponding highlightBar
+        selectAll('.highlightBar').filter(selected).attr('opacity', .2);
+      })
+      .on('mouseout', () => {
+
+        selectAll('.slopeLine').classed('selectedSlope', false);
+
+        //Hide all the highlightBars
+        selectAll('.highlightBar').attr('opacity', 0);
+
+        // events.fire('row_mouseout', d.y);
+      })
 
     //create slope Lines
     // //Bind data to the cells

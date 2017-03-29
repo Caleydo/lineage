@@ -817,76 +817,54 @@ class GenealogyTree {
       .selectAll('.highlightBar')
       .attr('opacity', 0)
 
+    function highlightRows(d: any) {
 
-    selectAll('.bars')
-      .selectAll('.backgroundBar')
-      .on('mouseover', function (d: any) {
-
-        function selected(e: Node) {
-          let returnValue = false;
-          //Highlight the current row in the graph and table
-          if (e.y === Math.round(d.y))
-            returnValue = true;
-          //Highlight any duplicates for this node
-          // d.duplicates.forEach(dup => {
-          //   if (Math.round(dup.y) === Math.round(e.y))
-          //     returnValue = true;
-          // });
-
-          return returnValue;
+      function selected(e: Node) {
+        let returnValue = false;
+        //Highlight the current row in the graph and table
+        if (e.y === Math.round(d.y)) {
+          returnValue = true;
         }
+        return returnValue;
+      }
 
-        selectAll('.slopeLine').classed('selectedSlope', false);
+      selectAll('.slopeLine').classed('selectedSlope', false);
 
-        selectAll('.slopeLine').filter((e: Node) => {
+      selectAll('.slopeLine').filter((e: Node) => {
 
-          return e.y === Math.round(d.y);
-        }).classed('selectedSlope', true)
+        return e.y === Math.round(d.y);
+      }).classed('selectedSlope', true)
 
-        //Set opacity of corresponding highlightBar
-        selectAll('.highlightBar').filter(selected).attr('opacity', .2);
+      //Set opacity of corresponding highlightBar
+      selectAll('.highlightBar').filter(selected).attr('opacity', .2);
 
-        //Set the age label on the lifeLine of this row to visible
-        selectAll('.ageLineGroup').filter((e: Node) => {
-          return e.y === Math.round(d.y);
-        }).filter((d: Node) => {
-          return !d.aggregated && !d.hidden
-        }).select('.ageLabel').attr('visibility', 'visible');
+      //Set the age label on the lifeLine of this row to visible
+      selectAll('.ageLineGroup').filter((e: Node) => {
+        return e.y === Math.round(d.y);
+      }).filter((d: Node) => {
+        return !d.aggregated && !d.hidden
+      }).select('.ageLabel').attr('visibility', 'visible');
 
-        selectAll('.duplicateLine').filter(selected).attr('visibility', 'visible');
+      selectAll('.duplicateLine').filter(selected).attr('visibility', 'visible');
+    }
 
-        // events.fire('row_mouseover', Math.round(d.y));
-      })
-      // FIXME is any a node?
-      .on('mouseout', () => {
+    function clearHighlights(){
+      selectAll('.duplicateLine').attr('visibility', 'hidden');
 
-        selectAll('.duplicateLine').attr('visibility', 'hidden');
+      selectAll('.slopeLine').classed('selectedSlope', false);
 
-        selectAll('.slopeLine').classed('selectedSlope', false);
+      //Hide all the highlightBars
+      selectAll('.highlightBar').attr('opacity', 0);
 
-        //Hide all the highlightBars
-        selectAll('.highlightBar').attr('opacity', 0);
+      selectAll('.ageLabel').attr('visibility', 'hidden');
+    }
 
-        selectAll('.ageLabel').attr('visibility', 'hidden');
 
-        // events.fire('row_mouseout', d.y);
-      })
+    selectAll('.highlightBar')
+      .on('mouseover',highlightRows)
+      .on('mouseout', clearHighlights)
       .on('click', (d: any) => {
 
-        // if (event.altKey) {
-        //
-        //   this.data.hideNodes(Math.round(d['y']), false);
-        //
-        //   this.update_time_axis();
-        //   this.update_visible_nodes();
-        //
-        //   // Perhaps change to only unselected bars that are part of this newly aggregated/expanded set?
-        //   selectAll('.highlightBar').classed('selected', false);
-        //
-        //   events.fire('graphLayout_changed')
-        //
-        //   return;
-        // }
         if (event.defaultPrevented) return; // dragged
 
         let wasSelected = selectAll('.highlightBar').filter((e: any) => {
@@ -912,6 +890,11 @@ class GenealogyTree {
           return (!wasSelected);
         })
       })
+
+      selectAll('.bars')
+      .selectAll('.backgroundBar')
+      .on('mouseover', highlightRows)
+      .on('mouseout', clearHighlights);
 
   }
 

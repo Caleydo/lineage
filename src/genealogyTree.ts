@@ -239,6 +239,7 @@ class GenealogyTree {
       .on('click',()=>{
         select('#nodeActions').attr('visibility', 'hidden');
         selectAll('.edges').classed('selected',false);
+        selectAll('.parentEdges').classed('selected',false);
         selectAll('.clicked').classed('clicked',false);
       })
 
@@ -419,7 +420,7 @@ class GenealogyTree {
       .attr('font-size',12)
 
     selectAll('.nodeButton')
-      .attr('width', 100)
+      .attr('width', 60)
       .attr('height', 15)
       .attr('fill', '#393837')
       .attr('opacity', .8)
@@ -1244,12 +1245,15 @@ class GenealogyTree {
     }
     // start by highlighting spouse edges
    let selectedEdges = selectAll('.edges').filter((d:Node) => {return (d.ma === node || d.pa === node);})
+    let selectedEdges2 = selectAll('.parentEdges').filter((d:Node) => {return (d.ma === node || d.pa === node);})
 
 
     if (on) {
       selectedEdges.classed('selected', true);
+      selectedEdges2.classed('selected', true);
     } else {
       selectedEdges.classed('selected', false);
+      selectedEdges2.classed('selected', false);
     }
 
 
@@ -1417,9 +1421,9 @@ class GenealogyTree {
 
           let xOffset, yOffset;
           if (d.sex === Sex.Female) {
-            xOffset = 12 -130 ; yOffset = 0;
+            xOffset = 12 -83 + 40 ; yOffset = 30;
           } else {
-            xOffset = 20 - 130; yOffset = 8;
+            xOffset = 20 - 83 + 40; yOffset = 8 + 30;
           }
 
           select('#nodeActions').attr('transform', 'translate(' + (this.xPOS(d) + xOffset) + ' , ' + (this.yPOS(d) + yOffset) + ' )')
@@ -1427,11 +1431,11 @@ class GenealogyTree {
           let actions;
 
           if (d.state === layoutState.Expanded) {
-            actions = [{'state':layoutState.Aggregated, 'string':'Aggregate Branch','offset':5},{'state':layoutState.Hidden, 'string':'Hide Branch' , 'offset':20}];
+            actions = [{'state':layoutState.Aggregated, 'string':'Aggregate','offset':5},{'state':layoutState.Hidden, 'string':'Hide' , 'offset':20}];
           } else if (d.state === layoutState.Aggregated) {
-            actions = [{'state':layoutState.Expanded, 'string':'Expand Branch', 'offset':13},{'state':layoutState.Hidden, 'string':'Hide Branch','offset':20}];
+            actions = [{'state':layoutState.Expanded, 'string':'Expand', 'offset':13},{'state':layoutState.Hidden, 'string':'Hide','offset':20}];
           } else if (d.state === layoutState.Hidden) {
-            actions = [{'state':layoutState.Expanded, 'string':'Expand Branch','offset':13},{'state':layoutState.Aggregated, 'string':'Aggregate Branch','offset':5}];
+            actions = [{'state':layoutState.Expanded, 'string':'Expand','offset':13},{'state':layoutState.Aggregated, 'string':'Aggregate','offset':5}];
           }
 
           select('#nodeActions').select('#menuLabel1')

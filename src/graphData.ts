@@ -660,14 +660,18 @@ class GraphData {
     });
 
     //Hide Mode
-    if (state === layoutState.Hidden) {
+
       //Adjust x position for spouses of affected nodes;
       this.nodes.forEach((n:Node) => {
-        if (n.hidden && !n.affected && n.hasChildren && n.spouse.find(s=>{return s.affected})){
-            n.x = n.x- Config.glyphSize*.6;
+        if (n.state === layoutState.Hidden) {
+          if (n.hidden && !n.affected && n.hasChildren && n.spouse.find(s => {
+              return s.affected
+            })) {
+            n.x = n.x - Config.glyphSize * .6;
+          }
         }
       });
-    }
+
 
     const idRange = [];
     this.nodes.forEach((n: any) => {

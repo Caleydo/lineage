@@ -314,11 +314,6 @@ label {
   overflow-x: scroll;
 }
 
-.edges.selected{
-    stroke:red;
-    stroke-width:3px;
-    fill:none
-}
 
 .nodeIcon.selected{
     stroke: #ff6400;
@@ -514,8 +509,15 @@ rect.selected{
 
 .edges{
     stroke:$edge-color;
-//     stroke-width: 3px;
+     stroke-width: 2px;
     fill:none
+}
+
+.edges.selected{
+  stroke:#F16F16;
+  stroke-width: 2px;
+  opacity:.5;
+  fill:none
 }
 
 .parentEdges{

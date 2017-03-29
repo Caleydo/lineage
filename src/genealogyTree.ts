@@ -1244,16 +1244,20 @@ class GenealogyTree {
       return;
     }
     // start by highlighting spouse edges
-   let selectedEdges = selectAll('.edges').filter((d:Node) => {return (d.ma === node || d.pa === node);})
-    let selectedEdges2 = selectAll('.parentEdges').filter((d:Node) => {return (d.ma === node || d.pa === node);})
+   let selectedEdges = selectAll('.edges').filter((d:Node) => {
+      return ((d.ma === node || d.pa === node) || !isUndefined(node.spouse[0].spouse.find((s:Node) => {return d.ma === s || d.pa === s;})));
+    })
+    let selectedParentEdges = selectAll('.parentEdges').filter((d:Node) => {
+      return ((d.ma === node || d.pa === node) || !isUndefined(node.spouse[0].spouse.find((s:Node) => {return d.ma === s || d.pa === s;})));
+    })
 
 
     if (on) {
       selectedEdges.classed('selected', true);
-      selectedEdges2.classed('selected', true);
+      selectedParentEdges.classed('selected', true);
     } else {
       selectedEdges.classed('selected', false);
-      selectedEdges2.classed('selected', false);
+      selectedParentEdges.classed('selected', false);
     }
 
 
@@ -1448,14 +1452,14 @@ class GenealogyTree {
 
           select('#nodeActions').select('#menuOption1')
             .on('click', () => {
-              select('#nodeActions').attr('visibility', 'hidden');
+              // select('#nodeActions').attr('visibility', 'hidden');
               this.data.aggregateTreeWrapper(d.uniqueID, actions[0].state);
               this.update_graph();
             })
 
           select('#nodeActions').select('#menuOption2')
             .on('click', () => {
-              select('#nodeActions').attr('visibility', 'hidden');
+              // select('#nodeActions').attr('visibility', 'hidden');
               this.data.aggregateTreeWrapper(d.uniqueID, actions[1].state);
               this.update_graph();
             });

@@ -28,6 +28,14 @@ import {
 import {isUndefined} from 'util';
 
 
+enum sortedState {
+  Ascending,
+  Descending,
+  Unsorted
+}
+
+
+
 /**
  * Creates the attribute table view
  */
@@ -81,7 +89,7 @@ class attributeTable {
   private catOffset = 30;
 
   //Keeps track of whether the table is sorted by a certain attribute;
-  private sortAttribute = {ascending: undefined, data: undefined, name: undefined}; //ascending: boolean for sort direction is ascending, data: data associated to that column
+  private sortAttribute = {state:sortedState.Unsorted, data: undefined, name: undefined};
 
   private idScale = scaleLinear(); //used to size the bars in the first col of the table;
 
@@ -194,6 +202,8 @@ class attributeTable {
       .attr('y', 0)
       .attr('opacity', .1)
       .on('click', (d) => {
+
+        this.sortAttribute.state = sortedState.Unsorted;
 
         selectAll('.sortIcon')
           .classed('sortSelected', false)
@@ -849,8 +859,8 @@ class attributeTable {
 
 
     // If a sortAttribute has been set, sort by that attribute
-    if (this.sortAttribute.data) {
-      this.sortRows(this.sortAttribute.data, this.sortAttribute.ascending);
+    if (this.sortAttribute.state !== sortedState.Unsorted) {
+      this.sortRows(this.sortAttribute.data, this.sortAttribute.state);
     }
   }
 
@@ -861,13 +871,13 @@ class attributeTable {
    * @param d data to be sorted
    * @param ascending, boolean flag set to true if sort order is ascending
    */
-  private sortRows(d: any, ascending) {
+  private sortRows(d: any, sortOrder:sortedState) {
 
-    let t2 = transition('t2').duration(600).ease(easeLinear);
+    const t2 = transition('t2').duration(600).ease(easeLinear);
 
     //get data from colData array
     const toSort = this.colData.find((c) => {
-      return c.name === d.name
+      return c.name === d.name;
     }).data;
 
     // temporary array holds objects with position and sort-value
@@ -885,7 +895,7 @@ class attributeTable {
             return e === d.category
           }).length / el.length)
         };
-      } else if (d.type == 'idtype') {
+      } else if (d.type === 'idtype') {
         let equalValues = el.reduce(function (a, b) {
           return (a === b) ? a : NaN;
         }); //check for array that has all equal values in an aggregate (such as KindredId);
@@ -908,18 +918,18 @@ class attributeTable {
       .attr('visibility', 'visible')
 
     // sorting the mapped array containing the reduced values
-    if (ascending) {
+    if (sortOrder === sortedState.Ascending) {
       mapped.sort(function (a, b) {
-        if (a.value == b.value) return 0;
-        if (b.value == undefined || a.value < b.value) return -1;
-        if (a.value == undefined || a.value > b.value) return 1;
+        if (a.value === b.value) return 0;
+        if (b.value === undefined || a.value < b.value) return -1;
+        if (a.value === undefined || a.value > b.value) return 1;
 
       });
     } else {
       mapped.sort(function (a, b) {
-        if (a.value == b.value) return 0;
-        if (b.value == undefined || a.value < b.value) return 1;
-        if (a.value == undefined || a.value > b.value) return -1;
+        if (a.value === b.value) return 0;
+        if (b.value === undefined || a.value < b.value) return 1;
+        if (a.value === undefined || a.value > b.value) return -1;
       });
     }
 
@@ -1023,7 +1033,11 @@ class attributeTable {
       .on('click', function (d) {
 
         // Set 'sortAttribute'
-        self.sortAttribute.ascending = select(this).classed('ascending');
+        if (select(this).classed('ascending')){
+          self.sortAttribute.state = sortedState.Ascending;
+        } else {
+          self.sortAttribute.state = sortedState.Descending;
+        }
         self.sortAttribute.data = d;
 
         selectAll('.sortIcon')
@@ -1032,9 +1046,9 @@ class attributeTable {
         select(this)
           .classed('sortSelected', true)
 
-        self.sortRows(d, select(this).classed('ascending'))
+        self.sortRows(d, self.sortAttribute.state);
 
-      })
+      });
 
   }
 

@@ -744,7 +744,7 @@ class GenealogyTree {
     aggregateBars = aggregateBarsEnter.merge(aggregateBars);
 
     aggregateBars
-      .transition(t)
+      // .transition(t)
       .attr('transform', (row: any) => {
         return 'translate(0,' + (this.y(row.y) - Config.glyphSize * 1.25) + ')';
       })

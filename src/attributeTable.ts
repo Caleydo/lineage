@@ -1004,7 +1004,7 @@ class attributeTable {
     select('#colSummaries')
       .transition(t2)
       .attr('transform', (cell: any) => {
-        return ('translate(' + (560  + Config.slopeChartWidth)  + ' ,0)');
+        return ('translate(' + (560  + Config.slopeChartWidth)  + ' ,15)');
       });
 
 

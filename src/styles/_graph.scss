@@ -102,16 +102,16 @@ td rect{
 
 .duplicateLine.hovered {
   stroke: #ffc800;
-  stroke-width:4px;
+  stroke-width:2px;
   opacity:.4;
-  stroke-dasharray: 4px;
+  //stroke-dasharray: 4px;
 }
 
 .duplicateLine.clicked {
   stroke: #e8a30b;
-  stroke-width:4px;
+  stroke-width:2px;
   opacity:.4;
-  stroke-dasharray: 4px;
+  //stroke-dasharray: 4px;
 }
 
 
@@ -350,10 +350,16 @@ label {
 }
 
 
-.nodeIcon.selected{
-    stroke: #ff6400;
-    stroke-width:2px;
+.nodeIcon.clicked{
+  stroke: #ff9637;
+  stroke-width: 2px;
     /*fill:none*/
+}
+
+.nodeIcon.hovered{
+  stroke: #ffc800;
+  stroke-width:2px;
+  /*fill:none*/
 }
 
 .highlightBar{

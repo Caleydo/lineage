@@ -227,8 +227,7 @@ class GenealogyTree {
       .on('click',()=>{
         select('#nodeActions').attr('visibility', 'hidden');
         selectAll('.edges').classed('selected',false);
-        selectAll('.duplicateIcon').classed('clicked',false);
-        selectAll('.duplicateLine').classed('clicked',false);
+        selectAll('.clicked').classed('clicked',false);
       })
 
     //Create gradients for fading life lines and kidGrids
@@ -1331,7 +1330,7 @@ class GenealogyTree {
       })
       .attr('stroke-width', strokeWidth)
 
-    if (d.duplicates.length>0 && element.selectAll('.duplicateIcon').size() === 0) {
+    if (d.duplicates.length>0 && !d.hidden && element.selectAll('.duplicateIcon').size() === 0) {
       element
         .append('text')
         .classed('duplicateIcon', true);
@@ -1374,6 +1373,9 @@ class GenealogyTree {
     element.selectAll('.nodeIcon')
       .on('click', (d:Node) => {
         event.stopPropagation();
+
+        selectAll('.nodeIcon').classed('hover', false);
+        selectAll('.nodeIcon').filter((n:Node)=>{return n == d}).classed('clicked', true);
 
 
         selectAll('.edges').classed('selected',false);
@@ -1462,9 +1464,14 @@ class GenealogyTree {
 
         // selectAll('.duplicateLine').filter(selected).attr('visibility', 'visible');
       })
-      .on('mouseout', ()=>{
+      .on('mouseover', function (){
 
-        // selectAll('.duplicateLine').attr('visibility', 'hidden');
+        select(this).classed('hovered', true);
+
+      })
+      .on('mouseout', function (){
+
+        select(this).classed('hovered', false);
 
         selectAll('.slopeLine').classed('selectedSlope', false);
 
@@ -1650,9 +1657,16 @@ class GenealogyTree {
           offset = glyphSize * 3;
         }
 
-        if (dupNode.x <n.x)
-            return glyphSize - offset
-        return glyphSize + offset
+         if (dupNode.x <=n.x){
+          if (n.sex === Sex.Male) {
+            return  glyphSize;
+          } else {
+            return 0;
+          }
+        }
+
+
+        // return glyphSize + offset
       })
       .attr('y1',()=>{
 
@@ -1662,14 +1676,21 @@ class GenealogyTree {
             return;
 
           let glyphSize;
-        if (n.hidden)
+        if (n.hidden) {
           glyphSize = Config.hiddenGlyphSize;
-        else
+        } else {
           glyphSize = Config.glyphSize;
 
-          if (dupNode.y <n.y)
-          return -glyphSize
-        return +3*glyphSize
+          if (dupNode.y < n.y) {
+            if (n.sex === Sex.Male) {
+              return -glyphSize
+            } else {
+              return -glyphSize*2
+            }
+          }
+        }
+
+        // return +3*glyphSize
       })
       .attr('x2',()=>{
         let n = d;
@@ -1692,11 +1713,21 @@ class GenealogyTree {
           offset = glyphSize * 3;
         }
 
+        // if (dupNode.x <=n.x){
+        //   return this.x(dupNode.x)- this.x(n.x) +glyphSize + offset
+        // } else {
+        //   return  this.x(dupNode.x) - this.x(n.x) +glyphSize - offset;
+        // }
+
         if (dupNode.x <=n.x){
-          return this.x(dupNode.x)- this.x(n.x) +glyphSize + offset
-        } else {
-          return  this.x(dupNode.x) - this.x(n.x) +glyphSize - offset;
-        }})
+
+          if (n.sex === Sex.Male) {
+            return this.x(dupNode.x)- this.x(n.x) +glyphSize + offset
+          } else {
+            return 0;
+          }
+        }
+      })
       .attr('y2',(n:Node)=>{
 
         let dupNode = n.duplicates.find(d=>{return d.y !== n.y});
@@ -1709,12 +1740,18 @@ class GenealogyTree {
         else
           glyphSize = Config.glyphSize;
 
-          return this.y(n.duplicates.find(d=>{return d.y !== n.y}).y)- this.y(n.y)
+        if (n.sex === Sex.Male) {
+          return this.y(n.duplicates.find(d=>{return d.y !== n.y}).y)- this.y(n.y) + glyphSize*3
+        } else {
+          return this.y(n.duplicates.find(d=>{return d.y !== n.y}).y)- this.y(n.y) + glyphSize*2
+        }
+
+
       })
       // .attr('visibility', 'hidden')
 
 
-    selectAll('.duplicateIcon')
+    element.select('.duplicateIcon')
       .text('\uf0dd')
       .attr('y', (n: Node) => {
         let glyphSize;
@@ -1766,7 +1803,7 @@ class GenealogyTree {
 
       })
 
-    selectAll('.duplicateIcon')
+    element.select('.duplicateIcon')
       .on('mouseover',function(){
         select(this).classed('hovered', true);
         //show duplicate rows

@@ -256,9 +256,7 @@ class Histogram {
   public setBrush(threshold) {
 
     if (!this.brush){ //no brush exists. define default
-      console.log('threshold is ', threshold)
       this.addBrush();
-      console.log('xScale range', this.xScale.range(), threshold)
       this.$node.select('.brush')
         .call(this.brush.move, [this.xScale(threshold), this.xScale.range()[1]]);
     }

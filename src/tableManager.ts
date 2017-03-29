@@ -526,14 +526,19 @@ export default class TableManager {
     const kindredIDVector = await this.getAttributeVector('KindredID', true); //get FamilyID vector for all families
 
     const familyIDs: number[] = <number[]> await kindredIDVector.data();
+    const peopleIDs: string[] = await kindredIDVector.names();
+
     const attributeData = await attributeVector.data();
+    const attributePeople = await attributeVector.names();
 
     const uniqueFamilyIDs = Array.from(new Set(familyIDs));
 
     uniqueFamilyIDs.forEach((id, index) => {
       //Return people that are in this family and are affected
       const affected = familyIDs.filter((d, i) => {
-        return d === id && this.affectedState.isAffected(attributeData[i]);
+        //find person in attribute id;
+        const ind = attributePeople.indexOf(peopleIDs[i]);
+        return ind > -1 && d === id && this.affectedState.isAffected(attributeData[ind]);
       });
       this.familyInfo[index].affected = affected.length;
     });

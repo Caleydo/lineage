@@ -1387,7 +1387,7 @@ class GenealogyTree {
         event.stopPropagation();
 
         selectAll('.nodeIcon').classed('hover', false);
-        selectAll('.nodeIcon').filter((n:Node)=>{return n == d}).classed('clicked', true);
+        // selectAll('.nodeIcon').filter((n:Node)=>{return n == d}).classed('clicked', true);
 
 
         selectAll('.edges').classed('selected',false);

@@ -830,6 +830,25 @@ class GraphData {
         }
       });
 
+      //find any unaggregated nodes in the last row
+      const isLastNodeHidden: Node = this.nodes.filter((n: Node) => {
+        return n.y === min(this.nodes, (nd: Node) => {
+            return nd.y;
+          });
+      }).find((n: Node) => {
+        return !n.hidden;
+      });
+
+      if (!isUndefined(isLastNodeHidden) && isUndefined(node.y)){
+        node.y = min(this.nodes, (n: any) => {
+            return n.y;
+          }) - 1;
+
+        node.hidden = true;
+        node.aggregated = node.state === layoutState.Aggregated ;
+      };
+
+
       //If node has any affected spouses, place node above them.
       if (node.state === layoutState.Aggregated  && isUndefined(node.y) && node.spouse.filter(n => {
           return n.affected;

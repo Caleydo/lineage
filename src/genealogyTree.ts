@@ -227,6 +227,8 @@ class GenealogyTree {
       .on('click',()=>{
         select('#nodeActions').attr('visibility', 'hidden');
         selectAll('.edges').classed('selected',false);
+        selectAll('.duplicateIcon').classed('clicked',false);
+        selectAll('.duplicateLine').classed('clicked',false);
       })
 
     //Create gradients for fading life lines and kidGrids
@@ -857,11 +859,11 @@ class GenealogyTree {
         return !d.aggregated && !d.hidden
       }).select('.ageLabel').attr('visibility', 'visible');
 
-      selectAll('.duplicateLine').filter(selected).attr('visibility', 'visible');
+      // selectAll('.duplicateLine').filter(selected).attr('visibility', 'visible');
     }
 
     function clearHighlights(){
-      selectAll('.duplicateLine').attr('visibility', 'hidden');
+      // selectAll('.duplicateLine').attr('visibility', 'hidden');
 
       selectAll('.slopeLine').classed('selectedSlope', false);
 
@@ -1334,11 +1336,9 @@ class GenealogyTree {
         .append('text')
         .classed('duplicateIcon', true);
 
-      // if (d.y < d.duplicates[0].y) {
-      //   element
-      //     .append('line) ')
-      //     .classed('duplicateLine', true);
-      // }
+        element
+          .append('line')
+          .classed('duplicateLine', true);
     }
 
 
@@ -1447,7 +1447,6 @@ class GenealogyTree {
         selectAll('.slopeLine').classed('selectedSlope', false);
 
         selectAll('.slopeLine').filter((e: Node) => {
-
           return e.y === Math.round(d.y);
         }).classed('selectedSlope', true)
 
@@ -1461,11 +1460,11 @@ class GenealogyTree {
           return !d.aggregated && !d.hidden
         }).select('.ageLabel').attr('visibility', 'visible');
 
-        selectAll('.duplicateLine').filter(selected).attr('visibility', 'visible');
+        // selectAll('.duplicateLine').filter(selected).attr('visibility', 'visible');
       })
       .on('mouseout', ()=>{
 
-        selectAll('.duplicateLine').attr('visibility', 'hidden');
+        // selectAll('.duplicateLine').attr('visibility', 'hidden');
 
         selectAll('.slopeLine').classed('selectedSlope', false);
 
@@ -1630,92 +1629,90 @@ class GenealogyTree {
 
 
 
-    // selectAll('.duplicateLine')
-    //   .attr('x1',(n:Node)=>{
-    //
-    //     let dupNode = n.duplicates.find(d=>{return d.y !== n.y});
-    //     if (dupNode.y > n.y)
-    //       return;
-    //
-    //     let glyphSize;
-    //     let offset =0;
-    //
-    //     if (n.hidden)
-    //       glyphSize = Config.hiddenGlyphSize;
-    //     else
-    //       glyphSize = Config.glyphSize;
-    //
-    //
-    //     //Add offset for kid grids
-    //     if (!n.hasChildren && n.hidden){
-    //       offset = glyphSize * 3;
-    //     }
-    //
-    //     if (dupNode.x <n.x)
-    //         return glyphSize - offset
-    //     return glyphSize + offset
-    //   })
-    //   .attr('y1',
-    //     (n:Node)=>{
-    //
-    //       let dupNode = n.duplicates.find(d=>{return d.y !== n.y});
-    //       if (dupNode.y > n.y)
-    //         return;
-    //
-    //       let glyphSize;
-    //     if (n.hidden)
-    //       glyphSize = Config.hiddenGlyphSize;
-    //     else
-    //       glyphSize = Config.glyphSize;
-    //
-    //       if (dupNode.y <n.y)
-    //       return -glyphSize
-    //     return +3*glyphSize
-    //   })
-    //   .attr('x2',(n:Node)=>{
-    //
-    //     let dupNode = n.duplicates.find(d=>{return d.y !== n.y});
-    //     if (dupNode.y > n.y)
-    //       return;
-    //
-    //
-    //     let glyphSize;
-    //     let offset =0;
-    //
-    //     if (n.hidden) {
-    //       glyphSize = Config.hiddenGlyphSize;
-    //     }
-    //     else
-    //       glyphSize = Config.glyphSize;
-    //
-    //     //Add offset for kid grids
-    //     if (!dupNode.hasChildren && dupNode.hidden){
-    //       offset = glyphSize * 3;
-    //     }
-    //
-    //     if (dupNode.x <=n.x){
-    //       return this.x(dupNode.x)- this.x(n.x) +glyphSize + offset
-    //     } else {
-    //       return  this.x(dupNode.x) - this.x(n.x) +glyphSize - offset;
-    //     }})
-    //   .attr('y2',(n:Node)=>{
-    //
-    //     let dupNode = n.duplicates.find(d=>{return d.y !== n.y});
-    //     if (dupNode.y > n.y)
-    //       return;
-    //
-    //     let glyphSize;
-    //     if (n.hidden)
-    //       glyphSize = Config.hiddenGlyphSize;
-    //     else
-    //       glyphSize = Config.glyphSize;
-    //
-    //       return this.y(n.duplicates.find(d=>{return d.y !== n.y}).y)- this.y(n.y)
-    //   })
+    element.select('.duplicateLine')
+      .attr('x1',()=>{
+        let n = d;
+        let dupNode = n.duplicates.find(d=>{return d.y !== n.y});
+        if (dupNode.y > n.y)
+          return;
+
+        let glyphSize;
+        let offset =0;
+
+        if (n.hidden)
+          glyphSize = Config.hiddenGlyphSize;
+        else
+          glyphSize = Config.glyphSize;
+
+
+        //Add offset for kid grids
+        if (!n.hasChildren && n.hidden){
+          offset = glyphSize * 3;
+        }
+
+        if (dupNode.x <n.x)
+            return glyphSize - offset
+        return glyphSize + offset
+      })
+      .attr('y1',()=>{
+
+        let n = d;
+          let dupNode = n.duplicates.find(d=>{return d.y !== n.y});
+          if (dupNode.y > n.y)
+            return;
+
+          let glyphSize;
+        if (n.hidden)
+          glyphSize = Config.hiddenGlyphSize;
+        else
+          glyphSize = Config.glyphSize;
+
+          if (dupNode.y <n.y)
+          return -glyphSize
+        return +3*glyphSize
+      })
+      .attr('x2',()=>{
+        let n = d;
+        let dupNode = n.duplicates.find(d=>{return d.y !== n.y});
+        if (dupNode.y > n.y)
+          return;
+
+
+        let glyphSize;
+        let offset =0;
+
+        if (n.hidden) {
+          glyphSize = Config.hiddenGlyphSize;
+        }
+        else
+          glyphSize = Config.glyphSize;
+
+        //Add offset for kid grids
+        if (!dupNode.hasChildren && dupNode.hidden){
+          offset = glyphSize * 3;
+        }
+
+        if (dupNode.x <=n.x){
+          return this.x(dupNode.x)- this.x(n.x) +glyphSize + offset
+        } else {
+          return  this.x(dupNode.x) - this.x(n.x) +glyphSize - offset;
+        }})
+      .attr('y2',(n:Node)=>{
+
+        let dupNode = n.duplicates.find(d=>{return d.y !== n.y});
+        if (dupNode.y > n.y)
+          return;
+
+        let glyphSize;
+        if (n.hidden)
+          glyphSize = Config.hiddenGlyphSize;
+        else
+          glyphSize = Config.glyphSize;
+
+          return this.y(n.duplicates.find(d=>{return d.y !== n.y}).y)- this.y(n.y)
+      })
       // .attr('visibility', 'hidden')
 
-
-    // dupIcons = dupIconsEnter.merge(dupIcons);
 
     selectAll('.duplicateIcon')
       .text('\uf0dd')
@@ -1773,15 +1770,52 @@ class GenealogyTree {
       .on('mouseover',function(){
         select(this).classed('hovered', true);
         //show duplicate rows
+
+
+        function selected(e: Node) {
+          let returnValue = false;
+          //Highlight the current row in the graph and table
+          if (e.y === Math.round(d.y)){
+            returnValue = true;
+          }
+          //Highlight any duplicates for this node
+          d.duplicates.forEach((dup) => {
+            if (Math.round(dup.y) === Math.round(e.y)){
+              returnValue = true;
+            }
+          });
+          return returnValue;
+        }
+        selectAll('.duplicateLine').filter(selected).classed('hovered',true);
+
       })
       .on('mouseout',function(){
         select(this).classed('hovered', false);
+        selectAll('.duplicateLine').classed('hovered',false);
         //show duplicate rows
       })
       .on('click',function(){
-        console.log('clicked')
-        select(this).classed('hovered', false);
+        event.stopPropagation();
+
+        function selected(e: Node) {
+          let returnValue = false;
+          //Highlight the current row in the graph and table
+          if (e.y === Math.round(d.y)){
+            returnValue = true;
+          }
+          //Highlight any duplicates for this node
+          d.duplicates.forEach((dup) => {
+            if (Math.round(dup.y) === Math.round(e.y)){
+              returnValue = true;
+            }
+          });
+          return returnValue;
+        }
+
+        selectAll('.duplicateLine').filter(selected).classed('clicked',true);
         select(this).classed('clicked', true);
+        select(this).classed('hovered', false);
+
       })
 
 

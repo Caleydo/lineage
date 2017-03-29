@@ -68,10 +68,7 @@ td rect{
 }
 
 .duplicateLine{
-  stroke: #bd6012;
-  stroke-width:2px;
-  opacity:.4;
-  stroke-dasharray: 2px;
+  opacity:0;
 }
 
 .duplicateIcon{
@@ -91,7 +88,7 @@ td rect{
   //stroke:none;
   opacity:.95;
   stroke-width:1px;
-  stroke: #e8a30b;
+  stroke: #ffc800;
 }
 
 .duplicateIcon.clicked {
@@ -99,8 +96,24 @@ td rect{
   //stroke:none;
   opacity:.95;
   stroke-width:1px;
-  stroke:#bd6012;
+  stroke: #e8a30b;
 }
+
+
+.duplicateLine.hovered {
+  stroke: #ffc800;
+  stroke-width:4px;
+  opacity:.4;
+  stroke-dasharray: 4px;
+}
+
+.duplicateLine.clicked {
+  stroke: #e8a30b;
+  stroke-width:4px;
+  opacity:.4;
+  stroke-dasharray: 4px;
+}
+
 
 
 

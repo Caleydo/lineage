@@ -23,7 +23,7 @@ export class Config {
     };
 
   public static panelAttributeWidth = 300;
-  public static panelAttributeHeight = 70;
+  public static panelAttributeHeight = 100;
   public static panelSVGwidth = 220;
 
   public static collapseSlopeChartWidth = 30;

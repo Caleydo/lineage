@@ -457,6 +457,7 @@ class GraphData {
         this.linearizeHelper(child);
       })
 
+
     //Base case are leaf nodes. Reached end of this branch.
     if (!node.hasChildren) {
       return;
@@ -466,7 +467,7 @@ class GraphData {
 
   /**
    *
-   * This is the logic behind linearizing a single node and its spouses.
+   * This is the logic behind linearizing a single node and it's spouses.
    * @param node - node that needs to be linearized;
    *
    */
@@ -539,12 +540,12 @@ class GraphData {
 
       let applyToAll = false;
 
-      if (isUndefined(nodeID)){
+      if (isUndefined(nodeID)) {
         applyToAll = true;
-      } else {
+      } else if (!isUndefined(state)) {
         //find node
         let node = this.nodes.find((n: Node) => {
-          return n.uniqueID === nodeID
+          return n.uniqueID === nodeID;
         });
 
         //If node is not descendant, find descendant;
@@ -573,7 +574,7 @@ class GraphData {
       n.hidden = false;
       n.x = n.originalX;
       //Set aggregate/hide/expand flag for each node
-      if (applyToAll){
+      if (applyToAll && !isUndefined(state)) {
         n.state =state;
       }
 
@@ -692,7 +693,7 @@ class GraphData {
       startNode.y = minY -1; //Set first y index;
     }
 
-    if (state !== layoutState.Expanded && !startNode.affected && startNode.hasChildren && (startNode.state !== layoutState.Expanded || applyToAll)) {
+    if (!isUndefined(state) && state !== layoutState.Expanded && !startNode.affected && startNode.hasChildren && (startNode.state !== layoutState.Expanded || applyToAll)) {
       startNode.hidden = true;
       startNode.aggregated = state === layoutState.Aggregated;
       this.aggregateHelper(startNode);

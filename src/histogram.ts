@@ -258,6 +258,7 @@ class Histogram {
     if (!this.brush){ //no brush exists. define default
       console.log('threshold is ', threshold)
       this.addBrush();
+      console.log('xScale range', this.xScale.range(), threshold)
       this.$node.select('.brush')
         .call(this.brush.move, [this.xScale(threshold), this.xScale.range()[1]]);
     }
@@ -391,6 +392,7 @@ class Histogram {
 
     });
 
+    console.log(dataVec.desc.name, histData.valueRange)
     //let xScale = scaleLinear().range([0,this.width]).domain([0,histData.bins])
     this.xScale.domain(histData.valueRange);//.nice();
     // let yScale = scaleLinear().range([0,height]).domain([0,maxFrequency]);

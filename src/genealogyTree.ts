@@ -2194,6 +2194,8 @@ class GenealogyTree {
     events.on(POI_SELECTED, (evt, affectedState) => {
 
       this.data.defineAffected(affectedState);
+      // this.data.aggregateTreeWrapper(undefined,undefined);
+
       this.update();
     });
 

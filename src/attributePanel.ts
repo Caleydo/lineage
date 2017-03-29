@@ -210,7 +210,7 @@ class AttributePanel {
         this.tableManager[otherAttributePrimarySecondary + 'Attribute'] = undefined;
       }
 
-      this.tableManager.setPrimaryAttribute(item.name, item.primary_secondary).then((obj)=>{
+      this.tableManager.setPrimarySecondaAttribute(item.name, item.primary_secondary).then((obj)=>{
 
         let hist = this.histograms.filter((h)=>{return h.attrName === item.name})[0];
         hist.setPrimarySecondary(obj);

@@ -353,6 +353,9 @@ export default class TableManager {
           return attr >= stats.mean;
         }; //if threshold hasn't been defined, default to anything over the mean value
         threshold = stats.mean;
+        if (threshold > attributeVector.desc.value.range[1]){
+          threshold = (attributeVector.desc.value.range[1] - attributeVector.desc.value.range[0])/2 + attributeVector.desc.value.range[0] ;
+        }
       } else if (varType === VALUE_TYPE_CATEGORICAL) {
         const categoriesVec = attributeVector.valuetype.categories;
         const categories = categoriesVec.map((c) => {

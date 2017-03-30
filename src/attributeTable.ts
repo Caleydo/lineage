@@ -341,7 +341,7 @@ class attributeTable {
     //Creating a scale for the rects in the personID col in the table.
     let maxAggregates = 1;
     for (let key of allRows) {
-      //FIXME Don't know why we're getting duplicates here. 
+      //FIXME Don't know why we're getting duplicates here.
       let value = Array.from(new Set(y2personDict[key])).length;
       col.data.push(value);
       maxAggregates = max([maxAggregates, y2personDict[key].length])
@@ -644,9 +644,8 @@ class attributeTable {
         return 'translate(' + offset + ',0)';
       });
 
-
     //create backgroundHighlight Bars
-    let highlightBars = select('#columns').selectAll('.highlightBar')
+    let highlightBars = select('#highlightBars').selectAll('.highlightBar')
       .data(this.rowOrder.map((d, i) => {
         return {'y': d, 'i': i}
       }), (d: any) => {
@@ -654,6 +653,7 @@ class attributeTable {
       });
 
     highlightBars.exit().remove();
+
 
     let highlightBarsEnter = highlightBars.enter().append('rect').classed('highlightBar', true);
 

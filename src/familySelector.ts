@@ -114,6 +114,7 @@ class FamilySelector {
       .domain([0,maxValue]);
 
 
+    console.log(data.familyInfo);
 
     // create a row for each object in the data
     let rows = select('tbody').selectAll('tr')

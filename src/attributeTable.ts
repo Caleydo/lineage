@@ -341,7 +341,7 @@ class attributeTable {
     //Creating a scale for the rects in the personID col in the table.
     let maxAggregates = 1;
     for (let key of allRows) {
-      //FIXME Don't know why we're getting duplicates here. 
+      //FIXME Don't know why we're getting duplicates here.
       let value = Array.from(new Set(y2personDict[key])).length;
       col.data.push(value);
       maxAggregates = max([maxAggregates, y2personDict[key].length])
@@ -356,14 +356,27 @@ class attributeTable {
 
     let colDataAccum = [];
 
-    for (const vector of orderedCols) {
-    //   orderedCols.forEach(function (vector){
-      const data = await vector.data();
-      const peopleIDs = await vector.names();
+    let allPromises = [];
+    orderedCols.forEach((vector, index) => {
+      allPromises = allPromises.concat([
+        vector.data(),
+        vector.names(),
+        vector.ids(),
+        vector.stats().catch(() => {}),
+        vector.hist(10).catch(() => {})
+      ]);
+    });
+    let finishedPromises = await Promise.all(allPromises);
 
-      const idRanges  = await vector.ids();
+    // for (const vector of orderedCols) {
+    orderedCols.forEach((vector, index) => {
+      const data = finishedPromises[index * 5];
+      const peopleIDs = finishedPromises[index * 5 + 1];
+      // const idRanges  = finishedPromises[index * 5 + 2];
 
-      const uniqueIDs = idRanges.dim(0).asList().map(d=>{return d.toString()});
+      // console.log(data,peopleIDs,idRanges)
+
+      // const uniqueIDs = idRanges.dim(0).asList().map(d=>{return d.toString()});
 
       // console.log('col name is ', vector.desc.name, 'vector.data() size is ', data.length, 'vector.names() size is ', peopleIDs.length, 'vector.ids() size is ', uniqueIDs.length)
 
@@ -460,7 +473,7 @@ class attributeTable {
           return y2personDict[row]
         });
 
-        const stats = await vector.stats();
+        const stats = finishedPromises[5 * index + 3];
         col.name = name;
         col.data = allRows.map((row) => {
           let colData = [];
@@ -479,7 +492,7 @@ class attributeTable {
         col.vector = vector;
         col.type = type;
         col.stats = stats;
-        col.hist = await vector.hist(10);
+        col.hist = finishedPromises[5 * index + 4];
         colDataAccum.push(col);
       } else if (type === VALUE_TYPE_STRING) {
 
@@ -553,7 +566,7 @@ class attributeTable {
       }
 
 
-    }
+    });
     this.colData = colDataAccum;
 
 

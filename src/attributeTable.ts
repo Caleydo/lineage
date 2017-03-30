@@ -372,12 +372,15 @@ class attributeTable {
     orderedCols.forEach((vector, index) => {
       const data = finishedPromises[index * 5];
       const peopleIDs = finishedPromises[index * 5 + 1];
-      // const idRanges  = finishedPromises[index * 5 + 2];
 
-      // console.log(data,peopleIDs,idRanges)
-
-      // const uniqueIDs = idRanges.dim(0).asList().map(d=>{return d.toString()});
-
+    // for (const vector of orderedCols) {
+    // //   orderedCols.forEach(function (vector){
+    //   const data = await vector.data();
+    //   const peopleIDs = await vector.names();
+    //
+    //   const idRanges  = await vector.ids();
+    //
+    //   const uniqueIDs = idRanges.dim(0).asList().map(d=>{return d.toString()});
       // console.log('col name is ', vector.desc.name, 'vector.data() size is ', data.length, 'vector.names() size is ', peopleIDs.length, 'vector.ids() size is ', uniqueIDs.length)
 
       const type = vector.valuetype.type;
@@ -473,6 +476,7 @@ class attributeTable {
           return y2personDict[row]
         });
 
+        // const stats = await vector.stats();
         const stats = finishedPromises[5 * index + 3];
         col.name = name;
         col.data = allRows.map((row) => {
@@ -493,6 +497,8 @@ class attributeTable {
         col.type = type;
         col.stats = stats;
         col.hist = finishedPromises[5 * index + 4];
+        // col.hist = await vector.hist(10);
+
         colDataAccum.push(col);
       } else if (type === VALUE_TYPE_STRING) {
 

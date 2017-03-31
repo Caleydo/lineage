@@ -22,6 +22,7 @@ import {
   PRIMARY_SELECTED,
   COL_ORDER_CHANGED_EVENT,
   POI_SELECTED,
+  UPDATE_TABLE_EVENT,
   VIEW_CHANGED_EVENT,
   TABLE_VIS_ROWS_CHANGED_EVENT
 } from './tableManager';
@@ -125,7 +126,6 @@ class attributeTable {
 
 
   public async update() {
-
     await this.initData();
     this.render();
   }
@@ -211,7 +211,7 @@ class attributeTable {
         select('#revertTreeOrder')
           .attr('visibility', 'hidden')
 
-        let t2 = transition('t2').duration(600).ease(easeLinear);
+        let t2 = transition('test').duration(600).ease(easeLinear);
 
         select('#columns').selectAll('.cell')
           .transition(t2)
@@ -242,7 +242,6 @@ class attributeTable {
         selectAll('.slopeLine')
           .transition(t2)
           .attr('d', (d: any) => {
-            console.log('collapsedWidth')
             return this.slopeChart({y: d.y, ind: d.ind, width: Config.collapseSlopeChartWidth})
           });
 
@@ -266,8 +265,6 @@ class attributeTable {
   }
 
   public async initData() {
-
-    console.log('calling initData');
 
     // this.colOffsets = [-Config.slopeChartWidth];
 
@@ -372,6 +369,8 @@ class attributeTable {
     orderedCols.forEach((vector, index) => {
       const data = finishedPromises[index * 5];
       const peopleIDs = finishedPromises[index * 5 + 1];
+
+      // console.log(peopleIDs);
       //
 
 
@@ -396,12 +395,14 @@ class attributeTable {
         }); //get categories from index.json def
         let categories;
 
+        console.log(allCategories)
+
         //Only need one col for binary categories
         if (allCategories.length < 3) {
           if (allCategories.find(d => {
-              return d === 'Y'
+              return d === 'Y';
             })) {
-            categories = ['Y']
+            categories = ['Y'];
           } else if (allCategories.find(d => {
               return d === 'True'
             })) {
@@ -418,6 +419,7 @@ class attributeTable {
           categories = allCategories;
         }
 
+        // console.log(categories)
 
         if (categories.length > 2) { //Add spacing around multicolumn categories
           let numColsBefore = this.colOffsets.length - 1;
@@ -442,7 +444,7 @@ class attributeTable {
             people.map((person) => {
               let ind = peopleIDs.indexOf(person) //find this person in the attribute data
               //If there are only two categories, save both category values in this column. Else, only save the ones that match the category at hand.
-              if (ind > -1 && (allCategories.length < 3 || (allCategories.length > 2 && data[ind] === cat))) {
+              if (ind > -1 && (allCategories.length < 3 || ind > -1 && (allCategories.length > 2 && data[ind] === cat))) {
                 colData.push(data[ind])
               } else {
                 colData.push(undefined);
@@ -543,10 +545,12 @@ class attributeTable {
           let colData = [];
           let people = y2personDict[row];
           people.map((person) => {
+            // console.log(data,person)
             let ind = peopleIDs.indexOf(person) //find this person in the attribute data
             if (ind > -1) {
               if (isUndefined(data[ind])){
                 console.log('problem')
+                console.log(name,data.size(),peopleIDs.size());
               }
               colData.push(data[ind].toString())
             } else {
@@ -583,7 +587,8 @@ class attributeTable {
   //renders the DOM elements
   private async render() {
 
-    let t = transition('t').duration(500).ease(easeLinear);
+    let t = transition('t').ease(easeLinear);
+    // let t= this.tableManager.t;
     let self = this;
 
     let y = this.y;
@@ -659,7 +664,8 @@ class attributeTable {
     });
 
 
-    colSummaries.transition(t)
+    colSummaries
+      .transition(t)
       .attr('transform', (d, i) => {
         let offset = this.colOffsets[i];
         return 'translate(' + offset + ',0)';
@@ -783,7 +789,7 @@ class attributeTable {
         return d.varName
       });
 
-    cols.exit().transition(t).attr('opacity', 0).remove(); // should remove on col remove
+    cols.exit().remove(); // should remove on col remove
 
     const colsEnter = cols.enter()
       .append('g')
@@ -793,7 +799,8 @@ class attributeTable {
     cols = colsEnter.merge(cols)//;
 
     //translate columns horizontally to their position;
-    cols.transition(t)
+    cols
+      .transition(t)
       .attr('transform', (d, i) => {
         let offset = this.colOffsets[i];
         return 'translate(' + offset + ',0)';
@@ -807,13 +814,12 @@ class attributeTable {
           'name': d.name, 'data': d.data, 'ind': i, 'type': d.type,
           'ids': d.ids, 'stats': d.stats, 'varName': d.name, 'category': d.category, 'vector': d.vector
         }
-        console.log('out', out);
         return out;
       }), (d: any) => {
         return d.varName
       });
 
-    firstCol.exit().transition(t).attr('opacity', 0).remove(); // should remove on col remove
+    firstCol.exit().attr('opacity', 0).remove(); // should remove on col remove
 
     const firstColEnter = firstCol.enter()
       .append('g')
@@ -853,7 +859,6 @@ class attributeTable {
     firstCellsEnter.attr('opacity', 0);
 
     firstCells
-      .transition(t)
       .attr('transform', (cell: any, i) => {
         return ('translate(0, ' + y(this.rowOrder[i]) + ' )'); //the x translation is taken care of by the group this cell is nested in.
       });
@@ -1671,10 +1676,9 @@ class attributeTable {
     element.selectAll('.quant_ellipse')
       .attr('cx',
         (d: any) => {
-          if (isNaN(d.value)) {
-            console.log(d)
+          if (!isNaN(d.value)) {
+            return this.xScale(d.value);
           }
-          return this.xScale(d.value);
           ;
         })
       .attr('cy', () => {
@@ -1981,7 +1985,6 @@ class attributeTable {
 
     events.on(TABLE_VIS_ROWS_CHANGED_EVENT, () => {
       self.update();
-
     });
 
     events.on(PRIMARY_SELECTED, (evt, item) => {
@@ -1993,7 +1996,7 @@ class attributeTable {
     });
 
     events.on(COL_ORDER_CHANGED_EVENT, (evt, item) => {
-      self.update();
+      // self.update();
     });
 
   }

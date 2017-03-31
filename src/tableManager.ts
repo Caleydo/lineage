@@ -5,7 +5,10 @@ import * as range from 'phovea_core/src/range';
 import * as events from 'phovea_core/src/event';
 import {max, min, mean} from 'd3-array';
 import {IStatistics} from 'phovea_core/src/math';
+import {transition} from 'd3-transition';
+import {easeLinear} from 'd3-ease';
 import {__awaiter} from 'tslib';
+
 
 interface IFamilyInfo {
   id: number;
@@ -81,6 +84,7 @@ export const POI_SELECTED = 'affected_attribute_event';
 export const FAMILY_INFO_UPDATED = 'family_stats_updated';
 export const COL_ORDER_CHANGED_EVENT = 'col_ordering_changed';
 export const FAMILY_SELECTED_EVENT = 'family_selected_event';
+export const UPDATE_TABLE_EVENT = 'update_table'
 
 
 // export const PRIMARY_COLOR = '#335b8e';
@@ -141,7 +145,8 @@ export default class TableManager {
   //   ['KindredID','PersonID', 'Asthma', 'Bipolar', 'sex', 'deceased', 'suicide', 'gen', 'Age', 'FirstBMI', 'AgeFirstBMI', 'race', 'cause_death', 'weapon']; //set of default cols to read in, minimizes load time for large files;
 
   private defaultCols: String[] =
-    ['KindredID', 'RelativeID', 'suicide','sex', 'deceased', 'LabID', 'Age','Depression', 'Age1D_Depression', 'Nr.Diag_Depression', 'Asthma', 'Age1D_Asthma', 'Nr.Diag_Asthma',  'Bipolar', 'MaxBMI', 'AgeMaxBMI', 'race','cause_death', 'weapon']; //set of default cols to read in, minimizes load time for large files;
+    ['KindredID', 'RelativeID', 'sex', 'deceased', 'suicide', 'Depression', 'Age1D_Depression', 'Nr.Diag_Depression', 'Bipolar', 'Age1D_Bipolar', 'Nr.Diag_Bipolar', 'MaxBMI', 'AgeMaxBMI', 'race','cause_death', 'weapon']; //set of default cols to read in, minimizes load time for large files;
+
 
 
   public colOrder: String[]; //array that keeps track which attributes are displayed in the panel and in the table and their correct order.
@@ -158,6 +163,8 @@ export default class TableManager {
 
   //Keeps track of selected primary/secondary variable
   private primaryAttribute: IPrimaryAttribute;
+
+  public  t = transition('t').duration(600).ease(easeLinear);
 
 
   /**
@@ -659,6 +666,7 @@ export default class TableManager {
   set activeTableRows(newRows: range.Range) {
     this._activeTableRows = newRows;
     this.tableTable = this.table.view(range.join(this._activeTableRows, this.activeTableColumns));
+    console.log('firing TABLE VIS ROWS from activeTableRows')
     events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);
   }
 
@@ -679,6 +687,8 @@ export default class TableManager {
 
       this._activeGraphRows = range.list(newRange);
       this.refreshActiveGraphView().then(() => {
+        console.log('firing update table then TABLE VIS ROWS from activeGraphRows')
+        // events.fire(UPDATE_TABLE_EVENT);
         events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);
       });
 

@@ -207,6 +207,8 @@ class GenealogyTree {
     //Call function that updates the position of all elements in the tree
     this.update_graph();
 
+    console.log('done updating tree (within update)')
+
   }
 
 
@@ -646,7 +648,7 @@ class GenealogyTree {
       });
 
     //remove extra paths
-    edgePaths.exit().transition().duration(400).style('opacity', 0).remove();
+    edgePaths.exit().remove();
 
     let edgePathsEnter = edgePaths
       .enter()
@@ -658,7 +660,7 @@ class GenealogyTree {
 
     edgePaths
       .attr('class', 'edges')
-      .transition(t)
+      // .transition(t)
       .attr('d', (d: Node) => {
         let maY = Math.round(d.ma.y);
         let paY = Math.round(d.pa.y);
@@ -672,7 +674,7 @@ class GenealogyTree {
       });
 
     edgePaths
-      .transition(t.transition().ease(easeLinear))
+      .transition(t.transition().duration(1000).ease(easeLinear))
       .attr('opacity', 1)
       .attr('stroke-width', Config.glyphSize / 5);
 
@@ -686,7 +688,7 @@ class GenealogyTree {
         });
 
 
-    parentEdgePaths.exit().transition().duration(400).style('opacity', 0).remove();
+    parentEdgePaths.exit().style('opacity', 0).remove();
 
     let parentEdgePathsEnter = parentEdgePaths
       .enter()
@@ -784,6 +786,7 @@ class GenealogyTree {
 
 
     aggregateBars
+      .transition(t.transition().duration(500).ease(easeLinear))
       .attr('opacity',1);
 
 
@@ -843,7 +846,6 @@ class GenealogyTree {
       .attr('opacity', 0)
 
     function highlightRows(d: any) {
-      console.log('here')
 
       function selected(e: Node) {
         let returnValue = false;
@@ -1026,6 +1028,8 @@ class GenealogyTree {
 
     couplesLines = couplesLinesEnter.merge(couplesLines)
 
+    couplesLines.attr('opacity',0)
+
     couplesLines
       .attr('x1', (d:any) => {
         return this.x(d.x) + Config.glyphSize*.9;
@@ -1043,6 +1047,9 @@ class GenealogyTree {
         return this.y(d.y+0.4)
       })
       .attr('stroke-width', 2)
+
+
+    couplesLines.attr('opacity',1);
 
     const kidGridsGroup = select('#genealogyTree').select('#kidGrids');
 
@@ -1090,7 +1097,7 @@ class GenealogyTree {
         return d.uniqueID;
       });
 
-    allNodes.exit().transition().duration(400).style('opacity', 0).remove();
+    allNodes.exit().remove();
 
     const allNodesEnter = allNodes
       .enter()
@@ -1267,6 +1274,8 @@ class GenealogyTree {
   }
 
   private renderNodeGroup(element, d: Node) {
+
+    const t = transition('t').duration(500).ease(easeLinear);
 
     element
       .classed('affected', (n: any) => {
@@ -1512,11 +1521,13 @@ class GenealogyTree {
     //Size hidden nodes differently
     //regular nodes
     element.selectAll('.male')
+      .transition(t)
       .attr('width', glyphSize)
       .attr('height', glyphSize);
 
     //unhidden nodes
     element.selectAll('.female')
+      .transition(t)
       .attr('r', radius);
 
     //attribute frames

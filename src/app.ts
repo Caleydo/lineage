@@ -53,7 +53,9 @@ export class App {
 
     /** =====  PUBLIC CASE ===== */
 
-    await tableManager.loadData('TenFamiliesDescendAnon', 'TenFamiliesAttrAnon');
+    // await tableManager.loadData('TenFamiliesDescendAnon', 'TenFamiliesAttrAnon');
+    await tableManager.loadData('TwoFamiliesDescendAnon', 'TwoFamiliesAttrAnon');
+
 
 
     /** =====  PRIVATE CASES - WORKS ONLY WITH THE RIGHT DATA LOCALLY ===== */

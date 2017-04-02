@@ -658,6 +658,8 @@ class GenealogyTree {
 
     edgePathsEnter.attr('opacity', 0);
 
+    // edgePaths.attr('opacity',0)
+
     edgePaths
       .attr('class', 'edges')
       // .transition(t)
@@ -674,7 +676,8 @@ class GenealogyTree {
       });
 
     edgePaths
-      .transition(t.transition().duration(1000).ease(easeLinear))
+      // .transition(t.transition().duration(1000).ease(easeLinear))
+      .transition('t')
       .attr('opacity', 1)
       .attr('stroke-width', Config.glyphSize / 5);
 

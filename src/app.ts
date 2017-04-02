@@ -53,8 +53,8 @@ export class App {
 
     /** =====  PUBLIC CASE ===== */
 
-    // await tableManager.loadData('TenFamiliesDescendAnon', 'TenFamiliesAttrAnon');
-    await tableManager.loadData('TwoFamiliesDescendAnon', 'TwoFamiliesAttrAnon');
+    await tableManager.loadData('TenFamiliesDescendAnon', 'TenFamiliesAttrAnon');
+    // await tableManager.loadData('TwoFamiliesDescendAnon', 'TwoFamiliesAttrAnon');
 
 
 

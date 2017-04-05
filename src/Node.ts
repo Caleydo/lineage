@@ -102,7 +102,7 @@ export default class Node {
   /** Default initialization for attributes */
   constructor(id: string) {
     this.type = 'single';
-    this.id = id;
+    this.id = undefined;
     this.uniqueID = id;
     this.hidden = false;
     this.aggregated = false;
@@ -118,7 +118,7 @@ export default class Node {
     this.duplicates = [];
     this.visited = false;
     this.deceased = 'Y';
-    this.aggregateBranch = false;
+    this.affected = false;
     this.state = layoutState.Expanded;
   }
 
@@ -131,7 +131,5 @@ export default class Node {
     this.x = +row[columnNameToIndex.bdate];
     this.maID = row[columnNameToIndex.MaID].toString();
     this.paID = row[columnNameToIndex.PaID].toString();
-    // console.log(row)
-    // console.log('setting maID of ', this.id , ' to ', this.maID, row[columnNameToIndex.MaID])
   }
 }

@@ -56,10 +56,7 @@ class GraphData {
 
       //Once tree has been created for the new family, fire redraw tree event.
       this.createTree().then(() => {
-        console.log('about to aggregate')
         this.aggregateTreeWrapper(undefined, layoutState.Hidden); //default to hidden state;
-        console.log('done aggregating')
-        // events.fire('redraw_tree', this);
       }).catch(function (error) {
         console.log('Error: ' + error);
       });
@@ -266,7 +263,6 @@ class GraphData {
    */
   public async createTree() {
 
-    // console.log('step1')
 
     this.nodes = [];
     const columns = this.graphTable.cols();
@@ -275,11 +271,11 @@ class GraphData {
 
     let peopleIDs = await columns[0].names();
 
-    let idRanges = await columns[0].ids();
+    const idRanges = await columns[0].ids();
 
 
     this.ids = idRanges.dim(0).asList().map(d => {
-      return d.toString()
+      return d.toString();
     });
 
 
@@ -311,13 +307,9 @@ class GraphData {
     // console.log('affected state is ', this.tableManager.affectedState)
     this.defineAffected(this.tableManager.affectedState);
 
-    // console.log('step2')
-
     this.buildTree();
 
-    // console.log('step3')
-
-    //Create fake birthdays for people w/o a bdate.
+    //Create fake birthdays for people w/o a bdate or ddate.
     this.nodes.forEach((n) => {
       if (n.bdate === 0 || isNaN(n.bdate)) { //random number
         // subtract 20 from the age of the first kid
@@ -330,20 +322,17 @@ class GraphData {
           n.bdate = CURRENT_YEAR - 3;
         }
       }
-      if (n.ddate === 0 || isNaN(n.ddate)){
+      if (n.ddate === 0 || isNaN(n.ddate)) {
         n.ddate = CURRENT_YEAR;
       }
     });
 
 
-    // console.log('step4')
     //Remove cycles by creating duplicate nodes where necessary
     this.removeCycles();
 
-    // console.log('step5')
     //Linearize Tree and pass y values to the attributeData Object
     this.linearizeTree();
-
 
     //Create dictionary of person to y values
     this.exportYValues();
@@ -354,7 +343,6 @@ class GraphData {
       d.originalY = +d.y; //keeps track of nodes original y position - can change for kid grids on hide.
     });
 
-    // console.log('step6')
   };
 
 
@@ -370,20 +358,6 @@ class GraphData {
     return this.tableManager.getAttribute(attribute, personID);
   }
 
-  /**
-   *
-   * This function uncollapses the entire tree by setting their node y values back to the originally Y Value;
-   *
-   */
-  private uncollapseAll() {
-    this.nodes.forEach((node: Node) => {
-      node.y = node.originalY;
-      node.x = node.originalX;
-      node.hidden = false;
-      node.aggregated = false;
-    });
-  }
-
 
   /**
    *
@@ -397,14 +371,11 @@ class GraphData {
 
 
     this.nodes.forEach((node) => {
-      //Remove danglers
-      // if (node.hasChildren || (!isUndefined(node.ma) && !isUndefined(node.pa))) {
       if (node.id in dict) {
         dict[node.id].push(Math.round(node.y));
       } else {
         dict[node.id] = [Math.round(node.y)];
       }
-      // }
     });
 
 
@@ -534,7 +505,7 @@ class GraphData {
    *
    * This function prepares the tree for aggregation, cleans up the results and updates the tableManager.
    * @param nodeID, starting node for the aggregate/hide/expand operation. If undefined, apply to entire tree.
-   * @pram aggregate, true for aggregation, false for hiding, undefined for expand.
+   * @pram state, defines operation as one of the three enums: state.expanded, state.aggregated, state.hidden.
    */
   private aggregateTreeWrapper(nodeID: string, state:layoutState) {
 
@@ -618,8 +589,8 @@ class GraphData {
     const idRange = [];
     this.nodes.forEach((n: any) => {
       if (!(!n.aggregated && n.hidden)) {
-        const ind: number = this.ids.indexOf(n.id);
-        idRange.push(n.id);
+        const ind: number = this.ids.indexOf(n.uniqueID);
+        idRange.push(n.uniqueID);
       }
     });
 

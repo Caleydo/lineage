@@ -318,10 +318,10 @@ export default class TableManager {
   }
 
   /**
-   * This function updates the data and ids for the affected State (POI), primary, and secondary attributes when a different family is selected.
+   * This function updates the data and ids for the affected State (POI) and primary attribute when a different family is selected.
    *
    */
-  public async updatePOI_Primary_Secondary() {
+  public async updatePOI_Primary() {
     if (this.affectedState) {
       const attributeVector = await this.getAttributeVector(this.affectedState.name);
       const varType = attributeVector.valuetype.type;
@@ -375,7 +375,7 @@ export default class TableManager {
           })) {
           category = 'Y';
         } else if (categories.find((d) => {
-            return d === 'TRUE';
+            return (d === 'TRUE' || d === 'True');
           })) {
           category = 'TRUE';
         } else if (categories.find((d) => {
@@ -477,7 +477,6 @@ export default class TableManager {
 
     // let familyRange: number[] =[];
 
-    //Temporarily only plot the first family
     const family = this.familyInfo.find((family) => {return family.id === chosenFamilyIDs[0];});
     let familyRange = range.list(family.range); //familyRange.concat(family.range);
 
@@ -485,25 +484,21 @@ export default class TableManager {
       const family = this.familyInfo.find((family) => {
         return family.id === chosenFamilyIDs[i];
       });
-      // let range: number[] = family.range
-      //   familyRange = familyRange.concat(range)
       if (i>0) {
         familyRange = familyRange.union(range.list(family.range));
       }
     });
 
-    //In case families were chosen out of order. Provided ranges must be in order;
-    // familyRange.sort(function(a, b) {return a - b;})
-
-    // this._activeGraphRows = range.list(familyRange);
     this._activeGraphRows = familyRange;
 
     await this.refreshActiveGraphView();
 
     //Update the activeAttributeRows. This ensure that vector.stats() returns the correct values in the table.
 
-    const familyMembers = await this.graphTable.col(0).names();
-    const attributeMembers = await this.attributeTable.col(0).names();
+    const familyMembersRange = await this.graphTable.col(0).ids();
+    const familyMembers =  familyMembersRange.dim(0).asList();
+    const attributeMembersRange = await this.attributeTable.col(0).ids();
+    const attributeMembers= attributeMembersRange.dim(0).asList();
 
     const attributeRows = [];
 
@@ -516,10 +511,8 @@ export default class TableManager {
 
     await this.refreshActiveTableView();
 
-    this.updatePOI_Primary_Secondary();
+    this.updatePOI_Primary();
 
-    console.log('FAMILY_SELECTED_EVENT was fired');
-    // events.fire(VIEW_CHANGED_EVENT);
     events.fire(FAMILY_SELECTED_EVENT);
   }
 
@@ -676,19 +669,19 @@ export default class TableManager {
    */
   set activeGraphRows(newRows: string[]) {
 
-    this.table.col(0).names().then((allIDs) => {
+    this.table.col(0).ids().then((allIDsRange) => {
+
+      const allIDs = allIDsRange.dim(0).asList();
 
       const newRange = [];
       allIDs.forEach((id, i) => {
-        if (newRows.indexOf(id) > -1) {
+        if (newRows.indexOf(id.toString()) > -1) {
           newRange.push(i);
         }
       });
 
       this._activeGraphRows = range.list(newRange);
       this.refreshActiveGraphView().then(() => {
-        console.log('firing update table then TABLE VIS ROWS from activeGraphRows')
-        // events.fire(UPDATE_TABLE_EVENT);
         events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);
       });
 

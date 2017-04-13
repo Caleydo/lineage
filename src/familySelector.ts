@@ -89,27 +89,25 @@ class FamilySelector {
       .data(this.headerInfo)
       .enter()
       .append('th')
+      .classed('header', true)
       .text(function (column) {
-
-        return 'test';
-        // console.log(column);
-        // return column.header;
+        return column.header;
       })
-      // .on('click', function (d) {
-      //   // headers.attr('class', 'header');
-      //
-      //   // if (sortAscending) {
-      //     self.rows.sort(function(a, b) {
-      //       return b[d.dataAttr] < a[d.dataAttr];});
-      //     // sortAscending = false;
-      //     select(this).classed('aes',true);
-      //   // } else {
-      //   //   rows.sort(function(a, b) { return b[d] > a[d]; });
-      //   //   sortAscending = true;
-      //   //   this.className = 'des';
-      //   // }
-      //
-      // });
+      .on('click', function (d) {
+        const isAscending = select(this).classed('des');
+        selectAll('.header').attr('class', 'header');
+
+        if (isAscending) {
+          self.rows.sort(function(a, b) {
+            return b[d.dataAttr] < a[d.dataAttr];});
+          select(this).classed('aes',true);
+        } else {
+          self.rows.sort(function(a, b) {
+            return b[d.dataAttr] > a[d.dataAttr];});
+          select(this).classed('des',true);
+        }
+
+      });
 
   }
 

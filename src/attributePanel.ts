@@ -421,10 +421,7 @@ class AttributePanel {
 
     this.columns = orderedCols;
 
-
-
     let dataVec: IAnyVector;
-
 
     this.histograms.forEach(singleHistogram => {
       this.columns.forEach(col => {

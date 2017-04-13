@@ -386,11 +386,10 @@ class attributeTable {
       if (type === VALUE_TYPE_CATEGORICAL) {
         //Build col offsets array ;
         let allCategories = vector.desc.value.categories.map(c => {
-          return c.name
+          return c.name;
         }); //get categories from index.json def
         let categories;
 
-        console.log(allCategories)
 
         //Only need one col for binary categories
         if (allCategories.length < 3) {

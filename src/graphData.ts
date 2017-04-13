@@ -514,6 +514,7 @@ class GraphData {
       if (isUndefined(nodeID)) {
         applyToAll = true;
       } else if (!isUndefined(state)) {
+        console.log('state has been defined')
         //find node
         let node = this.nodes.find((n: Node) => {
           return n.uniqueID === nodeID;
@@ -558,7 +559,7 @@ class GraphData {
       return n.y;
     }) -1;
 
-    this.nodes.forEach(n=>{n.y = n.y - minY});
+    this.nodes.forEach((n)=> {n.y = n.y - minY});
 
     //Adjust y position for non affected nodes in the tree;
     this.nodes.forEach((n:Node)=>{
@@ -643,13 +644,13 @@ class GraphData {
 
     //Find oldest person in this set of nodes and set as founder
     let startNode = nodeList.find((n) => {
-      return n.bdate === min(nodeList, n => {
+      return n.bdate === min(nodeList, (n) => {
           return n.bdate;
-        })
+        });
     });
 
 
-    //If starting node is not the 'center' of the founding spouses or is not a direct descendat
+    //If starting node is not the 'center' of the founding spouses or is not a direct descendant
     if (startNode.spouse.length === 1 && (startNode.spouse[0].spouse.length>1 || isUndefined(startNode.ma))){
       startNode = startNode.spouse[0];
     }
@@ -664,13 +665,13 @@ class GraphData {
       startNode.y = minY -1; //Set first y index;
     }
 
-    if (!isUndefined(state) && state !== layoutState.Expanded && !startNode.affected && startNode.hasChildren && (startNode.state !== layoutState.Expanded || applyToAll)) {
-      startNode.hidden = true;
-      startNode.aggregated = state === layoutState.Aggregated;
+    // if (!isUndefined(state) && state !== layoutState.Expanded && !startNode.affected && startNode.hasChildren && (startNode.state !== layoutState.Expanded || applyToAll)) {
+    //   startNode.hidden = true;
+    //   startNode.aggregated = state === layoutState.Aggregated;
+    //   this.aggregateHelper(startNode);
+    // } else {
       this.aggregateHelper(startNode);
-    } else {
-      this.aggregateHelper(startNode);
-    }
+    // }
 
 
     //Recursively call aggregateTree to handle any nodes that were not assigned a y value.
@@ -906,6 +907,7 @@ class GraphData {
     this.nodes.forEach((node) => {
       const data = this.tableManager.getAttribute(affectedState.name, node.id);
       node.affected = affectedState.isAffected(data);
+      console.log(data,node.affected);
     });
 
   }

@@ -8,6 +8,7 @@ import {IStatistics} from 'phovea_core/src/math';
 import {transition} from 'd3-transition';
 import {easeLinear} from 'd3-ease';
 import {__awaiter} from 'tslib';
+import {isUndefined} from 'util';
 
 
 interface IFamilyInfo {
@@ -360,7 +361,7 @@ export default class TableManager {
           return attr >= stats.mean;
         }; //if threshold hasn't been defined, default to anything over the mean value
         threshold = stats.mean;
-        if (threshold > attributeVector.desc.value.range[1]){
+        if (threshold > attributeVector.desc.value.range[1]) {
           threshold = (attributeVector.desc.value.range[1] - attributeVector.desc.value.range[0])/2 + attributeVector.desc.value.range[0] ;
         }
       } else if (varType === VALUE_TYPE_CATEGORICAL) {
@@ -387,7 +388,7 @@ export default class TableManager {
         }
 
         isAffectedCallbackFcn = (attr: string) => {
-          return attr === category;
+          return !isUndefined(attr) && attr.toLowerCase() === category.toLowerCase(); //solve the True/TRUE problem once and for all.
         };
         threshold = category;
       } else if (varType === VALUE_TYPE_STRING) {

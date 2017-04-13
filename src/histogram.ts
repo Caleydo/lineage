@@ -389,8 +389,6 @@ class Histogram {
       acc += b;
 
     });
-
-    console.log(dataVec.desc.name, histData.valueRange)
     //let xScale = scaleLinear().range([0,this.width]).domain([0,histData.bins])
     this.xScale.domain(histData.valueRange);//.nice();
     // let yScale = scaleLinear().range([0,height]).domain([0,maxFrequency]);
@@ -403,7 +401,7 @@ class Histogram {
 
     if (currentHist.select('.elementGroup').size() === 0){
 
-      let element = currentHist.append('g')
+      const element = currentHist.append('g')
         .classed('elementGroup',true)
         .attr('transform', 'scale(0.6,0.6) translate(' + this.margin.left + ',' + this.margin.top + ')')
 

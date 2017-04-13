@@ -207,8 +207,6 @@ class GenealogyTree {
     //Call function that updates the position of all elements in the tree
     this.update_graph();
 
-    console.log('done updating tree (within update)')
-
   }
 
 
@@ -2213,7 +2211,7 @@ class GenealogyTree {
     events.on(POI_SELECTED, (evt, affectedState) => {
       // this.data.aggregateTreeWrapper(undefined,layoutState.Expanded);
       this.data.defineAffected(affectedState);
-      // this.data.aggregateTreeWrapper(undefined,layoutState.Hidden);
+      this.data.aggregateTreeWrapper(undefined,undefined);
       this.update_graph();
     });
 

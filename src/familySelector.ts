@@ -135,9 +135,6 @@ class FamilySelector {
       .range([0,50])
       .domain([0,maxValue]);
 
-
-    console.log(data.familyInfo);
-
     // create a row for each object in the data
     this.rows = select('tbody').selectAll('tr')
       .data(data.familyInfo);

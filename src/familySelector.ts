@@ -38,6 +38,10 @@ class FamilySelector {
 
   private familyInfo: IFamilyInfo;
 
+  private rows;
+
+  private headerInfo =[{'header':'FamilyID','dataAttr':'id'},{'header':'# People','dataAttr':'size'},{'header':'#POI','dataAttr':'affected'}];
+
   constructor(parent: Element) {
     this.$node = select(parent);
   }
@@ -51,7 +55,7 @@ class FamilySelector {
     this.build();
     this.updateTable(tableManager);
 
-    events.on(FAMILY_INFO_UPDATED,(evt,tableManagerObject)=>{ this.updateTable(tableManagerObject)});
+    events.on(FAMILY_INFO_UPDATED,(evt,tableManagerObject)=> {this.updateTable(tableManagerObject)});
 
     // return the promise directly as long there is no dynamical data to update
     return Promise.resolve(this);
@@ -77,15 +81,35 @@ class FamilySelector {
     const thead = table.append('thead');
     const tbody = table.append('tbody');
 
+    const self = this;
+
     // append the header row
     thead.append('tr')
       .selectAll('th')
-      .data(['FamilyID', '# People', '#POI'])
+      .data(this.headerInfo)
       .enter()
       .append('th')
       .text(function (column) {
-        return column;
-      });
+
+        return 'test';
+        // console.log(column);
+        // return column.header;
+      })
+      // .on('click', function (d) {
+      //   // headers.attr('class', 'header');
+      //
+      //   // if (sortAscending) {
+      //     self.rows.sort(function(a, b) {
+      //       return b[d.dataAttr] < a[d.dataAttr];});
+      //     // sortAscending = false;
+      //     select(this).classed('aes',true);
+      //   // } else {
+      //   //   rows.sort(function(a, b) { return b[d] > a[d]; });
+      //   //   sortAscending = true;
+      //   //   this.className = 'des';
+      //   // }
+      //
+      // });
 
   }
 
@@ -94,20 +118,20 @@ class FamilySelector {
    */
   private updateTable(tableManager) {
 
-    let self = this;
+    const self = this;
 
     this.familyInfo = tableManager.familyInfo;
-    let data = tableManager;
+    const data = tableManager;
 
     // console.log('family info is ' , data.familyInfo);
 
-    let maxValue = max(data.familyInfo,(d:any)=>{return +d.size});
+    let maxValue = max(data.familyInfo,(d:any)=> {return +d.size;});
 
     this.peopleScale
       .range([0,100])
       .domain([0,maxValue])
 
-    maxValue = max(data.familyInfo,(d:any)=>{return +d.affected});
+    maxValue = max(data.familyInfo,(d:any)=> {return +d.affected;});
 
     this.casesScale
       .range([0,50])
@@ -117,26 +141,26 @@ class FamilySelector {
     console.log(data.familyInfo);
 
     // create a row for each object in the data
-    let rows = select('tbody').selectAll('tr')
+    this.rows = select('tbody').selectAll('tr')
       .data(data.familyInfo);
 
-    let rowsEnter = rows
+    const rowsEnter = this.rows
       .enter()
       .append('tr');
 
-    rows = rowsEnter.merge(rows);
+    this.rows = rowsEnter.merge(this.rows);
 
-    rows.exit().remove();
+    this.rows.exit().remove();
     //
     // create a cell in each row for each column
-    let cells = rows.selectAll('td')
+    let cells = this.rows.selectAll('td')
       .data((d) => {
-        return [{'id': d['id'], 'value': d['id'], 'type': 'id'},
-          {'id': d['id'],'value': d['size'],'type': 'size'},
-          {'id': d['id'], 'value': d['affected'], 'type': 'affected'}];
+        return [{'id': d.id, 'value': d.id, 'type': 'id'},
+          {'id': d.id,'value': d.size,'type': 'size'},
+          {'id': d.id, 'value': d.affected, 'type': 'affected'}];
       });
 
-    let cellsEnter = cells
+    const cellsEnter = cells
       .enter()
       .append('td');
 

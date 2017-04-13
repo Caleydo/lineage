@@ -200,7 +200,17 @@ th{
   height:40%;
   background-color: #4f4f4f;
   color: white;
+  cursor: s-resize;
 }
+
+th.des:after {
+  content: "\21E9";
+}
+
+th.aes:after {
+  content: "\21E7";
+}
+
 
 .fixed_headers {
   width: 300px;

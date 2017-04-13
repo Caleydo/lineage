@@ -344,7 +344,7 @@ export default class TableManager {
    */
   public async setAffectedState(varName, isAffectedCallbackFcn?) {
 
-    const attributeVector = await this.getAttributeVector(varName);
+    const attributeVector = await this.getAttributeVector(varName,true);
     const varType = attributeVector.valuetype.type;
 
     let threshold;

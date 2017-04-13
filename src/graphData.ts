@@ -574,7 +574,7 @@ class GraphData {
       this.nodes.forEach((n:Node) => {
         if (n.state === layoutState.Hidden) {
           if (n.hidden && !n.affected && n.hasChildren && n.spouse.find(s => {
-              return s.affected
+              return s.affected;
             })) {
             n.x = n.x - Config.glyphSize * .6;
           }
@@ -591,8 +591,19 @@ class GraphData {
     });
 
     this.exportYValues();
-    this.tableManager.activeGraphRows = (idRange);
+    this.tableManager.activeGraphRows = idRange;
 
+  }
+
+
+  public pseudoExpandGraph(){
+
+    const idRange = [];
+    this.nodes.forEach((n: any) => {
+        const ind: number = this.ids.indexOf(n.uniqueID);
+        idRange.push(n.uniqueID);
+    });
+    this.tableManager.activeGraphRows = idRange;
   }
 
 
@@ -908,7 +919,6 @@ class GraphData {
     this.nodes.forEach((node) => {
       const data = this.tableManager.getAttribute(affectedState.name, node.id);
       node.affected = affectedState.isAffected(data);
-      console.log(data,node.affected);
     });
 
   }

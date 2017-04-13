@@ -2181,13 +2181,13 @@ class GenealogyTree {
     return lineFunction(linedata);
   }
 
-  private static parentEdge(d, lineFunction) {
+  private static parentEdge(d:Node, lineFunction) {
     const linedata = [{
-      x: d['ma'].x,
-      y: d['ma'].y
+      x: d.ma.x,
+      y: d.ma.y
     }, {
-      x: d['pa'].x,
-      y: d['pa'].y
+      x: d.pa.x,
+      y: d.pa.y
     }];
     return lineFunction(linedata);
   }

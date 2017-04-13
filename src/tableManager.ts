@@ -280,7 +280,7 @@ export default class TableManager {
       }
     });
 
-    //Store data and associated personIDs for graph rendering of attribute bars
+    //Store data and associated personIDs for graph rendering of attribute bars or change of POI
     const attributeDefinition: IPrimaryAttribute = {
       name: attributeName, primary:true, type: attributeVector.valuetype.type,
       'data': await attributeVector.data(), 'range':attributeVector.desc.value.range, 'personIDs': (await attributeVector.names())
@@ -289,11 +289,9 @@ export default class TableManager {
     const data = await attributeVector.data();
     if (attributeDefinition.type === VALUE_TYPE_CATEGORICAL) {
       const categoricalDefinition = <IPrimaryCatAttribute> attributeDefinition;
-      // this.primaryAttribute = <IPrimaryCatAttribute> this.primaryAttribute;
-        categories = attributeVector.desc.value.categories.map((c) => {
+        categories = attributeVector.desc.value.categories.map((c) => { //get categories from index.json def
         return c.name;
-      }); //get categories from index.json def
-      // categories = Array.from(new Set(data)).sort(); //derive categories from data
+      });
 
       if (categories.length === 2) {//binary categorical data
         color = [binaryColorChoice2, binaryColorChoice1];
@@ -303,12 +301,10 @@ export default class TableManager {
       categoricalDefinition.categories = categories;
       categoricalDefinition.color = color;
     } else if (attributeDefinition.type === VALUE_TYPE_INT || attributeDefinition.type === VALUE_TYPE_REAL) {
-      // this.primaryAttribute = <IPrimaryQuantAttribute> this.primaryAttribute;
       const quantDefinition = <IPrimaryQuantAttribute> attributeDefinition;
       quantDefinition.stats = await attributeVector.stats();
       quantDefinition.color = binaryColorChoice1;
     }
-    // console.log(Attribute)
 
     this.primaryAttribute = attributeDefinition;
 

@@ -92,18 +92,18 @@ class Histogram {
    */
   private addCategorySelection() {
 
-    let attrName = this.attrName;
+    const attrName = this.attrName;
 
     this.$node.selectAll('.catBar').on('click', function (d:any) {
       if (select(this).classed('picked')) {
         select(this).classed('picked', false);
-        events.fire('poi_selected',{'name':attrName, 'callback':(attr:String) => {return false}}) //if a bar is unclicked affected State is false for all
+        events.fire('poi_selected',{'name':attrName, 'callback':(attr:String) => {return false}}); //if a bar is unclicked affected State is false for all
       } else {
         selectAll('.picked').classed('picked', false);
         select(this).classed('picked', true);
       }
 
-      events.fire('poi_selected',{'name':attrName, 'callback':(attr:String) => {return attr === d.key}})
+      events.fire('poi_selected',{'name':attrName, 'callback':(attr:String) => {return attr.toLowerCase() === d.key.toLowerCase()}});
 
     });
 
@@ -123,7 +123,7 @@ class Histogram {
 
     this.$node.selectAll('.catBar').attr('fill','#5f6262');
     //select right bar and set classed to picked.
-    this.$node.selectAll('.catBar').filter((bar)=>{ return bar.key === category; }).classed('picked',true);
+    this.$node.selectAll('.catBar').filter((bar)=> { return bar.key.toLowerCase() === category.toLowerCase(); }).classed('picked',true);
     }
 
 

@@ -509,12 +509,7 @@ class GraphData {
    */
   private aggregateTreeWrapper(nodeID: string, state:layoutState) {
 
-      let applyToAll = false;
-
-      if (isUndefined(nodeID)) {
-        applyToAll = true;
-      } else if (!isUndefined(state)) {
-        console.log('state has been defined')
+     if (!isUndefined(nodeID) && !isUndefined(state)) {
         //find node
         let node = this.nodes.find((n: Node) => {
           return n.uniqueID === nodeID;
@@ -529,7 +524,7 @@ class GraphData {
           if (node.spouse.length>1) {
             node = node.spouse[0];
           }
-        }
+        };
 
         //Toggle layout state of this node;
         node.state = state;
@@ -546,13 +541,13 @@ class GraphData {
       n.hidden = false;
       n.x = n.originalX;
       //Set aggregate/hide/expand flag for each node
-      if (applyToAll && !isUndefined(state)) {
+      if (isUndefined(nodeID) && !isUndefined(state)) {
         n.state =state;
       }
 
     })
 
-    this.aggregateTree(applyToAll, state);
+    this.aggregateTree();
 
     //clean out extra rows at the top of the tree;
     const minY = min(this.nodes, (n: any) => {
@@ -631,7 +626,7 @@ class GraphData {
    *@param aggregate, true for aggregation, false for hiding, undefined for expand.
    *
    */
-  private aggregateTree(applyToAll, state:layoutState) {
+  private aggregateTree() {
 
     //Only look at nodes who have not yet been assigned a y value
     const nodeList = this.nodes.filter((n) => {
@@ -665,17 +660,23 @@ class GraphData {
       startNode.y = minY -1; //Set first y index;
     }
 
+    if (!startNode.affected && startNode.hasChildren && startNode.state !== layoutState.Expanded) {
+      startNode.hidden = true;
+      startNode.aggregated = startNode.state === layoutState.Aggregated;
+    }
+
     // if (!isUndefined(state) && state !== layoutState.Expanded && !startNode.affected && startNode.hasChildren && (startNode.state !== layoutState.Expanded || applyToAll)) {
     //   startNode.hidden = true;
     //   startNode.aggregated = state === layoutState.Aggregated;
     //   this.aggregateHelper(startNode);
     // } else {
+
       this.aggregateHelper(startNode);
     // }
 
 
     //Recursively call aggregateTree to handle any nodes that were not assigned a y value.
-    this.aggregateTree(applyToAll, state);
+    this.aggregateTree();
   }
 
 
@@ -688,7 +689,7 @@ class GraphData {
    */
   private aggregateHelper(node: Node) {
 
-    if (node.state === layoutState.Expanded){
+    if (node.state === layoutState.Expanded) {
       this.linearizeLogic(node);
       node.children.forEach((child:Node)=>{
         this.aggregateHelper(child)
@@ -903,7 +904,7 @@ class GraphData {
    * Currently has a single value that indicates true.
    */
   private defineAffected(affectedState) {
-    // console.log(affectedState, 'affectedState')
+    console.log(affectedState, 'affectedState')
     this.nodes.forEach((node) => {
       const data = this.tableManager.getAttribute(affectedState.name, node.id);
       node.affected = affectedState.isAffected(data);

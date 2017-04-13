@@ -184,9 +184,9 @@ export default class TableManager {
 
     await this.parseFamilyInfo(); //this needs to come first because the setAffectedState sets default values based on the data for a selected family.
 
-    await this.setAffectedState('suicide'); //Default value;
+    // await this.setAffectedState('suicide'); //Default value;
 
-    await this.updateFamilyStats();
+    // await this.updateFamilyStats();
 
     //For panel attribute add/remove/ordering
     this.attachListeners();

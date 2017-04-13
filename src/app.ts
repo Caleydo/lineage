@@ -64,6 +64,9 @@ export class App {
     // await tableManager.loadData('AllFamiliesDescend', 'AllFamiliesAttributes');
     /** ============= */
 
+    const attributePanel = panel.create(this.$node.select('#data_selection').node());
+    attributePanel.init(tableManager);
+
     const graphDataObj = graphData.create(tableManager);
     await graphDataObj.createTree();
 
@@ -76,9 +79,6 @@ export class App {
     attributeTable.init(tableManager);
 
     // console.log('panel')
-    const attributePanel = panel.create(this.$node.select('#data_selection').node());
-    attributePanel.init(tableManager);
-
     const familySelectorView = familySelector.create(this.$node.select('#familySelector').node());
     familySelectorView.init(tableManager);
 

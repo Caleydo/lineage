@@ -596,17 +596,6 @@ class GraphData {
   }
 
 
-  public pseudoExpandGraph(){
-
-    const idRange = [];
-    this.nodes.forEach((n: any) => {
-        const ind: number = this.ids.indexOf(n.uniqueID);
-        idRange.push(n.uniqueID);
-    });
-    this.tableManager.activeGraphRows = idRange;
-  }
-
-
   /**
    *
    * This function recursively applies the layout state of the seed node to the rest of this branch.

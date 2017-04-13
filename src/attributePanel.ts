@@ -77,13 +77,14 @@ class AttributePanel {
 
     this.allColumns = orderedCols.concat(allCols.filter((c)=>{return orderedCols.indexOf(c)<0}));
 
-    console.log('this.columns length is ', this.columns.length);
-
-
-
     this.update();
     this.build();
     this.attachListener();
+
+    select('.suicide').select('#poi').each(function() {
+      const onClickFunc = select(this).on('click');
+      onClickFunc.apply(this);
+    });
 
     // return the promise directly as long there is no dynamical data to update
     return Promise.resolve(this);
@@ -278,8 +279,8 @@ class AttributePanel {
       .html(`<div class=' attr_badges pull-right'>
                 <!--<span class=' badge' id ='add_remove'>-</span> -->
                         
-                <span class=' badge' id ='primary'>A</span>
-                <span class=' badge' id ='poi'>POI</span>
+                <span class='badge' id ='primary'>A</span>
+                <span class='badge' id ='poi'>POI</span>
                  
               </div>`);
 
@@ -304,8 +305,8 @@ class AttributePanel {
 
     });
 
-    selectAll('.badge').on('click',function (){
-      const badge = select(this).attr('id'); //$(this).id();
+    selectAll('.badge').on('click',function() {
+      const badge = select(this).attr('id');
       const attribute = $(this).closest('strong').contents()[0];
       //reset badge display for previously clicked badges
       $('.checked_' + badge).css('display', '');
@@ -329,7 +330,11 @@ class AttributePanel {
       $(this).addClass('checked_' + badge);
       $(this).css('display', 'inline');
       $(this).css('margin-right', '10px');
-      event.stopPropagation();
+
+      if (event){
+        event.stopPropagation();
+      }
+
 
       if (badge === 'primary' || badge === 'secondary') {
         events.fire('primary_secondary_selected', {'name':attribute.nodeValue,  'primary_secondary':badge});

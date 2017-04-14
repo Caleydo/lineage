@@ -14,6 +14,7 @@ import {COL_ORDER_CHANGED_EVENT, FAMILY_SELECTED_EVENT} from './tableManager';
 
 
 import {Config} from './config';
+import {isNullOrUndefined} from 'util';
 
 2
 /**
@@ -331,7 +332,7 @@ class AttributePanel {
       $(this).css('display', 'inline');
       $(this).css('margin-right', '10px');
 
-      if (event){
+      if (!isNullOrUndefined(event)) {
         event.stopPropagation();
       }
 

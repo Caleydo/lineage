@@ -78,7 +78,6 @@ export class App {
     const attributeTable = table.create(this.$node.select('#graph_table').node());
     attributeTable.init(tableManager);
 
-    // console.log('panel')
     const familySelectorView = familySelector.create(this.$node.select('#familySelector').node());
     familySelectorView.init(tableManager);
 

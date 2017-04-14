@@ -203,7 +203,6 @@ class GenealogyTree {
 
     //Filter data to only render what is visible in the current window
     this.update_time_axis();
-
     //Call function that updates the position of all elements in the tree
     this.update_graph();
 
@@ -1915,101 +1914,97 @@ class GenealogyTree {
 
   private update_time_axis() {
 
-    let scrollOffset = document.getElementById('graph_table').scrollTop;
-    let divHeight = document.getElementById('graph_table').offsetHeight;
+    const scrollOffset = document.getElementById('graph_table').scrollTop;
+    const divHeight = document.getElementById('graph_table').offsetHeight;
 
-    // 	          console.log(divHeight, this.y(65),this.y(72), (divHeight + scrollOffset) - 75)
-
-    let minY = this.y.invert(scrollOffset);
-    let maxY = this.y.invert(divHeight + scrollOffset - 75)
-
-    // select('#axis')
-    //   .attr('transform', 'translate(' + this.margin.left + ',' + (scrollOffset + 130) + ')')
-
-    //the 75 offset is the transform applied on the group
+    const minY = this.y.invert(scrollOffset);
+    const maxY = this.y.invert(divHeight + scrollOffset - 75)
 
     //Filter data to adjust x axis to the range of nodes that are visible in the window.
 
-    let filtered_nodes = this.data.nodes.filter((d) => {
-      return d['y'] >= Math.round(minY) && d['y'] <= Math.round(maxY)
+    const filtered_nodes = this.data.nodes.filter((d:Node) => {
+      return d.y >= Math.round(minY) && d.y <= Math.round(maxY);
     });
 
-    if (filtered_nodes.length === 0)
+    if (filtered_nodes.length === 0){
       return; //no visible nodes on the screen;
+    }
 
-    let filtered_domain = [min(filtered_nodes, function (d) {
-      return +d['bdate'] - 5
+
+    const filteredDomain = [min(filtered_nodes, function (d:Node) {
+      return +d.bdate - 5;
     }),
-      max(filtered_nodes, function (d) {
-        return +d['ddate'] + 5
+      max(filtered_nodes, function (d:Node) {
+        return +d.ddate + 5;
       })];
 
 
-    let all_domain = [min(this.data.nodes, function (d) {
-      return +d['bdate'] - 5
+    const allDomain = [min(this.data.nodes, function (d:Node) {
+      return +d.bdate - 5;
     }),
-      max(this.data.nodes, function (d) {
-        return +d['ddate']
+      max(this.data.nodes, function (d:Node) {
+        return +d.ddate;
       })];
 
     //Temporary cap @ 2016. Not sure why the axis are scaling to 2025 automatically.
-    if (all_domain[1] > CURRENT_YEAR)
-      all_domain[1] = CURRENT_YEAR;
+    if (allDomain[1] > CURRENT_YEAR)
+      allDomain[1] = CURRENT_YEAR;
 
-    if (filtered_domain[1] > CURRENT_YEAR)
-      filtered_domain[1] = CURRENT_YEAR;
-    // console.log(all_domain, filtered_domain)
+    if (filteredDomain[1] > CURRENT_YEAR) {
+      filteredDomain[1] = CURRENT_YEAR;
+    }
+    // console.log(allDomain, filteredDomain)
     //Build time axis
 
     //for visible nodes
     let x_range = [0];
-    let x_domain = [all_domain[0]];
-    let x_ticks = [all_domain[0]];
+    let x_domain = [allDomain[0]];
+    let x_ticks = [allDomain[0]];
 
     //for out of scope nodes
     let x2_range = [0];
-    let x2_domain = [all_domain[0]];
+    let x2_domain = [allDomain[0]];
     let x2_ticks = [];
 
 
     //If there are hidden nodes older than the first visible node
-    if (all_domain[0] < filtered_domain[0]) {
+    if (allDomain[0] < filteredDomain[0]) {
       x_range.push(this.width * 0.05);
-      x_domain.push(filtered_domain[0]);
-      x_ticks.push(filtered_domain[0]);
+      x_domain.push(filteredDomain[0]);
+      x_ticks.push(filteredDomain[0]);
 
 
       x2_range.push(this.width * 0.05);
-      x2_domain.push(filtered_domain[0]);
+      x2_domain.push(filteredDomain[0]);
 
       //Add tick marks
-      let left_range = range(all_domain[0], filtered_domain[0], 10);
+      let left_range = range(allDomain[0], filteredDomain[0], 10);
       x2_ticks = left_range;
 
     }
 
-    x_ticks = x_ticks.concat(ticks(filtered_domain[0], filtered_domain[1], 10));
+    x_ticks = x_ticks.concat(ticks(filteredDomain[0], filteredDomain[1], 10));
 
 
-    if (all_domain[1] !== filtered_domain[1]) {
+    if (allDomain[1] !== filteredDomain[1]) {
 
       x_range.push(this.width * 0.95);
-      x_domain.push(filtered_domain[1]);
-      x_ticks.push(filtered_domain[1]);
+      x_domain.push(filteredDomain[1]);
+      x_ticks.push(filteredDomain[1]);
 
       x2_range.push(this.width * 0.95);
-      x2_domain.push(filtered_domain[1]);
+      x2_domain.push(filteredDomain[1]);
 
       x2_range.push(this.width);
-      x2_domain.push(all_domain[1]);
+      x2_domain.push(allDomain[1]);
 
-      let right_range = range(filtered_domain[1], all_domain[1], 10);
+      let right_range = range(filteredDomain[1], allDomain[1], 10);
       x2_ticks = x2_ticks.concat(right_range);
     }
 
     x_range.push(this.width);
-    x_domain.push(all_domain[1]);
-    x_ticks.push(all_domain[1]);
+    x_domain.push(allDomain[1]);
+    x_ticks.push(allDomain[1]);
 
     this.x.domain(x_domain);
     this.x.range(x_range);
@@ -2209,9 +2204,9 @@ class GenealogyTree {
     });
 
     events.on(POI_SELECTED, (evt, affectedState) => {
-      // this.data.aggregateTreeWrapper(undefined,layoutState.Expanded);
       this.data.defineAffected(affectedState);
       this.data.aggregateTreeWrapper(undefined,undefined);
+      this.update_time_axis();
       this.update_graph();
     });
 

@@ -1991,7 +1991,7 @@ class attributeTable {
     });
 
     events.on(COL_ORDER_CHANGED_EVENT, (evt, item) => {
-      // self.update();
+      self.update();
     });
 
   }

@@ -15,7 +15,6 @@ import * as familySelector from './familySelector';
 import * as graphData from './graphData';
 import * as TableManager from './tableManager';
 
-
 /**
  * The main class for the Lineage app
  */
@@ -44,6 +43,9 @@ export class App {
    * @returns {Promise<App>}
    */
   private async build() {
+
+
+
 
     const tableManager = TableManager.create();
     // This executes asynchronously, so you'll have to pass

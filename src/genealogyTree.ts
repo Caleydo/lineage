@@ -55,7 +55,7 @@ import {
   Config
 } from './config';
 
-import {PRIMARY_SELECTED, POI_SELECTED, TABLE_VIS_ROWS_CHANGED_EVENT} from './tableManager';
+import {PRIMARY_SELECTED, POI_SELECTED, TABLE_VIS_ROWS_CHANGED_EVENT} from 'sorTable/src/tableManager'; //'./tableManager';
 import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL} from 'phovea_core/src/datatype';
 // import {TABLE_SORTED_EVENT} from './attributeTable'
 import Node from './Node';

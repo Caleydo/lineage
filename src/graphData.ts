@@ -16,7 +16,7 @@ import {
 
 import * as events from 'phovea_core/src/event';
 import * as Range from 'phovea_core/src/range';
-import {VIEW_CHANGED_EVENT, FAMILY_SELECTED_EVENT, default as TableManager} from './tableManager';
+import {VIEW_CHANGED_EVENT, FAMILY_SELECTED_EVENT, default as TableManager} from  'sorTable/src/tableManager'; // './tableManager';
 import {isUndefined} from 'util';
 import Node from './Node';
 import {Sex} from './Node';

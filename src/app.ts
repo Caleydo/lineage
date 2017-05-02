@@ -7,13 +7,16 @@ import {select, selectAll} from 'd3-selection';
 
 //Import typescript modules for the views
 import * as tree from './genealogyTree';
-import * as table from './attributeTable';
+// import * as table from './attributeTable';
 import * as panel from './attributePanel';
 import * as familySelector from './familySelector';
 
 //Import Data Structure for graph & table
 import * as graphData from './graphData';
-import * as TableManager from './tableManager';
+// import * as TableManager from './tableManager';
+
+import * as TableManager from 'sorTable/src/tableManager';
+import * as table from 'sorTable/src/attributeTable';
 
 
 /**

@@ -19,6 +19,7 @@ import * as TableManager from 'sorTable/src/tableManager';
 import * as table from 'sorTable/src/attributeTable';
 
 
+
 /**
  * The main class for the Lineage app
  */

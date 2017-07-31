@@ -31,7 +31,7 @@ cd lineage
 
 In this directory (`lineage`), you will have (at least) two subdirectories `lineage` which hosts the client code, and `lineage_server` which hosts the server code. 
 
-An optional next step is to install the (phovea_core)[https://github.com/phovea/phovea_core] via git. If you do that, you'll be able to easily step into the core. We currently develop against the `develop` branch, so we need to switch to that: 
+An optional next step is to install the [phovea_core](https://github.com/phovea/phovea_core) via git. If you do that, you'll be able to easily step into the core. We currently develop against the `develop` branch, so we need to switch to that: 
 
 ```bash 
 git clone https://github.com/phovea/phovea_core

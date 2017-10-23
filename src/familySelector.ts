@@ -18,9 +18,9 @@ import {
   event
 } from 'd3-selection';
 
-import IFamilyInfo from './tableManager';
+import IFamilyInfo from  'sorTable/src/tableManager'; //'./tableManager';
 
-import {FAMILY_INFO_UPDATED} from './tableManager';
+import {FAMILY_INFO_UPDATED} from  'sorTable/src/tableManager'; //'./tableManager';
 
 
 /**

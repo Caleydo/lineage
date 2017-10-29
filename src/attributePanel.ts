@@ -102,13 +102,15 @@ class AttributePanel {
     .append('div').attr('id', 'tableNav')
     // .attr('class','mx-auto') //for centering on nav bar
 
-    // this.$node.select('#tableNav')
-    // .append('button').attr('type','button').attr('class','btn btn-secondary ml-3').text('Option 1')
+    this.$node.select('.navbar')
+    .append('button').attr('type','button').attr('class','btn btn-secondary ml-auto').text('Collapse Panel')
+    .attr('id','collapseTableButton')
+
 
     this.$node.select('#tableNav')
     .append('a').attr('class','navbar-brand')
     .html('Family Selector')
-    
+
     const familySelector = this.$node.append('div')
       .attr('id', 'familySelector')
       // .classed('menu-list', true)

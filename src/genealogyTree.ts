@@ -235,12 +235,12 @@ class GenealogyTree {
     .html('Genealogy Tree View')
 
 
-    // this.$node.select('#tableNav')
-    // .append('button').attr('type','button').attr('class','btn btn-secondary ml-3').text('Aggregate Tree')
-    // this.$node.select('#tableNav')
-    // .append('button').attr('type','button').attr('class','btn btn-secondary ml-3').text('Hide Non Affected Nodes')
-    // this.$node.select('#tableNav')
-    // .append('button').attr('type','button').attr('class','btn btn-secondary ml-3').text('Expand Tree')
+    this.$node.select('.navbar')
+    .append('button').attr('type','button').attr('class','btn btn-secondary mr-1 ml-auto').text('Aggregate Tree')
+    this.$node.select('.navbar')
+    .append('button').attr('type','button').attr('class','btn btn-secondary mr-1').text('Hide Non Affected Nodes')
+    this.$node.select('.navbar')
+    .append('button').attr('type','button').attr('class','btn btn-secondary mr-1').text('Expand Tree')
 
     //Create a static div for the headers
     // this.$node.append('div').attr('id', 'headersDIV');

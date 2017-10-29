@@ -40,7 +40,12 @@ class FamilySelector {
 
   private rows;
 
-  private headerInfo =[{'header':'FamilyID','dataAttr':'id'},{'header':'# People','dataAttr':'size'},{'header':'#POI','dataAttr':'affected'}];
+  private headerInfo =[{'header':'FamilyID','dataAttr':'id'},
+  {'header':'FSIR','dataAttr':'id'},
+  {'header':'# People','dataAttr':'size'},
+  {'header':'#POI','dataAttr':'affected'},
+  {'header':'#DNA Samples','dataAttr':'id'},
+  {'header':'Maximum Meiosis','dataAttr':'id'}];
 
   constructor(parent: Element) {
     this.$node = select(parent);
@@ -78,6 +83,23 @@ class FamilySelector {
 
     const table = select('#familySelector').append('table').attr('class','table')
       // .classed('fixed_headers', true);
+
+    select('#collapseTableButton')
+      .on('click',()=>{
+        let text = select('#collapseTableButton').html();
+        console.log(text)
+        if (text == 'Expand Panel'){
+          select('#collapseTableButton').html('Collapse Panel')
+          select('#col1').attr('class','col-4');         
+
+        } else {
+           select('#collapseTableButton').html('Expand Panel')
+          select('#col1').attr('class','col-2');
+         
+        }
+          
+
+    })
 
     const thead = table.append('thead');
     const tbody = table.append('tbody');
@@ -153,8 +175,11 @@ class FamilySelector {
     let cells = this.rows.selectAll('td')
       .data((d) => {
         return [{'id': d.id, 'value': d.id, 'type': 'id'},
+        {'id': d.id, 'value': d.id, 'type': 'id'},
           {'id': d.id,'value': d.size,'type': 'size'},
-          {'id': d.id, 'value': d.affected, 'type': 'affected'}];
+          {'id': d.id, 'value': d.affected, 'type': 'affected'},
+          {'id': d.id, 'value': d.id, 'type': 'id'},
+          {'id': d.id, 'value': d.id, 'type': 'id'}];
       });
 
     const cellsEnter = cells
@@ -171,7 +196,9 @@ class FamilySelector {
 
       if (cell.type === 'size' || cell.type === 'affected'){
         if (select(this).selectAll('svg').size() === 0){
-          select(this).append('svg').append('rect')
+          let svg = select(this).append('svg');
+          svg.append('rect').classed('total',true);
+          svg.append('rect').classed('poi',true)
         }
 
         if (select(this).select('svg').selectAll('text').size() === 0){
@@ -183,14 +210,23 @@ class FamilySelector {
             .attr('width', () => {
               return cell.type === 'size' ? self.peopleScale.range()[1]+30 : self.casesScale.range()[1]+30;
             })
-            .attr('height', 10);
+            .attr('height', 12);
 
-          select(this).select('svg').select('rect')
+          select(this).select('svg').select('.total')
             .data([cell.value])
             .attr('width', (d: any) => {
               return cell.type === 'size' ? self.peopleScale(d) : self.casesScale(d);
             })
             .attr('height', 10);
+
+            select(this).select('svg').select('.poi')
+            .data([cell.value])
+            .attr('width', (d: any) => {
+              return cell.type === 'size' ? self.peopleScale(d/5) : self.casesScale(d/5);
+            })
+            .attr('height', 10);
+
+
 
         select(this)
           .select('text')
@@ -200,7 +236,7 @@ class FamilySelector {
             return cell.type === 'size' ? self.peopleScale(d)+4 : self.casesScale(d)+4;
           })
           .text((d: any) => {
-            return d;
+            return d + ' (' + Math.floor(d/5) + ')';
           });
 
       }

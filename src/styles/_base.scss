@@ -9,4 +9,16 @@ th, label, strong, b, .label {
 
 .col{
 	overflow:scroll;
+
+}
+
+.col-4 {
+  flex-grow: 1;
+  transition: all 400ms ease;
+}
+
+.col-2 {
+  width: 0; 
+  flex-shrink: 1;
+  transition: all 400ms ease;
 }

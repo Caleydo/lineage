@@ -39,9 +39,12 @@ $affected-node-color: #285880;
   //stroke-width: 2px;
 }
 
-td rect{
+rect.total{
   fill: #636363;
+}
 
+rect.poi{
+  fill: #d5553d;
 }
 
 .barLabel{

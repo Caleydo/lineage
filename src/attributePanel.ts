@@ -41,16 +41,16 @@ class AttributePanel {
   constructor(parent: Element) {
 
     //toggle btn
-    select(parent).append('span')
-      .attr('id', 'toggle-btn')
-      .append('i')
-      .classed('glyphicon glyphicon-menu-hamburger', true);
+    // select(parent).append('span')
+    //   .attr('id', 'toggle-btn')
+    //   .append('i')
+    //   .classed('glyphicon glyphicon-menu-hamburger', true);
 
 
     this.$node = select(parent)
-      .append('div')
-      .attr('id', 'panelContent')
-      .classed('nav-side-menu active', true);
+      // .append('div')
+      // .attr('id', 'panelContent')
+      // .classed('nav-side-menu active', true);
   }
 
   /**
@@ -97,12 +97,24 @@ class AttributePanel {
    */
   private build() {
     // family selector
+
+    this.$node.append('nav').attr('class','navbar navbar-expand-lg navbar-light bg-light')
+    .append('div').attr('id', 'tableNav')
+    // .attr('class','mx-auto') //for centering on nav bar
+
+    // this.$node.select('#tableNav')
+    // .append('button').attr('type','button').attr('class','btn btn-secondary ml-3').text('Option 1')
+
+    this.$node.select('#tableNav')
+    .append('a').attr('class','navbar-brand')
+    .html('Family Selector')
+    
     const familySelector = this.$node.append('div')
       .attr('id', 'familySelector')
-      .classed('menu-list', true)
-      .html(` <ul >
-            <li class='brand' data-toggle='collapse'> <i class=''></i> <strong>Family and Data Selection</strong></li>
-               </ul>`);
+      // .classed('menu-list', true)
+      // .html(` <ul >
+      //       <li class='brand' data-toggle='collapse'> <i class=''></i> <strong>Family and Data Selection</strong></li>
+      //          </ul>`);
 
     //<span class='toggle-btn'><i class='glyphicon glyphicon-menu-hamburger'></i></span>
 

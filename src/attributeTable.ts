@@ -144,7 +144,31 @@ class attributeTable {
     this.height = Config.glyphSize * 3 * this.tableManager.graphTable.nrow; //- this.margin.top - this.margin.bottom;
 
 
+     this.$node.append('nav').attr('class','navbar navbar-expand-lg navbar-light bg-light')
+    .append('div').attr('id', 'tableNav')
+
+       this.$node.select('#tableNav')
+    .append('a').attr('class','navbar-brand')
+    .html('Attribute Table View')
+    // .attr('class','mx-auto') //for centering on nav bar
+
+    // this.$node.select('#tableNav')
+    // .append('button').attr('type','button').attr('class','btn btn-secondary ml-3').text('Option 1')
+
+
     // let t = transition('t').duration(500).ease(easeLinear);
+
+      // const headerSVG = select('#headersDIV').append('svg')
+    const headerSVG =this.$node.append('svg')
+      .attr('width', 1920)
+      .attr('height',170)
+      .attr('id', 'headers')
+
+    headerSVG.append('g')
+      .attr('transform', 'translate(' + Config.collapseSlopeChartWidth + ',95)')
+      .attr('id', 'headerGroup')
+
+
 
     //Exctract y values from dict.
     const svg = this.$node.append('svg')
@@ -158,28 +182,28 @@ class attributeTable {
       .attr('id', 'tableGroup')
 
     //HEADERS
-    select('#headerGroup').append('g')
-      .attr('transform', 'translate(590, 0)')
+    this.$node.select('#headerGroup').append('g')
+      .attr('transform', 'translate(0, 0)')
       .attr('id', 'tableHeaders')
 
     //Column Summaries
-    select('#headerGroup').append('g')
-      .attr('transform', 'translate(590, 15)')
+    this.$node.select('#headerGroup').append('g')
+      .attr('transform', 'translate(0, 15)')
       .attr('id', 'colSummaries')
 
     //Columns (except for the first)
     select('#tableGroup').append('g')
-      .attr('transform', 'translate(0, ' + this.margin.top + ')')
+      // .attr('transform', 'translate(0, ' + this.margin.top + ')')
       .attr('id', 'columns');
 
     //Highlight Bars
     select('#columns').append('g')
-      .attr('transform', 'translate(0, ' + this.margin.top + ')')
+      // .attr('transform', 'translate(0, ' + this.margin.top + ')')
       .attr('id', 'highlightBars');
 
     //SlopeChart and first col
     svg.append('g')
-      .attr('transform', 'translate(0, ' + this.margin.top + ')')
+      // .attr('transform', 'translate(0, ' + this.margin.top + ')')
       .attr('id', 'slopeChart')
 
     select('#slopeChart').append('g')
@@ -230,16 +254,24 @@ class attributeTable {
             return ('translate(' + Config.collapseSlopeChartWidth + ' ,0)');
           });
 
-        select('#tableHeaders')
+        select('#headerGroup')
           .transition(t2)
           .attr('transform', () => {
-            return ('translate(' + (560 + Config.collapseSlopeChartWidth) + ' ,0)');
+            return ('translate(' + Config.collapseSlopeChartWidth + ' ,95)');
           });
+
+
+
+        // select('#tableHeaders')
+        //   .transition(t2)
+        //   .attr('transform', () => {
+        //     return ('translate(0,0)');
+        //   });
 
         select('#colSummaries')
           .transition(t2)
           .attr('transform', () => {
-            return ('translate(' + (560 + Config.collapseSlopeChartWidth) + ' ,15)');
+            return ('translate(0 ,15)');
           });
 
 
@@ -1060,16 +1092,17 @@ class attributeTable {
         return ('translate(' + Config.slopeChartWidth + ' ,0)');
       });
 
-    select('#tableHeaders')
+
+    select('#headerGroup')
       .transition(t2)
       .attr('transform', (cell: any) => {
-        return ('translate(' + (560 + Config.slopeChartWidth)  + ' ,0)');
+        return ('translate(' + (Config.slopeChartWidth)  + ' ,95)');
       });
 
     select('#colSummaries')
       .transition(t2)
       .attr('transform', (cell: any) => {
-        return ('translate(' + (560  + Config.slopeChartWidth)  + ' ,15)');
+        return ('translate(0,15)');
       });
 
 

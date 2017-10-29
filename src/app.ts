@@ -33,6 +33,12 @@ export class App {
     this.$node.select("#col1").append('div').attr('id', 'data_selection');
     this.$node.select("#col2").append('div').attr('id', 'graph');
     this.$node.select("#col3").append('div').attr('id', 'table');
+
+
+    select('#caleydoHeader').select('.navbar').append('a').attr('class','nav-link').text('Aggregate All')
+
+    //Add to header 
+    // <a class="nav-link" href="#">Link</a>
     // this.$node.append('div').attr('id', 'data_selection');
     // this.$node.append('div').attr('id', 'graph_table');
   }

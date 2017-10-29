@@ -75,8 +75,9 @@ class FamilySelector {
     //            </ul>`);
 
 
-    const table = select('#familySelector').append('table')
-      .classed('fixed_headers', true);
+
+    const table = select('#familySelector').append('table').attr('class','table')
+      // .classed('fixed_headers', true);
 
     const thead = table.append('thead');
     const tbody = table.append('tbody');
@@ -89,7 +90,8 @@ class FamilySelector {
       .data(this.headerInfo)
       .enter()
       .append('th')
-      .classed('header', true)
+      .attr('scope','col')
+      // .classed('header', true)
       .text(function (column) {
         return column.header;
       })

@@ -219,23 +219,49 @@ class GenealogyTree {
    */
   private build() {
 
-    this.width = 600 - this.margin.left - this.margin.right;
+    this.width = 970 - this.margin.left - this.margin.right;
 
     this.visibleXAxis = axisTop(this.x).tickFormat(format('d'));
     this.extremesXAxis = axisTop(this.x2);
 
     // window.onscroll = (e:any)=>{console.log(e,'user scrolled')}
 
+    this.$node.append('nav').attr('class','navbar navbar-expand-lg navbar-light bg-light')
+    .append('div').attr('id', 'tableNav')
+    // .attr('class','mx-auto') //for centering on nav bar
+
+    this.$node.select('#tableNav')
+    .append('a').attr('class','navbar-brand')
+    .html('Genealogy Tree View')
+
+
+    // this.$node.select('#tableNav')
+    // .append('button').attr('type','button').attr('class','btn btn-secondary ml-3').text('Aggregate Tree')
+    // this.$node.select('#tableNav')
+    // .append('button').attr('type','button').attr('class','btn btn-secondary ml-3').text('Hide Non Affected Nodes')
+    // this.$node.select('#tableNav')
+    // .append('button').attr('type','button').attr('class','btn btn-secondary ml-3').text('Expand Tree')
 
     //Create a static div for the headers
-    this.$node.append('div').attr('id', 'headersDIV');
+    // this.$node.append('div').attr('id', 'headersDIV');
+
+
+
 
     // const headerSVG = select('#headersDIV').append('svg')
-    //   .attr('width', 1920)
-    //   .attr('height',170)
-    //   .attr('id', 'headers')
+    const headerSVG =this.$node.append('svg')
+      .attr('width', 1000)
+      .attr('height',170)
+      .attr('id', 'headers')
 
+    // headerSVG.append('rect')
+    //   .attr('width', 970)
+    //   .attr('height',160)
+    //   .attr('fill','white')
 
+    // headerSVG.append('g')
+    //   .attr('transform', 'translate(' + this.margin.left + ',90)')
+    //   .attr('id', 'headerGroup');
 
     const svg = this.$node.append('svg')
       .attr('width', this.width + this.margin.left + this.margin.right)
@@ -342,18 +368,10 @@ class GenealogyTree {
     //Create group for genealogy tree
 
 
-    // headerSVG.append('rect')
-    //   .attr('width', 1900)
-    //   .attr('height',160)
-    //   .attr('fill','white')
-
-    // headerSVG.append('g')
-    //   .attr('transform', 'translate(' + this.margin.left + ',90)')
-    //   .attr('id', 'headerGroup');
-
+   
 
     svg.append('g')
-      .attr('transform', 'translate(' + this.margin.left + ',' + (this.margin.top + Config.glyphSize) + ')')
+      .attr('transform', 'translate(' + this.margin.left + ',' + (Config.glyphSize) + ')')
       .attr('id', 'genealogyTree');
 
     //Ensure the right order of all the elements by creating seprate groups
@@ -438,8 +456,8 @@ class GenealogyTree {
       .attr('ry', 10)
 
     //Create group for all time axis
-    const axis = select('#headerGroup').append('g')
-      .attr('transform', 'translate(0,45)')
+    const axis = select('#headers').append('g')
+      .attr('transform', 'translate(40,135)')
       .attr('id', 'axis');
 
 
@@ -449,6 +467,7 @@ class GenealogyTree {
 
     //Add button to slopeChart Div that says 'revert to Tree Order'
     button = legend
+    // button = select('#caleydoHeader').select('.navbar')
       .append('g')
       .attr('transform', 'translate(0,'  + (-65) + ')')
       .attr('id', 'treeButtons')
@@ -1193,7 +1212,7 @@ class GenealogyTree {
 
     let self = this;
 
-    let nodes = this.data.nodes.filter(d=>{return !d.hasChildren && !d.hidden});
+    let nodes = this.data.nodes; //.filter(d=>{return !d.hasChildren && !d.hidden});
 
     let t = transition('t').duration(500).ease(easeLinear);
 

@@ -23,7 +23,8 @@ import {
 } from 'd3-ease';
 import {
   scaleLinear,
-  scaleLog, scalePow
+  scaleLog, scalePow,
+  scaleOrdinal, schemeCategory20c
 } from 'd3-scale';
 import {
   max,
@@ -173,6 +174,9 @@ class GenealogyTree {
     })
     .curve(curveBasis);
 
+    private colorScale = ["#969696", "#9e9ac8", "#74c476", "#fd8d3c", "#9ecae1"];
+
+    
 
   constructor(parent: Element) {
     this.$node = select(parent);
@@ -187,6 +191,7 @@ class GenealogyTree {
    */
   init(data) {
     this.data = data;
+
     this.build();
     // this.data.collapseAll();
     this.update();
@@ -225,10 +230,10 @@ class GenealogyTree {
     //Create a static div for the headers
     this.$node.append('div').attr('id', 'headersDIV');
 
-    const headerSVG = select('#headersDIV').append('svg')
-      .attr('width', 1920)
-      .attr('height',170)
-      .attr('id', 'headers')
+    // const headerSVG = select('#headersDIV').append('svg')
+    //   .attr('width', 1920)
+    //   .attr('height',170)
+    //   .attr('id', 'headers')
 
 
 
@@ -324,7 +329,7 @@ class GenealogyTree {
       .attr('stop-opacity', 0);
 
     //Add scroll listener for the graph table div
-    document.getElementById('graph_table').addEventListener('scroll', () => {
+    document.getElementById('graph').addEventListener('scroll', () => {
       this.update_time_axis();
       /* clear the old timeout */
       clearTimeout(this.timer);
@@ -337,14 +342,14 @@ class GenealogyTree {
     //Create group for genealogy tree
 
 
-    headerSVG.append('rect')
-      .attr('width', 1900)
-      .attr('height',160)
-      .attr('fill','white')
+    // headerSVG.append('rect')
+    //   .attr('width', 1900)
+    //   .attr('height',160)
+    //   .attr('fill','white')
 
-    headerSVG.append('g')
-      .attr('transform', 'translate(' + this.margin.left + ',90)')
-      .attr('id', 'headerGroup');
+    // headerSVG.append('g')
+    //   .attr('transform', 'translate(' + this.margin.left + ',90)')
+    //   .attr('id', 'headerGroup');
 
 
     svg.append('g')
@@ -352,6 +357,11 @@ class GenealogyTree {
       .attr('id', 'genealogyTree');
 
     //Ensure the right order of all the elements by creating seprate groups
+
+    //create a group in the background for edges
+    select('#genealogyTree')
+      .append('g')
+      .attr('id', 'familyBars');
 
     //create a group in the background for edges
     select('#genealogyTree')
@@ -611,14 +621,113 @@ class GenealogyTree {
     this.y.range([0, this.height]).domain(yrange);
 
     this.interGenerationScale.range([.75, .25]).domain([2, nodes.length]);
-
-    select('#graph')
+ console.log('HERE')
+    this.$node.select('#graph')
       .attr('height', this.height + this.margin.top + this.margin.bottom);
 
     this.update_edges();
     this.update_nodes();
+
+    // console.log(this.data.nodes)
+
+    this.addFamilyBars();
   }
 
+  private addFamilyBars() {
+
+    let self = this;
+
+    let nodes = this.data.nodes;
+
+    let t = transition('t').duration(500).ease(easeLinear);
+
+    //Separate groups for separate layers
+    const familyBarsGroup = select('#genealogyTree').select('#familyBars');
+
+    let familyDict = {};
+
+    nodes.map((node)=>{
+      if (familyDict[node.kindredID]){
+        familyDict[node.kindredID].push(node.y)
+      } else {
+        familyDict[node.kindredID] = [node.y]
+      }
+
+    })
+
+    var familyArray = new Array();
+
+    console.log(familyDict)
+
+    let maxY = 1;
+    for (var key in familyDict) {
+        // // maxY = max([maxY, max(familyDict[key])])
+        
+        // console.log(typeof(maxY),typeof(max(familyDict[key])))
+        // console.log(Math.max(maxY,+max(familyDict[key])))
+        familyArray.push({'id':key,'min':max([maxY, +min(familyDict[key])])+1, 'max':max(familyDict[key])});
+        maxY = Math.max(maxY,+max(familyDict[key]))
+    }
+
+
+
+    console.log(familyArray)
+    // // Attach node groups
+    let allFamilyBars = familyBarsGroup.selectAll('.familyBar')
+      .data(familyArray, function (d: Node) {
+        return d.id;
+      });
+
+    allFamilyBars.exit().remove();
+
+    const allFamilyBarsEnter = allFamilyBars
+      .enter()
+      .append('rect')
+      .classed('familyBar',true)
+
+
+
+    // let colorScale = scaleOrdinal().domain([0,1]).range(['#8ca252','#6b6ecf'])
+
+    allFamilyBars = allFamilyBarsEnter.merge(allFamilyBars);
+
+    allFamilyBars
+    .attr('x',-15)
+    .attr('y',(d)=>{return this.y(Math.round(d.min))})
+    .attr('width',25)
+    .attr('height',(d)=>{return this.y(Math.round(d.max)) - this.y(Math.round(d.min))})
+    .attr('opacity',.4)
+    .attr('fill',(d,i)=>{console.log(d); return d.id === '42623' ? this.colorScale[1] : this.colorScale[0]})
+
+    let allFamilyLabels = familyBarsGroup.selectAll('.familyLabel')
+      .data(familyArray, function (d: Node) {
+        return d.id;
+      });
+
+    allFamilyLabels.exit().remove();
+
+    const allFamilyLabelsEnter = allFamilyLabels
+      .enter()
+      .append('text')
+      .classed('familyLabel',true)
+
+
+
+    allFamilyLabels = allFamilyLabelsEnter.merge(allFamilyLabels);
+
+    allFamilyLabels
+    .attr('x',-10)
+    .attr('y',(d)=>{return this.y(Math.round(d.max))+23})
+    .text((d)=>{return 'Family ' + d.id})
+    // .attr("font-family", "sans-serif")
+    .attr("font-size", "20px")
+    .attr('font-weight','bold')
+    .attr("fill", "#4e4e4e")
+    .attr('transform', (d)=>{return 'rotate(-90,-20,' + this.y(Math.round(d.max)) + ')' })
+    .attr('text-anchor','start');
+
+
+    }
   /**
    *
    * This function updates the edges in the genealogy tree
@@ -1024,7 +1133,7 @@ class GenealogyTree {
       .enter()
       .append('line')
       .attr('class', 'couplesLine')
-      // .attr('visibility', 'hidden')
+      .attr('visibility', 'hidden')
 
     couplesLines = couplesLinesEnter.merge(couplesLines)
 
@@ -1084,7 +1193,7 @@ class GenealogyTree {
 
     let self = this;
 
-    let nodes = this.data.nodes;
+    let nodes = this.data.nodes.filter(d=>{return !d.hasChildren && !d.hidden});
 
     let t = transition('t').duration(500).ease(easeLinear);
 
@@ -1914,8 +2023,8 @@ class GenealogyTree {
 
   private update_time_axis() {
 
-    const scrollOffset = document.getElementById('graph_table').scrollTop;
-    const divHeight = document.getElementById('graph_table').offsetHeight;
+    const scrollOffset = document.getElementById('graph').scrollTop;
+    const divHeight = document.getElementById('graph').offsetHeight;
 
     const minY = this.y.invert(scrollOffset);
     const maxY = this.y.invert(divHeight + scrollOffset - 75)

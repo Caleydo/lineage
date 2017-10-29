@@ -221,6 +221,7 @@ class FamilySelector {
       //'Unselect all other families if ctrl was not pressed
       if (!event.metaKey) {
         select('tbody').selectAll('tr').classed('selected', false);
+        select('tbody').selectAll('tr').classed('selected2', false);
         this.selectedFamilyIds = [];
       }
 
@@ -228,7 +229,9 @@ class FamilySelector {
 
       select('tbody').selectAll('tr').filter((row) => {
         return row['id'] === d.id;
-      }).classed('selected', true);
+      }).attr('class',(d)=>{return d['id'] === 42623 ? 'selected2' : 'selected'})
+
+      
 
       tableManager.selectFamily(this.selectedFamilyIds);
 

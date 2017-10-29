@@ -5,7 +5,7 @@ import {Config} from './config';
 
 import {select, selection, selectAll, mouse, event} from 'd3-selection';
 import {format} from 'd3-format';
-import {scaleLinear} from 'd3-scale';
+import {scaleLinear, scaleOrdinal, schemeCategory20c} from 'd3-scale';
 import {max, min, mean} from 'd3-array';
 import {axisTop, axisBottom} from 'd3-axis';
 import * as range from 'phovea_core/src/range';
@@ -94,6 +94,8 @@ class attributeTable {
 
   private idScale = scaleLinear(); //used to size the bars in the first col of the table;
 
+  private colorScale = ["#969696", "#9e9ac8", "#74c476", "#fd8d3c", "#9ecae1"];
+
   private margin = Config.margin;
 
   private rowOrder: number[]; //keeps track of the order of rows (changes when a column is sorted)
@@ -110,6 +112,8 @@ class attributeTable {
   async init(data) {
 
     this.tableManager = data;
+
+    // private colorScale = scaleOrdinal(schemeCategory20c);
 
 
     this.build(); //builds the DOM
@@ -345,6 +349,7 @@ class attributeTable {
     }
     this.idScale.domain([1, maxAggregates]);
 
+  
     col.ids = allRows.map((row) => {
       return y2personDict[row]
     });
@@ -1551,9 +1556,12 @@ class attributeTable {
       .attr('width', col_width)
       .attr('height', rowHeight)
       .attr('y', 0)
-      .attr('fill', (d) => {
-        return cellData.type === 'idtype' ? '#c0bfbb' : colorScale(cellData.data) //return a single color for idtype cols.
-      })
+      // .attr('fill', (d) => {
+      //   return cellData.type === 'idtype' ? '#c0bfbb' : colorScale(cellData.data) //return a single color for idtype cols.
+      // }) 
+      .attr('opacity',.4)
+
+      .attr('fill',(d,i)=>{return cellData.data === '42623'  ? this.colorScale[1] : this.colorScale[0]  })
 
     element
       .select('.label')
@@ -1564,6 +1572,7 @@ class attributeTable {
         // return (+cellData.data >1 ? cellData.data : '')
       })
       .attr('text-anchor', 'middle')
+      .attr("fill", "#4e4e4e")
 
   }
 

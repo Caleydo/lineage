@@ -24,10 +24,17 @@ export class App {
   private $node;
 
   constructor(parent: Element) {
+    // console.log(parent)
+    // console.log(select(parent),select('#app'))
     this.$node = select(parent);
 
-    this.$node.append('div').attr('id', 'data_selection');
-    this.$node.append('div').attr('id', 'graph_table');
+    // this.$node = select('#col1');
+
+    this.$node.select("#col1").append('div').attr('id', 'data_selection');
+    this.$node.select("#col2").append('div').attr('id', 'graph');
+    this.$node.select("#col3").append('div').attr('id', 'table');
+    // this.$node.append('div').attr('id', 'data_selection');
+    // this.$node.append('div').attr('id', 'graph_table');
   }
 
   /**
@@ -70,12 +77,12 @@ export class App {
     const graphDataObj = graphData.create(tableManager);
     await graphDataObj.createTree();
 
-    // console.log('tree')
-    const genealogyTree = tree.create(this.$node.select('#graph_table').node());
+    // // console.log('tree')
+    const genealogyTree = tree.create(this.$node.select('#graph').node());
     genealogyTree.init(graphDataObj);
 
-    // console.log('table')
-    const attributeTable = table.create(this.$node.select('#graph_table').node());
+    // // // console.log('table')
+    const attributeTable = table.create(this.$node.select('#table').node());
     attributeTable.init(tableManager);
 
     const familySelectorView = familySelector.create(this.$node.select('#familySelector').node());

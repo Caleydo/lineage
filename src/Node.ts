@@ -21,7 +21,6 @@ export default class Node {
   /** This node's uniqueID */
   uniqueID: string;
 
-
   // TODO - what's type?
   type: string;
 
@@ -50,6 +49,8 @@ export default class Node {
 
   maID: string;
   paID: string;
+
+  kindredID:string;
   /** Reference to the mother */
   ma: Node;
   /** Reference to the father */
@@ -103,6 +104,7 @@ export default class Node {
   constructor(id: string) {
     this.type = 'single';
     this.id = undefined;
+    this.kindredID = undefined;
     this.uniqueID = id;
     this.hidden = false;
     this.aggregated = false;
@@ -131,5 +133,6 @@ export default class Node {
     this.x = +row[columnNameToIndex.bdate];
     this.maID = row[columnNameToIndex.MaID].toString();
     this.paID = row[columnNameToIndex.PaID].toString();
+    this.kindredID = row[columnNameToIndex.KindredID].toString();
   }
 }

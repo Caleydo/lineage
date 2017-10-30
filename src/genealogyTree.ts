@@ -46,7 +46,14 @@ import {
 } from 'd3-shape';
 import {
   curveBasis,
-  curveLinear
+  curveLinear,
+  symbol,
+  symbolCircle,
+  symbolTriangle,
+  symbolCross,
+  symbolStar,
+  symbolDiamond
+
 } from 'd3-shape';
 import {
   drag
@@ -55,6 +62,11 @@ import {
 import {
   Config
 } from './config';
+
+// import{
+//   legendSymbol,
+//   legendColor
+// } from 'd3-svg-legend';
 
 import {PRIMARY_SELECTED, POI_SELECTED, TABLE_VIS_ROWS_CHANGED_EVENT} from './tableManager';
 import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL} from 'phovea_core/src/datatype';
@@ -219,7 +231,14 @@ class GenealogyTree {
    */
   private build() {
 
-    this.width = 970 - this.margin.left - this.margin.right;
+        //fetch the svg bounds
+        let svgBounds = document.querySelector ('#col2').getBoundingClientRect();
+
+        console.log(svgBounds)
+        let parentWidth = 500;
+
+
+    this.width = parentWidth - this.margin.left - this.margin.right;
 
     this.visibleXAxis = axisTop(this.x).tickFormat(format('d'));
     this.extremesXAxis = axisTop(this.x2);
@@ -465,12 +484,73 @@ class GenealogyTree {
     const legend = axis.append('g')
       .attr('id', 'legend');
 
-    //Add button to slopeChart Div that says 'revert to Tree Order'
-    button = legend
-    // button = select('#caleydoHeader').select('.navbar')
-      .append('g')
-      .attr('transform', 'translate(0,'  + (-65) + ')')
-      .attr('id', 'treeButtons')
+      var triangleU = symbol().type(symbolTriangle)(),
+  circle = symbol().type(symbolCircle)(),
+  cross = symbol().type(symbolCross)(),
+  diamond = symbol().type(symbolDiamond)(),
+  star = symbol().type(symbolStar)();
+
+//example output of d3.svg.symbol().type('circle')();
+//"M0,4.51351666838205A4.51351666838205,4.51351666838205 0 1,1 0,
+//-4.51351666838205A4.51351666838205,4.51351666838205 0 1,1 0,4.51351666838205Z"
+
+let symbolScale =  scaleOrdinal()
+  .domain(['a longer label','b','c', 'd', 'e'])
+  .range([ triangleU, circle, cross, diamond, star] );
+
+
+
+// legend.append("g")
+//   .attr("class", "legendSymbol")
+//   .attr("transform", "translate(20, 20)");
+
+// let legendPath = legendSymbol()
+//   .scale(symbolScale)
+//   .orient("horizontal")
+//   .labelWrap(30)
+//   .title("Symbol Legend Title")
+//   .on("cellclick", function(d){alert("clicked " + d);});
+
+// legend.select(".legendSymbol")
+//   .call(legendPath);
+
+  //Creates a legend element and assigns a scale that needs to be visualized
+
+    //Domain definition for global color scale
+        // let domain = [-60, -50, -40, -30, -20, -10, 0, 10, 20, 30, 40, 50, 60];
+
+        // //Color range for global color scale
+        // let range = ["#063e78", "#08519c", "#3182bd", "#6baed6", "#9ecae1", "#c6dbef", "#fcbba1", "#fc9272", "#fb6a4a", "#de2d26", "#a50f15", "#860308"];
+
+        // //ColorScale be used consistently by all the charts
+        // let colorScale = scaleLinear()
+        //     .domain(domain)
+        //     .range(range);
+
+
+        //     this.$node.select('svg').append("g")
+        //         .attr("class", "legendQuantile")
+        //         .attr("transform", "translate(0,50)");
+
+            // let legendQuantile = legendColor()
+            //     .shapeWidth(100)
+            //     .cells(10)
+            //     .orient('horizontal')
+            //     .scale(colorScale);
+
+            // this.legendSvg.select(".legendQuantile")
+            //     .call(legendQuantile);
+         
+       
+
+
+
+    // //Add button to slopeChart Div that says 'revert to Tree Order'
+    // button = legend
+    // // button = select('#caleydoHeader').select('.navbar')
+    //   .append('g')
+    //   .attr('transform', 'translate(0,'  + (-65) + ')')
+    //   .attr('id', 'treeButtons')
 
     const self = this;
     button.append('rect')

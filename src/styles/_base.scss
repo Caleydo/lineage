@@ -7,10 +7,10 @@ th, label, strong, b, .label {
   font-weight: 500 !important;
 }
 
-.col{
+.col, .col-4, .col-3{
 	overflow:scroll;
-
 }
+
 
 .col-4 {
   flex-grow: 1;
@@ -18,7 +18,12 @@ th, label, strong, b, .label {
 }
 
 .col-2 {
-  width: 0; 
+  //width: 0; 
   flex-shrink: 1;
   transition: all 400ms ease;
+}
+
+
+.dropdown-item.active{
+    background-color: #d9d9d9 !important;
 }

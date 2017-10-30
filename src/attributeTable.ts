@@ -150,6 +150,45 @@ class attributeTable {
        this.$node.select('#tableNav')
     .append('a').attr('class','navbar-brand')
     .html('Attribute Table View')
+
+    let dropdownMenu = this.$node.select('.navbar')
+    .append('div').attr('class','dropdown ml-auto');
+
+    dropdownMenu.append('button').attr('class','btn btn-secondary dropdown-toggle').attr('type','button').attr('id','dropdownMenuButton').attr('data-toggle','dropdown')
+    .text('Select Table Attributes')
+
+    let menu = dropdownMenu.append('div').attr('class','dropdown-menu');
+
+
+    menu.append('h6').attr('class','dropdown-header').html('Demographic Attributes')
+    menu.append('a').attr('class','dropdown-item').html('Age');
+
+
+    menu.append('a').attr('class','dropdown-item active').html('Gender')
+    menu.append('a').attr('class','dropdown-item').html('Race')
+    menu.append('a').attr('class','dropdown-item active').html('RelativeID')
+    menu.append('div').attr('class','dropdown-divider')
+    menu.append('h6').attr('class','dropdown-header').html('Clinical Attributes')
+    menu.append('a').attr('class','dropdown-item').html('Bipolar')
+    menu.append('a').attr('class','dropdown-item').html('Depressions')
+    menu.append('a').attr('class','dropdown-item').html('Suicide')
+    menu.append('a').attr('class','dropdown-item').html('BMI')
+    menu.append('div').attr('class','dropdown-divider')
+    
+
+//     <div class="dropdown">
+//   <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+//     Dropdown button
+//   </button>
+//   <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+//     <h6 class="dropdown-header">Dropdown header</h6>
+//     <a class="dropdown-item" href="#">Action</a>
+//     <a class="dropdown-item" href="#">Another action</a>
+//      <div class="dropdown-divider"></div>
+//     <h6 class="dropdown-header">Dropdown header</h6>
+//     <a class="dropdown-item" href="#">Something else here</a>
+//   </div>
+// </div>
     // .attr('class','mx-auto') //for centering on nav bar
 
     // this.$node.select('#tableNav')

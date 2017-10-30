@@ -237,7 +237,10 @@ class FamilySelector {
           })
           .text((d: any) => {
             return d + ' (' + Math.floor(d/5) + ')';
-          });
+          })
+          .attr('fill', (d,i) => {
+              return (i >3 && d>15) ? 'red' : 'gray' ;
+            })
 
       }
 

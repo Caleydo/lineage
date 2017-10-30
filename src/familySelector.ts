@@ -43,7 +43,7 @@ class FamilySelector {
   private headerInfo =[{'header':'FamilyID','dataAttr':'id'},
   {'header':'FSIR','dataAttr':'id'},
   {'header':'# People','dataAttr':'size'},
-  {'header':'#POI','dataAttr':'affected'},
+  // {'header':'#POI','dataAttr':'affected'},
   {'header':'#DNA Samples','dataAttr':'id'},
   {'header':'Maximum Meiosis','dataAttr':'id'}];
 
@@ -177,7 +177,7 @@ class FamilySelector {
         return [{'id': d.id, 'value': d.id, 'type': 'id'},
         {'id': d.id, 'value': d.id, 'type': 'id'},
           {'id': d.id,'value': d.size,'type': 'size'},
-          {'id': d.id, 'value': d.affected, 'type': 'affected'},
+          // {'id': d.id, 'value': d.affected, 'type': 'affected'},
           {'id': d.id, 'value': d.id, 'type': 'id'},
           {'id': d.id, 'value': d.id, 'type': 'id'}];
       });

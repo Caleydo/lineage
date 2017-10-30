@@ -293,7 +293,12 @@ label {
 #familySelector{
   height:380px;
   border-bottom: solid lightgray;
+  //border-right: solid lightgray;
   padding-top:30px;
+}
+
+#data_selection{
+  border-right:#cdcdcd medium solid;
 }
 
 

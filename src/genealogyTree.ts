@@ -256,10 +256,35 @@ class GenealogyTree {
 
     this.$node.select('.navbar')
     .append('button').attr('type','button').attr('class','btn btn-secondary mr-1 ml-auto').text('Aggregate Tree')
+    .on('click', function (d) {
+
+        selectAll('.slopeLine').classed('clickedSlope', false)
+        selectAll('.highlightBar').classed('selected', false);
+
+        self.data.aggregateTreeWrapper(undefined, layoutState.Aggregated);
+        self.update_graph();
+      })
     this.$node.select('.navbar')
     .append('button').attr('type','button').attr('class','btn btn-secondary mr-1').text('Hide Non Affected Nodes')
+      .on('click', function (d) {
+
+        selectAll('.slopeLine').classed('clickedSlope', false)
+        selectAll('.highlightBar').classed('selected', false);
+
+        self.data.aggregateTreeWrapper(undefined, layoutState.Hidden);
+        self.update_graph();
+      })
+
     this.$node.select('.navbar')
     .append('button').attr('type','button').attr('class','btn btn-secondary mr-1').text('Expand Tree')
+       .on('click', function (d) {
+
+        selectAll('.slopeLine').classed('clickedSlope', false)
+        selectAll('.highlightBar').classed('selected', false);
+
+        self.data.aggregateTreeWrapper(undefined, layoutState.Expanded);
+        self.update_graph();
+      })
 
     //Create a static div for the headers
     // this.$node.append('div').attr('id', 'headersDIV');
@@ -484,19 +509,19 @@ class GenealogyTree {
     const legend = axis.append('g')
       .attr('id', 'legend');
 
-      var triangleU = symbol().type(symbolTriangle)(),
-  circle = symbol().type(symbolCircle)(),
-  cross = symbol().type(symbolCross)(),
-  diamond = symbol().type(symbolDiamond)(),
-  star = symbol().type(symbolStar)();
+//       var triangleU = symbol().type(symbolTriangle)(),
+//   circle = symbol().type(symbolCircle)(),
+//   cross = symbol().type(symbolCross)(),
+//   diamond = symbol().type(symbolDiamond)(),
+//   star = symbol().type(symbolStar)();
 
-//example output of d3.svg.symbol().type('circle')();
-//"M0,4.51351666838205A4.51351666838205,4.51351666838205 0 1,1 0,
-//-4.51351666838205A4.51351666838205,4.51351666838205 0 1,1 0,4.51351666838205Z"
+// //example output of d3.svg.symbol().type('circle')();
+// //"M0,4.51351666838205A4.51351666838205,4.51351666838205 0 1,1 0,
+// //-4.51351666838205A4.51351666838205,4.51351666838205 0 1,1 0,4.51351666838205Z"
 
-let symbolScale =  scaleOrdinal()
-  .domain(['a longer label','b','c', 'd', 'e'])
-  .range([ triangleU, circle, cross, diamond, star] );
+// let symbolScale =  scaleOrdinal()
+//   .domain(['a longer label','b','c', 'd', 'e'])
+//   .range([ triangleU, circle, cross, diamond, star] );
 
 
 
@@ -546,11 +571,11 @@ let symbolScale =  scaleOrdinal()
 
 
     // //Add button to slopeChart Div that says 'revert to Tree Order'
-    // button = legend
-    // // button = select('#caleydoHeader').select('.navbar')
-    //   .append('g')
-    //   .attr('transform', 'translate(0,'  + (-65) + ')')
-    //   .attr('id', 'treeButtons')
+    button = legend
+    // button = select('#caleydoHeader').select('.navbar')
+      .append('g')
+      .attr('transform', 'translate(0,'  + (-65) + ')')
+      .attr('id', 'treeButtons')
 
     const self = this;
     button.append('rect')

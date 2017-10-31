@@ -244,7 +244,8 @@ class GenealogyTree {
         let parentWidth = 500;
 
 
-    this.width = parentWidth - this.margin.left - this.margin.right;
+    // this.width = parentWidth - this.margin.left - this.margin.right;
+    this.width = 500;
 
     this.visibleXAxis = axisBottom(this.x).tickFormat(format('d'));
     this.extremesXAxis = axisBottom(this.x2);
@@ -261,7 +262,7 @@ class GenealogyTree {
 
 
     this.$node.select('.navbar')
-    .append('button').attr('type','button').attr('class','btn btn-secondary mr-1 ml-auto').text('Aggregate Tree')
+    .append('button').attr('type','button').attr('class','btn btn-secondary mr-1 ml-auto').text('Aggregate')
     .on('click', (d)=> {
 
         selectAll('.slopeLine').classed('clickedSlope', false)
@@ -271,7 +272,7 @@ class GenealogyTree {
         this.update_graph();
       })
     this.$node.select('.navbar')
-    .append('button').attr('type','button').attr('class','btn btn-secondary mr-1').text('Hide Non Affected Nodes')
+    .append('button').attr('type','button').attr('class','btn btn-secondary mr-1').text('Hide')
       .on('click', (d)=> {
 
         selectAll('.slopeLine').classed('clickedSlope', false)
@@ -282,7 +283,7 @@ class GenealogyTree {
       })
 
     this.$node.select('.navbar')
-    .append('button').attr('type','button').attr('class','btn btn-secondary mr-1').text('Expand Tree')
+    .append('button').attr('type','button').attr('class','btn btn-secondary mr-1').text('Expand')
        .on('click', (d)=> {
 
         selectAll('.slopeLine').classed('clickedSlope', false)
@@ -292,17 +293,20 @@ class GenealogyTree {
         this.update_graph();
       })
 
+       //Add svg legend
+       this.$node.append('g').html(String(icon));
+
     //Create a static div for the headers
     // this.$node.append('div').attr('id', 'headersDIV');
 
 
 
-
     // const headerSVG = select('#headersDIV').append('svg')
     const headerSVG =this.$node.append('svg')
-      .attr('width', 550)
-      .attr('height',170)
+      // .attr('width', 550)
+      // .attr('height',170)
       .attr('id', 'headers')
+      .attr('viewBox','0 0 550 75')
 
     // headerSVG.append('rect')
     //   .attr('width', 970)
@@ -314,7 +318,7 @@ class GenealogyTree {
     //   .attr('id', 'headerGroup');
 
     const svg = this.$node.append('svg')
-      .attr('width', this.width + this.margin.left + this.margin.right)
+      // .attr('width', this.width + this.margin.left + this.margin.right)
       .attr('id', 'graph')
       .on('click',()=>{
         select('#nodeActions').attr('visibility', 'hidden');
@@ -507,7 +511,7 @@ class GenealogyTree {
 
     //Create group for all time axis
     const axis = select('#headers').append('g')
-      .attr('transform', 'translate(40,135)')
+      .attr('transform', 'translate(40,30)')
       .attr('id', 'axis');
 
 
@@ -516,15 +520,15 @@ class GenealogyTree {
       .attr('id', 'legend');
 
 
-      legend.append('rect')
-      .attr('width', 550)
-      .attr('height',120)
-      .attr('fill','grey')
-      .style('opacity','.1')
+      // legend.append('rect')
+      // .attr('width', 550)
+      // .attr('height',120)
+      // .attr('fill','grey')
+      // .style('opacity','.1')
 
       // console.log(String(icon))
 
-      legend.append('g').html(String(icon));
+
 
     //       xml("treeLegend.svg").mimeType("image/svg").get(function(error, xml) {
     //   if (error) throw error;
@@ -771,8 +775,12 @@ class GenealogyTree {
 
     this.interGenerationScale.range([.75, .25]).domain([2, nodes.length]);
  console.log('HERE')
+
+
     this.$node.select('#graph')
-      .attr('height', this.height + this.margin.top + this.margin.bottom);
+      .attr('viewBox','0 0 ' + (this.width + this.margin.left + this.margin.right) +  ' ' +  (this.height + this.margin.top + this.margin.bottom));
+
+      // .attr('height', this.height + this.margin.top + this.margin.bottom);
 
     this.update_edges();
     this.update_nodes();

@@ -83,6 +83,8 @@ import {isNullOrUndefined} from 'util';
 import {search} from 'phovea_core/src';
 import {isUndefined} from 'util';
 
+import legend from './treeLegend.svg'
+
 export const CURRENT_YEAR = 2017;
 
 /**

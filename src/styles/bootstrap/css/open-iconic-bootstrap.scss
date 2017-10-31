@@ -1,7 +1,7 @@
 /* Bootstrap */
 
 /* Override Bootstrap default variable */
-$icon-font-path: '../fonts/' !default;
+$icon-font-path: './styles/bootstrap/fonts/' !default;
 
 @font-face {
   font-family: 'Icons';

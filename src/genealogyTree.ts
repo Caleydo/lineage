@@ -8,9 +8,9 @@ import {
 } from './app_constants';
 // import * as d3 from 'd3';
 
-import{
-  xml
-} from 'd3-request';
+
+import icon from '!raw-loader!./treeLegend.svg';
+
 import {
   select,
   selectAll,
@@ -83,7 +83,7 @@ import {isNullOrUndefined} from 'util';
 import {search} from 'phovea_core/src';
 import {isUndefined} from 'util';
 
-import legend from './treeLegend.svg'
+// import legend from './treeLegend.svg'
 
 export const CURRENT_YEAR = 2017;
 
@@ -521,6 +521,10 @@ class GenealogyTree {
       .attr('height',120)
       .attr('fill','grey')
       .style('opacity','.1')
+
+      // console.log(String(icon))
+
+      legend.append('g').html(String(icon));
 
     //       xml("treeLegend.svg").mimeType("image/svg").get(function(error, xml) {
     //   if (error) throw error;

@@ -8,6 +8,10 @@ import 'file-loader?name=robots.txt!./robots.txt';
 import 'phovea_ui/src/_bootstrap';
 import './style.scss';
 
+// import 'file-loader?name=treeLegend.svg!./treeLegend.svg';
+import * as icon from 'html-loader!./icon-database.html';
+
+
 // import './open-iconic-bootstrap.scss'
 import {create as createApp} from './app';
 import {create as createHeader, AppHeaderLink} from 'phovea_ui/src/header';

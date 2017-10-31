@@ -26,6 +26,9 @@ declare module "url-loader!*";
 //allow html dependencies
 declare module "imports-loader!*";
 
+//allow override webpack config on import
+declare module "!*";
+
 
 //define System.import as understood by webpack2
 interface ISystem {

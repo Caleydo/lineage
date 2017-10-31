@@ -8,6 +8,9 @@ import {
 } from './app_constants';
 // import * as d3 from 'd3';
 
+import{
+  xml
+} from 'd3-request';
 import {
   select,
   selectAll,
@@ -35,6 +38,7 @@ import {
 } from 'd3-array';
 import {
   axisTop,
+  axisBottom,
   axisLeft,
   axisRight,
 } from 'd3-axis';
@@ -240,8 +244,8 @@ class GenealogyTree {
 
     this.width = parentWidth - this.margin.left - this.margin.right;
 
-    this.visibleXAxis = axisTop(this.x).tickFormat(format('d'));
-    this.extremesXAxis = axisTop(this.x2);
+    this.visibleXAxis = axisBottom(this.x).tickFormat(format('d'));
+    this.extremesXAxis = axisBottom(this.x2);
 
     // window.onscroll = (e:any)=>{console.log(e,'user scrolled')}
 
@@ -256,34 +260,34 @@ class GenealogyTree {
 
     this.$node.select('.navbar')
     .append('button').attr('type','button').attr('class','btn btn-secondary mr-1 ml-auto').text('Aggregate Tree')
-    .on('click', function (d) {
+    .on('click', (d)=> {
 
         selectAll('.slopeLine').classed('clickedSlope', false)
         selectAll('.highlightBar').classed('selected', false);
 
-        self.data.aggregateTreeWrapper(undefined, layoutState.Aggregated);
-        self.update_graph();
+        this.data.aggregateTreeWrapper(undefined, layoutState.Aggregated);
+        this.update_graph();
       })
     this.$node.select('.navbar')
     .append('button').attr('type','button').attr('class','btn btn-secondary mr-1').text('Hide Non Affected Nodes')
-      .on('click', function (d) {
+      .on('click', (d)=> {
 
         selectAll('.slopeLine').classed('clickedSlope', false)
         selectAll('.highlightBar').classed('selected', false);
 
-        self.data.aggregateTreeWrapper(undefined, layoutState.Hidden);
-        self.update_graph();
+        this.data.aggregateTreeWrapper(undefined, layoutState.Hidden);
+        this.update_graph();
       })
 
     this.$node.select('.navbar')
     .append('button').attr('type','button').attr('class','btn btn-secondary mr-1').text('Expand Tree')
-       .on('click', function (d) {
+       .on('click', (d)=> {
 
         selectAll('.slopeLine').classed('clickedSlope', false)
         selectAll('.highlightBar').classed('selected', false);
 
-        self.data.aggregateTreeWrapper(undefined, layoutState.Expanded);
-        self.update_graph();
+        this.data.aggregateTreeWrapper(undefined, layoutState.Expanded);
+        this.update_graph();
       })
 
     //Create a static div for the headers
@@ -294,7 +298,7 @@ class GenealogyTree {
 
     // const headerSVG = select('#headersDIV').append('svg')
     const headerSVG =this.$node.append('svg')
-      .attr('width', 1000)
+      .attr('width', 550)
       .attr('height',170)
       .attr('id', 'headers')
 
@@ -506,8 +510,23 @@ class GenealogyTree {
 
 
     //Create group for legend
-    const legend = axis.append('g')
+    const legend = select('#headers').append('g')
       .attr('id', 'legend');
+
+
+      legend.append('rect')
+      .attr('width', 550)
+      .attr('height',120)
+      .attr('fill','grey')
+      .style('opacity','.1')
+
+    //       xml("treeLegend.svg").mimeType("image/svg").get(function(error, xml) {
+    //   if (error) throw error;
+    //   console.log()
+    //   select(legend),node().appendChild(xml.documentElement);
+    // });
+
+
 
 //       var triangleU = symbol().type(symbolTriangle)(),
 //   circle = symbol().type(symbolCircle)(),
@@ -571,112 +590,112 @@ class GenealogyTree {
 
 
     // //Add button to slopeChart Div that says 'revert to Tree Order'
-    button = legend
-    // button = select('#caleydoHeader').select('.navbar')
-      .append('g')
-      .attr('transform', 'translate(0,'  + (-65) + ')')
-      .attr('id', 'treeButtons')
+    // button = legend
+    // // button = select('#caleydoHeader').select('.navbar')
+    //   .append('g')
+    //   .attr('transform', 'translate(0,'  + (-65) + ')')
+    //   .attr('id', 'treeButtons')
 
-    const self = this;
-    button.append('rect')
-      .classed('button',true)
-      .attr('id','aggregateAllButton')
-      .attr('width', 120)
-      .attr('height', 25)
-      .attr('x', this.width*0.1)
-      .attr('rx', 10)
-      .attr('ry', 20)
-      .attr('fill', '#959492')
-      .attr('y', 0)
-      .attr('opacity', .1)
-      .on('click', function (d) {
+    // const self = this;
+    // button.append('rect')
+    //   .classed('button',true)
+    //   .attr('id','aggregateAllButton')
+    //   .attr('width', 120)
+    //   .attr('height', 25)
+    //   .attr('x', this.width*0.1)
+    //   .attr('rx', 10)
+    //   .attr('ry', 20)
+    //   .attr('fill', '#959492')
+    //   .attr('y', 0)
+    //   .attr('opacity', .1)
+    //   .on('click', function (d) {
 
-        selectAll('.slopeLine').classed('clickedSlope', false)
-        selectAll('.highlightBar').classed('selected', false);
+    //     selectAll('.slopeLine').classed('clickedSlope', false)
+    //     selectAll('.highlightBar').classed('selected', false);
 
-        selectAll('.button').attr('fill', '#959492')
-        .attr('opacity', .1)
-        select(this)
-          .attr('fill','#3b3b3b')
-          .attr('opacity', .3)
-        self.data.aggregateTreeWrapper(undefined, layoutState.Aggregated);
-        self.update_graph();
-      })
+    //     selectAll('.button').attr('fill', '#959492')
+    //     .attr('opacity', .1)
+    //     select(this)
+    //       .attr('fill','#3b3b3b')
+    //       .attr('opacity', .3)
+    //     self.data.aggregateTreeWrapper(undefined, layoutState.Aggregated);
+    //     self.update_graph();
+    //   })
 
-    button.append('text')
-      .classed('histogramLabel', true)
-      .attr('x', this.width*0.1+60)
-      .attr('y', 15)
-      .text('Aggregate All')
-      .attr('text-anchor', 'middle')
-
-
-    button.append('rect')
-      .classed('button',true)
-      .attr('id','hideAllButton')
-      .attr('width', 120)
-      .attr('height', 25)
-      .attr('x', this.width*0.35)
-      .attr('rx', 10)
-      .attr('ry', 20)
-      .attr('fill', '#959492')
-      .attr('y', 0)
-      .attr('opacity', .1)
-      .on('click', function (d) {
-
-        selectAll('.slopeLine').classed('clickedSlope', false)
-        selectAll('.highlightBar').classed('selected', false);
-
-        selectAll('.button')
-          .attr('fill', '#959492')
-        .attr('opacity', .1)
-        select(this)
-          .attr('fill','#3b3b3b')
-          .attr('opacity', .3)
-        self.data.aggregateTreeWrapper(undefined, layoutState.Hidden);
-        self.update_graph();
-      })
-
-    button.append('text')
-      .classed('histogramLabel', true)
-      .attr('x', this.width*0.35+60)
-      .attr('y', 15)
-      .text('Hide All')
-      .attr('text-anchor', 'middle')
+    // button.append('text')
+    //   .classed('histogramLabel', true)
+    //   .attr('x', this.width*0.1+60)
+    //   .attr('y', 15)
+    //   .text('Aggregate All')
+    //   .attr('text-anchor', 'middle')
 
 
+    // button.append('rect')
+    //   .classed('button',true)
+    //   .attr('id','hideAllButton')
+    //   .attr('width', 120)
+    //   .attr('height', 25)
+    //   .attr('x', this.width*0.35)
+    //   .attr('rx', 10)
+    //   .attr('ry', 20)
+    //   .attr('fill', '#959492')
+    //   .attr('y', 0)
+    //   .attr('opacity', .1)
+    //   .on('click', function (d) {
 
-    button.append('rect')
-      .classed('button',true)
-      .attr('id','expandAllButton')
-      .attr('width', 120)
-      .attr('height', 25)
-      .attr('x', this.width*0.6)
-      .attr('rx', 10)
-      .attr('ry', 20)
-      .attr('fill', '#959492')
-      .attr('y', 0)
-      .attr('opacity', .1)
-      .on('click', function (d) {
+    //     selectAll('.slopeLine').classed('clickedSlope', false)
+    //     selectAll('.highlightBar').classed('selected', false);
 
-        selectAll('.slopeLine').classed('clickedSlope', false)
-        selectAll('.highlightBar').classed('selected', false);
+    //     selectAll('.button')
+    //       .attr('fill', '#959492')
+    //     .attr('opacity', .1)
+    //     select(this)
+    //       .attr('fill','#3b3b3b')
+    //       .attr('opacity', .3)
+    //     self.data.aggregateTreeWrapper(undefined, layoutState.Hidden);
+    //     self.update_graph();
+    //   })
 
-        selectAll('.button').attr('fill', '#959492')
-        .attr('opacity', .1)
-        select(this)
-          .attr('fill','#3b3b3b')
-          .attr('opacity', .3)
-        self.data.aggregateTreeWrapper(undefined, layoutState.Expanded);
-        self.update_graph();
-      })
+    // button.append('text')
+    //   .classed('histogramLabel', true)
+    //   .attr('x', this.width*0.35+60)
+    //   .attr('y', 15)
+    //   .text('Hide All')
+    //   .attr('text-anchor', 'middle')
 
-    button.append('text')
-      .classed('histogramLabel', true)
-      .attr('x', this.width*0.6+60)
-      .attr('y', 15)
-      .text('Expand All')
-      .attr('text-anchor', 'middle')
+
+
+    // button.append('rect')
+    //   .classed('button',true)
+    //   .attr('id','expandAllButton')
+    //   .attr('width', 120)
+    //   .attr('height', 25)
+    //   .attr('x', this.width*0.6)
+    //   .attr('rx', 10)
+    //   .attr('ry', 20)
+    //   .attr('fill', '#959492')
+    //   .attr('y', 0)
+    //   .attr('opacity', .1)
+    //   .on('click', function (d) {
+
+    //     selectAll('.slopeLine').classed('clickedSlope', false)
+    //     selectAll('.highlightBar').classed('selected', false);
+
+    //     selectAll('.button').attr('fill', '#959492')
+    //     .attr('opacity', .1)
+    //     select(this)
+    //       .attr('fill','#3b3b3b')
+    //       .attr('opacity', .3)
+    //     self.data.aggregateTreeWrapper(undefined, layoutState.Expanded);
+    //     self.update_graph();
+    //   })
+
+    // button.append('text')
+    //   .classed('histogramLabel', true)
+    //   .attr('x', this.width*0.6+60)
+    //   .attr('y', 15)
+    //   .text('Expand All')
+    //   .attr('text-anchor', 'middle')
 
 
 
@@ -2262,9 +2281,9 @@ class GenealogyTree {
 
     select('#visible_axis')
       .selectAll('text')
-      .attr('dx', '1.5em')
-      .attr('dy', '-.15em')
-      .attr('transform', 'rotate(-35)');
+      .attr('dx', '-.1em')
+      .attr('dy', '.65em')
+      // .attr('transform', 'rotate(-15)');
 
   }
 

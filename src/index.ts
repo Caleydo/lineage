@@ -7,6 +7,8 @@ import 'file-loader?name=404.html-loader!./404.html';
 import 'file-loader?name=robots.txt!./robots.txt';
 import 'phovea_ui/src/_bootstrap';
 import './style.scss';
+
+// import './open-iconic-bootstrap.scss'
 import {create as createApp} from './app';
 import {create as createHeader, AppHeaderLink} from 'phovea_ui/src/header';
 import {APP_NAME} from './language';

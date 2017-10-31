@@ -1,0 +1,620 @@
+diff --git a/src/attributePanel.ts b/src/attributePanel.ts
+index e3892a0..675bc20 100644
+--- a/src/attributePanel.ts
++++ b/src/attributePanel.ts
+@@ -236,7 +236,9 @@ class AttributePanel {
+ 
+     events.on('poi_selected', (evt, item) => {
+ 
++      console.log(item.name)
+       this.tableManager.setAffectedState(item.name,item.callback).then((obj)=>{
++        console.log(obj)
+ 
+         //find histogram with this name and set the brush extent
+         let hist = this.histograms.filter((h)=>{return h.attrName === item.name})[0];
+diff --git a/src/attributeTable.ts b/src/attributeTable.ts
+index 7460bd9..ad3e918 100644
+--- a/src/attributeTable.ts
++++ b/src/attributeTable.ts
+@@ -67,6 +67,7 @@ class attributeTable {
+   private firstCol; //bind separetly on the left side of the slope chart.
+ 
+   private rowHeight = Config.glyphSize * 2.5 - 4;
++  private headerHeight = this.rowHeight*2;
+   private colWidths = {
+     idtype: this.rowHeight * 4,
+     categorical: this.rowHeight,
+@@ -155,7 +156,7 @@ class attributeTable {
+     .append('div').attr('class','dropdown ml-auto');
+ 
+     dropdownMenu.append('button').attr('class','btn btn-secondary dropdown-toggle').attr('type','button').attr('id','dropdownMenuButton').attr('data-toggle','dropdown')
+-    .text('Select Table Attributes')
++    .text('Add Table Attributes')
+ 
+     let menu = dropdownMenu.append('div').attr('class','dropdown-menu');
+ 
+@@ -1280,7 +1281,7 @@ class attributeTable {
+   private renderCategoricalHeader(element, headerData) {
+ 
+     let col_width = this.colWidths.categorical;
+-    let height = this.rowHeight * 1.8;
++    let height = this.headerHeight;
+ 
+     let numPositiveValues = headerData.data.map((singleRow) => {
+       return singleRow.reduce((a, v) => {
+@@ -1305,6 +1306,9 @@ class attributeTable {
+       element.append('text')
+         .classed('histogramLabel', true)
+ 
++        element.append('span')
++        .attr('class','oi oi-menu')
++
+     }
+ 
+     this.addSortingIcons(element, headerData);
+@@ -1365,7 +1369,7 @@ class attributeTable {
+     // let t = transition('t').duration(500).ease(easeLinear);
+ 
+     let col_width = this.colWidths.int;
+-    let height = this.rowHeight * 1.8;
++    let height = this.headerHeight;
+ 
+     let hist = headerData.hist;
+ 
+diff --git a/src/genealogyTree.ts b/src/genealogyTree.ts
+index b441b51..26af9c7 100644
+--- a/src/genealogyTree.ts
++++ b/src/genealogyTree.ts
+@@ -8,6 +8,9 @@ import {
+ } from './app_constants';
+ // import * as d3 from 'd3';
+ 
++import{
++  xml
++} from 'd3-request';
+ import {
+   select,
+   selectAll,
+@@ -35,6 +38,7 @@ import {
+ } from 'd3-array';
+ import {
+   axisTop,
++  axisBottom,
+   axisLeft,
+   axisRight,
+ } from 'd3-axis';
+@@ -240,8 +244,8 @@ class GenealogyTree {
+ 
+     this.width = parentWidth - this.margin.left - this.margin.right;
+ 
+-    this.visibleXAxis = axisTop(this.x).tickFormat(format('d'));
+-    this.extremesXAxis = axisTop(this.x2);
++    this.visibleXAxis = axisBottom(this.x).tickFormat(format('d'));
++    this.extremesXAxis = axisBottom(this.x2);
+ 
+     // window.onscroll = (e:any)=>{console.log(e,'user scrolled')}
+ 
+@@ -256,34 +260,34 @@ class GenealogyTree {
+ 
+     this.$node.select('.navbar')
+     .append('button').attr('type','button').attr('class','btn btn-secondary mr-1 ml-auto').text('Aggregate Tree')
+-    .on('click', function (d) {
++    .on('click', (d)=> {
+ 
+         selectAll('.slopeLine').classed('clickedSlope', false)
+         selectAll('.highlightBar').classed('selected', false);
+ 
+-        self.data.aggregateTreeWrapper(undefined, layoutState.Aggregated);
+-        self.update_graph();
++        this.data.aggregateTreeWrapper(undefined, layoutState.Aggregated);
++        this.update_graph();
+       })
+     this.$node.select('.navbar')
+     .append('button').attr('type','button').attr('class','btn btn-secondary mr-1').text('Hide Non Affected Nodes')
+-      .on('click', function (d) {
++      .on('click', (d)=> {
+ 
+         selectAll('.slopeLine').classed('clickedSlope', false)
+         selectAll('.highlightBar').classed('selected', false);
+ 
+-        self.data.aggregateTreeWrapper(undefined, layoutState.Hidden);
+-        self.update_graph();
++        this.data.aggregateTreeWrapper(undefined, layoutState.Hidden);
++        this.update_graph();
+       })
+ 
+     this.$node.select('.navbar')
+     .append('button').attr('type','button').attr('class','btn btn-secondary mr-1').text('Expand Tree')
+-       .on('click', function (d) {
++       .on('click', (d)=> {
+ 
+         selectAll('.slopeLine').classed('clickedSlope', false)
+         selectAll('.highlightBar').classed('selected', false);
+ 
+-        self.data.aggregateTreeWrapper(undefined, layoutState.Expanded);
+-        self.update_graph();
++        this.data.aggregateTreeWrapper(undefined, layoutState.Expanded);
++        this.update_graph();
+       })
+ 
+     //Create a static div for the headers
+@@ -294,7 +298,7 @@ class GenealogyTree {
+ 
+     // const headerSVG = select('#headersDIV').append('svg')
+     const headerSVG =this.$node.append('svg')
+-      .attr('width', 1000)
++      .attr('width', 550)
+       .attr('height',170)
+       .attr('id', 'headers')
+ 
+@@ -506,9 +510,24 @@ class GenealogyTree {
+ 
+ 
+     //Create group for legend
+-    const legend = axis.append('g')
++    const legend = select('#headers').append('g')
+       .attr('id', 'legend');
+ 
++
++      legend.append('rect')
++      .attr('width', 550)
++      .attr('height',120)
++      .attr('fill','grey')
++      .style('opacity','.1')
++
++    //       xml("treeLegend.svg").mimeType("image/svg").get(function(error, xml) {
++    //   if (error) throw error;
++    //   console.log()
++    //   select(legend),node().appendChild(xml.documentElement);
++    // });
++
++
++
+ //       var triangleU = symbol().type(symbolTriangle)(),
+ //   circle = symbol().type(symbolCircle)(),
+ //   cross = symbol().type(symbolCross)(),
+@@ -571,112 +590,112 @@ class GenealogyTree {
+ 
+ 
+     // //Add button to slopeChart Div that says 'revert to Tree Order'
+-    button = legend
+-    // button = select('#caleydoHeader').select('.navbar')
+-      .append('g')
+-      .attr('transform', 'translate(0,'  + (-65) + ')')
+-      .attr('id', 'treeButtons')
+-
+-    const self = this;
+-    button.append('rect')
+-      .classed('button',true)
+-      .attr('id','aggregateAllButton')
+-      .attr('width', 120)
+-      .attr('height', 25)
+-      .attr('x', this.width*0.1)
+-      .attr('rx', 10)
+-      .attr('ry', 20)
+-      .attr('fill', '#959492')
+-      .attr('y', 0)
+-      .attr('opacity', .1)
+-      .on('click', function (d) {
+-
+-        selectAll('.slopeLine').classed('clickedSlope', false)
+-        selectAll('.highlightBar').classed('selected', false);
+-
+-        selectAll('.button').attr('fill', '#959492')
+-        .attr('opacity', .1)
+-        select(this)
+-          .attr('fill','#3b3b3b')
+-          .attr('opacity', .3)
+-        self.data.aggregateTreeWrapper(undefined, layoutState.Aggregated);
+-        self.update_graph();
+-      })
+-
+-    button.append('text')
+-      .classed('histogramLabel', true)
+-      .attr('x', this.width*0.1+60)
+-      .attr('y', 15)
+-      .text('Aggregate All')
+-      .attr('text-anchor', 'middle')
+-
+-
+-    button.append('rect')
+-      .classed('button',true)
+-      .attr('id','hideAllButton')
+-      .attr('width', 120)
+-      .attr('height', 25)
+-      .attr('x', this.width*0.35)
+-      .attr('rx', 10)
+-      .attr('ry', 20)
+-      .attr('fill', '#959492')
+-      .attr('y', 0)
+-      .attr('opacity', .1)
+-      .on('click', function (d) {
+-
+-        selectAll('.slopeLine').classed('clickedSlope', false)
+-        selectAll('.highlightBar').classed('selected', false);
+-
+-        selectAll('.button')
+-          .attr('fill', '#959492')
+-        .attr('opacity', .1)
+-        select(this)
+-          .attr('fill','#3b3b3b')
+-          .attr('opacity', .3)
+-        self.data.aggregateTreeWrapper(undefined, layoutState.Hidden);
+-        self.update_graph();
+-      })
+-
+-    button.append('text')
+-      .classed('histogramLabel', true)
+-      .attr('x', this.width*0.35+60)
+-      .attr('y', 15)
+-      .text('Hide All')
+-      .attr('text-anchor', 'middle')
+-
+-
+-
+-    button.append('rect')
+-      .classed('button',true)
+-      .attr('id','expandAllButton')
+-      .attr('width', 120)
+-      .attr('height', 25)
+-      .attr('x', this.width*0.6)
+-      .attr('rx', 10)
+-      .attr('ry', 20)
+-      .attr('fill', '#959492')
+-      .attr('y', 0)
+-      .attr('opacity', .1)
+-      .on('click', function (d) {
+-
+-        selectAll('.slopeLine').classed('clickedSlope', false)
+-        selectAll('.highlightBar').classed('selected', false);
+-
+-        selectAll('.button').attr('fill', '#959492')
+-        .attr('opacity', .1)
+-        select(this)
+-          .attr('fill','#3b3b3b')
+-          .attr('opacity', .3)
+-        self.data.aggregateTreeWrapper(undefined, layoutState.Expanded);
+-        self.update_graph();
+-      })
+-
+-    button.append('text')
+-      .classed('histogramLabel', true)
+-      .attr('x', this.width*0.6+60)
+-      .attr('y', 15)
+-      .text('Expand All')
+-      .attr('text-anchor', 'middle')
++    // button = legend
++    // // button = select('#caleydoHeader').select('.navbar')
++    //   .append('g')
++    //   .attr('transform', 'translate(0,'  + (-65) + ')')
++    //   .attr('id', 'treeButtons')
++
++    // const self = this;
++    // button.append('rect')
++    //   .classed('button',true)
++    //   .attr('id','aggregateAllButton')
++    //   .attr('width', 120)
++    //   .attr('height', 25)
++    //   .attr('x', this.width*0.1)
++    //   .attr('rx', 10)
++    //   .attr('ry', 20)
++    //   .attr('fill', '#959492')
++    //   .attr('y', 0)
++    //   .attr('opacity', .1)
++    //   .on('click', function (d) {
++
++    //     selectAll('.slopeLine').classed('clickedSlope', false)
++    //     selectAll('.highlightBar').classed('selected', false);
++
++    //     selectAll('.button').attr('fill', '#959492')
++    //     .attr('opacity', .1)
++    //     select(this)
++    //       .attr('fill','#3b3b3b')
++    //       .attr('opacity', .3)
++    //     self.data.aggregateTreeWrapper(undefined, layoutState.Aggregated);
++    //     self.update_graph();
++    //   })
++
++    // button.append('text')
++    //   .classed('histogramLabel', true)
++    //   .attr('x', this.width*0.1+60)
++    //   .attr('y', 15)
++    //   .text('Aggregate All')
++    //   .attr('text-anchor', 'middle')
++
++
++    // button.append('rect')
++    //   .classed('button',true)
++    //   .attr('id','hideAllButton')
++    //   .attr('width', 120)
++    //   .attr('height', 25)
++    //   .attr('x', this.width*0.35)
++    //   .attr('rx', 10)
++    //   .attr('ry', 20)
++    //   .attr('fill', '#959492')
++    //   .attr('y', 0)
++    //   .attr('opacity', .1)
++    //   .on('click', function (d) {
++
++    //     selectAll('.slopeLine').classed('clickedSlope', false)
++    //     selectAll('.highlightBar').classed('selected', false);
++
++    //     selectAll('.button')
++    //       .attr('fill', '#959492')
++    //     .attr('opacity', .1)
++    //     select(this)
++    //       .attr('fill','#3b3b3b')
++    //       .attr('opacity', .3)
++    //     self.data.aggregateTreeWrapper(undefined, layoutState.Hidden);
++    //     self.update_graph();
++    //   })
++
++    // button.append('text')
++    //   .classed('histogramLabel', true)
++    //   .attr('x', this.width*0.35+60)
++    //   .attr('y', 15)
++    //   .text('Hide All')
++    //   .attr('text-anchor', 'middle')
++
++
++
++    // button.append('rect')
++    //   .classed('button',true)
++    //   .attr('id','expandAllButton')
++    //   .attr('width', 120)
++    //   .attr('height', 25)
++    //   .attr('x', this.width*0.6)
++    //   .attr('rx', 10)
++    //   .attr('ry', 20)
++    //   .attr('fill', '#959492')
++    //   .attr('y', 0)
++    //   .attr('opacity', .1)
++    //   .on('click', function (d) {
++
++    //     selectAll('.slopeLine').classed('clickedSlope', false)
++    //     selectAll('.highlightBar').classed('selected', false);
++
++    //     selectAll('.button').attr('fill', '#959492')
++    //     .attr('opacity', .1)
++    //     select(this)
++    //       .attr('fill','#3b3b3b')
++    //       .attr('opacity', .3)
++    //     self.data.aggregateTreeWrapper(undefined, layoutState.Expanded);
++    //     self.update_graph();
++    //   })
++
++    // button.append('text')
++    //   .classed('histogramLabel', true)
++    //   .attr('x', this.width*0.6+60)
++    //   .attr('y', 15)
++    //   .text('Expand All')
++    //   .attr('text-anchor', 'middle')
+ 
+ 
+ 
+@@ -2262,9 +2281,9 @@ class GenealogyTree {
+ 
+     select('#visible_axis')
+       .selectAll('text')
+-      .attr('dx', '1.5em')
+-      .attr('dy', '-.15em')
+-      .attr('transform', 'rotate(-35)');
++      .attr('dx', '-.1em')
++      .attr('dy', '.65em')
++      // .attr('transform', 'rotate(-15)');
+ 
+   }
+ 
+diff --git a/src/index.html b/src/index.html
+index c9ff4bd..c3f7d4a 100644
+--- a/src/index.html
++++ b/src/index.html
+@@ -9,13 +9,12 @@
+   <!-- Bootstrap meta -->
+   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+ 
+-<link href="./style.css" rel="stylesheet" type="text/css">
+-<!-- <link href="./bootstrap.min.css" rel="stylesheet" type="text/css"> -->
+-  <!-- Bootstrap CSS -->
+-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css">
++  <!-- <link href="./style.css" rel="stylesheet" type="text/css"> -->
+ 
+-  <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"> -->
++  <!-- <link rel="stylesheet" href="./open-iconic-bootstrap.css"> -->
+ 
++  <!-- Bootstrap CSS -->
++  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css">
+ 
+   <link href="//fonts.googleapis.com/css?family=Yantramanav:500,400,300" rel="stylesheet" type="text/css">
+   <script src="https://cdn.polyfill.io/v2/polyfill.min.js"></script>
+diff --git a/src/index.ts b/src/index.ts
+index cf085aa..217cebc 100644
+--- a/src/index.ts
++++ b/src/index.ts
+@@ -7,6 +7,8 @@ import 'file-loader?name=404.html-loader!./404.html';
+ import 'file-loader?name=robots.txt!./robots.txt';
+ import 'phovea_ui/src/_bootstrap';
+ import './style.scss';
++
++// import './open-iconic-bootstrap.scss'
+ import {create as createApp} from './app';
+ import {create as createHeader, AppHeaderLink} from 'phovea_ui/src/header';
+ import {APP_NAME} from './language';
+diff --git a/src/style.scss b/src/style.scss
+index 296ad4f..a1bc4c3 100644
+--- a/src/style.scss
++++ b/src/style.scss
+@@ -1,6 +1,5 @@
+ 
+ @import "styles/base";
+-@import "styles/bootstrap/css/bootstrap.min.css";
+ @import "styles/graph";
+ @import "styles/table";
+ //@import "styles/simple-sidebar";
+diff --git a/src/styles/_base.scss b/src/styles/_base.scss
+index a2a6dee..5909aa1 100644
+--- a/src/styles/_base.scss
++++ b/src/styles/_base.scss
+@@ -29,3 +29,26 @@ th, label, strong, b, .label {
+ }
+ 
+ 
++.oi-menu {
++  content:'\e09b';
++}
++
++.oi {
++  position: relative;
++  top: 1px;
++  display: inline-block;
++  speak:none;
++  font-family: 'Icons';
++  font-style: normal;
++  font-weight: normal;
++  line-height: 1;
++  -webkit-font-smoothing: antialiased;
++  -moz-osx-font-smoothing: grayscale;
++}
++
++.oi:empty:before {
++  width: 1em;
++  text-align: center;
++  box-sizing: content-box;
++}
++
+diff --git a/src/styles/_simple-sidebar.scss b/src/styles/_simple-sidebar.scss
+deleted file mode 100644
+index 449ebaf..0000000
+--- a/src/styles/_simple-sidebar.scss
++++ /dev/null
+@@ -1,129 +0,0 @@
+-/*!
+- * Start Bootstrap - Simple Sidebar (http://startbootstrap.com/)
+- * Copyright 2013-2016 Start Bootstrap
+- * Licensed under MIT (https://github.com/BlackrockDigital/startbootstrap/blob/gh-pages/LICENSE)
+- */
+-
+- body {
+-    overflow-x: hidden;
+- }
+-
+-/* Toggle Styles */
+-
+-#wrapper {
+-    padding-left: 0;
+-    -webkit-transition: all 0.5s ease;
+-    -moz-transition: all 0.5s ease;
+-    -o-transition: all 0.5s ease;
+-    transition: all 0.5s ease;
+-}
+-
+-#wrapper.toggled {
+-    padding-left: 250px;
+-}
+-
+-#sidebar-wrapper {
+-    z-index: 1000;
+-    position: fixed;
+-    left: 250px;
+-    width: 0;
+-    height: 100%;
+-    margin-left: -250px;
+-    overflow-y: auto;
+-    background: #000;
+-    -webkit-transition: all 0.5s ease;
+-    -moz-transition: all 0.5s ease;
+-    -o-transition: all 0.5s ease;
+-    transition: all 0.5s ease;
+-}
+-
+-#wrapper.toggled #sidebar-wrapper {
+-    width: 250px;
+-}
+-
+-#page-content-wrapper {
+-    width: 100%;
+-    position: absolute;
+-    padding: 15px;
+-}
+-
+-#wrapper.toggled #page-content-wrapper {
+-    position: absolute;
+-    margin-right: -250px;
+-}
+-
+-/* Sidebar Styles */
+-
+-.sidebar-nav {
+-    position: absolute;
+-    top: 0;
+-    width: 250px;
+-    margin: 0;
+-    padding: 0;
+-    list-style: none;
+-}
+-
+-.sidebar-nav li {
+-    text-indent: 20px;
+-    line-height: 40px;
+-}
+-
+-.sidebar-nav li a {
+-    display: block;
+-    text-decoration: none;
+-    color: #999999;
+-}
+-
+-.sidebar-nav li a:hover {
+-    text-decoration: none;
+-    color: #fff;
+-    background: rgba(255,255,255,0.2);
+-}
+-
+-.sidebar-nav li a:active,
+-.sidebar-nav li a:focus {
+-    text-decoration: none;
+-}
+-
+-.sidebar-nav > .sidebar-brand {
+-    height: 65px;
+-    font-size: 18px;
+-    line-height: 60px;
+-}
+-
+-.sidebar-nav > .sidebar-brand a {
+-    color: #999999;
+-}
+-
+-.sidebar-nav > .sidebar-brand a:hover {
+-    color: #fff;
+-    background: none;
+-}
+-
+-@media(min-width:768px) {
+-    #wrapper {
+-        padding-left: 250px;
+-    }
+-
+-    #wrapper.toggled {
+-        padding-left: 0;
+-    }
+-
+-    #sidebar-wrapper {
+-        width: 250px;
+-    }
+-
+-    #wrapper.toggled #sidebar-wrapper {
+-        width: 0;
+-    }
+-
+-    #page-content-wrapper {
+-        padding: 20px;
+-        position: relative;
+-    }
+-
+-    #wrapper.toggled #page-content-wrapper {
+-        position: relative;
+-        margin-right: 0;
+-    }
+-}
+\ No newline at end of file

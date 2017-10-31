@@ -236,7 +236,9 @@ class AttributePanel {
 
     events.on('poi_selected', (evt, item) => {
 
+      console.log(item.name)
       this.tableManager.setAffectedState(item.name,item.callback).then((obj)=>{
+        console.log(obj)
 
         //find histogram with this name and set the brush extent
         let hist = this.histograms.filter((h)=>{return h.attrName === item.name})[0];

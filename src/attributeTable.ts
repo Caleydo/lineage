@@ -67,6 +67,7 @@ class attributeTable {
   private firstCol; //bind separetly on the left side of the slope chart.
 
   private rowHeight = Config.glyphSize * 2.5 - 4;
+  private headerHeight = this.rowHeight*2;
   private colWidths = {
     idtype: this.rowHeight * 4,
     categorical: this.rowHeight,
@@ -155,7 +156,7 @@ class attributeTable {
     .append('div').attr('class','dropdown ml-auto');
 
     dropdownMenu.append('button').attr('class','btn btn-secondary dropdown-toggle').attr('type','button').attr('id','dropdownMenuButton').attr('data-toggle','dropdown')
-    .text('Select Table Attributes')
+    .text('Add Table Attributes')
 
     let menu = dropdownMenu.append('div').attr('class','dropdown-menu');
 
@@ -1280,7 +1281,7 @@ class attributeTable {
   private renderCategoricalHeader(element, headerData) {
 
     let col_width = this.colWidths.categorical;
-    let height = this.rowHeight * 1.8;
+    let height = this.headerHeight;
 
     let numPositiveValues = headerData.data.map((singleRow) => {
       return singleRow.reduce((a, v) => {
@@ -1304,6 +1305,9 @@ class attributeTable {
 
       element.append('text')
         .classed('histogramLabel', true)
+
+        element.append('span')
+        .attr('class','oi oi-menu')
 
     }
 
@@ -1365,7 +1369,7 @@ class attributeTable {
     // let t = transition('t').duration(500).ease(easeLinear);
 
     let col_width = this.colWidths.int;
-    let height = this.rowHeight * 1.8;
+    let height = this.headerHeight;
 
     let hist = headerData.hist;
 

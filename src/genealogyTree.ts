@@ -245,7 +245,7 @@ class GenealogyTree {
 
 
     // this.width = parentWidth - this.margin.left - this.margin.right;
-    this.width = 500;
+    this.width = 550;
 
     this.visibleXAxis = axisBottom(this.x).tickFormat(format('d'));
     this.extremesXAxis = axisBottom(this.x2);
@@ -258,7 +258,7 @@ class GenealogyTree {
 
     this.$node.select('#tableNav')
     .append('a').attr('class','navbar-brand')
-    .html('Genealogy Tree View')
+    .html('Genealogy Tree')
 
 
     this.$node.select('.navbar')
@@ -293,8 +293,10 @@ class GenealogyTree {
         this.update_graph();
       })
 
+       let headerDiv = this.$node.append('div').attr('id','graphHeaders');
+
        //Add svg legend
-       this.$node.append('g').html(String(icon));
+       headerDiv.append('g').html(String(icon));
 
     //Create a static div for the headers
     // this.$node.append('div').attr('id', 'headersDIV');
@@ -302,11 +304,11 @@ class GenealogyTree {
 
 
     // const headerSVG = select('#headersDIV').append('svg')
-    const headerSVG =this.$node.append('svg')
+    const headerSVG =headerDiv.append('svg')
       // .attr('width', 550)
       // .attr('height',170)
       .attr('id', 'headers')
-      .attr('viewBox','0 0 550 75')
+      .attr('viewBox','0 0 ' + this.width + ' 75')
 
     // headerSVG.append('rect')
     //   .attr('width', 970)
@@ -425,7 +427,7 @@ class GenealogyTree {
    
 
     svg.append('g')
-      .attr('transform', 'translate(' + this.margin.left + ',' + (Config.glyphSize) + ')')
+      .attr('transform', 'translate(' + this.margin.left + ',' + (Config.glyphSize*1.5) + ')')
       .attr('id', 'genealogyTree');
 
     //Ensure the right order of all the elements by creating seprate groups
@@ -774,11 +776,11 @@ class GenealogyTree {
     this.y.range([0, this.height]).domain(yrange);
 
     this.interGenerationScale.range([.75, .25]).domain([2, nodes.length]);
- console.log('HERE')
 
 
     this.$node.select('#graph')
-      .attr('viewBox','0 0 ' + (this.width + this.margin.left + this.margin.right) +  ' ' +  (this.height + this.margin.top + this.margin.bottom));
+      .attr('viewBox','0 0 ' + this.width +  ' ' +  (this.height + this.margin.top + this.margin.bottom))
+      .attr('preserveAspectRatio','none')
 
       // .attr('height', this.height + this.margin.top + this.margin.bottom);
 

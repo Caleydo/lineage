@@ -150,7 +150,7 @@ class attributeTable {
 
        this.$node.select('#tableNav')
     .append('a').attr('class','navbar-brand')
-    .html('Attribute Table View')
+    .html('Attribute Table')
 
     let dropdownMenu = this.$node.select('.navbar')
     .append('div').attr('class','dropdown ml-auto');
@@ -199,9 +199,14 @@ class attributeTable {
     // let t = transition('t').duration(500).ease(easeLinear);
 
       // const headerSVG = select('#headersDIV').append('svg')
-    const headerSVG =this.$node.append('svg')
+
+      let tableDiv = this.$node.append('div')
+      .attr('id','tableDiv')
+
+      const headerSVG =tableDiv.append('svg')
       .attr('width', 1920)
-      .attr('height',170)
+      .attr('height',195)
+      // .attr('viewBox','0 0 1200 195')
       .attr('id', 'headers')
 
     headerSVG.append('g')
@@ -211,10 +216,11 @@ class attributeTable {
 
 
     //Exctract y values from dict.
-    const svg = this.$node.append('svg')
+    const svg = tableDiv.append('svg')
       .classed('tableSVG', true)
+      // .viewBox('0 0 ' + this.width + ' ' + (this.height + this.margin.top + this.margin.bottom))
       .attr('width', this.width + this.margin.left + this.margin.right)
-      .attr('height', this.height + this.margin.top + this.margin.bottom);
+      // .attr('height', this.height + this.margin.top + this.margin.bottom);
 
     // TABLE (except for slope Chart and first col on the left of the slope chart)
     this.table = svg.append('g')
@@ -396,7 +402,10 @@ class attributeTable {
 
     //Set height of svg
     this.height = Config.glyphSize * 3 * (max(allRows) - min(allRows) + 1);
+    // select('.tableSVG').attr('viewBox','0 0 ' + this.width + ' ' + (this.height + this.margin.top + this.margin.bottom))
+
     select('.tableSVG').attr('height', this.height + this.margin.top + this.margin.bottom);
+
 
     this.y.range([0, this.height]).domain([1, max(allRows)]);
     this.rowOrder = allRows; //will be used to set the y position of each cell/row;

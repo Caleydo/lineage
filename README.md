@@ -16,6 +16,13 @@ Preconditions:
  * Have [Docker](https://www.docker.com/) installed and running.
 
 ### Install with all dependencies
+
+Install software from Prerequisites section
+
+```bash
+sudo npm install -g yo https://github.com/phovea/generator-phovea
+```
+
 The following command will create a `lineage` directory relative to the current one:
 
 ```bash

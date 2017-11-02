@@ -60,7 +60,7 @@ class FamilySelector {
     this.build();
     this.updateTable(tableManager);
 
-    events.on(FAMILY_INFO_UPDATED,(evt,tableManagerObject)=> {this.updateTable(tableManagerObject)});
+    events.on(FAMILY_INFO_UPDATED,(evt,tableManagerObject)=> {this.updateTable(tableManagerObject);});
 
     // return the promise directly as long there is no dynamical data to update
     return Promise.resolve(this);
@@ -81,25 +81,21 @@ class FamilySelector {
 
 
 
-    const table = select('#familySelector').append('table').attr('class','table')
+    const table = select('#familySelector').append('table').attr('class','table');
       // .classed('fixed_headers', true);
 
     select('#collapseTableButton')
-      .on('click',()=>{
-        let text = select('#collapseTableButton').html();
-        console.log(text)
-        if (text == 'Expand Panel'){
-          select('#collapseTableButton').html('Collapse Panel')
-          select('#col1').attr('class','col-4');         
+      .on('click',() => {
+        const text = select('#collapseTableButton').html();
+        if (text === 'Expand Panel') {
+          select('#collapseTableButton').html('Collapse Panel');
+          select('#col1').attr('class','col-4');
 
         } else {
-           select('#collapseTableButton').html('Expand Panel')
+           select('#collapseTableButton').html('Expand Panel');
           select('#col1').attr('class','col-2');
-         
         }
-          
-
-    })
+    });
 
     const thead = table.append('thead');
     const tbody = table.append('tbody');
@@ -151,7 +147,7 @@ class FamilySelector {
 
     this.peopleScale
       .range([0,100])
-      .domain([0,maxValue])
+      .domain([0,maxValue]);
 
     maxValue = max(data.familyInfo,(d:any)=> {return +d.affected;});
 
@@ -194,15 +190,15 @@ class FamilySelector {
 
     selectAll('td').each(function(cell:any) {
 
-      if (cell.type === 'size' || cell.type === 'affected'){
-        if (select(this).selectAll('svg').size() === 0){
-          let svg = select(this).append('svg');
+      if (cell.type === 'size' || cell.type === 'affected') {
+        if (select(this).selectAll('svg').size() === 0) {
+          const svg = select(this).append('svg');
           svg.append('rect').classed('total',true);
-          svg.append('rect').classed('poi',true)
+          svg.append('rect').classed('poi',true);
         }
 
-        if (select(this).select('svg').selectAll('text').size() === 0){
-          select(this).select('svg').append('text')
+        if (select(this).select('svg').selectAll('text').size() === 0) {
+          select(this).select('svg').append('text');
         }
 
           select(this).select('svg')
@@ -240,7 +236,7 @@ class FamilySelector {
           })
           .attr('fill', (d,i) => {
               return (i >3 && d>15) ? 'red' : 'gray' ;
-            })
+            });
 
       }
 
@@ -266,24 +262,22 @@ class FamilySelector {
         this.selectedFamilyIds = [];
       }
 
-      this.selectedFamilyIds.push(d.id)
+      this.selectedFamilyIds.push(d.id);
 
-      select('tbody').selectAll('tr').filter((row) => {
-        return row['id'] === d.id;
-      }).attr('class',(d)=>{return d['id'] === 42623 ? 'selected2' : 'selected'})
-
-      
+      select('tbody').selectAll('tr').filter((row:any) => {
+        return row.id === d.id;
+      }).attr('class',(d:any)=> {return d.id === 42623 ? 'selected2' : 'selected';});
 
       tableManager.selectFamily(this.selectedFamilyIds);
 
     });
 
-    if (selectAll('.selected').size() == 0){ // or if (this.selectedFamilyIDs.length === 0)
-      select('tbody').selectAll('tr').filter((row,i) => {
-        return row['id'] === this.familyInfo[0].id; //select the first family as a default;
+    if (selectAll('.selected').size() === 0) { // or if (this.selectedFamilyIDs.length === 0)
+      select('tbody').selectAll('tr').filter((row:any,i) => {
+        return row.id === this.familyInfo[0].id; //select the first family as a default;
       }).classed('selected', true);
 
-      this.selectedFamilyIds = [this.familyInfo[0].id]
+      this.selectedFamilyIds = [this.familyInfo[0].id];
       // tableManager.selectFamily(this.selectedFamilyIds);
     }
 

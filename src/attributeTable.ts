@@ -40,7 +40,7 @@ enum sortedState {
 /**
  * Creates the attribute table view
  */
-class attributeTable {
+class AttributeTable {
 
   private $node;
 
@@ -95,7 +95,7 @@ class attributeTable {
 
   private idScale = scaleLinear(); //used to size the bars in the first col of the table;
 
-  private colorScale = ["#969696", "#9e9ac8", "#74c476", "#fd8d3c", "#9ecae1"];
+  private colorScale = ['#969696', '#9e9ac8', '#74c476', '#fd8d3c', '#9ecae1'];
 
   private margin = Config.margin;
 
@@ -146,36 +146,35 @@ class attributeTable {
 
 
      this.$node.append('nav').attr('class','navbar navbar-expand-lg navbar-light bg-light')
-    .append('div').attr('id', 'tableNav')
+    .append('div').attr('id', 'tableNav');
 
        this.$node.select('#tableNav')
     .append('a').attr('class','navbar-brand')
-    .html('Attribute Table')
+    .html('Attribute Table');
 
-    let dropdownMenu = this.$node.select('.navbar')
+    const dropdownMenu = this.$node.select('.navbar')
     .append('div').attr('class','dropdown ml-auto');
 
     dropdownMenu.append('button').attr('class','btn btn-secondary dropdown-toggle').attr('type','button').attr('id','dropdownMenuButton').attr('data-toggle','dropdown')
-    .text('Add Table Attributes')
+    .text('Add Table Attributes');
 
-    let menu = dropdownMenu.append('div').attr('class','dropdown-menu');
+    const menu = dropdownMenu.append('div').attr('class','dropdown-menu');
 
 
-    menu.append('h6').attr('class','dropdown-header').html('Demographic Attributes')
+    menu.append('h6').attr('class','dropdown-header').html('Demographic Attributes');
     menu.append('a').attr('class','dropdown-item').html('Age');
 
 
-    menu.append('a').attr('class','dropdown-item active').html('Gender')
-    menu.append('a').attr('class','dropdown-item').html('Race')
-    menu.append('a').attr('class','dropdown-item active').html('RelativeID')
-    menu.append('div').attr('class','dropdown-divider')
-    menu.append('h6').attr('class','dropdown-header').html('Clinical Attributes')
-    menu.append('a').attr('class','dropdown-item').html('Bipolar')
-    menu.append('a').attr('class','dropdown-item').html('Depressions')
-    menu.append('a').attr('class','dropdown-item').html('Suicide')
-    menu.append('a').attr('class','dropdown-item').html('BMI')
-    menu.append('div').attr('class','dropdown-divider')
-    
+    menu.append('a').attr('class','dropdown-item active').html('Gender');
+    menu.append('a').attr('class','dropdown-item').html('Race');
+    menu.append('a').attr('class','dropdown-item active').html('RelativeID');
+    menu.append('div').attr('class','dropdown-divider');
+    menu.append('h6').attr('class','dropdown-header').html('Clinical Attributes');
+    menu.append('a').attr('class','dropdown-item').html('Bipolar');
+    menu.append('a').attr('class','dropdown-item').html('Depressions');
+    menu.append('a').attr('class','dropdown-item').html('Suicide');
+    menu.append('a').attr('class','dropdown-item').html('BMI');
+    menu.append('div').attr('class','dropdown-divider');
 
 //     <div class="dropdown">
 //   <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -200,18 +199,18 @@ class attributeTable {
 
       // const headerSVG = select('#headersDIV').append('svg')
 
-      let tableDiv = this.$node.append('div')
-      .attr('id','tableDiv')
+      const tableDiv = this.$node.append('div')
+      .attr('id','tableDiv');
 
       const headerSVG =tableDiv.append('svg')
       .attr('width', 1920)
       .attr('height',195)
       // .attr('viewBox','0 0 1200 195')
-      .attr('id', 'headers')
+      .attr('id', 'headers');
 
     headerSVG.append('g')
       .attr('transform', 'translate(' + Config.collapseSlopeChartWidth + ',95)')
-      .attr('id', 'headerGroup')
+      .attr('id', 'headerGroup');
 
 
 
@@ -219,23 +218,23 @@ class attributeTable {
     const svg = tableDiv.append('svg')
       .classed('tableSVG', true)
       // .viewBox('0 0 ' + this.width + ' ' + (this.height + this.margin.top + this.margin.bottom))
-      .attr('width', this.width + this.margin.left + this.margin.right)
+      .attr('width', this.width + this.margin.left + this.margin.right);
       // .attr('height', this.height + this.margin.top + this.margin.bottom);
 
     // TABLE (except for slope Chart and first col on the left of the slope chart)
     this.table = svg.append('g')
       .attr('transform', 'translate(' + Config.collapseSlopeChartWidth + ' , 0)')
-      .attr('id', 'tableGroup')
+      .attr('id', 'tableGroup');
 
     //HEADERS
     this.$node.select('#headerGroup').append('g')
       .attr('transform', 'translate(0, 0)')
-      .attr('id', 'tableHeaders')
+      .attr('id', 'tableHeaders');
 
     //Column Summaries
     this.$node.select('#headerGroup').append('g')
       .attr('transform', 'translate(0, 15)')
-      .attr('id', 'colSummaries')
+      .attr('id', 'colSummaries');
 
     //Columns (except for the first)
     select('#tableGroup').append('g')
@@ -250,17 +249,17 @@ class attributeTable {
     //SlopeChart and first col
     svg.append('g')
       // .attr('transform', 'translate(0, ' + this.margin.top + ')')
-      .attr('id', 'slopeChart')
+      .attr('id', 'slopeChart');
 
     select('#slopeChart').append('g')
-      .attr('id', 'firstCol')
+      .attr('id', 'firstCol');
 
     select('#slopeChart').append('g')
-      .attr('id', 'slopeLines')
+      .attr('id', 'slopeLines');
 
 
     //Add button to slopeChart Div that says 'revert to Tree Order'
-    let button = select('#headers')
+    const button = select('#headers')
       .append('g')
       .attr('transform', 'translate(635,70)')
       .attr('id', 'revertTreeOrder')
@@ -280,12 +279,12 @@ class attributeTable {
         this.sortAttribute.state = sortedState.Unsorted;
 
         selectAll('.sortIcon')
-          .classed('sortSelected', false)
+          .classed('sortSelected', false);
 
         select('#revertTreeOrder')
-          .attr('visibility', 'hidden')
+          .attr('visibility', 'hidden');
 
-        let t2 = transition('test').duration(600).ease(easeLinear);
+        const t2 = transition('test').duration(600).ease(easeLinear);
 
         select('#columns').selectAll('.cell')
           .transition(t2)
@@ -324,16 +323,16 @@ class attributeTable {
         selectAll('.slopeLine')
           .transition(t2)
           .attr('d', (d: any) => {
-            return this.slopeChart({y: d.y, ind: d.ind, width: Config.collapseSlopeChartWidth})
+            return this.slopeChart({y: d.y, ind: d.ind, width: Config.collapseSlopeChartWidth});
           });
 
         select('#tableGroup').selectAll('.highlightBar')
           .transition(t2)
           .attr('y', (d: any) => {
-            return this.y(this.rowOrder[d.i])
-          })
+            return this.y(this.rowOrder[d.i]);
+          });
 
-      })
+      });
 
     button.append('text')
       .classed('histogramLabel', true)
@@ -341,7 +340,7 @@ class attributeTable {
       .attr('y', 15)
       .attr('fill', '#757472')
       .text('Sort by Tree')
-      .attr('text-anchor', 'middle')
+      .attr('text-anchor', 'middle');
 
 
   }
@@ -351,24 +350,24 @@ class attributeTable {
     // this.colOffsets = [-Config.slopeChartWidth];
 
     this.colOffsets = [0];
-    let graphView = await this.tableManager.graphTable;
-    let attributeView = await this.tableManager.tableTable;
+    const graphView = await this.tableManager.graphTable;
+    const attributeView = await this.tableManager.tableTable;
 
-    let allCols = graphView.cols().concat(attributeView.cols());
-    let colOrder = this.tableManager.colOrder;
-    let orderedCols = [];
+    const allCols = graphView.cols().concat(attributeView.cols());
+    const colOrder = this.tableManager.colOrder;
+    const orderedCols = [];
 
 
     for (const colName of colOrder) {
       for (const vector of allCols) {
         if (vector.desc.name === colName) {
-          orderedCols.push(vector)
+          orderedCols.push(vector);
         }
       }
     }
 
     //This are the rows that every col in the table should have;
-    let graphIDs = await graphView.col(0).names();
+    const graphIDs = await graphView.col(0).names();
 
     // graphIDs = graphIDs.dim(0).asList().map(d => {
     //   return d.toString()
@@ -376,8 +375,8 @@ class attributeTable {
 
 
     //Create a dictionary of y value to people
-    let y2personDict = {};
-    let yDict = this.tableManager.yValues;
+    const y2personDict = {};
+    const yDict = this.tableManager.yValues;
 
     // console.log('yDict', yDict)
     graphIDs.forEach((person) => {
@@ -390,12 +389,12 @@ class attributeTable {
           } else {
             y2personDict[y] = [person];
           }
-        })
+        });
       }
     });
 
     //Find y indexes of all rows
-    let allRows = Object.keys(y2personDict).map(Number);
+    const allRows = Object.keys(y2personDict).map(Number);
 
     // console.log('allrows', allRows)
 
@@ -412,7 +411,7 @@ class attributeTable {
 
 
     //set up first column with #People per row.
-    let col: any = {};
+    const col: any = {};
     col.data = [];
     col.name = ['# People'];
     // col.ys = allRows;
@@ -422,22 +421,22 @@ class attributeTable {
 
     //Creating a scale for the rects in the personID col in the table.
     let maxAggregates = 1;
-    for (let key of allRows) {
+    for (const key of allRows) {
       //FIXME Don't know why we're getting duplicates here.
-      let value = Array.from(new Set(y2personDict[key])).length;
+      const value = Array.from(new Set(y2personDict[key])).length;
       col.data.push(value);
-      maxAggregates = max([maxAggregates, y2personDict[key].length])
+      maxAggregates = max([maxAggregates, y2personDict[key].length]);
     }
     this.idScale.domain([1, maxAggregates]);
 
-  
+
     col.ids = allRows.map((row) => {
-      return y2personDict[row]
+      return y2personDict[row];
     });
 
     this.firstCol = [col];
 
-    let colDataAccum = [];
+    const colDataAccum = [];
 
     let allPromises = [];
     orderedCols.forEach((vector, index) => {
@@ -445,11 +444,11 @@ class attributeTable {
         vector.data(),
         vector.names(),
         vector.ids(),
-        vector.stats().catch(() => {}),
-        vector.hist(10).catch(() => {})
+        vector.stats().catch(() => {return null;}),
+        vector.hist(10).catch(() => {return null;})
       ]);
     });
-    let finishedPromises = await Promise.all(allPromises);
+    const finishedPromises = await Promise.all(allPromises);
 
     // for (const vector of orderedCols) {
     orderedCols.forEach((vector, index) => {
@@ -471,7 +470,7 @@ class attributeTable {
 
       if (type === VALUE_TYPE_CATEGORICAL) {
         //Build col offsets array ;
-        let allCategories = vector.desc.value.categories.map(c => {
+        const allCategories = vector.desc.value.categories.map((c) => {
           return c.name;
         }); //get categories from index.json def
         let categories;
@@ -479,18 +478,18 @@ class attributeTable {
 
         //Only need one col for binary categories
         if (allCategories.length < 3) {
-          if (allCategories.find(d => {
+          if (allCategories.find((d) => {
               return d === 'Y';
             })) {
             categories = ['Y'];
-          } else if (allCategories.find(d => {
-              return d === 'True'
+          } else if (allCategories.find((d) => {
+              return d === 'True';
             })) {
-            categories = ['True']
-          } else if (allCategories.find(d => {
-              return d === 'F'
+            categories = ['True'];
+          } else if (allCategories.find((d) => {
+              return d === 'F';
             })) {
-            categories = ['F']
+            categories = ['F'];
           } else {
             categories = [allCategories[0]];
           }
@@ -502,16 +501,16 @@ class attributeTable {
         // console.log(categories)
 
         if (categories.length > 2) { //Add spacing around multicolumn categories
-          let numColsBefore = this.colOffsets.length - 1;
+          const numColsBefore = this.colOffsets.length - 1;
           this.colOffsets[numColsBefore] += this.catOffset;
         }
 
-        for (let cat of categories) {
+        for (const cat of categories) {
 
-          let col: any = {};
+          const col: any = {};
           col.isSorted = false;
           col.ids = allRows.map((row) => {
-            return y2personDict[row]
+            return y2personDict[row];
           });
 
           col.name = name;
@@ -519,13 +518,13 @@ class attributeTable {
 
           //Ensure there is an element for every person in the graph, even if empty
           col.data = allRows.map((row) => {
-            let colData = [];
-            let people = y2personDict[row];
+            const colData = [];
+            const people = y2personDict[row];
             people.map((person) => {
-              let ind = peopleIDs.indexOf(person) //find this person in the attribute data
+              const ind = peopleIDs.indexOf(person); //find this person in the attribute data
               //If there are only two categories, save both category values in this column. Else, only save the ones that match the category at hand.
               if (ind > -1 && (allCategories.length < 3 || ind > -1 && (allCategories.length > 2 && data[ind] === cat))) {
-                colData.push(data[ind])
+                colData.push(data[ind]);
               } else {
                 colData.push(undefined);
               }
@@ -534,7 +533,7 @@ class attributeTable {
           });
           col.type = type;
 
-          let maxOffset = max(this.colOffsets);
+          const maxOffset = max(this.colOffsets);
 
           this.colOffsets.push(maxOffset + this.buffer * 2 + this.colWidths[type]);
 
@@ -544,29 +543,29 @@ class attributeTable {
 
 
         if (categories.length > 2) { //Add spacing around multicolumn categories
-          let numColsAfter = this.colOffsets.length - 1;
+          const numColsAfter = this.colOffsets.length - 1;
           this.colOffsets[numColsAfter] += this.catOffset;
         }
 
 
       } else if (type === VALUE_TYPE_INT || type === VALUE_TYPE_REAL) { //quant
 
-        let maxOffset = max(this.colOffsets);
+        const maxOffset = max(this.colOffsets);
         this.colOffsets.push(maxOffset + this.buffer + this.colWidths[type]);
 
 
-        let col: any = {};
+        const col: any = {};
         col.isSorted = false;
         col.ids = allRows.map((row) => {
-          return y2personDict[row]
+          return y2personDict[row];
         });
 
         // const stats = await vector.stats();
         const stats = finishedPromises[5 * index + 3];
         col.name = name;
         col.data = allRows.map((row) => {
-          let colData = [];
-          let people = y2personDict[row];
+          const colData = [];
+          const people = y2personDict[row];
           people.map((person) => {
             const ind = peopleIDs.lastIndexOf(person); //find this person in the attribute data
             if (ind > -1) {
@@ -593,18 +592,18 @@ class attributeTable {
         const col: any = {};
         col.isSorted = false;
         col.ids = allRows.map((row) => {
-          return y2personDict[row]
+          return y2personDict[row];
         });
 
         col.name = name;
 
         col.data = allRows.map((row) => {
-          let colData = [];
-          let people = y2personDict[row];
+          const colData = [];
+          const people = y2personDict[row];
           people.map((person) => {
-            let ind = peopleIDs.lastIndexOf(person) //find this person in the attribute data
+            const ind = peopleIDs.lastIndexOf(person); //find this person in the attribute data
             if (ind > -1) {
-              colData.push(data[ind])
+              colData.push(data[ind]);
             } else {
               colData.push(undefined);
             }
@@ -617,30 +616,30 @@ class attributeTable {
 
         const col: any = {};
         col.ids = allRows.map((row) => {
-          return y2personDict[row]
+          return y2personDict[row];
         });
 
         col.name = name;
 
         col.data = allRows.map((row) => {
-          let colData = [];
-          let people = y2personDict[row];
+          const colData = [];
+          const people = y2personDict[row];
           people.map((person) => {
             // console.log(data,person)
-            let ind = peopleIDs.indexOf(person) //find this person in the attribute data
+            const ind = peopleIDs.indexOf(person); //find this person in the attribute data
             if (ind > -1) {
-              if (isUndefined(data[ind])){
-                console.log('problem')
+              if (isUndefined(data[ind])) {
+                console.log('problem');
                 console.log(name,data.size(),peopleIDs.size());
               }
-              colData.push(data[ind].toString())
+              colData.push(data[ind].toString());
             } else {
               colData.push(undefined);
             }
           });
           return colData;
         });
-        col.ys = allRows
+        col.ys = allRows;
         col.type = type;
         colDataAccum.push(col);
 
@@ -668,11 +667,11 @@ class attributeTable {
   //renders the DOM elements
   private async render() {
 
-    let t = transition('t').ease(easeLinear);
+    const t = transition('t').ease(easeLinear);
     // let t= this.tableManager.t;
-    let self = this;
+    const self = this;
 
-    let y = this.y;
+    const y = this.y;
 
 
 //HEADERS
@@ -682,7 +681,7 @@ class attributeTable {
         return {
           'name': d.name, 'data': d, 'ind': i, 'type': d.type,
           'max': d.max, 'min': d.min, 'mean': d.mean, 'category': d.category, 'isSorted': d.isSorted
-        }
+        };
       }), (d: any) => {
         return d.name;
       });
@@ -698,48 +697,46 @@ class attributeTable {
 
     headers
       .text((d: any) => {
-        if (d.category && d.category !== 'TRUE' && d.category !== 'Y')
-          return d.name + ' (' + d.category + ')'
-        else
-          return d.name //.slice(0,15)
+        if (d.category && d.category !== 'TRUE' && d.category !== 'Y') {
+          return d.name + ' (' + d.category + ')';
+        } else {
+          return d.name; //.slice(0,15)
+        };
 
       })
 
       .attr('transform', (d, i) => {
-        let offset = this.colOffsets[i] + (this.colWidths[d.type] / 2);
+        const offset = this.colOffsets[i] + (this.colWidths[d.type] / 2);
         return (d.type === VALUE_TYPE_CATEGORICAL || d.type === 'dataDensity' || d.name.length>10) ? 'translate(' + offset + ',0) rotate(-40)' : 'translate(' + offset + ',0)';
       })
       .attr('text-anchor', (d) => {
-        return (d.type === VALUE_TYPE_CATEGORICAL || d.type === 'dataDensity' || d.name.length>10) ? 'start' : 'middle'
-      })
+        return (d.type === VALUE_TYPE_CATEGORICAL || d.type === 'dataDensity' || d.name.length>10) ? 'start' : 'middle';
+      });
 
 
     //Bind data to the col header summaries
     let colSummaries = select('#colSummaries').selectAll('.colSummary')
       .data(this.colData.map((d) => {
-        return d
+        return d;
       }), (d: any) => {
-        return d.name
+        return d.name;
       });
 
-    let colSummariesEnter = colSummaries.enter().append('g').classed('colSummary', true);
+    const colSummariesEnter = colSummaries.enter().append('g').classed('colSummary', true);
 
     colSummaries.exit().remove();
 
-    colSummaries = colSummariesEnter.merge(colSummaries)
+    colSummaries = colSummariesEnter.merge(colSummaries);
 
 
     colSummaries.each(function (cell) {
       if (cell.type === VALUE_TYPE_CATEGORICAL) {
         self.renderCategoricalHeader(select(this), cell);
-      }
-      else if (cell.type === VALUE_TYPE_INT || cell.type === VALUE_TYPE_REAL) {
+      } else if (cell.type === VALUE_TYPE_INT || cell.type === VALUE_TYPE_REAL) {
         self.renderIntHeaderHist(select(this), cell);
-      }
-      else if (cell.type === VALUE_TYPE_STRING) {
+      } else if (cell.type === VALUE_TYPE_STRING) {
         self.renderStringHeader(select(this), cell);
-      }
-      else if (cell.type === 'id' || cell.type === 'idtype') {
+      } else if (cell.type === 'id' || cell.type === 'idtype') {
         self.addSortingIcons(select(this), cell);
       }
     });
@@ -748,7 +745,7 @@ class attributeTable {
     colSummaries
       .transition(t)
       .attr('transform', (d, i) => {
-        let offset = this.colOffsets[i];
+        const offset = this.colOffsets[i];
         return 'translate(' + offset + ',0)';
       });
 
@@ -756,21 +753,21 @@ class attributeTable {
     //create backgroundHighlight Bars
     let highlightBars = select('#columns').selectAll('.highlightBar')
       .data(this.rowOrder.map((d, i) => {
-        return {'y': d, 'i': i}
+        return {'y': d, 'i': i};
       }), (d: any) => {
-        return d.y
+        return d.y;
       });
 
     highlightBars.exit().remove();
 
-    let highlightBarsEnter = highlightBars.enter().append('rect').classed('highlightBar', true);
+    const highlightBarsEnter = highlightBars.enter().append('rect').classed('highlightBar', true);
 
-    highlightBars = highlightBarsEnter.merge(highlightBars)
+    highlightBars = highlightBarsEnter.merge(highlightBars);
 
     highlightBars
       .attr('x', 0)
       .attr('y', (d: any) => {
-        return this.y(this.rowOrder[d.i])
+        return this.y(this.rowOrder[d.i]);
       })
       .attr('width', max(this.colOffsets))
       .attr('height', this.rowHeight)
@@ -780,7 +777,7 @@ class attributeTable {
         function selected(e:any) {
           let returnValue = false;
           //Highlight the current row in the graph and table
-          if (e.y === Math.round(d.y)){
+          if (e.y === Math.round(d.y)) {
             returnValue = true;
           }
 
@@ -791,7 +788,7 @@ class attributeTable {
 
         selectAll('.slopeLine').filter((e:any) => {
           return e.y === Math.round(d.y);
-        }).classed('selectedSlope', true)
+        }).classed('selectedSlope', true);
 
         //Set opacity of corresponding highlightBar
         selectAll('.highlightBar').filter(selected).attr('opacity', .2);
@@ -807,46 +804,46 @@ class attributeTable {
       })
       .on('click', (d: any) => {
 
-        console.log('clicked')
-        if (event.defaultPrevented) return; // dragged
+        console.log('clicked');
+        if (event.defaultPrevented) {return;} // dragged
 
-        let wasSelected = selectAll('.highlightBar').filter((e: any) => {
-          return e.y === d.y || e.y === Math.round(d.y)
+        const wasSelected = selectAll('.highlightBar').filter((e: any) => {
+          return e.y === d.y || e.y === Math.round(d.y);
         }).classed('selected');
 
 
         //'Unselect all other background bars if ctrl was not pressed
         if (!event.metaKey) {
-          selectAll('.slopeLine').classed('clickedSlope', false)
+          selectAll('.slopeLine').classed('clickedSlope', false);
           selectAll('.highlightBar').classed('selected', false);
         }
 
         selectAll('.slopeLine').filter((e: any) => {
-          return e.y === d.y || e.y === Math.round(d.y)
+          return e.y === d.y || e.y === Math.round(d.y);
         }).classed('clickedSlope', function () {
           return (!wasSelected);
-        })
+        });
 
         selectAll('.highlightBar').filter((e: any) => {
-          return e.y === d.y || e.y === Math.round(d.y)
+          return e.y === d.y || e.y === Math.round(d.y);
         }).classed('selected', function () {
           return (!wasSelected);
-        })
-      })
+        });
+      });
 
     //create slope Lines
     // //Bind data to the cells
     let slopeLines = select('#slopeLines').selectAll('.slopeLine')
       .data(this.rowOrder.map((d: any, i) => {
-          return {y: d, ind: i, width: Config.collapseSlopeChartWidth}
+          return {y: d, ind: i, width: Config.collapseSlopeChartWidth};
         })
         , (d: any) => {
-          return d.y
+          return d.y;
         });
 
     slopeLines.exit().remove();
 
-    let slopeLinesEnter = slopeLines.enter().append('path');
+    const slopeLinesEnter = slopeLines.enter().append('path');
 
 
     slopeLines = slopeLinesEnter.merge(slopeLines)
@@ -854,7 +851,7 @@ class attributeTable {
     // slopeLines
       .attr('class', 'slopeLine')
       .attr('d', (d: any) => {
-        return this.slopeChart(d)
+        return this.slopeChart(d);
       });
 
 
@@ -865,9 +862,9 @@ class attributeTable {
         return {
           'name': d.name, 'data': d.data, 'ind': i, 'type': d.type,
           'ids': d.ids, 'stats': d.stats, 'varName': d.name, 'category': d.category, 'vector': d.vector
-        }
+        };
       }), (d: any) => {
-        return d.varName
+        return d.varName;
       });
 
     cols.exit().remove(); // should remove on col remove
@@ -877,13 +874,13 @@ class attributeTable {
       .classed('dataCols', true);
 
 
-    cols = colsEnter.merge(cols)//;
+    cols = colsEnter.merge(cols);//;
 
     //translate columns horizontally to their position;
     cols
       .transition(t)
       .attr('transform', (d, i) => {
-        let offset = this.colOffsets[i];
+        const offset = this.colOffsets[i];
         return 'translate(' + offset + ',0)';
       });
 
@@ -891,13 +888,13 @@ class attributeTable {
     //Bind data to the first col group
     let firstCol = select('#slopeChart').selectAll('.dataCols')
       .data(this.firstCol.map((d, i) => {
-        let out =  {
+        const out =  {
           'name': d.name, 'data': d.data, 'ind': i, 'type': d.type,
           'ids': d.ids, 'stats': d.stats, 'varName': d.name, 'category': d.category, 'vector': d.vector
-        }
+        };
         return out;
       }), (d: any) => {
-        return d.varName
+        return d.varName;
       });
 
     firstCol.exit().attr('opacity', 0).remove(); // should remove on col remove
@@ -907,7 +904,7 @@ class attributeTable {
       .classed('dataCols', true);
 
 
-    firstCol = firstColEnter.merge(firstCol)//;
+    firstCol = firstColEnter.merge(firstCol);//;
 
     //Bind data to the cells
     let firstCells = firstCol.selectAll('.cell')
@@ -923,15 +920,15 @@ class attributeTable {
             'varName': d.name,
             'category': d.category,
             'vector': d.vector
-          }
-        })
+          };
+        });
       }, (d: any) => {
-        return d.id[0]
+        return d.id[0];
       });
 
     firstCells.exit().remove();
 
-    let firstCellsEnter = firstCells.enter()
+    const firstCellsEnter = firstCells.enter()
       .append('g')
       .attr('class', 'cell');
 
@@ -955,24 +952,24 @@ class attributeTable {
     // //Bind data to the cells
     let rowLines = select('#columns').selectAll('.rowLine')
       .data(this.rowOrder, (d: any) => {
-        return d
+        return d;
       });
 
     rowLines.exit().remove();
 
-    let rowLinesEnter = rowLines.enter().append('line').classed('rowLine', true);
+    const rowLinesEnter = rowLines.enter().append('line').classed('rowLine', true);
 
-    rowLines = rowLinesEnter.merge(rowLines)
+    rowLines = rowLinesEnter.merge(rowLines);
 
     selectAll('.rowLine')
       .attr('x1', 0)
       .attr('y1', (d: any) => {
-        return this.y(d) + this.rowHeight
+        return this.y(d) + this.rowHeight;
       })
       .attr('x2', max(this.colOffsets))
       .attr('y2', (d: any) => {
-        return this.y(d) + this.rowHeight
-      })
+        return this.y(d) + this.rowHeight;
+      });
 
 
     //Bind data to the cells
@@ -989,15 +986,15 @@ class attributeTable {
             'varName': d.name,
             'category': d.category,
             'vector': d.vector
-          }
-        })
+          };
+        });
       }, (d: any) => {
-        return d.id[0]
+        return d.id[0];
       });
 
     cells.exit().remove();
 
-    let cellsEnter = cells.enter()
+    const cellsEnter = cells.enter()
       .append('g')
       .attr('class', 'cell');
 
@@ -1018,21 +1015,16 @@ class attributeTable {
     cells.each(function (cell) {
       if (cell.type === VALUE_TYPE_CATEGORICAL) {
         self.renderCategoricalCell(select(this), cell);
-      }
-      else if (cell.type === VALUE_TYPE_INT || cell.type === VALUE_TYPE_REAL) {
+      } else if (cell.type === VALUE_TYPE_INT || cell.type === VALUE_TYPE_REAL) {
         self.renderIntCell(select(this), cell);
-      }
-      else if (cell.type === VALUE_TYPE_STRING) {
+      } else if (cell.type === VALUE_TYPE_STRING) {
         self.renderStringCell(select(this), cell);
-      }
-      else if (cell.name === 'KindredID') {
-        self.renderFamilyIDCell(select(this), cell)
-      }
-      else if (cell.type === 'id' || cell.type === 'idtype') {
+      } else if (cell.name === 'KindredID') {
+        self.renderFamilyIDCell(select(this), cell);
+      } else if (cell.type === 'id' || cell.type === 'idtype') {
 
         self.renderIdCell(select(this), cell);
-      }
-      else if (cell.type === 'dataDensity') {
+      } else if (cell.type === 'dataDensity') {
         self.renderDataDensCell(select(this), cell);
       }
 
@@ -1072,20 +1064,20 @@ class attributeTable {
           };
       } else if (d.type === VALUE_TYPE_CATEGORICAL) {
         return {
-          index: i, value: +(el.filter(e => {
-            return e === d.category
+          index: i, value: +(el.filter((e) => {
+            return e === d.category;
           }).length / el.length)
         };
       } else if (d.type === 'idtype') {
-        let equalValues = el.reduce(function (a, b) {
+        const equalValues = el.reduce(function (a, b) {
           return (a === b) ? a : NaN;
         }); //check for array that has all equal values in an aggregate (such as KindredId);
         return isNaN(equalValues) ? {index: i, value: undefined} : {index: i, value: equalValues};
       }
 
-    })
+    });
 
-    let equalValues = mapped.reduce(function (a, b) {
+    const equalValues = mapped.reduce(function (a, b) {
       return ( a.value === b.value) ? a : NaN;
     }); //check for array that has all equal values in an aggregate (such as KindredId);
 
@@ -1096,21 +1088,21 @@ class attributeTable {
 
     select('#revertTreeOrder')
       .transition(t2.transition().duration(500).ease(easeLinear))
-      .attr('visibility', 'visible')
+      .attr('visibility', 'visible');
 
     // sorting the mapped array containing the reduced values
     if (sortOrder === sortedState.Ascending) {
       mapped.sort(function (a, b) {
-        if (a.value === b.value) return 0;
-        if (b.value === undefined || a.value < b.value) return -1;
-        if (a.value === undefined || a.value > b.value) return 1;
+        if (a.value === b.value) {return 0;}
+        if (b.value === undefined || a.value < b.value) {return -1;}
+        if (a.value === undefined || a.value > b.value) {return 1;}
 
       });
     } else {
       mapped.sort(function (a, b) {
-        if (a.value === b.value) return 0;
-        if (a.value < b.value) return 1;
-        if (a.value === undefined || b.value === undefined ||  a.value > b.value) return -1;
+        if (a.value === b.value) {return 0;}
+        if (a.value < b.value) {return 1;}
+        if (a.value === undefined || b.value === undefined ||  a.value > b.value) {return -1;}
       });
     }
 
@@ -1158,15 +1150,15 @@ class attributeTable {
     selectAll('.slopeLine')
       .transition(t2)
       .attr('d', (d: any) => {
-        return this.slopeChart({y: d.y, ind: sortedIndexes.indexOf(d.ind), width: Config.slopeChartWidth})
+        return this.slopeChart({y: d.y, ind: sortedIndexes.indexOf(d.ind), width: Config.slopeChartWidth});
       });
 
     select('#tableGroup')
       .selectAll('.highlightBar')
       .transition(t2)
       .attr('y', (d: any) => {
-        return this.y(this.rowOrder[sortedIndexes.indexOf(d.i)])
-      })
+        return this.y(this.rowOrder[sortedIndexes.indexOf(d.i)]);
+      });
 
   }
 
@@ -1194,8 +1186,8 @@ class attributeTable {
       .text('\uf0dd')
       .attr('y', this.rowHeight * 1.8 + 20)
       .attr('x', (d) => {
-        return this.colWidths[d.type] / 2 - 5
-      })
+        return this.colWidths[d.type] / 2 - 5;
+      });
 
     icon = element.selectAll('.ascending')
       .data([cellData]);
@@ -1203,7 +1195,7 @@ class attributeTable {
     iconEnter = icon.enter()
       .append('text')
       .classed('sortIcon', true)
-      .classed('ascending', true)
+      .classed('ascending', true);
 
 
     icon = iconEnter.merge(icon);
@@ -1213,21 +1205,21 @@ class attributeTable {
       .text('\uf0de')
       .attr('y', this.rowHeight * 1.8 + 30)
       .attr('x', (d) => {
-        return this.colWidths[cellData.type] / 2 + 5
-      })
+        return this.colWidths[cellData.type] / 2 + 5;
+      });
 
     element.selectAll('.sortIcon')
       .attr('font-family', 'FontAwesome')
       .attr('font-size', 17)
-      .attr('text-anchor', 'middle')
+      .attr('text-anchor', 'middle');
 
-    let self = this;
+    const self = this;
 
     selectAll('.sortIcon')
       .on('click', function (d) {
 
         // Set 'sortAttribute'
-        if (select(this).classed('ascending')){
+        if (select(this).classed('ascending')) {
           self.sortAttribute.state = sortedState.Ascending;
         } else {
           self.sortAttribute.state = sortedState.Descending;
@@ -1235,10 +1227,10 @@ class attributeTable {
         self.sortAttribute.data = d;
 
         selectAll('.sortIcon')
-          .classed('sortSelected', false)
+          .classed('sortSelected', false);
 
         select(this)
-          .classed('sortSelected', true)
+          .classed('sortSelected', true);
 
         self.sortRows(d, self.sortAttribute.state);
 
@@ -1289,34 +1281,34 @@ class attributeTable {
    */
   private renderCategoricalHeader(element, headerData) {
 
-    let col_width = this.colWidths.categorical;
-    let height = this.headerHeight;
+    const colWidth = this.colWidths.categorical;
+    const height = this.headerHeight;
 
-    let numPositiveValues = headerData.data.map((singleRow) => {
+    const numPositiveValues = headerData.data.map((singleRow) => {
       return singleRow.reduce((a, v) => {
-        return v === headerData.category ? a + 1 : a
-      }, 0)
+        return v === headerData.category ? a + 1 : a;
+      }, 0);
     }).reduce((a, v) => {
-      return v + a
+      return v + a;
     }, 0);
 
-    let totalValues = headerData.data.map((singleRow) => {
-      return singleRow.length
+    const totalValues = headerData.data.map((singleRow) => {
+      return singleRow.length;
     }).reduce((a, v) => {
-      return a + v
+      return a + v;
     }, 0);
 
-    let summaryScale = scaleLinear().range([0, height]).domain([0, totalValues])
+    const summaryScale = scaleLinear().range([0, height]).domain([0, totalValues]);
 
     if (element.selectAll('.histogram').size() === 0) {
       element.append('rect')
         .classed('histogram', true);
 
       element.append('text')
-        .classed('histogramLabel', true)
+        .classed('histogramLabel', true);
 
         element.append('span')
-        .attr('class','oi oi-menu')
+        .attr('class','oi oi-menu');
 
     }
 
@@ -1324,7 +1316,7 @@ class attributeTable {
 
     element.select('.histogram')
       .attr('opacity', 0)
-      .attr('width', col_width)
+      .attr('width', colWidth)
       .attr('height', summaryScale(numPositiveValues))
       .attr('y', (height - summaryScale(numPositiveValues)))
       .attr('opacity', 1)
@@ -1333,35 +1325,35 @@ class attributeTable {
       .attr('fill', () => {
           let attr = this.tableManager.primaryAttribute;
           if (attr && attr.name === headerData.name) {
-              const index = attr.categories.indexOf(headerData.category)
-              return attr.color[index]
+              const index = attr.categories.indexOf(headerData.category);
+              return attr.color[index];
             } else {
               attr = this.tableManager.affectedState;
               if (attr) {
                 const poi = attr; attr = attr.attributeInfo;
                if (attr.name === headerData.name) {
-                 if (poi.isAffected(headerData.category)){
-                   const index = attr.categories.indexOf(headerData.category)
+                 if (poi.isAffected(headerData.category)) {
+                   const index = attr.categories.indexOf(headerData.category);
                    return attr.color[index];
                  }
 
               }
             }
         }}
-      )
+      );
 
     element.select('.histogramLabel')
       .attr('opacity', 0)
       .text(() => {
-        let percentage = (numPositiveValues / totalValues * 100);
+        const percentage = (numPositiveValues / totalValues * 100);
         if (percentage < 1) {
-          return percentage.toFixed(1) + '%'
+          return percentage.toFixed(1) + '%';
         } else {
-          return percentage.toFixed(0) + '%'
+          return percentage.toFixed(0) + '%';
         }
       })
       .attr('y', (height - summaryScale(numPositiveValues) - 2))
-      .attr('opacity', 1)
+      .attr('opacity', 1);
 
   };
 
@@ -1377,25 +1369,25 @@ class attributeTable {
 
     // let t = transition('t').duration(500).ease(easeLinear);
 
-    let col_width = this.colWidths.int;
-    let height = this.headerHeight;
+    const colWidth = this.colWidths.int;
+    const height = this.headerHeight;
 
-    let hist = headerData.hist;
+    const hist = headerData.hist;
 
-    let range = [0, col_width];
+    const range = [0, colWidth];
 
     // var data = [],
     // cols = scaleLinear<string,string>().domain([hist.largestFrequency, 0]).range(['#111111', '#999999']),
-    let total = hist.validCount,
-      binWidth = (range[1] - range[0]) / hist.bins,
-      acc = 0;
+    let total = hist.validCount;
+    const binWidth = (range[1] - range[0]) / hist.bins;
+    let acc = 0;
 
-    let data = [];
+    const data = [];
 
     hist.forEach((b, i) => {
       data[i] = {
         v: b,
-        acc: acc,
+        acc,
         ratio: b / total,
         range: hist.range(i),
       };
@@ -1404,26 +1396,26 @@ class attributeTable {
 
     });
 
-    let xScale = scaleLinear().range([0, col_width]).domain(hist.valueRange).nice()
-    var bin2value = scaleLinear().range(hist.valueRange).domain([0, hist.bins]);
-    let yScale = scaleLinear().range([0, height * 0.8]).domain([0, max(data, (d) => {
-      return d.v
+    const xScale = scaleLinear().range([0, colWidth]).domain(hist.valueRange).nice();
+    const bin2value = scaleLinear().range(hist.valueRange).domain([0, hist.bins]);
+    const yScale = scaleLinear().range([0, height * 0.8]).domain([0, max(data, (d) => {
+      return d.v;
     })]);
 
 
-    let xAxis = axisBottom(xScale)
+    const xAxis = axisBottom(xScale)
       .tickSize(5)
       .tickValues(xScale.domain())
-      .tickFormat(format('.0f'))
+      .tickFormat(format('.0f'));
 
-    let bars = element.selectAll('.histogram')
+    const bars = element.selectAll('.histogram')
       .data(data);
 
-    let barsEnter = bars.enter();
+    const barsEnter = bars.enter();
 
     barsEnter
       .append('rect')
-      .classed('histogram', true)
+      .classed('histogram', true);
 
     bars.exit().remove();
 
@@ -1435,7 +1427,7 @@ class attributeTable {
       element.append('g')
         .attr('transform', 'translate(0,' + height + ')')
         .classed('hist_xscale', true)
-        .call(xAxis)
+        .call(xAxis);
     }
 
     this.addSortingIcons(element, headerData);
@@ -1443,46 +1435,46 @@ class attributeTable {
     element.selectAll('.histogram')
       .attr('width', binWidth * 0.8)
       // .transition(t)
-      .attr('height', d => {
-        return yScale(d.v)
+      .attr('height', (d) => {
+        return yScale(d.v);
       })
-      .attr('y', d => {
-        return (height - yScale(d.v))
+      .attr('y', (d) => {
+        return (height - yScale(d.v));
       })
       .attr('x', (d, i) => {
-        return xScale(bin2value(i))
+        return xScale(bin2value(i));
       })
       .attr('fill', () => {
           let attr = this.tableManager.primaryAttribute;
           if (attr && attr.name === headerData.name) {
-            return attr.color
+            return attr.color;
           } else {
             attr = this.tableManager.affectedState;
             if (attr && attr.attributeInfo.name === headerData.name) {
-              return attr.attributeInfo.color
+              return attr.attributeInfo.color;
             }
           }
         }
-      )
+      );
 
 
     //Position tick labels to be 'inside' the axis bounds. avoid overlap
     element.selectAll('.tick').each(function (cell) {
-      let xtranslate = +select(this).attr('transform').split('translate(')[1].split(',')[0];
-      if (xtranslate === 0) //first label in the axis
+      const xtranslate = +select(this).attr('transform').split('translate(')[1].split(',')[0];
+      if (xtranslate === 0) {//first label in the axis
         select(this).select('text').style('text-anchor', 'start');
-      else { //last label in the axis
+      } else { //last label in the axis
         select(this).select('text').style('text-anchor', 'end');
       }
     });
 
-    total = (data[data.length - 1]).acc + (data[data.length - 1]).v
+    total = (data[data.length - 1]).acc + (data[data.length - 1]).v;
     element.select('.maxValue')
       .text('Total:' + total)
 
-      .attr('x', col_width / 2)
+      .attr('x', colWidth / 2)
       .attr('y', -height * 0.1)
-      .attr('text-anchor', 'middle')
+      .attr('text-anchor', 'middle');
 
 
   };
@@ -1498,17 +1490,17 @@ class attributeTable {
   private renderCategoricalCell(element, cellData) {
     // let t = transition('t').duration(500).ease(easeLinear);
 
-    let col_width = this.colWidths.categorical;
-    let rowHeight = this.rowHeight;
+    const colWidth = this.colWidths.categorical;
+    const rowHeight = this.rowHeight;
 
     //Add up the undefined values;
-    let numValidValues = cellData.data.reduce((a, v) => {
-      return v ? a + 1 : a
+    const numValidValues = cellData.data.reduce((a, v) => {
+      return v ? a + 1 : a;
     }, 0);
 
-    let numValues = cellData.data.filter((c) => {
-      return (c === cellData.category)
-    }).length
+    const numValues = cellData.data.filter((c) => {
+      return (c === cellData.category);
+    }).length;
 
     element.selectAll('rect').remove(); //Hack. don't know why the height of the rects isn' being updated.
 
@@ -1517,17 +1509,17 @@ class attributeTable {
       if (element.selectAll('.cross_out').size() === 0) {
         element
           .append('line')
-          .attr('class', 'cross_out')
+          .attr('class', 'cross_out');
       }
 
       element.select('.cross_out')
-        .attr('x1', col_width * 0.3)
+        .attr('x1', colWidth * 0.3)
         .attr('y1', rowHeight / 2)
-        .attr('x2', col_width * 0.6)
+        .attr('x2', colWidth * 0.6)
         .attr('y2', rowHeight / 2)
         .attr('stroke-width', 2)
         .attr('stroke', '#9e9d9b')
-        .attr('opacity', .6)
+        .attr('opacity', .6);
 
       return;
     }
@@ -1535,10 +1527,10 @@ class attributeTable {
     if (element.selectAll('.categorical').size() === 0) {
       element
         .append('rect')
-        .classed('frame', true)
+        .classed('frame', true);
 
       element.append('rect')
-        .classed(VALUE_TYPE_CATEGORICAL, true)
+        .classed(VALUE_TYPE_CATEGORICAL, true);
     }
 
     this.yScale
@@ -1576,7 +1568,7 @@ class attributeTable {
           }
           return '#dfdfdf';
         }
-      )
+      );
 
 
     element
@@ -1585,7 +1577,7 @@ class attributeTable {
       .attr('height', this.yScale(numValues))
       .attr('y', (rowHeight - this.yScale(numValues)))
       .classed('aggregate', () => {
-        return cellData.data.length > 1
+        return cellData.data.length > 1;
       })
 
       .attr('fill', () => {
@@ -1622,54 +1614,54 @@ class attributeTable {
    */
   private renderDataDensCell(element, cellData) {
 
-    let col_width = this.colWidths[cellData.type];
-    let rowHeight = this.rowHeight;
+    const colWidth = this.colWidths[cellData.type];
+    const rowHeight = this.rowHeight;
 
     if (element.selectAll('.dataDens').size() === 0) {
       element
         .append('rect')
-        .classed('dataDens', true)
+        .classed('dataDens', true);
 
       element.append('text')
         .classed('label', true);
     }
 
-    var colorScale = scaleLinear<string,string>().domain(this.idScale.domain()).range(["#c0bfbb", "#373838"]);
+    const colorScale = scaleLinear<string,string>().domain(this.idScale.domain()).range(['#c0bfbb', '#373838']);
 
     element
       .select('.dataDens')
-      .attr('width', col_width)
+      .attr('width', colWidth)
       .attr('height', rowHeight)
       .attr('y', 0)
       // .attr('fill', (d) => {
       //   return cellData.type === 'idtype' ? '#c0bfbb' : colorScale(cellData.data) //return a single color for idtype cols.
-      // }) 
+      // })
       .attr('opacity',.4)
 
-      .attr('fill',(d,i)=>{return cellData.data === '42623'  ? this.colorScale[1] : this.colorScale[0]  })
+      .attr('fill',(d,i)=> {return cellData.data === '42623'  ? this.colorScale[1] : this.colorScale[0];  });
 
     element
       .select('.label')
-      .attr('x', col_width / 2)
+      .attr('x', colWidth / 2)
       .attr('y', rowHeight * 0.8)
       .text(() => {
-        return cellData.data
+        return cellData.data;
         // return (+cellData.data >1 ? cellData.data : '')
       })
       .attr('text-anchor', 'middle')
-      .attr("fill", "#4e4e4e")
+      .attr('fill', '#4e4e4e');
 
   }
 
 
   private renderFamilyIDCell(element, cellData) {
 
-    let equalValues = cellData.data.reduce(function (a, b) {
+    const equalValues = cellData.data.reduce(function (a, b) {
       return (a === b) ? a : NaN;
     }); //check for array that has all equal values in an aggregate (such as KindredId);
 
     if (isNaN(equalValues)) {
-      console.log('Found Duplicate KindredIDs in aggregate row!')
+      console.log('Found Duplicate KindredIDs in aggregate row!');
       return;
     }
 
@@ -1687,21 +1679,21 @@ class attributeTable {
    * @param cellData the data bound to the cell element being passed in.
    */
   private renderIntCell(element, cellData) {
-    let col_width = this.colWidths.int; //this.getDisplayedColumnWidths(this.width).find(x => x.name === cellData.name).width
-    let rowHeight = this.rowHeight;
+    const colWidth = this.colWidths.int; //this.getDisplayedColumnWidths(this.width).find(x => x.name === cellData.name).width
+    const rowHeight = this.rowHeight;
     const radius = 3.5;
 
-    let jitterScale = scaleLinear()
+    const jitterScale = scaleLinear()
       .domain([0, 1])
       .range([rowHeight * 0.3, rowHeight * 0.7]);
 
     this.xScale
       .domain(cellData.vector.desc.value.range)
-      .range([col_width * 0.1, col_width * 0.9])
+      .range([colWidth * 0.1, colWidth * 0.9])
       .clamp(true);
 
     //No of non-undefined elements in this array
-    let numValues = cellData.data.reduce((a, v) => v ? a + 1 : a, 0);
+    const numValues = cellData.data.reduce((a, v) => v ? a + 1 : a, 0);
 
 
     if (numValues === 0) {
@@ -1709,17 +1701,17 @@ class attributeTable {
       if (element.selectAll('.cross_out').size() === 0) {
         element
           .append('line')
-          .attr('class', 'cross_out')
+          .attr('class', 'cross_out');
       }
 
       element.select('.cross_out')
-        .attr('x1', col_width * 0.3)
+        .attr('x1', colWidth * 0.3)
         .attr('y1', rowHeight / 2)
-        .attr('x2', col_width * 0.6)
+        .attr('x2', colWidth * 0.6)
         .attr('y2', rowHeight / 2)
         .attr('stroke-width', 2)
         .attr('stroke', '#9e9d9b')
-        .attr('opacity', .6)
+        .attr('opacity', .6);
 
       return;
     }
@@ -1727,15 +1719,15 @@ class attributeTable {
     if (element.selectAll('.quant').size() === 0) {
       element
         .append('rect')
-        .classed('quant', true)
+        .classed('quant', true);
     }
 
     element
       .select('.quant')
       .attr('width', (d) => {
-        return col_width
+        return colWidth;
       })
-      .attr('height', rowHeight)
+      .attr('height', rowHeight);
     // .attr('stroke', 'black')
     // .attr('stoke-width', 1);
 
@@ -1744,18 +1736,18 @@ class attributeTable {
     let ellipses = element
       .selectAll('ellipse')
       .data((d) => {
-        let cellArray = cellData.data.filter((f) => {
-          return !isNaN(f) && !isNullOrUndefined((f))
+        const cellArray = cellData.data.filter((f) => {
+          return !isNaN(f) && !isNullOrUndefined((f));
         })
           .map((e, i) => {
-            return {'id': d.id[i], 'name': d.name, 'stats': d.stats, 'value': e}
-          })
-        return cellArray
+            return {'id': d.id[i], 'name': d.name, 'stats': d.stats, 'value': e};
+          });
+        return cellArray;
       });
 
-    let ellipsesEnter = ellipses.enter()
+    const ellipsesEnter = ellipses.enter()
       .append('ellipse')
-      .classed('quant_ellipse', true)
+      .classed('quant_ellipse', true);
 
     ellipses = ellipsesEnter.merge(ellipses);
 
@@ -1771,13 +1763,14 @@ class attributeTable {
           ;
         })
       .attr('cy', () => {
-        return numValues > 1 ? jitterScale(Math.random()) : rowHeight / 2
+        return numValues > 1 ? jitterScale(Math.random()) : rowHeight / 2;
       }) //introduce jitter in the y position for multiple ellipses.
       .attr('rx', radius)
       .attr('ry', radius)
       .attr('fill', () => {
 
-        let attr, ind;
+        let attr;
+        // const ind;
 
         const primary = this.tableManager.primaryAttribute;
         const poi = this.tableManager.affectedState;
@@ -1793,7 +1786,7 @@ class attributeTable {
           return attr.color;
         }
         ;
-      })
+      });
   }
 
   /**
@@ -1805,10 +1798,10 @@ class attributeTable {
    */
   private renderStringCell(element, cellData) {
 
-    let col_width = this.colWidths[cellData.type];
-    let rowHeight = this.rowHeight;
+    const colWidth = this.colWidths[cellData.type];
+    const rowHeight = this.rowHeight;
 
-    let numValues = cellData.data.reduce((a, v) => v ? a + 1 : a, 0);
+    const numValues = cellData.data.reduce((a, v) => v ? a + 1 : a, 0);
 
     if (numValues === 0) {
       return;
@@ -1817,7 +1810,7 @@ class attributeTable {
     if (element.selectAll('.string').size() === 0) {
       element
         .append('text')
-        .classed('string', true)
+        .classed('string', true);
     }
 
     let textLabel;
@@ -1832,7 +1825,7 @@ class attributeTable {
       }
 
       if (numValues > 1) { //aggregate Row
-        textLabel = '...'
+        textLabel = '...';
       }
 
     }
@@ -1841,19 +1834,20 @@ class attributeTable {
       .select('.string')
       .text(textLabel)
       .attr('dy', rowHeight * 0.9)
-      .style('stroke', 'none')
+      .style('stroke', 'none');
 
     //set Hover to show entire text
     element
       .on('mouseover', function (d) {
         select(this).select('.string')
           .text(() => {
-            if (d.data.length === 1)
-              return d.data[0].toLowerCase()
-            else
-              return 'Multiple'
+            if (d.data.length === 1) {
+              return d.data[0].toLowerCase();
+            } else {
+              return 'Multiple';
+            }
 
-          })
+          });
       })
       .on('mouseout', function (d) {
         let textLabel = cellData.data[0].toLowerCase().slice(0, 12);
@@ -1863,9 +1857,9 @@ class attributeTable {
         }
 
         if (numValues > 1) { //aggregate Row
-          textLabel = '...'
+          textLabel = '...';
         }
-        select(this).select('.string').text(textLabel)
+        select(this).select('.string').text(textLabel);
       });
   }
 
@@ -1879,14 +1873,14 @@ class attributeTable {
    */
   private renderIdCell(element, cellData) {
 
-    let col_width = this.colWidths[cellData.type];
-    let rowHeight = this.rowHeight;
+    const colWidth = this.colWidths[cellData.type];
+    const rowHeight = this.rowHeight;
 
-    this.idScale.range([0, col_width * 0.6]);
+    this.idScale.range([0, colWidth * 0.6]);
 
-    let numValues = cellData.data.reduce((a, v) => v ? a + 1 : a, 0);
+    const numValues = cellData.data.reduce((a, v) => v ? a + 1 : a, 0);
 
-    let equalValues = cellData.data.reduce(function (a, b) {
+    const equalValues = cellData.data.reduce(function (a, b) {
       return (a === b) ? a : NaN;
     }); //check for array that has all equal values in an aggregate (such as KindredId)
 
@@ -1897,7 +1891,7 @@ class attributeTable {
     if (numValues > 1 && element.select('.idBar').size() === 0) {
       element
         .append('rect')
-        .classed('idBar', true)
+        .classed('idBar', true);
     }
 
     if (numValues === 1) {
@@ -1907,7 +1901,7 @@ class attributeTable {
     if (element.selectAll('.string').size() === 0) {
       element
         .append('text')
-        .classed('string', true)
+        .classed('string', true);
     }
 
     let textLabel;
@@ -1919,7 +1913,7 @@ class attributeTable {
         .text(textLabel)
         .attr('dy', rowHeight * 0.9)
         .attr('dx', 0)
-        .style('stroke', 'none')
+        .style('stroke', 'none');
     } else {
 
       element
@@ -1928,7 +1922,7 @@ class attributeTable {
         // .style('font-style', 'bold')
         .attr('dy', rowHeight * 0.9)
         // .attr('dx', this.idScale(numValues) + 2)
-        .style('stroke', 'none')
+        .style('stroke', 'none');
 
     }
 
@@ -1942,12 +1936,12 @@ class attributeTable {
 
   private slopeChart(d) {
 
-    let slopeWidth = d.width;
+    const slopeWidth = d.width;
 
-    let nx = slopeWidth * 0.2;
-    let width = slopeWidth;
+    const nx = slopeWidth * 0.2;
+    const width = slopeWidth;
 
-    let linedata = [{
+    const linedata = [{
       x: 0,
       y: this.y(d.y) + (this.rowHeight / 2)
     },
@@ -2099,5 +2093,5 @@ class attributeTable {
  * @returns {attributeTable}
  */
 export function create(parent: Element) {
-  return new attributeTable(parent);
+  return new AttributeTable(parent);
 }

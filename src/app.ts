@@ -30,11 +30,11 @@ export class App {
 
     // this.$node = select('#col1');
 
-    this.$node.select("#col1").append('div').attr('id', 'data_selection');
-    this.$node.select("#col2").append('div').attr('id', 'graph');
-    this.$node.select("#col3").append('div').attr('id', 'table');
+    this.$node.select('#col1').append('div').attr('id', 'data_selection');
+    this.$node.select('#col2').append('div').attr('id', 'graph');
+    this.$node.select('#col3').append('div').attr('id', 'table');
 
-    //Add to header 
+    //Add to header
     // <a class="nav-link" href="#">Link</a>
     // this.$node.append('div').attr('id', 'data_selection');
     // this.$node.append('div').attr('id', 'graph_table');

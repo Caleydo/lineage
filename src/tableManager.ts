@@ -85,7 +85,7 @@ export const POI_SELECTED = 'affected_attribute_event';
 export const FAMILY_INFO_UPDATED = 'family_stats_updated';
 export const COL_ORDER_CHANGED_EVENT = 'col_ordering_changed';
 export const FAMILY_SELECTED_EVENT = 'family_selected_event';
-export const UPDATE_TABLE_EVENT = 'update_table'
+export const UPDATE_TABLE_EVENT = 'update_table';
 
 
 // export const PRIMARY_COLOR = '#335b8e';
@@ -656,7 +656,7 @@ export default class TableManager {
   set activeTableRows(newRows: range.Range) {
     this._activeTableRows = newRows;
     this.tableTable = this.table.view(range.join(this._activeTableRows, this.activeTableColumns));
-    console.log('firing TABLE VIS ROWS from activeTableRows')
+    console.log('firing TABLE VIS ROWS from activeTableRows');
     events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);
   }
 

@@ -16,7 +16,6 @@ import {COL_ORDER_CHANGED_EVENT, FAMILY_SELECTED_EVENT} from './tableManager';
 import {Config} from './config';
 import {isNullOrUndefined} from 'util';
 
-2
 /**
  * Creates the attribute table view
  */
@@ -47,7 +46,7 @@ class AttributePanel {
     //   .classed('glyphicon glyphicon-menu-hamburger', true);
 
 
-    this.$node = select(parent)
+    this.$node = select(parent);
       // .append('div')
       // .attr('id', 'panelContent')
       // .classed('nav-side-menu active', true);
@@ -64,19 +63,19 @@ class AttributePanel {
     this.tableManager.colOrder =this.tableManager.defaultCols;
     this.activeColumns = this.tableManager.defaultCols;
 
-    let allCols = this.tableManager.graphTable.cols().concat(this.tableManager.tableTable.cols());
+    const allCols = this.tableManager.graphTable.cols().concat(this.tableManager.tableTable.cols());
 
     //Order columns according to 'defaultCols' order;
-    let orderedCols = [];
-    this.tableManager.colOrder.forEach( col =>{
+    const orderedCols = [];
+    this.tableManager.colOrder.forEach( (col) => {
       // console.log('looking for ', col)
-      orderedCols.push(allCols.find((el)=>{return el.desc.name === col}))
+      orderedCols.push(allCols.find((el)=> {return el.desc.name === col;}));
       // console.log(orderedCols);
-    })
+    });
 
-    this.columns = orderedCols.concat(allCols.filter((c)=>{return orderedCols.indexOf(c)<0}));
+    this.columns = orderedCols.concat(allCols.filter((c)=> {return orderedCols.indexOf(c)<0;}));
 
-    this.allColumns = orderedCols.concat(allCols.filter((c)=>{return orderedCols.indexOf(c)<0}));
+    this.allColumns = orderedCols.concat(allCols.filter((c)=> {return orderedCols.indexOf(c)<0;}));
 
     this.update();
     this.build();
@@ -99,20 +98,20 @@ class AttributePanel {
     // family selector
 
     this.$node.append('nav').attr('class','navbar navbar-expand-lg navbar-light bg-light')
-    .append('div').attr('id', 'tableNav')
+    .append('div').attr('id', 'tableNav');
     // .attr('class','mx-auto') //for centering on nav bar
 
     this.$node.select('.navbar')
     .append('button').attr('type','button').attr('class','btn btn-secondary ml-auto').text('Collapse Panel')
-    .attr('id','collapseTableButton')
+    .attr('id','collapseTableButton');
 
 
     this.$node.select('#tableNav')
     .append('a').attr('class','navbar-brand')
-    .html('Family Selector')
+    .html('Family Selector');
 
     const familySelector = this.$node.append('div')
-      .attr('id', 'familySelector')
+      .attr('id', 'familySelector');
       // .classed('menu-list', true)
       // .html(` <ul >
       //       <li class='brand' data-toggle='collapse'> <i class=''></i> <strong>Family and Data Selection</strong></li>
@@ -196,7 +195,7 @@ class AttributePanel {
 
     });
 
-    console.log('col length is ', this.activeColumns.length)
+    console.log('col length is ', this.activeColumns.length);
     // populate the panel with attributes
     this.allColumns.forEach((column) => {
       this.addAttribute(column.desc.name, column.desc.value.type);
@@ -204,13 +203,13 @@ class AttributePanel {
 
     events.on('primary_secondary_selected', (evt, item) => {
 
-      let attribute = this.tableManager[item.primary_secondary + 'Attribute'];
+      const attribute = this.tableManager[item.primary_secondary + 'Attribute'];
 
       //A primary or secondary attribute had been previously defined
       if (attribute) {
         //Clear previously colored histogram for primary/secondary
-        let previousHist = this.histograms.filter((h) => {
-          return h.attrName === attribute.name
+        const previousHist = this.histograms.filter((h) => {
+          return h.attrName === attribute.name;
         });
 
         if (previousHist.length > 0) {
@@ -218,17 +217,17 @@ class AttributePanel {
         }
       }
 
-      let otherAttributePrimarySecondary = ['primary', 'secondary'].filter((a)=>{return a !== item.primary_secondary});
-      let otherAttribute = this.tableManager[otherAttributePrimarySecondary + 'Attribute'];
+      const otherAttributePrimarySecondary = ['primary', 'secondary'].filter((a)=> {return a !== item.primary_secondary;});
+      const otherAttribute = this.tableManager[otherAttributePrimarySecondary + 'Attribute'];
 
       //If the attribute you are setting as secondary is the same as the one you had as primary, (or vice versa) set the primary (secondary) to undefined;
-      if (otherAttribute && item.name === otherAttribute.name){
+      if (otherAttribute && item.name === otherAttribute.name) {
         this.tableManager[otherAttributePrimarySecondary + 'Attribute'] = undefined;
       }
 
-      this.tableManager.setPrimaryAttribute(item.name, item.primary_secondary).then((obj)=>{
+      this.tableManager.setPrimaryAttribute(item.name, item.primary_secondary).then((obj)=> {
 
-        let hist = this.histograms.filter((h)=>{return h.attrName === item.name})[0];
+        const hist = this.histograms.filter((h)=> {return h.attrName === item.name;})[0];
         hist.setPrimarySecondary(obj);
 
       });
@@ -236,19 +235,19 @@ class AttributePanel {
 
     events.on('poi_selected', (evt, item) => {
 
-      console.log(item.name)
-      this.tableManager.setAffectedState(item.name,item.callback).then((obj)=>{
-        console.log(obj)
+      console.log(item.name);
+      this.tableManager.setAffectedState(item.name,item.callback).then((obj)=> {
+        console.log(obj);
 
         //find histogram with this name and set the brush extent
-        let hist = this.histograms.filter((h)=>{return h.attrName === item.name})[0];
+        const hist = this.histograms.filter((h)=> {return h.attrName === item.name;})[0];
         if (obj.threshold !== undefined) { //setAffectedState returned a default value. Was not set by user brushing or selecting bar;
 
           //New POI has been set, remove all other brush and rect selection interactions;
-          this.histograms.map((hist)=>{hist.clearInteraction()});
+          this.histograms.map((hist)=> {hist.clearInteraction();});
           if (obj.type === VALUE_TYPE_CATEGORICAL) {
             hist.setSelected(obj.threshold);
-          } else if (obj.type === VALUE_TYPE_REAL || obj.type === VALUE_TYPE_INT){
+          } else if (obj.type === VALUE_TYPE_REAL || obj.type === VALUE_TYPE_INT) {
             hist.setBrush(obj.threshold);
           }
 
@@ -333,7 +332,7 @@ class AttributePanel {
 
       // check if siblings has checked badge
       $(this).parent().children().each(function () {
-        if (select(this).attr('class').indexOf('checked_') > -1 ){ //&& (badge == 'primary' || badge === 'secondary')) {
+        if (select(this).attr('class').indexOf('checked_') > -1 ) { //&& (badge == 'primary' || badge === 'secondary')) {
           console.log($(this).closest('strong').contents()[0]);
           if(!$(this).hasClass('checked_poi')) {
             $(this).removeClass().addClass('badge');
@@ -356,15 +355,17 @@ class AttributePanel {
       if (badge === 'primary' || badge === 'secondary') {
         events.fire('primary_secondary_selected', {'name':attribute.nodeValue,  'primary_secondary':badge});
       } else if (badge === 'poi') {
-        selectAll('.attrDiv').classed('selectedDIV',false)
+        selectAll('.attrDiv').classed('selectedDIV',false);
 
         //set class to this div to color appropriately.
-        select('#' + attribute.nodeValue).classed('selectedDIV',true)
+        select('#' + attribute.nodeValue).classed('selectedDIV',true);
         events.fire('poi_selected', {'name':attribute.nodeValue});
       }
     });
 
-    /** Generate SVG for these type only**/
+    /**
+     * Generate SVG for these type only
+     */
     if ([VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL].indexOf(columnDesc) > -1) {
 
       // append svgs for attributes:
@@ -382,7 +383,7 @@ class AttributePanel {
           .attr('height', Config.panelAttributeHeight)
           .attr('width', Config.panelSVGwidth)
           .attr('id', columnName + '_svg')
-          .classed('attribute_svg', true)
+          .classed('attribute_svg', true);
       }
 
       this.populateData(this.$node.select('#' + columnName + '_svg').node(), columnName, columnDesc);
@@ -406,14 +407,14 @@ class AttributePanel {
     // since we don't have indices for columns, we are iterating though
     // columns and get the matched one
 
-    this.allColumns.forEach(col => {
+    this.allColumns.forEach((col) => {
       if (col.desc.name === attributeName) {
         dataVec = col;
       }
-    })
+    });
 
     // creat a histogram object if one does not already exist for this attribute
-    let currentHist = this.histograms.filter((hist)=>{return hist.attrName === attributeName});
+    const currentHist = this.histograms.filter((hist)=> {return hist.attrName === attributeName;});
     let attributeHistogram;
     if (currentHist.length === 0) {
        attributeHistogram = histogram.create(svg);
@@ -433,27 +434,28 @@ class AttributePanel {
 
   private update() {
     //get updated data from the tableManager
-    let allCols = this.tableManager.graphTable.cols().concat(this.tableManager.tableTable.cols());
+    const allCols = this.tableManager.graphTable.cols().concat(this.tableManager.tableTable.cols());
 
     //Order columns according to 'defaultCols' order;
-    let orderedCols = [];
-    this.tableManager.colOrder.forEach( col =>{
-      orderedCols.push(allCols.find((el)=>{return el.desc.name === col}))
-    })
+    const orderedCols = [];
+    this.tableManager.colOrder.forEach( (col) => {
+      orderedCols.push(allCols.find((el)=> {return el.desc.name === col;}));
+    });
 
     this.columns = orderedCols;
 
-    let dataVec: IAnyVector;
+    // const dataVec: IAnyVector;
 
-    this.histograms.forEach(singleHistogram => {
-      this.columns.forEach(col => {
+
+    this.histograms.forEach((singleHistogram) => {
+      this.columns.forEach((col) => {
         if (col.desc.name === singleHistogram.attrName) {
           // console.log(col);
-          singleHistogram.update(col)
+          singleHistogram.update(col);
         }
-      })
+      });
 
-    })
+    });
 
   }
 
@@ -533,13 +535,12 @@ class AttributePanel {
   private attachListener() {
     // listen to toggle panel event
     select('#toggle-btn').on('click', () => {
-      console.log('clicked now?')
       this.toggle();
-    })
+    });
 
     //Set listener for click event on corresponding node that changes the color of that row to red
     events.on('node_clicked', (evt, item) => {
-      console.log('clicked')
+      console.log('clicked');
       selectAll('.row').classed('selected', function (d) {
         return select(this).attr('id') === 'row_' + item;
       });
@@ -551,34 +552,34 @@ class AttributePanel {
     });
 
     events.on('attribute_picked', (evt, item) => {
-      this.updateAttrState(item.name, item.value)
+      this.updateAttrState(item.name, item.value);
       console.log('attribute picked', this.attributeState);
-    })
+    });
 
     events.on('attribute_reordered', (evt, item) => {
       this.tableManager.colOrder.splice(item.newIndex, 0, this.tableManager.colOrder.splice(item.oldIndex, 1)[0]);
-      events.fire(COL_ORDER_CHANGED_EVENT)
+      events.fire(COL_ORDER_CHANGED_EVENT);
 
-    })
+    });
 
     events.on('attribute_removed', (evt, item) => {
       console.log(item);
       this.tableManager.colOrder.splice(item.oldIndex, 1);
-      events.fire(COL_ORDER_CHANGED_EVENT)
+      events.fire(COL_ORDER_CHANGED_EVENT);
 
-    })
+    });
 
     events.on('attribute_added', (evt, item) => {
       this.tableManager.colOrder.splice(item.newIndex, 0, item.name.split(/\r|\n/)[0]);
-      events.fire(COL_ORDER_CHANGED_EVENT)
+      events.fire(COL_ORDER_CHANGED_EVENT);
 
-    })
+    });
 
 
     events.on('attribute_unpicked', (evt, item) => {
       this.removeFromAttrState(item.name, item.value);
 
-    })
+    });
   }
 
 }

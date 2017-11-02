@@ -14,7 +14,7 @@
     "test:watch": "karma start --autoWatch=true --singleRun=false",
     "build:dev": "webpack",
     "build": "webpack --env prod",
-    "start": "webpack-dev-server --inline",
+    "start": "webpack-dev-server --inline --host 0.0.0.0",
     "start:hot": "webpack-dev-server --inline --hot",
     "watch": "webpack --watch",
     "release:major": "npm version major && npm publish && git push --follow-tags",

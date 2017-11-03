@@ -317,7 +317,7 @@ class GenealogyTree {
     //   .attr('transform', 'translate(' + this.margin.left + ',90)')
     //   .attr('id', 'headerGroup');
 
-    const svg = this.$node.append('svg')
+    const svg = this.$node.append('div').attr('id','graphDiv').append('svg')
       // .attr('width', this.width + this.margin.left + this.margin.right)
       .attr('id', 'graph')
       .on('click',()=> {

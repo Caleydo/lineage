@@ -39,6 +39,17 @@ th, label, strong, b, .label {
 #tableDiv{
   width:1920;
   height:3600;
+  overflow-x: scroll
+}
+
+#viewPort{
+  height:100%;
+}
+
+#tableDiv2, #graphDiv{
+  height:800px;
+  overflow-x: hidden;
+  overflow-y: scroll;
 }
 
 

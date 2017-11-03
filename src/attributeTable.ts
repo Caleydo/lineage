@@ -202,7 +202,7 @@ class AttributeTable {
       const tableDiv = this.$node.append('div')
       .attr('id','tableDiv');
 
-      const headerSVG =tableDiv.append('svg')
+      const headerSVG =tableDiv.append('div').append('svg')
       .attr('width', 1920)
       .attr('height',195)
       // .attr('viewBox','0 0 1200 195')
@@ -215,11 +215,16 @@ class AttributeTable {
 
 
     //Exctract y values from dict.
-    const svg = tableDiv.append('svg')
+    const svg = tableDiv.append('div').attr('id','tableDiv2').append('svg')
       .classed('tableSVG', true)
       // .viewBox('0 0 ' + this.width + ' ' + (this.height + this.margin.top + this.margin.bottom))
       .attr('width', this.width + this.margin.left + this.margin.right);
       // .attr('height', this.height + this.margin.top + this.margin.bottom);
+
+      //Link scrolling of the table and graph divs
+      select('#tableDiv2').on('scroll', function () {
+        document.getElementById('graphDiv').scrollTop = document.getElementById('tableDiv2').scrollTop;
+    });
 
     // TABLE (except for slope Chart and first col on the left of the slope chart)
     this.table = svg.append('g')

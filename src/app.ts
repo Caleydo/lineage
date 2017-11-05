@@ -92,7 +92,7 @@ export class App {
     familySelectorView.init(tableManager);
 
 
-    this.$node.select('h3').remove();
+    this.$node.select('#loading').remove();
     this.setBusy(false);
 
 

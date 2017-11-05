@@ -160,44 +160,51 @@ class AttributeTable {
 
     const menu = dropdownMenu.append('div').attr('class','dropdown-menu');
 
+    // console.log(this.tableManager.getDemographicColumns());
 
     menu.append('h6').attr('class','dropdown-header').html('Demographic Attributes');
-    menu.append('a').attr('class','dropdown-item').html('Age');
 
+    let colNames = this.tableManager.getDemographicColumns().map((col)=> {
+      return col.desc.name;
+    });
 
-    menu.append('a').attr('class','dropdown-item active').html('Gender');
-    menu.append('a').attr('class','dropdown-item').html('Race');
-    menu.append('a').attr('class','dropdown-item active').html('RelativeID');
-    menu.append('div').attr('class','dropdown-divider');
+    let menuItems = menu.selectAll('.demoAttr')
+    .data(colNames);
+    menuItems = menuItems.enter()
+    .append('a')
+    .attr('class','dropdown-item demoAttr')
+    .classed('active',(d)=> {return this.tableManager.colOrder.includes(d);})
+    .html((d)=> {return d;})
+    .merge(menuItems);
+
     menu.append('h6').attr('class','dropdown-header').html('Clinical Attributes');
-    menu.append('a').attr('class','dropdown-item').html('Bipolar');
-    menu.append('a').attr('class','dropdown-item').html('Depressions');
-    menu.append('a').attr('class','dropdown-item').html('Suicide');
-    menu.append('a').attr('class','dropdown-item').html('BMI');
-    menu.append('div').attr('class','dropdown-divider');
 
-//     <div class="dropdown">
-//   <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-//     Dropdown button
-//   </button>
-//   <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-//     <h6 class="dropdown-header">Dropdown header</h6>
-//     <a class="dropdown-item" href="#">Action</a>
-//     <a class="dropdown-item" href="#">Another action</a>
-//      <div class="dropdown-divider"></div>
-//     <h6 class="dropdown-header">Dropdown header</h6>
-//     <a class="dropdown-item" href="#">Something else here</a>
-//   </div>
-// </div>
-    // .attr('class','mx-auto') //for centering on nav bar
+    colNames = this.tableManager.getAttrColumns().map((col)=> {
+      return col.desc.name;
+    });
 
-    // this.$node.select('#tableNav')
-    // .append('button').attr('type','button').attr('class','btn btn-secondary ml-3').text('Option 1')
+    menuItems = menu.selectAll('.clinicalAttr').data(colNames);
+    menuItems = menuItems.enter()
+    .append('a')
+    .attr('class','dropdown-item clinicalAttr')
+    .classed('active',(d)=> {return this.tableManager.colOrder.includes(d);})
+    .html((d)=> {return d;})
+    .merge(menuItems);
 
+    const self = this;
+    selectAll('.dropdown-item').on('click',function(d) {
+      //Check if is selected, if so remove from table.
+      if (self.tableManager.colOrder.includes(d)) {
+        self.tableManager.colOrder.splice(self.tableManager.colOrder.indexOf(d), 1);
+        select(this).classed('active',false);
+      } else {
+        const lastIndex = self.tableManager.colOrder.length;
+        self.tableManager.colOrder.splice(lastIndex, 0, d);
+        select(this).classed('active',false);
+      }
+      events.fire(COL_ORDER_CHANGED_EVENT);
 
-    // let t = transition('t').duration(500).ease(easeLinear);
-
-      // const headerSVG = select('#headersDIV').append('svg')
+    });
 
       const tableDiv = this.$node.append('div')
       .attr('id','tableDiv');
@@ -225,6 +232,11 @@ class AttributeTable {
       select('#tableDiv2').on('scroll', function () {
         document.getElementById('graphDiv').scrollTop = document.getElementById('tableDiv2').scrollTop;
     });
+
+     //Link scrolling of the table and graph divs
+     select('#graphDiv').on('scroll', function () {
+      document.getElementById('tableDiv2').scrollTop = document.getElementById('graphDiv').scrollTop;
+  });
 
     // TABLE (except for slope Chart and first col on the left of the slope chart)
     this.table = svg.append('g')
@@ -404,11 +416,12 @@ class AttributeTable {
     // console.log('allrows', allRows)
 
 
-    //Set height of svg
+    //Set height and width of svg
     this.height = Config.glyphSize * 3 * (max(allRows) - min(allRows) + 1);
     // select('.tableSVG').attr('viewBox','0 0 ' + this.width + ' ' + (this.height + this.margin.top + this.margin.bottom))
 
     select('.tableSVG').attr('height', this.height + this.margin.top + this.margin.bottom);
+    select('.tableSVG').attr('width', this.tableManager.colOrder.length*100);
 
 
     this.y.range([0, this.height]).domain([1, max(allRows)]);

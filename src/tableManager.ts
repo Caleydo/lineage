@@ -695,8 +695,12 @@ export default class TableManager {
     this._selectedAttributes = attributes;
   }
 
-  public getColumns() {
+  public getDemographicColumns() {
     return this.table.cols();
+  }
+
+  public getAttrColumns() {
+    return this.attributeTable.cols();
   }
 
   private attachListeners() {

@@ -771,49 +771,130 @@ class AttributeTable {
 
     colSummaries = colSummariesEnter.merge(colSummaries);
 
-    let offset, startIndex;
+    // TABLE
+    //Bind data to the col groups
+    let cols = select('#columns').selectAll('.dataCols')
+    .data(this.colData.map((d, i) => {
+      return {
+        'name': d.name, 'data': d.data, 'ind': i, 'type': d.type,
+        'ids': d.ids, 'stats': d.stats, 'varName': d.name, 'category': d.category, 'vector': d.vector
+      };
+    }), (d: any) => {
+      return d.varName;
+    });
 
-    const dragstarted = (d,i)=> {
-      selectAll('.colSummary').attr('opacity',.3);
-      selectAll('.dataCols').attr('opacity',.3);
-      select('#'+d.name + '_summary').attr('opacity',1);
-      select('#'+d.name + '_data').attr('opacity',1);
+  cols.exit().remove(); // should remove on col remove
 
-     offset = event.x - this.colOffsets[i];
-     startIndex = i;
-    };
-
-    const dragged = (d,i)=> {
-      //Select col summary for this col
-       const summary = select('#'+d.name + '_summary');
-       const dataCol = select('#'+d.name + '_data');
-       const header = select('#'+d.name + '_header');
-
-       summary.attr('transform','translate(' + (event.x - offset) + ',0)');
-       dataCol.attr('transform','translate(' + (event.x - offset) + ',0)');
-      //  header.attr('transform','translate(' + event.x + ',0)');
-
-       summary.style('z-index',100);
-    };
-
-    const dragended = (d,i)=> {
-      selectAll('.colSummary').attr('opacity',1);
-      selectAll('.dataCols').attr('opacity',1);
-
-      this.colOffsets[i]= event.x -offset;
-      // const offDiff = this.colOffsets.map((dd)=> {return Math.abs(+dd - event.x - offset);});
-      // const pos = min(offDiff);
-      // console.log(pos);
-
-    };
-
-    colSummaries
-    .call(drag()
-    .on('start', dragstarted)
-    .on('drag', dragged)
-    .on('end', dragended));
+  const colsEnter = cols.enter()
+    .append('g')
+    .classed('dataCols', true)
+    .attr('id',(d)=> {return d.name + '_data';});
 
 
+  cols = colsEnter.merge(cols);//;
+
+  //translate columns horizontally to their position;
+  cols
+    .transition(t)
+    .attr('transform', (d, i) => {
+      const offset = this.colOffsets[i];
+      return 'translate(' + offset + ',0)';
+    });
+
+    // Implement Drag and Drop
+    let offset, currIndex;
+
+        const dragstarted = (d,i)=> {
+          selectAll('.colSummary').attr('opacity',.3);
+          selectAll('.dataCols').attr('opacity',.3);
+          select('#'+d.name + '_summary').attr('opacity',1);
+          select('#'+d.name + '_data').attr('opacity',1);
+
+         offset = event.x - this.colOffsets[i];
+         currIndex = i;
+
+         console.log(this.colOffsets);
+        };
+
+        const dragged = (d,i)=> {
+          //Select col summary for this col
+           const summary = select('#'+d.name + '_summary');
+           const dataCol = select('#'+d.name + '_data');
+           const header = select('#'+d.name + '_header');
+
+           const currPos = event.x-offset;
+
+           summary.attr('transform','translate(' + currPos + ',0)');
+           dataCol.attr('transform','translate(' + currPos + ',0)');
+          //  header.attr('transform','translate(' + event.x + ',0)');
+
+          //Find closest column
+          const closest = this.colOffsets.reduce(function(prev, curr) {
+            return (Math.abs(curr - currPos) < Math.abs(prev - currPos) ? curr : prev);
+          });
+
+          if (this.colOffsets.indexOf(closest) !== currIndex) {
+            
+          const closestIndex = this.colOffsets.indexOf(closest);
+
+          if (currIndex>closestIndex) {
+            this.colOffsets[i]=closest;
+            this.colOffsets[closestIndex]=closest + this.colWidths[d.type]+this.buffer;
+          } else {
+            // console.log(currIndex,this.colOffsets[currIndex])
+            this.colOffsets[closestIndex]=this.colOffsets[currIndex];
+            // console.log(this.colData[closestIndex].type, this.colWidths[this.colData[closestIndex].type],this.buffer);
+            this.colOffsets[i]=closest; //this.colOffsets[currIndex]+this.colWidths[this.colData[closestIndex].type]+this.buffer;
+          }
+
+          currIndex = this.colOffsets.indexOf(closest);
+
+
+          
+
+            colSummaries
+            // .transition(t)
+            .attr('transform', (d, i) => {
+              const offset = this.colOffsets[i];
+              return 'translate(' + offset + ',0)';
+            });
+
+            cols
+            // .transition(t)
+            .attr('transform', (d, i) => {
+              const offset = this.colOffsets[i];
+              return 'translate(' + offset + ',0)';
+            });
+
+          };
+        };
+
+        const dragended = (d,i)=> {
+
+          selectAll('.colSummary').attr('opacity',1);
+          selectAll('.dataCols').attr('opacity',1);
+
+          colSummaries
+          .transition(t)
+          .attr('transform', (d, i) => {
+            const offset = this.colOffsets[i];
+            return 'translate(' + offset + ',0)';
+          });
+
+          cols
+          .transition(t)
+          .attr('transform', (d, i) => {
+            const offset = this.colOffsets[i];
+            return 'translate(' + offset + ',0)';
+          });
+
+        };
+
+        colSummaries
+        .call(drag()
+        .on('start', dragstarted)
+        .on('drag', dragged)
+        .on('end', dragended));
 
     colSummaries.each(function (cell) {
       if (cell.type === VALUE_TYPE_CATEGORICAL) {
@@ -938,37 +1019,6 @@ class AttributeTable {
       .attr('class', 'slopeLine')
       .attr('d', (d: any) => {
         return this.slopeChart(d);
-      });
-
-
-// TABLE
-    //Bind data to the col groups
-    let cols = select('#columns').selectAll('.dataCols')
-      .data(this.colData.map((d, i) => {
-        return {
-          'name': d.name, 'data': d.data, 'ind': i, 'type': d.type,
-          'ids': d.ids, 'stats': d.stats, 'varName': d.name, 'category': d.category, 'vector': d.vector
-        };
-      }), (d: any) => {
-        return d.varName;
-      });
-
-    cols.exit().remove(); // should remove on col remove
-
-    const colsEnter = cols.enter()
-      .append('g')
-      .classed('dataCols', true)
-      .attr('id',(d)=> {return d.name + '_data';});
-
-
-    cols = colsEnter.merge(cols);//;
-
-    //translate columns horizontally to their position;
-    cols
-      .transition(t)
-      .attr('transform', (d, i) => {
-        const offset = this.colOffsets[i];
-        return 'translate(' + offset + ',0)';
       });
 
 

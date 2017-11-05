@@ -102,7 +102,7 @@ class AttributePanel {
     // .attr('class','mx-auto') //for centering on nav bar
 
     this.$node.select('.navbar')
-    .append('button').attr('type','button').attr('class','btn btn-secondary ml-auto').text('Expand Panel')
+    .append('button').attr('type','button').attr('class','btn btn-secondary ml-auto').text('Collapse Panel')
     .attr('id','collapseTableButton');
 
 
@@ -118,146 +118,147 @@ class AttributePanel {
       //          </ul>`);
 
     //<span class='toggle-btn'><i class='glyphicon glyphicon-menu-hamburger'></i></span>
-    
-  //   // menu container container
-  //   const menuList = this.$node.append('div')
-  //     .classed('menu-list', true);
+
+    // menu container container
+    const menuList = this.$node.append('div')
+      .classed('menu-list', true);
 
 
-  //   menuList.append('ul').html(`<li class='inactive collapsed active' data-target='#active-menu-content' data-toggle='collapse'>
-  //   <strong>Data Selection</strong><span class='arrow'></span></li>`);
+    menuList.append('ul').html(`<li class='inactive collapsed active' data-target='#active-menu-content' data-toggle='collapse'>
+    <strong>Data Selection</strong><span class='arrow'></span></li>`);
 
 
-  //   // list that holds data attribute
-  //   // initially all attributes are active
-  //   const activeAttributeList = menuList.append('div')
-  //     .attr('id', 'active-menu-content')
-  //     .classed('menu-content sub-menu collapse in fade', true);
+    // list that holds data attribute
+    // initially all attributes are active
+    const activeAttributeList = menuList.append('div')
+      .attr('id', 'active-menu-content')
+      .classed('menu-content sub-menu collapse in fade', true);
 
-  //   menuList.append('ul')
-  //     .html(`<li class='inactive collapsed active' data-target='#inactive-menu-content' data-toggle='collapse'>
-  //      <strong>Inactive attributes</strong> <span class='arrow'></span></li>`);
+    menuList.append('ul')
+      .html(`<li class='inactive collapsed active' data-target='#inactive-menu-content' data-toggle='collapse'>
+       <strong>Inactive attributes</strong> <span class='arrow'></span></li>`);
 
+       
 
-  //   // list that holds inactive attributes
-  //   // a user can populate this list by dragging elements from the active list
-  //   const inactiveAttributeList = menuList.append('div')
-  //     .attr('id', 'inactive-menu-content')
-  //     .classed('menu-content sub-menu collapse in fade', true);
-
-
-  //   // Active sortable list
-  //   Sortable.create(document.getElementById('active-menu-content'), {
-  //     group: 'menu-content',
-  //     ghostClass: 'ghost',
-  //     animation: 150,
-  //     pull: true,
-  //     put: true,
-  //     onAdd(evt) {
-  //       const item = {
-  //         name: evt.item.getElementsByTagName('strong')[0].textContent,
-  //         newIndex: evt.newIndex
-  //       };
-  //       events.fire('attribute_added', item);
-
-  //     },
-  //     onUpdate(evt) {
-  //       const item = {
-  //         name: evt.item.getElementsByTagName('strong')[0].textContent,
-  //         newIndex: evt.newIndex,
-  //         oldIndex: evt.oldIndex
-  //       };
-
-  //       events.fire('attribute_reordered', item);
-  //     },
-
-  //   });
-
-  //   //inactive sortable list
-  //   Sortable.create(document.getElementById('inactive-menu-content'), {
-  //     group: 'menu-content',
-  //     ghostClass: 'ghost',
-  //     animation: 150,
-  //     pull: true,
-  //     put: true,
-  //     onAdd(evt) {
-  //       const item = {
-  //         name: evt.item.getElementsByTagName('strong')[0].textContent,
-  //         newIndex: evt.newIndex,
-  //         oldIndex: evt.oldIndex
-  //       };
-
-  //       select('.placeholder')
-  //         .style('display', 'none');
-
-  //       events.fire('attribute_removed', item);
-  //     },
-
-  //   });
-
-  //   console.log('col length is ', this.activeColumns.length);
-  //   // populate the panel with attributes
-  //   this.allColumns.forEach((column) => {
-  //     this.addAttribute(column.desc.name, column.desc.value.type);
-  //   });
-
-  //   events.on('primary_secondary_selected', (evt, item) => {
-
-  //     const attribute = this.tableManager[item.primary_secondary + 'Attribute'];
-
-  //     //A primary or secondary attribute had been previously defined
-  //     if (attribute) {
-  //       //Clear previously colored histogram for primary/secondary
-  //       const previousHist = this.histograms.filter((h) => {
-  //         return h.attrName === attribute.name;
-  //       });
-
-  //       if (previousHist.length > 0) {
-  //         previousHist[0].clearPrimarySecondary();
-  //       }
-  //     }
-
-  //     const otherAttributePrimarySecondary = ['primary', 'secondary'].filter((a)=> {return a !== item.primary_secondary;});
-  //     const otherAttribute = this.tableManager[otherAttributePrimarySecondary + 'Attribute'];
-
-  //     //If the attribute you are setting as secondary is the same as the one you had as primary, (or vice versa) set the primary (secondary) to undefined;
-  //     if (otherAttribute && item.name === otherAttribute.name) {
-  //       this.tableManager[otherAttributePrimarySecondary + 'Attribute'] = undefined;
-  //     }
-
-  //     this.tableManager.setPrimaryAttribute(item.name, item.primary_secondary).then((obj)=> {
-
-  //       const hist = this.histograms.filter((h)=> {return h.attrName === item.name;})[0];
-  //       hist.setPrimarySecondary(obj);
-
-  //     });
-  //   });
-
-  //   events.on('poi_selected', (evt, item) => {
-
-  //     console.log(item.name);
-  //     this.tableManager.setAffectedState(item.name,item.callback).then((obj)=> {
-  //       console.log(obj);
-
-  //       //find histogram with this name and set the brush extent
-  //       const hist = this.histograms.filter((h)=> {return h.attrName === item.name;})[0];
-  //       if (obj.threshold !== undefined) { //setAffectedState returned a default value. Was not set by user brushing or selecting bar;
-
-  //         //New POI has been set, remove all other brush and rect selection interactions;
-  //         this.histograms.map((hist)=> {hist.clearInteraction();});
-  //         if (obj.type === VALUE_TYPE_CATEGORICAL) {
-  //           hist.setSelected(obj.threshold);
-  //         } else if (obj.type === VALUE_TYPE_REAL || obj.type === VALUE_TYPE_INT) {
-  //           hist.setBrush(obj.threshold);
-  //         }
-
-  //       }
-
-  //     });
-  //   });
+    // list that holds inactive attributes
+    // a user can populate this list by dragging elements from the active list
+    const inactiveAttributeList = menuList.append('div')
+      .attr('id', 'inactive-menu-content')
+      .classed('menu-content sub-menu collapse in fade', true);
 
 
-   }
+    // Active sortable list
+    Sortable.create(document.getElementById('active-menu-content'), {
+      group: 'menu-content',
+      ghostClass: 'ghost',
+      animation: 150,
+      pull: true,
+      put: true,
+      onAdd(evt) {
+        const item = {
+          name: evt.item.getElementsByTagName('strong')[0].textContent,
+          newIndex: evt.newIndex
+        };
+        events.fire('attribute_added', item);
+
+      },
+      onUpdate(evt) {
+        const item = {
+          name: evt.item.getElementsByTagName('strong')[0].textContent,
+          newIndex: evt.newIndex,
+          oldIndex: evt.oldIndex
+        };
+
+        events.fire('attribute_reordered', item);
+      },
+
+    });
+
+    //inactive sortable list
+    Sortable.create(document.getElementById('inactive-menu-content'), {
+      group: 'menu-content',
+      ghostClass: 'ghost',
+      animation: 150,
+      pull: true,
+      put: true,
+      onAdd(evt) {
+        const item = {
+          name: evt.item.getElementsByTagName('strong')[0].textContent,
+          newIndex: evt.newIndex,
+          oldIndex: evt.oldIndex
+        };
+
+        select('.placeholder')
+          .style('display', 'none');
+
+        events.fire('attribute_removed', item);
+      },
+
+    });
+
+    console.log('col length is ', this.activeColumns.length);
+    // populate the panel with attributes
+    this.allColumns.forEach((column) => {
+      this.addAttribute(column.desc.name, column.desc.value.type);
+    });
+
+    events.on('primary_secondary_selected', (evt, item) => {
+
+      const attribute = this.tableManager[item.primary_secondary + 'Attribute'];
+
+      //A primary or secondary attribute had been previously defined
+      if (attribute) {
+        //Clear previously colored histogram for primary/secondary
+        const previousHist = this.histograms.filter((h) => {
+          return h.attrName === attribute.name;
+        });
+
+        if (previousHist.length > 0) {
+          previousHist[0].clearPrimarySecondary();
+        }
+      }
+
+      const otherAttributePrimarySecondary = ['primary', 'secondary'].filter((a)=> {return a !== item.primary_secondary;});
+      const otherAttribute = this.tableManager[otherAttributePrimarySecondary + 'Attribute'];
+
+      //If the attribute you are setting as secondary is the same as the one you had as primary, (or vice versa) set the primary (secondary) to undefined;
+      if (otherAttribute && item.name === otherAttribute.name) {
+        this.tableManager[otherAttributePrimarySecondary + 'Attribute'] = undefined;
+      }
+
+      this.tableManager.setPrimaryAttribute(item.name, item.primary_secondary).then((obj)=> {
+
+        const hist = this.histograms.filter((h)=> {return h.attrName === item.name;})[0];
+        hist.setPrimarySecondary(obj);
+
+      });
+    });
+
+    events.on('poi_selected', (evt, item) => {
+
+      console.log(item.name);
+      this.tableManager.setAffectedState(item.name,item.callback).then((obj)=> {
+        console.log(obj);
+
+        //find histogram with this name and set the brush extent
+        const hist = this.histograms.filter((h)=> {return h.attrName === item.name;})[0];
+        if (obj.threshold !== undefined) { //setAffectedState returned a default value. Was not set by user brushing or selecting bar;
+
+          //New POI has been set, remove all other brush and rect selection interactions;
+          this.histograms.map((hist)=> {hist.clearInteraction();});
+          if (obj.type === VALUE_TYPE_CATEGORICAL) {
+            hist.setSelected(obj.threshold);
+          } else if (obj.type === VALUE_TYPE_REAL || obj.type === VALUE_TYPE_INT) {
+            hist.setBrush(obj.threshold);
+          }
+
+        }
+
+      });
+    });
+
+
+  }
 
   /***
    *

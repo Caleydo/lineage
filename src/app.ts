@@ -75,7 +75,7 @@ export class App {
     /** ============= */
 
     const attributePanel = panel.create(this.$node.select('#data_selection').node());
-    // attributePanel.init(tableManager);
+    attributePanel.init(tableManager);
 
     const graphDataObj = graphData.create(tableManager);
     await graphDataObj.createTree();

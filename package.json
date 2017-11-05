@@ -94,6 +94,7 @@
     "phovea_core": "github:phovea/phovea_core#develop",
     "phovea_d3": "github:phovea/phovea_d3#develop",
     "phovea_ui": "github:phovea/phovea_ui#develop",
+    "phovea_security_flask": "github:phovea/phovea_security_flask#develop",
     "sortablejs": "^1.5.0-rc1"
   },
   "name": "lineage",

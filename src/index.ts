@@ -17,10 +17,33 @@ import {create as createApp} from './app';
 import {create as createHeader, AppHeaderLink} from 'phovea_ui/src/header';
 import {APP_NAME} from './language';
 
-createHeader(
+import LoginMenu from 'phovea_security_flask/src/LoginMenu';
+import {currentUser, isLoggedIn} from 'phovea_core/src/security';
+
+let appInstance;
+const header = createHeader(
   <HTMLElement>document.querySelector('#caleydoHeader'),
   { appLink: new AppHeaderLink(APP_NAME) }
 );
 
+const menu = new LoginMenu(header);
+header.insertCustomRightMenu(menu.node);
+
+menu.on(LoginMenu.EVENT_LOGGED_IN, () => {
+  console.assert(isLoggedIn());
+  console.log(currentUser());
+  // appInstance.init();
+});
+
+menu.on(LoginMenu.EVENT_LOGGED_OUT, () => {
+  console.assert(!isLoggedIn());
+});
+
+
+// createHeader(
+//   <HTMLElement>document.querySelector('#caleydoHeader'),
+//   { appLink: new AppHeaderLink(APP_NAME) }
+// );
+
 const parent = document.querySelector('#app');
-createApp(parent).init();
+appInstance = createApp(parent);

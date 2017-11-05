@@ -11,6 +11,14 @@ th, label, strong, b, .label {
 	overflow:scroll;
 }
 
+.header{
+  cursor:move;
+}
+
+.backgroundRect{
+  fill:white;
+}
+
 #loading{
   position:absolute;
   width:100%;

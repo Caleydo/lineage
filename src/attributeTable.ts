@@ -153,12 +153,28 @@ class AttributeTable {
     .html('Attribute Table');
 
     const dropdownMenu = this.$node.select('.navbar')
-    .append('div').attr('class','dropdown ml-auto');
+
+//     <div class="button-group">
+//     <button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown"><span class="glyphicon glyphicon-cog"></span> <span class="caret"></span></button>
+// <ul class="dropdown-menu">
+// <li><a href="#" class="small" data-value="option1" tabIndex="-1">&nbsp;Option 1</a></li>
+// <li><a href="#" class="small" data-value="option2" tabIndex="-1">&nbsp;Option 2</a></li>
+// <li><a href="#" class="small" data-value="option3" tabIndex="-1">&nbsp;Option 3</a></li>
+// <li><a href="#" class="small" data-value="option4" tabIndex="-1">&nbsp;Option 4</a></li>
+// <li><a href="#" class="small" data-value="option5" tabIndex="-1">&nbsp;Option 5</a></li>
+// <li><a href="#" class="small" data-value="option6" tabIndex="-1">&nbsp;Option 6</a></li>
+// </ul>
+// </div>
+
+
+    .append('div').attr('class','dropdown');
+    // .append('div').attr('class','button-group');
+
 
     dropdownMenu.append('button').attr('class','btn btn-secondary dropdown-toggle').attr('type','button').attr('id','dropdownMenuButton').attr('data-toggle','dropdown')
-    .text('Add Table Attributes');
+    .text('Choose Table Attributes');
 
-    const menu = dropdownMenu.append('div').attr('class','dropdown-menu');
+    const menu = dropdownMenu.append('ul').attr('class','dropdown-menu');
 
     // console.log(this.tableManager.getDemographicColumns());
 
@@ -185,14 +201,15 @@ class AttributeTable {
 
     menuItems = menu.selectAll('.clinicalAttr').data(colNames);
     menuItems = menuItems.enter()
-    .append('a')
+    .append('li')
     .attr('class','dropdown-item clinicalAttr')
     .classed('active',(d)=> {return this.tableManager.colOrder.includes(d);})
     .html((d)=> {return d;})
     .merge(menuItems);
 
     const self = this;
-    selectAll('.dropdown-item').on('click',function(d) {
+    selectAll('.dropdown-item').on('mousedown',function(d) {
+      event.preventDefault();
       //Check if is selected, if so remove from table.
       if (self.tableManager.colOrder.includes(d)) {
         self.tableManager.colOrder.splice(self.tableManager.colOrder.indexOf(d), 1);
@@ -740,7 +757,12 @@ class AttributeTable {
         return d.name;
       });
 
-    const colSummariesEnter = colSummaries.enter().append('g').classed('colSummary', true);
+    const colSummariesEnter = colSummaries.enter()
+    .append('g').classed('colSummary', true);
+
+    colSummariesEnter
+    .append('rect')
+    .attr('class','backgroundRect');
 
     colSummaries.exit().remove();
 
@@ -1265,7 +1287,7 @@ class AttributeTable {
    */
   private renderStringHeader(element, headerData) {
 
-    element.selectAll('rect').remove();
+    // element.selectAll('rect').remove();
     element.selectAll('text').remove();
     element.selectAll('circle').remove();
 
@@ -1301,6 +1323,10 @@ class AttributeTable {
 
     const colWidth = this.colWidths.categorical;
     const height = this.headerHeight;
+
+    element.select('.backgroundRect')
+    .attr('width',colWidth)
+    .attr('height',height);
 
     const numPositiveValues = headerData.data.map((singleRow) => {
       return singleRow.reduce((a, v) => {
@@ -1389,6 +1415,10 @@ class AttributeTable {
 
     const colWidth = this.colWidths.int;
     const height = this.headerHeight;
+
+    element.select('.backgroundRect')
+    .attr('width',colWidth)
+    .attr('height',height);
 
     const hist = headerData.hist;
 

@@ -146,7 +146,7 @@ export default class TableManager {
   //   ['KindredID','PersonID', 'Asthma', 'Bipolar', 'sex', 'deceased', 'suicide', 'gen', 'Age', 'FirstBMI', 'AgeFirstBMI', 'race', 'cause_death', 'weapon']; //set of default cols to read in, minimizes load time for large files;
 
   private defaultCols: String[] =
-    ['KindredID', 'RelativeID', 'sex', 'deceased', 'suicide', 'Depression','Age', 'Age1D_Depression', 'Nr.Diag_Depression', 'Bipolar', 'Age1D_Bipolar', 'Nr.Diag_Bipolar', 'MaxBMI', 'AgeMaxBMI', 'race','cause_death', 'weapon']; //set of default cols to read in, minimizes load time for large files;
+    ['KindredID', 'RelativeID', 'sex', 'deceased', 'suicide', 'Depression','Age', 'Age1D_Depression', 'Nr.Diag_Depression', 'Bipolar', 'Age1D_Bipolar', 'MaxBMI', 'AgeMaxBMI','cause_death', 'weapon']; //set of default cols to read in, minimizes load time for large files;
 
 
 

@@ -200,7 +200,7 @@ class AttributeTable {
       } else {
         const lastIndex = self.tableManager.colOrder.length;
         self.tableManager.colOrder.splice(lastIndex, 0, d);
-        select(this).classed('active',false);
+        select(this).classed('active',true);
       }
       events.fire(COL_ORDER_CHANGED_EVENT);
 

@@ -4,6 +4,7 @@ import {AppConstants, ChangeTypes} from './app_constants';
 import {Config} from './config';
 
 import {select, selection, selectAll, mouse, event} from 'd3-selection';
+import {drag} from 'd3-drag';
 import {format} from 'd3-format';
 import {scaleLinear, scaleOrdinal, schemeCategory20c} from 'd3-scale';
 import {max, min, mean} from 'd3-array';
@@ -726,7 +727,8 @@ class AttributeTable {
     const headerEnter = headers
       .enter()
       .append('text')
-      .classed('header', true);
+      .classed('header', true)
+      .attr('id',(d)=> {return d.name + '_header';});
 
     headers = headerEnter.merge(headers);
 
@@ -758,7 +760,8 @@ class AttributeTable {
       });
 
     const colSummariesEnter = colSummaries.enter()
-    .append('g').classed('colSummary', true);
+    .append('g').classed('colSummary', true)
+    .attr('id',(d)=> {return d.name + '_summary';});
 
     colSummariesEnter
     .append('rect')
@@ -767,6 +770,49 @@ class AttributeTable {
     colSummaries.exit().remove();
 
     colSummaries = colSummariesEnter.merge(colSummaries);
+
+    let offset, startIndex;
+
+    const dragstarted = (d,i)=> {
+      selectAll('.colSummary').attr('opacity',.3);
+      selectAll('.dataCols').attr('opacity',.3);
+      select('#'+d.name + '_summary').attr('opacity',1);
+      select('#'+d.name + '_data').attr('opacity',1);
+
+     offset = event.x - this.colOffsets[i];
+     startIndex = i;
+    };
+
+    const dragged = (d,i)=> {
+      //Select col summary for this col
+       const summary = select('#'+d.name + '_summary');
+       const dataCol = select('#'+d.name + '_data');
+       const header = select('#'+d.name + '_header');
+
+       summary.attr('transform','translate(' + (event.x - offset) + ',0)');
+       dataCol.attr('transform','translate(' + (event.x - offset) + ',0)');
+      //  header.attr('transform','translate(' + event.x + ',0)');
+
+       summary.style('z-index',100);
+    };
+
+    const dragended = (d,i)=> {
+      selectAll('.colSummary').attr('opacity',1);
+      selectAll('.dataCols').attr('opacity',1);
+
+      this.colOffsets[i]= event.x -offset;
+      // const offDiff = this.colOffsets.map((dd)=> {return Math.abs(+dd - event.x - offset);});
+      // const pos = min(offDiff);
+      // console.log(pos);
+
+    };
+
+    colSummaries
+    .call(drag()
+    .on('start', dragstarted)
+    .on('drag', dragged)
+    .on('end', dragended));
+
 
 
     colSummaries.each(function (cell) {
@@ -911,7 +957,8 @@ class AttributeTable {
 
     const colsEnter = cols.enter()
       .append('g')
-      .classed('dataCols', true);
+      .classed('dataCols', true)
+      .attr('id',(d)=> {return d.name + '_data';});
 
 
     cols = colsEnter.merge(cols);//;

@@ -11,9 +11,13 @@ th, label, strong, b, .label {
 	overflow:scroll;
 }
 
-.header{
+.header, .colSummary{
   cursor:move;
 }
+
+// .colSummary{
+//   cursor: context-menu;
+// }
 
 .backgroundRect{
   fill:white;

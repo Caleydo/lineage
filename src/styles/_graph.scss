@@ -2,9 +2,9 @@ $edge-color: #4f4f4d;
 $node-color: #6f7373;
 $affected-node-color: #285880;
 
-#headersDIV {
-  //position:fixed;
-}
+// #headersDIV {
+//   //position:fixed;
+// }
 
 .node.affected .nodeIcon{
   fill: $affected-node-color;
@@ -272,9 +272,6 @@ label {
   margin-bottom: 10px;
 }
 
-.colSummary{
-  cursor: context-menu;
-}
 .line {
     fill: none;
     stroke: red;
@@ -348,9 +345,9 @@ label {
 //    overflow-x:scroll;
 //}
 
-#familySelector{
-  //overflow-x: scroll;
-}
+// #familySelector{
+//   //overflow-x: scroll;
+// }
 
 
 .nodeIcon.clicked{
@@ -384,12 +381,12 @@ rect.selected{
     fill:#ff6400
 }
 
-.node rect,
-.node circle,
-.node .hex{
-    //stroke:$node-color;
-//     stroke-width: 3px;
-}
+// .node rect,
+// .node circle,
+// .node .hex{
+//     //stroke:$node-color;
+// //     stroke-width: 3px;
+// }
 
 .couplesLine{
   stroke:#4f4f4d;
@@ -537,16 +534,16 @@ rect.selected{
 }
 
 
-.ageLabel{
+// .ageLabel{
 
-}
+// }
 
-.node:hover .male,
-.node:hover .female {
-     //opacity: 0.2;
-     //stroke:red;
-  //fill:none;
-  }
+// .node:hover .male,
+// .node:hover .female {
+//      //opacity: 0.2;
+//      //stroke:red;
+//   //fill:none;
+//   }
 
 .selectedDIV{
   background-color: rgba(177, 176, 174, 0.2);

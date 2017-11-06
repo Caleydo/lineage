@@ -11,7 +11,9 @@ import './style.scss';
 // import 'file-loader?name=treeLegend.svg!./treeLegend.svg';
 import * as icon from 'html-loader!./icon-database.html';
 
-
+import {
+  select
+} from 'd3-selection';
 // import './open-iconic-bootstrap.scss'
 import {create as createApp} from './app';
 import {create as createHeader, AppHeaderLink} from 'phovea_ui/src/header';
@@ -32,11 +34,24 @@ header.insertCustomRightMenu(menu.node);
 menu.on(LoginMenu.EVENT_LOGGED_IN, () => {
   console.assert(isLoggedIn());
   console.log(currentUser());
-  // appInstance.init();
+  select('#loading').remove();
+  select('#app').append('div').attr('id','loading').append('h1').style('margin','5px').html('Loading ...');
+
+  select('#app').append('div').attr('class','busy');
+
+  if (select('#graphDiv').empty()) {
+    appInstance.init();
+  }
 });
 
 menu.on(LoginMenu.EVENT_LOGGED_OUT, () => {
   console.assert(!isLoggedIn());
+  select('#data_selection').html('');
+  select('#graph').html('');
+  select('#table').html('');
+
+  select('#app').append('div').attr('id','loading').append('h1').style('margin','5px').html('You have logged out...');
+
 });
 
 

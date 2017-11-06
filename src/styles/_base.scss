@@ -7,12 +7,39 @@ th, label, strong, b, .label {
   font-weight: 500 !important;
 }
 
-.col, .col-4, .col-3{
-	overflow:scroll;
+
+.col, .col-4, .col-2{
+  overflow:scroll;
+}
+
+#col1,#col2,#col3{
+  padding-right: 10px;
+}
+
+#col1{
+  flex:.3;
+  transition: all 400ms ease;
+}
+
+#col1-expanded{
+  flex:.8;
+  transition: all 400ms ease;
+}
+
+#col2{
+  flex:.5
+}
+
+#col3{
+  flex:1.5;
 }
 
 .header, .colSummary{
   cursor:move;
+}
+
+.container{
+  display:inline-flex;
 }
 
 // .colSummary{
@@ -30,21 +57,21 @@ th, label, strong, b, .label {
   text-align: center;
 }
 
-#col2{
-  width:550px;
-}
+// #col2{
+//   width:550px;
+// }
 
 
-.col-4 {
-  flex-grow: 1;
-  transition: all 400ms ease;
-}
+// .col-4 {
+//   flex-grow: 1;
+//   transition: all 400ms ease;
+// }
 
-.col-2 {
-  //width: 0; 
-  flex-shrink: 1;
-  transition: all 400ms ease;
-}
+// .col-2 {
+//   //width: 0; 
+//   // flex-shrink: 1;
+//   transition: all 400ms ease;
+// }
 
 
 .dropdown-item.active{

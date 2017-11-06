@@ -84,16 +84,16 @@ class FamilySelector {
     const table = select('#familySelector').append('table').attr('class','table');
       // .classed('fixed_headers', true);
 
-    select('#collapseTableButton')
+      select('#collapseTableButton')
       .on('click',() => {
         const text = select('#collapseTableButton').html();
         if (text === 'Expand Panel') {
           select('#collapseTableButton').html('Collapse Panel');
-          select('#col1').attr('class','col-4');
+          select('#col1').attr('id','col1-expanded');
 
         } else {
            select('#collapseTableButton').html('Expand Panel');
-          select('#col1').attr('class','col-2');
+          select('#col1-expanded').attr('id','col1');
         }
     });
 

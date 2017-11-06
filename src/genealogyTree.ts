@@ -258,11 +258,16 @@ class GenealogyTree {
     .append('a').attr('class','navbar-brand')
     .html('Genealogy Tree');
 
+  // const li = this.$node.select('.navbar').append('ul').attr('class','nav navbar-nav')
+
+  // li.append('li').attr('class','active').text('Aggregate');
+  // li.append('li').text('Hide');
+  // li.append('li').text('Expand');
 
     this.$node.select('.navbar')
-    .append('button').attr('type','button').attr('class','btn btn-secondary mr-1 ml-auto').text('Aggregate')
+    .append('navbar-btn').classed('navbar-right',true)
+    .append('button').attr('type','button').attr('class','btn btn-secondary').text('Aggregate')
     .on('click', (d)=> {
-
         selectAll('.slopeLine').classed('clickedSlope', false);
         selectAll('.highlightBar').classed('selected', false);
 
@@ -270,7 +275,8 @@ class GenealogyTree {
         this.update_graph();
       });
     this.$node.select('.navbar')
-    .append('button').attr('type','button').attr('class','btn btn-secondary mr-1').text('Hide')
+    .append('navbar-btn').classed('navbar-right',true)
+    .append('button').attr('type','button').attr('class','btn btn-secondary').text('Hide')
       .on('click', (d)=> {
 
         selectAll('.slopeLine').classed('clickedSlope', false);
@@ -281,7 +287,8 @@ class GenealogyTree {
       });
 
     this.$node.select('.navbar')
-    .append('button').attr('type','button').attr('class','btn btn-secondary mr-1').text('Expand')
+    .append('navbar-btn').classed('navbar-right',true)
+    .append('button').attr('type','button').attr('class','btn btn-secondary').text('Expand')
        .on('click', (d)=> {
 
         selectAll('.slopeLine').classed('clickedSlope', false);

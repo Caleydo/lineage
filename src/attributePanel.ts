@@ -102,7 +102,7 @@ class AttributePanel {
     // .attr('class','mx-auto') //for centering on nav bar
 
     this.$node.select('.navbar')
-    .append('button').attr('type','button').attr('class','btn btn-secondary ml-auto').text('Collapse Panel')
+    .append('button').attr('type','button').attr('class','btn btn-secondary ml-auto').text('Expand Panel')
     .attr('id','collapseTableButton');
 
 

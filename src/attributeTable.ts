@@ -155,22 +155,8 @@ class AttributeTable {
 
     const dropdownMenu = this.$node.select('.navbar')
 
-//     <div class="button-group">
-//     <button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown"><span class="glyphicon glyphicon-cog"></span> <span class="caret"></span></button>
-// <ul class="dropdown-menu">
-// <li><a href="#" class="small" data-value="option1" tabIndex="-1">&nbsp;Option 1</a></li>
-// <li><a href="#" class="small" data-value="option2" tabIndex="-1">&nbsp;Option 2</a></li>
-// <li><a href="#" class="small" data-value="option3" tabIndex="-1">&nbsp;Option 3</a></li>
-// <li><a href="#" class="small" data-value="option4" tabIndex="-1">&nbsp;Option 4</a></li>
-// <li><a href="#" class="small" data-value="option5" tabIndex="-1">&nbsp;Option 5</a></li>
-// <li><a href="#" class="small" data-value="option6" tabIndex="-1">&nbsp;Option 6</a></li>
-// </ul>
-// </div>
-
-
-    .append('div').attr('class','dropdown');
-    // .append('div').attr('class','button-group');
-
+    // .append('div').attr('class','dropdown');
+    .append('div').attr('class','button-group');
 
     dropdownMenu.append('button').attr('class','btn btn-secondary dropdown-toggle').attr('type','button').attr('id','dropdownMenuButton').attr('data-toggle','dropdown')
     .text('Choose Table Attributes');
@@ -179,7 +165,9 @@ class AttributeTable {
 
     // console.log(this.tableManager.getDemographicColumns());
 
-    menu.append('h6').attr('class','dropdown-header').html('Demographic Attributes');
+    menu.append('h4').attr('class','dropdown-header')
+    .style('font-size','16px')
+    .html('Demographic Attributes');
 
     let colNames = this.tableManager.getDemographicColumns().map((col)=> {
       return col.desc.name;
@@ -188,14 +176,16 @@ class AttributeTable {
     let menuItems = menu.selectAll('.demoAttr')
     .data(colNames);
     menuItems = menuItems.enter()
+    .append('li')
     .append('a')
     .attr('class','dropdown-item demoAttr')
     .classed('active',(d)=> {return this.tableManager.colOrder.includes(d);})
     .html((d)=> {return d;})
     .merge(menuItems);
 
-    menu.append('h6').attr('class','dropdown-header').html('Clinical Attributes');
-
+    menu.append('li').attr('class','divider').attr('role','separator');
+    menu.append('h4').attr('class','dropdown-header').style('font-size','16px')
+    .html('Clinical Attributes');
     colNames = this.tableManager.getAttrColumns().map((col)=> {
       return col.desc.name;
     });
@@ -203,6 +193,7 @@ class AttributeTable {
     menuItems = menu.selectAll('.clinicalAttr').data(colNames);
     menuItems = menuItems.enter()
     .append('li')
+    .append('a')
     .attr('class','dropdown-item clinicalAttr')
     .classed('active',(d)=> {return this.tableManager.colOrder.includes(d);})
     .html((d)=> {return d;})
@@ -802,7 +793,7 @@ class AttributeTable {
     });
 
     // Implement Drag and Drop
-    let offset, currIndex;
+    let offset, titleOffset, titleTransform, currIndex,currPos;
 
         const dragstarted = (d,i)=> {
           selectAll('.colSummary').attr('opacity',.3);
@@ -810,10 +801,16 @@ class AttributeTable {
           select('#'+d.name + '_summary').attr('opacity',1);
           select('#'+d.name + '_data').attr('opacity',1);
 
+          const header = select('#'+d.name + '_header');
+          const currTransform = header.attr('transform').split('translate(')[1].split(',');
+          const xpos = +currTransform[0];
+          titleTransform = currTransform[1];
+
+          titleOffset = event.x - xpos;
+
          offset = event.x - this.colOffsets[i];
          currIndex = i;
 
-         console.log(this.colOffsets);
         };
 
         const dragged = (d,i)=> {
@@ -822,51 +819,12 @@ class AttributeTable {
            const dataCol = select('#'+d.name + '_data');
            const header = select('#'+d.name + '_header');
 
-           const currPos = event.x-offset;
+           currPos = event.x-offset;
 
            summary.attr('transform','translate(' + currPos + ',0)');
            dataCol.attr('transform','translate(' + currPos + ',0)');
-          //  header.attr('transform','translate(' + event.x + ',0)');
+           header.attr('transform','translate(' + (event.x -titleOffset) + ',' + titleTransform);
 
-          //Find closest column
-          const closest = this.colOffsets.reduce(function(prev, curr) {
-            return (Math.abs(curr - currPos) < Math.abs(prev - currPos) ? curr : prev);
-          });
-
-          if (this.colOffsets.indexOf(closest) !== currIndex) {
-            
-          const closestIndex = this.colOffsets.indexOf(closest);
-
-          if (currIndex>closestIndex) {
-            this.colOffsets[i]=closest;
-            this.colOffsets[closestIndex]=closest + this.colWidths[d.type]+this.buffer;
-          } else {
-            // console.log(currIndex,this.colOffsets[currIndex])
-            this.colOffsets[closestIndex]=this.colOffsets[currIndex];
-            // console.log(this.colData[closestIndex].type, this.colWidths[this.colData[closestIndex].type],this.buffer);
-            this.colOffsets[i]=closest; //this.colOffsets[currIndex]+this.colWidths[this.colData[closestIndex].type]+this.buffer;
-          }
-
-          currIndex = this.colOffsets.indexOf(closest);
-
-
-          
-
-            colSummaries
-            // .transition(t)
-            .attr('transform', (d, i) => {
-              const offset = this.colOffsets[i];
-              return 'translate(' + offset + ',0)';
-            });
-
-            cols
-            // .transition(t)
-            .attr('transform', (d, i) => {
-              const offset = this.colOffsets[i];
-              return 'translate(' + offset + ',0)';
-            });
-
-          };
         };
 
         const dragended = (d,i)=> {
@@ -874,19 +832,19 @@ class AttributeTable {
           selectAll('.colSummary').attr('opacity',1);
           selectAll('.dataCols').attr('opacity',1);
 
-          colSummaries
-          .transition(t)
-          .attr('transform', (d, i) => {
-            const offset = this.colOffsets[i];
-            return 'translate(' + offset + ',0)';
+          //Find closest column
+          const closest = this.colOffsets.reduce(function(prev, curr) {
+            return (Math.abs(curr - currPos) < Math.abs(prev - currPos) ? curr : prev);
           });
 
-          cols
-          .transition(t)
-          .attr('transform', (d, i) => {
-            const offset = this.colOffsets[i];
-            return 'translate(' + offset + ',0)';
-          });
+          const closestIndex = this.colOffsets.indexOf(closest);
+          //Remove current col from colOrder
+          self.tableManager.colOrder.splice(i, 1);
+
+          //Reinsert in correct order
+          self.tableManager.colOrder.splice(closestIndex, 0,d.name);
+
+          events.fire(COL_ORDER_CHANGED_EVENT);
 
         };
 

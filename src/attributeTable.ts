@@ -67,6 +67,8 @@ class AttributeTable {
   private colData;    // <- everything we need to bind
   private firstCol; //bind separetly on the left side of the slope chart.
 
+  private allCols; //array of col vectors (needed for re-ordering, does not contain dadta)
+
   private rowHeight = Config.glyphSize * 2.5 - 4;
   private headerHeight = this.rowHeight*2;
   private colWidths = {
@@ -383,6 +385,8 @@ class AttributeTable {
     const colOrder = this.tableManager.colOrder;
     const orderedCols = [];
 
+    this.allCols = allCols;
+
 
     for (const colName of colOrder) {
       for (const vector of allCols) {
@@ -527,10 +531,10 @@ class AttributeTable {
 
         // console.log(categories)
 
-        if (categories.length > 2) { //Add spacing around multicolumn categories
-          const numColsBefore = this.colOffsets.length - 1;
-          this.colOffsets[numColsBefore] += this.catOffset;
-        }
+        // if (categories.length > 2) { //Add spacing around multicolumn categories
+        //   const numColsBefore = this.colOffsets.length - 1;
+        //   this.colOffsets[numColsBefore] += this.catOffset;
+        // }
 
         for (const cat of categories) {
 
@@ -569,10 +573,10 @@ class AttributeTable {
         }
 
 
-        if (categories.length > 2) { //Add spacing around multicolumn categories
-          const numColsAfter = this.colOffsets.length - 1;
-          this.colOffsets[numColsAfter] += this.catOffset;
-        }
+        // if (categories.length > 2) { //Add spacing around multicolumn categories
+        //   const numColsAfter = this.colOffsets.length - 1;
+        //   this.colOffsets[numColsAfter] += this.catOffset;
+        // }
 
 
       } else if (type === VALUE_TYPE_INT || type === VALUE_TYPE_REAL) { //quant
@@ -691,8 +695,74 @@ class AttributeTable {
 
   }
 
+  private calculateOffset() {
+    this.colOffsets = [0];
+
+    const colOrder = this.tableManager.colOrder;
+    const orderedCols = [];
+
+      for (const colName of colOrder) {
+          for (const vector of this.allCols) {
+            if (vector.desc.name === colName) {
+              orderedCols.push(vector);
+            }
+          }
+        }
+
+    orderedCols.forEach((vector, index) => {
+
+        const type = vector.valuetype.type;
+          const name = vector.desc.name;
+
+          const maxOffset = max(this.colOffsets);
+
+          if (type === VALUE_TYPE_CATEGORICAL) {
+
+              //Build col offsets array ;
+            const allCategories = vector.desc.value.categories.map((c) => {
+              return c.name;
+            }); //get categories from index.json def
+            let categories;
+
+
+            //Only need one col for binary categories
+            if (allCategories.length < 3) {
+              if (allCategories.find((d) => {
+                  return d === 'Y';
+                })) {
+                categories = ['Y'];
+              } else if (allCategories.find((d) => {
+                  return d === 'True';
+                })) {
+                categories = ['True'];
+              } else if (allCategories.find((d) => {
+                  return d === 'F';
+                })) {
+                categories = ['F'];
+              } else {
+                categories = [allCategories[0]];
+              }
+
+            } else {
+              categories = allCategories;
+            }
+
+            for (const cat of categories) {
+              this.colOffsets.push(maxOffset + this.buffer * 2 + this.colWidths[type]);
+            }
+          } else {
+              const maxOffset = max(this.colOffsets);
+              this.colOffsets.push(maxOffset + this.buffer + this.colWidths[type]);
+          }
+
+
+    });
+  };
+
   //renders the DOM elements
-  private async render() {
+  private render() {
+
+    console.log('calling render');
 
     const t = transition('t').ease(easeLinear);
     // let t= this.tableManager.t;
@@ -786,7 +856,7 @@ class AttributeTable {
 
   //translate columns horizontally to their position;
   cols
-    .transition(t)
+    // .transition(t)
     .attr('transform', (d, i) => {
       const offset = this.colOffsets[i];
       return 'translate(' + offset + ',0)';
@@ -798,10 +868,12 @@ class AttributeTable {
         const dragstarted = (d,i)=> {
           selectAll('.colSummary').attr('opacity',.3);
           selectAll('.dataCols').attr('opacity',.3);
-          select('#'+d.name + '_summary').attr('opacity',1);
-          select('#'+d.name + '_data').attr('opacity',1);
+          select('#'+d.name.replace(/\./g, '\\.') + '_summary').attr('opacity',1);
+          select('#'+d.name.replace(/\./g, '\\.') + '_data').attr('opacity',1);
 
-          const header = select('#'+d.name + '_header');
+          //Escape any periods with backslash
+          const header = select('#'+ d.name.replace(/\./g, '\\.') + '_header');
+          
           const currTransform = header.attr('transform').split('translate(')[1].split(',');
           const xpos = +currTransform[0];
           titleTransform = currTransform[1];
@@ -825,6 +897,37 @@ class AttributeTable {
            dataCol.attr('transform','translate(' + currPos + ',0)');
            header.attr('transform','translate(' + (event.x -titleOffset) + ',' + titleTransform);
 
+           //Find closest column
+          const closest = this.colOffsets.reduce(function(prev, curr) {
+            return (Math.abs(curr - currPos) < Math.abs(prev - currPos) ? curr : prev);
+          });
+
+          const closestIndex = this.colOffsets.indexOf(closest);
+
+          if (currIndex!== closestIndex) {
+
+          //Remove current col from colOrder
+          this.tableManager.colOrder.splice(currIndex, 1);
+          //Reinsert in correct order
+          this.tableManager.colOrder.splice(closestIndex, 0,d.name);
+
+          //Remove current colData from colDAta
+          const colData = this.colData.splice(currIndex, 1);
+
+          //Reinsert in correct order
+          this.colData.splice(closestIndex, 0,colData[0]);
+
+          currIndex = closestIndex;
+
+          //Calculate new col offests;
+          this.calculateOffset();
+
+          //Re render table
+          this.render();
+
+          }
+
+
         };
 
         const dragended = (d,i)=> {
@@ -832,19 +935,21 @@ class AttributeTable {
           selectAll('.colSummary').attr('opacity',1);
           selectAll('.dataCols').attr('opacity',1);
 
-          //Find closest column
-          const closest = this.colOffsets.reduce(function(prev, curr) {
-            return (Math.abs(curr - currPos) < Math.abs(prev - currPos) ? curr : prev);
-          });
+          this.render();
 
-          const closestIndex = this.colOffsets.indexOf(closest);
-          //Remove current col from colOrder
-          self.tableManager.colOrder.splice(i, 1);
+          // //Find closest column
+          // const closest = this.colOffsets.reduce(function(prev, curr) {
+          //   return (Math.abs(curr - currPos) < Math.abs(prev - currPos) ? curr : prev);
+          // });
 
-          //Reinsert in correct order
-          self.tableManager.colOrder.splice(closestIndex, 0,d.name);
+          // const closestIndex = this.colOffsets.indexOf(closest);
+          // //Remove current col from colOrder
+          // self.tableManager.colOrder.splice(i, 1);
 
-          events.fire(COL_ORDER_CHANGED_EVENT);
+          // //Reinsert in correct order
+          // self.tableManager.colOrder.splice(closestIndex, 0,d.name);
+
+          // events.fire(COL_ORDER_CHANGED_EVENT);
 
         };
 
@@ -868,7 +973,7 @@ class AttributeTable {
 
 
     colSummaries
-      .transition(t)
+      // .transition(t)
       .attr('transform', (d, i) => {
         const offset = this.colOffsets[i];
         return 'translate(' + offset + ',0)';
@@ -929,7 +1034,6 @@ class AttributeTable {
       })
       .on('click', (d: any) => {
 
-        console.log('clicked');
         if (event.defaultPrevented) {return;} // dragged
 
         const wasSelected = selectAll('.highlightBar').filter((e: any) => {
@@ -1100,7 +1204,7 @@ class AttributeTable {
     cellsEnter.attr('opacity', 0);
 
     cells
-      .transition(t)
+      // .transition(t)
       .attr('transform', (cell: any, i) => {
         return ('translate(0, ' + y(this.rowOrder[i]) + ' )'); //the x translation is taken care of by the group this cell is nested in.
       });

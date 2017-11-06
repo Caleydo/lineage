@@ -138,7 +138,7 @@ class AttributePanel {
       .html(`<li class='inactive collapsed active' data-target='#inactive-menu-content' data-toggle='collapse'>
        <strong>Inactive attributes</strong> <span class='arrow'></span></li>`);
 
-       
+
 
     // list that holds inactive attributes
     // a user can populate this list by dragging elements from the active list

@@ -309,11 +309,11 @@ class GenealogyTree {
 
 
     // const headerSVG = select('#headersDIV').append('svg')
-    const headerSVG =headerDiv.append('svg')
+    headerDiv.append('svg')
       // .attr('width', 550)
       // .attr('height',170)
       .attr('id', 'headers')
-      .attr('viewBox','0 0 ' + this.width + ' 75');
+      .attr('viewBox','0 0 ' + (this.width) + ' 75');
 
     // headerSVG.append('rect')
     //   .attr('width', 970)
@@ -518,7 +518,7 @@ class GenealogyTree {
 
     //Create group for all time axis
     const axis = select('#headers').append('g')
-      .attr('transform', 'translate(40,30)')
+      .attr('transform', 'translate(' + this.margin.left + ',30)')
       .attr('id', 'axis');
 
 
@@ -784,10 +784,10 @@ class GenealogyTree {
 
 
     this.$node.select('#graph')
-      .attr('viewBox','0 0 ' + this.width +  ' ' +  (this.height + this.margin.top + this.margin.bottom))
-      .attr('preserveAspectRatio','none');
-
-      // .attr('height', this.height + this.margin.top + this.margin.bottom);
+      // .attr('viewBox','0 0 ' + this.width +  ' ' +  (this.height + this.margin.top + this.margin.bottom))
+      // .attr('preserveAspectRatio','none');
+      .attr('width',this.width)
+      .attr('height', this.height + this.margin.top + this.margin.bottom);
 
     this.update_edges();
     this.update_nodes();
@@ -1571,8 +1571,9 @@ class GenealogyTree {
         .append('text')
         .attr('class', 'ageLabel');
 
+
       //Add cross at the end of lifelines for deceased people
-      if (d.ddate < CURRENT_YEAR) {
+      if (d.deceased === 'Y') {
         ageLineGroup
           .append('line')
           .attr('class', 'endOfTheLine');
@@ -1582,7 +1583,7 @@ class GenealogyTree {
     }
 
     //Add cross through lines for deceased people
-    if (d.ddate && element.selectAll('.nodeLine').size() === 0) {
+    if (d.deceased === 'Y' && element.selectAll('.nodeLine').size() === 0) {
       element
         .append('line')
         .attr('class', 'nodeLine');
@@ -2194,6 +2195,8 @@ class GenealogyTree {
 
   private update_time_axis() {
 
+    const width = this.width - this.margin.left - this.margin.right;
+
     const scrollOffset = document.getElementById('graph').scrollTop;
     const divHeight = document.getElementById('graph').offsetHeight;
 
@@ -2250,12 +2253,12 @@ class GenealogyTree {
 
     //If there are hidden nodes older than the first visible node
     if (allDomain[0] < filteredDomain[0]) {
-      xRange.push(this.width * 0.05);
+      xRange.push(width * 0.05);
       xDomain.push(filteredDomain[0]);
       xTicks.push(filteredDomain[0]);
 
 
-      x2Range.push(this.width * 0.05);
+      x2Range.push(width * 0.05);
       x2Domain.push(filteredDomain[0]);
 
       //Add tick marks
@@ -2269,21 +2272,21 @@ class GenealogyTree {
 
     if (allDomain[1] !== filteredDomain[1]) {
 
-      xRange.push(this.width * 0.95);
+      xRange.push(width * 0.95);
       xDomain.push(filteredDomain[1]);
       xTicks.push(filteredDomain[1]);
 
-      xRange.push(this.width * 0.95);
+      xRange.push(width * 0.95);
       xDomain.push(filteredDomain[1]);
 
-      xRange.push(this.width);
+      xRange.push(width);
       xDomain.push(allDomain[1]);
 
       const rightRange = range(filteredDomain[1], allDomain[1], 10);
       xTicks = xTicks.concat(rightRange);
     }
 
-    xRange.push(this.width);
+    xRange.push(width);
     xDomain.push(allDomain[1]);
     xTicks.push(allDomain[1]);
 

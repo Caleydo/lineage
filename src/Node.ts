@@ -134,5 +134,6 @@ export default class Node {
     this.maID = row[columnNameToIndex.MaID].toString();
     this.paID = row[columnNameToIndex.PaID].toString();
     this.kindredID = row[columnNameToIndex.KindredID].toString();
+    this.deceased = row[columnNameToIndex.deceased].toString();
   }
 }

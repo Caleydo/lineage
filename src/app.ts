@@ -70,7 +70,7 @@ export class App {
 
     /** =====  PRIVATE CASES - WORKS ONLY WITH THE RIGHT DATA LOCALLY ===== */
 
-    // await tableManager.loadData('TenFamiliesDescend', 'TenFamiliesAttr');
+     //await tableManager.loadData('TenFamiliesDescend', 'TenFamiliesAttr');
     // await tableManager.loadData('AllFamiliesDescend', 'AllFamiliesAttributes');
     /** ============= */
 

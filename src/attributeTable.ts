@@ -221,7 +221,7 @@ class AttributeTable {
       .attr('id','tableDiv');
 
       const headerSVG =tableDiv.append('div').append('svg')
-      .attr('width', 1920)
+      .attr('width', 1500)
       .attr('height',195)
       // .attr('viewBox','0 0 1200 195')
       .attr('id', 'headers');

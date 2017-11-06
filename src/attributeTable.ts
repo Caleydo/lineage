@@ -220,7 +220,8 @@ class AttributeTable {
       const tableDiv = this.$node.append('div')
       .attr('id','tableDiv');
 
-      const headerSVG =tableDiv.append('div').append('svg')
+      const headerSVG =tableDiv.append('div').attr('id','tableDiv1')
+      .append('svg')
       .attr('width', 1500)
       .attr('height',195)
       // .attr('viewBox','0 0 1200 195')
@@ -250,7 +251,11 @@ class AttributeTable {
   });
 
     // TABLE (except for slope Chart and first col on the left of the slope chart)
-    this.table = svg.append('g')
+    svg.append('g')
+    .attr('id','marginGroup')
+    .attr('transform', 'translate(0 ,' + this.margin.top + ')');
+
+    select('#marginGroup').append('g')
       .attr('transform', 'translate(' + Config.collapseSlopeChartWidth + ' , 0)')
       .attr('id', 'tableGroup');
 
@@ -275,7 +280,7 @@ class AttributeTable {
       .attr('id', 'highlightBars');
 
     //SlopeChart and first col
-    svg.append('g')
+    select('#marginGroup').append('g')
       // .attr('transform', 'translate(0, ' + this.margin.top + ')')
       .attr('id', 'slopeChart');
 
@@ -433,7 +438,7 @@ class AttributeTable {
     this.height = Config.glyphSize * 3 * (max(allRows) - min(allRows) + 1);
     // select('.tableSVG').attr('viewBox','0 0 ' + this.width + ' ' + (this.height + this.margin.top + this.margin.bottom))
 
-    select('.tableSVG').attr('height', this.height + this.margin.top + this.margin.bottom);
+    select('.tableSVG').attr('height', this.height);
     select('.tableSVG').attr('width', this.tableManager.colOrder.length*100);
 
 

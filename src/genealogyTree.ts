@@ -432,7 +432,7 @@ class GenealogyTree {
 
 
     svg.append('g')
-      .attr('transform', 'translate(' + this.margin.left + ',' + (Config.glyphSize*1.5) + ')')
+      .attr('transform', 'translate(' + this.margin.left + ',' + (Config.glyphSize+this.margin.top) + ')')
       .attr('id', 'genealogyTree');
 
     //Ensure the right order of all the elements by creating seprate groups
@@ -787,7 +787,7 @@ class GenealogyTree {
       // .attr('viewBox','0 0 ' + this.width +  ' ' +  (this.height + this.margin.top + this.margin.bottom))
       // .attr('preserveAspectRatio','none');
       .attr('width',this.width)
-      .attr('height', this.height + this.margin.top + this.margin.bottom);
+      .attr('height', this.height);
 
     this.update_edges();
     this.update_nodes();

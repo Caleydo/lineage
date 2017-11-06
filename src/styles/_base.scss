@@ -12,9 +12,9 @@ th, label, strong, b, .label {
   overflow:scroll;
 }
 
-#col1,#col2,#col3{
-  padding-right: 5px;
-}
+// #col1,#col2,#col3{
+//   padding-right: 5px;
+// }
 
 #col1{
   flex:.3;
@@ -82,7 +82,7 @@ th, label, strong, b, .label {
     background-color: #d9d9d9 !important;
 }
 
-#graphHeaders{
+#graphHeaders, #tableDiv1{
   height:195px;
 }
 

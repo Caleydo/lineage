@@ -16,7 +16,7 @@ export class Config {
   public static svgHeight = 600;
   public static margin = {
         axisTop: 80,
-        top: 170,
+        top: 10,
         right: 10,
         bottom: 60,
         left: 40

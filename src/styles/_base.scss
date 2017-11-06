@@ -34,8 +34,12 @@ th, label, strong, b, .label {
   flex:1.5;
 }
 
-.header, .colSummary{
+.colSummary{
   cursor:move;
+}
+
+.header{
+  cursor:context-menu;
 }
 
 .container{

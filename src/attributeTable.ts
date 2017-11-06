@@ -762,8 +762,6 @@ class AttributeTable {
   //renders the DOM elements
   private render() {
 
-    console.log('calling render');
-
     const t = transition('t').ease(easeLinear);
     // let t= this.tableManager.t;
     const self = this;
@@ -967,7 +965,7 @@ class AttributeTable {
       } else if (cell.type === VALUE_TYPE_STRING) {
         self.renderStringHeader(select(this), cell);
       } else if (cell.type === 'id' || cell.type === 'idtype') {
-        self.addSortingIcons(select(this), cell);
+        self.renderIDHeader(select(this),cell);
       }
     });
 
@@ -1446,9 +1444,16 @@ class AttributeTable {
    */
   private renderStringHeader(element, headerData) {
 
+    const colWidth = this.colWidths.string;
+    const height = this.headerHeight;
+
+    element.select('.backgroundRect')
+    .attr('width',colWidth)
+    .attr('height',height);
+
     // element.selectAll('rect').remove();
-    element.selectAll('text').remove();
-    element.selectAll('circle').remove();
+    // element.selectAll('text').remove();
+    // element.selectAll('circle').remove();
 
     this.addSortingIcons(element, headerData);
   };
@@ -1463,7 +1468,14 @@ class AttributeTable {
    */
   private renderIDHeader(element, headerData) {
 
-    element.selectAll('rect').remove();
+    const colWidth = this.colWidths.id;
+    const height = this.headerHeight;
+
+    element.select('.backgroundRect')
+    .attr('width',colWidth)
+    .attr('height',height);
+
+    // element.selectAll('rect').remove();
     element.selectAll('text').remove();
     element.selectAll('circle').remove();
 

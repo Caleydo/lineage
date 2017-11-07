@@ -18,6 +18,8 @@ import {
   event
 } from 'd3-selection';
 
+import * as _ from 'underscore';
+
 import IFamilyInfo from './tableManager';
 
 import {FAMILY_INFO_UPDATED} from './tableManager';
@@ -40,6 +42,8 @@ class FamilySelector {
 
   private rows;
 
+  private tableManager;
+
   private headerInfo =[{'header':'FamilyID','dataAttr':'id'},
   {'header':'FSIR','dataAttr':'id'},
   {'header':'# People','dataAttr':'size'},
@@ -58,9 +62,10 @@ class FamilySelector {
    */
   init(tableManager) {
     this.build();
-    this.updateTable(tableManager);
+    this.tableManager = tableManager;
+    this.updateTable();
 
-    events.on(FAMILY_INFO_UPDATED,(evt,tableManagerObject)=> {this.updateTable(tableManagerObject);});
+    events.on(FAMILY_INFO_UPDATED,(evt,tableManagerObject)=> {this.updateTable();});
 
     // return the promise directly as long there is no dynamical data to update
     return Promise.resolve(this);
@@ -136,12 +141,12 @@ class FamilySelector {
   /**
    * Build the table and populate with list of families.
    */
-  private updateTable(tableManager) {
+  private updateTable() {
 
     const self = this;
 
-    this.familyInfo = tableManager.familyInfo;
-    const data = tableManager;
+    this.familyInfo = this.tableManager.familyInfo;
+    const data = this.tableManager;
 
     // console.log('family info is ' , data.familyInfo);
 
@@ -255,25 +260,24 @@ class FamilySelector {
       .style('text-align', 'center');
 
      
-    selectAll('td').on('click', function (d:any) {
-      select('body').classed('progress',true);
-
-
+    selectAll('td').on('click', (d:any)=> {
       //'Unselect all other families if ctrl was not pressed
       if (!event.metaKey) {
         select('tbody').selectAll('tr').classed('selected', false);
         select('tbody').selectAll('tr').classed('selected2', false);
-        self.selectedFamilyIds = [];
+        this.selectedFamilyIds = [];
       }
 
-      self.selectedFamilyIds.push(d.id);
+      this.selectedFamilyIds.push(d.id);
 
       select('tbody').selectAll('tr').filter((row:any) => {
         return row.id === d.id;
       }).attr('class',(d:any)=> {return d.id === 42623 ? 'selected2' : 'selected';});
 
-      tableManager.selectFamily(self.selectedFamilyIds);
-     
+      //call debounced function
+      this.lazyLoad();
+
+
     });
 
     if (selectAll('.selected').size() === 0) { // or if (this.selectedFamilyIDs.length === 0)
@@ -289,8 +293,17 @@ class FamilySelector {
 
   }
 
+  private loadFamily () {
+    console.log('called')
+            this.tableManager.selectFamily(this.selectedFamilyIds);
+        }
+    
+private lazyLoad = _.debounce(this.loadFamily, 1000);
+
 
 }
+
+
 
 
 /**

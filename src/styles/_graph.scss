@@ -69,9 +69,23 @@ rect.poi{
   font-size:10px;
 }
 
-.sortIcon {
+.sortIcon,.icon {
   fill:#b5b7b7;
+  font-family:FontAwesome;
+  text-anchor: middle;
+  cursor:default !important;
 }
+
+.icon{
+  font-size: 13px;
+}
+
+.sortIcon.icon{
+  font-size: 17px;
+}
+
+
+
 
 .duplicateLine{
   opacity:0;

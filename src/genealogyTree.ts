@@ -229,6 +229,8 @@ class GenealogyTree {
     //Call function that updates the position of all elements in the tree
     this.update_graph();
 
+    select('body').classed('progress',false);
+
   }
 
 

@@ -787,9 +787,6 @@ class AttributeTable {
 
     const y = this.y;
 
-    console.log(y.range());
-
-
 //HEADERS
     //Bind data to the col headers
     let headers = select('#tableHeaders').selectAll('.header')
@@ -1396,12 +1393,14 @@ class AttributeTable {
     let iconEnter = icon.enter()
       .append('text')
       .classed('sortIcon', true)
+      .classed('icon',true)
       .classed('descending', true);
 
     icon = iconEnter.merge(icon);
 
     icon
       .text('\uf0dd')
+      // .text('\uf078')
       .attr('y', this.rowHeight * 1.8 + 20)
       .attr('x', (d) => {
         return this.colWidths[d.type] / 2 - 5;
@@ -1413,23 +1412,40 @@ class AttributeTable {
     iconEnter = icon.enter()
       .append('text')
       .classed('sortIcon', true)
+      .classed('icon',true)
       .classed('ascending', true);
 
+      //Add 'remove col icon'
+      icon.enter().append('text')
+      .classed('icon',true)
+      .classed('deleteIcon',true)
+      .text(' \uf057')
+      // .text('\uf077')
+      .attr('y', this.rowHeight * 2 + 40)
+      .attr('x', (d) => {
+        return this.colWidths[cellData.type] / 2 - 8;
+      });
 
-    icon = iconEnter.merge(icon);
-
-    icon
-      .attr('font-family', 'FontAwesome')
-      .text('\uf0de')
-      .attr('y', this.rowHeight * 1.8 + 30)
+     
+      //append menu ellipsis
+    icon.enter().append('text')
+      .classed('icon',true)
+      .text('\uf141')
+      // .text('\uf077')
+      .attr('y', this.rowHeight * 2 + 40)
       .attr('x', (d) => {
         return this.colWidths[cellData.type] / 2 + 5;
       });
 
-    element.selectAll('.sortIcon')
-      .attr('font-family', 'FontAwesome')
-      .attr('font-size', 17)
-      .attr('text-anchor', 'middle');
+    icon = iconEnter.merge(icon);
+
+    icon
+      .text('\uf0de')
+      // .text('\uf077')
+      .attr('y', this.rowHeight * 1.8 + 30)
+      .attr('x', (d) => {
+        return this.colWidths[cellData.type] / 2 + 5;
+      });
 
     const self = this;
 
@@ -1453,6 +1469,20 @@ class AttributeTable {
         self.sortRows(d, self.sortAttribute.state);
 
       });
+
+      selectAll('.deleteIcon')
+      .on('click', (d:any)=> {
+        console.log('deleting ...');
+        this.tableManager.colOrder.splice(this.tableManager.colOrder.indexOf(d.name), 1);
+
+        console.log(d.name)
+        //Update menu
+        selectAll('.dropdown-item').filter((item:any)=> {console.log(item); return item === d.name;})
+        .classed('active',false);
+        events.fire(COL_ORDER_CHANGED_EVENT);
+        console.log('clicked on ', d); 
+      });
+
 
   }
 

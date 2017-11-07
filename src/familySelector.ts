@@ -81,10 +81,12 @@ class FamilySelector {
 
 
 
+
     const table = select('#familySelector').append('table').attr('class','table');
       // .classed('fixed_headers', true);
 
       select('#collapseTableButton')
+      .classed('navbar-right',true)
       .on('click',() => {
         const text = select('#collapseTableButton').html();
         if (text === 'Expand Panel') {
@@ -252,24 +254,26 @@ class FamilySelector {
       })
       .style('text-align', 'center');
 
+     
+    selectAll('td').on('click', function (d:any) {
+      select('body').classed('progress',true);
 
-    selectAll('td').on('click', (d:any) => {
 
       //'Unselect all other families if ctrl was not pressed
       if (!event.metaKey) {
         select('tbody').selectAll('tr').classed('selected', false);
         select('tbody').selectAll('tr').classed('selected2', false);
-        this.selectedFamilyIds = [];
+        self.selectedFamilyIds = [];
       }
 
-      this.selectedFamilyIds.push(d.id);
+      self.selectedFamilyIds.push(d.id);
 
       select('tbody').selectAll('tr').filter((row:any) => {
         return row.id === d.id;
       }).attr('class',(d:any)=> {return d.id === 42623 ? 'selected2' : 'selected';});
 
-      tableManager.selectFamily(this.selectedFamilyIds);
-
+      tableManager.selectFamily(self.selectedFamilyIds);
+     
     });
 
     if (selectAll('.selected').size() === 0) { // or if (this.selectedFamilyIDs.length === 0)

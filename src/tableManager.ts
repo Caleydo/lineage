@@ -10,6 +10,8 @@ import {easeLinear} from 'd3-ease';
 import {__awaiter} from 'tslib';
 import {isUndefined} from 'util';
 
+import {select} from 'd3-selection';
+
 
 interface IFamilyInfo {
   id: number;
@@ -463,7 +465,7 @@ export default class TableManager {
    */
   public async selectFamily(chosenFamilyIDs?: number[]) {
 
-    console.log('selectfamily was called');
+    select('body').classed('progress',true);
 
     // console.log('chosen Family ID is ', chosenFamilyIDs)
 
@@ -509,8 +511,12 @@ export default class TableManager {
     await this.refreshActiveTableView();
 
     this.updatePOI_Primary();
+    console.log('end of function');
 
     events.fire(FAMILY_SELECTED_EVENT);
+
+    
+
   }
 
 

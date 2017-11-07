@@ -91,7 +91,6 @@ class FamilySelector {
       // .classed('fixed_headers', true);
 
       select('#collapseTableButton')
-      .classed('navbar-right',true)
       .on('click',() => {
         const text = select('#collapseTableButton').html();
         if (text === 'Expand Panel') {

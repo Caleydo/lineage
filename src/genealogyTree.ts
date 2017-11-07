@@ -258,25 +258,29 @@ class GenealogyTree {
     .append('a').attr('class','navbar-brand')
     .html('Genealogy Tree');
 
-  // const li = this.$node.select('.navbar').append('ul').attr('class','nav navbar-nav')
+  const buttonMenu = this.$node.select('.navbar')
+  .append('ul').attr('class','nav navbar-nav');
 
-  // li.append('li').attr('class','active').text('Aggregate');
-  // li.append('li').text('Hide');
-  // li.append('li').text('Expand');
-
-    this.$node.select('.navbar')
-    .append('navbar-btn').classed('navbar-right',true)
-    .append('button').attr('type','button').attr('class','btn btn-secondary').text('Aggregate')
-    .on('click', (d)=> {
+  buttonMenu
+  .append('li')
+  .append('a')
+  .attr('class','btn-link')
+  .attr('role','button')
+  .html('Aggregate')
+  .on('click', (d)=> {
         selectAll('.slopeLine').classed('clickedSlope', false);
         selectAll('.highlightBar').classed('selected', false);
 
         this.data.aggregateTreeWrapper(undefined, layoutState.Aggregated);
         this.update_graph();
       });
-    this.$node.select('.navbar')
-    .append('navbar-btn').classed('navbar-right',true)
-    .append('button').attr('type','button').attr('class','btn btn-secondary').text('Hide')
+
+    buttonMenu
+    .append('li')
+    .append('a')
+    .attr('class','btn-link')
+    .attr('role','button')
+    .html('Hide')
       .on('click', (d)=> {
 
         selectAll('.slopeLine').classed('clickedSlope', false);
@@ -286,9 +290,12 @@ class GenealogyTree {
         this.update_graph();
       });
 
-    this.$node.select('.navbar')
-    .append('navbar-btn').classed('navbar-right',true)
-    .append('button').attr('type','button').attr('class','btn btn-secondary').text('Expand')
+      buttonMenu
+      .append('li')
+      .append('a')
+      .attr('class','btn-link')
+      .attr('role','button')
+      .html('Expand')
        .on('click', (d)=> {
 
         selectAll('.slopeLine').classed('clickedSlope', false);
@@ -775,11 +782,12 @@ class GenealogyTree {
       return Math.round(+d.y);
     })];
 
-    this.height = Config.glyphSize * 3 * (yrange[1] - yrange[0] + 1); // - this.margin.top - this.margin.bottom;
+    this.height = Config.glyphSize * 4 * (yrange[1] - yrange[0] + 1); // - this.margin.top - this.margin.bottom;
     // console.log('tree height is ', this.height)
 
-    this.y.range([0, this.height]).domain(yrange);
+    this.y.range([0, this.height*.8]).domain(yrange);
 
+    console.log('yrange in tree is ', this.y.range());
     this.interGenerationScale.range([.75, .25]).domain([2, nodes.length]);
 
 

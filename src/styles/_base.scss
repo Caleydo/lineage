@@ -7,6 +7,24 @@ th, label, strong, b, .label {
   font-weight: 500 !important;
 }
 
+// nav.navbar{
+//   border-right:2px solid !important;
+//   border-right-color: #929292 !important;
+// }
+
+.btn-link,.dropdown-toggle{
+  background-color: #e4e4e4;
+  margin-left:5px;
+}
+
+ul.nav.navbar-nav{
+  float:right;
+}
+
+#attributeMenu{
+  float:left;
+}
+
 
 .col, .col-4, .col-2{
   overflow:scroll;
@@ -35,7 +53,7 @@ th, label, strong, b, .label {
 }
 
 .colSummary{
-  cursor:move;
+  cursor:ew-resize;
 }
 
 .header{
@@ -97,9 +115,17 @@ th, label, strong, b, .label {
 }
 
 #tableDiv2, #graphDiv{
-  height:800px;
+  height:1000px;
   overflow-x: hidden;
   overflow-y: scroll;
+}
+
+.dropdown-item{
+  cursor: copy;
+}
+
+.dropdown-item.active{
+  cursor: default;
 }
 
 

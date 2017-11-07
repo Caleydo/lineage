@@ -156,14 +156,28 @@ class AttributeTable {
     .html('Attribute Table');
 
     const dropdownMenu = this.$node.select('.navbar')
+    .append('ul').attr('class','nav navbar-nav').attr('id','attributeMenu');
+
+
 
     // .append('div').attr('class','dropdown');
-    .append('div').attr('class','button-group');
+    // .append('div').attr('class','button-group');
 
-    dropdownMenu.append('button').attr('class','btn btn-secondary dropdown-toggle').attr('type','button').attr('id','dropdownMenuButton').attr('data-toggle','dropdown')
-    .text('Choose Table Attributes');
+    const list = dropdownMenu.append('li').attr('class','dropdown');
 
-    const menu = dropdownMenu.append('ul').attr('class','dropdown-menu');
+    list
+    .append('a')
+    .attr('class','dropdown-toggle')
+    .attr('data-toggle','dropdown')
+    .attr('role','button')
+    .html('Add Attributes')
+    .append('span')
+    .attr('class','caret');
+
+    // dropdownMenu.append('button').attr('class','btn btn-secondary dropdown-toggle').attr('type','button').attr('id','dropdownMenuButton').attr('data-toggle','dropdown')
+    // .text('Choose Table Attributes');
+
+    const menu = list.append('ul').attr('class','dropdown-menu');
 
     // console.log(this.tableManager.getDemographicColumns());
 
@@ -435,14 +449,14 @@ class AttributeTable {
 
 
     //Set height and width of svg
-    this.height = Config.glyphSize * 3 * (max(allRows) - min(allRows) + 1);
+    this.height = Config.glyphSize * 4 * (max(allRows) - min(allRows) + 1);
     // select('.tableSVG').attr('viewBox','0 0 ' + this.width + ' ' + (this.height + this.margin.top + this.margin.bottom))
 
     select('.tableSVG').attr('height', this.height);
     select('.tableSVG').attr('width', this.tableManager.colOrder.length*100);
 
-
-    this.y.range([0, this.height]).domain([1, max(allRows)]);
+    console.log(this.height);
+    this.y.range([0, this.height*.8]).domain([1, max(allRows)]);
     this.rowOrder = allRows; //will be used to set the y position of each cell/row;
 
 
@@ -773,6 +787,8 @@ class AttributeTable {
 
     const y = this.y;
 
+    console.log(y.range());
+
 
 //HEADERS
     //Bind data to the col headers
@@ -876,7 +892,7 @@ class AttributeTable {
 
           //Escape any periods with backslash
           const header = select('#'+ d.name.replace(/\./g, '\\.') + '_header');
-          
+
           const currTransform = header.attr('transform').split('translate(')[1].split(',');
           const xpos = +currTransform[0];
           titleTransform = currTransform[1];

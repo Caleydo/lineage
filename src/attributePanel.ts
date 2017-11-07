@@ -99,16 +99,24 @@ class AttributePanel {
 
     this.$node.append('nav').attr('class','navbar navbar-expand-lg navbar-light bg-light')
     .append('div').attr('id', 'tableNav');
-    // .attr('class','mx-auto') //for centering on nav bar
-
-    this.$node.select('.navbar')
-    .append('button').attr('type','button').attr('class','btn btn-secondary ml-auto').text('Expand Panel')
-    .attr('id','collapseTableButton');
-
 
     this.$node.select('#tableNav')
     .append('a').attr('class','navbar-brand')
     .html('Family Selector');
+
+    const dropdownMenu = this.$node.select('.navbar')
+    .append('ul').attr('class','nav navbar-nav');
+
+    const list = dropdownMenu
+    .append('li')
+    .append('a')
+    .attr('class','btn-link')
+    .attr('role','button')
+    .html('Expand Panel')
+    .attr('id','collapseTableButton');
+
+
+ 
 
     const familySelector = this.$node.append('div')
       .attr('id', 'familySelector');

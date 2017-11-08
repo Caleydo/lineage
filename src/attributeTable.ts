@@ -334,20 +334,20 @@ class AttributeTable {
         const t2 = transition('test').duration(600).ease(easeLinear);
 
         select('#columns').selectAll('.cell')
-          .transition(t2)
+          // .transition(t2)
           .attr('transform', (cell: any) => {
             return ('translate(0, ' + this.y(this.rowOrder[cell.ind]) + ' )');
           });
 
         //translate tableGroup to make room for the slope lines.
         select('#tableGroup')
-          .transition(t2)
+          // .transition(t2)
           .attr('transform', () => {
             return ('translate(' + Config.collapseSlopeChartWidth + ' ,0)');
           });
 
         select('#headerGroup')
-          .transition(t2)
+          // .transition(t2)
           .attr('transform', () => {
             return ('translate(' + Config.collapseSlopeChartWidth + ' ,95)');
           });
@@ -361,20 +361,20 @@ class AttributeTable {
         //   });
 
         select('#colSummaries')
-          .transition(t2)
+          // .transition(t2)
           .attr('transform', () => {
             return ('translate(0 ,15)');
           });
 
 
         selectAll('.slopeLine')
-          .transition(t2)
+          // .transition(t2)
           .attr('d', (d: any) => {
             return this.slopeChart({y: d.y, ind: d.ind, width: Config.collapseSlopeChartWidth});
           });
 
         select('#tableGroup').selectAll('.highlightBar')
-          .transition(t2)
+          // .transition(t2)
           .attr('y', (d: any) => {
             return this.y(this.rowOrder[d.i]);
           });
@@ -1302,7 +1302,7 @@ class AttributeTable {
     }
 
     select('#revertTreeOrder')
-      .transition(t2.transition().duration(500).ease(easeLinear))
+      // .transition(t2.transition().duration(500).ease(easeLinear))
       .attr('visibility', 'visible');
 
     // sorting the mapped array containing the reduced values
@@ -1334,7 +1334,7 @@ class AttributeTable {
 
     select('#columns')
       .selectAll('.cell')
-      .transition(t2)
+      // .transition(t2)
       .attr('transform', (cell: any) => {
         return ('translate(0, ' + this.y(this.rowOrder[sortedIndexes.indexOf(cell.ind)]) + ' )'); //the x translation is taken care of by the group this cell is nested in.
       });
@@ -1343,34 +1343,34 @@ class AttributeTable {
 
     //translate tableGroup to make room for the slope lines.
     select('#tableGroup')
-      .transition(t2)
+      // .transition(t2)
       .attr('transform', (cell: any) => {
         return ('translate(' + Config.slopeChartWidth + ' ,0)');
       });
 
 
     select('#headerGroup')
-      .transition(t2)
+      // .transition(t2)
       .attr('transform', (cell: any) => {
         return ('translate(' + (Config.slopeChartWidth)  + ' ,95)');
       });
 
     select('#colSummaries')
-      .transition(t2)
+      // .transition(t2)
       .attr('transform', (cell: any) => {
         return ('translate(0,15)');
       });
 
 
     selectAll('.slopeLine')
-      .transition(t2)
+      // .transition(t2)
       .attr('d', (d: any) => {
         return this.slopeChart({y: d.y, ind: sortedIndexes.indexOf(d.ind), width: Config.slopeChartWidth});
       });
 
     select('#tableGroup')
       .selectAll('.highlightBar')
-      .transition(t2)
+      // .transition(t2)
       .attr('y', (d: any) => {
         return this.y(this.rowOrder[sortedIndexes.indexOf(d.i)]);
       });

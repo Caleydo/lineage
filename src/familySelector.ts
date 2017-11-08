@@ -274,7 +274,9 @@ class FamilySelector {
       }).attr('class',(d:any)=> {return d.id === 42623 ? 'selected2' : 'selected';});
 
       //call debounced function
-      this.lazyLoad();
+      // this.lazyLoad();
+
+      this.loadFamily();
 
 
     });
@@ -297,7 +299,7 @@ class FamilySelector {
             this.tableManager.selectFamily(this.selectedFamilyIds);
         }
     
-private lazyLoad = _.debounce(this.loadFamily, 1000);
+private lazyLoad = _.debounce(this.loadFamily, 300,true);
 
 
 }

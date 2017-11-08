@@ -465,7 +465,7 @@ export default class TableManager {
    */
   public async selectFamily(chosenFamilyIDs?: number[]) {
 
-    select('body').classed('progress',true);
+    // select('body').classed('progress',true);
 
     // console.log('chosen Family ID is ', chosenFamilyIDs)
 

@@ -229,8 +229,6 @@ class GenealogyTree {
     //Call function that updates the position of all elements in the tree
     this.update_graph();
 
-    select('body').classed('progress',false);
-
   }
 
 
@@ -274,7 +272,7 @@ class GenealogyTree {
         selectAll('.highlightBar').classed('selected', false);
 
         this.data.aggregateTreeWrapper(undefined, layoutState.Aggregated);
-        this.update_graph();
+        // this.update_graph();
       });
 
     buttonMenu
@@ -289,7 +287,7 @@ class GenealogyTree {
         selectAll('.highlightBar').classed('selected', false);
 
         this.data.aggregateTreeWrapper(undefined, layoutState.Hidden);
-        this.update_graph();
+        // this.update_graph();
       });
 
       buttonMenu
@@ -304,7 +302,7 @@ class GenealogyTree {
         selectAll('.highlightBar').classed('selected', false);
 
         this.data.aggregateTreeWrapper(undefined, layoutState.Expanded);
-        this.update_graph();
+        // this.update_graph();
       });
 
        const headerDiv = this.$node.append('div').attr('id','graphHeaders');
@@ -957,7 +955,7 @@ class GenealogyTree {
 
     edgePaths
       // .transition(t.transition().duration(1000).ease(easeLinear))
-      .transition('t')
+      // .transition('t')
       .attr('opacity', 1)
       .attr('stroke-width', Config.glyphSize / 5);
 
@@ -985,13 +983,13 @@ class GenealogyTree {
       .attr('class', 'parentEdges')
       .attr('stroke-width', Config.glyphSize / 5)
       .style('fill', 'none')
-      .transition(t)
+      // .transition(t)
       .attr('d', (d) => {
         return GenealogyTree.parentEdge(d, this.lineFunction);
       });
 
     parentEdgePaths
-      .transition(t.transition().ease(easeLinear))
+      // .transition(t.transition().ease(easeLinear))
       .attr('opacity', 1);
 
   };
@@ -1069,7 +1067,7 @@ class GenealogyTree {
 
 
     aggregateBars
-      .transition(t.transition().duration(500).ease(easeLinear))
+      // .transition(t.transition().duration(500).ease(easeLinear))
       .attr('opacity',1);
 
 
@@ -1397,7 +1395,7 @@ class GenealogyTree {
       .filter((d) => {
         return !(d.hidden && !d.hasChildren);
       })
-      .transition(t)
+      // .transition(t)
       .attr('transform', (node: Node) => {
         const xpos = this.xPOS(node);
         const ypos = this.yPOS(node);
@@ -1462,7 +1460,7 @@ class GenealogyTree {
     allNodes.filter((d: any) => {
       return d.hidden && !d.hasChildren && d.ma && d.pa;
     })
-      .transition(t)
+      // .transition(t)
       .attr('transform', (node: Node) => {
         const xpos = this.xPOS(node);
         const ypos = this.yPOS(node);
@@ -1506,7 +1504,7 @@ class GenealogyTree {
       });
 
     allNodes
-      .transition(t.transition().ease(easeLinear))
+      // .transition(t.transition().ease(easeLinear))
       .attr('opacity', 1);
 
     //AllNodes
@@ -1807,13 +1805,13 @@ class GenealogyTree {
     //Size hidden nodes differently
     //regular nodes
     element.selectAll('.male')
-      .transition(t)
+      // .transition(t)
       .attr('width', glyphSize)
       .attr('height', glyphSize);
 
     //unhidden nodes
     element.selectAll('.female')
-      .transition(t)
+      // .transition(t)
       .attr('r', radius);
 
     //attribute frames

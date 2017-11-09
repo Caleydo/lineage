@@ -49,7 +49,7 @@ class AttributeTable {
 
   private width;
   private height;
-  private buffer = 10; //pixel dist between columns
+  private buffer = 13; //pixel dist between columns
 
   //for entire Table
   private y = scaleLinear();
@@ -890,11 +890,9 @@ class AttributeTable {
     });
     
     const resizeStarted = (d,i)=> {
-      
-
     };
+
     const resized = (d,i)=> {
-      // console.log('resizing',event.x);
       const delta = event.x - this.colWidths[d.type];
 
       this.customColWidths[d.name]=this.colWidths[d.type]+delta;
@@ -912,8 +910,11 @@ class AttributeTable {
 
     };
     const resizeEnded = (d,i)=> {
-      console.log('rendering');
-      // this.render();
+           selectAll('.resizeBar')
+      .attr('stroke','white');
+
+      selectAll('.backgroundRect')
+      .style('fill','white');
     };
     
 
@@ -1576,8 +1577,8 @@ class AttributeTable {
     .attr('height',height);
 
     element.select('.resizeBar')
-    .attr('x1',colWidth+2)
-    .attr('x2',colWidth+2)
+    .attr('x1',colWidth-2)
+    .attr('x2',colWidth-2)
     .attr('y1',0)
     .attr('y2',height)
     .attr('stroke-width','4px')
@@ -1613,8 +1614,8 @@ class AttributeTable {
     .attr('height',height);
 
     element.select('.resizeBar')
-    .attr('x1',colWidth+2)
-    .attr('x2',colWidth+2)
+    .attr('x1',colWidth-2)
+    .attr('x2',colWidth-2)
     .attr('y1',0)
     .attr('y2',height)
     .attr('stroke-width','4px')
@@ -1744,8 +1745,8 @@ class AttributeTable {
     .attr('height',height);
 
     element.select('.resizeBar')
-    .attr('x1',colWidth+2)
-    .attr('x2',colWidth+2)
+    .attr('x1',colWidth-2)
+    .attr('x2',colWidth-2)
     .attr('y1',0)
     .attr('y2',height)
     .attr('stroke-width','4px')
@@ -1795,7 +1796,7 @@ class AttributeTable {
 
     //bars = barsEnter.merge(bars);
 
-    select('.hist_xscale').remove();
+    element.select('.hist_xscale').remove();
 
     const xAxis = axisBottom(xScale)
     .tickSize(5)

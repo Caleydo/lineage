@@ -19,6 +19,8 @@ import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL, VALUE_TYPE_STRI
 
 import {line} from 'd3-shape';
 
+import * as _ from 'underscore';
+
 import {
   PRIMARY_SELECTED,
   COL_ORDER_CHANGED_EVENT,
@@ -80,6 +82,9 @@ class AttributeTable {
     id: this.rowHeight * 4.5,
     dataDensity: this.rowHeight
   };
+
+  //Used to store col widths if user resizes a col;
+  private customColWidths ={};
 
   private lineFunction = line < any >()
     .x((d: any) => {
@@ -711,7 +716,9 @@ class AttributeTable {
     });
     this.colData = colDataAccum;
 
+    this.calculateOffset();
 
+  
   }
 
   private calculateOffset() {
@@ -767,17 +774,28 @@ class AttributeTable {
             }
 
             for (const cat of categories) {
-              this.colOffsets.push(maxOffset + this.buffer * 2 + this.colWidths[type]);
-            }
+              if (this.customColWidths[name]) {
+                this.colOffsets.push(maxOffset + this.buffer * 2 + this.customColWidths[name]);
+              } else {
+                this.colOffsets.push(maxOffset + this.buffer * 2 + this.colWidths[type]);
+              }
+            };
           } else {
               const maxOffset = max(this.colOffsets);
-              this.colOffsets.push(maxOffset + this.buffer + this.colWidths[type]);
+              if (this.customColWidths[name]) {
+                this.colOffsets.push(maxOffset + this.buffer + this.customColWidths[name]);
+              } else {
+                this.colOffsets.push(maxOffset + this.buffer + this.colWidths[type]);
+              }
           }
 
 
     });
   };
 
+  //To be used on drag interactions so that render is not called too many times
+  private lazyRender = _.throttle(this.render, 10);
+  
   //renders the DOM elements
   private render() {
 
@@ -814,17 +832,19 @@ class AttributeTable {
         if (d.category && d.category !== 'TRUE' && d.category !== 'Y') {
           return d.name + ' (' + d.category + ')';
         } else {
-          return d.name; //.slice(0,15)
+          return d.name.slice(0,11);
         };
 
       })
 
       .attr('transform', (d, i) => {
-        const offset = this.colOffsets[i] + (this.colWidths[d.type] / 2);
-        return (d.type === VALUE_TYPE_CATEGORICAL || d.type === 'dataDensity' || d.name.length>10) ? 'translate(' + offset + ',0) rotate(-40)' : 'translate(' + offset + ',0)';
+        const offset = this.colOffsets[i] + ((this.customColWidths[d.name] || this.colWidths[d.type]) / 2);
+        return d.type === VALUE_TYPE_CATEGORICAL ? 'translate(' + offset + ',0) rotate(-40)' : 'translate(' + offset + ',0)';
+        // return (d.type === VALUE_TYPE_CATEGORICAL || d.type === 'dataDensity' || d.name.length>10) ? 'translate(' + offset + ',0) rotate(-40)' : 'translate(' + offset + ',0)';
       })
       .attr('text-anchor', (d) => {
-        return (d.type === VALUE_TYPE_CATEGORICAL || d.type === 'dataDensity' || d.name.length>10) ? 'start' : 'middle';
+        return d.type === VALUE_TYPE_CATEGORICAL ? 'start' : 'middle';
+        // return (d.type === VALUE_TYPE_CATEGORICAL || d.type === 'dataDensity' || d.name.length>10) ? 'start' : 'middle';
       });
 
 
@@ -868,6 +888,40 @@ class AttributeTable {
       select(this).attr('stroke','white');
       selectAll('.backgroundRect').style('fill','white');
     });
+    
+    const resizeStarted = (d,i)=> {
+      
+
+    };
+    const resized = (d,i)=> {
+      // console.log('resizing',event.x);
+      const delta = event.x - this.colWidths[d.type];
+
+      this.customColWidths[d.name]=this.colWidths[d.type]+delta;
+      this.calculateOffset();
+      this.lazyRender();
+
+      selectAll('.resizeBar')
+      .filter((dd)=> {return dd === d;})
+      .attr('stroke','#909090');
+
+      selectAll('.backgroundRect')
+      .filter((dd)=> {return dd === d;})
+      .style('fill','#e9e9e9');
+      
+
+    };
+    const resizeEnded = (d,i)=> {
+      console.log('rendering');
+      // this.render();
+    };
+    
+
+    selectAll('.resizeBar')
+    .call(drag()
+    .on('start', resizeStarted)
+    .on('drag', resized)
+    .on('end', resizeEnded));
 
     colSummaries.exit().remove();
 
@@ -977,20 +1031,6 @@ class AttributeTable {
           selectAll('.dataCols').attr('opacity',1);
 
           this.render();
-
-          // //Find closest column
-          // const closest = this.colOffsets.reduce(function(prev, curr) {
-          //   return (Math.abs(curr - currPos) < Math.abs(prev - currPos) ? curr : prev);
-          // });
-
-          // const closestIndex = this.colOffsets.indexOf(closest);
-          // //Remove current col from colOrder
-          // self.tableManager.colOrder.splice(i, 1);
-
-          // //Reinsert in correct order
-          // self.tableManager.colOrder.splice(closestIndex, 0,d.name);
-
-          // events.fire(COL_ORDER_CHANGED_EVENT);
 
         };
 
@@ -1411,6 +1451,9 @@ class AttributeTable {
    */
   private addSortingIcons(element, cellData) {
 
+     //Check for custom column width value, if none, use default
+     const colWidth = this.customColWidths[cellData.name] || this.colWidths[cellData.type];
+
     let icon = element.selectAll('.descending')
       .data([cellData]);
 
@@ -1428,7 +1471,7 @@ class AttributeTable {
       // .text('\uf078')
       .attr('y', this.rowHeight * 1.8 + 20)
       .attr('x', (d) => {
-        return this.colWidths[d.type] / 2 - 5;
+        return colWidth / 2 - 5;
       });
 
     icon = element.selectAll('.ascending')
@@ -1444,22 +1487,27 @@ class AttributeTable {
       icon.enter().append('text')
       .classed('icon',true)
       .classed('deleteIcon',true)
-      .text(' \uf057')
+      .text(' \uf057');
+
+      element.select('.deleteIcon')
       // .text('\uf077')
       .attr('y', this.rowHeight * 2 + 40)
       .attr('x', (d) => {
-        return this.colWidths[cellData.type] / 2 - 8;
+        return colWidth / 2 - 8;
       });
 
      
       //append menu ellipsis
     icon.enter().append('text')
       .classed('icon',true)
-      .text('\uf141')
+      .classed('menuIcon',true)
+      .text('\uf141');
+
+      element.select('.menuIcon')
       // .text('\uf077')
       .attr('y', this.rowHeight * 2 + 40)
       .attr('x', (d) => {
-        return this.colWidths[cellData.type] / 2 + 5;
+        return colWidth / 2 + 5;
       });
 
     icon = iconEnter.merge(icon);
@@ -1469,7 +1517,7 @@ class AttributeTable {
       // .text('\uf077')
       .attr('y', this.rowHeight * 1.8 + 30)
       .attr('x', (d) => {
-        return this.colWidths[cellData.type] / 2 + 5;
+        return colWidth / 2 + 5;
       });
 
     const self = this;
@@ -1518,7 +1566,9 @@ class AttributeTable {
    */
   private renderStringHeader(element, headerData) {
 
-    const colWidth = this.colWidths.string;
+     //Check for custom column width value, if none, use default
+     const colWidth = this.customColWidths[headerData.name] || this.colWidths.string;
+    // const colWidth = this.colWidths.string;
     const height = this.headerHeight;
 
     element.select('.backgroundRect')
@@ -1552,7 +1602,10 @@ class AttributeTable {
    */
   private renderIDHeader(element, headerData) {
 
-    const colWidth = this.colWidths.id;
+    //Check for custom column width value, if none, use default
+    const colWidth = this.customColWidths[headerData.name] || this.colWidths.id;
+    
+    // const colWidth = this.colWidths.id;
     const height = this.headerHeight;
 
     element.select('.backgroundRect')
@@ -1586,6 +1639,7 @@ class AttributeTable {
    */
   private renderCategoricalHeader(element, headerData) {
 
+    //There can't be custom colWidths for categorical data
     const colWidth = this.colWidths.categorical;
     const height = this.headerHeight;
 
@@ -1677,8 +1731,12 @@ class AttributeTable {
   private renderIntHeaderHist(element, headerData) {
 
     // let t = transition('t').duration(500).ease(easeLinear);
+    //Check for custom column width value, if none, use default
+    const colWidth = this.customColWidths[headerData.name] || this.colWidths.int;
 
-    const colWidth = this.colWidths.int;
+
+
+    // const colWidth = this.colWidths.int;
     const height = this.headerHeight;
 
     element.select('.backgroundRect')
@@ -1724,11 +1782,6 @@ class AttributeTable {
     })]);
 
 
-    const xAxis = axisBottom(xScale)
-      .tickSize(5)
-      .tickValues(xScale.domain())
-      .tickFormat(format('.0f'));
-
     const bars = element.selectAll('.histogram')
       .data(data);
 
@@ -1742,7 +1795,15 @@ class AttributeTable {
 
     //bars = barsEnter.merge(bars);
 
-    if (element.selectAll('.hist xscale').size() === 0) {
+    select('.hist_xscale').remove();
+
+    const xAxis = axisBottom(xScale)
+    .tickSize(5)
+    .tickValues(xScale.domain())
+    .tickFormat(format('.0f'));
+
+    if (element.selectAll('.hist_xscale').size() === 0) {
+      console.log('creating new axis');
 
       element.append('text').classed('maxValue', true);
       element.append('g')
@@ -1750,6 +1811,8 @@ class AttributeTable {
         .classed('hist_xscale', true)
         .call(xAxis);
     }
+
+    
 
     this.addSortingIcons(element, headerData);
 
@@ -1810,6 +1873,7 @@ class AttributeTable {
    */
   private renderCategoricalCell(element, cellData) {
     // let t = transition('t').duration(500).ease(easeLinear);
+
 
     const colWidth = this.colWidths.categorical;
     const rowHeight = this.rowHeight;
@@ -1935,7 +1999,10 @@ class AttributeTable {
    */
   private renderDataDensCell(element, cellData) {
 
-    const colWidth = this.colWidths[cellData.type];
+    //Check for custom column width value, if none, use default
+    const colWidth = this.customColWidths[cellData.name] || this.colWidths[cellData.type];
+    
+    // const colWidth = this.colWidths[cellData.type];
     const rowHeight = this.rowHeight;
 
     if (element.selectAll('.dataDens').size() === 0) {
@@ -2000,7 +2067,11 @@ class AttributeTable {
    * @param cellData the data bound to the cell element being passed in.
    */
   private renderIntCell(element, cellData) {
-    const colWidth = this.colWidths.int; //this.getDisplayedColumnWidths(this.width).find(x => x.name === cellData.name).width
+
+     //Check for custom column width value, if none, use default
+     const colWidth = this.customColWidths[cellData.name] || this.colWidths.int;
+
+    // const colWidth = this.colWidths.int; //this.getDisplayedColumnWidths(this.width).find(x => x.name === cellData.name).width
     const rowHeight = this.rowHeight;
     const radius = 3.5;
 
@@ -2119,7 +2190,10 @@ class AttributeTable {
    */
   private renderStringCell(element, cellData) {
 
-    const colWidth = this.colWidths[cellData.type];
+     //Check for custom column width value, if none, use default
+     const colWidth = this.customColWidths[cellData.name] || this.colWidths[cellData.type];
+
+    // const colWidth = this.colWidths[cellData.type];
     const rowHeight = this.rowHeight;
 
     const numValues = cellData.data.reduce((a, v) => v ? a + 1 : a, 0);
@@ -2137,12 +2211,14 @@ class AttributeTable {
 
     let textLabel;
 
+    const numChar = colWidth /8;
+
     if (cellData.data.length === 0 || cellData.data[0] === undefined) {
       textLabel = '';
     } else {
 
-      textLabel = cellData.data[0].toLowerCase().slice(0, 12);
-      if (cellData.data[0].length > 12) {
+      textLabel = cellData.data[0].toLowerCase().slice(0, numChar);
+      if (cellData.data[0].length > numChar) {
         textLabel = textLabel.concat(['...']);
       }
 
@@ -2195,7 +2271,10 @@ class AttributeTable {
    */
   private renderIdCell(element, cellData) {
 
-    const colWidth = this.colWidths[cellData.type];
+    //Check for custom column width value, if none, use default
+    const colWidth = this.customColWidths[cellData.name] || this.colWidths[cellData.type];
+    
+    // const colWidth = this.colWidths[cellData.type];
     const rowHeight = this.rowHeight;
 
     this.idScale.range([0, colWidth * 0.6]);

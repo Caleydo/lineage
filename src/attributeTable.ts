@@ -331,7 +331,7 @@ class AttributeTable {
         select('#revertTreeOrder')
           .attr('visibility', 'hidden');
 
-        const t2 = transition('test').duration(600).ease(easeLinear);
+        // const t2 = transition('test').duration(600).ease(easeLinear);
 
         select('#columns').selectAll('.cell')
           // .transition(t2)
@@ -781,7 +781,7 @@ class AttributeTable {
   //renders the DOM elements
   private render() {
 
-    const t = transition('t').ease(easeLinear);
+    // const t = transition('t').ease(easeLinear);
     // let t= this.tableManager.t;
     const self = this;
 
@@ -842,7 +842,32 @@ class AttributeTable {
 
     colSummariesEnter
     .append('rect')
-    .attr('class','backgroundRect');
+    .attr('class','backgroundRect')
+    .on('mouseover',function(d) {
+      select(this).style('fill','#e9e9e9');
+      selectAll('.resizeBar')
+      .filter((dd)=> {return dd === d;})
+      .attr('stroke','#909090');
+    })
+    .on('mouseout',function(d) {
+      select(this).style('fill','white');
+      selectAll('.resizeBar')
+      .attr('stroke','white');
+    });
+
+    colSummariesEnter
+    .append('line')
+    .classed('resizeBar',true)
+    .on('mouseover',function(d) {
+      select(this).attr('stroke','#909090');
+      selectAll('.backgroundRect')
+      .filter((dd)=> {return dd === d;})
+      .style('fill','#e9e9e9');
+    })
+    .on('mouseout',function(d) {
+      select(this).attr('stroke','white');
+      selectAll('.backgroundRect').style('fill','white');
+    });
 
     colSummaries.exit().remove();
 
@@ -969,7 +994,7 @@ class AttributeTable {
 
         };
 
-        colSummaries
+        headers
         .call(drag()
         .on('start', dragstarted)
         .on('drag', dragged)
@@ -1261,7 +1286,7 @@ class AttributeTable {
    */
   private sortRows(d: any, sortOrder:sortedState) {
 
-    const t2 = transition('t2').duration(600).ease(easeLinear);
+    // const t2 = transition('t2').duration(600).ease(easeLinear);
 
     //get data from colData array
     const toSort = this.colData.find((c) => {
@@ -1472,10 +1497,8 @@ class AttributeTable {
 
       selectAll('.deleteIcon')
       .on('click', (d:any)=> {
-        console.log('deleting ...');
         this.tableManager.colOrder.splice(this.tableManager.colOrder.indexOf(d.name), 1);
 
-        console.log(d.name)
         //Update menu
         selectAll('.dropdown-item').filter((item:any)=> {console.log(item); return item === d.name;})
         .classed('active',false);
@@ -1502,11 +1525,21 @@ class AttributeTable {
     .attr('width',colWidth)
     .attr('height',height);
 
+    element.select('.resizeBar')
+    .attr('x1',colWidth+2)
+    .attr('x2',colWidth+2)
+    .attr('y1',0)
+    .attr('y2',height)
+    .attr('stroke-width','4px')
+    .attr('stroke','white');
+
     // element.selectAll('rect').remove();
     // element.selectAll('text').remove();
     // element.selectAll('circle').remove();
 
     this.addSortingIcons(element, headerData);
+
+
   };
 
 
@@ -1526,11 +1559,21 @@ class AttributeTable {
     .attr('width',colWidth)
     .attr('height',height);
 
+    element.select('.resizeBar')
+    .attr('x1',colWidth+2)
+    .attr('x2',colWidth+2)
+    .attr('y1',0)
+    .attr('y2',height)
+    .attr('stroke-width','4px')
+    .attr('stroke','white');
+
     // element.selectAll('rect').remove();
     element.selectAll('text').remove();
     element.selectAll('circle').remove();
 
     this.addSortingIcons(element, headerData);
+
+    
   };
 
 
@@ -1641,6 +1684,14 @@ class AttributeTable {
     element.select('.backgroundRect')
     .attr('width',colWidth)
     .attr('height',height);
+
+    element.select('.resizeBar')
+    .attr('x1',colWidth+2)
+    .attr('x2',colWidth+2)
+    .attr('y1',0)
+    .attr('y2',height)
+    .attr('stroke-width','4px')
+    .attr('stroke','white');
 
     const hist = headerData.hist;
 
@@ -2078,6 +2129,7 @@ class AttributeTable {
     }
 
     if (element.selectAll('.string').size() === 0) {
+
       element
         .append('text')
         .classed('string', true);

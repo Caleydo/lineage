@@ -811,7 +811,7 @@ class GenealogyTree {
 
     const nodes = this.data.nodes;
 
-    const t = transition('t').duration(500).ease(easeLinear);
+    // const t = transition('t').duration(500).ease(easeLinear);
 
     //Separate groups for separate layers
     const familyBarsGroup = select('#genealogyTree').select('#familyBars');
@@ -913,7 +913,7 @@ class GenealogyTree {
     const childParentEdges = this.data.parentChildEdges;
     const parentParentEdges = this.data.parentParentEdges;
 
-    const t = transition('t').duration(500).ease(easeLinear);
+    // const t = transition('t').duration(500).ease(easeLinear);
 
     const edgeGroup = select('#genealogyTree').select('#edges');
 
@@ -996,7 +996,7 @@ class GenealogyTree {
 
   private addHightlightBars() {
 
-    const t = transition('t').duration(500).ease(easeLinear);
+    // const t = transition('t').duration(500).ease(easeLinear);
 
     const highlightBarGroup = select('#genealogyTree').select('#highlightBars');
 
@@ -1284,7 +1284,7 @@ class GenealogyTree {
 
   private addFamilyElements() {
 
-    const t = transition('t').duration(500).ease(easeLinear);
+    // const t = transition('t').duration(500).ease(easeLinear);
 
     const couplesLinesGroup = select('#genealogyTree').select('#nodes');
 
@@ -1369,7 +1369,7 @@ class GenealogyTree {
 
     const nodes = this.data.nodes; //.filter(d=>{return !d.hasChildren && !d.hidden});
 
-    const t = transition('t').duration(500).ease(easeLinear);
+    // const t = transition('t').duration(500).ease(easeLinear);
 
     //Separate groups for separate layers
     const nodeGroup = select('#genealogyTree').select('#nodes');
@@ -1558,7 +1558,7 @@ class GenealogyTree {
 
   private renderNodeGroup(element, d: Node) {
 
-    const t = transition('t').duration(500).ease(easeLinear);
+    // const t = transition('t').duration(500).ease(easeLinear);
 
     element
       .classed('affected', (n: any) => {

@@ -52,12 +52,12 @@ ul.nav.navbar-nav{
   flex:1.5;
 }
 
-.colSummary{
-  cursor:ew-resize;
+.header{
+  cursor: move;;
 }
 
-.header{
-  cursor:context-menu;
+.resizeBar{
+  cursor:ew-resize;
 }
 
 .container-fluid{

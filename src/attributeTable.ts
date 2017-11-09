@@ -847,6 +847,12 @@ class AttributeTable {
         // return (d.type === VALUE_TYPE_CATEGORICAL || d.type === 'dataDensity' || d.name.length>10) ? 'start' : 'middle';
       });
 
+      headers  
+      .on('mouseover',(d)=> this.addTooltip(d))
+      .on('mouseout',(d) => {
+        select('.menu').remove();
+      });
+
 
     //Bind data to the col header summaries
     let colSummaries = select('#colSummaries').selectAll('.colSummary')
@@ -1314,7 +1320,7 @@ class AttributeTable {
 
     // If a sortAttribute has been set, sort by that attribute
     if (this.sortAttribute.state !== sortedState.Unsorted) {
-      this.sortRows(this.sortAttribute.data, this.sortAttribute.state);
+      this.sortRows(this.sortAttribute.data, this.sortAttribute.state,false);
     }
   }
 
@@ -1325,7 +1331,7 @@ class AttributeTable {
    * @param d data to be sorted
    * @param ascending, boolean flag set to true if sort order is ascending
    */
-  private sortRows(d: any, sortOrder:sortedState) {
+  private sortRows(d: any, sortOrder:sortedState,animate:boolean) {
 
     const t2 = transition('t2').duration(600).ease(easeLinear);
 
@@ -1400,7 +1406,7 @@ class AttributeTable {
 
     select('#columns')
       .selectAll('.cell')
-      .transition(t2)
+      // .transition(t2)
       .attr('transform', (cell: any) => {
         return ('translate(0, ' + this.y(this.rowOrder[sortedIndexes.indexOf(cell.ind)]) + ' )'); //the x translation is taken care of by the group this cell is nested in.
       });
@@ -1409,34 +1415,34 @@ class AttributeTable {
 
     //translate tableGroup to make room for the slope lines.
     select('#tableGroup')
-      .transition(t2)
+      // .transition(t2)
       .attr('transform', (cell: any) => {
         return ('translate(' + Config.slopeChartWidth + ' ,0)');
       });
 
 
     select('#headerGroup')
-      .transition(t2)
+      // .transition(t2)
       .attr('transform', (cell: any) => {
         return ('translate(' + (Config.slopeChartWidth)  + ' ,95)');
       });
 
     select('#colSummaries')
-       .transition(t2)
+      //  .transition(t2)
       .attr('transform', (cell: any) => {
         return ('translate(0,15)');
       });
 
 
     selectAll('.slopeLine')
-       .transition(t2)
+      //  .transition(t2)
       .attr('d', (d: any) => {
         return this.slopeChart({y: d.y, ind: sortedIndexes.indexOf(d.ind), width: Config.slopeChartWidth});
       });
 
     select('#tableGroup')
       .selectAll('.highlightBar')
-       .transition(t2)
+      //  .transition(t2)
       .attr('y', (d: any) => {
         return this.y(this.rowOrder[sortedIndexes.indexOf(d.i)]);
       });
@@ -1540,7 +1546,7 @@ class AttributeTable {
         select(this)
           .classed('sortSelected', true);
 
-        self.sortRows(d, self.sortAttribute.state);
+        self.sortRows(d, self.sortAttribute.state,true);
 
       });
 
@@ -1678,14 +1684,14 @@ class AttributeTable {
 
     this.addSortingIcons(element, headerData);
 
+    const self = this;
+
     element.select('.histogram')
       .attr('opacity', 0)
       .attr('width', colWidth)
       .attr('height', summaryScale(numPositiveValues))
       .attr('y', (height - summaryScale(numPositiveValues)))
       .attr('opacity', 1)
-
-
       .attr('fill', () => {
           let attr = this.tableManager.primaryAttribute;
           if (attr && attr.name === headerData.name) {
@@ -1704,7 +1710,11 @@ class AttributeTable {
               }
             }
         }}
-      );
+      )
+      .on('mouseover',(d)=> this.addTooltip(d))
+      .on('mouseout',(d) => {
+        select('.menu').remove();
+      });
 
     element.select('.histogramLabel')
       .attr('opacity', 0)
@@ -1745,8 +1755,8 @@ class AttributeTable {
     .attr('height',height);
 
     element.select('.resizeBar')
-    .attr('x1',colWidth-2)
-    .attr('x2',colWidth-2)
+    .attr('x1',colWidth+this.buffer/2)
+    .attr('x2',colWidth+this.buffer/2)
     .attr('y1',0)
     .attr('y2',height)
     .attr('stroke-width','4px')
@@ -1865,6 +1875,70 @@ class AttributeTable {
   };
 
 
+  private addTooltip(data = null, title = 'Default Title',content = 'Content Here') {
+
+      const container = document.getElementById('app');
+      const coordinates = mouse(container);
+
+      const menuWidth = 200;
+      const menuHeight = 100;
+
+      const menu = select('#tooltipMenu')
+      .append('svg')
+      .attr('class','menu')
+      .attr('width',menuWidth)
+      .attr('height',menuHeight)
+      .attr('opacity',0)
+      .attr('transform','translate(' + (coordinates[0]+10) + ',' + (coordinates[1]-menuHeight/2) + ')')
+      .append('g');
+
+      menu.append('rect')
+      .attr('width',menuWidth)
+      .attr('height',menuHeight)
+      .attr('fill','#f7f7f7')
+      .attr('opacity',1);
+
+      // menu.append('line')
+      // .attr('x1',0)
+      // .attr('x2',0)
+      // .attr('y1',0)
+      // .attr('y2',menuHeight)
+      // .attr('stroke-width','10px')
+      // .attr('stroke','#a5a5a5');
+
+      menu.append('line')
+      .attr('x1',0)
+      .attr('x2',menuWidth)
+      .attr('y1',menuHeight*0.3)
+      .attr('y2',menuHeight*0.3)
+      .attr('y1',0)
+      .attr('y2',0)
+      .attr('stroke-width','5px')
+      .attr('stroke','#e86c37');
+
+
+      menu
+      .append('text')
+      .attr('x', 10)
+      .attr('y', menuHeight*0.2)
+      .text('Attribute: ' + (data.name || 'Default Title'))
+      .classed('tooltipTitle',true);
+
+      menu
+      .append('text')
+      .attr('x', 10)
+      .attr('y', menuHeight*0.4)
+      .text('Content')
+      .classed('tooltipContent',true);
+
+      select('.menu')
+      .transition()
+      .delay(1000)
+      .attr('opacity',1);
+
+      // .attr('fill', '#4e4e4e');
+
+  }
   /**
    *
    * This function renders the content of Categorical Cells in the Table View.

@@ -33,6 +33,7 @@ export class App {
     this.$node.select('#col1').append('div').attr('id', 'data_selection');
     this.$node.select('#col2').append('div').attr('id', 'graph');
     this.$node.select('#col3').append('div').attr('id', 'table');
+    select('#app').append('div').attr('id', 'tooltipMenu');
 
     //Add to header
     // <a class="nav-link" href="#">Link</a>

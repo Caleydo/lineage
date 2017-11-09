@@ -60,8 +60,22 @@ ul.nav.navbar-nav{
   cursor:ew-resize;
 }
 
+.tooltipTitle, .tooltipContent{
+  font-weight:200;
+  fill:#676666;
+}
+
+.tooltipContent{
+  font-size:12px;
+}
+
+
 .container-fluid{
   display:inline-flex;
+}
+
+#tooltipMenu{
+  position: absolute;
 }
 
 // .colSummary{

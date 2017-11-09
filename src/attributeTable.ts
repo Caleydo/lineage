@@ -1327,7 +1327,7 @@ class AttributeTable {
    */
   private sortRows(d: any, sortOrder:sortedState) {
 
-    // const t2 = transition('t2').duration(600).ease(easeLinear);
+    const t2 = transition('t2').duration(600).ease(easeLinear);
 
     //get data from colData array
     const toSort = this.colData.find((c) => {
@@ -1400,7 +1400,7 @@ class AttributeTable {
 
     select('#columns')
       .selectAll('.cell')
-      // .transition(t2)
+      .transition(t2)
       .attr('transform', (cell: any) => {
         return ('translate(0, ' + this.y(this.rowOrder[sortedIndexes.indexOf(cell.ind)]) + ' )'); //the x translation is taken care of by the group this cell is nested in.
       });
@@ -1409,34 +1409,34 @@ class AttributeTable {
 
     //translate tableGroup to make room for the slope lines.
     select('#tableGroup')
-      // .transition(t2)
+      .transition(t2)
       .attr('transform', (cell: any) => {
         return ('translate(' + Config.slopeChartWidth + ' ,0)');
       });
 
 
     select('#headerGroup')
-      // .transition(t2)
+      .transition(t2)
       .attr('transform', (cell: any) => {
         return ('translate(' + (Config.slopeChartWidth)  + ' ,95)');
       });
 
     select('#colSummaries')
-      // .transition(t2)
+       .transition(t2)
       .attr('transform', (cell: any) => {
         return ('translate(0,15)');
       });
 
 
     selectAll('.slopeLine')
-      // .transition(t2)
+       .transition(t2)
       .attr('d', (d: any) => {
         return this.slopeChart({y: d.y, ind: sortedIndexes.indexOf(d.ind), width: Config.slopeChartWidth});
       });
 
     select('#tableGroup')
       .selectAll('.highlightBar')
-      // .transition(t2)
+       .transition(t2)
       .attr('y', (d: any) => {
         return this.y(this.rowOrder[sortedIndexes.indexOf(d.i)]);
       });

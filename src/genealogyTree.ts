@@ -245,8 +245,8 @@ class GenealogyTree {
     // this.width = parentWidth - this.margin.left - this.margin.right;
     this.width = 550;
 
-    this.visibleXAxis = axisBottom(this.x).tickFormat(format('d'));
-    this.extremesXAxis = axisBottom(this.x2);
+    this.visibleXAxis = axisTop(this.x).tickFormat(format('d'));
+    this.extremesXAxis = axisTop(this.x2);
 
     // window.onscroll = (e:any)=>{console.log(e,'user scrolled')}
 
@@ -2321,9 +2321,14 @@ class GenealogyTree {
 
     select('#visible_axis')
       .selectAll('text')
-      .attr('dx', '-.1em')
-      .attr('dy', '.65em');
-      // .attr('transform', 'rotate(-15)');
+      //Offsets for axisBottom
+      // .attr('dx', '-.1em')
+      // .attr('dy', '.65em')
+
+      //Offsets for axisTop
+      .attr('dx', '1.2em')
+      .attr('transform', 'rotate(-15)')
+      .attr('text-anchor','end');
 
   }
 

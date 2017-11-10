@@ -33,12 +33,10 @@ export class App {
     this.$node.select('#col1').append('div').attr('id', 'data_selection');
     this.$node.select('#col2').append('div').attr('id', 'graph');
     this.$node.select('#col3').append('div').attr('id', 'table');
+
+    //Add div for tooltip that sits on top of all other divs.
     select('#app').append('div').attr('id', 'tooltipMenu');
 
-    //Add to header
-    // <a class="nav-link" href="#">Link</a>
-    // this.$node.append('div').attr('id', 'data_selection');
-    // this.$node.append('div').attr('id', 'graph_table');
   }
 
   /**
@@ -64,15 +62,22 @@ export class App {
 
     /** =====  PUBLIC CASE ===== */
 
-    await tableManager.loadData('TenFamiliesDescendAnon', 'TenFamiliesAttrAnon');
-    // await tableManager.loadData('TwoFamiliesDescendAnon', 'TwoFamiliesAttrAnon');
+    // await tableManager.loadData('TenFamiliesDescendAnon', 'TenFamiliesAttrAnon');
+       //await tableManager.loadData('TwoFamiliesDescendAnon', 'TwoFamiliesAttrAnon');
 
 
 
     /** =====  PRIVATE CASES - WORKS ONLY WITH THE RIGHT DATA LOCALLY ===== */
 
      //await tableManager.loadData('TenFamiliesDescend', 'TenFamiliesAttr');
-    // await tableManager.loadData('AllFamiliesDescend', 'AllFamiliesAttributes');
+     console.log('before')
+     await tableManager.loadData('AllFamiliesDescend', 'AllFamiliesAttributes');
+
+    //await tableManager.loadData('TenFamiliesDescend', 'TenFamiliesAttr');
+   
+    //await tableManager.loadData('FiftyFamiliesDescendAnon', 'FiftyFamiliesAttributes');
+
+     console.log('here')
     /** ============= */
 
     const attributePanel = panel.create(this.$node.select('#data_selection').node());

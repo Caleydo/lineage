@@ -78,6 +78,23 @@ ul.nav.navbar-nav{
   position: absolute;
 }
 
+#data_selection {
+  // resize: horizontal;
+  overflow: scroll;
+  height:100vh;
+}
+
+#tableBody{
+  height: 1200px;
+  overflow-y: scroll;
+}
+
+// tbody{
+//   display: block;
+//   height: 300px;
+//   overflow-y:scroll;
+// }
+
 // .colSummary{
 //   cursor: context-menu;
 // }

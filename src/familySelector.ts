@@ -87,8 +87,8 @@ class FamilySelector {
 
 
 
-    const table = select('#familySelector').append('table').attr('class','table');
-      // .classed('fixed_headers', true);
+    
+      //  .classed('fixed_headers', true);
 
       select('#collapseTableButton')
       .on('click',() => {
@@ -103,8 +103,11 @@ class FamilySelector {
         }
     });
 
+    const table = select('#familySelector').append('div').append('table').attr('class','table');
     const thead = table.append('thead');
-    const tbody = table.append('tbody');
+
+
+    const tbody = select('#familySelector').append('div').attr('id','tableBody').append('table').attr('class','table').append('tbody');
 
     const self = this;
 
@@ -295,7 +298,7 @@ class FamilySelector {
   }
 
   private loadFamily () {
-    console.log('called')
+    console.log('called');
             this.tableManager.selectFamily(this.selectedFamilyIds);
         }
     

@@ -848,7 +848,7 @@ class AttributeTable {
       });
 
       headers  
-      .on('mouseover',(d)=> this.addTooltip(d))
+      .on('mouseover',(d)=> this.addTooltip('header',d))
       .on('mouseout',(d) => {
         select('.menu').remove();
       });
@@ -869,14 +869,16 @@ class AttributeTable {
     colSummariesEnter
     .append('rect')
     .attr('class','backgroundRect')
+    .attr('x',-5)
+    .attr('y',-11)
     .on('mouseover',function(d) {
-      select(this).style('fill','#e9e9e9');
+      select(this).classed('hoverRect',true);
       selectAll('.resizeBar')
       .filter((dd)=> {return dd === d;})
       .attr('stroke','#909090');
     })
     .on('mouseout',function(d) {
-      select(this).style('fill','white');
+      selectAll('.hoverRect').classed('hoverRect',false);
       selectAll('.resizeBar')
       .attr('stroke','white');
     });
@@ -888,12 +890,15 @@ class AttributeTable {
       select(this).attr('stroke','#909090');
       selectAll('.backgroundRect')
       .filter((dd)=> {return dd === d;})
-      .style('fill','#e9e9e9');
+      .classed('hoverRect',true)
+      // .style('fill','#e9e9e9');
     })
     .on('mouseout',function(d) {
       select(this).attr('stroke','white');
-      selectAll('.backgroundRect').style('fill','white');
+      selectAll('.backgroundRect')
+      .classed('.hoverRect',false);
     });
+
     
     const resizeStarted = (d,i)=> {
     };
@@ -911,7 +916,7 @@ class AttributeTable {
 
       selectAll('.backgroundRect')
       .filter((dd)=> {return dd === d;})
-      .style('fill','#e9e9e9');
+      .classed('hoverRect',true);
       
 
     };
@@ -919,8 +924,9 @@ class AttributeTable {
            selectAll('.resizeBar')
       .attr('stroke','white');
 
-      selectAll('.backgroundRect')
-      .style('fill','white');
+      selectAll('.hoverRect')
+      .classed('hoverRect',false);
+     
     };
     
 
@@ -968,6 +974,8 @@ class AttributeTable {
     let offset, titleOffset, titleTransform, currIndex,currPos;
 
         const dragstarted = (d,i)=> {
+
+          console.log(d,i);
           selectAll('.colSummary').attr('opacity',.3);
           selectAll('.dataCols').attr('opacity',.3);
           select('#'+d.name.replace(/\./g, '\\.') + '_summary').attr('opacity',1);
@@ -1047,6 +1055,12 @@ class AttributeTable {
         .on('drag', dragged)
         .on('end', dragended));
 
+        selectAll('.backgroundRect')
+        .call(drag()
+        .on('start', dragstarted)
+        .on('drag', dragged)
+        .on('end', dragended));
+
     colSummaries.each(function (cell) {
       if (cell.type === VALUE_TYPE_CATEGORICAL) {
         self.renderCategoricalHeader(select(this), cell);
@@ -1069,7 +1083,7 @@ class AttributeTable {
 
 
     //create backgroundHighlight Bars
-    let highlightBars = select('#columns').selectAll('.highlightBar')
+    let highlightBars = this.$node.select('#highlightBars').selectAll('.highlightBar')
       .data(this.rowOrder.map((d, i) => {
         return {'y': d, 'i': i};
       }), (d: any) => {
@@ -1579,13 +1593,13 @@ class AttributeTable {
     const height = this.headerHeight;
 
     element.select('.backgroundRect')
-    .attr('width',colWidth)
-    .attr('height',height);
+    .attr('width',colWidth+10)
+    .attr('height',height+11);
 
     element.select('.resizeBar')
-    .attr('x1',colWidth-2)
-    .attr('x2',colWidth-2)
-    .attr('y1',0)
+    .attr('x1',colWidth+this.buffer/2)
+    .attr('x2',colWidth+this.buffer/2)
+    .attr('y1',-11)
     .attr('y2',height)
     .attr('stroke-width','4px')
     .attr('stroke','white');
@@ -1616,13 +1630,13 @@ class AttributeTable {
     const height = this.headerHeight;
 
     element.select('.backgroundRect')
-    .attr('width',colWidth)
-    .attr('height',height);
+    .attr('width',colWidth+10)
+    .attr('height',height+11);
 
     element.select('.resizeBar')
-    .attr('x1',colWidth-2)
-    .attr('x2',colWidth-2)
-    .attr('y1',0)
+    .attr('x1',colWidth+this.buffer/2)
+    .attr('x2',colWidth+this.buffer/2)
+    .attr('y1',-11)
     .attr('y2',height)
     .attr('stroke-width','4px')
     .attr('stroke','white');
@@ -1651,8 +1665,8 @@ class AttributeTable {
     const height = this.headerHeight;
 
     element.select('.backgroundRect')
-    .attr('width',colWidth)
-    .attr('height',height);
+    .attr('width',colWidth+10)
+    .attr('height',height+11);
 
     const numPositiveValues = headerData.data.map((singleRow) => {
       return singleRow.reduce((a, v) => {
@@ -1711,7 +1725,7 @@ class AttributeTable {
             }
         }}
       )
-      .on('mouseover',(d)=> this.addTooltip(d))
+      .on('mouseover',(d)=> this.addTooltip('header',d))
       .on('mouseout',(d) => {
         select('.menu').remove();
       });
@@ -1751,13 +1765,13 @@ class AttributeTable {
     const height = this.headerHeight;
 
     element.select('.backgroundRect')
-    .attr('width',colWidth)
-    .attr('height',height);
+    .attr('width',colWidth+10)
+    .attr('height',height+11);
 
     element.select('.resizeBar')
     .attr('x1',colWidth+this.buffer/2)
     .attr('x2',colWidth+this.buffer/2)
-    .attr('y1',0)
+    .attr('y1',-11)
     .attr('y2',height)
     .attr('stroke-width','4px')
     .attr('stroke','white');
@@ -1868,43 +1882,69 @@ class AttributeTable {
       .text('Total:' + total)
 
       .attr('x', colWidth / 2)
-      .attr('y', -height * 0.1)
+      .attr('y', -height * 0.08)
       .attr('text-anchor', 'middle');
 
 
   };
 
 
-  private addTooltip(data = null, title = 'Default Title',content = 'Content Here') {
+  private addTooltip(type,data = null) {
 
       const container = document.getElementById('app');
       const coordinates = mouse(container);
 
-      const menuWidth = 200;
-      const menuHeight = 100;
+
+      let content;
+      if (type === 'cell') {
+        if (data.type === 'categorical') {
+          content = data.name + ' : ' + data.data;
+        } else if (data.type === 'int') {
+          content = data.name + ' : ' + data.data;
+        } else { //data.type === 'string'
+          // content = data.name + ' : ' + data.data;
+        }
+      } else if (type === 'header') {
+        content = (data.type === 'categorical' ? (data.name + '(' + data.category + ') ') : data.name);
+      }; 
+
+
+      let menuWidth = 10; //dummy value. to be updated;
+      const menuHeight = 30;
+
+      console.log(content,content.length,menuWidth)
 
       const menu = select('#tooltipMenu')
       .append('svg')
       .attr('class','menu')
-      .attr('width',menuWidth)
       .attr('height',menuHeight)
       .attr('opacity',0)
       .attr('transform','translate(' + (coordinates[0]+10) + ',' + (coordinates[1]-menuHeight/2) + ')')
       .append('g');
 
+
       menu.append('rect')
-      .attr('width',menuWidth)
-      .attr('height',menuHeight)
       .attr('fill','#f7f7f7')
+      .attr('height',menuHeight)
       .attr('opacity',1);
 
-      // menu.append('line')
-      // .attr('x1',0)
-      // .attr('x2',0)
-      // .attr('y1',0)
-      // .attr('y2',menuHeight)
-      // .attr('stroke-width','10px')
-      // .attr('stroke','#a5a5a5');
+      menu
+      .append('text')
+      .attr('x', 10)
+      .attr('y', 20)
+      .text(()=> content)
+      .classed('tooltipTitle',true);
+
+      const textNode = <SVGTSpanElement>menu.select('text').node();
+      
+      menuWidth = textNode.getComputedTextLength() + 20;
+
+      select('#tooltipMenu')
+      .attr('width',menuWidth);
+
+      select('#tooltipMenu')
+      .select('rect')
+      .attr('width',menuWidth);
 
       menu.append('line')
       .attr('x1',0)
@@ -1917,23 +1957,18 @@ class AttributeTable {
       .attr('stroke','#e86c37');
 
 
-      menu
-      .append('text')
-      .attr('x', 10)
-      .attr('y', menuHeight*0.2)
-      .text('Attribute: ' + (data.name || 'Default Title'))
-      .classed('tooltipTitle',true);
+      
 
-      menu
-      .append('text')
-      .attr('x', 10)
-      .attr('y', menuHeight*0.4)
-      .text('Content')
-      .classed('tooltipContent',true);
+      // menu
+      // .append('text')
+      // .attr('x', 10)
+      // .attr('y', menuHeight*0.4)
+      // .text('Content')
+      // .classed('tooltipContent',true);
 
       select('.menu')
       .transition()
-      .delay(1000)
+      .delay(500)
       .attr('opacity',1);
 
       // .attr('fill', '#4e4e4e');
@@ -1987,10 +2022,18 @@ class AttributeTable {
     if (element.selectAll('.categorical').size() === 0) {
       element
         .append('rect')
-        .classed('frame', true);
+        .classed('frame', true)
+        .on('mouseover',(d)=> {this.addTooltip('cell',cellData);})
+        .on('mouseout',() => {
+          select('.menu').remove();
+        });
 
       element.append('rect')
-        .classed(VALUE_TYPE_CATEGORICAL, true);
+        .classed(VALUE_TYPE_CATEGORICAL, true)
+        .on('mouseover',(d)=> {this.addTooltip('cell',cellData);})
+        .on('mouseout',() => {
+          select('.menu').remove();
+        });
     }
 
     this.yScale
@@ -2194,9 +2237,11 @@ class AttributeTable {
       .attr('width', (d) => {
         return colWidth;
       })
-      .attr('height', rowHeight);
-    // .attr('stroke', 'black')
-    // .attr('stoke-width', 1);
+      .attr('height', rowHeight)
+      .on('mouseover',(d)=> {this.addTooltip('cell',cellData);})
+      .on('mouseout',() => {
+        select('.menu').remove();
+      });
 
     element.selectAll('.quant_ellipse').remove(); //Hack. don't know why ellipsis.exit().remove() isn' removing the extra ones.
 

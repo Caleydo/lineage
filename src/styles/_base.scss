@@ -84,6 +84,11 @@ ul.nav.navbar-nav{
 
 .backgroundRect{
   fill:white;
+  cursor: move;
+}
+
+.backgroundRect.hoverRect{
+  fill:#ececec;
 }
 
 #loading{

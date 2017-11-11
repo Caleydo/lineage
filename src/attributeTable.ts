@@ -460,7 +460,6 @@ class AttributeTable {
     select('.tableSVG').attr('height', this.height);
     select('.tableSVG').attr('width', this.tableManager.colOrder.length*100);
 
-    console.log(this.height);
     this.y.range([0, this.height*.8]).domain([1, max(allRows)]);
     this.rowOrder = allRows; //will be used to set the y position of each cell/row;
 
@@ -560,25 +559,36 @@ class AttributeTable {
         //   this.colOffsets[numColsBefore] += this.catOffset;
         // }
 
+        // console.log('about to call cat of categories');
         for (const cat of categories) {
 
           const col: any = {};
           col.isSorted = false;
           col.ids = allRows.map((row) => {
-            return y2personDict[row];
+            return y2personDict[row].filter(function (value, index, self) {
+              return self.indexOf(value) === index;
+            });
           });
 
           col.name = name;
           col.category = cat;
 
+          // console.log('about to call allRows.map()');
           //Ensure there is an element for every person in the graph, even if empty
           col.data = allRows.map((row) => {
             const colData = [];
-            const people = y2personDict[row];
+            //Only return unique personIDs. 
+            //TODO find out why there are multiple instances of a person id.
+            const people = y2personDict[row].filter(function (value, index, self) {
+              return self.indexOf(value) === index;
+            });
+            // console.log(people);
+            // console.log('about to call people.map()');
             people.map((person) => {
               const ind = peopleIDs.indexOf(person); //find this person in the attribute data
               //If there are only two categories, save both category values in this column. Else, only save the ones that match the category at hand.
               if (ind > -1 && (allCategories.length < 3 || ind > -1 && (allCategories.length > 2 && data[ind] === cat))) {
+                // console.log('person:',person, 'value:',data[ind])
                 colData.push(data[ind]);
               } else {
                 colData.push(undefined);
@@ -605,14 +615,16 @@ class AttributeTable {
 
       } else if (type === VALUE_TYPE_INT || type === VALUE_TYPE_REAL) { //quant
 
-        const maxOffset = max(this.colOffsets);
-        this.colOffsets.push(maxOffset + this.buffer + this.colWidths[type]);
+        // const maxOffset = max(this.colOffsets);
+        // this.colOffsets.push(maxOffset + this.buffer + this.colWidths[type]);
 
 
         const col: any = {};
         col.isSorted = false;
         col.ids = allRows.map((row) => {
-          return y2personDict[row];
+          return y2personDict[row].filter(function (value, index, self) {
+            return self.indexOf(value) === index;
+          });
         });
 
         // const stats = await vector.stats();
@@ -620,7 +632,9 @@ class AttributeTable {
         col.name = name;
         col.data = allRows.map((row) => {
           const colData = [];
-          const people = y2personDict[row];
+          const people = y2personDict[row].filter(function (value, index, self) {
+            return self.indexOf(value) === index;
+          });
           people.map((person) => {
             const ind = peopleIDs.lastIndexOf(person); //find this person in the attribute data
             if (ind > -1) {
@@ -641,8 +655,8 @@ class AttributeTable {
         colDataAccum.push(col);
       } else if (type === VALUE_TYPE_STRING) {
 
-        const maxOffset = max(this.colOffsets);
-        this.colOffsets.push(maxOffset + this.buffer + this.colWidths[type]);
+        // const maxOffset = max(this.colOffsets);
+        // this.colOffsets.push(maxOffset + this.buffer + this.colWidths[type]);
 
         const col: any = {};
         col.isSorted = false;
@@ -654,7 +668,9 @@ class AttributeTable {
 
         col.data = allRows.map((row) => {
           const colData = [];
-          const people = y2personDict[row];
+          const people = y2personDict[row].filter(function (value, index, self) {
+            return self.indexOf(value) === index;
+          });
           people.map((person) => {
             const ind = peopleIDs.lastIndexOf(person); //find this person in the attribute data
             if (ind > -1) {
@@ -671,14 +687,18 @@ class AttributeTable {
 
         const col: any = {};
         col.ids = allRows.map((row) => {
-          return y2personDict[row];
+          return y2personDict[row].filter(function (value, index, self) {
+            return self.indexOf(value) === index;
+          });
         });
 
         col.name = name;
 
         col.data = allRows.map((row) => {
           const colData = [];
-          const people = y2personDict[row];
+          const people = y2personDict[row].filter(function (value, index, self) {
+            return self.indexOf(value) === index;
+          });
           people.map((person) => {
             // console.log(data,person)
             const ind = peopleIDs.indexOf(person); //find this person in the attribute data
@@ -699,14 +719,14 @@ class AttributeTable {
         colDataAccum.push(col);
 
 
-        const maxOffset = max(this.colOffsets);
+        // const maxOffset = max(this.colOffsets);
 
         // if (name === 'KindredID'){
         //   console.log(col.data[0], 'length', col.data[0].length)
         //   this.colOffsets.push(maxOffset + this.buffer +  col.data[0][0].length*7);
         //
         // }else{
-        this.colOffsets.push(maxOffset + this.buffer + this.colWidths[type]);
+        // this.colOffsets.push(maxOffset + this.buffer + this.colWidths[type]);
         // }
 
 
@@ -975,7 +995,6 @@ class AttributeTable {
 
         const dragstarted = (d,i)=> {
 
-          console.log(d,i);
           selectAll('.colSummary').attr('opacity',.3);
           selectAll('.dataCols').attr('opacity',.3);
           select('#'+d.name.replace(/\./g, '\\.') + '_summary').attr('opacity',1);
@@ -1349,6 +1368,10 @@ class AttributeTable {
 
     const t2 = transition('t2').duration(600).ease(easeLinear);
 
+    //Wrapper for 'animated sorting'
+    const animated = animate? (d) => d.transition(t2) : (d) => d;
+    
+
     //get data from colData array
     const toSort = this.colData.find((c) => {
       return c.name === d.name;
@@ -1418,8 +1441,8 @@ class AttributeTable {
 
     // let cellSelection = select('#columns').selectAll('.cell');
 
-    select('#columns')
-      .selectAll('.cell')
+   
+    animated(select('#columns').selectAll('.cell'))
       // .transition(t2)
       .attr('transform', (cell: any) => {
         return ('translate(0, ' + this.y(this.rowOrder[sortedIndexes.indexOf(cell.ind)]) + ' )'); //the x translation is taken care of by the group this cell is nested in.
@@ -1428,33 +1451,33 @@ class AttributeTable {
     d.ind = sortedIndexes.indexOf(d.ind);
 
     //translate tableGroup to make room for the slope lines.
-    select('#tableGroup')
+    animated(select('#tableGroup'))
       // .transition(t2)
       .attr('transform', (cell: any) => {
         return ('translate(' + Config.slopeChartWidth + ' ,0)');
       });
 
 
-    select('#headerGroup')
+    animated(select('#headerGroup'))
       // .transition(t2)
       .attr('transform', (cell: any) => {
         return ('translate(' + (Config.slopeChartWidth)  + ' ,95)');
       });
 
-    select('#colSummaries')
+    animated(select('#colSummaries'))
       //  .transition(t2)
       .attr('transform', (cell: any) => {
         return ('translate(0,15)');
       });
 
 
-    selectAll('.slopeLine')
+    animated(selectAll('.slopeLine'))
       //  .transition(t2)
       .attr('d', (d: any) => {
         return this.slopeChart({y: d.y, ind: sortedIndexes.indexOf(d.ind), width: Config.slopeChartWidth});
       });
 
-    select('#tableGroup')
+    animated(select('#tableGroup'))
       .selectAll('.highlightBar')
       //  .transition(t2)
       .attr('y', (d: any) => {
@@ -1572,7 +1595,6 @@ class AttributeTable {
         selectAll('.dropdown-item').filter((item:any)=> {console.log(item); return item === d.name;})
         .classed('active',false);
         events.fire(COL_ORDER_CHANGED_EVENT);
-        console.log('clicked on ', d); 
       });
 
 
@@ -1894,25 +1916,43 @@ class AttributeTable {
       const container = document.getElementById('app');
       const coordinates = mouse(container);
 
+      console.log(data);
 
       let content;
       if (type === 'cell') {
         if (data.type === 'categorical') {
-          content = data.name + ' : ' + data.data;
+
+          content = data.name + ' : ';
+          const categories = data.data.filter(function (value, index, self) {
+            return self.indexOf(value) === index;
+          });
+          categories.map((category)=> {
+            const count = data.data.reduce(function(accumulator, currentValue) {
+              return currentValue === category ? accumulator+1 : accumulator;
+          },0);
+            content = content.concat( (categories.length >1 ? count : '')+ category + '  ');
+
+          });
+          
         } else if (data.type === 'int') {
-          content = data.name + ' : ' + data.data;
+          // if (data.data.length>1) {
+            content = data.name + ' : ' + data.data.sort((a,b)=> {return (a-b);}); //display sorted values
+          // } else {
+
+          // }  
         } else { //data.type === 'string'
-          // content = data.name + ' : ' + data.data;
+             content = data.name + ' : ' + data.data[0].toLowerCase();
         }
       } else if (type === 'header') {
         content = (data.type === 'categorical' ? (data.name + '(' + data.category + ') ') : data.name);
       }; 
 
+      console.log('content:', content);
+
 
       let menuWidth = 10; //dummy value. to be updated;
       const menuHeight = 30;
 
-      console.log(content,content.length,menuWidth)
 
       const menu = select('#tooltipMenu')
       .append('svg')
@@ -1944,6 +1984,10 @@ class AttributeTable {
 
       select('#tooltipMenu')
       .select('rect')
+      .attr('width',menuWidth);
+
+      select('#tooltipMenu')
+      .select('svg')
       .attr('width',menuWidth);
 
       menu.append('line')
@@ -2356,29 +2400,31 @@ class AttributeTable {
 
     //set Hover to show entire text
     element
-      .on('mouseover', function (d) {
-        select(this).select('.string')
-          .text(() => {
-            if (d.data.length === 1) {
-              return d.data[0].toLowerCase();
-            } else {
-              return 'Multiple';
-            }
+    .on('mouseover',()=> this.addTooltip('cell',cellData))
+    .on('mouseout',()=> select('#tooltipMenu').select('.menu').remove() );
+      // .on('mouseover', function (d) {
+      //   select(this).select('.string')
+      //     .text(() => {
+      //       if (d.data.length === 1) {
+      //         return d.data[0].toLowerCase();
+      //       } else {
+      //         return 'Multiple';
+      //       }
 
-          });
-      })
-      .on('mouseout', function (d) {
-        let textLabel = cellData.data[0].toLowerCase().slice(0, 12);
+      //     });
+      // })
+      // .on('mouseout', function (d) {
+      //   let textLabel = cellData.data[0].toLowerCase().slice(0, 12);
 
-        if (cellData.data[0].length > 12) {
-          textLabel = textLabel.concat(['...']);
-        }
+      //   if (cellData.data[0].length > 12) {
+      //     textLabel = textLabel.concat(['...']);
+      //   }
 
-        if (numValues > 1) { //aggregate Row
-          textLabel = '...';
-        }
-        select(this).select('.string').text(textLabel);
-      });
+      //   if (numValues > 1) { //aggregate Row
+      //     textLabel = '...';
+      //   }
+      //   select(this).select('.string').text(textLabel);
+      // });
   }
 
 

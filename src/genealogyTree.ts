@@ -425,6 +425,7 @@ class GenealogyTree {
 
     //Add scroll listener for the graph table div
     document.getElementById('graph').addEventListener('scroll', () => {
+     
       this.update_time_axis();
       /* clear the old timeout */
       clearTimeout(this.timer);
@@ -2216,6 +2217,8 @@ class GenealogyTree {
   }
 
   private update_time_axis() {
+
+    select('#treeMenu').select('.menu').remove();
 
     const width = this.width - this.margin.left - this.margin.right;
 

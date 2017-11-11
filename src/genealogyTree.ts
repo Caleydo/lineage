@@ -829,14 +829,15 @@ class GenealogyTree {
 
     const familyArray = new Array();
 
-    console.log(familyDict);
-
-    let maxY = 1;
     for (const key in familyDict) {
       if (familyDict.hasOwnProperty(key)) {
-         // // maxY = max([maxY, max(familyDict[key])])
-         familyArray.push({'id':key,'min':max([maxY, +min(familyDict[key])])+1, 'max':max(familyDict[key])});
-         maxY = Math.max(maxY,+max(familyDict[key]));
+        //reduce indexes to sequence of continuous values.
+        const sortedIndexes = familyDict[key].sort((a,b)=> {return (b-a);});
+        const min = sortedIndexes.reduce(function(accumulator, currentValue) {
+          return accumulator-currentValue <= 1 ? currentValue : accumulator;
+      });
+
+      familyArray.push({'id':key,'min':min, 'max':max(familyDict[key])});
      }
     }
 
@@ -850,11 +851,13 @@ class GenealogyTree {
         return d.id;
       });
 
+      console.log(familyArray)
+
     allFamilyBars.exit().remove();
 
     const allFamilyBarsEnter = allFamilyBars
       .enter()
-      .append('rect')
+      .append('line')
       .classed('familyBar',true);
 
 
@@ -864,12 +867,15 @@ class GenealogyTree {
     allFamilyBars = allFamilyBarsEnter.merge(allFamilyBars);
 
     allFamilyBars
-    .attr('x',-15)
-    .attr('y',(d)=> {return this.y(Math.round(d.min));})
-    .attr('width',25)
-    .attr('height',(d)=> {return this.y(Math.round(d.max)) - this.y(Math.round(d.min));})
-    .attr('opacity',.4)
-    .attr('fill',(d,i)=> {console.log(d); return d.id === '42623' ? this.colorScale[1] : this.colorScale[0];});
+    .attr('x1',-15)
+    .attr('x2',-15)
+    .attr('y1',(d)=> {return (this.y(d.min)-5)}) //add buffer between bars;
+    .attr('y2',(d)=> {return this.y(d.max);})
+    // .attr('y',(d)=> {return this.y(Math.round(d.min));})
+    // .attr('height',(d)=> {console.log('d.max is ', d.max, 'this.y(d.max):', this.y(d.max), 'd.min',d.min, 'this.y(d.min)', this.y(d.min), 'height',(this.y(d.max)-this.y(d.min))); return Math.abs(this.y(d.max)-this.y(d.min));})
+    .attr('opacity',.4);
+
+    // .attr('fill',(d,i)=> {console.log(d); return d.id === '42623' ? this.colorScale[1] : this.colorScale[0];});
 
     let allFamilyLabels = familyBarsGroup.selectAll('.familyLabel')
       .data(familyArray, function (d: Node) {
@@ -888,8 +894,8 @@ class GenealogyTree {
     allFamilyLabels = allFamilyLabelsEnter.merge(allFamilyLabels);
 
     allFamilyLabels
-    .attr('x',-10)
-    .attr('y',(d)=> {return this.y(Math.round(d.max))+23;})
+    .attr('x',-20)
+    .attr('y',(d)=> {return this.y(Math.round(d.max));})
     .text((d)=> {return 'Family ' + d.id;})
     // .attr("font-family", "sans-serif")
     .attr('font-size', '20px')

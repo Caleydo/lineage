@@ -850,7 +850,7 @@ class AttributeTable {
       headers  
       .on('mouseover',(d)=> this.addTooltip('header',d))
       .on('mouseout',(d) => {
-        select('.menu').remove();
+        select('#tooltipMenu').select('.menu').remove();
       });
 
 
@@ -1727,7 +1727,7 @@ class AttributeTable {
       )
       .on('mouseover',(d)=> this.addTooltip('header',d))
       .on('mouseout',(d) => {
-        select('.menu').remove();
+        select('#tooltipMenu').select('.menu').remove();
       });
 
     element.select('.histogramLabel')
@@ -2025,14 +2025,14 @@ class AttributeTable {
         .classed('frame', true)
         .on('mouseover',(d)=> {this.addTooltip('cell',cellData);})
         .on('mouseout',() => {
-          select('.menu').remove();
+          select('#tooltipMenu').select('.menu').remove();
         });
 
       element.append('rect')
         .classed(VALUE_TYPE_CATEGORICAL, true)
         .on('mouseover',(d)=> {this.addTooltip('cell',cellData);})
         .on('mouseout',() => {
-          select('.menu').remove();
+          select('#tooltipMenu').select('.menu').remove();
         });
     }
 
@@ -2240,7 +2240,7 @@ class AttributeTable {
       .attr('height', rowHeight)
       .on('mouseover',(d)=> {this.addTooltip('cell',cellData);})
       .on('mouseout',() => {
-        select('.menu').remove();
+        select('#tooltipMenu').select('.menu').remove();
       });
 
     element.selectAll('.quant_ellipse').remove(); //Hack. don't know why ellipsis.exit().remove() isn' removing the extra ones.

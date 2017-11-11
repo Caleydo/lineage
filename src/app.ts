@@ -36,6 +36,7 @@ export class App {
 
     //Add div for tooltip that sits on top of all other divs.
     select('#app').append('div').attr('id', 'tooltipMenu');
+    select('#app').append('div').attr('id', 'treeMenu');
 
   }
 

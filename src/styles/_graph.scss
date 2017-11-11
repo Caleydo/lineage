@@ -64,17 +64,30 @@ rect.poi{
 
 .sortIcon,.icon {
   fill:#b5b7b7;
-  font-family:FontAwesome;
+  // font-family:FontAwesome;
   text-anchor: middle;
   cursor:default !important;
 }
 
 .icon{
   font-size: 13px;
+  font-family:FontAwesome;
+}
+
+.label{
+  cursor:pointer;
 }
 
 .sortIcon.icon{
   font-size: 17px;
+}
+
+#treeMenu rect{
+  fill:#909090;
+}
+
+#treeMenu text{
+  fill:white;
 }
 
 

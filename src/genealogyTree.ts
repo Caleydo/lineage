@@ -1231,6 +1231,15 @@ class GenealogyTree {
     if (n.affected && !isUndefined(n.spouse.find((s:Node)=> {return !s.aggregated && !s.affected;}))) {
       return undefined;
     }
+
+    //return undefined for couples without a kid grid
+     if (n.hasChildren && n.children.reduce(function(accumulator, currentValue) {
+      return (currentValue.hasChildren || currentValue.affected) && accumulator;
+    },true)) {
+      console.log('found one');
+      return undefined;
+    }
+
     const parents = [n].concat(n.spouse);
 
     if (isUndefined(parents.find((p:Node)=> {return p.hidden;})) && isUndefined(n.children.find((p:Node)=> {return p.hidden;}))) {
@@ -1312,8 +1321,8 @@ class GenealogyTree {
     const couplesLinesEnter = couplesLines
       .enter()
       .append('line')
-      .attr('class', 'couplesLine')
-      .attr('visibility', 'hidden');
+      .attr('class', 'couplesLine');
+      // .attr('visibility', 'hidden');
 
     couplesLines = couplesLinesEnter.merge(couplesLines);
 

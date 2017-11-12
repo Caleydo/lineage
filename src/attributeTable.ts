@@ -407,7 +407,7 @@ class AttributeTable {
   private updateSlopeLines(animate = false) {
 
     const animated = animate? (d) => d.transition(this.t2) : (d) => d;
-    
+
     const divHeight = document.getElementById('graphDiv').clientHeight;
     const scrollOffset = document.getElementById('graphDiv').scrollTop;
 
@@ -1485,7 +1485,7 @@ class AttributeTable {
   private sortRows(d: any, sortOrder:sortedState,animate:boolean) {
 
     const animated = animate? (d) => d.transition(this.t2) : (d) => d;
-  
+
 
     //get data from colData array
     const toSort = this.colData.find((c) => {

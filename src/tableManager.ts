@@ -515,7 +515,7 @@ export default class TableManager {
 
     events.fire(FAMILY_SELECTED_EVENT);
 
-    
+
 
   }
 
@@ -537,7 +537,7 @@ export default class TableManager {
     const uniqueFamilyIDs = Array.from(new Set(familyIDs));
 
     uniqueFamilyIDs.forEach((id, index) => {
-      
+
       //Return people that are in this family and are affected
       // const affected = familyIDs.filter((d, i) => {
       //   //find person in attribute id;

@@ -425,7 +425,7 @@ class GenealogyTree {
 
     //Add scroll listener for the graph table div
     document.getElementById('graph').addEventListener('scroll', () => {
-     
+
       this.update_time_axis();
       /* clear the old timeout */
       clearTimeout(this.timer);
@@ -1726,7 +1726,7 @@ class GenealogyTree {
 
           select('#treeMenu').select('.menu').remove();
 
-          
+
 
         //   select('#nodeActions').attr('visibility', 'visible');
 
@@ -2558,7 +2558,7 @@ class GenealogyTree {
 
           menuItemsEnter.append('text').classed('icon',true);
           menuItemsEnter.append('text').classed('label',true);
-          
+
           menuItems = menuItemsEnter.merge(menuItems);
 
           menuItems

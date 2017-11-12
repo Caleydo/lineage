@@ -87,7 +87,7 @@ class FamilySelector {
 
 
 
-    
+
       //  .classed('fixed_headers', true);
 
       select('#collapseTableButton')
@@ -261,7 +261,7 @@ class FamilySelector {
       })
       .style('text-align', 'center');
 
-     
+
     selectAll('td').on('click', (d:any)=> {
       //'Unselect all other families if ctrl was not pressed
       if (!event.metaKey) {
@@ -301,7 +301,7 @@ class FamilySelector {
     console.log('called');
             this.tableManager.selectFamily(this.selectedFamilyIds);
         }
-    
+
 private lazyLoad = _.debounce(this.loadFamily, 300,true);
 
 

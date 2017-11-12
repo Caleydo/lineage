@@ -116,7 +116,7 @@ class AttributePanel {
     .attr('id','collapseTableButton');
 
 
- 
+
 
     const familySelector = this.$node.append('div')
       .attr('id', 'familySelector');

@@ -1181,9 +1181,7 @@ class GenealogyTree {
     selectAll('.highlightBar')
       .on('mouseover',highlightRows)
       .on('mouseout', clearHighlights)
-      .on('click', (d: any) => {
-
-        console.log('clicked');
+      .on('click', (d: any,i) => {
         if (event.defaultPrevented) {return;} // dragged
 
         const wasSelected = selectAll('.highlightBar').filter((e: any) => {
@@ -1695,6 +1693,8 @@ class GenealogyTree {
 
     element.selectAll('.nodeIcon')
       .on('click', (d:Node) => {
+
+        console.log(d);
         event.stopPropagation();
 
         selectAll('.nodeIcon').classed('hover', false);
@@ -2217,8 +2217,6 @@ class GenealogyTree {
   }
 
   private update_time_axis() {
-
-    select('#treeMenu').select('.menu').remove();
 
     const width = this.width - this.margin.left - this.margin.right;
 

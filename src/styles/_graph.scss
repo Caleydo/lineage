@@ -64,15 +64,17 @@ rect.poi{
 
 .sortIcon,.icon {
   fill:#b5b7b7;
-  // font-family:FontAwesome;
   text-anchor: middle;
   cursor:default !important;
+  
 }
 
-.icon{
+.icon,{
   font-size: 13px;
   font-family:FontAwesome;
 }
+
+
 
 .label{
   cursor:pointer;
@@ -89,6 +91,10 @@ rect.poi{
 #treeMenu text{
   fill:white;
 }
+
+// .slopeLine.test{
+//   opacity: .1;
+// }
 
 
 
@@ -485,6 +491,14 @@ rect.selected{
   font-size: 14px;
 }
 
+.slopeIcon{
+  font-family: FontAwesome;
+  font-size:15px;
+  fill:#959595;
+  text-anchor:start;
+  cursor:pointer;
+}
+
 
 
 .collapsed .nodeLine{
@@ -566,7 +580,7 @@ visibility:hidden;
 .slopeLine{
   stroke-width:6;
   stroke: #e2e2e0;
-  opacity:.5;
+  opacity:1;
   fill:none;
   //fill: #dfdfdf
 }

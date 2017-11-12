@@ -108,6 +108,7 @@ class AttributeTable {
   private margin = Config.margin;
 
   private rowOrder: number[]; //keeps track of the order of rows (changes when a column is sorted)
+  private sortedRowOrder: number[]; //keeps track of the sorted order of rows (defined when a column is sorted)
 
   constructor(parent: Element) {
     this.$node = select(parent);
@@ -265,8 +266,10 @@ class AttributeTable {
     });
 
      //Link scrolling of the table and graph divs
-     select('#graphDiv').on('scroll', function () {
-      document.getElementById('tableDiv2').scrollTop = document.getElementById('graphDiv').scrollTop;
+     select('#graphDiv').on('scroll', ()=> {
+
+     document.getElementById('tableDiv2').scrollTop = document.getElementById('graphDiv').scrollTop;
+     this.updateSlopeLines();
   });
 
     // TABLE (except for slope Chart and first col on the left of the slope chart)
@@ -394,8 +397,97 @@ class AttributeTable {
       .text('Sort by Tree')
       .attr('text-anchor', 'middle');
 
+      this.updateSlopeLines();
+
 
   }
+
+  private updateSlopeLines() {
+
+    selectAll('.slopeIcon')
+    .text((d:any,i)=> {
+
+        if (!this.sortedRowOrder) {
+          return; //no sorting has happened yet.
+        };
+        const divHeight = document.getElementById('graphDiv').clientHeight;
+        const scrollOffset = document.getElementById('graphDiv').scrollTop;
+
+        const start = this.y(d.y);
+        const end = this.y(this.rowOrder[this.sortedRowOrder.indexOf(d.ind)]);
+
+        if (start >= scrollOffset && start <= divHeight+scrollOffset) {
+
+          if (end>=divHeight+scrollOffset) {
+            return '\uf149';
+          } else if ( end < scrollOffset) {
+            return '\uf148';
+          };
+        } ;
+
+        return ''; //for all other cases, return 0;
+      })
+    .attr('x',15)
+    .attr('y',(d:any)=> {
+      const divHeight = document.getElementById('graphDiv').clientHeight;
+      const scrollOffset = document.getElementById('graphDiv').scrollTop;
+
+      const start = this.y(d.y);
+      const end = this.y(this.rowOrder[this.sortedRowOrder.indexOf(d.ind)]);
+
+      if (start >= scrollOffset && start <= divHeight+scrollOffset) {
+
+        if (end>=divHeight+scrollOffset) {
+          return this.y(d.y)+this.rowHeight;
+        } else if ( end < scrollOffset) {
+          return this.y(d.y)+this.rowHeight/2;
+        };
+      } ;
+    })
+    .on('click',(d:any)=> {
+      console.log(d);
+      const end = this.y(this.rowOrder[this.sortedRowOrder.indexOf(d.ind)]);
+      document.getElementById('graphDiv').scrollTop = end;
+    });
+
+    selectAll('.slopeLine')
+    .attr('d', (d: any) => {
+      let ind = d.ind;
+      let width = Config.collapseSlopeChartWidth;
+      if (this.sortedRowOrder) {
+        ind = this.sortedRowOrder.indexOf(d.ind);
+        width = Config.slopeChartWidth;
+      };
+      return this.slopeChart({y: d.y, ind, width});
+    });
+
+    // selectAll('.slopeLine')
+    // .attr('d', (d: any) => {
+    //   return this.slopeChart(d);
+    // });
+
+    // console.log('updating SlopeLines');
+    // const divHeight = document.getElementById('graphDiv').clientHeight;
+    // const scrollOffset = document.getElementById('graphDiv').scrollTop;
+
+    // selectAll('.slopeLine').classed('test',false);
+
+    // const hiddenLines = selectAll('.slopeLine')
+    // .filter((d:any,i)=> {
+    //   const start = this.y(d.y);
+    //   const end = this.y(this.rowOrder[this.sortedRowOrder.indexOf(d.ind)]);
+    //   return ((start < scrollOffset) || (start > (divHeight + scrollOffset))
+    //  || (end < scrollOffset) || (end> (divHeight + scrollOffset)));
+    // });
+
+    // hiddenLines
+    // .classed('test',true);
+
+    // hiddenLines
+    // .attr('d', ()=> { return 'M0.571 4.571h12.571q0.232 0 0.402 0.17t0.17 0.42v15.411h3.429q0.714 0 1.036 0.661t-0.161 1.232l-5.714 6.857q-0.321 0.393-0.875 0.393t-0.875-0.393l-5.714-6.857q-0.464-0.554-0.161-1.232 0.321-0.661 1.036-0.661h3.429v-11.429h-5.714q-0.25 0-0.446-0.196l-2.857-3.429q-0.232-0.25-0.071-0.607 0.161-0.339 0.518-0.339z';});
+
+        // M18.179 10.768q-0.321 0.661-1.036 0.661h-3.429v15.429q0 0.25-0.161 0.411t-0.411 0.161h-12.571q-0.375 0-0.518-0.321-0.143-0.357 0.071-0.625l2.857-3.429q0.161-0.196 0.446-0.196h5.714v-11.429h-3.429q-0.714 0-1.036-0.661-0.304-0.661 0.161-1.214l5.714-6.857q0.321-0.393 0.875-0.393t0.875 0.393l5.714 6.857q0.482 0.571 0.161 1.214z
+  };
 
   public async initData() {
 
@@ -577,7 +669,7 @@ class AttributeTable {
           //Ensure there is an element for every person in the graph, even if empty
           col.data = allRows.map((row) => {
             const colData = [];
-            //Only return unique personIDs. 
+            //Only return unique personIDs.
             //TODO find out why there are multiple instances of a person id.
             const people = y2personDict[row].filter(function (value, index, self) {
               return self.indexOf(value) === index;
@@ -738,7 +830,7 @@ class AttributeTable {
 
     this.calculateOffset();
 
-  
+
   }
 
   private calculateOffset() {
@@ -815,7 +907,7 @@ class AttributeTable {
 
   //To be used on drag interactions so that render is not called too many times
   private lazyRender = _.throttle(this.render, 10);
-  
+
   //renders the DOM elements
   private render() {
 
@@ -867,7 +959,7 @@ class AttributeTable {
         // return (d.type === VALUE_TYPE_CATEGORICAL || d.type === 'dataDensity' || d.name.length>10) ? 'start' : 'middle';
       });
 
-      headers  
+      headers
       .on('mouseover',(d)=> this.addTooltip('header',d))
       .on('mouseout',(d) => {
         select('#tooltipMenu').select('.menu').remove();
@@ -910,7 +1002,7 @@ class AttributeTable {
       select(this).attr('stroke','#909090');
       selectAll('.backgroundRect')
       .filter((dd)=> {return dd === d;})
-      .classed('hoverRect',true)
+      .classed('hoverRect',true);
       // .style('fill','#e9e9e9');
     })
     .on('mouseout',function(d) {
@@ -919,9 +1011,9 @@ class AttributeTable {
       .classed('.hoverRect',false);
     });
 
-    
-    const resizeStarted = (d,i)=> {
-    };
+
+    // const resizeStarted = (d,i)=> {
+    // };
 
     const resized = (d,i)=> {
       const delta = event.x - this.colWidths[d.type];
@@ -937,7 +1029,7 @@ class AttributeTable {
       selectAll('.backgroundRect')
       .filter((dd)=> {return dd === d;})
       .classed('hoverRect',true);
-      
+
 
     };
     const resizeEnded = (d,i)=> {
@@ -946,13 +1038,13 @@ class AttributeTable {
 
       selectAll('.hoverRect')
       .classed('hoverRect',false);
-     
+
     };
-    
+
 
     selectAll('.resizeBar')
     .call(drag()
-    .on('start', resizeStarted)
+    // .on('start', resizeStarted)
     .on('drag', resized)
     .on('end', resizeEnded));
 
@@ -1184,7 +1276,8 @@ class AttributeTable {
     //create slope Lines
     // //Bind data to the cells
     let slopeLines = select('#slopeLines').selectAll('.slopeLine')
-      .data(this.rowOrder.map((d: any, i) => {
+      .data(this.rowOrder
+      .map((d: any, i) => {
           return {y: d, ind: i, width: Config.collapseSlopeChartWidth};
         })
         , (d: any) => {
@@ -1196,14 +1289,33 @@ class AttributeTable {
     const slopeLinesEnter = slopeLines.enter().append('path');
 
 
-    slopeLines = slopeLinesEnter.merge(slopeLines)
+    slopeLines = slopeLinesEnter.merge(slopeLines);
 
-    // slopeLines
-      .attr('class', 'slopeLine')
+
+
+    slopeLines
+      // .append('path')
+      .classed('slopeLine',true)
       .attr('d', (d: any) => {
         return this.slopeChart(d);
-      });
+      })
+      .on('click',(d,i)=> {console.log(d, this.y(this.rowOrder[d.ind]));});
 
+      let slopeIcons = select('#slopeLines').selectAll('.slopeIcon')
+      .data(this.rowOrder
+      .map((d: any, i) => {
+          return {y: d, ind: i, width: Config.collapseSlopeChartWidth};
+        })
+        , (d: any) => {
+          return d.y;
+        });
+
+    slopeIcons.exit().remove();
+
+    const slopeIconsEnter = slopeIcons.enter().append('text').classed('slopeIcon',true);
+
+
+    slopeIcons = slopeIconsEnter.merge(slopeIcons);
 
     //Bind data to the first col group
     let firstCol = select('#slopeChart').selectAll('.dataCols')
@@ -1355,6 +1467,8 @@ class AttributeTable {
     if (this.sortAttribute.state !== sortedState.Unsorted) {
       this.sortRows(this.sortAttribute.data, this.sortAttribute.state,false);
     }
+
+    this.updateSlopeLines();
   }
 
   /**
@@ -1370,7 +1484,7 @@ class AttributeTable {
 
     //Wrapper for 'animated sorting'
     const animated = animate? (d) => d.transition(t2) : (d) => d;
-    
+
 
     //get data from colData array
     const toSort = this.colData.find((c) => {
@@ -1439,9 +1553,12 @@ class AttributeTable {
       return toSort[el.index];
     });
 
+    //need to save as class variable to later decide which slope lines are visible.
+    this.sortedRowOrder = sortedIndexes;
+
     // let cellSelection = select('#columns').selectAll('.cell');
 
-   
+
     animated(select('#columns').selectAll('.cell'))
       // .transition(t2)
       .attr('transform', (cell: any) => {
@@ -1540,7 +1657,7 @@ class AttributeTable {
         return colWidth / 2 - 8;
       });
 
-     
+
       //append menu ellipsis
     icon.enter().append('text')
       .classed('icon',true)
@@ -1584,6 +1701,8 @@ class AttributeTable {
           .classed('sortSelected', true);
 
         self.sortRows(d, self.sortAttribute.state,true);
+
+        self.updateSlopeLines();
 
       });
 
@@ -1647,7 +1766,7 @@ class AttributeTable {
 
     //Check for custom column width value, if none, use default
     const colWidth = this.customColWidths[headerData.name] || this.colWidths.id;
-    
+
     // const colWidth = this.colWidths.id;
     const height = this.headerHeight;
 
@@ -1669,7 +1788,7 @@ class AttributeTable {
 
     this.addSortingIcons(element, headerData);
 
-    
+
   };
 
 
@@ -1859,7 +1978,7 @@ class AttributeTable {
         .call(xAxis);
     }
 
-    
+
 
     this.addSortingIcons(element, headerData);
 
@@ -1933,19 +2052,19 @@ class AttributeTable {
             content = content.concat( (categories.length >1 ? count : '')+ category + '  ');
 
           });
-          
+
         } else if (data.type === 'int') {
           // if (data.data.length>1) {
             content = data.name + ' : ' + data.data.sort((a,b)=> {return (a-b);}); //display sorted values
           // } else {
 
-          // }  
+          // }
         } else { //data.type === 'string'
              content = data.name + ' : ' + data.data[0].toLowerCase();
         }
       } else if (type === 'header') {
         content = (data.type === 'categorical' ? (data.name + '(' + data.category + ') ') : data.name);
-      }; 
+      };
 
       console.log('content:', content);
 
@@ -1976,7 +2095,7 @@ class AttributeTable {
       .classed('tooltipTitle',true);
 
       const textNode = <SVGTSpanElement>menu.select('text').node();
-      
+
       menuWidth = textNode.getComputedTextLength() + 20;
 
       select('#tooltipMenu')
@@ -2001,7 +2120,7 @@ class AttributeTable {
       .attr('stroke','#e86c37');
 
 
-      
+
 
       // menu
       // .append('text')
@@ -2163,7 +2282,7 @@ class AttributeTable {
 
     //Check for custom column width value, if none, use default
     const colWidth = this.customColWidths[cellData.name] || this.colWidths[cellData.type];
-    
+
     // const colWidth = this.colWidths[cellData.type];
     const rowHeight = this.rowHeight;
 
@@ -2439,7 +2558,7 @@ class AttributeTable {
 
     //Check for custom column width value, if none, use default
     const colWidth = this.customColWidths[cellData.name] || this.colWidths[cellData.type];
-    
+
     // const colWidth = this.colWidths[cellData.type];
     const rowHeight = this.rowHeight;
 
@@ -2525,7 +2644,22 @@ class AttributeTable {
         y: this.y(this.rowOrder[d.ind]) + (this.rowHeight / 2)
       }];
 
-    return this.lineFunction(linedata);
+      const divHeight = document.getElementById('graphDiv').clientHeight;
+      const scrollOffset = document.getElementById('graphDiv').scrollTop;
+
+        const start = this.y(d.y);
+        const end = this.y(this.rowOrder[d.ind]);
+
+        if ((start < scrollOffset) || (start > (divHeight + scrollOffset))
+       || (end < scrollOffset) || (end> (divHeight + scrollOffset))) {
+        return '';
+        } else {
+        return this.lineFunction(linedata);
+       }
+
+
+
+
   }
 
 

@@ -63,22 +63,19 @@ export class App {
 
     /** =====  PUBLIC CASE ===== */
 
-    // await tableManager.loadData('TenFamiliesDescendAnon', 'TenFamiliesAttrAnon');
-       //await tableManager.loadData('TwoFamiliesDescendAnon', 'TwoFamiliesAttrAnon');
+     await tableManager.loadData('TenFamiliesDescendAnon', 'TenFamiliesAttrAnon');
+     //await tableManager.loadData('TwoFamiliesDescendAnon', 'TwoFamiliesAttrAnon');
 
 
 
     /** =====  PRIVATE CASES - WORKS ONLY WITH THE RIGHT DATA LOCALLY ===== */
 
      //await tableManager.loadData('TenFamiliesDescend', 'TenFamiliesAttr');
-     console.log('before')
-     await tableManager.loadData('AllFamiliesDescend', 'AllFamiliesAttributes');
+     //await tableManager.loadData('AllFamiliesDescend', 'AllFamiliesAttributes');
 
     //await tableManager.loadData('TenFamiliesDescend', 'TenFamiliesAttr');
-   
     //await tableManager.loadData('FiftyFamiliesDescendAnon', 'FiftyFamiliesAttributes');
 
-     console.log('here')
     /** ============= */
 
     const attributePanel = panel.create(this.$node.select('#data_selection').node());
@@ -101,6 +98,9 @@ export class App {
 
     this.$node.select('#loading').remove();
     this.setBusy(false);
+
+    //temporary hack. to do: remove properly
+    select('.menu-list').remove();
 
 
     return Promise.resolve(this);

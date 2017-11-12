@@ -110,6 +110,8 @@ class AttributeTable {
   private rowOrder: number[]; //keeps track of the order of rows (changes when a column is sorted)
   private sortedRowOrder: number[]; //keeps track of the sorted order of rows (defined when a column is sorted)
 
+  private t2 = transition('t2').duration(600).ease(easeLinear);
+
   constructor(parent: Element) {
     this.$node = select(parent);
   }
@@ -397,24 +399,29 @@ class AttributeTable {
       .text('Sort by Tree')
       .attr('text-anchor', 'middle');
 
-      this.updateSlopeLines();
+      // this.updateSlopeLines(false);
 
 
   }
 
-  private updateSlopeLines() {
+  private updateSlopeLines(animate = false) {
+
+    const animated = animate? (d) => d.transition(this.t2) : (d) => d;
+    
+    const divHeight = document.getElementById('graphDiv').clientHeight;
+    const scrollOffset = document.getElementById('graphDiv').scrollTop;
+
 
     selectAll('.slopeIcon')
     .text((d:any,i)=> {
 
+      const start = this.y(d.y);
+      const end = (this.sortedRowOrder ? this.y(this.rowOrder[this.sortedRowOrder.indexOf(d.ind)]) : this.y(this.rowOrder[d.ind]));
+
+
         if (!this.sortedRowOrder) {
           return; //no sorting has happened yet.
         };
-        const divHeight = document.getElementById('graphDiv').clientHeight;
-        const scrollOffset = document.getElementById('graphDiv').scrollTop;
-
-        const start = this.y(d.y);
-        const end = this.y(this.rowOrder[this.sortedRowOrder.indexOf(d.ind)]);
 
         if (start >= scrollOffset && start <= divHeight+scrollOffset) {
 
@@ -429,14 +436,11 @@ class AttributeTable {
       })
     .attr('x',15)
     .attr('y',(d:any)=> {
-      const divHeight = document.getElementById('graphDiv').clientHeight;
-      const scrollOffset = document.getElementById('graphDiv').scrollTop;
 
       const start = this.y(d.y);
-      const end = this.y(this.rowOrder[this.sortedRowOrder.indexOf(d.ind)]);
+      const end = (this.sortedRowOrder ? this.y(this.rowOrder[this.sortedRowOrder.indexOf(d.ind)]) : this.y(this.rowOrder[d.ind]));
 
       if (start >= scrollOffset && start <= divHeight+scrollOffset) {
-
         if (end>=divHeight+scrollOffset) {
           return this.y(d.y)+this.rowHeight;
         } else if ( end < scrollOffset) {
@@ -450,7 +454,7 @@ class AttributeTable {
       document.getElementById('graphDiv').scrollTop = end;
     });
 
-    selectAll('.slopeLine')
+    animated(selectAll('.slopeLine'))
     .attr('d', (d: any) => {
       let ind = d.ind;
       let width = Config.collapseSlopeChartWidth;
@@ -1468,7 +1472,7 @@ class AttributeTable {
       this.sortRows(this.sortAttribute.data, this.sortAttribute.state,false);
     }
 
-    this.updateSlopeLines();
+    this.updateSlopeLines(false);
   }
 
   /**
@@ -1480,11 +1484,8 @@ class AttributeTable {
    */
   private sortRows(d: any, sortOrder:sortedState,animate:boolean) {
 
-    const t2 = transition('t2').duration(600).ease(easeLinear);
-
-    //Wrapper for 'animated sorting'
-    const animated = animate? (d) => d.transition(t2) : (d) => d;
-
+    const animated = animate? (d) => d.transition(this.t2) : (d) => d;
+  
 
     //get data from colData array
     const toSort = this.colData.find((c) => {
@@ -1588,11 +1589,12 @@ class AttributeTable {
       });
 
 
-    animated(selectAll('.slopeLine'))
-      //  .transition(t2)
-      .attr('d', (d: any) => {
-        return this.slopeChart({y: d.y, ind: sortedIndexes.indexOf(d.ind), width: Config.slopeChartWidth});
-      });
+      //Not needed since the slopeLines are updated within this.updateSlopeLines;
+    // animated(selectAll('.slopeLine'))
+    //   //  .transition(t2)
+    //   .attr('d', (d: any) => {
+    //     return this.slopeChart({y: d.y, ind: sortedIndexes.indexOf(d.ind), width: Config.slopeChartWidth});
+    //   });
 
     animated(select('#tableGroup'))
       .selectAll('.highlightBar')
@@ -1702,7 +1704,7 @@ class AttributeTable {
 
         self.sortRows(d, self.sortAttribute.state,true);
 
-        self.updateSlopeLines();
+        self.updateSlopeLines(true);
 
       });
 

@@ -1,11 +1,113 @@
-body, html {
-  font-family: Yantramanav, 'Helvetica Neue', Helvetica, sans-serif;
-  font-weight: 400;
+// body, html {
+//   font-family: Yantramanav, 'Helvetica Neue', Helvetica, sans-serif;
+//   font-weight: 400;
+// }
+
+// th, label, strong, b, .label {
+//   font-weight: 500 !important;
+// }
+
+::-webkit-scrollbar { 
+  display: none; 
 }
 
-th, label, strong, b, .label {
-  font-weight: 500 !important;
+
+html, body  { 
+	height: 100%;
+	width: 100%;
 }
+
+body {
+  font-family: sans-serif;
+  line-height: 1.4;
+}
+
+h1 {
+  font-size: 150%;
+}
+
+p {
+  margin-bottom: 10px;
+}
+
+.paddingBlock {
+	padding: 20px 0;
+}
+
+.eqWrap {
+	display: flex;
+}
+
+.eq {
+	padding: 10px;
+}
+
+
+.equalHW {
+	flex: 1;
+}
+
+// .equalHMWrap {
+// 	justify-content: space-between;
+// }
+
+// .equalHM {
+// 	width: 32%;
+// }
+
+#col1{
+  width:250px;
+  transition: all 400ms ease;
+}
+
+#col1-expanded{
+  width:500px;
+  transition: all 400ms ease;
+}
+
+#col2{
+  width:550px;
+}
+
+#col3{
+  flex:1;
+  min-width: 10px;
+}
+
+table text{
+  pointer-events: none;
+}
+
+
+.equalHMRWrap {
+	justify-content: space-between;
+	flex-wrap: wrap;
+}
+
+.equalHMR {
+	width: 32%;
+	margin-bottom: 2%;
+}
+
+.equalHMVWrap {
+	flex-wrap: wrap;
+}
+
+.equalHMV {
+	width: 32%;
+	margin: 1%;	
+}
+
+.equalHMV:nth-of-type(3n) {
+	margin-right: 0;	
+}
+
+.equalHMV:nth-of-type(3n+1) {
+	margin-left: 0;	
+}
+
+
+
 
 // nav.navbar{
 //   border-right:2px solid !important;
@@ -26,31 +128,31 @@ ul.nav.navbar-nav{
 }
 
 
-.col, .col-4, .col-2{
-  overflow:scroll;
-}
+// .col, .col-4, .col-2{
+//   overflow:scroll;
+// }
 
 // #col1,#col2,#col3{
 //   padding-right: 5px;
 // }
 
-#col1{
-  flex:.3;
-  transition: all 400ms ease;
-}
+// #col1{
+//   flex:1;
+//   transition: all 400ms ease;
+// }
 
-#col1-expanded{
-  flex:.8;
-  transition: all 400ms ease;
-}
+// #col1-expanded{
+//   flex:2;
+//   transition: all 400ms ease;
+// }
 
-#col2{
-  flex:.5
-}
+// #col2{
+//   flex:1
+// }
 
-#col3{
-  flex:1.5;
-}
+// #col3{
+//   flex:1;
+// }
 
 .header{
   cursor: move;;
@@ -147,6 +249,10 @@ ul.nav.navbar-nav{
   height:195px;
 }
 
+#tableDiv1{
+  overflow-x:scroll;
+}
+
 #tableDiv{
   width:1920;
   height:3600;
@@ -159,7 +265,7 @@ ul.nav.navbar-nav{
 
 #tableDiv2, #graphDiv{
   height:1000px;
-  overflow-x: hidden;
+  overflow-x: visible;
   overflow-y: scroll;
 }
 

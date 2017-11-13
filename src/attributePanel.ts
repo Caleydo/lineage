@@ -112,7 +112,7 @@ class AttributePanel {
     .append('a')
     .attr('class','btn-link')
     .attr('role','button')
-    .html('Expand Panel')
+    .html('Expand')
     .attr('id','collapseTableButton');
 
 

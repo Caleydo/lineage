@@ -166,6 +166,21 @@ class AttributeTable {
     const dropdownMenu = this.$node.select('.navbar')
     .append('ul').attr('class','nav navbar-nav').attr('id','attributeMenu');
 
+    this.$node.select('.navbar')
+    .append('ul').attr('class','nav navbar-nav').attr('id','Sort by Tree')
+    .append('li')
+    .append('a')
+    .attr('class','btn-link')
+    .attr('role','button')
+    .html('Sort by Tree')
+    // .on('click', (d)=> {
+    //       selectAll('.slopeLine').classed('clickedSlope', false);
+    //       selectAll('.highlightBar').classed('selected', false);
+  
+    //       this.data.aggregateTreeWrapper(undefined, layoutState.Aggregated);
+    //       // this.update_graph();
+    //     });
+
 
 
     // .append('div').attr('class','dropdown');
@@ -262,16 +277,22 @@ class AttributeTable {
       .attr('width', this.width + this.margin.left + this.margin.right);
       // .attr('height', this.height + this.margin.top + this.margin.bottom);
 
-      //Link scrolling of the table and graph divs
-      select('#tableDiv2').on('scroll', function () {
+      //Link scrolling of the table and graph divs as well as the table and it's header
+      select('#tableDiv2').on('scroll',  ()=> {
         document.getElementById('graphDiv').scrollTop = document.getElementById('tableDiv2').scrollTop;
+        document.getElementById('tableDiv1').scrollLeft = document.getElementById('tableDiv2').scrollLeft;
     });
+
+    select('#tableDiv1').on('scroll',  ()=> {
+      document.getElementById('tableDiv2').scrollLeft = document.getElementById('tableDiv1').scrollLeft;
+  });
 
      //Link scrolling of the table and graph divs
      select('#graphDiv').on('scroll', ()=> {
-
+      this.lazyScroll();
      document.getElementById('tableDiv2').scrollTop = document.getElementById('graphDiv').scrollTop;
-     this.updateSlopeLines();
+     
+      // this.updateSlopeLines();
   });
 
     // TABLE (except for slope Chart and first col on the left of the slope chart)
@@ -405,7 +426,6 @@ class AttributeTable {
   }
 
   private updateSlopeLines(animate = false) {
-
     const animated = animate? (d) => d.transition(this.t2) : (d) => d;
 
     const divHeight = document.getElementById('graphDiv').clientHeight;
@@ -912,6 +932,7 @@ class AttributeTable {
   //To be used on drag interactions so that render is not called too many times
   private lazyRender = _.throttle(this.render, 10);
 
+  private lazyScroll = _.throttle(this.updateSlopeLines,300);
   //renders the DOM elements
   private render() {
 
@@ -945,10 +966,12 @@ class AttributeTable {
 
     headers
       .text((d: any) => {
-        if (d.category && d.category !== 'TRUE' && d.category !== 'Y') {
+        if (d.category && d.category.toLowerCase() !== 'true' && d.category.toLowerCase() !== 'y') {
           return d.name + ' (' + d.category + ')';
+        } else if (d.category) {
+          return d.name;
         } else {
-          return d.name.slice(0,11);
+          return d.name.slice(0,8);
         };
 
       })
@@ -1110,6 +1133,32 @@ class AttributeTable {
 
         };
 
+        const updateRender = (closestIndex,currIndex,d)=> {
+          
+                             //Remove current col from colOrder
+                    this.tableManager.colOrder.splice(currIndex, 1);
+                    //Reinsert in correct order
+                    this.tableManager.colOrder.splice(closestIndex, 0,d.name);
+          
+                    //Remove current colData from colDAta
+                    const colData = this.colData.splice(currIndex, 1);
+          
+                    //Reinsert in correct order
+                    this.colData.splice(closestIndex, 0,colData[0]);
+          
+                    currIndex = closestIndex;
+          
+                    //Calculate new col offests;
+                    this.calculateOffset();
+          
+                    //Re render table
+                    this.render();
+          
+                  };
+          
+                  const lazyUpdate = _.throttle(updateRender,100);
+
+
         const dragged = (d,i)=> {
           //Select col summary for this col
            const summary = select('#'+d.name + '_summary');
@@ -1131,29 +1180,32 @@ class AttributeTable {
 
           if (currIndex!== closestIndex) {
 
-          //Remove current col from colOrder
-          this.tableManager.colOrder.splice(currIndex, 1);
-          //Reinsert in correct order
-          this.tableManager.colOrder.splice(closestIndex, 0,d.name);
-
-          //Remove current colData from colDAta
-          const colData = this.colData.splice(currIndex, 1);
-
-          //Reinsert in correct order
-          this.colData.splice(closestIndex, 0,colData[0]);
-
-          currIndex = closestIndex;
-
-          //Calculate new col offests;
-          this.calculateOffset();
-
-          //Re render table
-          this.render();
-
-          }
-
-
+            //Remove current col from colOrder
+                    this.tableManager.colOrder.splice(currIndex, 1);
+                    //Reinsert in correct order
+                    this.tableManager.colOrder.splice(closestIndex, 0,d.name);
+          
+                    //Remove current colData from colDAta
+                    const colData = this.colData.splice(currIndex, 1);
+          
+                    //Reinsert in correct order
+                    this.colData.splice(closestIndex, 0,colData[0]);
+          
+                    currIndex = closestIndex;
+          
+                    //Calculate new col offests;
+                    this.calculateOffset();
+          
+                    //Re render table
+                    this.render();
+          
+                  };
+        
         };
+
+       
+
+        const lazyDrag = _.throttle(dragged,300);
 
         const dragended = (d,i)=> {
 
@@ -1170,11 +1222,11 @@ class AttributeTable {
         .on('drag', dragged)
         .on('end', dragended));
 
-        selectAll('.backgroundRect')
-        .call(drag()
-        .on('start', dragstarted)
-        .on('drag', dragged)
-        .on('end', dragended));
+        // selectAll('.backgroundRect')
+        // .call(drag()
+        // .on('start', dragstarted)
+        // .on('drag', lazyDrag)
+        // .on('end', dragended));
 
     colSummaries.each(function (cell) {
       if (cell.type === VALUE_TYPE_CATEGORICAL) {
@@ -1473,6 +1525,15 @@ class AttributeTable {
     }
 
     this.updateSlopeLines(false);
+
+    //recalculate size of svgs:
+    const maxWidth = max(this.colOffsets) + 50;
+    this.$node.select('#headers')
+    .attr('width',maxWidth);
+
+    this.$node.select('.tableSVG')
+    .attr('width',maxWidth);
+
   }
 
   /**
@@ -1579,7 +1640,7 @@ class AttributeTable {
     animated(select('#headerGroup'))
       // .transition(t2)
       .attr('transform', (cell: any) => {
-        return ('translate(' + (Config.slopeChartWidth)  + ' ,95)');
+        return ('translate(' + (Config.slopeChartWidth)  + ' ,80)');
       });
 
     animated(select('#colSummaries'))
@@ -1971,7 +2032,7 @@ class AttributeTable {
     .tickFormat(format('.0f'));
 
     if (element.selectAll('.hist_xscale').size() === 0) {
-      console.log('creating new axis');
+      // console.log('creating new axis');
 
       element.append('text').classed('maxValue', true);
       element.append('g')
@@ -2067,9 +2128,6 @@ class AttributeTable {
       } else if (type === 'header') {
         content = (data.type === 'categorical' ? (data.name + '(' + data.category + ') ') : data.name);
       };
-
-      console.log('content:', content);
-
 
       let menuWidth = 10; //dummy value. to be updated;
       const menuHeight = 30;
@@ -2326,7 +2384,6 @@ class AttributeTable {
 
 
   private renderFamilyIDCell(element, cellData) {
-
     const equalValues = cellData.data.reduce(function (a, b) {
       return (a === b) ? a : NaN;
     }); //check for array that has all equal values in an aggregate (such as KindredId);
@@ -2558,6 +2615,7 @@ class AttributeTable {
    */
   private renderIdCell(element, cellData) {
 
+
     //Check for custom column width value, if none, use default
     const colWidth = this.customColWidths[cellData.name] || this.colWidths[cellData.type];
 
@@ -2594,7 +2652,6 @@ class AttributeTable {
 
     let textLabel;
     if (numValues === 1 || !isNaN(equalValues)) {
-
       textLabel = '#' + cellData.data[0];
       element
         .select('.string')
@@ -2652,7 +2709,14 @@ class AttributeTable {
         const start = this.y(d.y);
         const end = this.y(this.rowOrder[d.ind]);
 
-        if ((start < scrollOffset) || (start > (divHeight + scrollOffset))
+        const highlightedRow = selectAll('.highlightBar').filter('.selected').filter((bar:any)=> { return bar.y === d.y || (this.sortedRowOrder && bar.i === this.sortedRowOrder[d.ind]);});
+
+        // if (!highlightedRow.empty()) {
+        //   highlightedRow.filter((b)=> {console.log(b); return true;})
+        //   console.log(d,this.sortedRowOrder[d.ind]);
+        // }
+
+        if (highlightedRow.empty() && (start < scrollOffset) || (start > (divHeight + scrollOffset))
        || (end < scrollOffset) || (end> (divHeight + scrollOffset))) {
         return '';
         } else {

@@ -93,12 +93,12 @@ class FamilySelector {
       select('#collapseTableButton')
       .on('click',() => {
         const text = select('#collapseTableButton').html();
-        if (text === 'Expand Panel') {
-          select('#collapseTableButton').html('Collapse Panel');
+        if (text === 'Expand') {
+          select('#collapseTableButton').html('Collapse');
           select('#col1').attr('id','col1-expanded');
 
         } else {
-           select('#collapseTableButton').html('Expand Panel');
+           select('#collapseTableButton').html('Expand');
           select('#col1-expanded').attr('id','col1');
         }
     });

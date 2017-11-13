@@ -67,6 +67,9 @@ import {
   Config
 } from './config';
 
+
+import * as _ from 'underscore';
+
 // import{
 //   legendSymbol,
 //   legendColor

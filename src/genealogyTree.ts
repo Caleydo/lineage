@@ -872,10 +872,15 @@ class GenealogyTree {
     allFamilyBars = allFamilyBarsEnter.merge(allFamilyBars);
 
     allFamilyBars
-    .attr('x1',-15)
-    .attr('x2',-15)
-    .attr('y1',(d)=> {return (this.y(d.min)-5);}) //add buffer between bars;
-    .attr('y2',(d)=> {return this.y(d.max);})
+    // .attr('x1',-15)
+    // .attr('x2',-15)
+    // .attr('y1',(d)=> {return (this.y(d.min)-5);}) //add buffer between bars;
+    // .attr('y2',(d)=> {return this.y(d.max);})
+
+    .attr('x1',-30)
+    .attr('x2',500)
+    .attr('y1',(d)=> {return (this.y(d.max)+Config.glyphSize);}) //add buffer between bars;
+    .attr('y2',(d)=> {return (this.y(d.max)+Config.glyphSize);})
     // .attr('y',(d)=> {return this.y(Math.round(d.min));})
     // .attr('height',(d)=> {console.log('d.max is ', d.max, 'this.y(d.max):', this.y(d.max), 'd.min',d.min, 'this.y(d.min)', this.y(d.min), 'height',(this.y(d.max)-this.y(d.min))); return Math.abs(this.y(d.max)-this.y(d.min));})
     .attr('opacity',.4);

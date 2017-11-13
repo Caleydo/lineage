@@ -210,10 +210,15 @@ ul.nav.navbar-nav{
   fill:#ececec;
 }
 
+.menu text{
+  pointer-events: none;
+}
+
 .familyBar{
   // width:5px;
-  stroke-width: 5px;
+  stroke-width: 3px;
   stroke:rgb(25, 25, 25);
+  stroke-dasharray: 5px;
   // fill:rgb(25, 25, 25);
 }
 

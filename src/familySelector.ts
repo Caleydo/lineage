@@ -274,7 +274,9 @@ class FamilySelector {
 
       select('tbody').selectAll('tr').filter((row:any) => {
         return row.id === d.id;
-      }).attr('class',(d:any)=> {return d.id === 42623 ? 'selected2' : 'selected';});
+      })
+      .classed('selected', true);
+      // .attr('class',(d:any)=> {return d.id === 42623 ? 'selected2' : 'selected';});
 
       //call debounced function
       // this.lazyLoad();

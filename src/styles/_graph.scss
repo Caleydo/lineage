@@ -92,6 +92,12 @@ rect.poi{
   fill:white;
 }
 
+#treeMenu text:hover{
+  fill:rgb(0, 0, 0);
+  stroke:black;
+  stroke-width: 1px;
+}
+
 // .slopeLine.test{
 //   opacity: .1;
 // }
@@ -486,7 +492,7 @@ rect.selected{
 .slopeIcon{
   font-family: FontAwesome;
   font-size:15px;
-  fill:#959595;
+  fill:#e2e2e0;
   text-anchor:start;
   cursor:pointer;
 }

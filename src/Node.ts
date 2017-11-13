@@ -50,7 +50,7 @@ export default class Node {
   maID: string;
   paID: string;
 
-  kindredID:string;
+  kindredID: string;
   /** Reference to the mother */
   ma: Node;
   /** Reference to the father */
@@ -127,7 +127,7 @@ export default class Node {
   /** Initialize the node based on rows */
   public initialize(columnNameToIndex: any, row: any) {
     this.sex = (row[columnNameToIndex.sex] === 'M') ? Sex.Male : Sex.Female;
-    this.id =row[columnNameToIndex.RelativeID].toString();
+    this.id = row[columnNameToIndex.RelativeID].toString();
     this.bdate = +row[columnNameToIndex.bdate];
     this.ddate = +row[columnNameToIndex.ddate];
     this.x = +row[columnNameToIndex.bdate];

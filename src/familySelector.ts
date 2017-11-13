@@ -1,9 +1,9 @@
 import * as events from 'phovea_core/src/event';
-import {AppConstants, ChangeTypes} from './app_constants';
-import {select, selectAll} from 'd3-selection';
-import {keys} from 'd3-collection';
+import { AppConstants, ChangeTypes } from './app_constants';
+import { select, selectAll } from 'd3-selection';
+import { keys } from 'd3-collection';
 
-import {Config} from './config';
+import { Config } from './config';
 
 import {
   scaleLinear,
@@ -22,7 +22,7 @@ import * as _ from 'underscore';
 
 import IFamilyInfo from './tableManager';
 
-import {FAMILY_INFO_UPDATED} from './tableManager';
+import { FAMILY_INFO_UPDATED } from './tableManager';
 
 
 /**
@@ -44,12 +44,12 @@ class FamilySelector {
 
   private tableManager;
 
-  private headerInfo =[{'header':'FamilyID','dataAttr':'id'},
-  {'header':'FSIR','dataAttr':'id'},
-  {'header':'# People','dataAttr':'size'},
+  private headerInfo = [{ 'header': 'FamilyID', 'dataAttr': 'id' },
+  { 'header': 'FSIR', 'dataAttr': 'id' },
+  { 'header': '# People', 'dataAttr': 'size' },
   // {'header':'#POI','dataAttr':'affected'},
-  {'header':'#DNA Samples','dataAttr':'id'},
-  {'header':'Maximum Meiosis','dataAttr':'id'}];
+  { 'header': '#DNA Samples', 'dataAttr': 'id' },
+  { 'header': 'Maximum Meiosis', 'dataAttr': 'id' }];
 
   constructor(parent: Element) {
     this.$node = select(parent);
@@ -65,7 +65,7 @@ class FamilySelector {
     this.tableManager = tableManager;
     this.updateTable();
 
-    events.on(FAMILY_INFO_UPDATED,(evt,tableManagerObject)=> {this.updateTable();});
+    events.on(FAMILY_INFO_UPDATED, (evt, tableManagerObject) => { this.updateTable(); });
 
     // return the promise directly as long there is no dynamical data to update
     return Promise.resolve(this);
@@ -76,38 +76,24 @@ class FamilySelector {
    * Build the basic DOM elements and binds the change function
    */
   private build() {
-
-    // this.$node.append('div')
-    //   .classed('menu-list', true)
-    //   .html(` <ul >
-    //         <li class='brand' data-toggle='collapse'> <i class=''></i> <strong>Family Selection</strong>
-    //          <span class='  toggle-btn'><i class='glyphicon glyphicon-menu-hamburger'></i></span></li>
-    //            </ul>`);
-
-
-
-
-
-      //  .classed('fixed_headers', true);
-
-      select('#collapseTableButton')
-      .on('click',() => {
+    select('#collapseTableButton')
+      .on('click', () => {
         const text = select('#collapseTableButton').html();
         if (text === 'Expand') {
           select('#collapseTableButton').html('Collapse');
-          select('#col1').attr('id','col1-expanded');
+          select('#col1').attr('id', 'col1-expanded');
 
         } else {
-           select('#collapseTableButton').html('Expand');
-          select('#col1-expanded').attr('id','col1');
+          select('#collapseTableButton').html('Expand');
+          select('#col1-expanded').attr('id', 'col1');
         }
-    });
+      });
 
-    const table = select('#familySelector').append('div').append('table').attr('class','table');
+    const table = select('#familySelector').append('div').append('table').attr('class', 'table');
     const thead = table.append('thead');
 
 
-    const tbody = select('#familySelector').append('div').attr('id','tableBody').append('table').attr('class','table').append('tbody');
+    const tbody = select('#familySelector').append('div').attr('id', 'tableBody').append('table').attr('class', 'table').append('tbody');
 
     const self = this;
 
@@ -117,7 +103,7 @@ class FamilySelector {
       .data(this.headerInfo)
       .enter()
       .append('th')
-      .attr('scope','col')
+      .attr('scope', 'col')
       // .classed('header', true)
       .text(function (column) {
         return column.header;
@@ -127,13 +113,15 @@ class FamilySelector {
         selectAll('.header').attr('class', 'header');
 
         if (isAscending) {
-          self.rows.sort(function(a, b) {
-            return b[d.dataAttr] < a[d.dataAttr];});
-          select(this).classed('aes',true);
+          self.rows.sort(function (a, b) {
+            return b[d.dataAttr] < a[d.dataAttr];
+          });
+          select(this).attr('class','aes');
         } else {
-          self.rows.sort(function(a, b) {
-            return b[d.dataAttr] > a[d.dataAttr];});
-          select(this).classed('des',true);
+          self.rows.sort(function (a, b) {
+            return b[d.dataAttr] > a[d.dataAttr];
+          });
+          select(this).attr('class','des');
         }
 
       });
@@ -152,17 +140,17 @@ class FamilySelector {
 
     // console.log('family info is ' , data.familyInfo);
 
-    let maxValue = max(data.familyInfo,(d:any)=> {return +d.size;});
+    let maxValue = max(data.familyInfo, (d: any) => { return +d.size; });
 
     this.peopleScale
-      .range([0,100])
-      .domain([0,maxValue]);
+      .range([0, 100])
+      .domain([0, maxValue]);
 
-    maxValue = max(data.familyInfo,(d:any)=> {return +d.affected;});
+    maxValue = max(data.familyInfo, (d: any) => { return +d.affected; });
 
     this.casesScale
-      .range([0,50])
-      .domain([0,maxValue]);
+      .range([0, 50])
+      .domain([0, maxValue]);
 
     // create a row for each object in the data
     this.rows = select('tbody').selectAll('tr')
@@ -179,12 +167,12 @@ class FamilySelector {
     // create a cell in each row for each column
     let cells = this.rows.selectAll('td')
       .data((d) => {
-        return [{'id': d.id, 'value': d.id, 'type': 'id'},
-        {'id': d.id, 'value': d.id, 'type': 'id'},
-          {'id': d.id,'value': d.size,'type': 'size'},
-          // {'id': d.id, 'value': d.affected, 'type': 'affected'},
-          {'id': d.id, 'value': d.id, 'type': 'id'},
-          {'id': d.id, 'value': d.id, 'type': 'id'}];
+        return [{ 'id': d.id, 'value': d.id, 'type': 'id' },
+        { 'id': d.id, 'value': d.id, 'type': 'id' },
+        { 'id': d.id, 'value': d.size, 'type': 'size' },
+        // {'id': d.id, 'value': d.affected, 'type': 'affected'},
+        { 'id': d.id, 'value': d.id, 'type': 'id' },
+        { 'id': d.id, 'value': d.id, 'type': 'id' }];
       });
 
     const cellsEnter = cells
@@ -197,39 +185,39 @@ class FamilySelector {
 
 
 
-    selectAll('td').each(function(cell:any) {
+    selectAll('td').each(function (cell: any) {
 
       if (cell.type === 'size' || cell.type === 'affected') {
         if (select(this).selectAll('svg').size() === 0) {
           const svg = select(this).append('svg');
-          svg.append('rect').classed('total',true);
-          svg.append('rect').classed('poi',true);
+          svg.append('rect').classed('total', true);
+          svg.append('rect').classed('poi', true);
         }
 
         if (select(this).select('svg').selectAll('text').size() === 0) {
           select(this).select('svg').append('text');
         }
 
-          select(this).select('svg')
-            .data([cell.value])
-            .attr('width', () => {
-              return cell.type === 'size' ? self.peopleScale.range()[1]+30 : self.casesScale.range()[1]+30;
-            })
-            .attr('height', 12);
+        select(this).select('svg')
+          .data([cell.value])
+          .attr('width', () => {
+            return cell.type === 'size' ? self.peopleScale.range()[1] + 30 : self.casesScale.range()[1] + 30;
+          })
+          .attr('height', 12);
 
-          select(this).select('svg').select('.total')
-            .data([cell.value])
-            .attr('width', (d: any) => {
-              return cell.type === 'size' ? self.peopleScale(d) : self.casesScale(d);
-            })
-            .attr('height', 10);
+        select(this).select('svg').select('.total')
+          .data([cell.value])
+          .attr('width', (d: any) => {
+            return cell.type === 'size' ? self.peopleScale(d) : self.casesScale(d);
+          })
+          .attr('height', 10);
 
-            select(this).select('svg').select('.poi')
-            .data([cell.value])
-            .attr('width', (d: any) => {
-              return cell.type === 'size' ? self.peopleScale(d/5) : self.casesScale(d/5);
-            })
-            .attr('height', 10);
+        select(this).select('svg').select('.poi')
+          .data([cell.value])
+          .attr('width', (d: any) => {
+            return cell.type === 'size' ? self.peopleScale(d / 5) : self.casesScale(d / 5);
+          })
+          .attr('height', 10);
 
 
 
@@ -238,14 +226,14 @@ class FamilySelector {
           .data([cell.value])
           .attr('dy', 10)
           .attr('dx', (d: any) => {
-            return cell.type === 'size' ? self.peopleScale(d)+4 : self.casesScale(d)+4;
+            return cell.type === 'size' ? self.peopleScale(d) + 4 : self.casesScale(d) + 4;
           })
           .text((d: any) => {
-            return d + ' (' + Math.floor(d/5) + ')';
+            return d + ' (' + Math.floor(d / 5) + ')';
           })
-          .attr('fill', (d,i) => {
-              return (i >3 && d>15) ? 'red' : 'gray' ;
-            });
+          .attr('fill', (d, i) => {
+            return (i > 3 && d > 15) ? 'red' : 'gray';
+          });
 
       }
 
@@ -255,14 +243,14 @@ class FamilySelector {
     cells.filter((c: any) => {
       return c.type === 'id';
     })
-    // cells
+      // cells
       .html((d: any) => {
         return d.value.toString();
       })
       .style('text-align', 'center');
 
 
-    selectAll('td').on('click', (d:any)=> {
+    selectAll('td').on('click', (d: any) => {
       //'Unselect all other families if ctrl was not pressed
       if (!event.metaKey) {
         select('tbody').selectAll('tr').classed('selected', false);
@@ -272,10 +260,10 @@ class FamilySelector {
 
       this.selectedFamilyIds.push(d.id);
 
-      select('tbody').selectAll('tr').filter((row:any) => {
+      select('tbody').selectAll('tr').filter((row: any) => {
         return row.id === d.id;
       })
-      .classed('selected', true);
+        .classed('selected', true);
       // .attr('class',(d:any)=> {return d.id === 42623 ? 'selected2' : 'selected';});
 
       //call debounced function
@@ -287,7 +275,7 @@ class FamilySelector {
     });
 
     if (selectAll('.selected').size() === 0) { // or if (this.selectedFamilyIDs.length === 0)
-      select('tbody').selectAll('tr').filter((row:any,i) => {
+      select('tbody').selectAll('tr').filter((row: any, i) => {
         return row.id === this.familyInfo[0].id; //select the first family as a default;
       }).classed('selected', true);
 
@@ -299,12 +287,12 @@ class FamilySelector {
 
   }
 
-  private loadFamily () {
+  private loadFamily() {
     console.log('called');
-            this.tableManager.selectFamily(this.selectedFamilyIds);
-        }
+    this.tableManager.selectFamily(this.selectedFamilyIds);
+  }
 
-private lazyLoad = _.debounce(this.loadFamily, 300,true);
+  private lazyLoad = _.debounce(this.loadFamily, 300, true);
 
 
 }

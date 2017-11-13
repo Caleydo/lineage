@@ -3,7 +3,7 @@
  */
 
 // import * as d3 from 'd3';
-import {select, selectAll} from 'd3-selection';
+import { select, selectAll } from 'd3-selection';
 
 //Import typescript modules for the views
 import * as tree from './genealogyTree';
@@ -63,15 +63,15 @@ export class App {
 
     /** =====  PUBLIC CASE ===== */
 
-     await tableManager.loadData('TenFamiliesDescendAnon', 'TenFamiliesAttrAnon');
-     //await tableManager.loadData('TwoFamiliesDescendAnon', 'TwoFamiliesAttrAnon');
+    await tableManager.loadData('TenFamiliesDescendAnon', 'TenFamiliesAttrAnon');
+    //await tableManager.loadData('TwoFamiliesDescendAnon', 'TwoFamiliesAttrAnon');
 
 
 
     /** =====  PRIVATE CASES - WORKS ONLY WITH THE RIGHT DATA LOCALLY ===== */
 
-     //await tableManager.loadData('TenFamiliesDescend', 'TenFamiliesAttr');
-     //await tableManager.loadData('AllFamiliesDescend', 'AllFamiliesAttributes');
+    //await tableManager.loadData('TenFamiliesDescend', 'TenFamiliesAttr');
+    //await tableManager.loadData('AllFamiliesDescend', 'AllFamiliesAttributes');
 
     //await tableManager.loadData('TenFamiliesDescend', 'TenFamiliesAttr');
     //await tableManager.loadData('FiftyFamiliesDescendAnon', 'FiftyFamiliesAttributes');

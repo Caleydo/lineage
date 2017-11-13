@@ -15,12 +15,12 @@ import {
   select
 } from 'd3-selection';
 // import './open-iconic-bootstrap.scss'
-import {create as createApp} from './app';
-import {create as createHeader, AppHeaderLink} from 'phovea_ui/src/header';
-import {APP_NAME} from './language';
+import { create as createApp } from './app';
+import { create as createHeader, AppHeaderLink } from 'phovea_ui/src/header';
+import { APP_NAME } from './language';
 
 import LoginMenu from 'phovea_security_flask/src/LoginMenu';
-import {currentUser, isLoggedIn} from 'phovea_core/src/security';
+import { currentUser, isLoggedIn } from 'phovea_core/src/security';
 
 let appInstance;
 const header = createHeader(
@@ -35,9 +35,9 @@ menu.on(LoginMenu.EVENT_LOGGED_IN, () => {
   console.assert(isLoggedIn());
   console.log(currentUser());
   select('#loading').remove();
-  select('#app').append('div').attr('id','loading').append('h1').style('margin','5px').html('Loading ...');
+  select('#app').append('div').attr('id', 'loading').append('h1').style('margin', '5px').html('Loading ...');
 
-  select('#app').append('div').attr('class','busy');
+  select('#app').append('div').attr('class', 'busy');
 
   if (select('#graphDiv').empty()) {
     appInstance.init();
@@ -50,7 +50,7 @@ menu.on(LoginMenu.EVENT_LOGGED_OUT, () => {
   select('#graph').html('');
   select('#table').html('');
 
-  select('#app').append('div').attr('id','loading').append('h1').style('margin','5px').html('You have logged out...');
+  select('#app').append('div').attr('id', 'loading').append('h1').style('margin', '5px').html('You have logged out...');
 
 });
 

@@ -75,16 +75,16 @@ import * as _ from 'underscore';
 //   legendColor
 // } from 'd3-svg-legend';
 
-import {PRIMARY_SELECTED, POI_SELECTED, TABLE_VIS_ROWS_CHANGED_EVENT} from './tableManager';
-import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL} from 'phovea_core/src/datatype';
+import { PRIMARY_SELECTED, POI_SELECTED, TABLE_VIS_ROWS_CHANGED_EVENT } from './tableManager';
+import { VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL } from 'phovea_core/src/datatype';
 // import {TABLE_SORTED_EVENT} from './attributeTable'
 import Node from './Node';
-import {Sex} from './Node';
-import {layoutState} from './Node';
-import {isNull} from 'util';
-import {isNullOrUndefined} from 'util';
-import {search} from 'phovea_core/src';
-import {isUndefined} from 'util';
+import { Sex } from './Node';
+import { layoutState } from './Node';
+import { isNull } from 'util';
+import { isNullOrUndefined } from 'util';
+import { search } from 'phovea_core/src';
+import { isUndefined } from 'util';
 
 // import legend from './treeLegend.svg'
 
@@ -156,21 +156,21 @@ class GenealogyTree {
 
   private colors = ['#a6cee3', '#1f78b4', '#b2df8a', '#33a02c', '#fb9a99', '#e31a1c', '#fdbf6f', '#ff7f00'];
 
-//     private colorScale = scaleLinear().domain([1,2,3,4,5,6,7,8]).range(this.colors)
+  //     private colorScale = scaleLinear().domain([1,2,3,4,5,6,7,8]).range(this.colors)
 
 
   //Data attributes to draw hexagons for aggregate rows
   private hexSize = Config.glyphSize * 1.25;
 
-  private hexData = [{x: this.hexSize, y: 0},
-    {x: this.hexSize / 2, y: this.hexSize * Math.sqrt(3) / 2},
-    {x: -this.hexSize / 2, y: this.hexSize * Math.sqrt(3) / 2},
-    {x: -this.hexSize, y: 0},
-    {x: -this.hexSize / 2, y: -this.hexSize * Math.sqrt(3) / 2},
-    {x: this.hexSize / 2, y: -this.hexSize * Math.sqrt(3) / 2},
-    {x: this.hexSize, y: 0}];
+  private hexData = [{ x: this.hexSize, y: 0 },
+  { x: this.hexSize / 2, y: this.hexSize * Math.sqrt(3) / 2 },
+  { x: -this.hexSize / 2, y: this.hexSize * Math.sqrt(3) / 2 },
+  { x: -this.hexSize, y: 0 },
+  { x: -this.hexSize / 2, y: -this.hexSize * Math.sqrt(3) / 2 },
+  { x: this.hexSize / 2, y: -this.hexSize * Math.sqrt(3) / 2 },
+  { x: this.hexSize, y: 0 }];
 
-  private hexLine = line < any >()
+  private hexLine = line<any>()
     .x(function (d) {
       return d.x;
     })
@@ -179,7 +179,7 @@ class GenealogyTree {
     });
 
 
-  private lineFunction = line < any >()
+  private lineFunction = line<any>()
     .x((d: any) => {
       return this.x(d.x);
     }).y((d: any) => {
@@ -187,7 +187,7 @@ class GenealogyTree {
     })
     .curve(curveBasis);
 
-  private slopeLineFunction = line < any >()
+  private slopeLineFunction = line<any>()
     .x((d: any) => {
       return d.x;
     }).y((d: any) => {
@@ -195,7 +195,7 @@ class GenealogyTree {
     })
     .curve(curveBasis);
 
-    private colorScale = ['#969696', '#9e9ac8', '#74c476', '#fd8d3c', '#9ecae1'];
+  private colorScale = ['#969696', '#9e9ac8', '#74c476', '#fd8d3c', '#9ecae1'];
 
 
 
@@ -240,9 +240,9 @@ class GenealogyTree {
    */
   private build() {
 
-        //fetch the svg bounds
-        const svgBounds = document.querySelector ('#col2').getBoundingClientRect();
-        const parentWidth = 500;
+    //fetch the svg bounds
+    const svgBounds = document.querySelector('#col2').getBoundingClientRect();
+    const parentWidth = 500;
 
 
     // this.width = parentWidth - this.margin.left - this.margin.right;
@@ -253,24 +253,24 @@ class GenealogyTree {
 
     // window.onscroll = (e:any)=>{console.log(e,'user scrolled')}
 
-    this.$node.append('nav').attr('class','navbar navbar-expand-lg navbar-light bg-light')
-    .append('div').attr('id', 'tableNav');
+    this.$node.append('nav').attr('class', 'navbar navbar-expand-lg navbar-light bg-light')
+      .append('div').attr('id', 'tableNav');
     // .attr('class','mx-auto') //for centering on nav bar
 
     this.$node.select('#tableNav')
-    .append('a').attr('class','navbar-brand')
-    .html('Genealogy Tree');
+      .append('a').attr('class', 'navbar-brand')
+      .html('Genealogy Tree');
 
-  const buttonMenu = this.$node.select('.navbar')
-  .append('ul').attr('class','nav navbar-nav');
+    const buttonMenu = this.$node.select('.navbar')
+      .append('ul').attr('class', 'nav navbar-nav');
 
-  buttonMenu
-  .append('li')
-  .append('a')
-  .attr('class','btn-link')
-  .attr('role','button')
-  .html('Aggregate')
-  .on('click', (d)=> {
+    buttonMenu
+      .append('li')
+      .append('a')
+      .attr('class', 'btn-link')
+      .attr('role', 'button')
+      .html('Aggregate')
+      .on('click', (d) => {
         selectAll('.slopeLine').classed('clickedSlope', false);
         selectAll('.highlightBar').classed('selected', false);
 
@@ -279,12 +279,12 @@ class GenealogyTree {
       });
 
     buttonMenu
-    .append('li')
-    .append('a')
-    .attr('class','btn-link')
-    .attr('role','button')
-    .html('Hide')
-      .on('click', (d)=> {
+      .append('li')
+      .append('a')
+      .attr('class', 'btn-link')
+      .attr('role', 'button')
+      .html('Hide')
+      .on('click', (d) => {
 
         selectAll('.slopeLine').classed('clickedSlope', false);
         selectAll('.highlightBar').classed('selected', false);
@@ -293,13 +293,13 @@ class GenealogyTree {
         // this.update_graph();
       });
 
-      buttonMenu
+    buttonMenu
       .append('li')
       .append('a')
-      .attr('class','btn-link')
-      .attr('role','button')
+      .attr('class', 'btn-link')
+      .attr('role', 'button')
       .html('Expand')
-       .on('click', (d)=> {
+      .on('click', (d) => {
 
         selectAll('.slopeLine').classed('clickedSlope', false);
         selectAll('.highlightBar').classed('selected', false);
@@ -308,10 +308,10 @@ class GenealogyTree {
         // this.update_graph();
       });
 
-       const headerDiv = this.$node.append('div').attr('id','graphHeaders');
+    const headerDiv = this.$node.append('div').attr('id', 'graphHeaders');
 
-       //Add svg legend
-       headerDiv.append('g').html(String(icon));
+    //Add svg legend
+    headerDiv.append('g').html(String(icon));
 
     //Create a static div for the headers
     // this.$node.append('div').attr('id', 'headersDIV');
@@ -323,7 +323,7 @@ class GenealogyTree {
       // .attr('width', 550)
       // .attr('height',170)
       .attr('id', 'headers')
-      .attr('viewBox','0 0 ' + (this.width) + ' 75');
+      .attr('viewBox', '0 0 ' + (this.width) + ' 75');
 
     // headerSVG.append('rect')
     //   .attr('width', 970)
@@ -334,15 +334,15 @@ class GenealogyTree {
     //   .attr('transform', 'translate(' + this.margin.left + ',90)')
     //   .attr('id', 'headerGroup');
 
-    const svg = this.$node.append('div').attr('id','graphDiv').append('svg')
+    const svg = this.$node.append('div').attr('id', 'graphDiv').append('svg')
       // .attr('width', this.width + this.margin.left + this.margin.right)
       .attr('id', 'graph')
-      .on('click',()=> {
+      .on('click', () => {
         select('#treeMenu').select('.menu').remove();
         select('#nodeActions').attr('visibility', 'hidden');
-        selectAll('.edges').classed('selected',false);
-        selectAll('.parentEdges').classed('selected',false);
-        selectAll('.clicked').classed('clicked',false);
+        selectAll('.edges').classed('selected', false);
+        selectAll('.parentEdges').classed('selected', false);
+        selectAll('.clicked').classed('clicked', false);
       });
 
     //Create gradients for fading life lines and kidGrids
@@ -444,7 +444,7 @@ class GenealogyTree {
 
 
     svg.append('g')
-      .attr('transform', 'translate(' + this.margin.left + ',' + (Config.glyphSize+this.margin.top) + ')')
+      .attr('transform', 'translate(' + this.margin.left + ',' + (Config.glyphSize + this.margin.top) + ')')
       .attr('id', 'genealogyTree');
 
     //Ensure the right order of all the elements by creating seprate groups
@@ -489,35 +489,35 @@ class GenealogyTree {
 
     const button = select('#menus')
       .append('g')
-      .attr('id','nodeActions')
-      .attr('visibility','hidden');
+      .attr('id', 'nodeActions')
+      .attr('visibility', 'hidden');
 
     button.append('rect')
-      .classed('nodeButton',true)
-      .attr('id','menuOption1')
+      .classed('nodeButton', true)
+      .attr('id', 'menuOption1')
       .attr('y', -18);
 
     button.append('text')
       .classed('nodeButtonText', true)
-      .attr('id','menuLabel1')
-      .attr('y',-8)
-      .attr('x',5);
+      .attr('id', 'menuLabel1')
+      .attr('y', -8)
+      .attr('x', 5);
 
     button.append('rect')
-      .classed('nodeButton',true)
-      .attr('id','menuOption2')
+      .classed('nodeButton', true)
+      .attr('id', 'menuOption2')
       .attr('y', 0);
 
     button.append('text')
       .classed('nodeButtonText', true)
-      .attr('id','menuLabel2')
-      .attr('y',10)
-      .attr('x',5);
+      .attr('id', 'menuLabel2')
+      .attr('y', 10)
+      .attr('x', 5);
 
     selectAll('.nodeButtonText')
       .attr('text-anchor', 'start')
       .attr('fill', 'white')
-      .attr('font-size',12);
+      .attr('font-size', 12);
 
     selectAll('.nodeButton')
       .attr('width', 60)
@@ -539,13 +539,13 @@ class GenealogyTree {
       .attr('id', 'legend');
 
 
-      // legend.append('rect')
-      // .attr('width', 550)
-      // .attr('height',120)
-      // .attr('fill','grey')
-      // .style('opacity','.1')
+    // legend.append('rect')
+    // .attr('width', 550)
+    // .attr('height',120)
+    // .attr('fill','grey')
+    // .style('opacity','.1')
 
-      // console.log(String(icon))
+    // console.log(String(icon))
 
 
 
@@ -557,62 +557,62 @@ class GenealogyTree {
 
 
 
-//       var triangleU = symbol().type(symbolTriangle)(),
-//   circle = symbol().type(symbolCircle)(),
-//   cross = symbol().type(symbolCross)(),
-//   diamond = symbol().type(symbolDiamond)(),
-//   star = symbol().type(symbolStar)();
+    //       var triangleU = symbol().type(symbolTriangle)(),
+    //   circle = symbol().type(symbolCircle)(),
+    //   cross = symbol().type(symbolCross)(),
+    //   diamond = symbol().type(symbolDiamond)(),
+    //   star = symbol().type(symbolStar)();
 
-// //example output of d3.svg.symbol().type('circle')();
-// //"M0,4.51351666838205A4.51351666838205,4.51351666838205 0 1,1 0,
-// //-4.51351666838205A4.51351666838205,4.51351666838205 0 1,1 0,4.51351666838205Z"
+    // //example output of d3.svg.symbol().type('circle')();
+    // //"M0,4.51351666838205A4.51351666838205,4.51351666838205 0 1,1 0,
+    // //-4.51351666838205A4.51351666838205,4.51351666838205 0 1,1 0,4.51351666838205Z"
 
-// let symbolScale =  scaleOrdinal()
-//   .domain(['a longer label','b','c', 'd', 'e'])
-//   .range([ triangleU, circle, cross, diamond, star] );
+    // let symbolScale =  scaleOrdinal()
+    //   .domain(['a longer label','b','c', 'd', 'e'])
+    //   .range([ triangleU, circle, cross, diamond, star] );
 
 
 
-// legend.append("g")
-//   .attr("class", "legendSymbol")
-//   .attr("transform", "translate(20, 20)");
+    // legend.append("g")
+    //   .attr("class", "legendSymbol")
+    //   .attr("transform", "translate(20, 20)");
 
-// let legendPath = legendSymbol()
-//   .scale(symbolScale)
-//   .orient("horizontal")
-//   .labelWrap(30)
-//   .title("Symbol Legend Title")
-//   .on("cellclick", function(d){alert("clicked " + d);});
+    // let legendPath = legendSymbol()
+    //   .scale(symbolScale)
+    //   .orient("horizontal")
+    //   .labelWrap(30)
+    //   .title("Symbol Legend Title")
+    //   .on("cellclick", function(d){alert("clicked " + d);});
 
-// legend.select(".legendSymbol")
-//   .call(legendPath);
+    // legend.select(".legendSymbol")
+    //   .call(legendPath);
 
-  //Creates a legend element and assigns a scale that needs to be visualized
+    //Creates a legend element and assigns a scale that needs to be visualized
 
     //Domain definition for global color scale
-        // let domain = [-60, -50, -40, -30, -20, -10, 0, 10, 20, 30, 40, 50, 60];
+    // let domain = [-60, -50, -40, -30, -20, -10, 0, 10, 20, 30, 40, 50, 60];
 
-        // //Color range for global color scale
-        // let range = ["#063e78", "#08519c", "#3182bd", "#6baed6", "#9ecae1", "#c6dbef", "#fcbba1", "#fc9272", "#fb6a4a", "#de2d26", "#a50f15", "#860308"];
+    // //Color range for global color scale
+    // let range = ["#063e78", "#08519c", "#3182bd", "#6baed6", "#9ecae1", "#c6dbef", "#fcbba1", "#fc9272", "#fb6a4a", "#de2d26", "#a50f15", "#860308"];
 
-        // //ColorScale be used consistently by all the charts
-        // let colorScale = scaleLinear()
-        //     .domain(domain)
-        //     .range(range);
+    // //ColorScale be used consistently by all the charts
+    // let colorScale = scaleLinear()
+    //     .domain(domain)
+    //     .range(range);
 
 
-        //     this.$node.select('svg').append("g")
-        //         .attr("class", "legendQuantile")
-        //         .attr("transform", "translate(0,50)");
+    //     this.$node.select('svg').append("g")
+    //         .attr("class", "legendQuantile")
+    //         .attr("transform", "translate(0,50)");
 
-            // let legendQuantile = legendColor()
-            //     .shapeWidth(100)
-            //     .cells(10)
-            //     .orient('horizontal')
-            //     .scale(colorScale);
+    // let legendQuantile = legendColor()
+    //     .shapeWidth(100)
+    //     .cells(10)
+    //     .orient('horizontal')
+    //     .scale(colorScale);
 
-            // this.legendSvg.select(".legendQuantile")
-            //     .call(legendQuantile);
+    // this.legendSvg.select(".legendQuantile")
+    //     .call(legendQuantile);
 
 
 
@@ -790,7 +790,7 @@ class GenealogyTree {
     this.height = Config.glyphSize * 4 * (yrange[1] - yrange[0] + 1); // - this.margin.top - this.margin.bottom;
     // console.log('tree height is ', this.height)
 
-    this.y.range([0, this.height*.8]).domain(yrange);
+    this.y.range([0, this.height * .8]).domain(yrange);
 
     console.log('yrange in tree is ', this.y.range());
     this.interGenerationScale.range([.75, .25]).domain([2, nodes.length]);
@@ -799,7 +799,7 @@ class GenealogyTree {
     this.$node.select('#graph')
       // .attr('viewBox','0 0 ' + this.width +  ' ' +  (this.height + this.margin.top + this.margin.bottom))
       // .attr('preserveAspectRatio','none');
-      .attr('width',this.width)
+      .attr('width', this.width)
       .attr('height', this.height);
 
     this.update_edges();
@@ -823,7 +823,7 @@ class GenealogyTree {
 
     const familyDict = {};
 
-    nodes.map((node)=> {
+    nodes.map((node) => {
       if (familyDict[node.kindredID]) {
         familyDict[node.kindredID].push(node.y);
       } else {
@@ -837,13 +837,13 @@ class GenealogyTree {
     for (const key in familyDict) {
       if (familyDict.hasOwnProperty(key)) {
         //reduce indexes to sequence of continuous values.
-        const sortedIndexes = familyDict[key].sort((a,b)=> {return (b-a);});
-        const min = sortedIndexes.reduce(function(accumulator, currentValue) {
-          return accumulator-currentValue <= 1 ? currentValue : accumulator;
-      });
+        const sortedIndexes = familyDict[key].sort((a, b) => { return (b - a); });
+        const min = sortedIndexes.reduce(function (accumulator, currentValue) {
+          return accumulator - currentValue <= 1 ? currentValue : accumulator;
+        });
 
-      familyArray.push({'id':key,'min':min, 'max':max(familyDict[key])});
-     }
+        familyArray.push({ 'id': key, 'min': min, 'max': max(familyDict[key]) });
+      }
     }
 
 
@@ -856,14 +856,14 @@ class GenealogyTree {
         return d.id;
       });
 
-      console.log(familyArray);
+    console.log(familyArray);
 
     allFamilyBars.exit().remove();
 
     const allFamilyBarsEnter = allFamilyBars
       .enter()
       .append('line')
-      .classed('familyBar',true);
+      .classed('familyBar', true);
 
 
 
@@ -872,18 +872,18 @@ class GenealogyTree {
     allFamilyBars = allFamilyBarsEnter.merge(allFamilyBars);
 
     allFamilyBars
-    // .attr('x1',-15)
-    // .attr('x2',-15)
-    // .attr('y1',(d)=> {return (this.y(d.min)-5);}) //add buffer between bars;
-    // .attr('y2',(d)=> {return this.y(d.max);})
+      // .attr('x1',-15)
+      // .attr('x2',-15)
+      // .attr('y1',(d)=> {return (this.y(d.min)-5);}) //add buffer between bars;
+      // .attr('y2',(d)=> {return this.y(d.max);})
 
-    .attr('x1',-30)
-    .attr('x2',500)
-    .attr('y1',(d)=> {return (this.y(d.max)+Config.glyphSize);}) //add buffer between bars;
-    .attr('y2',(d)=> {return (this.y(d.max)+Config.glyphSize);})
-    // .attr('y',(d)=> {return this.y(Math.round(d.min));})
-    // .attr('height',(d)=> {console.log('d.max is ', d.max, 'this.y(d.max):', this.y(d.max), 'd.min',d.min, 'this.y(d.min)', this.y(d.min), 'height',(this.y(d.max)-this.y(d.min))); return Math.abs(this.y(d.max)-this.y(d.min));})
-    .attr('opacity',.4);
+      .attr('x1', -30)
+      .attr('x2', 500)
+      .attr('y1', (d) => { return (this.y(d.max) + Config.glyphSize); }) //add buffer between bars;
+      .attr('y2', (d) => { return (this.y(d.max) + Config.glyphSize); })
+      // .attr('y',(d)=> {return this.y(Math.round(d.min));})
+      // .attr('height',(d)=> {console.log('d.max is ', d.max, 'this.y(d.max):', this.y(d.max), 'd.min',d.min, 'this.y(d.min)', this.y(d.min), 'height',(this.y(d.max)-this.y(d.min))); return Math.abs(this.y(d.max)-this.y(d.min));})
+      .attr('opacity', .4);
 
     // .attr('fill',(d,i)=> {console.log(d); return d.id === '42623' ? this.colorScale[1] : this.colorScale[0];});
 
@@ -897,25 +897,25 @@ class GenealogyTree {
     const allFamilyLabelsEnter = allFamilyLabels
       .enter()
       .append('text')
-      .classed('familyLabel',true);
+      .classed('familyLabel', true);
 
 
 
     allFamilyLabels = allFamilyLabelsEnter.merge(allFamilyLabels);
 
     allFamilyLabels
-    .attr('x',-20)
-    .attr('y',(d)=> {return this.y(Math.round(d.max));})
-    .text((d)=> {return 'Family ' + d.id;})
-    // .attr("font-family", "sans-serif")
-    .attr('font-size', '20px')
-    .attr('font-weight','bold')
-    .attr('fill', '#4e4e4e')
-    .attr('transform', (d)=> {return 'rotate(-90,-20,' + this.y(Math.round(d.max)) + ')'; })
-    .attr('text-anchor','start');
+      .attr('x', -20)
+      .attr('y', (d) => { return this.y(Math.round(d.max)); })
+      .text((d) => { return 'Family ' + d.id; })
+      // .attr("font-family", "sans-serif")
+      .attr('font-size', '20px')
+      .attr('font-weight', 'bold')
+      .attr('fill', '#4e4e4e')
+      .attr('transform', (d) => { return 'rotate(-90,-20,' + this.y(Math.round(d.max)) + ')'; })
+      .attr('text-anchor', 'start');
 
 
-    }
+  }
   /**
    *
    * This function updates the edges in the genealogy tree
@@ -937,7 +937,7 @@ class GenealogyTree {
     let edgePaths = edgeGroup.selectAll('.edges')
       .data(childParentEdges.filter(function (d) {
         return (!(d.target.hidden && !d.target.hasChildren));
-      }), function (d:any) {
+      }), function (d: any) {
         return d.id;
       });
 
@@ -977,17 +977,17 @@ class GenealogyTree {
 
     let parentEdgePaths = edgeGroup.selectAll('.parentEdges')// only draw parent parent edges if neither parent is aggregated
       .data(parentParentEdges
-          .filter(function (d: Node) {
-            return (!d.ma.hidden && !d.pa.hidden) || (!d.ma.affected && !d.pa.affected);
-          })
-        , function (d: any) {
-          return d.id;
-        });
+        .filter(function (d: Node) {
+          return (!d.ma.hidden && !d.pa.hidden) || (!d.ma.affected && !d.pa.affected);
+        })
+      , function (d: any) {
+        return d.id;
+      });
 
 
     parentEdgePaths.exit().style('opacity', 0).remove();
 
-  const parentEdgePathsEnter = parentEdgePaths
+    const parentEdgePathsEnter = parentEdgePaths
       .enter()
       .append('path');
 
@@ -1023,7 +1023,7 @@ class GenealogyTree {
     })];
 
     //Create data to bind to highlightBars
-    const yData: any [] = [];
+    const yData: any[] = [];
     for (let i = yRange[0]; i <= yRange[1]; i++) {
       //find all nodes in this row
       const yNodes = this.data.nodes.filter((n: Node) => {
@@ -1033,11 +1033,12 @@ class GenealogyTree {
         y: i, x: min(yNodes, (d: Node) => {
           return d.x;
         })
-      , id:yNodes[0].uniqueID});
+        , id: yNodes[0].uniqueID
+      });
     }
 
     //Create data to bind to aggregateBars
-    const aggregateBarData: any [] = [];
+    const aggregateBarData: any[] = [];
     for (let i = yRange[0]; i <= yRange[1]; i++) {
       //find all nodes in this row
       const yNodes = this.data.nodes.filter((n: Node) => {
@@ -1055,7 +1056,7 @@ class GenealogyTree {
 
     // Attach aggregateBars
     let aggregateBars = highlightBarGroup.selectAll('.aggregateBar')
-      .data(aggregateBarData, (d) => {return d.y;});
+      .data(aggregateBarData, (d) => { return d.y; });
 
 
     aggregateBars.exit().remove();
@@ -1064,7 +1065,7 @@ class GenealogyTree {
       .enter()
       .append('rect')
       .classed('aggregateBar', true)
-      .attr('opacity',0);
+      .attr('opacity', 0);
 
     aggregateBars = aggregateBarsEnter.merge(aggregateBars);
 
@@ -1084,12 +1085,12 @@ class GenealogyTree {
 
     aggregateBars
       // .transition(t.transition().duration(500).ease(easeLinear))
-      .attr('opacity',1);
+      .attr('opacity', 1);
 
 
     // Attach highlight Bars
     let allBars = highlightBarGroup.selectAll('.bars')
-      .data(yData,(d) => {return d.id;});
+      .data(yData, (d) => { return d.id; });
 
     allBars.exit().remove();
 
@@ -1187,10 +1188,10 @@ class GenealogyTree {
 
 
     selectAll('.highlightBar')
-      .on('mouseover',highlightRows)
+      .on('mouseover', highlightRows)
       .on('mouseout', clearHighlights)
-      .on('click', (d: any,i) => {
-        if (event.defaultPrevented) {return;} // dragged
+      .on('click', (d: any, i) => {
+        if (event.defaultPrevented) { return; } // dragged
 
         const wasSelected = selectAll('.highlightBar').filter((e: any) => {
           return e.y === d.y || e.y === Math.round(d.y);
@@ -1216,7 +1217,7 @@ class GenealogyTree {
         });
       });
 
-      selectAll('.bars')
+    selectAll('.bars')
       .selectAll('.backgroundBar')
       .on('mouseover', highlightRows)
       .on('mouseout', clearHighlights);
@@ -1224,7 +1225,7 @@ class GenealogyTree {
   }
 
   //Function that returns the x and y position for the couples line and kid grid of a given family.
-  private getFamilyPos(n:Node) {
+  private getFamilyPos(n: Node) {
 
     //Not a direct ancestor
     if (isUndefined(n.ma) || isUndefined(n.pa)) {
@@ -1236,51 +1237,55 @@ class GenealogyTree {
       return undefined;
     }
 
-    if (n.affected && !isUndefined(n.spouse.find((s:Node)=> {return !s.aggregated && !s.affected;}))) {
+    if (n.affected && !isUndefined(n.spouse.find((s: Node) => { return !s.aggregated && !s.affected; }))) {
       return undefined;
     }
 
     //return undefined for couples without a kid grid
-     if (n.hasChildren && n.children.reduce(function(accumulator, currentValue) {
+    if (n.hasChildren && n.children.reduce(function (accumulator, currentValue) {
       return (currentValue.hasChildren || currentValue.affected) && accumulator;
-    },true)) {
+    }, true)) {
       console.log('found one');
       return undefined;
     }
 
     const parents = [n].concat(n.spouse);
 
-    if (isUndefined(parents.find((p:Node)=> {return p.hidden;})) && isUndefined(n.children.find((p:Node)=> {return p.hidden;}))) {
-        return undefined;
+    if (isUndefined(parents.find((p: Node) => { return p.hidden; })) && isUndefined(n.children.find((p: Node) => { return p.hidden; }))) {
+      return undefined;
     }
 
     //All parents are affected and they have at least one aggregated child
-    if (isUndefined(parents.find((p:Node)=> {return !p.affected;}))) {
-      if (n.hasChildren && !isUndefined(n.children.find((child:Node)=> {return !child.hasChildren && !child.affected;}))) {
-      // return {'x':max(parents,(p:Node)=>{return p.x}), 'y':min(parents,(p:Node)=>{return p.y})-1};
-      const girls = n.children.filter((child:Node)=> {return child.sex === Sex.Female;});
-      const boys = n.children.filter((child:Node)=> {return child.sex === Sex.Male;});
-      const maxKidGridRows = max([girls.length,boys.length]);
+    if (isUndefined(parents.find((p: Node) => { return !p.affected; }))) {
+      if (n.hasChildren && !isUndefined(n.children.find((child: Node) => { return !child.hasChildren && !child.affected; }))) {
+        // return {'x':max(parents,(p:Node)=>{return p.x}), 'y':min(parents,(p:Node)=>{return p.y})-1};
+        const girls = n.children.filter((child: Node) => { return child.sex === Sex.Female; });
+        const boys = n.children.filter((child: Node) => { return child.sex === Sex.Male; });
+        const maxKidGridRows = max([girls.length, boys.length]);
 
-      return {'x':n.children.find((c:Node) => { return !c.affected;}).x,
-        'y':Math.round(n.children.find((c:Node) => { return !c.affected;}).y),
-        'id':n.uniqueID,
-        'extend':true,
-      'kids':min([4,maxKidGridRows])};
+        return {
+          'x': n.children.find((c: Node) => { return !c.affected; }).x,
+          'y': Math.round(n.children.find((c: Node) => { return !c.affected; }).y),
+          'id': n.uniqueID,
+          'extend': true,
+          'kids': min([4, maxKidGridRows])
+        };
       }
     } else { //There is at least one unaffected parent;
-      const unaffectedParent = parents.find((p:Node)=> {return !p.affected;});
-      const affectedParent = parents.find((p:Node)=> {return p.affected;});
+      const unaffectedParent = parents.find((p: Node) => { return !p.affected; });
+      const affectedParent = parents.find((p: Node) => { return p.affected; });
 
-      const girls = n.children.filter((child:Node)=> {return child.sex === Sex.Female;});
-      const boys = n.children.filter((child:Node)=> {return child.sex === Sex.Male;});
-      const maxKidGridRows = max([girls.length,boys.length]);
+      const girls = n.children.filter((child: Node) => { return child.sex === Sex.Female; });
+      const boys = n.children.filter((child: Node) => { return child.sex === Sex.Male; });
+      const maxKidGridRows = max([girls.length, boys.length]);
 
 
       if (unaffectedParent.hidden) {
         if (isUndefined(affectedParent) && unaffectedParent.aggregated) {
-          return {'x':unaffectedParent.x, 'y':Math.round(unaffectedParent.y),'id':n.uniqueID,'extend':false,
-            'kids':min([4,maxKidGridRows])};
+          return {
+            'x': unaffectedParent.x, 'y': Math.round(unaffectedParent.y), 'id': n.uniqueID, 'extend': false,
+            'kids': min([4, maxKidGridRows])
+          };
         } else {
 
           if (unaffectedParent.aggregated) {
@@ -1313,7 +1318,7 @@ class GenealogyTree {
 
     const couplesData = [];
 
-    this.data.nodes.forEach((n:Node)=> {
+    this.data.nodes.forEach((n: Node) => {
       const familyPos = this.getFamilyPos(n);
       if (!isUndefined(familyPos)) {
         couplesData.push(familyPos);
@@ -1322,7 +1327,7 @@ class GenealogyTree {
 
     // Attach Couples Lines
     let couplesLines = couplesLinesGroup.selectAll('.couplesLine')
-      .data(couplesData, (d) => {return d.id;});
+      .data(couplesData, (d) => { return d.id; });
 
     couplesLines.exit().remove();
 
@@ -1330,38 +1335,38 @@ class GenealogyTree {
       .enter()
       .append('line')
       .attr('class', 'couplesLine');
-      // .attr('visibility', 'hidden');
+    // .attr('visibility', 'hidden');
 
     couplesLines = couplesLinesEnter.merge(couplesLines);
 
-    couplesLines.attr('opacity',0);
+    couplesLines.attr('opacity', 0);
 
     couplesLines
-      .attr('x1', (d:any) => {
-        return this.x(d.x) + Config.glyphSize*.9;
+      .attr('x1', (d: any) => {
+        return this.x(d.x) + Config.glyphSize * .9;
       })
-      .attr('y1', (d:any)=> {
-        return this.y(d.y-0.4);
+      .attr('y1', (d: any) => {
+        return this.y(d.y - 0.4);
       })
-      .attr('x2', (d:any) => {
-        return this.x(d.x) + Config.glyphSize*.9;
+      .attr('x2', (d: any) => {
+        return this.x(d.x) + Config.glyphSize * .9;
       })
-      .attr('y2', (d:any) => {
+      .attr('y2', (d: any) => {
         if (d.extend) {
-          return this.y(d.y+1);
+          return this.y(d.y + 1);
         }
-        return this.y(d.y+0.4);
+        return this.y(d.y + 0.4);
       })
       .attr('stroke-width', 2);
 
 
-    couplesLines.attr('opacity',1);
+    couplesLines.attr('opacity', 1);
 
     const kidGridsGroup = select('#genealogyTree').select('#kidGrids');
 
     // Attach backgroundRects
     let backgroundRects = kidGridsGroup.selectAll('.kidGrids')
-      .data(couplesData, (d) => {return d.id;});
+      .data(couplesData, (d) => { return d.id; });
 
     backgroundRects.exit().remove();
 
@@ -1374,14 +1379,14 @@ class GenealogyTree {
 
 
     backgroundRects
-      .attr('x', (d:any) => {
-        return this.x(d.x) - Config.glyphSize*1.2;
+      .attr('x', (d: any) => {
+        return this.x(d.x) - Config.glyphSize * 1.2;
       })
-      .attr('y', (d:any)=> {
-        return this.y(d.y-0.4);
+      .attr('y', (d: any) => {
+        return this.y(d.y - 0.4);
       })
-      .attr('width', (d)=> {return Config.glyphSize*2 + d.kids*Config.glyphSize;})
-      .attr('height', Config.glyphSize*2.6)
+      .attr('width', (d) => { return Config.glyphSize * 2 + d.kids * Config.glyphSize; })
+      .attr('height', Config.glyphSize * 2.6)
       .style('fill', 'url(#kidGridGradient)');
 
   }
@@ -1522,8 +1527,8 @@ class GenealogyTree {
         } else {
           xoffset = Config.glyphSize * 1.5;
         }
-        return 'translate(' + (xpos + xoffset + this.kidGridXScale(xind) ) + ',' + (ypos + +this.kidGridYScale(yind)) + ')';
-//
+        return 'translate(' + (xpos + xoffset + this.kidGridXScale(xind)) + ',' + (ypos + +this.kidGridYScale(yind)) + ')';
+        //
       });
 
     allNodes
@@ -1554,16 +1559,16 @@ class GenealogyTree {
    * @param starting node
    * @param on true to turn the highlighting on, false to turn it off
    */
-  private highlightBranch(node:Node,on:boolean) {
+  private highlightBranch(node: Node, on: boolean) {
     if (!node.hasChildren) {
       return;
     }
     // start by highlighting spouse edges
-   const selectedEdges = selectAll('.edges').filter((d:Node) => {
-      return ((d.ma === node || d.pa === node) || !isUndefined(node.spouse[0].spouse.find((s:Node) => {return d.ma === s || d.pa === s;})));
+    const selectedEdges = selectAll('.edges').filter((d: Node) => {
+      return ((d.ma === node || d.pa === node) || !isUndefined(node.spouse[0].spouse.find((s: Node) => { return d.ma === s || d.pa === s; })));
     });
-    const selectedParentEdges = selectAll('.parentEdges').filter((d:Node) => {
-      return ((d.ma === node || d.pa === node) || !isUndefined(node.spouse[0].spouse.find((s:Node) => {return d.ma === s || d.pa === s;})));
+    const selectedParentEdges = selectAll('.parentEdges').filter((d: Node) => {
+      return ((d.ma === node || d.pa === node) || !isUndefined(node.spouse[0].spouse.find((s: Node) => { return d.ma === s || d.pa === s; })));
     });
 
 
@@ -1576,7 +1581,7 @@ class GenealogyTree {
     }
 
 
-    node.children.forEach((child:Node) => {this.highlightBranch(child,on);});
+    node.children.forEach((child: Node) => { this.highlightBranch(child, on); });
   }
 
   private renderNodeGroup(element, d: Node) {
@@ -1668,14 +1673,14 @@ class GenealogyTree {
       })
       .attr('stroke-width', strokeWidth);
 
-    if (d.duplicates.length>0 && !d.hidden && element.selectAll('.duplicateIcon').size() === 0) {
+    if (d.duplicates.length > 0 && !d.hidden && element.selectAll('.duplicateIcon').size() === 0) {
       element
         .append('text')
         .classed('duplicateIcon', true);
 
-        element
-          .append('line')
-          .classed('duplicateLine', true);
+      element
+        .append('line')
+        .classed('duplicateLine', true);
     }
 
 
@@ -1709,7 +1714,7 @@ class GenealogyTree {
 
 
     element.selectAll('.nodeIcon')
-      .on('click', (d:Node) => {
+      .on('click', (d: Node) => {
 
         console.log(d);
         event.stopPropagation();
@@ -1718,13 +1723,13 @@ class GenealogyTree {
         // selectAll('.nodeIcon').filter((n:Node)=>{return n == d}).classed('clicked', true);
 
 
-        selectAll('.edges').classed('selected',false);
-        this.highlightBranch(d,true);
+        selectAll('.edges').classed('selected', false);
+        this.highlightBranch(d, true);
 
         function selected(e: Node) {
           let returnValue = false;
           //Highlight the current row in the graph and table
-          if (e.y === Math.round(d.y) ) {
+          if (e.y === Math.round(d.y)) {
             returnValue = true;
           }
           //Highlight any duplicates for this node
@@ -1745,54 +1750,54 @@ class GenealogyTree {
 
 
 
-        //   select('#nodeActions').attr('visibility', 'visible');
+          //   select('#nodeActions').attr('visibility', 'visible');
 
-        //   let xOffset, yOffset;
-        //   if (d.sex === Sex.Female) {
-        //     xOffset = 12 -83 + 40 ; yOffset = 30;
-        //   } else {
-        //     xOffset = 20 - 83 + 40; yOffset = 8 + 30;
-        //   }
+          //   let xOffset, yOffset;
+          //   if (d.sex === Sex.Female) {
+          //     xOffset = 12 -83 + 40 ; yOffset = 30;
+          //   } else {
+          //     xOffset = 20 - 83 + 40; yOffset = 8 + 30;
+          //   }
 
-        //   select('#nodeActions').attr('transform', 'translate(' + (this.xPOS(d) + xOffset) + ' , ' + (this.yPOS(d) + yOffset) + ' )');
+          //   select('#nodeActions').attr('transform', 'translate(' + (this.xPOS(d) + xOffset) + ' , ' + (this.yPOS(d) + yOffset) + ' )');
 
           let actions;
 
           if (d.state === layoutState.Expanded) {
-            actions = [{'state':layoutState.Aggregated, 'string':'Aggregate','offset':5},{'state':layoutState.Hidden, 'string':'Hide' , 'offset':20}];
+            actions = [{ 'state': layoutState.Aggregated, 'string': 'Aggregate', 'offset': 5 }, { 'state': layoutState.Hidden, 'string': 'Hide', 'offset': 20 }];
           } else if (d.state === layoutState.Aggregated) {
-            actions = [{'state':layoutState.Expanded, 'string':'Expand', 'offset':13},{'state':layoutState.Hidden, 'string':'Hide','offset':20}];
+            actions = [{ 'state': layoutState.Expanded, 'string': 'Expand', 'offset': 13 }, { 'state': layoutState.Hidden, 'string': 'Hide', 'offset': 20 }];
           } else if (d.state === layoutState.Hidden) {
-            actions = [{'state':layoutState.Expanded, 'string':'Expand','offset':13},{'state':layoutState.Aggregated, 'string':'Aggregate','offset':5}];
+            actions = [{ 'state': layoutState.Expanded, 'string': 'Expand', 'offset': 13 }, { 'state': layoutState.Aggregated, 'string': 'Aggregate', 'offset': 5 }];
           }
 
-          this.addMenu(d,actions);
+          this.addMenu(d, actions);
 
-        //   select('#nodeActions').select('#menuLabel1')
-        //     .text(actions[0].string)
-        //     .attr('x',actions[0].offset);
+          //   select('#nodeActions').select('#menuLabel1')
+          //     .text(actions[0].string)
+          //     .attr('x',actions[0].offset);
 
-        //   select('#nodeActions').select('#menuLabel2')
-        //     .text(actions[1].string)
-        //     .attr('x',actions[1].offset);
+          //   select('#nodeActions').select('#menuLabel2')
+          //     .text(actions[1].string)
+          //     .attr('x',actions[1].offset);
 
-        //   select('#nodeActions').select('#menuOption1')
-        //     .on('click', () => {
-        //       // select('#nodeActions').attr('visibility', 'hidden');
-        //       this.data.aggregateTreeWrapper(d.uniqueID, actions[0].state);
-        //       this.update_graph();
-        //     });
+          //   select('#nodeActions').select('#menuOption1')
+          //     .on('click', () => {
+          //       // select('#nodeActions').attr('visibility', 'hidden');
+          //       this.data.aggregateTreeWrapper(d.uniqueID, actions[0].state);
+          //       this.update_graph();
+          //     });
 
-        //   select('#nodeActions').select('#menuOption2')
-        //     .on('click', () => {
-        //       // select('#nodeActions').attr('visibility', 'hidden');
-        //       this.data.aggregateTreeWrapper(d.uniqueID, actions[1].state);
-        //       this.update_graph();
-        //     });
-        // } else {
+          //   select('#nodeActions').select('#menuOption2')
+          //     .on('click', () => {
+          //       // select('#nodeActions').attr('visibility', 'hidden');
+          //       this.data.aggregateTreeWrapper(d.uniqueID, actions[1].state);
+          //       this.update_graph();
+          //     });
+          // } else {
 
-        //   select('#nodeActions').attr('visibility', 'hidden');;
-        // }
+          //   select('#nodeActions').attr('visibility', 'hidden');;
+          // }
         }
 
         selectAll('.slopeLine').classed('selectedSlope', false);
@@ -1813,7 +1818,7 @@ class GenealogyTree {
 
         // selectAll('.duplicateLine').filter(selected).attr('visibility', 'visible');
       })
-      .on('mouseover', function (){
+      .on('mouseover', function () {
 
         if (d.hasChildren) {
           select(this).classed('hovered', true);
@@ -1821,7 +1826,7 @@ class GenealogyTree {
 
 
       })
-      .on('mouseout', function (){
+      .on('mouseout', function () {
 
         select(this).classed('hovered', false);
 
@@ -1958,7 +1963,7 @@ class GenealogyTree {
       });
 
 
-      element.select('.ageLabel')
+    element.select('.ageLabel')
       .attr('dy', Config.glyphSize * 0.8)
       .attr('dx', () => {
 
@@ -1991,15 +1996,15 @@ class GenealogyTree {
 
 
     element.select('.duplicateLine')
-      .attr('x1',()=> {
+      .attr('x1', () => {
         const n = d;
-        const dupNode = n.duplicates.find((d)=> {return d.y !== n.y;});
+        const dupNode = n.duplicates.find((d) => { return d.y !== n.y; });
         if (dupNode.y > n.y) {
           return;
         }
 
         let glyphSize;
-        let offset =0;
+        let offset = 0;
 
         if (n.hidden) {
           glyphSize = Config.hiddenGlyphSize;
@@ -2012,9 +2017,9 @@ class GenealogyTree {
           offset = glyphSize * 3;
         }
 
-         if (dupNode.x <=n.x) {
+        if (dupNode.x <= n.x) {
           if (n.sex === Sex.Male) {
-            return  glyphSize;
+            return glyphSize;
           } else {
             return 0;
           }
@@ -2023,15 +2028,15 @@ class GenealogyTree {
 
         // return glyphSize + offset
       })
-      .attr('y1',()=> {
+      .attr('y1', () => {
 
         const n = d;
-          const dupNode = n.duplicates.find((d)=> {return d.y !== n.y;});
-          if (dupNode.y > n.y) {
-            return;
-          }
+        const dupNode = n.duplicates.find((d) => { return d.y !== n.y; });
+        if (dupNode.y > n.y) {
+          return;
+        }
 
-          let glyphSize;
+        let glyphSize;
         if (n.hidden) {
           glyphSize = Config.hiddenGlyphSize;
         } else {
@@ -2041,22 +2046,22 @@ class GenealogyTree {
             if (n.sex === Sex.Male) {
               return -glyphSize;
             } else {
-              return -glyphSize*2;
+              return -glyphSize * 2;
             }
           }
         }
 
         // return +3*glyphSize
       })
-      .attr('x2',()=> {
+      .attr('x2', () => {
         const n = d;
-        const dupNode = n.duplicates.find((d)=> {return d.y !== n.y;});
+        const dupNode = n.duplicates.find((d) => { return d.y !== n.y; });
         if (dupNode.y > n.y) {
           return;
         };
 
         let glyphSize;
-        let offset =0;
+        let offset = 0;
 
         if (n.hidden) {
           glyphSize = Config.hiddenGlyphSize;
@@ -2076,18 +2081,18 @@ class GenealogyTree {
         //   return  this.x(dupNode.x) - this.x(n.x) +glyphSize - offset;
         // }
 
-        if (dupNode.x <=n.x) {
+        if (dupNode.x <= n.x) {
 
           if (n.sex === Sex.Male) {
-            return this.x(dupNode.x)- this.x(n.x) +glyphSize + offset;
+            return this.x(dupNode.x) - this.x(n.x) + glyphSize + offset;
           } else {
             return 0;
           }
         }
       })
-      .attr('y2',(n:Node)=> {
+      .attr('y2', (n: Node) => {
 
-        const dupNode = n.duplicates.find((d)=> {return d.y !== n.y;});
+        const dupNode = n.duplicates.find((d) => { return d.y !== n.y; });
         if (dupNode.y > n.y) {
           return;
         }
@@ -2100,14 +2105,14 @@ class GenealogyTree {
         }
 
         if (n.sex === Sex.Male) {
-          return this.y(n.duplicates.find((d)=> {return d.y !== n.y;}).y)- this.y(n.y) + glyphSize*3;
+          return this.y(n.duplicates.find((d) => { return d.y !== n.y; }).y) - this.y(n.y) + glyphSize * 3;
         } else {
-          return this.y(n.duplicates.find((d)=> {return d.y !== n.y;}).y)- this.y(n.y) + glyphSize*2;
+          return this.y(n.duplicates.find((d) => { return d.y !== n.y; }).y) - this.y(n.y) + glyphSize * 2;
         }
 
 
       });
-      // .attr('visibility', 'hidden')
+    // .attr('visibility', 'hidden')
 
 
     element.select('.duplicateIcon')
@@ -2115,31 +2120,31 @@ class GenealogyTree {
       .attr('y', (n: Node) => {
         let glyphSize;
         if (n.hidden) {
-          glyphSize = Config.hiddenGlyphSize*.75;
-        } else  {
+          glyphSize = Config.hiddenGlyphSize * .75;
+        } else {
           glyphSize = Config.glyphSize;
         }
         if (n.sex === Sex.Male) {
-          if (n.y > n.duplicates.find((d)=> {return d.y !== n.y;}).y) {
-            return glyphSize -1;
+          if (n.y > n.duplicates.find((d) => { return d.y !== n.y; }).y) {
+            return glyphSize - 1;
           } else {
             return glyphSize * 3 - 1;
           }
         } else {
-            return glyphSize * 2 - 1;
+          return glyphSize * 2 - 1;
         }
 
       })
       .attr('x', (n: Node) => {
         let glyphSize;
         if (n.hidden) {
-          glyphSize = Config.hiddenGlyphSize*.75;
+          glyphSize = Config.hiddenGlyphSize * .75;
         } else {
           glyphSize = Config.glyphSize;
         }
 
         if (n.sex === Sex.Male) {
-          if (n.y > n.duplicates.find((d)=> {return d.y !== n.y;}).y) {
+          if (n.y > n.duplicates.find((d) => { return d.y !== n.y; }).y) {
             return -glyphSize;
           } else {
             return glyphSize;
@@ -2151,19 +2156,20 @@ class GenealogyTree {
       // .attr('y',0)
       // .attr('x',0)
       .attr('font-family', 'FontAwesome')
-      .attr('font-size', (d:Node)=> {
-        if (d.hidden) {return Config.hiddenGlyphSize*2;} else {return Config.glyphSize*2.5;}})
+      .attr('font-size', (d: Node) => {
+        if (d.hidden) { return Config.hiddenGlyphSize * 2; } else { return Config.glyphSize * 2.5; }
+      })
       .attr('text-anchor', 'middle')
       // .attr('text-anchor','start')
       .attr('transform', (n: Node) => {
-        if (n.y > (n.duplicates.find((d) => {return d.y !== n.y;}).y)) {
+        if (n.y > (n.duplicates.find((d) => { return d.y !== n.y; }).y)) {
           return 'rotate(' + 180 + ')';
         }
 
       });
 
     element.select('.duplicateIcon')
-      .on('mouseover',function(){
+      .on('mouseover', function () {
         select(this).classed('hovered', true);
         //show duplicate rows
 
@@ -2182,15 +2188,15 @@ class GenealogyTree {
           });
           return returnValue;
         }
-        selectAll('.duplicateLine').filter(selected).classed('hovered',true);
+        selectAll('.duplicateLine').filter(selected).classed('hovered', true);
 
       })
-      .on('mouseout',function(){
+      .on('mouseout', function () {
         select(this).classed('hovered', false);
-        selectAll('.duplicateLine').classed('hovered',false);
+        selectAll('.duplicateLine').classed('hovered', false);
         //show duplicate rows
       })
-      .on('click',function(){
+      .on('click', function () {
         event.stopPropagation();
 
         function selected(e: Node) {
@@ -2208,7 +2214,7 @@ class GenealogyTree {
           return returnValue;
         }
 
-        selectAll('.duplicateLine').filter(selected).classed('clicked',true);
+        selectAll('.duplicateLine').filter(selected).classed('clicked', true);
         select(this).classed('clicked', true);
         select(this).classed('hovered', false);
 
@@ -2245,7 +2251,7 @@ class GenealogyTree {
 
     //Filter data to adjust x axis to the range of nodes that are visible in the window.
 
-    const filteredNodes = this.data.nodes.filter((d:Node) => {
+    const filteredNodes = this.data.nodes.filter((d: Node) => {
       return d.y >= Math.round(minY) && d.y <= Math.round(maxY);
     });
 
@@ -2254,20 +2260,20 @@ class GenealogyTree {
     }
 
 
-    const filteredDomain = [min(filteredNodes, function (d:Node) {
+    const filteredDomain = [min(filteredNodes, function (d: Node) {
       return +d.bdate - 5;
     }),
-      max(filteredNodes, function (d:Node) {
-        return +d.ddate + 5;
-      })];
+    max(filteredNodes, function (d: Node) {
+      return +d.ddate + 5;
+    })];
 
 
-    const allDomain = [min(this.data.nodes, function (d:Node) {
+    const allDomain = [min(this.data.nodes, function (d: Node) {
       return +d.bdate - 5;
     }),
-      max(this.data.nodes, function (d:Node) {
-        return +d.ddate;
-      })];
+    max(this.data.nodes, function (d: Node) {
+      return +d.ddate;
+    })];
 
     //Temporary cap @ 2016. Not sure why the axis are scaling to 2025 automatically.
     if (allDomain[1] > CURRENT_YEAR) {
@@ -2360,7 +2366,7 @@ class GenealogyTree {
       //Offsets for axisTop
       .attr('dx', '1.2em')
       .attr('transform', 'rotate(-15)')
-      .attr('text-anchor','end');
+      .attr('text-anchor', 'end');
 
   }
 
@@ -2406,7 +2412,7 @@ class GenealogyTree {
    * @param node node to position
    * @param offset optional flag to only return the offset for male/female and not the position in the whole svg.
    */
-  private xPOS(node:Node,offset?:boolean) {
+  private xPOS(node: Node, offset?: boolean) {
 
     if (offset == null) {
       offset = false;
@@ -2414,16 +2420,16 @@ class GenealogyTree {
 
     if (node.sex === Sex.Male) {
       if (node.hidden && node.hasChildren) {
-        return !offset? this.x(node.x) - Config.hiddenGlyphSize*.8 : -Config.hiddenGlyphSize*.8;
+        return !offset ? this.x(node.x) - Config.hiddenGlyphSize * .8 : -Config.hiddenGlyphSize * .8;
       }
       if (!node.hidden) {
-        return !offset? this.x(node.x) - Config.glyphSize : -Config.glyphSize;
+        return !offset ? this.x(node.x) - Config.glyphSize : -Config.glyphSize;
       }
       if (node.hidden && !node.hasChildren) {
-        return !offset? this.x(node.x) - Config.hiddenGlyphSize / 2 : -Config.hiddenGlyphSize / 2;
+        return !offset ? this.x(node.x) - Config.hiddenGlyphSize / 2 : -Config.hiddenGlyphSize / 2;
       }
     } else {
-      return !offset? this.x(node.x) : 0;
+      return !offset ? this.x(node.x) : 0;
     }
   }
 
@@ -2434,13 +2440,13 @@ class GenealogyTree {
    * @param node node to position
    * @param offset optional flag to only return the offset for male/female and not the position in the whole svg.
    */
-  private yPOS(node:Node,offset?) {
+  private yPOS(node: Node, offset?) {
 
     if (offset == null) {
       offset = false;
     }
 
-    if (node.sex=== Sex.Male) {
+    if (node.sex === Sex.Male) {
       if (node.hidden && node.hasChildren) {
         return !offset ? this.y(node.y) - Config.hiddenGlyphSize : -Config.hiddenGlyphSize;
       }
@@ -2451,7 +2457,7 @@ class GenealogyTree {
         return !offset ? this.y(node.y) - Config.hiddenGlyphSize : -Config.hiddenGlyphSize;
       }
     } else {
-      return !offset? this.y(node.y) : 0;
+      return !offset ? this.y(node.y) : 0;
     }
 
   }
@@ -2468,35 +2474,35 @@ class GenealogyTree {
         x: (d.ma.x + d.pa.x) / 2,
         y: (d.ma.y + d.pa.y) / 2
       },
-        {
-          x: nx,
-          y: (d.ma.y + d.pa.y) / 2
-        },
-        {
-          x: nx,
-          y: d.target.y
-        },
-        {
-          x: d.target.x,
-          y: d.target.y
-        }];
+      {
+        x: nx,
+        y: (d.ma.y + d.pa.y) / 2
+      },
+      {
+        x: nx,
+        y: d.target.y
+      },
+      {
+        x: d.target.x,
+        y: d.target.y
+      }];
     } else {
       linedata = [{
         x: (d.ma.x + d.pa.x) / 2,
         y: (d.ma.y + d.pa.y) / 2
       },
-        {
-          x: nx,
-          y: (d.ma.y + d.pa.y) / 2
-        },
-        {
-          x: nx,
-          y: d.target.y
-        },
-        {
-          x: d.target.x,
-          y: d.target.y
-        }];
+      {
+        x: nx,
+        y: (d.ma.y + d.pa.y) / 2
+      },
+      {
+        x: nx,
+        y: d.target.y
+      },
+      {
+        x: d.target.x,
+        y: d.target.y
+      }];
     }
 
     if (curves) {
@@ -2508,7 +2514,7 @@ class GenealogyTree {
     return lineFunction(linedata);
   }
 
-  private static parentEdge(d:Node, lineFunction) {
+  private static parentEdge(d: Node, lineFunction) {
     const linedata = [{
       x: d.ma.x,
       y: d.ma.y
@@ -2521,100 +2527,100 @@ class GenealogyTree {
 
   private addMenu(data, actions = null) {
 
-          const container = document.getElementById('app');
-          const coordinates = mouse(container);
+    const container = document.getElementById('app');
+    const coordinates = mouse(container);
 
-        //      select('#nodeActions').select('#menuLabel1')
-        //     .text(actions[0].string)
-        //     .attr('x',actions[0].offset);
+    //      select('#nodeActions').select('#menuLabel1')
+    //     .text(actions[0].string)
+    //     .attr('x',actions[0].offset);
 
-        //   select('#nodeActions').select('#menuLabel2')
-        //     .text(actions[1].string)
-        //     .attr('x',actions[1].offset);
+    //   select('#nodeActions').select('#menuLabel2')
+    //     .text(actions[1].string)
+    //     .attr('x',actions[1].offset);
 
-        //   select('#nodeActions').select('#menuOption1')
-        //     .on('click', () => {
-        //       // select('#nodeActions').attr('visibility', 'hidden');
-        //       this.data.aggregateTreeWrapper(d.uniqueID, actions[0].state);
-        //       this.update_graph();
-        //     });
+    //   select('#nodeActions').select('#menuOption1')
+    //     .on('click', () => {
+    //       // select('#nodeActions').attr('visibility', 'hidden');
+    //       this.data.aggregateTreeWrapper(d.uniqueID, actions[0].state);
+    //       this.update_graph();
+    //     });
 
-        //   select('#nodeActions').select('#menuOption2')
-        //     .on('click', () => {
-        //       // select('#nodeActions').attr('visibility', 'hidden');
-        //       this.data.aggregateTreeWrapper(d.uniqueID, actions[1].state);
-        //       this.update_graph();
-        //     });
-        // } else {
+    //   select('#nodeActions').select('#menuOption2')
+    //     .on('click', () => {
+    //       // select('#nodeActions').attr('visibility', 'hidden');
+    //       this.data.aggregateTreeWrapper(d.uniqueID, actions[1].state);
+    //       this.update_graph();
+    //     });
+    // } else {
 
-        //   select('#nodeActions').attr('visibility', 'hidden');;
-        // }
-
-
-          const menuWidth = 90;
-          const menuHeight = 50;
-
-          const menu = select('#treeMenu')
-          .append('svg')
-          .attr('class','menu')
-          .attr('height',menuHeight)
-          // .attr('opacity',0)
-          .attr('transform','translate(' + (coordinates[0]+10) + ',' + (coordinates[1]-menuHeight/2) + ')')
-          .append('g');
+    //   select('#nodeActions').attr('visibility', 'hidden');;
+    // }
 
 
-          menu.append('rect')
-          .attr('fill','#f7f7f7')
-          .attr('height',menuHeight)
-          .attr('opacity',1);
+    const menuWidth = 90;
+    const menuHeight = 50;
 
-          let menuItems = menu.selectAll('text').data(actions);
+    const menu = select('#treeMenu')
+      .append('svg')
+      .attr('class', 'menu')
+      .attr('height', menuHeight)
+      // .attr('opacity',0)
+      .attr('transform', 'translate(' + (coordinates[0] + 10) + ',' + (coordinates[1] - menuHeight / 2) + ')')
+      .append('g');
 
-          const menuItemsEnter = menuItems.enter()
-          .append('g');
 
-          menuItemsEnter.append('text').classed('icon',true);
-          menuItemsEnter.append('text').classed('label',true);
+    menu.append('rect')
+      .attr('fill', '#f7f7f7')
+      .attr('height', menuHeight)
+      .attr('opacity', 1);
 
-          menuItems = menuItemsEnter.merge(menuItems);
+    let menuItems = menu.selectAll('text').data(actions);
 
-          menuItems
-          .select('.label')
-          .attr('x', 10)
-          .attr('y', (d,i)=> { return 20*(i+1);})
-          .text((d:any)=> d.string)
-          .classed('tooltipTitle',true)
-          .on('click', (d:any) => {
-                  select('#treeMenu').select('.menu').remove();
-                  this.data.aggregateTreeWrapper(data.uniqueID, d.state);
-                  this.update_graph();
-                });
+    const menuItemsEnter = menuItems.enter()
+      .append('g');
 
-          menuItems
-          .select('.icon')
-          .attr('x', menuWidth -20)
-          .attr('y', (d,i)=> { return 20*(i+1);})
-          .attr('class','icon')
-          .text((d:any)=> {return d.state === 1 ? '\uf0c9' : (d.state === 2 ? '\uf0ca' : '\uf0cb' );})
-          .classed('tooltipTitle',true);
+    menuItemsEnter.append('text').classed('icon', true);
+    menuItemsEnter.append('text').classed('label', true);
 
-          select('#treeMenu')
-          .attr('width',menuWidth);
+    menuItems = menuItemsEnter.merge(menuItems);
 
-          select('#treeMenu')
-          .select('rect')
-          .attr('width',menuWidth);
+    menuItems
+      .select('.label')
+      .attr('x', 10)
+      .attr('y', (d, i) => { return 20 * (i + 1); })
+      .text((d: any) => d.string)
+      .classed('tooltipTitle', true)
+      .on('click', (d: any) => {
+        select('#treeMenu').select('.menu').remove();
+        this.data.aggregateTreeWrapper(data.uniqueID, d.state);
+        this.update_graph();
+      });
 
-          menu.append('line')
-          .attr('x1',0)
-          .attr('x2',menuWidth)
-          .attr('y1',menuHeight*0.3)
-          .attr('y2',menuHeight*0.3)
-          .attr('y1',0)
-          .attr('y2',0)
-          .attr('stroke-width','10px')
-          .attr('stroke','#e86c37');
-        }
+    menuItems
+      .select('.icon')
+      .attr('x', menuWidth - 20)
+      .attr('y', (d, i) => { return 20 * (i + 1); })
+      .attr('class', 'icon')
+      .text((d: any) => { return d.state === 1 ? '\uf0c9' : (d.state === 2 ? '\uf0ca' : '\uf0cb'); })
+      .classed('tooltipTitle', true);
+
+    select('#treeMenu')
+      .attr('width', menuWidth);
+
+    select('#treeMenu')
+      .select('rect')
+      .attr('width', menuWidth);
+
+    menu.append('line')
+      .attr('x1', 0)
+      .attr('x2', menuWidth)
+      .attr('y1', menuHeight * 0.3)
+      .attr('y2', menuHeight * 0.3)
+      .attr('y1', 0)
+      .attr('y2', 0)
+      .attr('stroke-width', '10px')
+      .attr('stroke', '#e86c37');
+  }
 
   private attachListeners() {
 
@@ -2634,7 +2640,7 @@ class GenealogyTree {
 
     events.on(POI_SELECTED, (evt, affectedState) => {
       this.data.defineAffected(affectedState);
-      this.data.aggregateTreeWrapper(undefined,undefined);
+      this.data.aggregateTreeWrapper(undefined, undefined);
       this.update_time_axis();
       this.update_graph();
     });

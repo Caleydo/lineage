@@ -2418,11 +2418,12 @@ class AttributeTable {
         if (cellData.type === 'dataDensity') {
           element
           .append('rect')
-          .attr('rx',3)
-          .attr('ry',3)
+          // .attr('rx',3)
+          // .attr('ry',3)
           .classed('checkbox', true)
           .on('click',function() {
             select(this).classed('checked',!select(this).classed('checked'));
+            
           });
         }
 

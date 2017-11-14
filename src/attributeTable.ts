@@ -166,6 +166,16 @@ class AttributeTable {
     const dropdownMenu = this.$node.select('.navbar')
       .append('ul').attr('class', 'nav navbar-nav').attr('id', 'attributeMenu');
 
+      this.$node.select('.navbar')
+      .append('ul').attr('class', 'nav navbar-nav').attr('id', 'Sort by Tree')
+      .append('li')
+      .append('a')
+      .attr('class', 'btn-link')
+      .attr('role', 'button')
+      .html('Export Selected RelativeIDs')
+
+
+
     this.$node.select('.navbar')
       .append('ul').attr('class', 'nav navbar-nav').attr('id', 'Sort by Tree')
       .append('li')
@@ -899,7 +909,7 @@ class AttributeTable {
   }
 
   private calculateOffset() {
-    this.colOffsets = [0];
+    this.colOffsets = [this.colWidths.dataDensity+this.buffer];
 
     const colOrder = this.tableManager.colOrder;
     const orderedCols = [];
@@ -917,8 +927,9 @@ class AttributeTable {
       const type = vector.valuetype.type;
       const name = vector.desc.name;
 
+      // console.log(index)
       const maxOffset = max(this.colOffsets);
-
+      // console.log(maxOffset)
       if (type === VALUE_TYPE_CATEGORICAL) {
 
         //Build col offsets array ;
@@ -958,7 +969,7 @@ class AttributeTable {
           }
         };
       } else {
-        const maxOffset = max(this.colOffsets);
+        // const maxOffset = max(this.colOffsets);
         if (this.customColWidths[name]) {
           this.colOffsets.push(maxOffset + this.buffer + this.customColWidths[name]);
         } else {
@@ -2403,6 +2414,18 @@ class AttributeTable {
 
       element.append('text')
         .classed('label', true);
+
+        if (cellData.type === 'dataDensity') {
+          element
+          .append('rect')
+          .attr('rx',3)
+          .attr('ry',3)
+          .classed('checkbox', true)
+          .on('click',function() {
+            select(this).classed('checked',!select(this).classed('checked'))
+          });
+        }
+        
     }
 
     const colorScale = scaleLinear<string, string>().domain(this.idScale.domain()).range(['#c0bfbb', '#373838']);
@@ -2411,21 +2434,26 @@ class AttributeTable {
       .select('.dataDens')
       .attr('width', colWidth)
       .attr('height', rowHeight)
+      .attr('x',(cellData.type === 'dataDensity' ? (this.colWidths.dataDensity+this.buffer) : 0))
       .attr('y', 0)
-      // .attr('fill', (d) => {
-      //   return cellData.type === 'idtype' ? '#c0bfbb' : colorScale(cellData.data) //return a single color for idtype cols.
-      // })
       .attr('opacity', .4)
       .attr('fill', (d, i) => { return this.colorScale[0]; });
-    // .attr('fill',(d,i)=> {return cellData.data === '42623'  ? this.colorScale[1] : this.colorScale[0];  });
+
+      element
+      .select('.checkbox')
+      .attr('width', colWidth)
+      .attr('height', rowHeight)
+      .attr('x',3)
+      .attr('y', 0);
+
 
     element
       .select('.label')
-      .attr('x', colWidth / 2)
+      .attr('x',(cellData.type === 'dataDensity' ? (colWidth/2 + this.colWidths.dataDensity+this.buffer) : colWidth/2))
+      // .attr('x', colWidth / 2)
       .attr('y', rowHeight * 0.8)
       .text(() => {
         return cellData.data;
-        // return (+cellData.data >1 ? cellData.data : '')
       })
       .attr('text-anchor', 'middle')
       .attr('fill', '#4e4e4e');
@@ -2736,12 +2764,14 @@ class AttributeTable {
     const nx = slopeWidth * 0.2;
     const width = slopeWidth;
 
+    const startingX = this.colWidths.dataDensity + this.buffer + this.colWidths.dataDensity;
+
     const linedata = [{
-      x: 0,
+      x: startingX,
       y: this.y(d.y) + (this.rowHeight / 2)
     },
     {
-      x: nx,
+      x: startingX + nx,
       y: this.y(d.y) + (this.rowHeight / 2)
     },
     {
@@ -2772,95 +2802,7 @@ class AttributeTable {
     } else {
       return this.lineFunction(linedata);
     }
-
-
-
-
   }
-
-
-  //
-  //     // stick on the median
-  //     quantitative
-  //       .append('rect') //sneaky line is a rectangle
-  //       .attr('class', 'medianLine');
-  //
-  //     cells
-  //       .selectAll('.medianLine')
-  //       .attr('width', 1.2)
-  //       .attr('height', rowHeight)
-  //       .attr('fill', 'black')
-  //       .attr('transform', function (d) {
-  //         const width = col_widths.find(x => x.name === d.name).width;
-  //         const scaledRange = (width - 2 * radius) / (d.stats.max - d.stats.min);
-  //         return ('translate(' + ((d.stats.mean - d.stats.min) * scaledRange) + ',0)');
-  //       });
-
-  //     cells.selectAll('rect').on('click',(c) => {console.log(c);})
-  //
-  //
-  // ////////////// EVENT HANDLERS! /////////////////////////////////////////////
-  //
-  //     const jankyAData = this.tableManager; ///auuughhh javascript why
-  //     const jankyInitHandle = this.initData; ///whywhywhywhy
-  //     let self = this;
-  //
-  //     cells.on('click', async function (elem) {
-  //       //  console.log('REGISTERED CLICK');
-  //       //update the dataset & re-render
-  //
-  //       // const newView = await jankyAData.anniesTestUpdate();
-  //       // self.update(newView, [1, 2]);
-  //       // console.log('NEW VIEW!');
-  //       // console.log(newView.cols()[0]);
-  //
-  //     });
-  //
-  //
-  //     //  cells.on('click', function(elem) {
-  //     //    selectAll('.boundary').classed('tablehovered', false);
-  //     //    if (!event.metaKey){ //unless we pressed shift, unselect everything
-  //     //      selectAll('.boundary').classed('tableselected',false);
-  //     //    }
-  //     //    selectAll('.boundary')
-  //     //     .classed('tableselected', function(){
-  //     //        const rightRow = (parseInt(select(this).attr('row_pos')) === elem['y']);
-  //     //        if(rightRow){
-  //     //           return (!select(this).classed('tableselected')); //toggle it
-  //     //         }
-  //     //        return select(this).classed('tableselected'); //leave it be
-  //     //      });
-  //     //    if(event.metaKey)
-  //     //       events.fire('table_row_selected', elem['y'], 'multiple');
-  //     //    else
-  //     //       events.fire('table_row_selected', elem['y'], 'singular');
-  //     //    })
-  //     //    // MOUSE ON
-  //     //    .on('mouseover', function(elem) {
-  //     //       selectAll('.boundary').classed('tablehovered', function(){
-  //     //         const rightRow = (select(this).attr('row_pos') == elem['y']); //== OR parseInt. Not sure which is more canonical.
-  //     //         if(rightRow){ //don't hover if it's selected
-  //     //           return !select(this).classed('tableselected');
-  //     //         }
-  //     //         return false; //otherwise don't hover
-  //     //    });
-  //     //    events.fire('table_row_hover_on', elem['y']);
-  //     //    })
-  //     //    // MOUSE OFF
-  //     //    .on('mouseout', function(elem) {
-  //     //      selectAll('.boundary').classed('tablehovered', false);
-  //     //      events.fire('table_row_hover_off', elem['y']);
-  //     //    });
-  //
-  //     console.log('done rendering')
-  //
-  //   }
-
-  //private update(data){
-
-  //}
-
-
   private attachListener() {
     // //NODE BEGIN HOVER
     // events.on('row_mouseover', (evt, item) => {

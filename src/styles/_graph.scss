@@ -599,5 +599,19 @@ visibility:hidden;
   pointer-events: none;
 }
 
+.checkbox{
+  fill:white;
+  stroke:#b3b3b3;
+  stroke-width:2px;
+}
+
+.checkbox.checked{
+  fill:rgb(232, 108, 55);
+}
+
+.checkbox{
+  cursor:pointer;
+}
+
 
 

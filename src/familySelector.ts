@@ -47,7 +47,7 @@ class FamilySelector {
   private headerInfo = [{ 'header': 'FamilyID', 'dataAttr': 'id' },
   { 'header': 'FSIR', 'dataAttr': 'id' },
   { 'header': '# People', 'dataAttr': 'size' },
-  // {'header':'#POI','dataAttr':'affected'},
+  {'header':'#POI','dataAttr':'percentage'},
   { 'header': '#DNA Samples', 'dataAttr': 'id' },
   { 'header': 'Maximum Meiosis', 'dataAttr': 'id' }];
 
@@ -110,7 +110,8 @@ class FamilySelector {
       })
       .on('click', function (d) {
         const isAscending = select(this).classed('des');
-        selectAll('.header').attr('class', 'header');
+        
+        console.log('sorting based on ', d.dataAttr)
 
         if (isAscending) {
           self.rows.sort(function (a, b) {
@@ -123,6 +124,8 @@ class FamilySelector {
           });
           select(this).attr('class','des');
         }
+
+        selectAll('.header').classed('header', true);
 
       });
 
@@ -137,8 +140,6 @@ class FamilySelector {
 
     this.familyInfo = this.tableManager.familyInfo;
     const data = this.tableManager;
-
-    // console.log('family info is ' , data.familyInfo);
 
     let maxValue = max(data.familyInfo, (d: any) => { return +d.size; });
 
@@ -156,6 +157,8 @@ class FamilySelector {
     this.rows = select('tbody').selectAll('tr')
       .data(data.familyInfo);
 
+      console.log(data.familyInfo)
+
     const rowsEnter = this.rows
       .enter()
       .append('tr');
@@ -168,9 +171,9 @@ class FamilySelector {
     let cells = this.rows.selectAll('td')
       .data((d) => {
         return [{ 'id': d.id, 'value': d.id, 'type': 'id' },
-        { 'id': d.id, 'value': d.id, 'type': 'id' },
+        { 'id': d.id, 'value': Math.round(Math.random()), 'type': 'id' },
         { 'id': d.id, 'value': d.size, 'type': 'size' },
-        // {'id': d.id, 'value': d.affected, 'type': 'affected'},
+        {'id': d.id, 'value': {'affected':d.affected,'percentage':d.percentage}, 'type': 'affected'},
         { 'id': d.id, 'value': d.id, 'type': 'id' },
         { 'id': d.id, 'value': d.id, 'type': 'id' }];
       });
@@ -187,7 +190,7 @@ class FamilySelector {
 
     selectAll('td').each(function (cell: any) {
 
-      if (cell.type === 'size' || cell.type === 'affected') {
+      if (cell.type === 'size') {
         if (select(this).selectAll('svg').size() === 0) {
           const svg = select(this).append('svg');
           svg.append('rect').classed('total', true);
@@ -201,7 +204,7 @@ class FamilySelector {
         select(this).select('svg')
           .data([cell.value])
           .attr('width', () => {
-            return cell.type === 'size' ? self.peopleScale.range()[1] + 30 : self.casesScale.range()[1] + 30;
+            return self.peopleScale.range()[1] + 70;
           })
           .attr('height', 12);
 
@@ -230,6 +233,44 @@ class FamilySelector {
           })
           .text((d: any) => {
             return d + ' (' + Math.floor(d / 5) + ')';
+          })
+          .attr('fill', (d, i) => {
+            return (i > 3 && d > 15) ? 'red' : 'gray';
+          });
+
+      } else if (cell.type === 'affected') {
+        if (select(this).selectAll('svg').size() === 0) {
+          const svg = select(this).append('svg');
+          svg.append('rect').classed('poi', true);
+        }
+
+        if (select(this).select('svg').selectAll('text').size() === 0) {
+          select(this).select('svg').append('text');
+        }
+
+        select(this).select('svg')
+          .data([cell.value])
+          .attr('width', () => {return self.casesScale.range()[1] + 100;})
+          .attr('height', 12);
+
+        select(this).select('svg').select('.poi')
+          .data([cell.value])
+          .attr('width', (d: any) => {
+            return self.casesScale(d.affected);
+          })
+          .attr('height', 10);
+
+
+
+        select(this)
+          .select('text')
+          .data([cell.value])
+          .attr('dy', 10)
+          .attr('dx', (d: any) => {
+            return self.casesScale(d.affected) + 4;
+          })
+          .text((d: any) => {
+            return d.affected + ' (' + Math.round(d.percentage*1000)/10 + '%)';
           })
           .attr('fill', (d, i) => {
             return (i > 3 && d > 15) ? 'red' : 'gray';
@@ -288,7 +329,6 @@ class FamilySelector {
   }
 
   private loadFamily() {
-    console.log('called');
     this.tableManager.selectFamily(this.selectedFamilyIds);
   }
 

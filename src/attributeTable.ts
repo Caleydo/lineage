@@ -2423,7 +2423,7 @@ class AttributeTable {
           .classed('checkbox', true)
           .on('click',function() {
             select(this).classed('checked',!select(this).classed('checked'));
-            
+
           });
         }
 

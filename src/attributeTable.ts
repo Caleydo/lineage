@@ -176,31 +176,22 @@ class AttributeTable {
       .html('Export')
       .on('click',()=> {
 
-        // const rows = [];
-     
-         const rows = [["name1", "city1", "some other info"], ["name2", "city2", "more info"]];
-        let csvContent = "data:text/csv;charset=utf-8,";
+        let csvContent = 'data:text/csv;charset=utf-8,';
 
            //Export csv file with selected ids.
            selectAll('.checkbox').filter('.checked').each((element:any) => {
-            csvContent += element.id + "\r\n"; // add carriage return
+            csvContent += element.id + '\r\n'; // add carriage return
           });
 
-          
-        // rows.forEach(function(rowArray){
-        //    let row = rowArray.join(",");
-        //    csvContent += row + "\r\n"; // add carriage return
-        // }); 
-
         const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "lineage_export.csv");
+        const link = document.createElement('a');
+        link.setAttribute('href', encodedUri);
+        link.setAttribute('download', 'lineage_export.csv');
         document.body.appendChild(link); // Required for FF
-        
-        link.click(); 
-      })
-      
+
+        link.click();
+      });
+
 
 
 
@@ -2447,7 +2438,7 @@ class AttributeTable {
     .on('click',function() {
       //toggle visibility of both checkbox icon and checkbox color;
       element.select('.checkboxIcon').classed('checked',!select(this).classed('checked'));
-      select(this).classed('checked',!select(this).classed('checked')); 
+      select(this).classed('checked',!select(this).classed('checked'));
     });
 
 
@@ -2484,7 +2475,7 @@ class AttributeTable {
       .attr('width', colWidth)
       .attr('height', rowHeight)
       .attr('x',3)
-      .attr('y', 0)
+      .attr('y', 0);
 
 
     element

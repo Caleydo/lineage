@@ -32,7 +32,7 @@ class GraphData {
   public attributeTable: ITable;
   private tableManager: TableManager;
   private ids: string[]; //unique identifier for each person. Is used to create new range on graphView
-
+  private uniqueIDs: string[];
   public yValues;
 
   //Array of Parent Child Edges
@@ -71,7 +71,7 @@ class GraphData {
   private removeCycles() {
 
     const toDecycle = this.nodes.filter((n) => {
-      return !n.visited;
+      return !n.visited && n.ma && n.pa;
     });
 
     if (toDecycle.length === 0) {
@@ -89,6 +89,7 @@ class GraphData {
   }
 
   private removeCyclesHelper(node: Node) {
+    //  console.log('visiting node ', node.id, node.visited);
 
     if (node.visited && node.spouse.length > 0) {
       console.log('found child cycle with ', node.id, node.spouse);
@@ -146,7 +147,7 @@ class GraphData {
       // console.log('setting node ', node.id, ' visited status to true')
       node.visited = true;
       node.spouse.forEach((s: Node) => {
-        // console.log('visited status of ', s.id, ' is ', s.visited)
+        // console.log('visiting spouse',s.id,s.visited);
         if (s.visited) {
           console.log('found spouse cycle between  ', node.id, ' and ', s.id);
           //choose the person who is part of the blood family (i.e, who have a mom and dad in this family) and duplicate them.
@@ -156,7 +157,7 @@ class GraphData {
           } else if (s.ma) {
             toDuplicate = s;
           } else {
-            console.log('neither person has parents in this family!');
+            console.log('neither person has parents in this family!',node.id,s.id);
           }
 
 
@@ -219,7 +220,7 @@ class GraphData {
     }
 
     node.children.forEach((c) => {
-      // console.log('applying RCH on ', c.id)
+      // console.log('applying RCH on ', c.id , ' from ', node.id);
       this.removeCyclesHelper(c);
     });
 
@@ -234,8 +235,6 @@ class GraphData {
    */
   private clearVisitedBranch(node) {
 
-    // console.log('L220. Visiting ', node.id)
-
     if (!node.hasChildren) {
       return;
     }
@@ -247,10 +246,7 @@ class GraphData {
     //recursively call this function on the children
     node.children.forEach((c) => {
       c.visited = false;
-      // console.log('L233')
-      // console.log('clearing visited of children within CVB', c.id)
       this.clearVisitedBranch(c);
-      // console.log('L235')
     });
   }
 
@@ -272,10 +268,17 @@ class GraphData {
     const peopleIDs = await columns[0].names();
 
     const idRanges = await columns[0].ids();
+    const kindredRanges = await columns[1].data();
+    
+
 
 
     this.ids = idRanges.dim(0).asList().map((d) => {
       return d.toString();
+    });
+
+    this.uniqueIDs = idRanges.dim(0).asList().map((d,i) => {
+      return d.toString() + kindredRanges[i].toString();
     });
 
 
@@ -328,9 +331,11 @@ class GraphData {
     });
 
 
+    console.log('removing cycles');
     //Remove cycles by creating duplicate nodes where necessary
     this.removeCycles();
 
+    console.log('Linearizing Tree');
     //Linearize Tree and pass y values to the attributeData Object
     this.linearizeTree();
 
@@ -466,6 +471,11 @@ class GraphData {
             }) + (-1);
           }
         });
+
+        if (s.id === '652900') {
+          console.log(node.id,node.y,s.y);
+        }
+
       });
 
       //If person has two spouses, put this one in the middle.
@@ -549,6 +559,14 @@ class GraphData {
 
     this.aggregateTree();
 
+    this.nodes.forEach((n) => {
+      if (n.id === '652900') {
+        console.log(n);
+      }
+    });
+
+    
+
     //clean out extra rows at the top of the tree;
     const minY = min(this.nodes, (n: any) => {
       return n.y;
@@ -585,10 +603,11 @@ class GraphData {
     const idRange = [];
     this.nodes.forEach((n: any) => {
       if (!(!n.aggregated && n.hidden)) {
-        const ind: number = this.ids.indexOf(n.uniqueID);
+        // const ind: number = this.uniqueIDs.indexOf(n.uniqueID);
         idRange.push(n.uniqueID);
       }
     });
+
 
     this.exportYValues();
     this.tableManager.activeGraphRows = idRange;
@@ -643,7 +662,8 @@ class GraphData {
         return n.bdate;
       });
     });
-
+   
+    // console.log ('starting node is', startNode)
 
     //If starting node is not the 'center' of the founding spouses or is not a direct descendant
     if (startNode.spouse.length === 1 && (startNode.spouse[0].spouse.length > 1 || isUndefined(startNode.ma))) {
@@ -671,6 +691,7 @@ class GraphData {
     //   this.aggregateHelper(startNode);
     // } else {
 
+    // console.log ('starting node is', startNode)
     this.aggregateHelper(startNode);
     // }
 
@@ -824,16 +845,34 @@ class GraphData {
       //Iterate through spouses again and assign any undefined y values to the current y
       node.spouse.map((s) => {
 
+
         if (isUndefined(s.y) && !s.affected) {
           //If current node is affected, place spouses above it:
           if (node.affected && node.state === layoutState.Aggregated) {
             s.y = minY - 1;
+            //place spouses spouses above it as well.
+            s.spouse.map((ss)=> {
+              ss.y = s.y;
+              ss.hidden = true;
+              ss.aggregated = node.state === layoutState.Aggregated;
+            });
           } else { //place spouses alongside it;
             s.y = node.y;
+            //place spouses spouses alongside it as well. 
+            s.spouse.map((ss)=> {
+              ss.y = node.y;
+              ss.hidden = true;
+              ss.aggregated = node.state === layoutState.Aggregated;
+            });
           }
           s.hidden = true;
           s.aggregated = node.state === layoutState.Aggregated;
         }
+
+        if (s.id === '652900') {
+          console.log(node.id,node.y,s.y);
+        }
+        
       });
 
       //Assign all spouses to the x level of either the affected spouse or if not, a token male in the couple.
@@ -975,9 +1014,6 @@ class GraphData {
           //Set flag for people with children so they are not placed in the kidGrid
           maNode.hasChildren = true;
           paNode.hasChildren = true;
-
-          // console.log(node.id ,  ' is a child of ', maNode.id , ' and ', paNode.id)
-
 
           //Add child to array of children of each parent
           maNode.children.push(node);

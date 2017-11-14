@@ -609,6 +609,7 @@ class AttributeTable {
 
     //This are the rows that every col in the table should have;
     const graphIDs = await graphView.col(0).names();
+    const KindredIDs = await graphView.col(1).data();
 
     // graphIDs = graphIDs.dim(0).asList().map(d => {
     //   return d.toString()
@@ -619,8 +620,10 @@ class AttributeTable {
     const y2personDict = {};
     const yDict = this.tableManager.yValues;
 
+    // console.log(yDict,graphIDs);
     // console.log('yDict', yDict)
-    graphIDs.forEach((person) => {
+    graphIDs.forEach((person,ind) => {
+      // console.log(person,KindredIDs[ind]);
       if (person in yDict) { //may not be if dangling nodes were removed
         //Handle Duplicate Nodes
         yDict[person].forEach((y) => {
@@ -636,6 +639,8 @@ class AttributeTable {
 
     //Find y indexes of all rows
     const allRows = Object.keys(y2personDict).map(Number);
+
+    // console.log(y2personDict);
 
     // console.log('allrows', allRows)
 

@@ -135,5 +135,6 @@ export default class Node {
     this.paID = row[columnNameToIndex.PaID].toString();
     this.kindredID = row[columnNameToIndex.KindredID].toString();
     this.deceased = row[columnNameToIndex.deceased].toString();
+    // this.uniqueID = this.id+this.kindredID;//create a unique id for every person, disambiguate individuals in multiple families
   }
 }

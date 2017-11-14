@@ -157,8 +157,6 @@ class FamilySelector {
     this.rows = select('tbody').selectAll('tr')
       .data(data.familyInfo);
 
-      console.log(data.familyInfo);
-
     const rowsEnter = this.rows
       .enter()
       .append('tr');

@@ -69,6 +69,18 @@ rect.poi{
   
 }
 
+.checkboxIcon{
+  font-size: 13px;
+  font-family:FontAwesome;
+  fill:white;
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+
+
+
+
 .icon,{
   font-size: 13px;
   font-family:FontAwesome;
@@ -209,7 +221,7 @@ text.header{
 
 
 .cell text{
-  fill: #484848;
+  // fill: #484848;
   cursor: pointer;
 }
 
@@ -606,11 +618,25 @@ visibility:hidden;
 }
 
 .checkbox.checked{
-  fill:rgb(232, 108, 55);
+  fill:rgb(232, 108, 55)  ;
+  stroke-width:0;
 }
 
 .checkbox{
   cursor:pointer;
+}
+
+.checkboxIcon{
+  visibility: hidden;
+}
+
+.checkboxIcon.checked{
+  visibility: visible;
+}
+
+#exportIDs{
+  background-color:rgb(232, 108, 55)  ;
+  color:white !important;
 }
 
 

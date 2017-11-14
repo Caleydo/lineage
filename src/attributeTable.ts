@@ -171,8 +171,36 @@ class AttributeTable {
       .append('li')
       .append('a')
       .attr('class', 'btn-link')
+      .attr('id','exportIDs')
       .attr('role', 'button')
-      .html('Export Selected RelativeIDs');
+      .html('Export')
+      .on('click',()=> {
+
+        // const rows = [];
+     
+         const rows = [["name1", "city1", "some other info"], ["name2", "city2", "more info"]];
+        let csvContent = "data:text/csv;charset=utf-8,";
+
+           //Export csv file with selected ids.
+           selectAll('.checkbox').filter('.checked').each((element:any) => {
+            csvContent += element.id + "\r\n"; // add carriage return
+          });
+
+          
+        // rows.forEach(function(rowArray){
+        //    let row = rowArray.join(",");
+        //    csvContent += row + "\r\n"; // add carriage return
+        // }); 
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "lineage_export.csv");
+        document.body.appendChild(link); // Required for FF
+        
+        link.click(); 
+      })
+      
 
 
 
@@ -501,7 +529,8 @@ class AttributeTable {
 
         return ''; //for all other cases, return 0;
       })
-      .attr('x', 15)
+      // .attr('x', 15)
+      .attr('x',this.colWidths.dataDensity + this.buffer + this.colWidths.dataDensity) //to make room for checkboxes;
       .attr('y', (d: any) => {
 
         const start = this.y(d.y);
@@ -2407,6 +2436,21 @@ class AttributeTable {
     // const colWidth = this.colWidths[cellData.type];
     const rowHeight = this.rowHeight;
 
+
+    //append data to checkbox for easy export
+    //only add checkboxes for the dataDensity col;
+    element.selectAll('.checkbox')
+    .data([cellData].filter((c)=> {return c.type === 'dataDensity';}))
+    .enter()
+    .append('rect')
+    .classed('checkbox', true)
+    .on('click',function() {
+      //toggle visibility of both checkbox icon and checkbox color;
+      element.select('.checkboxIcon').classed('checked',!select(this).classed('checked'));
+      select(this).classed('checked',!select(this).classed('checked')); 
+    });
+
+
     if (element.selectAll('.dataDens').size() === 0) {
       element
         .append('rect')
@@ -2416,15 +2460,10 @@ class AttributeTable {
         .classed('label', true);
 
         if (cellData.type === 'dataDensity') {
-          element
-          .append('rect')
-          // .attr('rx',3)
-          // .attr('ry',3)
-          .classed('checkbox', true)
-          .on('click',function() {
-            select(this).classed('checked',!select(this).classed('checked'));
-
-          });
+          element.append('text').text('\uf00c')
+          .classed('checkboxIcon',true)
+          .attr('x',11)
+          .attr('y',12);
         }
 
     }
@@ -2445,7 +2484,7 @@ class AttributeTable {
       .attr('width', colWidth)
       .attr('height', rowHeight)
       .attr('x',3)
-      .attr('y', 0);
+      .attr('y', 0)
 
 
     element

@@ -1245,7 +1245,6 @@ class GenealogyTree {
     if (n.hasChildren && n.children.reduce(function (accumulator, currentValue) {
       return (currentValue.hasChildren || currentValue.affected) && accumulator;
     }, true)) {
-      console.log('found one');
       return undefined;
     }
 

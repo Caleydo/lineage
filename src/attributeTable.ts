@@ -172,7 +172,7 @@ class AttributeTable {
       .append('a')
       .attr('class', 'btn-link')
       .attr('role', 'button')
-      .html('Export Selected RelativeIDs')
+      .html('Export Selected RelativeIDs');
 
 
 
@@ -2422,10 +2422,10 @@ class AttributeTable {
           .attr('ry',3)
           .classed('checkbox', true)
           .on('click',function() {
-            select(this).classed('checked',!select(this).classed('checked'))
+            select(this).classed('checked',!select(this).classed('checked'));
           });
         }
-        
+
     }
 
     const colorScale = scaleLinear<string, string>().domain(this.idScale.domain()).range(['#c0bfbb', '#373838']);

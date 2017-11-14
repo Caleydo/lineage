@@ -110,8 +110,8 @@ class FamilySelector {
       })
       .on('click', function (d) {
         const isAscending = select(this).classed('des');
-        
-        console.log('sorting based on ', d.dataAttr)
+
+        console.log('sorting based on ', d.dataAttr);
 
         if (isAscending) {
           self.rows.sort(function (a, b) {
@@ -157,7 +157,7 @@ class FamilySelector {
     this.rows = select('tbody').selectAll('tr')
       .data(data.familyInfo);
 
-      console.log(data.familyInfo)
+      console.log(data.familyInfo);
 
     const rowsEnter = this.rows
       .enter()

@@ -269,7 +269,7 @@ class GraphData {
 
     const idRanges = await columns[0].ids();
     const kindredRanges = await columns[1].data();
-    
+
     // console.log(peopleIDs,idRanges.dim(0).asList(),kindredRanges);
 
 
@@ -510,7 +510,7 @@ class GraphData {
       });
 
       //Add back in kids that don't have a father;
-      
+
 
       node.children = node.children.filter((c:Node)=> {return c.paID === '0';}).concat(allKids);
     }
@@ -564,7 +564,7 @@ class GraphData {
 
     });
 
-    this.aggregateTree(); 
+    this.aggregateTree();
 
     //clean out extra rows at the top of the tree;
     const minY = min(this.nodes, (n: any) => {
@@ -661,7 +661,7 @@ class GraphData {
         return n.bdate;
       });
     });
-   
+
     // console.log ('starting node is', startNode)
 
     //If starting node is not the 'center' of the founding spouses or is not a direct descendant
@@ -859,7 +859,7 @@ class GraphData {
             });
           } else { //place spouses alongside it;
             s.y = node.y;
-            //place spouses spouses alongside it as well. 
+            //place spouses spouses alongside it as well.
             s.spouse.map((ss)=> {
               if (!ss.affected) {
                 ss.y = node.y;
@@ -875,7 +875,7 @@ class GraphData {
         if (s.id === '652900') {
           console.log(node.id,node.y,s.y);
         }
-        
+
       });
 
       //Assign all spouses to the x level of either the affected spouse or if not, a token male in the couple.
@@ -992,8 +992,8 @@ class GraphData {
          if (maNode) {
           maNode.hasChildren = true;
           //Add child to array of children of each parent
-          maNode.children.push(node); 
-          // console.log('pushing ' , node.id , ' as child of ', maNode.id); 
+          maNode.children.push(node);
+          // console.log('pushing ' , node.id , ' as child of ', maNode.id);
 
           this.parentChildEdges.push({
             ma: maNode,
@@ -1002,9 +1002,9 @@ class GraphData {
             'id': node.id //id of parentChild Edge is the id of the child.
           });
          }
-         
 
-          
+
+
           //  console.log('no parents :( for ',node.id);
         } else { //If found parents, create edges between parent and children, spouses, and add references to build tree
           // console.log('found parents :) ')

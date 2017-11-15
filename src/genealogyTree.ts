@@ -311,7 +311,62 @@ class GenealogyTree {
     const headerDiv = this.$node.append('div').attr('id', 'graphHeaders');
 
     //Add svg legend
-    headerDiv.append('g').html(String(icon));
+    // headerDiv.append('g').html(String(icon));
+
+    headerDiv.append('g').append('svg') 
+    .attr('id','personView')
+    .attr('width',550)
+    .attr('height',120);
+
+    select('#personView')
+    .append('text')
+    .attr('id','person')
+    .classed('personViewLabel',true)
+    .attr('x',550/2)
+    .attr('y',120/2)
+    .attr('text-anchor','middle');
+
+    select('#personView')
+    .append('text')
+    .attr('id','motherLabel')
+    .classed('personViewLabel',true)
+    .attr('x',550/3)
+    .attr('y',120/3)
+    .attr('text-anchor','middle');
+
+    select('#personView')
+    .append('text')
+    .attr('id','fatherLabel')
+    .classed('personViewLabel',true)
+    .attr('x',550/3*2)
+    .attr('y',120/3)
+    .attr('text-anchor','middle');
+
+    select('#personView')
+    .append('text')
+    .attr('id','spouseLabel')
+    .classed('personViewLabel',true)
+    .attr('x',550/3*2)
+    .attr('y',120/2)
+    .attr('text-anchor','start');
+
+    select('#personView')
+    .append('text')
+    .attr('id','childrenLabel')
+    .classed('personViewLabel',true)
+    .attr('x',550/2)
+    .attr('y',120/3*2)
+    .attr('text-anchor','middle');
+
+    select('#personView')
+    .append('text')
+    .attr('id','siblingsLabel')
+    .classed('personViewLabel',true)
+    .attr('x',550/3)
+    .attr('y',120/2)
+    .attr('text-anchor','end');
+
+
 
     //Create a static div for the headers
     // this.$node.append('div').attr('id', 'headersDIV');
@@ -1583,6 +1638,16 @@ class GenealogyTree {
     node.children.forEach((child: Node) => { this.highlightBranch(child, on); });
   }
 
+  private renderPersonView(d) {
+
+    select('#person').text('relativeID:' + d.id).on('click',()=> {this.renderPersonView(d);});
+    select('#spouseLabel').text('Spouse(s):' + d.spouse.map((s)=> {return s.id;}).join(','));
+    select('#childrenLabel').text('Children:' + d.children.map((s)=> {return s.id;}).join(','));
+    select('#motherLabel').text('MaID:' + d.maID).on('click',()=> {this.renderPersonView(d.ma);});
+    select('#fatherLabel').text('PaID:' + d.paID).on('click',()=> {this.renderPersonView(d.pa);});
+
+  }
+
   private renderNodeGroup(element, d: Node) {
 
     // const t = transition('t').duration(500).ease(easeLinear);
@@ -1716,6 +1781,9 @@ class GenealogyTree {
       .on('click', (d: Node) => {
 
         console.log(d);
+
+        this.renderPersonView(d);
+
         event.stopPropagation();
 
         selectAll('.nodeIcon').classed('hover', false);

@@ -853,16 +853,16 @@ class GraphData {
             //place spouses spouses above it as well.
             s.spouse.map((ss)=> {
               ss.y = s.y;
-              ss.hidden = true;
-              ss.aggregated = node.state === layoutState.Aggregated;
+              ss.hidden = !ss.affected;
+              ss.aggregated = !ss.affected && node.state === layoutState.Aggregated;
             });
           } else { //place spouses alongside it;
             s.y = node.y;
             //place spouses spouses alongside it as well. 
             s.spouse.map((ss)=> {
               ss.y = node.y;
-              ss.hidden = true;
-              ss.aggregated = node.state === layoutState.Aggregated;
+              ss.hidden = !ss.affected;
+              ss.aggregated = !ss.affected && node.state === layoutState.Aggregated;
             });
           }
           s.hidden = true;

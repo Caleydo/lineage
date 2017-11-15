@@ -201,6 +201,14 @@ ul.nav.navbar-nav{
 //   cursor: context-menu;
 // }
 
+#personView{
+  background-color:#dddede;
+}
+
+.personViewLabel{
+  cursor: pointer;
+}
+
 .backgroundRect{
   fill:white;
   cursor: move;

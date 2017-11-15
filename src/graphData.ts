@@ -557,15 +557,7 @@ class GraphData {
 
     });
 
-    this.aggregateTree();
-
-    this.nodes.forEach((n) => {
-      if (n.id === '652900') {
-        console.log(n);
-      }
-    });
-
-    
+    this.aggregateTree(); 
 
     //clean out extra rows at the top of the tree;
     const minY = min(this.nodes, (n: any) => {
@@ -852,17 +844,21 @@ class GraphData {
             s.y = minY - 1;
             //place spouses spouses above it as well.
             s.spouse.map((ss)=> {
-              ss.y = s.y;
-              ss.hidden = !ss.affected;
-              ss.aggregated = !ss.affected && node.state === layoutState.Aggregated;
+              if (!ss.affected) {
+                ss.y = s.y;
+                ss.hidden = true;
+                ss.aggregated = !ss.affected && node.state === layoutState.Aggregated;
+              }
             });
           } else { //place spouses alongside it;
             s.y = node.y;
             //place spouses spouses alongside it as well. 
             s.spouse.map((ss)=> {
-              ss.y = node.y;
-              ss.hidden = !ss.affected;
-              ss.aggregated = !ss.affected && node.state === layoutState.Aggregated;
+              if (!ss.affected) {
+                ss.y = node.y;
+                ss.hidden = true;
+                ss.aggregated = !ss.affected && node.state === layoutState.Aggregated;
+              }
             });
           }
           s.hidden = true;

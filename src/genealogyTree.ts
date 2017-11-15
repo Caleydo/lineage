@@ -322,7 +322,7 @@ class GenealogyTree {
     .append('text')
     .attr('id','person')
     .classed('personViewLabel',true)
-    .attr('x',550/2)
+    .attr('x',550/3)
     .attr('y',120/2)
     .attr('text-anchor','middle');
 
@@ -330,7 +330,7 @@ class GenealogyTree {
     .append('text')
     .attr('id','motherLabel')
     .classed('personViewLabel',true)
-    .attr('x',550/3)
+    .attr('x',550/4)
     .attr('y',120/3)
     .attr('text-anchor','middle');
 
@@ -338,33 +338,28 @@ class GenealogyTree {
     .append('text')
     .attr('id','fatherLabel')
     .classed('personViewLabel',true)
-    .attr('x',550/3*2)
+    .attr('x',550/4*2)
     .attr('y',120/3)
     .attr('text-anchor','middle');
 
     select('#personView')
-    .append('text')
-    .attr('id','spouseLabel')
+    .append('g')
+    .attr('id','spouseLabels')
     .classed('personViewLabel',true)
-    .attr('x',550/3*2)
-    .attr('y',120/2)
-    .attr('text-anchor','start');
+    .attr('transform','translate(' + 550/2 + ',' + 120/2 + ')');
+   
 
     select('#personView')
-    .append('text')
-    .attr('id','childrenLabel')
+    .append('g')
+    .attr('id','childrenLabels')
     .classed('personViewLabel',true)
-    .attr('x',550/2)
-    .attr('y',120/3*2)
-    .attr('text-anchor','middle');
+    .attr('transform','translate(' + 550/4 + ',' + 120/3*2 + ')');
 
     select('#personView')
-    .append('text')
-    .attr('id','siblingsLabel')
+    .append('g')
+    .attr('id','siblingsLabels')
     .classed('personViewLabel',true)
-    .attr('x',550/3)
-    .attr('y',120/2)
-    .attr('text-anchor','end');
+    .attr('transform','translate(' + 550/4 + ',' + 120/2 + ')');
 
 
 
@@ -1082,14 +1077,18 @@ class GenealogyTree {
     for (let i = yRange[0]; i <= yRange[1]; i++) {
       //find all nodes in this row
       const yNodes = this.data.nodes.filter((n: Node) => {
-        return Math.round(n.y) === i;
+         return Math.round(n.y) === i;
       });
-      yData.push({
-        y: i, x: min(yNodes, (d: Node) => {
-          return d.x;
-        })
-        , id: yNodes[0].uniqueID
-      });
+
+      // if (yNodes.length>0) {
+        yData.push({
+          y: i, x: min(yNodes, (d: Node) => {
+            return d.x;
+          })
+          , id: yNodes[0].uniqueID
+        });
+      // }
+      
     }
 
     //Create data to bind to aggregateBars
@@ -1640,11 +1639,60 @@ class GenealogyTree {
 
   private renderPersonView(d) {
 
-    select('#person').text('relativeID:' + d.id).on('click',()=> {this.renderPersonView(d);});
-    select('#spouseLabel').text('Spouse(s):' + d.spouse.map((s)=> {return s.id;}).join(','));
-    select('#childrenLabel').text('Children:' + d.children.map((s)=> {return s.id;}).join(','));
-    select('#motherLabel').text('MaID:' + d.maID).on('click',()=> {this.renderPersonView(d.ma);});
-    select('#fatherLabel').text('PaID:' + d.paID).on('click',()=> {this.renderPersonView(d.pa);});
+    if (!d) {
+      select('#personView')
+      .append('text')
+      .attr('id','error')
+      .text('No Data found for this person!')
+      .attr('fill','red')
+      .attr('x',550/2)
+      .attr('y',110);
+      return;
+    } else {
+      select('#personView').select('#error').remove();
+    }
+
+
+    select('#person')
+    .text('relativeID:' + d.id)
+    .attr('fill',()=>{return d.affected ? 'red' : 'black';})
+    .on('click',()=> {this.renderPersonView(d);});
+
+    select('#motherLabel')
+    .text('MaID:' + d.maID)
+    .attr('fill',()=>{return (d.ma && d.ma.affected) ? 'red' : 'black';})
+    .on('click',()=> {this.renderPersonView(d.ma);});
+
+    select('#fatherLabel')
+    .text('PaID:' + d.paID)
+    .attr('fill',()=>{return (d.pa && d.pa.affected) ? 'red' : 'black';})
+    .on('click',()=> {this.renderPersonView(d.pa);});
+
+    //clear all spouses, siblings, and children;
+    select('#spouseLabels').selectAll('text').remove();
+    select('#siblingLabels').selectAll('text').remove();
+    select('#childrenLabels').selectAll('text').remove();
+
+    //One text element per spouse
+    d.spouse.map((s,i)=> {
+      select('#spouseLabels')
+      .append('text')
+      .text((i === 0 ? ('Spouse(s):' + s.id) : s.id))
+      .attr('x',(i === 1 ? 135 : (i === 0 ? 0 : 135 + i*75)))
+      .attr('fill',()=> {return s.affected ? 'red' : 'black';})
+      .on('click',()=> {this.renderPersonView(s);});
+      ;});
+
+
+    //One text element per child
+    d.children.map((c,i)=> {
+      select('#childrenLabels')
+      .append('text')
+      .text((i === 0 ? ('Child(ren):' + c.id) : c.id))
+      .attr('x',(i === 1 ? 135 : (i === 0 ? 0 : 135 + i*75)))
+      .attr('fill',()=> {return c.affected ? 'red' : 'black';})
+      .on('click',()=> {this.renderPersonView(c);});
+      ;});
 
   }
 

@@ -609,7 +609,7 @@ class AttributeTable {
 
     //This are the rows that every col in the table should have;
     const graphIDs = await graphView.col(0).names();
-    const KindredIDs = await graphView.col(1).data();
+    const kindredIDs = await graphView.col(1).data();
 
     // graphIDs = graphIDs.dim(0).asList().map(d => {
     //   return d.toString()

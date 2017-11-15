@@ -313,7 +313,7 @@ class GenealogyTree {
     //Add svg legend
     // headerDiv.append('g').html(String(icon));
 
-    headerDiv.append('g').append('svg') 
+    headerDiv.append('g').append('svg')
     .attr('id','personView')
     .attr('width',550)
     .attr('height',120);
@@ -347,7 +347,7 @@ class GenealogyTree {
     .attr('id','spouseLabels')
     .classed('personViewLabel',true)
     .attr('transform','translate(' + 550/2 + ',' + 120/2 + ')');
-   
+
 
     select('#personView')
     .append('g')
@@ -1088,7 +1088,7 @@ class GenealogyTree {
           , id: yNodes[0].uniqueID
         });
       // }
-      
+
     }
 
     //Create data to bind to aggregateBars
@@ -1484,7 +1484,7 @@ class GenealogyTree {
         let xoffset = 0;
 
         //Position Parent Grid;
-        if (node.hidden && node.hasChildren && (node.spouse.length > 1 || node.spouse[0].spouse.length > 1)) {
+        if (node.hidden && node.hasChildren && node.spouse[0] && (node.spouse.length > 1 || node.spouse[0].spouse.length > 1)) {
 
           let parentCount: number = 0;
           let searchSpouse;
@@ -1655,17 +1655,17 @@ class GenealogyTree {
 
     select('#person')
     .text('relativeID:' + d.id)
-    .attr('fill',()=>{return d.affected ? 'red' : 'black';})
+    .attr('fill',()=> {return d.affected ? 'red' : 'black';})
     .on('click',()=> {this.renderPersonView(d);});
 
     select('#motherLabel')
     .text('MaID:' + d.maID)
-    .attr('fill',()=>{return (d.ma && d.ma.affected) ? 'red' : 'black';})
+    .attr('fill',()=> {return (d.ma && d.ma.affected) ? 'red' : 'black';})
     .on('click',()=> {this.renderPersonView(d.ma);});
 
     select('#fatherLabel')
     .text('PaID:' + d.paID)
-    .attr('fill',()=>{return (d.pa && d.pa.affected) ? 'red' : 'black';})
+    .attr('fill',()=> {return (d.pa && d.pa.affected) ? 'red' : 'black';})
     .on('click',()=> {this.renderPersonView(d.pa);});
 
     //clear all spouses, siblings, and children;

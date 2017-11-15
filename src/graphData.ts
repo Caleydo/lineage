@@ -258,7 +258,7 @@ class GraphData {
    *
    */
   public async createTree() {
-
+      // console.log('creating Tree');
 
     this.nodes = [];
     const columns = this.graphTable.cols();
@@ -270,7 +270,7 @@ class GraphData {
     const idRanges = await columns[0].ids();
     const kindredRanges = await columns[1].data();
     
-
+    // console.log(peopleIDs,idRanges.dim(0).asList(),kindredRanges);
 
 
     this.ids = idRanges.dim(0).asList().map((d) => {
@@ -285,6 +285,7 @@ class GraphData {
     const columnDesc = this.graphTable.desc.columns;
     const columnNameToIndex: { [name: string]: number } = {};
 
+    // console.log(columnNameToIndex);
     for (let i = 0; i < columnDesc.length; i++) {
       //console.log(columns[i]);
       const name = columnDesc[i].name;
@@ -292,9 +293,15 @@ class GraphData {
       // console.log(name,i,columnNameToIndex[name])
     }
 
+    // console.log('started checking')
     let i = 0;
     for (const row of await this.graphTable.data()) {
       const node = new Node(this.ids[i]);
+
+      // console.log(i,this.ids[i],row[0]);
+      if (row[0] === 15857339) {
+        console.log(row);
+      }
       // const node = new Node(peopleIDs[i]);
       this.nodes.push(node);
       node.initialize(columnNameToIndex, row);
@@ -330,12 +337,9 @@ class GraphData {
       }
     });
 
-
-    console.log('removing cycles');
     //Remove cycles by creating duplicate nodes where necessary
     this.removeCycles();
 
-    console.log('Linearizing Tree');
     //Linearize Tree and pass y values to the attributeData Object
     this.linearizeTree();
 
@@ -505,7 +509,10 @@ class GraphData {
         allKids = allKids.concat(s.children);
       });
 
-      node.children = allKids;
+      //Add back in kids that don't have a father;
+      
+
+      node.children = node.children.filter((c:Node)=> {return c.paID === '0';}).concat(allKids);
     }
 
   }
@@ -979,9 +986,26 @@ class GraphData {
 
         //No parents found
         if ((maNode === undefined || paNode === undefined) && (maNode !== node && paNode !== node)) {
-          node.ma = undefined;
-          node.pa = undefined;
-          // console.log('no parents :( ')
+          node.ma = maNode;
+          node.pa = paNode;
+
+         if (maNode) {
+          maNode.hasChildren = true;
+          //Add child to array of children of each parent
+          maNode.children.push(node); 
+          // console.log('pushing ' , node.id , ' as child of ', maNode.id); 
+
+          this.parentChildEdges.push({
+            ma: maNode,
+            pa: maNode,
+            target: node,
+            'id': node.id //id of parentChild Edge is the id of the child.
+          });
+         }
+         
+
+          
+          //  console.log('no parents :( for ',node.id);
         } else { //If found parents, create edges between parent and children, spouses, and add references to build tree
           // console.log('found parents :) ')
           //Replace ma and pa fields with reference to actual ma/pa nodes

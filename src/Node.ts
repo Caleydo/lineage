@@ -105,7 +105,7 @@ export default class Node {
     this.type = 'single';
     this.id = undefined;
     this.kindredID = undefined;
-    this.uniqueID = id;
+    this.uniqueID = id; //use phovea defined unique id
     this.hidden = false;
     this.aggregated = false;
     this.generation = -1;
@@ -135,6 +135,5 @@ export default class Node {
     this.paID = row[columnNameToIndex.PaID].toString();
     this.kindredID = row[columnNameToIndex.KindredID].toString();
     this.deceased = row[columnNameToIndex.deceased].toString();
-    // this.uniqueID = this.id+this.kindredID;//create a unique id for every person, disambiguate individuals in multiple families
   }
 }

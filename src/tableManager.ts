@@ -464,18 +464,9 @@ export default class TableManager {
    * This function changes the range of rows to display on the selected family.
    * @param chosenFamilyID the numeric value of the familyID, uses the first family ID when none is specified
    */
-  public async selectFamily(chosenFamilyIDs?: number[]) {
+  public async selectFamily(chosenFamilyIDs: number[] = [this.familyInfo[0].id]) {
 
-    // select('body').classed('progress',true);
-
-    // console.log('chosen Family ID is ', chosenFamilyIDs)
-
-
-    if (chosenFamilyIDs == null) {
-      chosenFamilyIDs = [this.familyInfo[0].id];
-    }
-
-    // let familyRange: number[] =[];
+    select('body').classed('progress',true);
 
     const family = this.familyInfo.find((family) => { return family.id === chosenFamilyIDs[0]; });
     let familyRange = range.list(family.range); //familyRange.concat(family.range);
@@ -631,7 +622,7 @@ export default class TableManager {
       this.familyInfo.push({ id, range: familyRange, size: familyRange.length, affected, percentage });
     }
 
-    // //Set active graph Cols to non id-types
+    // //Set active graph Cols
     const columns = await this.table.cols();
 
     const colIndexAccum = [];

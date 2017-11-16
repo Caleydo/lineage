@@ -84,11 +84,9 @@ export class App {
     const graphDataObj = graphData.create(tableManager);
     await graphDataObj.createTree();
 
-    // // console.log('tree')
     const genealogyTree = tree.create(this.$node.select('#graph').node());
     genealogyTree.init(graphDataObj);
 
-    // // // console.log('table')
     const attributeTable = table.create(this.$node.select('#table').node());
     attributeTable.init(tableManager);
 

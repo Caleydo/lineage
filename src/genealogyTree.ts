@@ -842,7 +842,6 @@ class GenealogyTree {
 
     this.y.range([0, this.height * .8]).domain(yrange);
 
-    console.log('yrange in tree is ', this.y.range());
     this.interGenerationScale.range([.75, .25]).domain([2, nodes.length]);
 
 
@@ -896,10 +895,6 @@ class GenealogyTree {
       }
     }
 
-
-
-
-    console.log(familyArray);
     // // Attach node groups
     let allFamilyBars = familyBarsGroup.selectAll('.familyBar')
       .data(familyArray, function (d: Node) {

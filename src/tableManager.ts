@@ -466,7 +466,7 @@ export default class TableManager {
    */
   public async selectFamily(chosenFamilyIDs: number[] = [this.familyInfo[0].id]) {
 
-    select('body').classed('progress',true);
+    // select('body').classed('progress',true);
 
     const family = this.familyInfo.find((family) => { return family.id === chosenFamilyIDs[0]; });
     let familyRange = range.list(family.range); //familyRange.concat(family.range);

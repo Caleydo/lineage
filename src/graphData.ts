@@ -277,6 +277,8 @@ class GraphData {
       return d.toString();
     });
 
+    // console.log(this.ids);
+
     this.uniqueIDs = idRanges.dim(0).asList().map((d,i) => {
       return d.toString() + kindredRanges[i].toString();
     });
@@ -379,11 +381,19 @@ class GraphData {
     const dict = {};
 
 
+    // this.nodes.forEach((node) => {
+    //   if (node.id in dict) {
+    //     dict[node.id].push(Math.round(node.y));
+    //   } else {
+    //     dict[node.id] = [Math.round(node.y)];
+    //   }
+    // });
+
     this.nodes.forEach((node) => {
-      if (node.id in dict) {
-        dict[node.id].push(Math.round(node.y));
+      if (node.uniqueID in dict) {
+        dict[node.uniqueID+'_'+node.kindredID].push(Math.round(node.y));
       } else {
-        dict[node.id] = [Math.round(node.y)];
+        dict[node.uniqueID+'_'+node.kindredID] = [Math.round(node.y)];
       }
     });
 
@@ -973,12 +983,12 @@ class GraphData {
       .forEach((node: Node) => {
         //Check if there are mother and father nodes in this family (founder won't have them for example)
         const maNode = this.nodes.find((d) => {
-          return d.id === node.maID;
+          return d.id === node.maID && d.kindredID === node.kindredID; //Make sure to get the person from the right family
         });
         // if (maNode)
         // console.log(maNode, node )
         const paNode = this.nodes.find((d) => {
-          return d.id === node.paID;
+          return d.id === node.paID && d.kindredID === node.kindredID;
         });
         // if (paNode)
         //   console.log(paNode, node)

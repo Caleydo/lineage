@@ -586,8 +586,6 @@ class AttributeTable {
 
   public async initData() {
 
-    // this.colOffsets = [-Config.slopeChartWidth];
-
     this.colOffsets = [0];
     const graphView = await this.tableManager.graphTable;
     const attributeView = await this.tableManager.tableTable;
@@ -611,24 +609,26 @@ class AttributeTable {
     const graphIDs = await graphView.col(0).names();
     const kindredIDs = await graphView.col(1).data();
 
-    // graphIDs = graphIDs.dim(0).asList().map(d => {
-    //   return d.toString()
-    // });
+    console.log(kindredIDs);
 
+    const idVector = await graphView.col(0).ids();
+    const uniqueIDs = idVector.dim(0).asList().map((i)=> {return i.toString();});
+
+    const ids = uniqueIDs.map((id,i)=> {return id+'_'+kindredIDs[i];});
 
     //Create a dictionary of y value to people
     const y2personDict = {};
     const yDict = this.tableManager.yValues;
-
-    // console.log(yDict,graphIDs);
-    // console.log('yDict', yDict)
-    graphIDs.forEach((person,ind) => {
+    console.log(yDict);
+    ids.forEach((person,ind) => {
       // console.log(person,KindredIDs[ind]);
       if (person in yDict) { //may not be if dangling nodes were removed
+        // console.log(person,yDict[person]);
         //Handle Duplicate Nodes
         yDict[person].forEach((y) => {
           if (y in y2personDict) {
-            y2personDict[y].push(person);
+            // y2personDict[y].push({'uniqueID':person,'id':graphIDs[ind]});
+            y2personDict[y].push(person); //create uniqueID from uniqueID and kindredID
 
           } else {
             y2personDict[y] = [person];
@@ -637,13 +637,10 @@ class AttributeTable {
       }
     });
 
+
+
     //Find y indexes of all rows
     const allRows = Object.keys(y2personDict).map(Number);
-
-    // console.log(y2personDict);
-
-    // console.log('allrows', allRows)
-
 
     //Set height and width of svg
     this.height = Config.glyphSize * 4 * (max(allRows) - min(allRows) + 1);
@@ -677,7 +674,8 @@ class AttributeTable {
 
 
     col.ids = allRows.map((row) => {
-      return y2personDict[row];
+      // console.log(y2personDict[row]);
+      return y2personDict[row]; //.map((d)=> {return d.id;});
     });
 
     this.firstCol = [col];
@@ -700,16 +698,9 @@ class AttributeTable {
     orderedCols.forEach((vector, index) => {
       const data = finishedPromises[index * 5];
       const peopleIDs = finishedPromises[index * 5 + 1];
+      const phoveaIDs = finishedPromises[index * 5 + 2].dim(0).asList().map((i)=> {return i.toString();});
 
-      // for (const vector of orderedCols) {
-      // //   orderedCols.forEach(function (vector){
-      //   const data = await vector.data();
-      //   const peopleIDs = await vector.names();
-      //
-      //   const idRanges  = await vector.ids();
-      //
-      //   const uniqueIDs = idRanges.dim(0).asList().map(d=>{return d.toString()});
-      // console.log('col name is ', vector.desc.name, 'vector.data() size is ', data.length, 'vector.names() size is ', peopleIDs.length, 'vector.ids() size is ', uniqueIDs.length)
+      console.log(data.length);
 
       const type = vector.valuetype.type;
       const name = vector.desc.name;
@@ -757,9 +748,10 @@ class AttributeTable {
           const col: any = {};
           col.isSorted = false;
           col.ids = allRows.map((row) => {
-            return y2personDict[row].filter(function (value, index, self) {
-              return self.indexOf(value) === index;
-            });
+            return y2personDict[row];
+            // .filter(function (value, index, self) {
+            //   return self.indexOf(value) === index;
+            // });
           });
 
           col.name = name;
@@ -771,13 +763,16 @@ class AttributeTable {
             const colData = [];
             //Only return unique personIDs.
             //TODO find out why there are multiple instances of a person id.
-            const people = y2personDict[row].filter(function (value, index, self) {
-              return self.indexOf(value) === index;
-            });
-            // console.log(people);
+            const people = y2personDict[row];
+            // .filter(function (value, index, self) {
+            //   return self.indexOf(value.id) === index;
+            // });
+
+            // console.log(people,ids);
             // console.log('about to call people.map()');
             people.map((person) => {
-              const ind = peopleIDs.indexOf(person); //find this person in the attribute data
+              // console.log(col.name, person.split('_')[0]);
+              const ind = (col.name === 'KindredID' ? ids.indexOf(person) : phoveaIDs.indexOf(person.split('_')[0])); //find this person in the attribute data
               //If there are only two categories, save both category values in this column. Else, only save the ones that match the category at hand.
               if (ind > -1 && (allCategories.length < 3 || ind > -1 && (allCategories.length > 2 && data[ind] === cat))) {
                 // console.log('person:',person, 'value:',data[ind])
@@ -798,18 +793,7 @@ class AttributeTable {
 
         }
 
-
-        // if (categories.length > 2) { //Add spacing around multicolumn categories
-        //   const numColsAfter = this.colOffsets.length - 1;
-        //   this.colOffsets[numColsAfter] += this.catOffset;
-        // }
-
-
       } else if (type === VALUE_TYPE_INT || type === VALUE_TYPE_REAL) { //quant
-
-        // const maxOffset = max(this.colOffsets);
-        // this.colOffsets.push(maxOffset + this.buffer + this.colWidths[type]);
-
 
         const col: any = {};
         col.isSorted = false;
@@ -819,18 +803,18 @@ class AttributeTable {
           });
         });
 
-        // const stats = await vector.stats();
         const stats = finishedPromises[5 * index + 3];
         col.name = name;
         col.data = allRows.map((row) => {
           const colData = [];
-          const people = y2personDict[row].filter(function (value, index, self) {
-            return self.indexOf(value) === index;
-          });
+          const people = y2personDict[row];
+          // .filter(function (value, index, self) {
+          //   return self.indexOf(value) === index;
+          // });
           people.map((person) => {
-            const ind = peopleIDs.lastIndexOf(person); //find this person in the attribute data
+            const ind = (col.name === 'KindredID' ? ids.lastIndexOf(person) : phoveaIDs.lastIndexOf(person.split('_')[0])); //find this person in the attribute data
+            // const ind = ids.lastIndexOf(person); //find this person in the attribute data
             if (ind > -1) {
-              // console.log(peopleIDs, col.data)
               colData.push(data[ind]);
             } else {
               colData.push(undefined);
@@ -860,11 +844,13 @@ class AttributeTable {
 
         col.data = allRows.map((row) => {
           const colData = [];
-          const people = y2personDict[row].filter(function (value, index, self) {
-            return self.indexOf(value) === index;
-          });
+          const people = y2personDict[row];
+          // .filter(function (value, index, self) {
+          //   return self.indexOf(value.id) === index;
+          // });
           people.map((person) => {
-            const ind = peopleIDs.lastIndexOf(person); //find this person in the attribute data
+            const ind = (col.name === 'KindredID' ? ids.lastIndexOf(person) : phoveaIDs.lastIndexOf(person.split('_')[0])); //find this person in the attribute data
+            // const ind = ids.lastIndexOf(person); //find this person in the attribute data
             if (ind > -1) {
               colData.push(data[ind]);
             } else {
@@ -875,26 +861,32 @@ class AttributeTable {
         });
         col.type = type;
         colDataAccum.push(col);
+
       } else if (type === 'idtype') {
 
         const col: any = {};
         col.ids = allRows.map((row) => {
-          return y2personDict[row].filter(function (value, index, self) {
-            return self.indexOf(value) === index;
-          });
+          return y2personDict[row];
+          // .filter(function (value, index, self) {
+          //   return self.indexOf(value) === index;
+          // });
         });
 
         col.name = name;
 
+
         col.data = allRows.map((row) => {
           const colData = [];
-          const people = y2personDict[row].filter(function (value, index, self) {
-            return self.indexOf(value) === index;
-          });
-          people.map((person) => {
-            // console.log(data,person)
-            const ind = peopleIDs.indexOf(person); //find this person in the attribute data
-            if (ind > -1) {
+          const people = y2personDict[row];
+          // .filter(function (value, index, self) {
+          //   return self.indexOf(value.id) === index;
+          // });
+          // console.log(data,ids,people);
+          people.map((person,i) => {
+            const ind = (col.name === 'KindredID' ? ids.lastIndexOf(person) : phoveaIDs.lastIndexOf(person.split('_')[0])); //find this person in the attribute data
+            // const ind = ids.indexOf(person); //find this person in the attribute data
+            // console.log(person,ind,peopleIDs[i],peopleIDs[ind],data[ind]);
+            if (ind > -1 ) {
               if (isUndefined(data[ind])) {
                 console.log('problem');
                 console.log(name, data.size(), peopleIDs.size());
@@ -910,6 +902,7 @@ class AttributeTable {
         col.type = type;
         colDataAccum.push(col);
 
+        console.log(col.data);
 
         // const maxOffset = max(this.colOffsets);
 
@@ -1019,6 +1012,7 @@ class AttributeTable {
 
     const y = this.y;
 
+      console.log(this.colData);
     //HEADERS
     //Bind data to the col headers
     let headers = select('#tableHeaders').selectAll('.header')
@@ -2453,7 +2447,8 @@ class AttributeTable {
         .classed('dataDens', true);
 
       element.append('text')
-        .classed('label', true);
+        .classed('label', true)
+        .on('click', ()=> {return console.log(cellData.data);});
 
         if (cellData.type === 'dataDensity') {
           element.append('text').text('\uf00c')
@@ -2761,7 +2756,8 @@ class AttributeTable {
     if (element.selectAll('.string').size() === 0) {
       element
         .append('text')
-        .classed('string', true);
+        .classed('string', true)
+        .on('click', ()=> {return console.log(cellData.data);});
     }
 
     let textLabel;

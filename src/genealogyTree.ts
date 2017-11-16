@@ -1603,7 +1603,6 @@ class GenealogyTree {
    * @param on true to turn the highlighting on, false to turn it off
    */
   private highlightBranch(node: Node, on: boolean) {
-    console.log('highlightBranch');
     if (!node.hasChildren) {
       return;
     }
@@ -1854,19 +1853,6 @@ class GenealogyTree {
 
           select('#treeMenu').select('.menu').remove();
 
-
-
-          //   select('#nodeActions').attr('visibility', 'visible');
-
-          //   let xOffset, yOffset;
-          //   if (d.sex === Sex.Female) {
-          //     xOffset = 12 -83 + 40 ; yOffset = 30;
-          //   } else {
-          //     xOffset = 20 - 83 + 40; yOffset = 8 + 30;
-          //   }
-
-          //   select('#nodeActions').attr('transform', 'translate(' + (this.xPOS(d) + xOffset) + ' , ' + (this.yPOS(d) + yOffset) + ' )');
-
           let actions;
 
           if (d.state === layoutState.Expanded) {
@@ -1878,32 +1864,6 @@ class GenealogyTree {
           }
 
           this.addMenu(d, actions);
-
-          //   select('#nodeActions').select('#menuLabel1')
-          //     .text(actions[0].string)
-          //     .attr('x',actions[0].offset);
-
-          //   select('#nodeActions').select('#menuLabel2')
-          //     .text(actions[1].string)
-          //     .attr('x',actions[1].offset);
-
-          //   select('#nodeActions').select('#menuOption1')
-          //     .on('click', () => {
-          //       // select('#nodeActions').attr('visibility', 'hidden');
-          //       this.data.aggregateTreeWrapper(d.uniqueID, actions[0].state);
-          //       this.update_graph();
-          //     });
-
-          //   select('#nodeActions').select('#menuOption2')
-          //     .on('click', () => {
-          //       // select('#nodeActions').attr('visibility', 'hidden');
-          //       this.data.aggregateTreeWrapper(d.uniqueID, actions[1].state);
-          //       this.update_graph();
-          //     });
-          // } else {
-
-          //   select('#nodeActions').attr('visibility', 'hidden');;
-          // }
         }
 
         selectAll('.slopeLine').classed('selectedSlope', false);
@@ -2633,99 +2593,83 @@ class GenealogyTree {
 
   private addMenu(data, actions = null) {
 
-    const container = document.getElementById('app');
-    const coordinates = mouse(container);
+    select('#treeMenu').select('.menu').remove();
 
-    //      select('#nodeActions').select('#menuLabel1')
-    //     .text(actions[0].string)
-    //     .attr('x',actions[0].offset);
+        const menuLabels = ['Set as POI','Star','Other Option', 'Another Option'];
 
-    //   select('#nodeActions').select('#menuLabel2')
-    //     .text(actions[1].string)
-    //     .attr('x',actions[1].offset);
+        const container = document.getElementById('app');
+        const coordinates = mouse(container);
 
-    //   select('#nodeActions').select('#menuOption1')
-    //     .on('click', () => {
-    //       // select('#nodeActions').attr('visibility', 'hidden');
-    //       this.data.aggregateTreeWrapper(d.uniqueID, actions[0].state);
-    //       this.update_graph();
-    //     });
+        const menuWidth = 90;
+        const menuItemHeight = 25;
+        const menuHeight = 5 + actions.length*menuItemHeight;
 
-    //   select('#nodeActions').select('#menuOption2')
-    //     .on('click', () => {
-    //       // select('#nodeActions').attr('visibility', 'hidden');
-    //       this.data.aggregateTreeWrapper(d.uniqueID, actions[1].state);
-    //       this.update_graph();
-    //     });
-    // } else {
+        const menu = select('#treeMenu')
+        .append('svg')
+        .attr('class', 'menu')
+        .attr('height', menuHeight)
+        .attr('transform', 'translate(' + (coordinates[0] + 10) + ',' + (coordinates[1] - menuHeight / 2) + ')')
+        .append('g');
 
-    //   select('#nodeActions').attr('visibility', 'hidden');;
-    // }
+        let menuItems = menu.selectAll('text').data(actions);
 
+        const menuItemsEnter = menuItems.enter()
+          .append('g');
 
-    const menuWidth = 90;
-    const menuHeight = 50;
+        menuItemsEnter.append('rect').classed('menuItemBackground',true);
+        menuItemsEnter.append('text').classed('icon', true);
+        menuItemsEnter.append('text').classed('label', true);
+        menuItemsEnter.append('line').classed('menuDivider', true);
 
-    const menu = select('#treeMenu')
-      .append('svg')
-      .attr('class', 'menu')
-      .attr('height', menuHeight)
-      // .attr('opacity',0)
-      .attr('transform', 'translate(' + (coordinates[0] + 10) + ',' + (coordinates[1] - menuHeight / 2) + ')')
-      .append('g');
+        menuItems = menuItemsEnter.merge(menuItems);
 
+        menuItems.select('.menuItemBackground')
+          .attr('width',menuWidth)
+          .attr('fill', '#f7f7f7')
+          .attr('height', menuItemHeight)
+          .attr('opacity', 1);
 
-    menu.append('rect')
-      .attr('fill', '#f7f7f7')
-      .attr('height', menuHeight)
-      .attr('opacity', 1);
+        menuItems.attr('transform', ((d,i)=> {return 'translate(0,' + (5 + i*menuItemHeight) + ')';}));
 
-    let menuItems = menu.selectAll('text').data(actions);
+        menuItems
+          .select('.label')
+          .attr('x', 10)
+          .attr('y', menuItemHeight/2+5)
+          .text((d: any) => d.string)
+          .classed('tooltipTitle', true)
+          .on('click', (d: any) => {
+            select('#treeMenu').select('.menu').remove();
+            this.data.aggregateTreeWrapper(data.uniqueID, d.state);
+            this.update_graph();
+          });
 
-    const menuItemsEnter = menuItems.enter()
-      .append('g');
+        menuItems
+          .select('.icon')
+          .attr('x', menuWidth - 20)
+          .attr('y', menuItemHeight/2+5)
+          .attr('class', 'icon')
+          .text((d: any) => { return d.state === 1 ? '\uf0c9' : (d.state === 2 ? '\uf0ca' : '\uf0cb'); })
+          .classed('tooltipTitle', true);
 
-    menuItemsEnter.append('text').classed('icon', true);
-    menuItemsEnter.append('text').classed('label', true);
+          menuItems
+          .select('.menuDivider')
+          .attr('x1', 0)
+          .attr('x2', menuWidth)
+          .attr('y1', menuItemHeight)
+          .attr('y2', menuItemHeight)
+          .attr('stroke-width', '1px')
+          .attr('stroke', 'white');
 
-    menuItems = menuItemsEnter.merge(menuItems);
+        select('#treeMenu')
+          .attr('width', menuWidth);
 
-    menuItems
-      .select('.label')
-      .attr('x', 10)
-      .attr('y', (d, i) => { return 20 * (i + 1); })
-      .text((d: any) => d.string)
-      .classed('tooltipTitle', true)
-      .on('click', (d: any) => {
-        select('#treeMenu').select('.menu').remove();
-        this.data.aggregateTreeWrapper(data.uniqueID, d.state);
-        this.update_graph();
-      });
-
-    menuItems
-      .select('.icon')
-      .attr('x', menuWidth - 20)
-      .attr('y', (d, i) => { return 20 * (i + 1); })
-      .attr('class', 'icon')
-      .text((d: any) => { return d.state === 1 ? '\uf0c9' : (d.state === 2 ? '\uf0ca' : '\uf0cb'); })
-      .classed('tooltipTitle', true);
-
-    select('#treeMenu')
-      .attr('width', menuWidth);
-
-    select('#treeMenu')
-      .select('rect')
-      .attr('width', menuWidth);
-
-    menu.append('line')
-      .attr('x1', 0)
-      .attr('x2', menuWidth)
-      .attr('y1', menuHeight * 0.3)
-      .attr('y2', menuHeight * 0.3)
-      .attr('y1', 0)
-      .attr('y2', 0)
-      .attr('stroke-width', '10px')
-      .attr('stroke', '#e86c37');
+        menu.append('line')
+          .attr('x1', 0)
+          .attr('x2', menuWidth)
+          .attr('y1', 5)
+          .attr('y2', 5)
+          .attr('stroke-width', '5px')
+          .attr('stroke', '#e86c37');
   }
 
   private attachListeners() {

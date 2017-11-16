@@ -343,11 +343,13 @@ class AttributeTable {
 
     //Link scrolling of the table and graph divs as well as the table and it's header
     select('#tableDiv2').on('scroll', () => {
+      select('#treeMenu').select('.menu').remove(); //remove any open menus
       document.getElementById('graphDiv').scrollTop = document.getElementById('tableDiv2').scrollTop;
       document.getElementById('tableDiv1').scrollLeft = document.getElementById('tableDiv2').scrollLeft;
     });
 
     select('#tableDiv1').on('scroll', () => {
+      select('#treeMenu').select('.menu').remove(); //remove any open menus
       document.getElementById('tableDiv2').scrollLeft = document.getElementById('tableDiv1').scrollLeft;
     });
 
@@ -735,29 +737,18 @@ class AttributeTable {
           categories = allCategories;
         }
 
-        // console.log(categories)
-
-        // if (categories.length > 2) { //Add spacing around multicolumn categories
-        //   const numColsBefore = this.colOffsets.length - 1;
-        //   this.colOffsets[numColsBefore] += this.catOffset;
-        // }
-
-        // console.log('about to call cat of categories');
         for (const cat of categories) {
 
           const col: any = {};
           col.isSorted = false;
           col.ids = allRows.map((row) => {
             return y2personDict[row];
-            // .filter(function (value, index, self) {
-            //   return self.indexOf(value) === index;
-            // });
           });
 
           col.name = name;
           col.category = cat;
+          col.allCategories = allCategories;
 
-          // console.log('about to call allRows.map()');
           //Ensure there is an element for every person in the graph, even if empty
           col.data = allRows.map((row) => {
             const colData = [];
@@ -901,20 +892,6 @@ class AttributeTable {
         col.ys = allRows;
         col.type = type;
         colDataAccum.push(col);
-
-        console.log(col.data);
-
-        // const maxOffset = max(this.colOffsets);
-
-        // if (name === 'KindredID'){
-        //   console.log(col.data[0], 'length', col.data[0].length)
-        //   this.colOffsets.push(maxOffset + this.buffer +  col.data[0][0].length*7);
-        //
-        // }else{
-        // this.colOffsets.push(maxOffset + this.buffer + this.colWidths[type]);
-        // }
-
-
       }
 
 
@@ -1019,7 +996,7 @@ class AttributeTable {
       .data(this.colData.map((d: any, i) => {
         return {
           'name': d.name, 'data': d, 'ind': i, 'type': d.type,
-          'max': d.max, 'min': d.min, 'mean': d.mean, 'category': d.category, 'isSorted': d.isSorted
+          'max': d.max, 'min': d.min, 'mean': d.mean, 'allCategories':d.allCategories, 'category': d.category, 'isSorted': d.isSorted
         };
       }), (d: any) => {
         return d.name;
@@ -1811,7 +1788,8 @@ class AttributeTable {
       .attr('y', this.rowHeight * 2 + 40)
       .attr('x', (d) => {
         return colWidth / 2 + 5;
-      });
+      })
+      .on('click',((d)=> {this.addMenu(d);}));
 
     icon = iconEnter.merge(icon);
 
@@ -1860,6 +1838,121 @@ class AttributeTable {
 
 
   }
+
+  private addMenu(d) {
+
+        select('#treeMenu').select('.menu').remove();
+
+        event.stopPropagation();
+        let option1, option2;
+        if (d.type === 'categorical' && (d.category.toLowerCase() === 'true' || d.category.toLowerCase() === 'y')) {
+          option1 = 'Show ' + d.name;
+          option2 = 'Show NOT ' + d.name;
+        } else if (d.type === 'categorical' && d.allCategories.length <3) {
+          option1 = 'Show ' + d.allCategories[0];
+          option2 = 'Show ' + d.allCategories[1];
+        } else if (d.type === 'categorical' && d.allCategories.length >3) {
+          option1 = 'Show ' + d.category;
+          option2 = 'Show NOT ' + d.category;
+        }
+
+        const menuLabels = (d.type === 'categorical' ? [option1,option2, 'Set as POI','Star'] : ['Set as POI','Star']);
+
+        const container = document.getElementById('app');
+        const coordinates = mouse(container);
+
+        let menuWidth = 90; //default Value. Will update
+        const menuItemHeight = 25;
+        const menuHeight = 5 + menuLabels.length*menuItemHeight;
+
+        const menu = select('#treeMenu')
+          .append('svg')
+          .attr('class', 'menu')
+          .attr('height', menuHeight);
+
+        let menuItems = menu.selectAll('text').data(menuLabels);
+
+        const menuItemsEnter = menuItems.enter()
+          .append('g');
+
+        menuItemsEnter.append('rect').classed('menuItemBackground',true);
+        menuItemsEnter.append('text').classed('icon', true);
+        menuItemsEnter.append('text').classed('label', true);
+        menuItemsEnter.append('line').classed('menuDivider', true);
+
+        menuItems = menuItemsEnter.merge(menuItems);
+
+        menuItems
+        .select('.label')
+        .attr('x', 10)
+        .attr('y', menuItemHeight/2+5)
+        .text((d: any) => d)
+        .classed('tooltipTitle', true)
+        .on('click', (d: any) => {
+          select('#treeMenu').select('.menu').remove();
+        });
+
+        let longestLabelLength = 0;
+
+        menu.selectAll('g').each(function(element:any,i){
+          const textNode = <SVGTSpanElement>select(this).select('.label').node();
+          const labelWidth = textNode.getComputedTextLength();
+          longestLabelLength = (labelWidth > longestLabelLength) ? labelWidth : longestLabelLength;
+        });
+
+        menuWidth = longestLabelLength + 50;
+
+        menu.attr('transform', 'translate(' + (coordinates[0] - menuWidth/2) + ',' + (coordinates[1] + 3) + ')');
+
+        menuItems.select('.menuItemBackground')
+          .attr('width',menuWidth)
+          .attr('fill', '#f7f7f7')
+          .attr('height', menuItemHeight)
+          .attr('opacity', 1)
+          .on('click',()=> {select('#treeMenu').select('.menu').remove();});
+
+          menuItems.attr('transform', ((d,i)=> {return 'translate(0,' + (5 + i*menuItemHeight) + ')';}));
+
+        menuItems
+          .select('.icon')
+          .attr('x', menuWidth - 20)
+          .attr('y', menuItemHeight/2+5)
+          .attr('class', 'icon')
+          .text((d: any,i)=> {
+            if (i === 0 && d.includes('Show')) {
+              return '\uf111';
+            } else if (i === 1 && d.includes('Show')) {
+              return '\uf22d';
+            } else if (i === 0 || i === 2) {
+              return '\uf007';
+            } else if (i === 1 || i === 3) {
+              return '\uf005';
+            } else {
+              return '';
+            }
+          })
+          .classed('tooltipTitle', true);
+
+          menuItems
+          .select('.menuDivider')
+          .attr('x1', 0)
+          .attr('x2', menuWidth)
+          .attr('y1', menuItemHeight)
+          .attr('y2', menuItemHeight)
+          .attr('stroke-width', '1px')
+          .attr('stroke', 'white');
+
+        select('#treeMenu')
+          .attr('width', menuWidth);
+
+        menu.append('line')
+          .attr('x1', 0)
+          .attr('x2', menuWidth)
+          .attr('y1', 5)
+          .attr('y2', 5)
+          .attr('stroke-width', '5px')
+          .attr('stroke', '#e86c37');
+      }
 
   /**
    *

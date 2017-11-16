@@ -104,10 +104,12 @@ rect.poi{
   fill:white;
 }
 
-#treeMenu text:hover{
-  fill:rgb(0, 0, 0);
-  stroke:black;
-  stroke-width: 1px;
+#treeMenu .menuItemBackground:hover{
+  fill:rgb(235, 113, 65);
+}
+
+#treeMenu text{
+  pointer-events: none;
 }
 
 // .slopeLine.test{

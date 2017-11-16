@@ -832,7 +832,6 @@ class GraphData {
 
       //if the last assigned Node is affected or if it is an unaffected leaf, start a new row; This does not apply when hiding.
       if (isUndefined(node.y) && (lastAssignedNode.affected || (!lastAssignedNode.hasChildren && !lastAssignedNode.affected))) {
-
         node.y = min(this.nodes, (n: any) => {
           return n.y;
         }) - 1;
@@ -938,12 +937,6 @@ class GraphData {
           this.aggregateHelper(child);
         }
       });
-    }
-
-    console.log(node.id);
-    if (node.id === '19440322'){ 
-    console.log(node)
-    
     }
 
   }

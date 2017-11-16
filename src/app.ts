@@ -100,6 +100,11 @@ export class App {
     //temporary hack. to do: remove properly
     select('.menu-list').remove();
 
+    //Set listener on document so that clicking anywhere removes the menus
+    select('body').on('click',() => {
+      select('#treeMenu').select('.menu').remove();
+    });
+
 
     return Promise.resolve(this);
   }

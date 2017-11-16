@@ -111,8 +111,6 @@ class FamilySelector {
       .on('click', function (d) {
         const isAscending = select(this).classed('des');
 
-        console.log('sorting based on ', d.dataAttr);
-
         if (isAscending) {
           self.rows.sort(function (a, b) {
             return b[d.dataAttr] < a[d.dataAttr];

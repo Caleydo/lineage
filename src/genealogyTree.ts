@@ -1277,14 +1277,14 @@ class GenealogyTree {
   private getFamilyPos(n: Node) {
 
     //Not a direct ancestor
-    if (isUndefined(n.ma) || isUndefined(n.pa)) {
+    if (isUndefined(n.ma) && isUndefined(n.pa)) {
       return undefined;
     }
 
-    //Dangling Node
-    if (n.spouse.length === 0) {
-      return undefined;
-    }
+    // //Dangling Node
+    // if (n.spouse.length === 0) {
+    //   return undefined;
+    // }
 
     if (n.affected && !isUndefined(n.spouse.find((s: Node) => { return !s.aggregated && !s.affected; }))) {
       return undefined;

@@ -1534,9 +1534,8 @@ class GenealogyTree {
 
     //Position  Kid Grid Nodes (i.e leaf siblings)
     allNodes.filter((d: any) => {
-      return d.hidden && !d.hasChildren && d.ma && d.pa;
+      return d.hidden && !d.hasChildren && (d.ma || d.pa);
     })
-      // .transition(t)
       .attr('transform', (node: Node) => {
         const xpos = this.xPOS(node);
         const ypos = this.yPOS(node);
@@ -1570,13 +1569,12 @@ class GenealogyTree {
 
         let xoffset = 0;
 
-        if (node.ma.affected && node.pa.affected) {
+        if (node.ma && node.ma.affected && node.pa && node.pa.affected) {
           xoffset = Config.glyphSize * 2;
         } else {
           xoffset = Config.glyphSize * 1.5;
         }
         return 'translate(' + (xpos + xoffset + this.kidGridXScale(xind)) + ',' + (ypos + +this.kidGridYScale(yind)) + ')';
-        //
       });
 
     allNodes
@@ -1586,9 +1584,6 @@ class GenealogyTree {
     //AllNodes
     allNodes
       .classed('node', true)
-      // .classed('aggregated', (d) => {
-      //   return d['aggregated'];
-      // })
       .classed('collapsed', (d) => {
         return d.hidden;
       });
@@ -1608,15 +1603,16 @@ class GenealogyTree {
    * @param on true to turn the highlighting on, false to turn it off
    */
   private highlightBranch(node: Node, on: boolean) {
+    console.log('highlightBranch');
     if (!node.hasChildren) {
       return;
     }
     // start by highlighting spouse edges
     const selectedEdges = selectAll('.edges').filter((d: Node) => {
-      return ((d.ma === node || d.pa === node) || !isUndefined(node.spouse[0].spouse.find((s: Node) => { return d.ma === s || d.pa === s; })));
+      return ((d.ma && d.ma === node || d.pa && d.pa === node) || (!isUndefined(node.spouse[0]) && !isUndefined(node.spouse[0].spouse.find((s: Node) => { return d.ma === s || d.pa === s; }))));
     });
     const selectedParentEdges = selectAll('.parentEdges').filter((d: Node) => {
-      return ((d.ma === node || d.pa === node) || !isUndefined(node.spouse[0].spouse.find((s: Node) => { return d.ma === s || d.pa === s; })));
+      return ((d.ma && d.ma === node || d.pa && d.pa === node) || (!isUndefined(node.spouse[0]) && !isUndefined(node.spouse[0].spouse.find((s: Node) => { return d.ma === s || d.pa === s; }))));
     });
 
 

@@ -882,10 +882,6 @@ class GraphData {
           s.aggregated = node.state === layoutState.Aggregated;
         }
 
-        if (s.id === '652900') {
-          console.log(node.id,node.y,s.y);
-        }
-
       });
 
       //Assign all spouses to the x level of either the affected spouse or if not, a token male in the couple.
@@ -942,6 +938,12 @@ class GraphData {
           this.aggregateHelper(child);
         }
       });
+    }
+
+    console.log(node.id);
+    if (node.id === '19440322'){ 
+    console.log(node)
+    
     }
 
   }
@@ -1008,6 +1010,18 @@ class GraphData {
           this.parentChildEdges.push({
             ma: maNode,
             pa: maNode,
+            target: node,
+            'id': node.id //id of parentChild Edge is the id of the child.
+          });
+         } else if (paNode) {
+          paNode.hasChildren = true;
+          //Add child to array of children of each parent
+          paNode.children.push(node);
+          // console.log('pushing ' , node.id , ' as child of ', maNode.id);
+
+          this.parentChildEdges.push({
+            ma: paNode,
+            pa: paNode,
             target: node,
             'id': node.id //id of parentChild Edge is the id of the child.
           });

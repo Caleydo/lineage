@@ -2609,12 +2609,18 @@ class GenealogyTree {
         .attr('class', 'menu')
         .attr('height', menuHeight)
         .attr('transform', 'translate(' + (coordinates[0] + 10) + ',' + (coordinates[1] - menuHeight / 2) + ')')
-        .append('g');
+        .append('g')
+        .attr('transform','translate(10,0)');
+
+        select('.menu')
+        .select('g')
+        .append('g')
+        .classed('tooltipTriangle',true).append('rect');
 
         let menuItems = menu.selectAll('text').data(actions);
 
         const menuItemsEnter = menuItems.enter()
-          .append('g');
+          .append('g').attr('class','menuItem')
 
         menuItemsEnter.append('rect').classed('menuItemBackground',true);
         menuItemsEnter.append('text').classed('icon', true);
@@ -2628,6 +2634,17 @@ class GenealogyTree {
           .attr('fill', '#f7f7f7')
           .attr('height', menuItemHeight)
           .attr('opacity', 1);
+
+          select('.tooltipTriangle')
+          .attr('transform','translate(-5,'+ (menuItemHeight) + ')')
+          .select('rect')
+          .attr('width',10)
+          .attr('fill', '#909090')
+          .attr('height', 10)
+          .attr('opacity', 1)
+          .attr('transform',' rotate(45)')
+          .attr('transform-origin','center');
+
 
         menuItems.attr('transform', ((d,i)=> {return 'translate(0,' + (5 + i*menuItemHeight) + ')';}));
 

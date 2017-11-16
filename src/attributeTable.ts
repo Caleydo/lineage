@@ -1863,17 +1863,23 @@ class AttributeTable {
 
         let menuWidth = 90; //default Value. Will update
         const menuItemHeight = 25;
-        const menuHeight = 5 + menuLabels.length*menuItemHeight;
+        const menuHeight = 15 + menuLabels.length*menuItemHeight;
 
         const menu = select('#treeMenu')
           .append('svg')
           .attr('class', 'menu')
-          .attr('height', menuHeight);
+          .attr('height', menuHeight)
+          .append('g')
+          .attr('transform','translate(0,10)');
+
+          select('.menu').select('g')
+          .append('g')
+          .classed('tooltipTriangle',true).append('rect');
 
         let menuItems = menu.selectAll('text').data(menuLabels);
 
         const menuItemsEnter = menuItems.enter()
-          .append('g');
+          .append('g').attr('class','menuItem');
 
         menuItemsEnter.append('rect').classed('menuItemBackground',true);
         menuItemsEnter.append('text').classed('icon', true);
@@ -1885,7 +1891,7 @@ class AttributeTable {
         menuItems
         .select('.label')
         .attr('x', 10)
-        .attr('y', menuItemHeight/2+5)
+        .attr('y', menuItemHeight/2+3)
         .text((d: any) => d)
         .classed('tooltipTitle', true)
         .on('click', (d: any) => {
@@ -1894,7 +1900,7 @@ class AttributeTable {
 
         let longestLabelLength = 0;
 
-        menu.selectAll('g').each(function(element:any,i){
+        menu.selectAll('.menuItem').each(function(element:any,i){
           const textNode = <SVGTSpanElement>select(this).select('.label').node();
           const labelWidth = textNode.getComputedTextLength();
           longestLabelLength = (labelWidth > longestLabelLength) ? labelWidth : longestLabelLength;
@@ -1902,7 +1908,18 @@ class AttributeTable {
 
         menuWidth = longestLabelLength + 50;
 
-        menu.attr('transform', 'translate(' + (coordinates[0] - menuWidth/2) + ',' + (coordinates[1] + 3) + ')');
+        select('.menu').attr('transform', 'translate(' + (coordinates[0] - menuWidth/2) + ',' + (coordinates[1] + 3) + ')');
+
+        select('.tooltipTriangle')
+        .attr('transform','translate(' + (menuWidth/2-3) + ',-2)')
+        .select('rect')
+        .attr('width',10)
+        .attr('fill', 'rgb(232, 108, 55)')
+        .attr('height', 10)
+        .attr('opacity', 1)
+        .attr('transform','rotate(45)')
+        .attr('transform-origin','center');
+  
 
         menuItems.select('.menuItemBackground')
           .attr('width',menuWidth)

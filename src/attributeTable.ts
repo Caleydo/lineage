@@ -1947,15 +1947,16 @@ class AttributeTable {
             if (e.includes('Star')) {
               // select('#'+d.name+'_summary')
               // .classed('star',!select('#'+d.name+'_header').classed('star'));
-              select('#'+d.name+'_header')
-              .classed('star',!select('#'+d.name+'_header').classed('star'));
+              const header = select('#' + d.name.replace(/\./g, '\\.') + '_header');
+              const starBackground = select('.starRect_' + d.name.replace(/\./g, '\\.'));
+              header.classed('star',!header.classed('star'));
 
-              if (select('#'+d.name+'_header').classed('star')) {
+              if (header.classed('star')) {
                 this.tableManager.addStar(d.name,d.category);
-                selectAll('.starRect_' + d.name).attr('opacity',.3);
+                starBackground.attr('opacity',.3);
               } else {
                 this.tableManager.removeStar(d.name);
-                selectAll('.starRect_' + d.name).attr('opacity',0);
+                starBackground.attr('opacity',0);
               };
 
 
@@ -1985,8 +1986,14 @@ class AttributeTable {
             }
           })
           .classed('tooltipTitle', true)
-          .classed('star',(e)=> {return e.includes('Star') && select('#'+d.name+'_header').classed('star');})
-          .classed('poi',(e)=> {return e.includes('POI') && select('#'+d.name+'_header').classed('poi');});
+          .classed('star',(e)=> {
+            const header = select('#' + d.name.replace(/\./g, '\\.') + '_header');
+            return e.includes('Star') && header.classed('star');
+          })
+          .classed('poi',(e)=> {
+            const header = select('#' + d.name.replace(/\./g, '\\.') + '_header');
+            return e.includes('POI') && header.classed('poi');
+          });
 
           menuItems
           .select('.menuDivider')

@@ -1140,7 +1140,6 @@ class AttributeTable {
       .classed('dataCols', true)
       .attr('id', (d) => { return d.name + '_data'; });
 
-        console.log(this.rowOrder.length)
         //Append background rect
         colsEnter.append('rect')
         .attr('width', (d)=> {return this.colWidths[d.type] + 20;})
@@ -1153,7 +1152,7 @@ class AttributeTable {
           const header = select('#'+d.name+'_header');
           return (!header.empty() && header.classed('star')) ? .3 : 0;
         }));
-      
+
 
 
     cols = colsEnter.merge(cols);//;

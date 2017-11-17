@@ -1151,6 +1151,7 @@ class AttributeTable {
         return 'translate(' + offset + ',0)';
       });
 
+
     // Implement Drag and Drop
     let offset, titleOffset, titleTransform, currIndex, currPos;
 
@@ -1542,6 +1543,8 @@ class AttributeTable {
 
     cellsEnter.attr('opacity', 1);
 
+
+
     cells.each(function (cell) {
       if (cell.type === VALUE_TYPE_CATEGORICAL) {
         self.renderCategoricalCell(select(this), cell);
@@ -1922,16 +1925,20 @@ class AttributeTable {
           .attr('opacity', 1)
           .on('click',(e)=> {
             if (e.includes('Star')) {
-              select('#'+d.name+'_summary')
-              .classed('star',!select('#'+d.name+'_header').classed('star'));
+              // select('#'+d.name+'_summary')
+              // .classed('star',!select('#'+d.name+'_header').classed('star'));
               select('#'+d.name+'_header')
               .classed('star',!select('#'+d.name+'_header').classed('star'));
 
               if (select('#'+d.name+'_header').classed('star')) {
                 this.tableManager.addStar(d.name,d.category);
+                selectAll('.starRect_' + d.name).attr('opacity',.1);
               } else {
                 this.tableManager.removeStar(d.name);
+                selectAll('.starRect_' + d.name).attr('opacity',0);
               };
+
+
             };
 
             select('#treeMenu').select('.menu').remove();
@@ -2423,6 +2430,16 @@ class AttributeTable {
 
     element.selectAll('rect').remove(); //Hack. don't know why the height of the rects isn' being updated.
 
+    //Append background rect
+    element.append('rect')
+    .attr('width', colWidth+10)
+    .attr('height', rowHeight+this.buffer-3)
+    .attr('x',-5)
+    .attr('y',-this.buffer+3)
+    .attr('class','starRect_'+cellData.name)
+    .attr('fill','coral')
+    .attr('opacity',(select('#'+cellData.name+'_header').classed('star') ? .1 : 0));
+
     if (numValidValues < 1) {
       //Add a faint cross out to indicate no data here;
       if (element.selectAll('.cross_out').size() === 0) {
@@ -2468,7 +2485,7 @@ class AttributeTable {
       .select('.frame')
       .attr('width', rowHeight)
       .attr('height', rowHeight)
-      .attr('y', 0)
+      // .attr('y', 0)
       .attr('fill', (d) => {
         let attr;
 
@@ -2657,6 +2674,17 @@ class AttributeTable {
     //No of non-undefined elements in this array
     const numValues = cellData.data.reduce((a, v) => v ? a + 1 : a, 0);
 
+    if (select('starRect_'+cellData.name).empty()) {
+      //Append background rect
+      element.append('rect')
+      .attr('width', colWidth+10)
+      .attr('height', rowHeight+this.buffer-3)
+      .attr('x',-5)
+      .attr('y',-this.buffer+3)
+      .attr('class','starRect_'+cellData.name)
+      .attr('fill','coral')
+      .attr('opacity',0);
+    }
 
     if (numValues === 0) {
       //Add a faint cross out to indicate no data here;

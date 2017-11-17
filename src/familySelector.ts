@@ -92,21 +92,17 @@ class FamilySelector {
     .append('table')
     .attr('class', 'table');
 
-    const thead = table.append('thead');
+    table.append('thead').append('tr');
 
 
     const tbody = select('#familySelector')
     .append('div')
     .attr('id', 'tableBody')
     .append('table')
-    .attr('class', 'table')
-    .append('tbody');
+    .attr('class', 'table');
 
-    const self = this;
-
-    // append the header row
-    thead.append('tr');
-
+    tbody.append('thead').append('tr');
+    tbody.append('tbody');
   }
 
   /**
@@ -157,7 +153,7 @@ class FamilySelector {
         const isAscending = select(this).classed('des');
         if (isAscending) {
           self.rows.sort(function (a, b) {
-            if (b[d.dataAttr] < a[d.dataAttr]) {
+            if (b[d.dataAttr] > a[d.dataAttr]) {
               return -1;
             } else {
               return 1;
@@ -168,7 +164,7 @@ class FamilySelector {
           select(this).attr('class','aes');
         } else {
           self.rows.sort(function (a, b) {
-            if (b[d.dataAttr] > a[d.dataAttr]) {
+            if (b[d.dataAttr] < a[d.dataAttr]) {
               return -1;
             } else {
               return 1;
@@ -186,6 +182,30 @@ class FamilySelector {
         return column.header;
       })
       .style('text-align','center');
+
+      // //Upate table Header
+      // headers = this.$node.select('#tableBody')
+      // .select('tr')
+      // .selectAll('th')
+      // .data(tableHeaders);
+
+
+      // headerEnter = headers.enter()
+      // .append('th');
+
+      // headers.exit().remove();
+
+      // headers = headerEnter.merge(headers);
+
+      // headers
+      // .style('width',(d:any,i)=> {
+      //   const width = (i === 0 ? 10 : (90/(tableHeaders.length-1)));
+      //   return width + '%';
+      // })
+      // .text(function (column) {
+      //   return column.header;
+      // })
+      // .style('text-align','center');
 
       const rowData = this.tableManager.familyInfo.map((d) => {
         const baseObject = {

@@ -44,9 +44,9 @@ class FamilySelector {
 
   private tableManager;
 
-  private headerInfo = [{ 'header': 'FamilyID', 'dataAttr': 'id','width':75 },
-  { 'header': '# People', 'dataAttr': 'size' ,'width':125},
-  {'header':'#POI','dataAttr':'percentage','width':125}];
+  private headerInfo = [{ 'header': 'FamilyID', 'dataAttr': 'id'},
+  { 'header': '# People', 'dataAttr': 'size'},
+  {'header':'#POI','dataAttr':'percentage'}];
 
   constructor(parent: Element) {
     this.$node = select(parent);
@@ -86,11 +86,21 @@ class FamilySelector {
         }
       });
 
-    const table = select('#familySelector').append('div').attr('id', 'tableHead').append('table').attr('class', 'table');
+    const table = select('#familySelector')
+    .append('div')
+    .attr('id', 'tableHead')
+    .append('table')
+    .attr('class', 'table');
+
     const thead = table.append('thead');
 
 
-    const tbody = select('#familySelector').append('div').attr('id', 'tableBody').append('table').attr('class', 'table').append('tbody');
+    const tbody = select('#familySelector')
+    .append('div')
+    .attr('id', 'tableBody')
+    .append('table')
+    .attr('class', 'table')
+    .append('tbody');
 
     const self = this;
 
@@ -109,7 +119,7 @@ class FamilySelector {
     // this.familyInfo = this.tableManager.familyInfo;
     const data = this.tableManager;
 
-    const attrCols = this.tableManager.familyInfo[0].starCols.map((attr)=> {return {header:attr.attribute, dataATtr:attr.attribute};});
+    const attrCols = this.tableManager.familyInfo[0].starCols.map((attr)=> {return {header:attr.attribute, dataAttr:attr.attribute};});
     const tableHeaders = this.headerInfo.concat(attrCols);
 
     let maxValue = max(data.familyInfo, (d: any) => { return +d.size; });
@@ -132,45 +142,76 @@ class FamilySelector {
 
 
       const headerEnter = headers.enter()
-      .append('th')
-      .style('min-width',((d:any)=> {return d.width + 'px';}))
-      .style('max-width',((d:any)=> {return d.width + 'px';}))
-      .attr('scope', 'col');
+      .append('th');
 
       headers.exit().remove();
 
       headers = headerEnter.merge(headers);
 
       headers
-      .text(function (column) {
-        return column.header;
+      .style('width',(d:any,i)=> {
+        const width = (i === 0 ? 10 : (90/(tableHeaders.length-1)));
+        return width + '%';
       })
       .on('click', function (d) {
         const isAscending = select(this).classed('des');
-
         if (isAscending) {
           self.rows.sort(function (a, b) {
-            return b[d.dataAttr] < a[d.dataAttr];
+            if (b[d.dataAttr] < a[d.dataAttr]) {
+              return -1;
+            } else {
+              return 1;
+            }
           });
+          selectAll('th').classed('des',false);
+          selectAll('th').classed('aes',false);
           select(this).attr('class','aes');
         } else {
           self.rows.sort(function (a, b) {
-            return b[d.dataAttr] > a[d.dataAttr];
+            if (b[d.dataAttr] > a[d.dataAttr]) {
+              return -1;
+            } else {
+              return 1;
+            }
           });
+          selectAll('th').classed('des',false);
+          selectAll('th').classed('aes',false);
           select(this).attr('class','des');
         }
+      });
 
-        selectAll('.header').classed('header', true);
 
+      headers
+      .text(function (column) {
+        return column.header;
+      })
+      .style('text-align','center');
+
+      const rowData = this.tableManager.familyInfo.map((d) => {
+        const baseObject = {
+          'id':d.id,
+          'size':d.size,
+          'affected':d.affected,
+          'percentage':Math.round(d.percentage*1000)/10,
+          'starCols':d.starCols
+        };
+
+        d.starCols.map((attr)=> {
+          baseObject[attr.attribute] = attr.count;
+        });
+        return baseObject;
       });
 
     // create a row for each object in the data
     this.rows = select('tbody').selectAll('tr')
-      .data(this.tableManager.familyInfo);
+      // .data(this.tableManager.familyInfo);
+      .data(rowData);
 
-    const rowsEnter = this.rows
+
+      const rowsEnter = this.rows
       .enter()
       .append('tr');
+
 
     this.rows.exit().remove();
     this.rows = rowsEnter.merge(this.rows);
@@ -179,13 +220,13 @@ class FamilySelector {
     //
     // create a cell in each row for each column
     let cells = this.rows.selectAll('td')
-      .data((d) => {
+      .data((d:any) => {
         const baseValues = [{ 'id': d.id, 'value': d.id, 'type': 'id' },
         { 'id': d.id, 'value': d.size, 'type': 'size' },
         {'id': d.id, 'value': {'affected':d.affected,'percentage':d.percentage}, 'type': 'affected'}];
 
         d.starCols.map((attr)=> {
-          const newValue = { 'id': d.id, 'value': {'affected':attr.count,'percentage':attr.percentage}, 'type': 'affected'};
+          const newValue = { 'id': d.id, 'value': {'affected':attr.count,'percentage':Math.round(attr.percentage*1000)/10}, 'type': 'affected'};
           baseValues.push(newValue);
         });
         return baseValues;
@@ -198,101 +239,121 @@ class FamilySelector {
     cells.exit().remove();
     cells = cellsEnter.merge(cells);
 
-    selectAll('td').each(function (cell: any) {
-
-      if (cell.type === 'size') {
-        if (select(this).selectAll('svg').size() === 0) {
-          const svg = select(this).append('svg');
-          svg.append('rect').classed('total', true);
-          svg.append('rect').classed('poi', true);
-        }
-
-        if (select(this).select('svg').selectAll('text').size() === 0) {
-          select(this).select('svg').append('text');
-        }
-
-        select(this).select('svg')
-          .data([cell.value])
-          .attr('width', () => {
-            return 110; //self.peopleScale.range()[1] + 70;
-          })
-          .attr('height', 12);
-
-        select(this).select('svg').select('.total')
-          .data([cell.value])
-          .attr('width', (d: any) => {
-            return self.peopleScale(d);
-          })
-          .attr('height', 10);
-
-        select(this).select('svg').select('.poi')
-          .data([cell.value])
-          .attr('width', (d: any) => {
-            return self.peopleScale(d);
-          })
-          .attr('height', 10);
+    cells
+    .style('width',(d:any,i)=> {
+      const width = (i === 0 ? 10 : (90/(tableHeaders.length-1)));
+      return width + '%';
+    })
+    .style('text-align','center');
 
 
+    // selectAll('td').each(function (cell: any) {
 
-        select(this)
-          .select('text')
-          .data([cell.value])
-          .attr('dy', 10)
-          .attr('dx', (d: any) => {
-            return self.peopleScale(d) + 4;
-          })
-          .text((d: any) => {
-            return d + ' (' + Math.floor(d / 5) + ')';
-          })
-          .attr('fill', (d, i) => {
-            return (i > 3 && d > 15) ? 'red' : 'gray';
-          });
+    //   if (cell.type === 'size') {
+    //     if (select(this).selectAll('svg').size() === 0) {
+    //       const svg = select(this).append('svg');
+    //       svg.append('rect').classed('total', true);
+    //       svg.append('rect').classed('poi', true);
+    //     }
 
-      } else if (cell.type === 'affected') {
-        if (select(this).selectAll('svg').size() === 0) {
-          const svg = select(this).append('svg');
-          svg.append('rect').classed('poi', true);
-        }
+    //     if (select(this).select('svg').selectAll('text').size() === 0) {
+    //       select(this).select('svg').append('text');
+    //     }
 
-        if (select(this).select('svg').selectAll('text').size() === 0) {
-          select(this).select('svg').append('text');
-        }
+    //     select(this).select('svg')
+    //       .data([cell.value])
+    //       .attr('width', () => {
+    //         return 110; //self.peopleScale.range()[1] + 70;
+    //       })
+    //       .attr('height', 12);
 
-        select(this).select('svg')
-          .data([cell.value])
-          .attr('width', () => {return self.casesScale.range()[1] + 100;})
-          .attr('height', 12);
+    //     select(this).select('svg').select('.total')
+    //       .data([cell.value])
+    //       .attr('width', (d: any) => {
+    //         return self.peopleScale(d);
+    //       })
+    //       .attr('height', 10);
 
-        select(this).select('svg').select('.poi')
-          .data([cell.value])
-          .attr('width', (d: any) => {
-            return self.casesScale(d.affected);
-          })
-          .attr('height', 10);
+    //     select(this).select('svg').select('.poi')
+    //       .data([cell.value])
+    //       .attr('width', (d: any) => {
+    //         return self.peopleScale(d);
+    //       })
+    //       .attr('height', 10);
 
 
 
-        select(this)
-          .select('text')
-          .data([cell.value])
-          .attr('dy', 10)
-          .attr('dx', (d: any) => {
-            return self.casesScale(d.affected) + 4;
-          })
-          .text((d: any) => {
-            return d.affected + ' (' + Math.round(d.percentage*1000)/10 + '%)';
-          })
-          .attr('fill', (d, i) => {
-            return (i > 3 && d > 15) ? 'red' : 'gray';
-          });
+    //     select(this)
+    //       .select('text')
+    //       .data([cell.value])
+    //       .attr('dy', 10)
+    //       .attr('dx', (d: any) => {
+    //         return self.peopleScale(d) + 4;
+    //       })
+    //       .text((d: any) => {
+    //         return d + ' (' + Math.floor(d / 5) + ')';
+    //       })
+    //       .attr('fill', (d, i) => {
+    //         return (i > 3 && d > 15) ? 'red' : 'gray';
+    //       });
 
-      }
+    //   } else if (cell.type === 'affected') {
+    //     if (select(this).selectAll('svg').size() === 0) {
+    //       const svg = select(this).append('svg');
+    //       svg.append('rect').classed('poi', true);
+    //     }
+
+    //     if (select(this).select('svg').selectAll('text').size() === 0) {
+    //       select(this).select('svg').append('text');
+    //     }
+
+    //     select(this).select('svg')
+    //       .data([cell.value])
+    //       .attr('width', () => {return self.casesScale.range()[1] + 100;})
+    //       .attr('height', 12);
+
+    //     select(this).select('svg').select('.poi')
+    //       .data([cell.value])
+    //       .attr('width', (d: any) => {
+    //         return self.casesScale(d.affected);
+    //       })
+    //       .attr('height', 10);
 
 
-    });
 
-    cells.filter((c: any) => {
-      return c.type === 'id';
+    //     select(this)
+    //       .select('text')
+    //       .data([cell.value])
+    //       .attr('dy', 10)
+    //       .attr('dx', (d: any) => {
+    //         return self.casesScale(d.affected) + 4;
+    //       })
+    //       .text((d: any) => {
+    //         return d.affected + ' (' + Math.round(d.percentage*1000)/10 + '%)';
+    //       })
+    //       .attr('fill', (d, i) => {
+    //         return (i > 3 && d > 15) ? 'red' : 'gray';
+    //       });
+
+    //   }
+
+
+    // });
+
+    cells
+    .filter((c: any) => {
+      return c.type === 'affected';
+    })
+      // cells
+      .html((d: any) => {
+        return (d.value.affected.toString() + '(' + d.value.percentage + '%)');
+      })
+      .style('text-align', 'center');
+
+
+    cells
+    .filter((c: any) => {
+      return c.type === 'id' || c.type === 'size';
     })
       // cells
       .html((d: any) => {

@@ -1140,22 +1140,26 @@ class AttributeTable {
       .classed('dataCols', true)
       .attr('id', (d) => { return d.name + '_data'; });
 
+      console.log(this.y.range());
         //Append background rect
         colsEnter.append('rect')
         .attr('width', (d)=> {return this.colWidths[d.type] + 20;})
-        .attr('height', (this.rowHeight+this.buffer-3)*this.rowOrder.length)
         .attr('x',-10)
         .attr('y',-this.buffer+3)
         .attr('class',(d) => {return 'starRect_'+d.name;})
-        .attr('fill','coral')
+        .classed('starRect',true)
+        // .attr('fill','coral')
         .attr('opacity',((d)=> {
           const header = select('#'+d.name+'_header');
-          return (!header.empty() && header.classed('star')) ? .3 : 0;
+          return (!header.empty() && header.classed('star')) ? .2 : 0;
         }));
 
 
 
     cols = colsEnter.merge(cols);//;
+
+    cols.select('.starRect')
+    .attr('height', this.y.range()[1]+40);
 
     //translate columns horizontally to their position;
     cols

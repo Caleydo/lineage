@@ -19,6 +19,7 @@ interface IFamilyInfo {
   size: number;
   affected: number;
   percentage:number;
+  starCols:object[];
 }
 
 //Interface for the 'affected' state. Contains variable chosen to determine the 'affected' people and the threshold/value for 'affected' === true. Drives tree layout.
@@ -151,7 +152,8 @@ export default class TableManager {
   private defaultCols: String[] =
   ['KindredID', 'RelativeID', 'sex', 'deceased', 'suicide', 'Depression', 'Age', 'Age1D_Depression', 'Nr.Diag_Depression', 'Bipolar', 'Age1D_Bipolar', 'MaxBMI', 'AgeMaxBMI', 'cause_death', 'weapon']; //set of default cols to read in, minimizes load time for large files;
 
-
+  //Array of attributes that are 'starred' in the table;
+  private starCols=[];
 
   public colOrder: String[]; //array that keeps track which attributes are displayed in the panel and in the table and their correct order.
 
@@ -170,6 +172,15 @@ export default class TableManager {
 
   public t = transition('t').duration(600).ease(easeLinear);
 
+  //Method that adds cols from the Family Selector;
+  public addStar(attributeName:string,trueValue:string) {
+    this.updateFamilySelector(attributeName,trueValue,true);
+  }
+
+  //Method that removes cols from the Family Selector;
+  public removeStar(attributeName:string) {
+    this.updateFamilySelector(attributeName,undefined,false);
+  }
 
   /**
    * Loads the graph data and the attribute data from the server and stores it in the public table variable
@@ -187,12 +198,7 @@ export default class TableManager {
 
     await this.parseFamilyInfo(); //this needs to come first because the setAffectedState sets default values based on the data for a selected family.
 
-    // await this.setAffectedState('suicide'); //Default value;
 
-    // await this.updateFamilyStats();
-
-    //For panel attribute add/remove/ordering
-    this.attachListeners();
 
     return Promise.resolve(this);
   }
@@ -503,7 +509,6 @@ export default class TableManager {
     await this.refreshActiveTableView();
 
     this.updatePOI_Primary();
-    console.log('end of function');
 
     events.fire(FAMILY_SELECTED_EVENT);
 
@@ -535,9 +540,6 @@ export default class TableManager {
       affectedDict[familyID]=0;
     });
 
-
-    // console.log('size of uniqueFamilyIDs:', uniqueFamilyIDs.length, 'size of familyIDs:', familyIDs.length, 'size of attributePeople:', attributePeople.length, 'size of peopleIDs:',peopleIDs.length);
-
     attributeData.map((dataPoint,ind)=> {
       if (this.affectedState.isAffected(dataPoint)) {
         affectedDict[familyIDs[ind]] = affectedDict[familyIDs[ind]]+1;
@@ -550,23 +552,57 @@ export default class TableManager {
       this.familyInfo[index].percentage=affectedDict[familyID]/this.familyInfo[index].size;
     });
 
-    // console.timeEnd('end mapping');
-
-
-
-    // uniqueFamilyIDs.forEach((id, index) => {
-
-    //   //Return people that are in this family and are affected
-    //   // const affected = familyIDs.filter((d, i) => {
-    //   //   //find person in attribute id;
-    //   //   const ind = attributePeople.indexOf(peopleIDs[i]);
-    //   //   return ind > -1 && d === id && this.affectedState.isAffected(attributeData[ind]);
-    //   // });
-    //   this.familyInfo[index].affected = 0; //affected.length;
-    // });
-
     events.fire(FAMILY_INFO_UPDATED, this);
   }
+
+  /**
+   * This function calculates the number of affected people based on the current POI selected in the panel.
+   */
+  public async updateFamilySelector(attribute:string,trueValue:string,add:boolean) {
+
+        //Remove Star attribute
+        if (!add) {
+          const allAttributes = this.familyInfo[0].starCols.map((attr:any)=> {return attr.attribute;});
+          const toRemove = allAttributes.indexOf(attribute);
+          this.familyInfo.map((family)=> {
+            family.starCols.splice(toRemove,1);
+          });
+          events.fire(FAMILY_INFO_UPDATED, this);
+          return;
+        }
+        const poiVector = await this.getAttributeVector(this.affectedState.name, true); //get POI Vector for all families
+        const attributeVector = await this.getAttributeVector(attribute, true); //get Attribute Vector for all families
+        const kindredIDVector = await this.getAttributeVector('KindredID', true); //get FamilyID vector for all families
+
+        const familyIDs: number[] = <number[]>await kindredIDVector.data();
+        const peopleIDs: string[] = await kindredIDVector.names();
+
+        const poiData = await poiVector.data();
+        const attributeData = await attributeVector.data();
+        const attributePeopleIDs = await attributeVector.names();
+
+        const uniqueFamilyIDs = Array.from(new Set(familyIDs));
+
+        const starCountDict = {};
+
+        //Initialize count of affected people to 0 for all families
+        uniqueFamilyIDs.map((familyID)=> {
+          starCountDict[familyID]=0;
+        });
+
+        attributeData.map((dataPoint,ind)=> {
+          if (dataPoint === trueValue && this.affectedState.isAffected(poiData[ind]) )  { //if (dataPoint === trueValue) {
+            starCountDict[familyIDs[ind]] = starCountDict[familyIDs[ind]]+1;
+          } ;
+        });
+
+        //set affected count in this.familyInfo;
+        uniqueFamilyIDs.map((familyID,index)=> {
+          this.familyInfo[index].starCols.push({attribute,count:starCountDict[familyID],percentage:starCountDict[familyID]/this.familyInfo[index].affected});
+        });
+
+       events.fire(FAMILY_INFO_UPDATED, this);
+      }
 
 
   /**
@@ -619,7 +655,7 @@ export default class TableManager {
         }
       });
 
-      this.familyInfo.push({ id, range: familyRange, size: familyRange.length, affected, percentage });
+      this.familyInfo.push({ id, range: familyRange, size: familyRange.length, affected, percentage,starCols:[]});
     }
 
     // //Set active graph Cols
@@ -657,7 +693,6 @@ export default class TableManager {
    * @return {Promise<void>}
    */
   public async refreshActiveTableView() {
-    // console.log('Active Table View refreshed to include rows ' , this._activeTableRows.dim(0).asList() ,  ' and  cols ',  this.activeTableColumns.dim(0).asList())
     const tableRange = range.join(this._activeTableRows, this.activeTableColumns);
     this.tableTable = await this.attributeTable.view(tableRange); //view on attribute table
   }
@@ -667,7 +702,6 @@ export default class TableManager {
    * @return {Promise<void>}
    */
   public async refreshActiveGraphView() {
-    // console.log('Active Graph View refreshed to include rows ' , this._activeGraphRows.dim(0).asList() ,  ' and  cols ',  this.activeGraphColumns.dim(0).asList())
     const graphRange = range.join(this._activeGraphRows, this.activeGraphColumns);
     this.graphTable = await this.table.view(graphRange); //view on graph table
 
@@ -727,33 +761,6 @@ export default class TableManager {
 
   public getAttrColumns() {
     return this.attributeTable.cols();
-  }
-
-  private attachListeners() {
-
-    // //Set listener for added attribute to the active list
-    // events.on('attribute_added', (evt, item) => {
-    //
-    // });
-    //
-    // //Set listener for removed attribute from the active list
-    // events.on('attribute_reordered', (evt, item) => {
-    //   let currentRange = this.activeGraphColumns.dim(0).asList() //.concat(this.activeTableColumns.dim(0).asList());
-    //
-    //   // console.log(currentRange,item.newIndex,item.oldIndex);
-    //   currentRange.splice(item.newIndex, 0,currentRange.splice(item.oldIndex,1)[0]);
-    //   // console.log(currentRange)
-    //   this.activeGraphColumns = range.list(currentRange);
-    //
-    //
-    //   this.refreshActiveGraphView().then(()=>{events.fire(COL_ORDER_CHANGED_EVENT);});
-    //
-    // });
-    // //Set listener for reordering attribute within the active list
-    // events.on('attribute_removed', (evt, item) => {
-    //
-    //
-    // });
   }
 }
 

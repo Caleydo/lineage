@@ -36,10 +36,6 @@ rect.total{
   fill: #636363;
 }
 
-rect.poi{
-  fill: #d5553d;
-}
-
 .barLabel{
   font-weight:normal;
   font-size:18px;
@@ -86,7 +82,13 @@ rect.poi{
   font-family:FontAwesome;
 }
 
+.star{
+  fill:coral !important;
+}
 
+.poi{
+  fill:#285880 !important;
+}
 
 .label{
   cursor:pointer;

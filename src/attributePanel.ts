@@ -68,9 +68,7 @@ class AttributePanel {
     //Order columns according to 'defaultCols' order;
     const orderedCols = [];
     this.tableManager.colOrder.forEach((col) => {
-      // console.log('looking for ', col)
       orderedCols.push(allCols.find((el) => { return el.desc.name === col; }));
-      // console.log(orderedCols);
     });
 
     this.columns = orderedCols.concat(allCols.filter((c) => { return orderedCols.indexOf(c) < 0; }));
@@ -204,7 +202,6 @@ class AttributePanel {
 
     });
 
-    console.log('col length is ', this.activeColumns.length);
     // populate the panel with attributes
     this.allColumns.forEach((column) => {
       this.addAttribute(column.desc.name, column.desc.value.type);
@@ -244,9 +241,7 @@ class AttributePanel {
 
     events.on('poi_selected', (evt, item) => {
 
-      console.log(item.name);
       this.tableManager.setAffectedState(item.name, item.callback).then((obj) => {
-        console.log(obj);
 
         //find histogram with this name and set the brush extent
         const hist = this.histograms.filter((h) => { return h.attrName === item.name; })[0];
@@ -342,7 +337,6 @@ class AttributePanel {
       // check if siblings has checked badge
       $(this).parent().children().each(function () {
         if (select(this).attr('class').indexOf('checked_') > -1) { //&& (badge == 'primary' || badge === 'secondary')) {
-          console.log($(this).closest('strong').contents()[0]);
           if (!$(this).hasClass('checked_poi')) {
             $(this).removeClass().addClass('badge');
             $(this).css('display', '');
@@ -475,7 +469,6 @@ class AttributePanel {
    * @param value
    */
   private updateAttrState(attrName, value) {
-    console.log('updata attr stat', attrName + ' , ' + value);
     let found = null;
     this.attributeState.forEach(function (item) {
       if (item.name === attrName) {
@@ -549,7 +542,6 @@ class AttributePanel {
 
     //Set listener for click event on corresponding node that changes the color of that row to red
     events.on('node_clicked', (evt, item) => {
-      console.log('clicked');
       selectAll('.row').classed('selected', function (d) {
         return select(this).attr('id') === 'row_' + item;
       });
@@ -562,7 +554,6 @@ class AttributePanel {
 
     events.on('attribute_picked', (evt, item) => {
       this.updateAttrState(item.name, item.value);
-      console.log('attribute picked', this.attributeState);
     });
 
     events.on('attribute_reordered', (evt, item) => {
@@ -572,7 +563,6 @@ class AttributePanel {
     });
 
     events.on('attribute_removed', (evt, item) => {
-      console.log(item);
       this.tableManager.colOrder.splice(item.oldIndex, 1);
       events.fire(COL_ORDER_CHANGED_EVENT);
 

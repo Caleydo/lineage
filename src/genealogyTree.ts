@@ -251,11 +251,8 @@ class GenealogyTree {
     this.visibleXAxis = axisTop(this.x).tickFormat(format('d'));
     this.extremesXAxis = axisTop(this.x2);
 
-    // window.onscroll = (e:any)=>{console.log(e,'user scrolled')}
-
     this.$node.append('nav').attr('class', 'navbar navbar-expand-lg navbar-light bg-light')
       .append('div').attr('id', 'tableNav');
-    // .attr('class','mx-auto') //for centering on nav bar
 
     this.$node.select('#tableNav')
       .append('a').attr('class', 'navbar-brand')
@@ -589,197 +586,6 @@ class GenealogyTree {
       .attr('id', 'legend');
 
 
-    // legend.append('rect')
-    // .attr('width', 550)
-    // .attr('height',120)
-    // .attr('fill','grey')
-    // .style('opacity','.1')
-
-    // console.log(String(icon))
-
-
-
-    //       xml("treeLegend.svg").mimeType("image/svg").get(function(error, xml) {
-    //   if (error) throw error;
-    //   console.log()
-    //   select(legend),node().appendChild(xml.documentElement);
-    // });
-
-
-
-    //       var triangleU = symbol().type(symbolTriangle)(),
-    //   circle = symbol().type(symbolCircle)(),
-    //   cross = symbol().type(symbolCross)(),
-    //   diamond = symbol().type(symbolDiamond)(),
-    //   star = symbol().type(symbolStar)();
-
-    // //example output of d3.svg.symbol().type('circle')();
-    // //"M0,4.51351666838205A4.51351666838205,4.51351666838205 0 1,1 0,
-    // //-4.51351666838205A4.51351666838205,4.51351666838205 0 1,1 0,4.51351666838205Z"
-
-    // let symbolScale =  scaleOrdinal()
-    //   .domain(['a longer label','b','c', 'd', 'e'])
-    //   .range([ triangleU, circle, cross, diamond, star] );
-
-
-
-    // legend.append("g")
-    //   .attr("class", "legendSymbol")
-    //   .attr("transform", "translate(20, 20)");
-
-    // let legendPath = legendSymbol()
-    //   .scale(symbolScale)
-    //   .orient("horizontal")
-    //   .labelWrap(30)
-    //   .title("Symbol Legend Title")
-    //   .on("cellclick", function(d){alert("clicked " + d);});
-
-    // legend.select(".legendSymbol")
-    //   .call(legendPath);
-
-    //Creates a legend element and assigns a scale that needs to be visualized
-
-    //Domain definition for global color scale
-    // let domain = [-60, -50, -40, -30, -20, -10, 0, 10, 20, 30, 40, 50, 60];
-
-    // //Color range for global color scale
-    // let range = ["#063e78", "#08519c", "#3182bd", "#6baed6", "#9ecae1", "#c6dbef", "#fcbba1", "#fc9272", "#fb6a4a", "#de2d26", "#a50f15", "#860308"];
-
-    // //ColorScale be used consistently by all the charts
-    // let colorScale = scaleLinear()
-    //     .domain(domain)
-    //     .range(range);
-
-
-    //     this.$node.select('svg').append("g")
-    //         .attr("class", "legendQuantile")
-    //         .attr("transform", "translate(0,50)");
-
-    // let legendQuantile = legendColor()
-    //     .shapeWidth(100)
-    //     .cells(10)
-    //     .orient('horizontal')
-    //     .scale(colorScale);
-
-    // this.legendSvg.select(".legendQuantile")
-    //     .call(legendQuantile);
-
-
-
-
-
-    // //Add button to slopeChart Div that says 'revert to Tree Order'
-    // button = legend
-    // // button = select('#caleydoHeader').select('.navbar')
-    //   .append('g')
-    //   .attr('transform', 'translate(0,'  + (-65) + ')')
-    //   .attr('id', 'treeButtons')
-
-    // const self = this;
-    // button.append('rect')
-    //   .classed('button',true)
-    //   .attr('id','aggregateAllButton')
-    //   .attr('width', 120)
-    //   .attr('height', 25)
-    //   .attr('x', this.width*0.1)
-    //   .attr('rx', 10)
-    //   .attr('ry', 20)
-    //   .attr('fill', '#959492')
-    //   .attr('y', 0)
-    //   .attr('opacity', .1)
-    //   .on('click', function (d) {
-
-    //     selectAll('.slopeLine').classed('clickedSlope', false)
-    //     selectAll('.highlightBar').classed('selected', false);
-
-    //     selectAll('.button').attr('fill', '#959492')
-    //     .attr('opacity', .1)
-    //     select(this)
-    //       .attr('fill','#3b3b3b')
-    //       .attr('opacity', .3)
-    //     self.data.aggregateTreeWrapper(undefined, layoutState.Aggregated);
-    //     self.update_graph();
-    //   })
-
-    // button.append('text')
-    //   .classed('histogramLabel', true)
-    //   .attr('x', this.width*0.1+60)
-    //   .attr('y', 15)
-    //   .text('Aggregate All')
-    //   .attr('text-anchor', 'middle')
-
-
-    // button.append('rect')
-    //   .classed('button',true)
-    //   .attr('id','hideAllButton')
-    //   .attr('width', 120)
-    //   .attr('height', 25)
-    //   .attr('x', this.width*0.35)
-    //   .attr('rx', 10)
-    //   .attr('ry', 20)
-    //   .attr('fill', '#959492')
-    //   .attr('y', 0)
-    //   .attr('opacity', .1)
-    //   .on('click', function (d) {
-
-    //     selectAll('.slopeLine').classed('clickedSlope', false)
-    //     selectAll('.highlightBar').classed('selected', false);
-
-    //     selectAll('.button')
-    //       .attr('fill', '#959492')
-    //     .attr('opacity', .1)
-    //     select(this)
-    //       .attr('fill','#3b3b3b')
-    //       .attr('opacity', .3)
-    //     self.data.aggregateTreeWrapper(undefined, layoutState.Hidden);
-    //     self.update_graph();
-    //   })
-
-    // button.append('text')
-    //   .classed('histogramLabel', true)
-    //   .attr('x', this.width*0.35+60)
-    //   .attr('y', 15)
-    //   .text('Hide All')
-    //   .attr('text-anchor', 'middle')
-
-
-
-    // button.append('rect')
-    //   .classed('button',true)
-    //   .attr('id','expandAllButton')
-    //   .attr('width', 120)
-    //   .attr('height', 25)
-    //   .attr('x', this.width*0.6)
-    //   .attr('rx', 10)
-    //   .attr('ry', 20)
-    //   .attr('fill', '#959492')
-    //   .attr('y', 0)
-    //   .attr('opacity', .1)
-    //   .on('click', function (d) {
-
-    //     selectAll('.slopeLine').classed('clickedSlope', false)
-    //     selectAll('.highlightBar').classed('selected', false);
-
-    //     selectAll('.button').attr('fill', '#959492')
-    //     .attr('opacity', .1)
-    //     select(this)
-    //       .attr('fill','#3b3b3b')
-    //       .attr('opacity', .3)
-    //     self.data.aggregateTreeWrapper(undefined, layoutState.Expanded);
-    //     self.update_graph();
-    //   })
-
-    // button.append('text')
-    //   .classed('histogramLabel', true)
-    //   .attr('x', this.width*0.6+60)
-    //   .attr('y', 15)
-    //   .text('Expand All')
-    //   .attr('text-anchor', 'middle')
-
-
-
-
-
     axis.append('g')
       .attr('id', 'visible_axis')
       .call(this.visibleXAxis);
@@ -787,17 +593,6 @@ class GenealogyTree {
     axis.append('g')
       .attr('id', 'extremes_axis')
       .call(this.extremesXAxis);
-
-    // legend.append('g')
-    //   .attr('id','legendIcons')
-    //   .attr('transform', 'translate(10,20)')
-
-
-    //  //Create temporary group for y axis
-    // const yaxis = svg.append('g')
-    //   .attr('transform', 'translate(' +this.margin.left + ',' + (this.margin.top + Config.glyphSize) + ')')
-    //   .attr('id', 'yaxis')
-    //   .call(axisRight(this.y).tickFormat(format(',.1f')).tickValues(range(1,105,.5)).tickSize(this.width))
   }
 
   //End of Build Function
@@ -838,7 +633,6 @@ class GenealogyTree {
     })];
 
     this.height = Config.glyphSize * 4 * (yrange[1] - yrange[0] + 1); // - this.margin.top - this.margin.bottom;
-    // console.log('tree height is ', this.height)
 
     this.y.range([0, this.height * .8]).domain(yrange);
 
@@ -853,8 +647,6 @@ class GenealogyTree {
 
     this.update_edges();
     this.update_nodes();
-
-    // console.log(this.data.nodes)
 
     this.addFamilyBars();
   }
@@ -901,7 +693,6 @@ class GenealogyTree {
         return d.id;
       });
 
-    console.log(familyArray);
 
     allFamilyBars.exit().remove();
 
@@ -909,10 +700,6 @@ class GenealogyTree {
       .enter()
       .append('line')
       .classed('familyBar', true);
-
-
-
-    // let colorScale = scaleOrdinal().domain([0,1]).range(['#8ca252','#6b6ecf'])
 
     allFamilyBars = allFamilyBarsEnter.merge(allFamilyBars);
 
@@ -926,11 +713,8 @@ class GenealogyTree {
       .attr('x2', 500)
       .attr('y1', (d) => { return (this.y(d.max) + Config.glyphSize); }) //add buffer between bars;
       .attr('y2', (d) => { return (this.y(d.max) + Config.glyphSize); })
-      // .attr('y',(d)=> {return this.y(Math.round(d.min));})
-      // .attr('height',(d)=> {console.log('d.max is ', d.max, 'this.y(d.max):', this.y(d.max), 'd.min',d.min, 'this.y(d.min)', this.y(d.min), 'height',(this.y(d.max)-this.y(d.min))); return Math.abs(this.y(d.max)-this.y(d.min));})
       .attr('opacity', .4);
 
-    // .attr('fill',(d,i)=> {console.log(d); return d.id === '42623' ? this.colorScale[1] : this.colorScale[0];});
 
     let allFamilyLabels = familyBarsGroup.selectAll('.familyLabel')
       .data(familyArray, function (d: Node) {
@@ -1825,9 +1609,6 @@ class GenealogyTree {
         event.stopPropagation();
 
         selectAll('.nodeIcon').classed('hover', false);
-        // selectAll('.nodeIcon').filter((n:Node)=>{return n == d}).classed('clicked', true);
-
-
         selectAll('.edges').classed('selected', false);
         this.highlightBranch(d, true);
 
@@ -2349,7 +2130,7 @@ class GenealogyTree {
     if (filteredDomain[1] > CURRENT_YEAR) {
       filteredDomain[1] = CURRENT_YEAR;
     }
-    // console.log(allDomain, filteredDomain)
+
     //Build time axis
 
     //for visible nodes
@@ -2435,40 +2216,6 @@ class GenealogyTree {
       .attr('text-anchor', 'end');
 
   }
-
-  //
-  // //Function that repositions the visible nodes to fill the graph.
-  // private update_visible_nodes() {
-  //
-  //   // console.log('called update_visible_nodes');
-  //
-  //   let scrollOffset = document.getElementById('graph_table').scrollTop;
-  //   let divHeight = document.getElementById('graph_table').offsetHeight;
-  //
-  //   // 	          console.log(divHeight, this.y(65),this.y(72), (divHeight + scrollOffset) - 75)
-  //
-  //   let minY = this.y.invert(scrollOffset) - 2;
-  //   let maxY = this.y.invert(divHeight + scrollOffset - 75);
-  //
-  //   let filtered_nodes = this.data.nodes.filter((d) => {
-  //     return d['y'] >= Math.round(minY);
-  //   });
-  //
-  //
-  //   let filtered_parentParentEdges = this.data.parentParentEdges.filter((d) => {
-  //     return d['ma'].y >= Math.round(minY) && d['pa'].y >= Math.round(minY);
-  //   });
-  //
-  //   let filtered_parentChildEdges = this.data.parentChildEdges.filter((d) => {
-  //     return d.target.y >= Math.round(minY);
-  //   });
-  //
-  //
-  //   //Call function that updates the position of all elements in the tree
-  //   this.update_graph()
-  //
-  //
-  // }
 
 
   /**
@@ -2620,7 +2367,7 @@ class GenealogyTree {
         let menuItems = menu.selectAll('text').data(actions);
 
         const menuItemsEnter = menuItems.enter()
-          .append('g').attr('class','menuItem')
+          .append('g').attr('class','menuItem');
 
         menuItemsEnter.append('rect').classed('menuItemBackground',true);
         menuItemsEnter.append('text').classed('icon', true);
@@ -2633,7 +2380,12 @@ class GenealogyTree {
           .attr('width',menuWidth)
           .attr('fill', '#f7f7f7')
           .attr('height', menuItemHeight)
-          .attr('opacity', 1);
+          .attr('opacity', 1)
+          .on('click', (d: any) => {
+            select('#treeMenu').select('.menu').remove();
+            this.data.aggregateTreeWrapper(data.uniqueID, d.state);
+            this.update_graph();
+          });
 
           select('.tooltipTriangle')
           .attr('transform','translate(-5,'+ (menuItemHeight) + ')')
@@ -2653,12 +2405,7 @@ class GenealogyTree {
           .attr('x', 10)
           .attr('y', menuItemHeight/2+5)
           .text((d: any) => d.string)
-          .classed('tooltipTitle', true)
-          .on('click', (d: any) => {
-            select('#treeMenu').select('.menu').remove();
-            this.data.aggregateTreeWrapper(data.uniqueID, d.state);
-            this.update_graph();
-          });
+          .classed('tooltipTitle', true);
 
         menuItems
           .select('.icon')

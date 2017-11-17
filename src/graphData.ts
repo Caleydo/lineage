@@ -951,7 +951,6 @@ class GraphData {
    * Currently has a single value that indicates true.
    */
   private defineAffected(affectedState) {
-    console.log(affectedState, 'affectedState');
     this.nodes.forEach((node) => {
       const data = this.tableManager.getAttribute(affectedState.name, node.id);
       node.affected = affectedState.isAffected(data);

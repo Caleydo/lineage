@@ -611,8 +611,6 @@ class AttributeTable {
     const graphIDs = await graphView.col(0).names();
     const kindredIDs = await graphView.col(1).data();
 
-    console.log(kindredIDs);
-
     const idVector = await graphView.col(0).ids();
     const uniqueIDs = idVector.dim(0).asList().map((i)=> {return i.toString();});
 
@@ -621,7 +619,6 @@ class AttributeTable {
     //Create a dictionary of y value to people
     const y2personDict = {};
     const yDict = this.tableManager.yValues;
-    console.log(yDict);
     ids.forEach((person,ind) => {
       // console.log(person,KindredIDs[ind]);
       if (person in yDict) { //may not be if dangling nodes were removed
@@ -659,7 +656,6 @@ class AttributeTable {
     const col: any = {};
     col.data = [];
     col.name = ['# People'];
-    // col.ys = allRows;
     col.type = 'dataDensity';
     col.stats = [];
     col.isSorted = false;
@@ -701,8 +697,6 @@ class AttributeTable {
       const data = finishedPromises[index * 5];
       const peopleIDs = finishedPromises[index * 5 + 1];
       const phoveaIDs = finishedPromises[index * 5 + 2].dim(0).asList().map((i)=> {return i.toString();});
-
-      console.log(data.length);
 
       const type = vector.valuetype.type;
       const name = vector.desc.name;
@@ -989,7 +983,6 @@ class AttributeTable {
 
     const y = this.y;
 
-      console.log(this.colData);
     //HEADERS
     //Bind data to the col headers
     let headers = select('#tableHeaders').selectAll('.header')
@@ -1008,6 +1001,7 @@ class AttributeTable {
       .enter()
       .append('text')
       .classed('header', true)
+      .classed('poi',((d)=> {return this.tableManager.affectedState.name === d.name;}))
       .attr('id', (d) => { return d.name + '_header'; });
 
     headers = headerEnter.merge(headers);
@@ -1919,14 +1913,29 @@ class AttributeTable {
         .attr('opacity', 1)
         .attr('transform','rotate(45)')
         .attr('transform-origin','center');
-  
+
 
         menuItems.select('.menuItemBackground')
           .attr('width',menuWidth)
           .attr('fill', '#f7f7f7')
           .attr('height', menuItemHeight)
           .attr('opacity', 1)
-          .on('click',()=> {select('#treeMenu').select('.menu').remove();});
+          .on('click',(e)=> {
+            if (e.includes('Star')) {
+              select('#'+d.name+'_summary')
+              .classed('star',!select('#'+d.name+'_header').classed('star'));
+              select('#'+d.name+'_header')
+              .classed('star',!select('#'+d.name+'_header').classed('star'));
+
+              if (select('#'+d.name+'_header').classed('star')) {
+                this.tableManager.addStar(d.name,d.category);
+              } else {
+                this.tableManager.removeStar(d.name);
+              };
+            };
+
+            select('#treeMenu').select('.menu').remove();
+          });
 
           menuItems.attr('transform', ((d,i)=> {return 'translate(0,' + (5 + i*menuItemHeight) + ')';}));
 
@@ -1948,7 +1957,9 @@ class AttributeTable {
               return '';
             }
           })
-          .classed('tooltipTitle', true);
+          .classed('tooltipTitle', true)
+          .classed('star',(e)=> {return e.includes('Star') && select('#'+d.name+'_header').classed('star');})
+          .classed('poi',(e)=> {return e.includes('POI') && select('#'+d.name+'_header').classed('poi');});
 
           menuItems
           .select('.menuDivider')

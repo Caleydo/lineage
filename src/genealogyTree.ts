@@ -107,6 +107,8 @@ class GenealogyTree {
 
   private margin = Config.margin;
 
+  private tableManager;
+
   //Time scale for visible nodes
   private x = scalePow().exponent(10);
 
@@ -210,8 +212,9 @@ class GenealogyTree {
    * that is resolved as soon the view is completely initialized.
    * @returns {Promise<genealogyTree>}
    */
-  init(data) {
+  init(data,tableManager) {
     this.data = data;
+    this.tableManager = tableManager;
 
     this.build();
     // this.data.collapseAll();
@@ -316,47 +319,114 @@ class GenealogyTree {
     .attr('height',120);
 
     select('#personView')
+    .append('rect')
+     .attr('width',550)
+    .attr('height',30)
+    .attr('fill', 'white')
+    .attr('opacity',.5);
+
+    select('#personView')
+    .append('rect')
+     .attr('width',550)
+    .attr('height',60)
+    .attr('fill', 'white')
+    .attr('opacity',.5);
+
+    select('#personView')
     .append('text')
+    .classed('personViewStaticLabel',true)
+    .attr('x',10)
+    .attr('y',20)
+    .text('RelativeID: ');
+
+    select('#personView')
+    .append('text')
+    .attr('x',80)
+    .attr('y',20)
     .attr('id','person')
-    .classed('personViewLabel',true)
-    .attr('x',550/3)
-    .attr('y',120/2)
-    .attr('text-anchor','middle');
+    .classed('personViewLabel',true);
 
     select('#personView')
     .append('text')
+    .classed('personViewStaticLabel',true)
+    .attr('x',10)
+    .attr('y',50)
+    .text('Family ID(s): ');
+
+    select('#personView')
+    .append('g')
+    .attr('transform','translate(' + 90 + ',' + 50 + ')')
+    .attr('id','kindredLabel')
+    .classed('personViewLabel',true);
+
+
+    select('#personView')
+    .append('text')
+    .classed('personViewStaticLabel',true)
+    .attr('x',150)
+    .attr('y',20)
+    .text('MotherID: ');
+
+    select('#personView')
+    .append('text')
+    .attr('x',210)
+    .attr('y',20)
     .attr('id','motherLabel')
-    .classed('personViewLabel',true)
-    .attr('x',550/4)
-    .attr('y',120/3)
-    .attr('text-anchor','middle');
+    .classed('personViewLabel',true);
 
     select('#personView')
     .append('text')
+    .classed('personViewStaticLabel',true)
+    .attr('x',280)
+    .attr('y',20)
+    .text('FatherID: ');
+
+    select('#personView')
+    .append('text')
+    .attr('x',335)
+    .attr('y',20)
     .attr('id','fatherLabel')
-    .classed('personViewLabel',true)
-    .attr('x',550/4*2)
-    .attr('y',120/3)
-    .attr('text-anchor','middle');
+    .classed('personViewLabel',true);
+
+    select('#personView')
+    .append('text')
+    .classed('personViewStaticLabel',true)
+    .attr('x',10)
+    .attr('y',80)
+    .text('Spouse(s): ');
 
     select('#personView')
     .append('g')
     .attr('id','spouseLabels')
     .classed('personViewLabel',true)
-    .attr('transform','translate(' + 550/2 + ',' + 120/2 + ')');
+    .attr('transform','translate(' + 80 + ',' + 80 + ')');
 
+
+    select('#personView')
+    .append('text')
+    .classed('personViewStaticLabel',true)
+    .attr('x',10)
+    .attr('y',110)
+    .text('Child(ren): ');
 
     select('#personView')
     .append('g')
     .attr('id','childrenLabels')
     .classed('personViewLabel',true)
-    .attr('transform','translate(' + 550/4 + ',' + 120/3*2 + ')');
+    .attr('transform','translate(' + 80 + ',' + 110 + ')');
 
-    select('#personView')
-    .append('g')
-    .attr('id','siblingsLabels')
-    .classed('personViewLabel',true)
-    .attr('transform','translate(' + 550/4 + ',' + 120/2 + ')');
+    // select('#personView')
+    // .append('text')
+    // .classed('personViewStaticLabel',true)
+    // .attr('x',150)
+    // .attr('y',80)
+    // .text('Sibling(s): ');
+
+    // select('#personView')
+    // .append('g')
+    // .attr('id','siblingsLabels')
+    // .classed('personViewLabel',true)
+    // .attr('transform','translate(' + 240 + ',' + 80 + ')');
 
 
 
@@ -1413,7 +1483,7 @@ class GenealogyTree {
     node.children.forEach((child: Node) => { this.highlightBranch(child, on); });
   }
 
-  private renderPersonView(d) {
+  private async renderPersonView(d) {
 
     if (!d) {
       select('#personView')
@@ -1430,31 +1500,54 @@ class GenealogyTree {
 
 
     select('#person')
-    .text('relativeID:' + d.id)
+    .text( d.id)
     .attr('fill',()=> {return d.affected ? 'red' : 'black';})
     .on('click',()=> {this.renderPersonView(d);});
 
     select('#motherLabel')
-    .text('MaID:' + d.maID)
+    .text(d.maID)
     .attr('fill',()=> {return (d.ma && d.ma.affected) ? 'red' : 'black';})
     .on('click',()=> {this.renderPersonView(d.ma);});
 
     select('#fatherLabel')
-    .text('PaID:' + d.paID)
+    .text(d.paID)
     .attr('fill',()=> {return (d.pa && d.pa.affected) ? 'red' : 'black';})
     .on('click',()=> {this.renderPersonView(d.pa);});
 
     //clear all spouses, siblings, and children;
     select('#spouseLabels').selectAll('text').remove();
-    select('#siblingLabels').selectAll('text').remove();
+    // select('#siblingLabels').selectAll('text').remove();
     select('#childrenLabels').selectAll('text').remove();
+    select('#kindredLabel').selectAll('text').remove();
+
+    const kindredIDVector = await this.tableManager.getAttributeVector('KindredID',true);
+    const peopleIDs = await kindredIDVector.names();
+    const kindredIDs = await kindredIDVector.data();
+
+    const familyIDs = [];
+    peopleIDs.map((person,ind)=> {
+      // console.log(person)
+      if (person === d.id) {
+        familyIDs.push(kindredIDs[ind]);
+      }
+    });
+
+    const offset = [0];
+    //One text element per kindredID
+    familyIDs.map((s,i)=> {
+      select('#kindredLabel')
+      .append('text')
+      .text((i === familyIDs.length-1 ? s: s+','))
+      .attr('x',()=> {offset.push((offset[i]+5+(s.toString().length*7.5))); return offset[i];})
+      .on('click',()=> {console.log(s);});
+    });
 
     //One text element per spouse
     d.spouse.map((s,i)=> {
       select('#spouseLabels')
       .append('text')
-      .text((i === 0 ? ('Spouse(s):' + s.id) : s.id))
-      .attr('x',(i === 1 ? 135 : (i === 0 ? 0 : 135 + i*75)))
+      .text(s.id)
+      .attr('x',i*75)
       .attr('fill',()=> {return s.affected ? 'red' : 'black';})
       .on('click',()=> {this.renderPersonView(s);});
       ;});
@@ -1464,8 +1557,8 @@ class GenealogyTree {
     d.children.map((c,i)=> {
       select('#childrenLabels')
       .append('text')
-      .text((i === 0 ? ('Child(ren):' + c.id) : c.id))
-      .attr('x',(i === 1 ? 135 : (i === 0 ? 0 : 135 + i*75)))
+      .text(c.id)
+      .attr('x',i*75)
       .attr('fill',()=> {return c.affected ? 'red' : 'black';})
       .on('click',()=> {this.renderPersonView(c);});
       ;});

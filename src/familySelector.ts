@@ -218,7 +218,7 @@ class FamilySelector {
         };
 
         d.starCols.map((attr)=> {
-          baseObject[attr.attribute] = attr.count;
+          baseObject[attr.attribute] = attr.percentage;
         });
         return baseObject;
       });

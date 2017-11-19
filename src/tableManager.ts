@@ -243,7 +243,7 @@ export default class TableManager {
    * @param attribute - attribute to search for
    * @param allFamilies - boolean set to true to return the attribute vector for all families. Defaults to false.
    */
-  public async getAttributeVector(attributeName, allFamilies?) {
+  public async getAttributeVector(attributeName, allFamilies=false) {
 
     if (allFamilies === undefined) {
       allFamilies = false;

@@ -360,10 +360,12 @@ class GenealogyTree {
     .classed('personViewStaticLabel',true)
     .attr('x',10)
     .attr('y',20)
-    .text('RelativeID: ');
+    .text('RelativeID: ')
+    .style('font-weight','bolder');
 
     select('#personView')
     .append('text')
+    .style('font-weight','bolder')
     .attr('x',80)
     .attr('y',20)
     .attr('id','person')
@@ -481,7 +483,6 @@ class GenealogyTree {
       .attr('id', 'graph')
       .on('click', () => {
         select('#treeMenu').select('.menu').remove();
-        select('#nodeActions').attr('visibility', 'hidden');
         selectAll('.edges').classed('selected', false);
         selectAll('.parentEdges').classed('selected', false);
         selectAll('.clicked').classed('clicked', false);
@@ -1507,6 +1508,7 @@ class GenealogyTree {
   }
 
   private async renderPersonView(d) {
+    event.stopPropagation();
 
     if (!d) {
       select('#personView')
@@ -1521,20 +1523,43 @@ class GenealogyTree {
       select('#personView').select('#error').remove();
     }
 
-
-    select('#person')
+  select('#person')
     .text( d.id)
-    .attr('fill',()=> {return d.affected ? 'red' : 'black';})
+    .attr('fill',()=> {return d.affected ? '#285880' : 'black';})
+    .on('mouseover',()=> {
+      //Find node for this person in tree (if current visible)
+      const selectNode = selectAll('.node')
+      .filter((node:any)=> {return node.id === d.id;});
+  
+      selectNode.select('.nodeIcon').classed('highlightedNode', true);
+    })
     .on('click',()=> {this.renderPersonView(d);});
 
     select('#motherLabel')
     .text(d.maID)
-    .attr('fill',()=> {return (d.ma && d.ma.affected) ? 'red' : 'black';})
+
+    .style('font-weight',()=> {return d.ma && d.ma.affected ? 'bolder' : 'normal';})
+    .attr('fill',()=> {return (d.ma && d.ma.affected) ? '#285880' : 'black';})
+    .on('mouseover',()=> {
+      //Find node for this person in tree (if current visible)
+      const selectNode = selectAll('.node')
+      .filter((node:any)=> {return node.id === d.ma.id;});
+  
+      selectNode.select('.nodeIcon').classed('highlightedNode', true);
+    })
     .on('click',()=> {this.renderPersonView(d.ma);});
 
     select('#fatherLabel')
     .text(d.paID)
-    .attr('fill',()=> {return (d.pa && d.pa.affected) ? 'red' : 'black';})
+    .style('font-weight',()=> {return d.pa && d.pa.affected ? 'bolder' : 'normal';})
+    .attr('fill',()=> {return (d.pa && d.pa.affected) ? '#285880' : 'black';})
+    .on('mouseover',()=> {
+      //Find node for this person in tree (if current visible)
+      const selectNode = selectAll('.node')
+      .filter((node:any)=> {return node.id === d.pa.id;});
+  
+      selectNode.select('.nodeIcon').classed('highlightedNode', true);
+    })
     .on('click',()=> {this.renderPersonView(d.pa);});
 
     //clear all spouses, siblings, and children;
@@ -1570,8 +1595,16 @@ class GenealogyTree {
       select('#spouseLabels')
       .append('text')
       .text(s.id)
+      .style('font-weight',()=> {return s.affected ? 'bolder' : 'normal';})
       .attr('x',i*75)
-      .attr('fill',()=> {return s.affected ? 'red' : 'black';})
+      .attr('fill',()=> {return s.affected ? '#285880' : 'black';})
+      .on('mouseover',()=> {
+        //Find node for this person in tree (if current visible)
+        const selectNode = selectAll('.node')
+        .filter((node:any)=> {return node.id === s.id;});
+    
+        selectNode.select('.nodeIcon').classed('highlightedNode', true);
+      })
       .on('click',()=> {this.renderPersonView(s);});
       ;});
 
@@ -1582,9 +1615,23 @@ class GenealogyTree {
       .append('text')
       .text(c.id)
       .attr('x',i*75)
-      .attr('fill',()=> {return c.affected ? 'red' : 'black';})
+      .style('font-weight',()=> {return c.affected ? 'bolder' : 'normal';})
+      .attr('fill',()=> {return c.affected ? '#285880' : 'black';})
+      .on('mouseover',()=> {
+        //Find node for this person in tree (if current visible)
+        const selectNode = selectAll('.node')
+        .filter((node:any)=> {return node.id === c.id;});
+    
+        selectNode.select('.nodeIcon').classed('highlightedNode', true);
+      })
       .on('click',()=> {this.renderPersonView(c);});
       ;});
+
+      select('#personView')
+      .selectAll('.personViewLabel')
+      .on('mouseout',()=> {
+        selectAll('.nodeIcon').classed('highlightedNode', false);
+      });
 
   }
 

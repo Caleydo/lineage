@@ -1958,8 +1958,6 @@ class AttributeTable {
           .attr('opacity', 1)
           .on('click',(e)=> {
             if (e.includes('Star')) {
-              // select('#'+d.name+'_summary')
-              // .classed('star',!select('#'+d.name+'_header').classed('star'));
               const header = select('#' + d.name.replace(/\./g, '\\.') + '_header');
               const starBackground = select('.starRect_' + d.name.replace(/\./g, '\\.'));
               header.classed('star',!header.classed('star'));
@@ -1973,9 +1971,10 @@ class AttributeTable {
               };
 
 
-            };
-
-            select('#treeMenu').select('.menu').remove();
+            } else if (e.includes('POI')) {
+              this.tableManager.setAffectedState(d.name);
+            }
+          select('#treeMenu').select('.menu').remove();
           });
 
           menuItems.attr('transform', ((d,i)=> {return 'translate(0,' + (5 + i*menuItemHeight) + ')';}));

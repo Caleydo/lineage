@@ -301,6 +301,11 @@ label {
 	opacity: .2
 }
 
+.node.affected .nodeIcon.highlightedNode, .highlightedNode{
+  stroke:coral;
+  stroke-width:3px;
+  fill:coral;
+}
 #extremes_axis text{
 	display: none
 }

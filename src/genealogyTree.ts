@@ -264,6 +264,26 @@ class GenealogyTree {
     const buttonMenu = this.$node.select('.navbar')
       .append('ul').attr('class', 'nav navbar-nav');
 
+      buttonMenu
+      .append('li')
+      .append('a')
+      .attr('class', 'btn-link')
+      .attr('role', 'button')
+      .attr('id','LegendPersonView')
+      .html('View Legend')
+      .on('click', (d) => {
+        const text = select('#LegendPersonView').html();
+        if (text === 'View Legend') {
+          select('#personView').style('display','none');
+          select('#legendSVG').style('display','inherit');
+          select('#LegendPersonView').html('View Person Details');
+        } else {
+          select('#personView').style('display','inherit');
+          select('#legendSVG').style('display','none');
+          select('#LegendPersonView').html('View Legend');
+        }
+      });
+
     buttonMenu
       .append('li')
       .append('a')
@@ -311,7 +331,10 @@ class GenealogyTree {
     const headerDiv = this.$node.append('div').attr('id', 'graphHeaders');
 
     //Add svg legend
-    // headerDiv.append('g').html(String(icon));
+    headerDiv.append('g')
+    .style('display','none')
+    .attr('id','legendSVG')
+    .html(String(icon));
 
     headerDiv.append('g').append('svg')
     .attr('id','personView')

@@ -391,9 +391,9 @@ class GraphData {
 
     this.nodes.forEach((node) => {
       if (node.uniqueID in dict) {
-        dict[node.uniqueID+'_'+node.kindredID].push(Math.round(node.y));
+        dict[node.id+'_'+node.kindredID].push(Math.round(node.y));
       } else {
-        dict[node.uniqueID+'_'+node.kindredID] = [Math.round(node.y)];
+        dict[node.id+'_'+node.kindredID] = [Math.round(node.y)];
       }
     });
 

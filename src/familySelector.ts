@@ -98,6 +98,7 @@ class FamilySelector {
     const tbody = select('#familySelector')
     .append('div')
     .attr('id', 'tableBody')
+    .attr('height',window.innerHeight)
     .append('table')
     .attr('class', 'table');
 

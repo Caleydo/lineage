@@ -174,13 +174,25 @@ class AttributeTable {
       .attr('id','exportIDs')
       .attr('role', 'button')
       .html('Export')
-      .on('click',()=> {
+      .on('click',async ()=> {
 
         let csvContent = 'data:text/csv;charset=utf-8,';
 
+        csvContent +=  'RelativeID,LabID\r\n'; // add carriage return
+
+        const labIDcells = select('#LabID_data').selectAll('.cell');
+
+        const labIDVector = await this.tableManager.getAttributeVector('LabID',false);
+        const labIDData = await labIDVector.data();
+        const personIDs = await labIDVector.names();
+
            //Export csv file with selected ids.
-           selectAll('.checkbox').filter('.checked').each((element:any) => {
-            csvContent += element.id + '\r\n'; // add carriage return
+           selectAll('.checkbox').filter('.checked').each((element:any,ind) => {
+
+           element.id.map((personID)=> {
+            const personInd = personIDs.indexOf(personID);
+            csvContent += personID +',' + labIDData[personInd] + '\r\n'; // add carriage return
+           });
           });
 
         const encodedUri = encodeURI(csvContent);
@@ -614,11 +626,14 @@ class AttributeTable {
     const idVector = await graphView.col(0).ids();
     const uniqueIDs = idVector.dim(0).asList().map((i)=> {return i.toString();});
 
-    const ids = uniqueIDs.map((id,i)=> {return id+'_'+kindredIDs[i];});
+    // const ids = uniqueIDs.map((id,i)=> {return id+'_'+kindredIDs[i];});
+    const ids = graphIDs.map((id,i)=> {return id+'_'+kindredIDs[i];});
 
     //Create a dictionary of y value to people
     const y2personDict = {};
     const yDict = this.tableManager.yValues;
+
+    // console.log(yDict,ids);
     ids.forEach((person,ind) => {
       // console.log(person,KindredIDs[ind]);
       if (person in yDict) { //may not be if dangling nodes were removed
@@ -673,7 +688,7 @@ class AttributeTable {
 
     col.ids = allRows.map((row) => {
       // console.log(y2personDict[row]);
-      return y2personDict[row]; //.map((d)=> {return d.id;});
+      return y2personDict[row].map((d)=> {return d.split('_')[0];}); //only first part is the id
     });
 
     this.firstCol = [col];
@@ -736,7 +751,7 @@ class AttributeTable {
           const col: any = {};
           col.isSorted = false;
           col.ids = allRows.map((row) => {
-            return y2personDict[row];
+            return y2personDict[row].map((d)=> {return d.split('_')[0];}); //only first part is the id
           });
 
           col.name = name;
@@ -757,7 +772,7 @@ class AttributeTable {
             // console.log('about to call people.map()');
             people.map((person) => {
               // console.log(col.name, person.split('_')[0]);
-              const ind = (col.name === 'KindredID' ? ids.indexOf(person) : phoveaIDs.indexOf(person.split('_')[0])); //find this person in the attribute data
+              const ind = (col.name === 'KindredID' ? ids.indexOf(person) : peopleIDs.indexOf(person.split('_')[0])); //find this person in the attribute data
               //If there are only two categories, save both category values in this column. Else, only save the ones that match the category at hand.
               if (ind > -1 && (allCategories.length < 3 || ind > -1 && (allCategories.length > 2 && data[ind] === cat))) {
                 // console.log('person:',person, 'value:',data[ind])
@@ -783,9 +798,7 @@ class AttributeTable {
         const col: any = {};
         col.isSorted = false;
         col.ids = allRows.map((row) => {
-          return y2personDict[row].filter(function (value, index, self) {
-            return self.indexOf(value) === index;
-          });
+          return y2personDict[row].map((d)=> {return d.split('_')[0];}); //only first part is the id
         });
 
         const stats = finishedPromises[5 * index + 3];
@@ -797,7 +810,7 @@ class AttributeTable {
           //   return self.indexOf(value) === index;
           // });
           people.map((person) => {
-            const ind = (col.name === 'KindredID' ? ids.lastIndexOf(person) : phoveaIDs.lastIndexOf(person.split('_')[0])); //find this person in the attribute data
+            const ind = (col.name === 'KindredID' ? ids.lastIndexOf(person) : peopleIDs.lastIndexOf(person.split('_')[0])); //find this person in the attribute data
             // const ind = ids.lastIndexOf(person); //find this person in the attribute data
             if (ind > -1) {
               colData.push(data[ind]);
@@ -822,7 +835,7 @@ class AttributeTable {
         const col: any = {};
         col.isSorted = false;
         col.ids = allRows.map((row) => {
-          return y2personDict[row];
+          return y2personDict[row].map((d)=> {return d.split('_')[0];}); //only first part is the id
         });
 
         col.name = name;
@@ -834,7 +847,7 @@ class AttributeTable {
           //   return self.indexOf(value.id) === index;
           // });
           people.map((person) => {
-            const ind = (col.name === 'KindredID' ? ids.lastIndexOf(person) : phoveaIDs.lastIndexOf(person.split('_')[0])); //find this person in the attribute data
+            const ind = (col.name === 'KindredID' ? ids.lastIndexOf(person) : peopleIDs.lastIndexOf(person.split('_')[0])); //find this person in the attribute data
             // const ind = ids.lastIndexOf(person); //find this person in the attribute data
             if (ind > -1) {
               colData.push(data[ind]);
@@ -851,7 +864,7 @@ class AttributeTable {
 
         const col: any = {};
         col.ids = allRows.map((row) => {
-          return y2personDict[row];
+          return y2personDict[row].map((d)=> {return d.split('_')[0];}); //only first part is the id
           // .filter(function (value, index, self) {
           //   return self.indexOf(value) === index;
           // });
@@ -868,7 +881,7 @@ class AttributeTable {
           // });
           // console.log(data,ids,people);
           people.map((person,i) => {
-            const ind = (col.name === 'KindredID' ? ids.lastIndexOf(person) : phoveaIDs.lastIndexOf(person.split('_')[0])); //find this person in the attribute data
+            const ind = (col.name === 'KindredID' ? ids.lastIndexOf(person) : peopleIDs.lastIndexOf(person.split('_')[0])); //find this person in the attribute data
             // const ind = ids.indexOf(person); //find this person in the attribute data
             // console.log(person,ind,peopleIDs[i],peopleIDs[ind],data[ind]);
             if (ind > -1 ) {

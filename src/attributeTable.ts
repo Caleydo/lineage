@@ -996,6 +996,8 @@ class AttributeTable {
 
     const y = this.y;
 
+    console.log(this.colData);
+
     //HEADERS
     //Bind data to the col headers
     let headers = select('#tableHeaders').selectAll('.header')
@@ -1964,7 +1966,7 @@ class AttributeTable {
 
               if (header.classed('star')) {
                 this.tableManager.addStar(d.name,d.category);
-                starBackground.attr('opacity',.3);
+                starBackground.attr('opacity',.2);
               } else {
                 this.tableManager.removeStar(d.name);
                 starBackground.attr('opacity',0);

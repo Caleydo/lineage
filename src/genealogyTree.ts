@@ -1161,10 +1161,18 @@ class GenealogyTree {
       return undefined;
     }
 
-    // //Dangling Node
-    // if (n.spouse.length === 0) {
-    //   return undefined;
-    // }
+    //no couples lines for affected person/couple
+    if (n.affected) {
+      // console.log('returning undefined for node ', n.id);
+      return undefined;
+    }
+
+      //no couples lines for affected person/couple
+      if ((n.affected || n.spouse.reduce(function (accumulator, currentValue) {
+        return currentValue.affected || accumulator;
+      }, false))) {
+        // console.log('returning undefined for node ', n.id);
+        return undefined;};
 
     if (n.affected && !isUndefined(n.spouse.find((s: Node) => { return !s.aggregated && !s.affected; }))) {
       return undefined;

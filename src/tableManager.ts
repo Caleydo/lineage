@@ -245,10 +245,6 @@ export default class TableManager {
    */
   public async getAttributeVector(attributeName, allFamilies=false) {
 
-    if (allFamilies === undefined) {
-      allFamilies = false;
-    }
-
     let allColumns;
     //Find Vector of that attribute in either table.
     if (this.graphTable && !allFamilies) { //familyView has been defined && allFamilies has not been requested)
@@ -540,6 +536,10 @@ export default class TableManager {
       affectedDict[familyID]=0;
     });
 
+    if (attributeData.length !== familyIDs.length) {
+      console.log('problem in paradise');
+    }
+
     attributeData.map((dataPoint,ind)=> {
       if (this.affectedState.isAffected(dataPoint)) {
         affectedDict[familyIDs[ind]] = affectedDict[familyIDs[ind]]+1;
@@ -578,9 +578,19 @@ export default class TableManager {
         const peopleIDs: string[] = await kindredIDVector.names();
 
         const poiData = await poiVector.data();
-        const poiIndex = await poiVector.names();
+        const poiIDs = await poiVector.names();
         const attributeData = await attributeVector.data();
         const attributePeopleIDs = await attributeVector.names();
+
+        // if (attributeData.length !== familyIDs.length) {
+        //   console.log('problem in paradise');
+        // }
+
+        console.log(
+          'poiData length: ', poiData.length,
+          'attributeData length: ', attributeData.length,
+          'familyIDs length: ', familyIDs.length
+        );
 
         const uniqueFamilyIDs = Array.from(new Set(familyIDs));
 
@@ -591,12 +601,10 @@ export default class TableManager {
           starCountDict[familyID]=0;
         });
 
-        console.log(attributePeopleIDs.length, ' attributePeopleIDs', poiData.length, ' poi data points', attributeData.length, ' data points', peopleIDs.length , ' people' , familyIDs.length , ' families');
         attributeData.map((dataPoint,ind)=> {
           if (dataPoint === trueValue) {
-             const poiInd = poiIndex.indexOf(attributePeopleIDs[ind]);
-             if (this.affectedState.isAffected(poiData[poiInd])) {//if (dataPoint === trueValue) {
-            console.log('person:', peopleIDs[poiInd], ' kindredID:' , familyIDs[poiInd], ' dataPoint: ',dataPoint);
+             const poiInd = (attributeData.length === familyIDs.length ? ind : poiIDs.indexOf(attributePeopleIDs[ind]));
+             if (this.affectedState.isAffected(poiData[poiInd])) {
             starCountDict[familyIDs[poiInd]] = starCountDict[familyIDs[poiInd]]+1;
           } ;
         };

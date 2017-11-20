@@ -663,7 +663,7 @@ class AttributeTable {
     select('.tableSVG').attr('height', this.height);
     select('.tableSVG').attr('width', this.tableManager.colOrder.length * 100);
 
-    this.y.range([0, this.height * .8]).domain([1, max(allRows)]);
+    this.y.range([0, this.height * .7]).domain([1, max(allRows)]);
     this.rowOrder = allRows; //will be used to set the y position of each cell/row;
 
 
@@ -1156,12 +1156,11 @@ class AttributeTable {
       console.log(this.y.range());
         //Append background rect
         colsEnter.append('rect')
-        .attr('width', (d)=> {return this.colWidths[d.type] + 20;})
-        .attr('x',-10)
+        .attr('width', (d)=> {return this.colWidths[d.type] + 10;})
+        .attr('x',-5)
         .attr('y',-this.buffer+3)
         .attr('class',(d) => {return 'starRect_'+d.name;})
         .classed('starRect',true)
-        // .attr('fill','coral')
         .attr('opacity',((d)=> {
           const header = select('#'+d.name+'_header');
           return (!header.empty() && header.classed('star')) ? .2 : 0;
@@ -1859,6 +1858,7 @@ class AttributeTable {
     selectAll('.deleteIcon')
       .on('click', (d: any) => {
         this.tableManager.colOrder.splice(this.tableManager.colOrder.indexOf(d.name), 1);
+        this.tableManager.removeStar(d.name);
 
         //Update menu
         selectAll('.dropdown-item').filter((item: any) => { console.log(item); return item === d.name; })

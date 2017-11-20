@@ -728,9 +728,9 @@ class GenealogyTree {
       return Math.round(+d.y);
     })];
 
-    this.height = Config.glyphSize * 4 * (yrange[1] - yrange[0] + 1); // - this.margin.top - this.margin.bottom;
+    this.height = Config.glyphSize * 4 * (yrange[1] - yrange[0] + 1) ; // - this.margin.top - this.margin.bottom;
 
-    this.y.range([0, this.height * .8]).domain(yrange);
+    this.y.range([0, this.height * .7]).domain(yrange);
 
     this.interGenerationScale.range([.75, .25]).domain([2, nodes.length]);
 

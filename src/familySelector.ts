@@ -44,9 +44,10 @@ class FamilySelector {
 
   private tableManager;
 
-  private headerInfo = [{ 'header': 'FamilyID', 'dataAttr': 'id'},
-  { 'header': '# People', 'dataAttr': 'size'},
-  {'header':'#POI','dataAttr':'percentage'}];
+  private headerInfo = [{ 'header': ' ', 'dataAttr': undefined },
+  { 'header': 'FamilyID', 'dataAttr': 'id' },
+  { 'header': '# People', 'dataAttr': 'size' },
+  { 'header': '#POI', 'dataAttr': 'percentage' }];
 
   constructor(parent: Element) {
     this.$node = select(parent);
@@ -87,22 +88,24 @@ class FamilySelector {
       });
 
     const table = select('#familySelector')
-    .append('div')
-    .attr('id', 'tableHead')
-    .append('table')
-    .attr('class', 'table');
+      .append('div')
+      .attr('id', 'tableHead')
+      .append('table')
+      .attr('class', 'table');
 
     table.append('thead').append('tr');
+    table.append('tbody')
+    .style('background','#bfbdbd');
 
 
     const tbody = select('#familySelector')
-    .append('div')
-    .attr('id', 'tableBody')
-    .attr('height',window.innerHeight)
-    .append('table')
-    .attr('class', 'table');
+      .append('div')
+      .attr('id', 'tableBody')
+      .style('height', '1100px')
+      .append('table')
+      .attr('class', 'table');
 
-    tbody.append('thead').append('tr');
+    // tbody.append('thead').append('tr');
     tbody.append('tbody');
   }
 
@@ -116,7 +119,7 @@ class FamilySelector {
     // this.familyInfo = this.tableManager.familyInfo;
     const data = this.tableManager;
 
-    const attrCols = this.tableManager.familyInfo[0].starCols.map((attr)=> {return {header:attr.attribute, dataAttr:attr.attribute};});
+    const attrCols = this.tableManager.familyInfo[0].starCols.map((attr) => { return { header: attr.attribute, dataAttr: attr.attribute }; });
     const tableHeaders = this.headerInfo.concat(attrCols);
 
     let maxValue = max(data.familyInfo, (d: any) => { return +d.size; });
@@ -131,23 +134,23 @@ class FamilySelector {
       .range([0, 50])
       .domain([0, maxValue]);
 
-      //Upate Header
-      let headers = this.$node.select('#tableHead')
+    //Upate Header
+    let headers = this.$node.select('#tableHead')
       .select('tr')
       .selectAll('th')
       .data(tableHeaders);
 
 
-      const headerEnter = headers.enter()
+    const headerEnter = headers.enter()
       .append('th');
 
-      headers.exit().remove();
+    headers.exit().remove();
 
-      headers = headerEnter.merge(headers);
+    headers = headerEnter.merge(headers);
 
-      headers
-      .style('width',(d:any,i)=> {
-        const width = (i === 0 ? 10 : (90/(tableHeaders.length-1)));
+    headers
+      .style('width', (d: any, i) => {
+        const width = (i === 0 ? 10 : (90 / (tableHeaders.length - 1)));
         return width + '%';
       })
       .on('click', function (d) {
@@ -160,9 +163,9 @@ class FamilySelector {
               return 1;
             }
           });
-          selectAll('th').classed('des',false);
-          selectAll('th').classed('aes',false);
-          select(this).attr('class','aes');
+          selectAll('th').classed('des', false);
+          selectAll('th').classed('aes', false);
+          select(this).attr('class', 'aes');
         } else {
           self.rows.sort(function (a, b) {
             if (b[d.dataAttr] < a[d.dataAttr]) {
@@ -171,83 +174,130 @@ class FamilySelector {
               return 1;
             }
           });
-          selectAll('th').classed('des',false);
-          selectAll('th').classed('aes',false);
-          select(this).attr('class','des');
+          selectAll('th').classed('des', false);
+          selectAll('th').classed('aes', false);
+          select(this).attr('class', 'des');
         }
       });
 
-
-      headers
+    headers
       .text(function (column) {
         return column.header;
       })
-      .style('text-align','center');
+      .style('text-align', 'center');
 
-      // //Upate table Header
-      // headers = this.$node.select('#tableBody')
-      // .select('tr')
-      // .selectAll('th')
-      // .data(tableHeaders);
+    const rowData = this.tableManager.familyInfo.map((d) => {
+      const baseObject = {
+        'id': d.id,
+        'size': d.size,
+        // 'selected': false,
+        'affected': d.affected,
+        'percentage': Math.round(d.percentage * 1000) / 10,
+        'starCols': d.starCols
+      };
+
+      d.starCols.map((attr) => {
+        baseObject[attr.attribute] = attr.percentage;
+      });
+      return baseObject;
+    });
 
 
-      // headerEnter = headers.enter()
-      // .append('th');
+    this.populateTableRows('#tableBody', rowData,tableHeaders.length-2);
+    const selectedRows = rowData.filter((row) => { return this.selectedFamilyIds.indexOf(row.id)>-1; });
+    this.populateTableRows('#tableHead', selectedRows,tableHeaders.length-2);
 
-      // headers.exit().remove();
+    select('#tableBody').select('tbody').selectAll('tr').classed('selected',(d:any)=> {return this.selectedFamilyIds.indexOf(d.id) > -1;});
 
-      // headers = headerEnter.merge(headers);
+    selectAll('.addRemoveIcon').on('click', (d: any) => {
 
-      // headers
-      // .style('width',(d:any,i)=> {
-      //   const width = (i === 0 ? 10 : (90/(tableHeaders.length-1)));
-      //   return width + '%';
-      // })
-      // .text(function (column) {
-      //   return column.header;
-      // })
-      // .style('text-align','center');
+      console.log(d);
 
-      const rowData = this.tableManager.familyInfo.map((d) => {
-        const baseObject = {
-          'id':d.id,
-          'size':d.size,
-          'affected':d.affected,
-          'percentage':Math.round(d.percentage*1000)/10,
-          'starCols':d.starCols
-        };
-
-        d.starCols.map((attr)=> {
-          baseObject[attr.attribute] = attr.percentage;
-        });
-        return baseObject;
+      const thisIcon = select('#tableBody').select('tbody').selectAll('.addRemoveIcon').filter((row: any) => {
+        return row.id === d.id;
       });
 
+      const toRemove = thisIcon.html() ===  '\uf056';
+      
+      thisIcon.html( toRemove ? '\uf055' : '\uf056');
+
+      //'Unselect all other families if ctrl was not pressed
+      // if (!event.metaKey) {
+      //   select('tbody').selectAll('tr').classed('selected', false);
+      //   select('tbody').selectAll('tr').classed('selected2', false);
+      //   this.selectedFamilyIds = [];
+      // }
+
+      if (!toRemove) {
+        this.selectedFamilyIds.push(d.id);
+      } else {
+        this.selectedFamilyIds.splice(this.selectedFamilyIds.indexOf(d.id),1);
+      }
+      
+      console.log(this.selectedFamilyIds);
+
+      select('#tableBody').select('tbody').selectAll('tr').filter((row: any) => {
+        return row.id === d.id;
+      })
+        .classed('selected', !toRemove);
+
+      const selectedRows = rowData.filter((row) => { return this.selectedFamilyIds.indexOf(row.id)>-1; });
+      this.populateTableRows('#tableHead', selectedRows,tableHeaders.length-2);
+      // .attr('class',(d:any)=> {return d.id === 42623 ? 'selected2' : 'selected';});
+
+      //call debounced function
+      // this.lazyLoad();
+
+      this.loadFamily();
+
+
+    });
+
+    if (selectAll('.selected').size() === 0) { // or if (this.selectedFamilyIDs.length === 0)
+      select('tbody').selectAll('tr').filter((row: any, i) => {
+        return row.id === data.familyInfo[0].id; //select the first family as a default;
+      }).classed('selected', true);
+
+      this.selectedFamilyIds = [data.familyInfo[0].id];
+      // tableManager.selectFamily(this.selectedFamilyIds);
+    }
+
+
+
+  }
+
+  private populateTableRows(tableSelector, rowData,numCols) {
+    
+    
     // create a row for each object in the data
-    this.rows = select('tbody').selectAll('tr')
-      // .data(this.tableManager.familyInfo);
+    let rows = select(tableSelector).select('tbody').selectAll('tr')
       .data(rowData);
 
 
-      const rowsEnter = this.rows
+    const rowsEnter = rows
       .enter()
       .append('tr');
 
 
-    this.rows.exit().remove();
-    this.rows = rowsEnter.merge(this.rows);
+    rows.exit().remove();
+    rows = rowsEnter.merge(rows);
 
-
+    if (tableSelector === '#tableBody') {
+      this.rows = rows;
+    }
+   
     //
     // create a cell in each row for each column
-    let cells = this.rows.selectAll('td')
-      .data((d:any) => {
-        const baseValues = [{ 'id': d.id, 'value': d.id, 'type': 'id' },
+    let cells = rows.selectAll('td')
+      .data((d: any) => {
+        const baseValues = [
+        { 'id': d.id, 'value': undefined, 'type': 'button' },
+        { 'id': d.id, 'value': d.id, 'type': 'id' },
         { 'id': d.id, 'value': d.size, 'type': 'size' },
-        {'id': d.id, 'value': {'affected':d.affected,'percentage':d.percentage}, 'type': 'affected'}];
+        { 'id': d.id, 'value': { 'affected': d.affected, 'percentage': d.percentage }, 'type': 'affected' }];
 
-        d.starCols.map((attr)=> {
-          const newValue = { 'id': d.id, 'value': {'affected':attr.count,'percentage':Math.round(attr.percentage*1000)/10}, 'type': 'affected'};
+        d.starCols.map((attr) => {
+          const newValue = { 'id': d.id, 'value': { 'affected': attr.count, 'percentage': Math.round(attr.percentage * 1000) / 10 }, 'type': 'affected' };
           baseValues.push(newValue);
         });
         return baseValues;
@@ -261,11 +311,11 @@ class FamilySelector {
     cells = cellsEnter.merge(cells);
 
     cells
-    .style('width',(d:any,i)=> {
-      const width = (i === 0 ? 10 : (90/(tableHeaders.length-1)));
-      return width + '%';
-    })
-    .style('text-align','center');
+      .style('width', (d: any, i) => {
+        const width = (i <2 ? 10 : (90 /numCols));
+        return width + '%';
+      })
+      .style('text-align', 'center');
 
 
     // selectAll('td').each(function (cell: any) {
@@ -362,9 +412,9 @@ class FamilySelector {
     // });
 
     cells
-    .filter((c: any) => {
-      return c.type === 'affected';
-    })
+      .filter((c: any) => {
+        return c.type === 'affected';
+      })
       // cells
       .html((d: any) => {
         return (d.value.affected.toString() + '(' + d.value.percentage + '%)');
@@ -373,51 +423,24 @@ class FamilySelector {
 
 
     cells
-    .filter((c: any) => {
-      return c.type === 'id' || c.type === 'size';
-    })
+      .filter((c: any) => {
+        return c.type === 'id' || c.type === 'size';
+      })
       // cells
       .html((d: any) => {
         return d.value.toString();
       })
       .style('text-align', 'center');
 
-
-    selectAll('td').on('click', (d: any) => {
-      //'Unselect all other families if ctrl was not pressed
-      if (!event.metaKey) {
-        select('tbody').selectAll('tr').classed('selected', false);
-        select('tbody').selectAll('tr').classed('selected2', false);
-        this.selectedFamilyIds = [];
-      }
-
-      this.selectedFamilyIds.push(d.id);
-
-      select('tbody').selectAll('tr').filter((row: any) => {
-        return row.id === d.id;
+      cells
+      .filter((c: any) => {
+        return c.type === 'button';
       })
-        .classed('selected', true);
-      // .attr('class',(d:any)=> {return d.id === 42623 ? 'selected2' : 'selected';});
-
-      //call debounced function
-      // this.lazyLoad();
-
-      this.loadFamily();
-
-
-    });
-
-    if (selectAll('.selected').size() === 0) { // or if (this.selectedFamilyIDs.length === 0)
-      select('tbody').selectAll('tr').filter((row: any, i) => {
-        return row.id === data.familyInfo[0].id; //select the first family as a default;
-      }).classed('selected', true);
-
-      this.selectedFamilyIds = [data.familyInfo[0].id];
-      // tableManager.selectFamily(this.selectedFamilyIds);
-    }
-
-
-
+      .html((d: any) => {
+        return tableSelector === '#tableHead' ? '\uf056' : (this.selectedFamilyIds.indexOf(d.id) > -1 ? '\uf056' :'\uf055');
+      })
+      .style('text-align', 'center')
+      .attr('class','addRemoveIcon');
   }
 
   private loadFamily() {

@@ -210,6 +210,7 @@ class FamilySelector {
     select('#tableBody').select('tbody').selectAll('tr').classed('selected',(d:any)=> {return this.selectedFamilyIds.indexOf(d.id) > -1;});
 
     selectAll('.addRemoveIcon').on('click', (d: any) => {
+      event.stopPropagation();
 
       console.log(d);
 
@@ -278,10 +279,40 @@ class FamilySelector {
       .enter()
       .append('tr');
 
+      rows.exit().remove();
+      rows = rowsEnter.merge(rows);
+  
 
-    rows.exit().remove();
-    rows = rowsEnter.merge(rows);
+      rows.on('click', (d: any) => {
+        
+              //set all icons to +      
+            select('#tableBody').select('tbody').selectAll('.addRemoveIcon').html('\uf055');
 
+            //Set this icon to -
+             select('#tableBody').select('tbody').selectAll('.addRemoveIcon').filter((row: any) => {
+                return row.id === d.id;
+              }).html('\uf056');
+
+              this.selectedFamilyIds = [];
+              this.selectedFamilyIds.push(d.id);
+
+              select('#tableBody').select('tbody').selectAll('tr').classed('selected', false);
+
+              select('#tableBody').select('tbody').selectAll('tr').filter((row: any) => {
+                return row.id === d.id;
+              })
+                .classed('selected', true);
+        
+              const selectedRows = rowData.filter((row) => { return this.selectedFamilyIds.indexOf(row.id)>-1; });
+              this.populateTableRows('#tableHead', selectedRows,numCols);
+        
+              this.loadFamily();
+        
+        
+            });
+
+
+   
     if (tableSelector === '#tableBody') {
       this.rows = rows;
     }
@@ -417,7 +448,7 @@ class FamilySelector {
       })
       // cells
       .html((d: any) => {
-        return (d.value.affected.toString() + '(' + d.value.percentage + '%)');
+        return (d.value.affected.toString() + ' (' + d.value.percentage + '%)');
       })
       .style('text-align', 'center');
 

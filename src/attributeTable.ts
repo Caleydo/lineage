@@ -1014,7 +1014,7 @@ class AttributeTable {
       .enter()
       .append('text')
       .classed('header', true)
-      .classed('poi',((d)=> {return this.tableManager.affectedState.name === d.name;}))
+      // .classed('poi',((d)=> {return this.tableManager.affectedState.name === d.name;}))
       .attr('id', (d) => { return d.name + '_header'; });
 
     headers = headerEnter.merge(headers);
@@ -1973,6 +1973,11 @@ class AttributeTable {
 
             } else if (e.includes('POI')) {
               this.tableManager.setAffectedState(d.name);
+              selectAll('.icon').filter('.tooltipTitle').classed('poi',(ee:any)=> {
+              return ee.includes('POI') && this.tableManager.affectedState.name === d.name;
+              });
+
+              
             }
           select('#treeMenu').select('.menu').remove();
           });
@@ -2003,8 +2008,7 @@ class AttributeTable {
             return e.includes('Star') && header.classed('star');
           })
           .classed('poi',(e)=> {
-            const header = select('#' + d.name.replace(/\./g, '\\.') + '_header');
-            return e.includes('POI') && header.classed('poi');
+            return e.includes('POI') && this.tableManager.affectedState.name === d.name;
           });
 
           menuItems

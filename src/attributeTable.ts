@@ -1977,7 +1977,7 @@ class AttributeTable {
               return ee.includes('POI') && this.tableManager.affectedState.name === d.name;
               });
 
-              
+
             }
           select('#treeMenu').select('.menu').remove();
           });

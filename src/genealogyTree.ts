@@ -1530,7 +1530,7 @@ class GenealogyTree {
       //Find node for this person in tree (if current visible)
       const selectNode = selectAll('.node')
       .filter((node:any)=> {return node.id === d.id;});
-  
+
       selectNode.select('.nodeIcon').classed('highlightedNode', true);
     })
     .on('click',()=> {this.renderPersonView(d);});
@@ -1544,7 +1544,7 @@ class GenealogyTree {
       //Find node for this person in tree (if current visible)
       const selectNode = selectAll('.node')
       .filter((node:any)=> {return node.id === d.ma.id;});
-  
+
       selectNode.select('.nodeIcon').classed('highlightedNode', true);
     })
     .on('click',()=> {this.renderPersonView(d.ma);});
@@ -1557,7 +1557,7 @@ class GenealogyTree {
       //Find node for this person in tree (if current visible)
       const selectNode = selectAll('.node')
       .filter((node:any)=> {return node.id === d.pa.id;});
-  
+
       selectNode.select('.nodeIcon').classed('highlightedNode', true);
     })
     .on('click',()=> {this.renderPersonView(d.pa);});
@@ -1602,7 +1602,7 @@ class GenealogyTree {
         //Find node for this person in tree (if current visible)
         const selectNode = selectAll('.node')
         .filter((node:any)=> {return node.id === s.id;});
-    
+
         selectNode.select('.nodeIcon').classed('highlightedNode', true);
       })
       .on('click',()=> {this.renderPersonView(s);});
@@ -1621,7 +1621,7 @@ class GenealogyTree {
         //Find node for this person in tree (if current visible)
         const selectNode = selectAll('.node')
         .filter((node:any)=> {return node.id === c.id;});
-    
+
         selectNode.select('.nodeIcon').classed('highlightedNode', true);
       })
       .on('click',()=> {this.renderPersonView(c);});

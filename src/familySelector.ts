@@ -45,8 +45,8 @@ class FamilySelector {
   private tableManager;
 
   private headerInfo = [{ 'header': ' ', 'dataAttr': undefined },
-  { 'header': 'FamilyID', 'dataAttr': 'id' },
-  { 'header': '# People', 'dataAttr': 'size' },
+  { 'header': 'ID', 'dataAttr': 'id' },
+  { 'header': '#People', 'dataAttr': 'size' },
   { 'header': '#POI', 'dataAttr': 'percentage' }];
 
   constructor(parent: Element) {
@@ -95,7 +95,7 @@ class FamilySelector {
 
     table.append('thead').append('tr');
     table.append('tbody')
-    .style('background','#bfbdbd');
+    .style('background','rgb(155, 173, 185)');
 
 
     const tbody = select('#familySelector')
@@ -150,7 +150,7 @@ class FamilySelector {
 
     headers
       .style('width', (d: any, i) => {
-        const width = (i === 0 ? 10 : (90 / (tableHeaders.length - 1)));
+        const width = (i <2 ? 10 : (90 / (tableHeaders.length - 2)));
         return width + '%';
       })
       .on('click', function (d) {
@@ -219,7 +219,7 @@ class FamilySelector {
       });
 
       const toRemove = thisIcon.html() ===  '\uf056';
-      
+
       thisIcon.html( toRemove ? '\uf055' : '\uf056');
 
       //'Unselect all other families if ctrl was not pressed
@@ -234,7 +234,7 @@ class FamilySelector {
       } else {
         this.selectedFamilyIds.splice(this.selectedFamilyIds.indexOf(d.id),1);
       }
-      
+
       console.log(this.selectedFamilyIds);
 
       select('#tableBody').select('tbody').selectAll('tr').filter((row: any) => {
@@ -268,8 +268,8 @@ class FamilySelector {
   }
 
   private populateTableRows(tableSelector, rowData,numCols) {
-    
-    
+
+
     // create a row for each object in the data
     let rows = select(tableSelector).select('tbody').selectAll('tr')
       .data(rowData);
@@ -281,11 +281,11 @@ class FamilySelector {
 
       rows.exit().remove();
       rows = rowsEnter.merge(rows);
-  
+
 
       rows.on('click', (d: any) => {
-        
-              //set all icons to +      
+
+              //set all icons to +
             select('#tableBody').select('tbody').selectAll('.addRemoveIcon').html('\uf055');
 
             //Set this icon to -
@@ -302,21 +302,21 @@ class FamilySelector {
                 return row.id === d.id;
               })
                 .classed('selected', true);
-        
+
               const selectedRows = rowData.filter((row) => { return this.selectedFamilyIds.indexOf(row.id)>-1; });
               this.populateTableRows('#tableHead', selectedRows,numCols);
-        
+
               this.loadFamily();
-        
-        
+
+
             });
 
 
-   
+
     if (tableSelector === '#tableBody') {
       this.rows = rows;
     }
-   
+
     //
     // create a cell in each row for each column
     let cells = rows.selectAll('td')

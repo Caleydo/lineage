@@ -582,16 +582,6 @@ export default class TableManager {
         const attributeData = await attributeVector.data();
         const attributePeopleIDs = await attributeVector.names();
 
-        // if (attributeData.length !== familyIDs.length) {
-        //   console.log('problem in paradise');
-        // }
-
-        console.log(
-          'poiData length: ', poiData.length,
-          'attributeData length: ', attributeData.length,
-          'familyIDs length: ', familyIDs.length
-        );
-
         const uniqueFamilyIDs = Array.from(new Set(familyIDs));
 
         const starCountDict = {};
@@ -602,7 +592,7 @@ export default class TableManager {
         });
 
         attributeData.map((dataPoint,ind)=> {
-          if (dataPoint === trueValue) {
+          if (dataPoint === trueValue || (!trueValue && dataPoint)) { //account for cases when having a value (like LabID) is considered a 1
              const poiInd = (attributeData.length === familyIDs.length ? ind : poiIDs.indexOf(attributePeopleIDs[ind]));
              if (this.affectedState.isAffected(poiData[poiInd])) {
             starCountDict[familyIDs[poiInd]] = starCountDict[familyIDs[poiInd]]+1;

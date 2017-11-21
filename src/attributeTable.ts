@@ -1968,7 +1968,6 @@ class AttributeTable {
           .attr('opacity', 1)
           .on('click',(e)=> {
             if (e.includes('Star')) {
-              console.log('#' + d.name.replace(/\./g, '\\.').replace(/ /g,'_') + '_header')
               const header = select('#' + d.name.replace(/\./g, '\\.').replace(/ /g,'_') + '_header');
               console.log(header.empty());
               const starBackground = select('.starRect_' + d.name.replace(/\./g, '\\.').replace(/ /g,'_'));

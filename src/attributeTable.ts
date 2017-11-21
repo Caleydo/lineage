@@ -1018,7 +1018,7 @@ class AttributeTable {
       .append('text')
       .classed('header', true)
       // .classed('poi',((d)=> {return this.tableManager.affectedState.name === d.name;}))
-      .attr('id', (d) => { return d.name + '_header'; });
+      .attr('id', (d) => { return d.name.replace(/ /g,'_') + '_header'; });
 
     headers = headerEnter.merge(headers);
 
@@ -1061,7 +1061,7 @@ class AttributeTable {
 
     const colSummariesEnter = colSummaries.enter()
       .append('g').classed('colSummary', true)
-      .attr('id', (d) => { return d.name + '_summary'; });
+      .attr('id', (d) => { return d.name.replace(/ /g,'_') + '_summary'; });
 
     colSummariesEnter
       .append('rect')
@@ -1154,7 +1154,7 @@ class AttributeTable {
     const colsEnter = cols.enter()
       .append('g')
       .classed('dataCols', true)
-      .attr('id', (d) => { return d.name + '_data'; });
+      .attr('id', (d) => { return d.name.replace(/ /g,'_') + '_data'; });
 
       console.log(this.y.range());
         //Append background rect
@@ -1162,7 +1162,7 @@ class AttributeTable {
         .attr('width', (d)=> {return this.colWidths[d.type] + 10;})
         .attr('x',-5)
         .attr('y',-this.buffer+3)
-        .attr('class',(d) => {return 'starRect_'+d.name;})
+        .attr('class',(d) => {return 'starRect_'+d.name.replace(/ /g,'_');})
         .classed('starRect',true)
         .attr('opacity',((d)=> {
           const header = select('#'+d.name+'_header');
@@ -1194,11 +1194,11 @@ class AttributeTable {
 
       selectAll('.colSummary').attr('opacity', .3);
       selectAll('.dataCols').attr('opacity', .3);
-      select('#' + d.name.replace(/\./g, '\\.') + '_summary').attr('opacity', 1);
-      select('#' + d.name.replace(/\./g, '\\.') + '_data').attr('opacity', 1);
+      select('#' + d.name.replace(/\./g, '\\.').replace(/ /g,'_') + '_summary').attr('opacity', 1);
+      select('#' + d.name.replace(/\./g, '\\.').replace(/ /g,'_') + '_data').attr('opacity', 1);
 
       //Escape any periods with backslash
-      const header = select('#' + d.name.replace(/\./g, '\\.') + '_header');
+      const header = select('#' + d.name.replace(/\./g, '\\.').replace(/ /g,'_') + '_header');
 
       const currTransform = header.attr('transform').split('translate(')[1].split(',');
       const xpos = +currTransform[0];
@@ -1239,9 +1239,9 @@ class AttributeTable {
 
     const dragged = (d, i) => {
       //Select col summary for this col
-      const summary = select('#' + d.name + '_summary');
-      const dataCol = select('#' + d.name + '_data');
-      const header = select('#' + d.name + '_header');
+      const summary = select('#' + d.name.replace(/ /g,'_') + '_summary');
+      const dataCol = select('#' + d.name.replace(/ /g,'_') + '_data');
+      const header = select('#' + d.name.replace(/ /g,'_') + '_header');
 
       currPos = event.x - offset;
 
@@ -1968,8 +1968,10 @@ class AttributeTable {
           .attr('opacity', 1)
           .on('click',(e)=> {
             if (e.includes('Star')) {
-              const header = select('#' + d.name.replace(/\./g, '\\.') + '_header');
-              const starBackground = select('.starRect_' + d.name.replace(/\./g, '\\.'));
+              console.log('#' + d.name.replace(/\./g, '\\.').replace(/ /g,'_') + '_header')
+              const header = select('#' + d.name.replace(/\./g, '\\.').replace(/ /g,'_') + '_header');
+              console.log(header.empty());
+              const starBackground = select('.starRect_' + d.name.replace(/\./g, '\\.').replace(/ /g,'_'));
               header.classed('star',!header.classed('star'));
 
               if (header.classed('star')) {
@@ -2014,7 +2016,7 @@ class AttributeTable {
           })
           .classed('tooltipTitle', true)
           .classed('star',(e)=> {
-            const header = select('#' + d.name.replace(/\./g, '\\.') + '_header');
+            const header = select('#' + d.name.replace(/\./g, '\\.').replace(/ /g,'_') + '_header');
             return e.includes('Star') && header.classed('star');
           })
           .classed('poi',(e)=> {

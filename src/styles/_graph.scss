@@ -507,6 +507,14 @@ rect.selected{
   padding:5px !important;
 }
 
+.dropdown-menu{
+    height: auto;
+    max-height: 1000px;
+    overflow-x: hidden;
+    overflow-y: scroll;
+}
+
+
 .personIcon {
   font-family: FontAwesome;
   /*content: "\f078";*/

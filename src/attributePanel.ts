@@ -71,13 +71,17 @@ class AttributePanel {
       orderedCols.push(allCols.find((el) => { return el.desc.name === col; }));
     });
 
+    // console.log(orderedCols);
+
     this.columns = orderedCols.concat(allCols.filter((c) => { return orderedCols.indexOf(c) < 0; }));
 
     this.allColumns = orderedCols.concat(allCols.filter((c) => { return orderedCols.indexOf(c) < 0; }));
 
-    this.update();
+    // this.update();
     this.build();
     this.attachListener();
+
+    // this.tableManager.setAffectedState('suicide');
 
     select('.suicide').select('#poi').each(function () {
       const onClickFunc = select(this).on('click');
@@ -249,11 +253,11 @@ class AttributePanel {
 
           //New POI has been set, remove all other brush and rect selection interactions;
           this.histograms.map((hist) => { hist.clearInteraction(); });
-          if (obj.type === VALUE_TYPE_CATEGORICAL) {
-            hist.setSelected(obj.threshold);
-          } else if (obj.type === VALUE_TYPE_REAL || obj.type === VALUE_TYPE_INT) {
-            hist.setBrush(obj.threshold);
-          }
+          // if (obj.type === VALUE_TYPE_CATEGORICAL) {
+          //   hist.setSelected(obj.threshold);
+          // } else if (obj.type === VALUE_TYPE_REAL || obj.type === VALUE_TYPE_INT) {
+          //   hist.setBrush(obj.threshold);
+          // }
 
         }
 
@@ -389,7 +393,7 @@ class AttributePanel {
           .classed('attribute_svg', true);
       }
 
-      this.populateData(this.$node.select('#' + columnName + '_svg').node(), columnName, columnDesc);
+      // this.populateData(this.$node.select('#' + columnName + '_svg').node(), columnName, columnDesc);
     }
 
   }
@@ -410,6 +414,7 @@ class AttributePanel {
     // since we don't have indices for columns, we are iterating though
     // columns and get the matched one
 
+  
     this.allColumns.forEach((col) => {
       if (col.desc.name === attributeName) {
         dataVec = col;
@@ -547,10 +552,10 @@ class AttributePanel {
       });
     });
 
-    events.on(FAMILY_SELECTED_EVENT, () => {
-      this.update();
+    // events.on(FAMILY_SELECTED_EVENT, () => {
+    //   this.update();
 
-    });
+    // });
 
     events.on('attribute_picked', (evt, item) => {
       this.updateAttrState(item.name, item.value);

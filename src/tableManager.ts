@@ -150,7 +150,7 @@ export default class TableManager {
   //   ['KindredID','PersonID', 'Asthma', 'Bipolar', 'sex', 'deceased', 'suicide', 'gen', 'Age', 'FirstBMI', 'AgeFirstBMI', 'race', 'cause_death', 'weapon']; //set of default cols to read in, minimizes load time for large files;
 
   private defaultCols: String[] =
-  ['KindredID', 'RelativeID', 'sex', 'deceased', 'suicide', 'Depression', 'Age', 'Age1D_Depression', 'Nr.Diag_Depression', 'Bipolar', 'Age1D_Bipolar', 'MaxBMI', 'AgeMaxBMI', 'cause_death', 'weapon']; //set of default cols to read in, minimizes load time for large files;
+  ['KindredID', 'RelativeID', 'sex', 'deceased', 'suicide', 'Age','LabID','alcohol','Nr.Diag_alcohol','psychosis','Nr.Diag_psychosis','anxiety-non-trauma','Nr.Diag_anxiety-non-trauma', 'depression','cause_death']; //set of default cols to read in, minimizes load time for large files;
 
   //Array of attributes that are 'starred' in the table;
   private starCols=[];
@@ -467,7 +467,7 @@ export default class TableManager {
    * @param chosenFamilyID the numeric value of the familyID, uses the first family ID when none is specified
    */
   public async selectFamily(chosenFamilyIDs: number[] = [this.familyInfo[0].id]) {
-
+    console.log('selectingFamily',chosenFamilyIDs);
     // select('body').classed('progress',true);
 
     const family = this.familyInfo.find((family) => { return family.id === chosenFamilyIDs[0]; });
@@ -506,9 +506,8 @@ export default class TableManager {
 
     this.updatePOI_Primary();
 
-    events.fire(FAMILY_SELECTED_EVENT);
 
-
+      events.fire(FAMILY_SELECTED_EVENT);
 
   }
 
@@ -682,6 +681,7 @@ export default class TableManager {
 
     await this.refreshActiveGraphView();
 
+    console.log('calling empty selectFamily');
     await this.selectFamily(); //call to selectFamily is now made from the familySelector object
   }
 

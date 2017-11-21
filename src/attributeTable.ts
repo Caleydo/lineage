@@ -142,8 +142,10 @@ class AttributeTable {
 
 
   public async update() {
+    
     await this.initData();
     this.render();
+    console.log('done updating table');
   }
 
   /**
@@ -722,7 +724,6 @@ class AttributeTable {
           return c.name;
         }); //get categories from index.json def
         let categories;
-
 
         //Only need one col for binary categories
         if (allCategories.length < 3) {
@@ -1634,7 +1635,7 @@ class AttributeTable {
 
     const animated = animate ? (d) => d.transition(this.t2) : (d) => d;
 
-
+   
     //get data from colData array
     const toSort = this.colData.find((c) => {
       return c.name === d.name;
@@ -1680,14 +1681,22 @@ class AttributeTable {
     // sorting the mapped array containing the reduced values
     if (sortOrder === sortedState.Ascending) {
       mapped.sort(function (a, b) {
-        if (a.value === b.value) { return 0; }
+        if (a.value === b.value) {
+          if (a.index === b.index) { return 0; }
+          if ( a.index < b.index) { return -1; }
+          if (a.index > b.index) { return 1; }
+        }
         if (b.value === undefined || a.value < b.value) { return -1; }
         if (a.value === undefined || a.value > b.value) { return 1; }
 
       });
     } else {
       mapped.sort(function (a, b) {
-        if (a.value === b.value) { return 0; }
+        if (a.value === b.value) {
+          if (a.index === b.index) { return 0; }
+          if ( a.index < b.index) { return -1; }
+          if (a.index > b.index) { return 1; }
+        }
         if (a.value < b.value) { return 1; }
         if (a.value === undefined || b.value === undefined || a.value > b.value) { return -1; }
       });
@@ -1779,7 +1788,6 @@ class AttributeTable {
 
     icon
       .text('\uf0dd')
-      // .text('\uf078')
       .attr('y', this.rowHeight * 1.8 + 20)
       .attr('x', (d) => {
         return colWidth / 2 - 5;
@@ -3030,6 +3038,7 @@ class AttributeTable {
     // });
 
     events.on(TABLE_VIS_ROWS_CHANGED_EVENT, () => {
+      console.log('3039');
       self.update();
     });
 

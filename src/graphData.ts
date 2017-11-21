@@ -300,10 +300,6 @@ class GraphData {
     for (const row of await this.graphTable.data()) {
       const node = new Node(this.ids[i]);
 
-      // console.log(i,this.ids[i],row[0]);
-      if (row[0] === 15857339) {
-        console.log(row);
-      }
       // const node = new Node(peopleIDs[i]);
       this.nodes.push(node);
       node.initialize(columnNameToIndex, row);

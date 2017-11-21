@@ -22,7 +22,7 @@ import * as _ from 'underscore';
 
 import IFamilyInfo from './tableManager';
 
-import { FAMILY_INFO_UPDATED } from './tableManager';
+import { FAMILY_INFO_UPDATED, TABLE_VIS_ROWS_CHANGED_EVENT } from './tableManager';
 
 
 /**
@@ -59,9 +59,10 @@ class FamilySelector {
    * @returns {Promise<FamilySelector>}
    */
   init(tableManager) {
-    this.build();
     this.tableManager = tableManager;
+    this.build();
     this.updateTable();
+    // this.loadFamily();
 
     events.on(FAMILY_INFO_UPDATED, (evt, tableManagerObject) => { this.updateTable(); });
 
@@ -209,62 +210,45 @@ class FamilySelector {
 
     select('#tableBody').select('tbody').selectAll('tr').classed('selected',(d:any)=> {return this.selectedFamilyIds.indexOf(d.id) > -1;});
 
-    selectAll('.addRemoveIcon').on('click', (d: any) => {
-      event.stopPropagation();
+    selectAll('.addRemoveIcon').on('click', ((d)=> {event.stopPropagation(); this.selectRow(d,rowData,tableHeaders.length-2);}));
 
-      console.log(d);
-
-      const thisIcon = select('#tableBody').select('tbody').selectAll('.addRemoveIcon').filter((row: any) => {
-        return row.id === d.id;
-      });
-
-      const toRemove = thisIcon.html() ===  '\uf056';
-
-      thisIcon.html( toRemove ? '\uf055' : '\uf056');
-
-      //'Unselect all other families if ctrl was not pressed
-      // if (!event.metaKey) {
-      //   select('tbody').selectAll('tr').classed('selected', false);
-      //   select('tbody').selectAll('tr').classed('selected2', false);
-      //   this.selectedFamilyIds = [];
-      // }
-
-      if (!toRemove) {
-        this.selectedFamilyIds.push(d.id);
-      } else {
-        this.selectedFamilyIds.splice(this.selectedFamilyIds.indexOf(d.id),1);
-      }
-
-      console.log(this.selectedFamilyIds);
-
-      select('#tableBody').select('tbody').selectAll('tr').filter((row: any) => {
-        return row.id === d.id;
-      })
-        .classed('selected', !toRemove);
-
-      const selectedRows = rowData.filter((row) => { return this.selectedFamilyIds.indexOf(row.id)>-1; });
-      this.populateTableRows('#tableHead', selectedRows,tableHeaders.length-2);
-      // .attr('class',(d:any)=> {return d.id === 42623 ? 'selected2' : 'selected';});
-
-      //call debounced function
-      // this.lazyLoad();
-
-      this.loadFamily();
-
-
-    });
-
-    if (selectAll('.selected').size() === 0) { // or if (this.selectedFamilyIDs.length === 0)
-      select('tbody').selectAll('tr').filter((row: any, i) => {
-        return row.id === data.familyInfo[0].id; //select the first family as a default;
-      }).classed('selected', true);
-
-      this.selectedFamilyIds = [data.familyInfo[0].id];
-      // tableManager.selectFamily(this.selectedFamilyIds);
+    if (selectAll('.selected').size() === 0) {
+      console.log('emptyFamily!');
+      this.selectRow({'id':data.familyInfo[0].id},rowData,tableHeaders.length-2,false);
     }
 
+  }
 
+  private selectRow(familyID:any,rowData:any,numCols,update = true) {
 
+    console.log(familyID);
+
+    const thisIcon = select('#tableBody').select('tbody').selectAll('.addRemoveIcon').filter((row: any) => {
+      return row.id === familyID.id;
+    });
+
+    const toRemove = thisIcon.html() ===  '\uf056';
+
+    thisIcon.html( toRemove ? '\uf055' : '\uf056');
+
+    if (!toRemove) {
+      this.selectedFamilyIds.push(familyID.id);
+    } else {
+      this.selectedFamilyIds.splice(this.selectedFamilyIds.indexOf(familyID.id),1);
+    }
+
+    select('#tableBody').select('tbody').selectAll('tr').filter((row: any) => {
+      return row.id === familyID.id;
+    })
+      .classed('selected', !toRemove);
+
+    const selectedRows = rowData.filter((row) => { return this.selectedFamilyIds.indexOf(row.id)>-1; });
+    this.populateTableRows('#tableHead', selectedRows,numCols);
+
+    if (update) {
+      this.loadFamily();
+    };
+      
   }
 
   private populateTableRows(tableSelector, rowData,numCols) {
@@ -475,6 +459,7 @@ class FamilySelector {
   }
 
   private loadFamily() {
+    console.log('calling loadFamily');
     this.tableManager.selectFamily(this.selectedFamilyIds);
   }
 

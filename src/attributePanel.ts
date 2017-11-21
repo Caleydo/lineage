@@ -414,7 +414,7 @@ class AttributePanel {
     // since we don't have indices for columns, we are iterating though
     // columns and get the matched one
 
-  
+
     this.allColumns.forEach((col) => {
       if (col.desc.name === attributeName) {
         dataVec = col;

@@ -142,7 +142,7 @@ class AttributeTable {
 
 
   public async update() {
-    
+
     await this.initData();
     this.render();
     console.log('done updating table');
@@ -1635,7 +1635,7 @@ class AttributeTable {
 
     const animated = animate ? (d) => d.transition(this.t2) : (d) => d;
 
-   
+
     //get data from colData array
     const toSort = this.colData.find((c) => {
       return c.name === d.name;

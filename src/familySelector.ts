@@ -248,7 +248,7 @@ class FamilySelector {
     if (update) {
       this.loadFamily();
     };
-      
+
   }
 
   private populateTableRows(tableSelector, rowData,numCols) {

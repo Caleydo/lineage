@@ -1015,7 +1015,7 @@ class AttributeTable {
       .enter()
       .append('g')
       .classed('header',true);
-      
+
 
       headerEnter
       .append('rect')
@@ -1023,9 +1023,9 @@ class AttributeTable {
       .attr('width',50)
       .attr('height',20)
       .attr('transform', 'translate(0,-20)');
-      
+
       headerEnter.append('text')
-      .classed('headerTitle', true)
+      .classed('headerTitle', true);
       // .classed('poi',((d)=> {return this.tableManager.affectedState.name === d.name;}))
       // .attr('id', (d) => { return d.name.replace(/ /g, '_') + '_header'; });
 
@@ -1255,7 +1255,7 @@ class AttributeTable {
 
 
     const dragged = (d, i) => {
-      
+
       //Select col summary for this col
       const summary = select('#' + d.name.replace(/\./g, '\\.').replace(/ /g, '_') + '_summary');
       const dataCol = select('#' + d.name.replace(/\./g, '\\.').replace(/ /g, '_') + '_data');

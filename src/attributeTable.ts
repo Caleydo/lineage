@@ -1176,23 +1176,28 @@ class AttributeTable {
     console.log(this.y.range());
     //Append background rect
     colsEnter.append('rect')
-      .attr('width', (d) => { return this.colWidths[d.type] + 10; })
-      .attr('x', -5)
-      .attr('y', -this.buffer + 3)
-      .attr('class', (d) => { return 'starRect_' + d.name.replace(/ /g, '_'); })
       .classed('starRect', true)
-      .attr('opacity', ((d) => {
-        const header = select('#' + d.name + '_header');
-        return (!header.empty() && header.classed('star')) ? .2 : 0;
-      }));
+
 
 
 
     cols = colsEnter.merge(cols);//;
 
     cols.select('.starRect')
-      .attr('height', this.y.range()[1] + 40);
-
+    .attr('width', (d) => { 
+      const width  = this.customColWidths[d.name] || this.colWidths[d.type] ;
+      return (width+ 10); 
+    })
+    .attr('height', this.y.range()[1] + 40)    
+    .attr('x', -5)
+    .attr('y', -this.buffer + 3)
+    .attr('class', (d) => { return 'starRect_' + d.name.replace(/ /g, '_'); })
+    .classed('starRect', true)
+    .attr('opacity', ((d) => {
+      const header = select('#' + d.name + '_header');
+      return (!header.empty() && header.classed('star')) ? .2 : 0;
+    }))
+      
     //translate columns horizontally to their position;
     cols
       // .transition(t)

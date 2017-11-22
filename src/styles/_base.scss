@@ -184,10 +184,13 @@ ul.nav.navbar-nav{
   position: absolute;
 }
 
+#tableBody{
+  height: calc(100vh - 210px);
+}
+
 #data_selection {
   // resize: horizontal;
   overflow: scroll;
-  height:100vh;
 }
 
 #tableBody{
@@ -290,7 +293,7 @@ ul.nav.navbar-nav{
 }
 
 #tableDiv2, #graphDiv{
-  height:1000px;
+  height: calc(100vh - 310px);
   overflow-x: visible;
   overflow-y: scroll;
 }

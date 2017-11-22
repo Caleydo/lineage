@@ -102,7 +102,6 @@ class FamilySelector {
     const tbody = select('#familySelector')
       .append('div')
       .attr('id', 'tableBody')
-      .style('height', '1100px')
       .append('table')
       .attr('class', 'table');
 

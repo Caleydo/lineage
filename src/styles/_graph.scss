@@ -197,7 +197,7 @@ rect.total{
 }
 
 
-text.header{
+text.headerTitle{
   font-weight:bold;
   //text-anchor: middle;
 }
@@ -514,6 +514,18 @@ rect.selected{
     overflow-y: scroll;
 }
 
+// .dataCols{
+//   pointer-events:none;
+// }
+
+// .cell rect, .cell ellipse, .cell text{
+//   pointer-events: none;
+// }
+
+.titleBackground{
+  fill:rgb(255, 255, 255);
+  cursor: move;
+}
 
 .personIcon {
   font-family: FontAwesome;

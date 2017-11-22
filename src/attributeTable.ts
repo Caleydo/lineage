@@ -168,34 +168,34 @@ class AttributeTable {
     const dropdownMenu = this.$node.select('.navbar')
       .append('ul').attr('class', 'nav navbar-nav').attr('id', 'attributeMenu');
 
-      this.$node.select('.navbar')
+    this.$node.select('.navbar')
       .append('ul').attr('class', 'nav navbar-nav').attr('id', 'Sort by Tree')
       .append('li')
       .append('a')
       .attr('class', 'btn-link')
-      .attr('id','exportIDs')
+      .attr('id', 'exportIDs')
       .attr('role', 'button')
       .html('Export')
-      .on('click',async ()=> {
+      .on('click', async () => {
 
         let csvContent = 'data:text/csv;charset=utf-8,';
 
-        csvContent +=  'RelativeID,LabID\r\n'; // add carriage return
+        csvContent += 'RelativeID,LabID\r\n'; // add carriage return
 
         const labIDcells = select('#LabID_data').selectAll('.cell');
 
-        const labIDVector = await this.tableManager.getAttributeVector('LabID',false);
+        const labIDVector = await this.tableManager.getAttributeVector('LabID', false);
         const labIDData = await labIDVector.data();
         const personIDs = await labIDVector.names();
 
-           //Export csv file with selected ids.
-           selectAll('.checkbox').filter('.checked').each((element:any,ind) => {
+        //Export csv file with selected ids.
+        selectAll('.checkbox').filter('.checked').each((element: any, ind) => {
 
-           element.id.map((personID)=> {
+          element.id.map((personID) => {
             const personInd = personIDs.indexOf(personID);
-            csvContent += personID +',' + labIDData[personInd] + '\r\n'; // add carriage return
-           });
+            csvContent += personID + ',' + labIDData[personInd] + '\r\n'; // add carriage return
           });
+        });
 
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement('a');
@@ -537,7 +537,7 @@ class AttributeTable {
         return ''; //for all other cases, return 0;
       })
       // .attr('x', 15)
-      .attr('x',this.colWidths.dataDensity + this.buffer + this.colWidths.dataDensity) //to make room for checkboxes;
+      .attr('x', this.colWidths.dataDensity + this.buffer + this.colWidths.dataDensity) //to make room for checkboxes;
       .attr('y', (d: any) => {
 
         const start = this.y(d.y);
@@ -626,17 +626,17 @@ class AttributeTable {
     const kindredIDs = await graphView.col(1).data();
 
     const idVector = await graphView.col(0).ids();
-    const uniqueIDs = idVector.dim(0).asList().map((i)=> {return i.toString();});
+    const uniqueIDs = idVector.dim(0).asList().map((i) => { return i.toString(); });
 
     // const ids = uniqueIDs.map((id,i)=> {return id+'_'+kindredIDs[i];});
-    const ids = graphIDs.map((id,i)=> {return id+'_'+kindredIDs[i];});
+    const ids = graphIDs.map((id, i) => { return id + '_' + kindredIDs[i]; });
 
     //Create a dictionary of y value to people
     const y2personDict = {};
     const yDict = this.tableManager.yValues;
 
     // console.log(yDict,ids);
-    ids.forEach((person,ind) => {
+    ids.forEach((person, ind) => {
       // console.log(person,KindredIDs[ind]);
       if (person in yDict) { //may not be if dangling nodes were removed
         // console.log(person,yDict[person]);
@@ -690,7 +690,7 @@ class AttributeTable {
 
     col.ids = allRows.map((row) => {
       // console.log(y2personDict[row]);
-      return y2personDict[row].map((d)=> {return d.split('_')[0];}); //only first part is the id
+      return y2personDict[row].map((d) => { return d.split('_')[0]; }); //only first part is the id
     });
 
     this.firstCol = [col];
@@ -713,7 +713,7 @@ class AttributeTable {
     orderedCols.forEach((vector, index) => {
       const data = finishedPromises[index * 5];
       const peopleIDs = finishedPromises[index * 5 + 1];
-      const phoveaIDs = finishedPromises[index * 5 + 2].dim(0).asList().map((i)=> {return i.toString();});
+      const phoveaIDs = finishedPromises[index * 5 + 2].dim(0).asList().map((i) => { return i.toString(); });
 
       const type = vector.valuetype.type;
       const name = vector.desc.name;
@@ -752,7 +752,7 @@ class AttributeTable {
           const col: any = {};
           col.isSorted = false;
           col.ids = allRows.map((row) => {
-            return y2personDict[row].map((d)=> {return d.split('_')[0];}); //only first part is the id
+            return y2personDict[row].map((d) => { return d.split('_')[0]; }); //only first part is the id
           });
 
           col.name = name;
@@ -799,7 +799,7 @@ class AttributeTable {
         const col: any = {};
         col.isSorted = false;
         col.ids = allRows.map((row) => {
-          return y2personDict[row].map((d)=> {return d.split('_')[0];}); //only first part is the id
+          return y2personDict[row].map((d) => { return d.split('_')[0]; }); //only first part is the id
         });
 
         const stats = finishedPromises[5 * index + 3];
@@ -836,7 +836,7 @@ class AttributeTable {
         const col: any = {};
         col.isSorted = false;
         col.ids = allRows.map((row) => {
-          return y2personDict[row].map((d)=> {return d.split('_')[0];}); //only first part is the id
+          return y2personDict[row].map((d) => { return d.split('_')[0]; }); //only first part is the id
         });
 
         col.name = name;
@@ -865,7 +865,7 @@ class AttributeTable {
 
         const col: any = {};
         col.ids = allRows.map((row) => {
-          return y2personDict[row].map((d)=> {return d.split('_')[0];}); //only first part is the id
+          return y2personDict[row].map((d) => { return d.split('_')[0]; }); //only first part is the id
           // .filter(function (value, index, self) {
           //   return self.indexOf(value) === index;
           // });
@@ -881,11 +881,11 @@ class AttributeTable {
           //   return self.indexOf(value.id) === index;
           // });
           // console.log(data,ids,people);
-          people.map((person,i) => {
+          people.map((person, i) => {
             const ind = (col.name === 'KindredID' ? ids.lastIndexOf(person) : peopleIDs.lastIndexOf(person.split('_')[0])); //find this person in the attribute data
             // const ind = ids.indexOf(person); //find this person in the attribute data
             // console.log(person,ind,peopleIDs[i],peopleIDs[ind],data[ind]);
-            if (ind > -1 ) {
+            if (ind > -1) {
               if (isUndefined(data[ind])) {
                 console.log('problem');
                 console.log(name, data.size(), peopleIDs.size());
@@ -912,7 +912,7 @@ class AttributeTable {
   }
 
   private calculateOffset() {
-    this.colOffsets = [this.colWidths.dataDensity+this.buffer];
+    this.colOffsets = [this.colWidths.dataDensity + this.buffer];
 
     const colOrder = this.tableManager.colOrder;
     const orderedCols = [];
@@ -997,15 +997,13 @@ class AttributeTable {
 
     const y = this.y;
 
-    console.log(this.colData);
-
     //HEADERS
     //Bind data to the col headers
     let headers = select('#tableHeaders').selectAll('.header')
       .data(this.colData.map((d: any, i) => {
         return {
           'name': d.name, 'data': d, 'ind': i, 'type': d.type,
-          'max': d.max, 'min': d.min, 'mean': d.mean, 'allCategories':d.allCategories, 'category': d.category, 'isSorted': d.isSorted
+          'max': d.max, 'min': d.min, 'mean': d.mean, 'allCategories': d.allCategories, 'category': d.category, 'isSorted': d.isSorted
         };
       }), (d: any) => {
         return d.name;
@@ -1015,14 +1013,33 @@ class AttributeTable {
 
     const headerEnter = headers
       .enter()
-      .append('text')
-      .classed('header', true)
+      .append('g')
+      .classed('header',true);
+      
+
+      headerEnter
+      .append('rect')
+      .attr('class','titleBackground')
+      .attr('width',50)
+      .attr('height',20)
+      .attr('transform', 'translate(0,-20)');
+      
+      headerEnter.append('text')
+      .classed('headerTitle', true)
       // .classed('poi',((d)=> {return this.tableManager.affectedState.name === d.name;}))
-      .attr('id', (d) => { return d.name.replace(/ /g,'_') + '_header'; });
+      // .attr('id', (d) => { return d.name.replace(/ /g, '_') + '_header'; });
 
     headers = headerEnter.merge(headers);
 
     headers
+    .attr('id', (d) => { return d.name.replace(/ /g, '_') + '_header'; })
+    .attr('transform', (d, i) => {
+      const offset = this.colOffsets[i];
+      return d.type === VALUE_TYPE_CATEGORICAL ? 'translate(' + offset + ',0) rotate(-40)' : 'translate(' + offset + ',0)';
+    });
+
+    headers
+      .select('.headerTitle')
       .text((d: any) => {
         if (d.category && d.category.toLowerCase() !== 'true' && d.category.toLowerCase() !== 'y') {
           return d.name + ' (' + d.category + ')';
@@ -1033,11 +1050,9 @@ class AttributeTable {
         };
 
       })
-
       .attr('transform', (d, i) => {
-        const offset = this.colOffsets[i] + ((this.customColWidths[d.name] || this.colWidths[d.type]) / 2);
-        return d.type === VALUE_TYPE_CATEGORICAL ? 'translate(' + offset + ',0) rotate(-40)' : 'translate(' + offset + ',0)';
-        // return (d.type === VALUE_TYPE_CATEGORICAL || d.type === 'dataDensity' || d.name.length>10) ? 'translate(' + offset + ',0) rotate(-40)' : 'translate(' + offset + ',0)';
+        const offset = ((this.customColWidths[d.name] ||this.colWidths[d.type]) / 2);
+        return d.type === VALUE_TYPE_CATEGORICAL ? 'translate(' + offset + ',0)' : 'translate(' + offset + ',0)';
       })
       .attr('text-anchor', (d) => {
         return d.type === VALUE_TYPE_CATEGORICAL ? 'start' : 'middle';
@@ -1045,9 +1060,11 @@ class AttributeTable {
       });
 
     headers
-      .on('mouseover', (d) => this.addTooltip('header', d))
+      .on('mouseover', (d) => {
+        this.addTooltip('header', d);
+      })
       .on('mouseout', (d) => {
-        select('#tooltipMenu').select('.menu').remove();
+         select('.menu').remove();
       });
 
 
@@ -1061,7 +1078,7 @@ class AttributeTable {
 
     const colSummariesEnter = colSummaries.enter()
       .append('g').classed('colSummary', true)
-      .attr('id', (d) => { return d.name.replace(/ /g,'_') + '_summary'; });
+      .attr('id', (d) => { return d.name.replace(/ /g, '_') + '_summary'; });
 
     colSummariesEnter
       .append('rect')
@@ -1154,27 +1171,27 @@ class AttributeTable {
     const colsEnter = cols.enter()
       .append('g')
       .classed('dataCols', true)
-      .attr('id', (d) => { return d.name.replace(/ /g,'_') + '_data'; });
+      .attr('id', (d) => { return d.name.replace(/ /g, '_') + '_data'; });
 
-      console.log(this.y.range());
-        //Append background rect
-        colsEnter.append('rect')
-        .attr('width', (d)=> {return this.colWidths[d.type] + 10;})
-        .attr('x',-5)
-        .attr('y',-this.buffer+3)
-        .attr('class',(d) => {return 'starRect_'+d.name.replace(/ /g,'_');})
-        .classed('starRect',true)
-        .attr('opacity',((d)=> {
-          const header = select('#'+d.name+'_header');
-          return (!header.empty() && header.classed('star')) ? .2 : 0;
-        }));
+    console.log(this.y.range());
+    //Append background rect
+    colsEnter.append('rect')
+      .attr('width', (d) => { return this.colWidths[d.type] + 10; })
+      .attr('x', -5)
+      .attr('y', -this.buffer + 3)
+      .attr('class', (d) => { return 'starRect_' + d.name.replace(/ /g, '_'); })
+      .classed('starRect', true)
+      .attr('opacity', ((d) => {
+        const header = select('#' + d.name + '_header');
+        return (!header.empty() && header.classed('star')) ? .2 : 0;
+      }));
 
 
 
     cols = colsEnter.merge(cols);//;
 
     cols.select('.starRect')
-    .attr('height', this.y.range()[1]+40);
+      .attr('height', this.y.range()[1] + 40);
 
     //translate columns horizontally to their position;
     cols
@@ -1184,7 +1201,7 @@ class AttributeTable {
         return 'translate(' + offset + ',0)';
       });
 
-      //Add frame for highlighting starred cols
+    //Add frame for highlighting starred cols
 
 
     // Implement Drag and Drop
@@ -1194,11 +1211,11 @@ class AttributeTable {
 
       selectAll('.colSummary').attr('opacity', .3);
       selectAll('.dataCols').attr('opacity', .3);
-      select('#' + d.name.replace(/\./g, '\\.').replace(/ /g,'_') + '_summary').attr('opacity', 1);
-      select('#' + d.name.replace(/\./g, '\\.').replace(/ /g,'_') + '_data').attr('opacity', 1);
+      select('#' + d.name.replace(/\./g, '\\.').replace(/ /g, '_') + '_summary').attr('opacity', 1);
+      select('#' + d.name.replace(/\./g, '\\.').replace(/ /g, '_') + '_data').attr('opacity', 1);
 
       //Escape any periods with backslash
-      const header = select('#' + d.name.replace(/\./g, '\\.').replace(/ /g,'_') + '_header');
+      const header = select('#' + d.name.replace(/\./g, '\\.').replace(/ /g, '_') + '_header');
 
       const currTransform = header.attr('transform').split('translate(')[1].split(',');
       const xpos = +currTransform[0];
@@ -1238,10 +1255,11 @@ class AttributeTable {
 
 
     const dragged = (d, i) => {
+      
       //Select col summary for this col
-      const summary = select('#' + d.name.replace(/ /g,'_') + '_summary');
-      const dataCol = select('#' + d.name.replace(/ /g,'_') + '_data');
-      const header = select('#' + d.name.replace(/ /g,'_') + '_header');
+      const summary = select('#' + d.name.replace(/\./g, '\\.').replace(/ /g, '_') + '_summary');
+      const dataCol = select('#' + d.name.replace(/\./g, '\\.').replace(/ /g, '_') + '_data');
+      const header = select('#' + d.name.replace(/\./g, '\\.').replace(/ /g, '_') + '_header');
 
       currPos = event.x - offset;
 
@@ -1349,63 +1367,10 @@ class AttributeTable {
       .attr('width', max(this.colOffsets))
       .attr('height', this.rowHeight)
       .attr('opacity', 0)
-      // .attr('fill', 'transparent')
-      .on('mouseover', (d) => {
-        function selected(e: any) {
-          let returnValue = false;
-          //Highlight the current row in the graph and table
-          if (e.y === Math.round(d.y)) {
-            returnValue = true;
-          }
-
-          return returnValue;
-        }
-
-        selectAll('.slopeLine').classed('selectedSlope', false);
-
-        selectAll('.slopeLine').filter((e: any) => {
-          return e.y === Math.round(d.y);
-        }).classed('selectedSlope', true);
-
-        //Set opacity of corresponding highlightBar
-        selectAll('.highlightBar').filter(selected).attr('opacity', .2);
-      })
-      .on('mouseout', () => {
-
-        selectAll('.slopeLine').classed('selectedSlope', false);
-
-        //Hide all the highlightBars
-        selectAll('.highlightBar').attr('opacity', 0);
-
-        // events.fire('row_mouseout', d.y);
-      })
-      .on('click', (d: any) => {
-
-        if (event.defaultPrevented) { return; } // dragged
-
-        const wasSelected = selectAll('.highlightBar').filter((e: any) => {
-          return e.y === d.y || e.y === Math.round(d.y);
-        }).classed('selected');
-
-
-        //'Unselect all other background bars if ctrl was not pressed
-        if (!event.metaKey) {
-          selectAll('.slopeLine').classed('clickedSlope', false);
-          selectAll('.highlightBar').classed('selected', false);
-        }
-
-        selectAll('.slopeLine').filter((e: any) => {
-          return e.y === d.y || e.y === Math.round(d.y);
-        }).classed('clickedSlope', function () {
-          return (!wasSelected);
-        });
-
-        selectAll('.highlightBar').filter((e: any) => {
-          return e.y === d.y || e.y === Math.round(d.y);
-        }).classed('selected', function () {
-          return (!wasSelected);
-        });
-      });
+    // .attr('fill', 'transparent')
+    .on('mouseover', this.highlightRow)
+    .on('mouseout', this.clearHighlight)
+    .on('click', this.clickHighlight);
 
     //create slope Lines
     // //Bind data to the cells
@@ -1543,6 +1508,7 @@ class AttributeTable {
       .data((d) => {
         return d.data.map((e, i) => {
           return {
+            'y': this.rowOrder[i],
             'id': d.ids[i],
             'name': d.name,
             'data': e,
@@ -1562,7 +1528,21 @@ class AttributeTable {
 
     const cellsEnter = cells.enter()
       .append('g')
-      .attr('class', 'cell');
+      .attr('class', 'cell')
+      .on('mouseover', this.highlightRow)
+      .on('mouseout', this.clearHighlight)
+      .on('click', this.clickHighlight);
+
+    selectAll('.cell')
+      .on('mouseover', (cellData) => {
+      this.highlightRow(cellData);
+      this.addTooltip('cell', cellData);
+    })
+      .on('mouseout', (d)=> {
+        this.clearHighlight();
+        select('.menu').remove();
+      })
+      .on('click', this.clickHighlight);
 
     cells = cellsEnter.merge(cells);
 
@@ -1578,9 +1558,8 @@ class AttributeTable {
 
     cellsEnter.attr('opacity', 1);
 
-
-
     cells.each(function (cell) {
+
       if (cell.type === VALUE_TYPE_CATEGORICAL) {
         self.renderCategoricalCell(select(this), cell);
       } else if (cell.type === VALUE_TYPE_INT || cell.type === VALUE_TYPE_REAL) {
@@ -1615,6 +1594,64 @@ class AttributeTable {
       .attr('width', maxWidth);
 
 
+  }
+
+  private clickHighlight(d: any) {
+    // event.stopPropagation();
+
+    if (event.defaultPrevented) { return; } // dragged
+
+    const wasSelected = selectAll('.highlightBar').filter((e: any) => {
+      return e.y === d.y || e.y === Math.round(d.y);
+    }).classed('selected');
+
+
+    //'Unselect all other background bars if ctrl was not pressed
+    if (!event.metaKey) {
+      selectAll('.slopeLine').classed('clickedSlope', false);
+      selectAll('.highlightBar').classed('selected', false);
+    }
+
+    selectAll('.slopeLine').filter((e: any) => {
+      return e.y === d.y || e.y === Math.round(d.y);
+    }).classed('clickedSlope', function () {
+      return (!wasSelected);
+    });
+
+    selectAll('.highlightBar').filter((e: any) => {
+      return e.y === d.y || e.y === Math.round(d.y);
+    }).classed('selected', function () {
+      return (!wasSelected);
+    });
+  }
+
+  private clearHighlight() {
+    // event.stopPropagation();
+    selectAll('.slopeLine').classed('selectedSlope', false);
+    //Hide all the highlightBars
+    selectAll('.highlightBar').attr('opacity', 0);
+  }
+
+  private highlightRow(d) {
+    // event.stopPropagation();
+    function selected(e: any) {
+      let returnValue = false;
+      //Highlight the current row in the graph and table
+      if (e.y === Math.round(d.y)) {
+        returnValue = true;
+      }
+
+      return returnValue;
+    }
+
+    selectAll('.slopeLine').classed('selectedSlope', false);
+
+    selectAll('.slopeLine').filter((e: any) => {
+      return e.y === Math.round(d.y);
+    }).classed('selectedSlope', true);
+
+    //Set opacity of corresponding highlightBar
+    selectAll('.highlightBar').filter(selected).attr('opacity', .2);
   }
 
   /**
@@ -1683,7 +1720,7 @@ class AttributeTable {
       mapped.sort(function (a, b) {
         if (a.value === b.value) {
           if (a.index === b.index) { return 0; }
-          if ( a.index < b.index) { return -1; }
+          if (a.index < b.index) { return -1; }
           if (a.index > b.index) { return 1; }
         }
         if (b.value === undefined || a.value < b.value) { return -1; }
@@ -1694,7 +1731,7 @@ class AttributeTable {
       mapped.sort(function (a, b) {
         if (a.value === b.value) {
           if (a.index === b.index) { return 0; }
-          if ( a.index < b.index) { return -1; }
+          if (a.index < b.index) { return -1; }
           if (a.index > b.index) { return 1; }
         }
         if (a.value < b.value) { return 1; }
@@ -1828,7 +1865,7 @@ class AttributeTable {
       .attr('x', (d) => {
         return colWidth / 2 + 5;
       })
-      .on('click',((d)=> {this.addMenu(d);}));
+      .on('click', ((d) => { this.addMenu(d); }));
 
     icon = iconEnter.merge(icon);
 
@@ -1881,167 +1918,167 @@ class AttributeTable {
 
   private addMenu(d) {
 
+    select('#treeMenu').select('.menu').remove();
+
+    event.stopPropagation();
+    let option1, option2;
+    if (d.type === 'categorical' && (d.category.toLowerCase() === 'true' || d.category.toLowerCase() === 'y')) {
+      option1 = 'Show ' + d.name;
+      option2 = 'Show NOT ' + d.name;
+    } else if (d.type === 'categorical' && d.allCategories.length < 3) {
+      option1 = 'Show ' + d.allCategories[0];
+      option2 = 'Show ' + d.allCategories[1];
+    } else if (d.type === 'categorical' && d.allCategories.length > 3) {
+      option1 = 'Show ' + d.category;
+      option2 = 'Show NOT ' + d.category;
+    }
+
+    const menuLabels = (d.type === 'categorical' ? [option1, option2, 'Set as POI', 'Star'] : ['Set as POI', 'Star']);
+
+    const container = document.getElementById('app');
+    const coordinates = mouse(container);
+
+    let menuWidth = 90; //default Value. Will update
+    const menuItemHeight = 25;
+    const menuHeight = 15 + menuLabels.length * menuItemHeight;
+
+    const menu = select('#treeMenu')
+      .append('svg')
+      .attr('class', 'menu')
+      .attr('height', menuHeight)
+      .append('g')
+      .attr('transform', 'translate(0,10)');
+
+    select('.menu').select('g')
+      .append('g')
+      .classed('tooltipTriangle', true).append('rect');
+
+    let menuItems = menu.selectAll('text').data(menuLabels);
+
+    const menuItemsEnter = menuItems.enter()
+      .append('g').attr('class', 'menuItem');
+
+    menuItemsEnter.append('rect').classed('menuItemBackground', true);
+    menuItemsEnter.append('text').classed('icon', true);
+    menuItemsEnter.append('text').classed('label', true);
+    menuItemsEnter.append('line').classed('menuDivider', true);
+
+    menuItems = menuItemsEnter.merge(menuItems);
+
+    menuItems
+      .select('.label')
+      .attr('x', 10)
+      .attr('y', menuItemHeight / 2 + 3)
+      .text((d: any) => d)
+      .classed('tooltipTitle', true)
+      .on('click', (d: any) => {
         select('#treeMenu').select('.menu').remove();
+      });
 
-        event.stopPropagation();
-        let option1, option2;
-        if (d.type === 'categorical' && (d.category.toLowerCase() === 'true' || d.category.toLowerCase() === 'y')) {
-          option1 = 'Show ' + d.name;
-          option2 = 'Show NOT ' + d.name;
-        } else if (d.type === 'categorical' && d.allCategories.length <3) {
-          option1 = 'Show ' + d.allCategories[0];
-          option2 = 'Show ' + d.allCategories[1];
-        } else if (d.type === 'categorical' && d.allCategories.length >3) {
-          option1 = 'Show ' + d.category;
-          option2 = 'Show NOT ' + d.category;
+    let longestLabelLength = 0;
+
+    menu.selectAll('.menuItem').each(function (element: any, i) {
+      const textNode = <SVGTSpanElement>select(this).select('.label').node();
+      const labelWidth = textNode.getComputedTextLength();
+      longestLabelLength = (labelWidth > longestLabelLength) ? labelWidth : longestLabelLength;
+    });
+
+    menuWidth = longestLabelLength + 50;
+
+    select('.menu').attr('transform', 'translate(' + (coordinates[0] - menuWidth / 2) + ',' + (coordinates[1] + 3) + ')');
+
+    select('.tooltipTriangle')
+      .attr('transform', 'translate(' + (menuWidth / 2 - 3) + ',-2)')
+      .select('rect')
+      .attr('width', 10)
+      .attr('fill', 'rgb(232, 108, 55)')
+      .attr('height', 10)
+      .attr('opacity', 1)
+      .attr('transform', 'rotate(45)')
+      .attr('transform-origin', 'center');
+
+
+    menuItems.select('.menuItemBackground')
+      .attr('width', menuWidth)
+      .attr('fill', '#f7f7f7')
+      .attr('height', menuItemHeight)
+      .attr('opacity', 1)
+      .on('click', (e) => {
+        if (e.includes('Star')) {
+          const header = select('#' + d.name.replace(/\./g, '\\.').replace(/ /g, '_') + '_header');
+          console.log(header.empty());
+          const starBackground = select('.starRect_' + d.name.replace(/\./g, '\\.').replace(/ /g, '_'));
+          header.classed('star', !header.classed('star'));
+
+          if (header.classed('star')) {
+            this.tableManager.addStar(d.name, d.category);
+            starBackground.attr('opacity', .2);
+          } else {
+            this.tableManager.removeStar(d.name);
+            starBackground.attr('opacity', 0);
+          };
+
+
+        } else if (e.includes('POI')) {
+          this.tableManager.setAffectedState(d.name);
+          selectAll('.icon').filter('.tooltipTitle').classed('poi', (ee: any) => {
+            return ee.includes('POI') && this.tableManager.affectedState.name === d.name;
+          });
+
+
         }
+        select('#treeMenu').select('.menu').remove();
+      });
 
-        const menuLabels = (d.type === 'categorical' ? [option1,option2, 'Set as POI','Star'] : ['Set as POI','Star']);
+    menuItems.attr('transform', ((d, i) => { return 'translate(0,' + (5 + i * menuItemHeight) + ')'; }));
 
-        const container = document.getElementById('app');
-        const coordinates = mouse(container);
+    menuItems
+      .select('.icon')
+      .attr('x', menuWidth - 20)
+      .attr('y', menuItemHeight / 2 + 5)
+      .attr('class', 'icon')
+      .text((d: any, i) => {
+        if (i === 0 && d.includes('Show')) {
+          return '\uf111';
+        } else if (i === 1 && d.includes('Show')) {
+          return '\uf22d';
+        } else if (i === 0 || i === 2) {
+          return '\uf007';
+        } else if (i === 1 || i === 3) {
+          return '\uf005';
+        } else {
+          return '';
+        }
+      })
+      .classed('tooltipTitle', true)
+      .classed('star', (e) => {
+        const header = select('#' + d.name.replace(/\./g, '\\.').replace(/ /g, '_') + '_header');
+        return e.includes('Star') && header.classed('star');
+      })
+      .classed('poi', (e) => {
+        return e.includes('POI') && this.tableManager.affectedState.name === d.name;
+      });
 
-        let menuWidth = 90; //default Value. Will update
-        const menuItemHeight = 25;
-        const menuHeight = 15 + menuLabels.length*menuItemHeight;
+    menuItems
+      .select('.menuDivider')
+      .attr('x1', 0)
+      .attr('x2', menuWidth)
+      .attr('y1', menuItemHeight)
+      .attr('y2', menuItemHeight)
+      .attr('stroke-width', '1px')
+      .attr('stroke', 'white');
 
-        const menu = select('#treeMenu')
-          .append('svg')
-          .attr('class', 'menu')
-          .attr('height', menuHeight)
-          .append('g')
-          .attr('transform','translate(0,10)');
+    select('#treeMenu')
+      .attr('width', menuWidth);
 
-          select('.menu').select('g')
-          .append('g')
-          .classed('tooltipTriangle',true).append('rect');
-
-        let menuItems = menu.selectAll('text').data(menuLabels);
-
-        const menuItemsEnter = menuItems.enter()
-          .append('g').attr('class','menuItem');
-
-        menuItemsEnter.append('rect').classed('menuItemBackground',true);
-        menuItemsEnter.append('text').classed('icon', true);
-        menuItemsEnter.append('text').classed('label', true);
-        menuItemsEnter.append('line').classed('menuDivider', true);
-
-        menuItems = menuItemsEnter.merge(menuItems);
-
-        menuItems
-        .select('.label')
-        .attr('x', 10)
-        .attr('y', menuItemHeight/2+3)
-        .text((d: any) => d)
-        .classed('tooltipTitle', true)
-        .on('click', (d: any) => {
-          select('#treeMenu').select('.menu').remove();
-        });
-
-        let longestLabelLength = 0;
-
-        menu.selectAll('.menuItem').each(function(element:any,i){
-          const textNode = <SVGTSpanElement>select(this).select('.label').node();
-          const labelWidth = textNode.getComputedTextLength();
-          longestLabelLength = (labelWidth > longestLabelLength) ? labelWidth : longestLabelLength;
-        });
-
-        menuWidth = longestLabelLength + 50;
-
-        select('.menu').attr('transform', 'translate(' + (coordinates[0] - menuWidth/2) + ',' + (coordinates[1] + 3) + ')');
-
-        select('.tooltipTriangle')
-        .attr('transform','translate(' + (menuWidth/2-3) + ',-2)')
-        .select('rect')
-        .attr('width',10)
-        .attr('fill', 'rgb(232, 108, 55)')
-        .attr('height', 10)
-        .attr('opacity', 1)
-        .attr('transform','rotate(45)')
-        .attr('transform-origin','center');
-
-
-        menuItems.select('.menuItemBackground')
-          .attr('width',menuWidth)
-          .attr('fill', '#f7f7f7')
-          .attr('height', menuItemHeight)
-          .attr('opacity', 1)
-          .on('click',(e)=> {
-            if (e.includes('Star')) {
-              const header = select('#' + d.name.replace(/\./g, '\\.').replace(/ /g,'_') + '_header');
-              console.log(header.empty());
-              const starBackground = select('.starRect_' + d.name.replace(/\./g, '\\.').replace(/ /g,'_'));
-              header.classed('star',!header.classed('star'));
-
-              if (header.classed('star')) {
-                this.tableManager.addStar(d.name,d.category);
-                starBackground.attr('opacity',.2);
-              } else {
-                this.tableManager.removeStar(d.name);
-                starBackground.attr('opacity',0);
-              };
-
-
-            } else if (e.includes('POI')) {
-              this.tableManager.setAffectedState(d.name);
-              selectAll('.icon').filter('.tooltipTitle').classed('poi',(ee:any)=> {
-              return ee.includes('POI') && this.tableManager.affectedState.name === d.name;
-              });
-
-
-            }
-          select('#treeMenu').select('.menu').remove();
-          });
-
-          menuItems.attr('transform', ((d,i)=> {return 'translate(0,' + (5 + i*menuItemHeight) + ')';}));
-
-        menuItems
-          .select('.icon')
-          .attr('x', menuWidth - 20)
-          .attr('y', menuItemHeight/2+5)
-          .attr('class', 'icon')
-          .text((d: any,i)=> {
-            if (i === 0 && d.includes('Show')) {
-              return '\uf111';
-            } else if (i === 1 && d.includes('Show')) {
-              return '\uf22d';
-            } else if (i === 0 || i === 2) {
-              return '\uf007';
-            } else if (i === 1 || i === 3) {
-              return '\uf005';
-            } else {
-              return '';
-            }
-          })
-          .classed('tooltipTitle', true)
-          .classed('star',(e)=> {
-            const header = select('#' + d.name.replace(/\./g, '\\.').replace(/ /g,'_') + '_header');
-            return e.includes('Star') && header.classed('star');
-          })
-          .classed('poi',(e)=> {
-            return e.includes('POI') && this.tableManager.affectedState.name === d.name;
-          });
-
-          menuItems
-          .select('.menuDivider')
-          .attr('x1', 0)
-          .attr('x2', menuWidth)
-          .attr('y1', menuItemHeight)
-          .attr('y2', menuItemHeight)
-          .attr('stroke-width', '1px')
-          .attr('stroke', 'white');
-
-        select('#treeMenu')
-          .attr('width', menuWidth);
-
-        menu.append('line')
-          .attr('x1', 0)
-          .attr('x2', menuWidth)
-          .attr('y1', 5)
-          .attr('y2', 5)
-          .attr('stroke-width', '5px')
-          .attr('stroke', '#e86c37');
-      }
+    menu.append('line')
+      .attr('x1', 0)
+      .attr('x2', menuWidth)
+      .attr('y1', 5)
+      .attr('y2', 5)
+      .attr('stroke-width', '5px')
+      .attr('stroke', '#e86c37');
+  }
 
   /**
    *
@@ -2191,8 +2228,8 @@ class AttributeTable {
         }
       }
       )
-      .on('mouseover', (d) => this.addTooltip('header', d))
-      .on('mouseout', (d) => {
+      .on('mouseenter', (d) => this.addTooltip('header', d))
+      .on('mouseleave', (d) => {
         select('#tooltipMenu').select('.menu').remove();
       });
 
@@ -2354,9 +2391,12 @@ class AttributeTable {
 
   };
 
+  private removeTooltip() {
+    // select('#tooltipMenu').html(''); //select('.menu').remove();
+  }
 
   private addTooltip(type, data = null) {
-
+    // console.log('adding tooltip');
     const container = document.getElementById('app');
     const coordinates = mouse(container);
 
@@ -2393,6 +2433,9 @@ class AttributeTable {
     const menuHeight = 30;
 
 
+    select('#tooltipMenu')
+    .select('svg').remove();
+
     const menu = select('#tooltipMenu')
       .append('svg')
       .attr('class', 'menu')
@@ -2418,7 +2461,7 @@ class AttributeTable {
     menuWidth = textNode.getComputedTextLength() + 20;
 
     select('#tooltipMenu').select('.menu')
-      .attr('transform', 'translate(' + (coordinates[0] - menuWidth) + ',' + (coordinates[1] - menuHeight / 2) + ')');
+      .attr('transform', 'translate(' + (coordinates[0] - menuWidth - 20) + ',' + (coordinates[1] - menuHeight / 2) + ')');
 
     select('#tooltipMenu')
       .attr('width', menuWidth);
@@ -2441,22 +2484,11 @@ class AttributeTable {
       .attr('stroke-width', '5px')
       .attr('stroke', '#e86c37');
 
-
-
-
-    // menu
-    // .append('text')
-    // .attr('x', 10)
-    // .attr('y', menuHeight*0.4)
-    // .text('Content')
-    // .classed('tooltipContent',true);
-
     select('.menu')
       .transition()
       .delay(500)
       .attr('opacity', 1);
 
-    // .attr('fill', '#4e4e4e');
 
   }
   /**
@@ -2507,18 +2539,18 @@ class AttributeTable {
     if (element.selectAll('.categorical').size() === 0) {
       element
         .append('rect')
-        .classed('frame', true)
-        .on('mouseover', (d) => { this.addTooltip('cell', cellData); })
-        .on('mouseout', () => {
-          select('#tooltipMenu').select('.menu').remove();
-        });
+        .classed('frame', true);
+        // .on('mouseover', (d) => {this.addTooltip('cell', cellData); })
+        // .on('mouseout', () => {
+        //   select('#tooltipMenu').select('.menu').remove();
+        // });
 
       element.append('rect')
-        .classed(VALUE_TYPE_CATEGORICAL, true)
-        .on('mouseover', (d) => { this.addTooltip('cell', cellData); })
-        .on('mouseout', () => {
-          select('#tooltipMenu').select('.menu').remove();
-        });
+        .classed(VALUE_TYPE_CATEGORICAL, true);
+        // .on('mouseover', (d) => { this.addTooltip('cell', cellData); })
+        // .on('mouseout', () => {
+        //   select('#tooltipMenu').select('.menu').remove();
+        // });
     }
 
     this.yScale
@@ -2612,15 +2644,15 @@ class AttributeTable {
     //append data to checkbox for easy export
     //only add checkboxes for the dataDensity col;
     element.selectAll('.checkbox')
-    .data([cellData].filter((c)=> {return c.type === 'dataDensity';}))
-    .enter()
-    .append('rect')
-    .classed('checkbox', true)
-    .on('click',function() {
-      //toggle visibility of both checkbox icon and checkbox color;
-      element.select('.checkboxIcon').classed('checked',!select(this).classed('checked'));
-      select(this).classed('checked',!select(this).classed('checked'));
-    });
+      .data([cellData].filter((c) => { return c.type === 'dataDensity'; }))
+      .enter()
+      .append('rect')
+      .classed('checkbox', true)
+      .on('click', function () {
+        //toggle visibility of both checkbox icon and checkbox color;
+        element.select('.checkboxIcon').classed('checked', !select(this).classed('checked'));
+        select(this).classed('checked', !select(this).classed('checked'));
+      });
 
 
     if (element.selectAll('.dataDens').size() === 0) {
@@ -2630,14 +2662,14 @@ class AttributeTable {
 
       element.append('text')
         .classed('label', true)
-        .on('click', ()=> {return console.log(cellData.data);});
+        .on('click', () => { return console.log(cellData.data); });
 
-        if (cellData.type === 'dataDensity') {
-          element.append('text').text('\uf00c')
-          .classed('checkboxIcon',true)
-          .attr('x',11)
-          .attr('y',12);
-        }
+      if (cellData.type === 'dataDensity') {
+        element.append('text').text('\uf00c')
+          .classed('checkboxIcon', true)
+          .attr('x', 11)
+          .attr('y', 12);
+      }
 
     }
 
@@ -2647,22 +2679,22 @@ class AttributeTable {
       .select('.dataDens')
       .attr('width', colWidth)
       .attr('height', rowHeight)
-      .attr('x',(cellData.type === 'dataDensity' ? (this.colWidths.dataDensity+this.buffer) : 0))
+      .attr('x', (cellData.type === 'dataDensity' ? (this.colWidths.dataDensity + this.buffer) : 0))
       .attr('y', 0)
       .attr('opacity', .4)
       .attr('fill', (d, i) => { return this.colorScale[0]; });
 
-      element
+    element
       .select('.checkbox')
       .attr('width', colWidth)
       .attr('height', rowHeight)
-      .attr('x',3)
+      .attr('x', 3)
       .attr('y', 0);
 
 
     element
       .select('.label')
-      .attr('x',(cellData.type === 'dataDensity' ? (colWidth/2 + this.colWidths.dataDensity+this.buffer) : colWidth/2))
+      .attr('x', (cellData.type === 'dataDensity' ? (colWidth / 2 + this.colWidths.dataDensity + this.buffer) : colWidth / 2))
       // .attr('x', colWidth / 2)
       .attr('y', rowHeight * 0.8)
       .text(() => {
@@ -2699,6 +2731,7 @@ class AttributeTable {
    */
   private renderIntCell(element, cellData) {
 
+    // console.log(cellData)
     //Check for custom column width value, if none, use default
     const colWidth = this.customColWidths[cellData.name] || this.colWidths.int;
 
@@ -2716,9 +2749,12 @@ class AttributeTable {
       .clamp(true);
 
     //No of non-undefined elements in this array
-    const numValues = cellData.data.reduce((a, v) => v ? a + 1 : a, 0);
-
+    const numValues = cellData.data.filter((v)=> {return v !== undefined;}).length;
+    // console.log(numValues);
     if (numValues === 0) {
+
+
+      // console.log(cellData.name, cellData.data);
       //Add a faint cross out to indicate no data here;
       if (element.selectAll('.cross_out').size() === 0) {
         element
@@ -2749,13 +2785,15 @@ class AttributeTable {
       .attr('width', (d) => {
         return colWidth;
       })
-      .attr('height', rowHeight)
-      .on('mouseover', (d) => { this.addTooltip('cell', cellData); })
-      .on('mouseout', () => {
-        select('#tooltipMenu').select('.menu').remove();
-      });
+      .attr('height', rowHeight);
+      // .on('mouseover', (d) => {
+      //   this.addTooltip('cell', cellData);
+      // })
+      // .on('mouseout', () => {
+      //   select('#tooltipMenu').select('.menu').remove();
+      // })
 
-    element.selectAll('.quant_ellipse').remove(); //Hack. don't know why ellipsis.exit().remove() isn' removing the extra ones.
+    // element.selectAll('.quant_ellipse').remove(); //Hack. don't know why ellipsis.exit().remove() isn' removing the extra ones.
 
     let ellipses = element
       .selectAll('ellipse')
@@ -2867,9 +2905,9 @@ class AttributeTable {
       .style('stroke', 'none');
 
     //set Hover to show entire text
-    element
-      .on('mouseover', () => this.addTooltip('cell', cellData))
-      .on('mouseout', () => select('#tooltipMenu').select('.menu').remove());
+    // element
+    //   .on('mouseover', () => this.addTooltip('cell', cellData))
+    //   .on('mouseout', () => select('#tooltipMenu').select('.menu').remove());
     // .on('mouseover', function (d) {
     //   select(this).select('.string')
     //     .text(() => {
@@ -2938,7 +2976,7 @@ class AttributeTable {
       element
         .append('text')
         .classed('string', true)
-        .on('click', ()=> {return console.log(cellData.data);});
+        .on('click', () => { return console.log(cellData.data); });
     }
 
     let textLabel;

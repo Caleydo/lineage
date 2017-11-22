@@ -152,8 +152,9 @@ ul.nav.navbar-nav{
 //   flex:1;
 // }
 
-.header{
-  cursor: move;;
+.headerTitle{
+  pointer-events:none;
+  // cursor: move;;
 }
 
 .resizeBar{

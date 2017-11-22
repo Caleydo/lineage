@@ -157,6 +157,11 @@ ul.nav.navbar-nav{
   // cursor: move;;
 }
 
+.starRect{
+  pointer-events: none;
+}
+
+
 .resizeBar{
   cursor:ew-resize;
 }

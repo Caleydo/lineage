@@ -2417,14 +2417,16 @@ class AttributeTable {
         });
 
       } else if (data.type === 'int') {
-        // if (data.data.length>1) {
         content = data.name + ' : ' + data.data.sort((a, b) => { return (a - b); }); //display sorted values
-        // } else {
-
-        // }
-      } else { //data.type === 'string'
+      } else if (data.type === 'string') {
         content = data.name + ' : ' + data.data[0].toLowerCase();
-      }
+      } else if (data.type === 'dataDensity') {
+      content = data.name + ' : ' + (data.data[0] ? data.data[0].toLowerCase() : data.data);
+    } else if (data.type === 'idtype') {
+    console.log(data);
+  content = data.name + ' : ' +  data.data;
+}
+
     } else if (type === 'header') {
       content = (data.type === 'categorical' ? (data.name + '(' + data.category + ') ') : data.name);
     };

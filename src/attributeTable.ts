@@ -993,9 +993,9 @@ class AttributeTable {
   //function that removes spaces and periods to be used as ids and selectors. Also includes categories for categorical data.
   private deriveID(d) {
     return (d.type === 'categorical' ?
-    (d.name.replace(/ /g, '_').replace(/\./g, '\\.')+ '_' 
+    (d.name.replace(/ /g, '_').replace(/\./g, '')+ '_'
     + d.category.replace(/ /g, '_').replace(/\(/g, '').replace(/\)/g, '')) :
-     (d.name.replace(/ /g, '_').replace(/\./g, '\\.')));
+     (d.name.replace(/ /g, '_').replace(/\./g, '')));
   }
 
   private lazyScroll = _.throttle(this.updateSlopeLines, 300);
@@ -1223,10 +1223,10 @@ class AttributeTable {
 
     const dragstarted = (d, i) => {
 
-      // selectAll('.colSummary').attr('opacity', .3);
-      // selectAll('.dataCols').attr('opacity', .3);
-      // select('#' + this.deriveID(d) + '_summary').attr('opacity', 1);
-      // select('#' + this.deriveID(d) + '_data').attr('opacity', 1);
+      selectAll('.colSummary').attr('opacity', .3);
+      selectAll('.dataCols').attr('opacity', .3);
+      select('#' + this.deriveID(d) + '_summary').attr('opacity', 1);
+      select('#' + this.deriveID(d) + '_data').attr('opacity', 1);
 
       //Escape any periods with backslash
       const header = select('#' + this.deriveID(d) + '_header');

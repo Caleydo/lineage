@@ -80,8 +80,8 @@ class AttributePanel {
     this.build();
     this.attachListener();
 
+    this.tableManager.setAffectedState('suicide');
     // this.tableManager.setAffectedState('affected');
-    this.tableManager.setAffectedState('affected');
 
     // select('.suicide').select('#poi').each(function () {
     //   const onClickFunc = select(this).on('click');

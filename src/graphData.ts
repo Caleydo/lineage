@@ -262,6 +262,8 @@ class GraphData {
 
     this.nodes = [];
     const columns = this.graphTable.cols();
+
+    
     // const nrow = this.graphTable.nrow;
 
 
@@ -287,6 +289,7 @@ class GraphData {
     const columnDesc = this.graphTable.desc.columns;
     const columnNameToIndex: { [name: string]: number } = {};
 
+    const allData = await this.graphTable.data();
     // console.log(columnNameToIndex);
     for (let i = 0; i < columnDesc.length; i++) {
       //console.log(columns[i]);
@@ -297,15 +300,16 @@ class GraphData {
 
     // console.log('started checking')
     let i = 0;
-    for (const row of await this.graphTable.data()) {
+    for (const row of allData) {
       const node = new Node(this.ids[i]);
-
+      
       // const node = new Node(peopleIDs[i]);
-      this.nodes.push(node);
+      
       node.initialize(columnNameToIndex, row);
+      this.nodes.push(node);
       i++;
     }
-
+    
     //Sort nodes by y value, always starting at the founder (largest y) ;
     this.nodes.sort(function (a, b) {
       return b.y - a.y;
@@ -317,13 +321,14 @@ class GraphData {
 
     this.buildTree();
 
+    do {
     //Create fake birthdays for people w/o a bdate or ddate.
     this.nodes.forEach((n) => {
       if (n.bdate === 0 || isNaN(n.bdate)) { //random number
         // subtract 20 from the age of the first kid
         if (n.hasChildren) {
-          n.bdate = n.children[0].bdate - 20;
-          n.x = n.bdate;
+          n.bdate = n.children[0].bdate && n.children[0].bdate - 20;
+          n.x = n.children[0].bdate &&  n.bdate;
         } else {
           // The not-so-nice case when we don't have an age and no children
           n.x = CURRENT_YEAR - 3;
@@ -334,6 +339,13 @@ class GraphData {
         n.ddate = CURRENT_YEAR;
       }
     });
+  } while (this.nodes.filter((node)=> {return isNaN(node.bdate)}).length>0) 
+
+    if (this.nodes.filter((node)=> {return isNaN(node.bdate)}).length>0){
+      console.log('Houston we have a problem')
+    }
+
+    
 
     //Remove cycles by creating duplicate nodes where necessary
     this.removeCycles();
@@ -826,8 +838,13 @@ class GraphData {
         });
       }
 
+      if (isUndefined(lastAssignedNode)) {
+        console.log(lastAssignedNodes)
+      }
+
       //if the last assigned Node is affected or if it is an unaffected leaf, start a new row; This does not apply when hiding.
-      if (isUndefined(node.y) && (lastAssignedNode.affected || (!lastAssignedNode.hasChildren && !lastAssignedNode.affected))) {
+      if (isUndefined(node.y) && (lastAssignedNode.affected ||
+         (!lastAssignedNode.hasChildren && !lastAssignedNode.affected))) {
         node.y = min(this.nodes, (n: any) => {
           return n.y;
         }) - 1;

@@ -149,8 +149,12 @@ export default class TableManager {
   // private defaultCols: String[] =
   //   ['KindredID','PersonID', 'Asthma', 'Bipolar', 'sex', 'deceased', 'suicide', 'gen', 'Age', 'FirstBMI', 'AgeFirstBMI', 'race', 'cause_death', 'weapon']; //set of default cols to read in, minimizes load time for large files;
 
+  // private defaultCols: String[] =
+  // ['KindredID', 'RelativeID', 'sex', 'deceased', 'suicide', 'Age','LabID','alcohol','Nr.Diag_alcohol','psychosis','Nr.Diag_psychosis','anxiety-non-trauma','Nr.Diag_anxiety-non-trauma', 'depression','cause_death']; //set of default cols to read in, minimizes load time for large files;
+
+  //default cols for Autism data
   private defaultCols: String[] =
-  ['KindredID', 'RelativeID', 'sex', 'deceased', 'suicide', 'Age','LabID','alcohol','Nr.Diag_alcohol','psychosis','Nr.Diag_psychosis','anxiety-non-trauma','Nr.Diag_anxiety-non-trauma', 'depression','cause_death']; //set of default cols to read in, minimizes load time for large files;
+  ['KindredID', 'RelativeID', 'sex', 'affected', 'labid'];
 
   //Array of attributes that are 'starred' in the table;
   private starCols=[];
@@ -349,8 +353,10 @@ export default class TableManager {
    */
   public async setAffectedState(varName, isAffectedCallbackFcn?) {
 
+    
     const attributeVector = await this.getAttributeVector(varName, true);
     const varType = attributeVector.valuetype.type;
+
 
     let threshold;
 
@@ -493,6 +499,14 @@ export default class TableManager {
     const attributeMembersRange = await this.attributeTable.col(0).ids();
     const attributeMembers = attributeMembersRange.dim(0).asList();
 
+    const familyMembers2 = await this.graphTable.col(0).names();
+    const attributeMembers2 = await this.attributeTable.col(0).names();
+
+    const familyMembers3 = familyMembers2.map((e)=> {return +e;});
+    const attributeMembers3 = attributeMembers2.map((e)=> {return +e;});
+
+
+
     const attributeRows = [];
 
     attributeMembers.forEach((member, i) => {
@@ -500,6 +514,9 @@ export default class TableManager {
         attributeRows.push(i);
       }
     });
+
+    console.log(attributeRows);
+
     this._activeTableRows = range.list(attributeRows);
 
     await this.refreshActiveTableView();

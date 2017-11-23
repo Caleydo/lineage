@@ -74,19 +74,19 @@ class AttributePanel {
     // console.log(orderedCols);
 
     this.columns = orderedCols.concat(allCols.filter((c) => { return orderedCols.indexOf(c) < 0; }));
-
     this.allColumns = orderedCols.concat(allCols.filter((c) => { return orderedCols.indexOf(c) < 0; }));
 
     // this.update();
     this.build();
     this.attachListener();
 
-    // this.tableManager.setAffectedState('suicide');
+    // this.tableManager.setAffectedState('affected');
+    this.tableManager.setAffectedState('affected');
 
-    select('.suicide').select('#poi').each(function () {
-      const onClickFunc = select(this).on('click');
-      onClickFunc.apply(this);
-    });
+    // select('.suicide').select('#poi').each(function () {
+    //   const onClickFunc = select(this).on('click');
+    //   onClickFunc.apply(this);
+    // });
 
     // return the promise directly as long there is no dynamical data to update
     return Promise.resolve(this);

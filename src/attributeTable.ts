@@ -616,6 +616,7 @@ class AttributeTable {
     for (const colName of colOrder) {
       for (const vector of allCols) {
         if (vector.desc.name === colName) {
+          // console.log(vector.desc.name, await vector.data())
           orderedCols.push(vector);
         }
       }
@@ -699,6 +700,7 @@ class AttributeTable {
 
     let allPromises = [];
     orderedCols.forEach((vector, index) => {
+      console.log(vector.desc.name) 
       allPromises = allPromises.concat([
         vector.data(),
         vector.names(),
@@ -931,7 +933,7 @@ class AttributeTable {
       const name = vector.desc.name;
 
       // console.log(index)
-      const maxOffset = max(this.colOffsets);
+      let maxOffset = max(this.colOffsets);
       // console.log(maxOffset)
       if (type === VALUE_TYPE_CATEGORICAL) {
 
@@ -965,6 +967,7 @@ class AttributeTable {
         }
 
         for (const cat of categories) {
+          maxOffset = max(this.colOffsets);
           if (this.customColWidths[name]) {
             this.colOffsets.push(maxOffset + this.buffer * 2 + this.customColWidths[name]);
           } else {
@@ -986,6 +989,14 @@ class AttributeTable {
 
   //To be used on drag interactions so that render is not called too many times
   private lazyRender = _.throttle(this.render, 10);
+
+  //function that removes spaces and periods to be used as ids and selectors. Also includes categories for categorical data.
+  private deriveID(d) {
+    return (d.type === 'categorical' ?
+    (d.name.replace(/ /g, '_').replace(/\./g, '\\.')+ '_' 
+    + d.category.replace(/ /g, '_').replace(/\(/g, '').replace(/\)/g, '')) :
+     (d.name.replace(/ /g, '_').replace(/\./g, '\\.')));
+  }
 
   private lazyScroll = _.throttle(this.updateSlopeLines, 300);
   //renders the DOM elements
@@ -1026,13 +1037,11 @@ class AttributeTable {
 
       headerEnter.append('text')
       .classed('headerTitle', true);
-      // .classed('poi',((d)=> {return this.tableManager.affectedState.name === d.name;}))
-      // .attr('id', (d) => { return d.name.replace(/ /g, '_') + '_header'; });
 
     headers = headerEnter.merge(headers);
 
     headers
-    .attr('id', (d) => { return d.name.replace(/ /g, '_') + '_header'; })
+    .attr('id', (d) => {return this.deriveID(d) + '_header'; })
     .attr('transform', (d, i) => {
       const offset = this.colOffsets[i];
       return d.type === VALUE_TYPE_CATEGORICAL ? 'translate(' + offset + ',0) rotate(-40)' : 'translate(' + offset + ',0)';
@@ -1078,7 +1087,7 @@ class AttributeTable {
 
     const colSummariesEnter = colSummaries.enter()
       .append('g').classed('colSummary', true)
-      .attr('id', (d) => { return d.name.replace(/ /g, '_') + '_summary'; });
+      .attr('id', (d) => { return this.deriveID(d) + '_summary'; });
 
     colSummariesEnter
       .append('rect')
@@ -1171,7 +1180,7 @@ class AttributeTable {
     const colsEnter = cols.enter()
       .append('g')
       .classed('dataCols', true)
-      .attr('id', (d) => { return d.name.replace(/ /g, '_') + '_data'; });
+      .attr('id', (d) => { return this.deriveID(d) + '_data'; });
 
     console.log(this.y.range());
     //Append background rect
@@ -1191,10 +1200,10 @@ class AttributeTable {
     .attr('height', this.y.range()[1] + 40)
     .attr('x', -5)
     .attr('y', -this.buffer + 3)
-    .attr('class', (d) => { return 'starRect_' + d.name.replace(/ /g, '_'); })
+    .attr('class', (d) => { return 'starRect_' + this.deriveID(d); })
     .classed('starRect', true)
     .attr('opacity', ((d) => {
-      const header = select('#' + d.name + '_header');
+      const header = select(this.deriveID(d)+'_header');
       return (!header.empty() && header.classed('star')) ? .2 : 0;
     }));
 
@@ -1214,13 +1223,13 @@ class AttributeTable {
 
     const dragstarted = (d, i) => {
 
-      selectAll('.colSummary').attr('opacity', .3);
-      selectAll('.dataCols').attr('opacity', .3);
-      select('#' + d.name.replace(/\./g, '\\.').replace(/ /g, '_') + '_summary').attr('opacity', 1);
-      select('#' + d.name.replace(/\./g, '\\.').replace(/ /g, '_') + '_data').attr('opacity', 1);
+      // selectAll('.colSummary').attr('opacity', .3);
+      // selectAll('.dataCols').attr('opacity', .3);
+      // select('#' + this.deriveID(d) + '_summary').attr('opacity', 1);
+      // select('#' + this.deriveID(d) + '_data').attr('opacity', 1);
 
       //Escape any periods with backslash
-      const header = select('#' + d.name.replace(/\./g, '\\.').replace(/ /g, '_') + '_header');
+      const header = select('#' + this.deriveID(d) + '_header');
 
       const currTransform = header.attr('transform').split('translate(')[1].split(',');
       const xpos = +currTransform[0];
@@ -1262,9 +1271,9 @@ class AttributeTable {
     const dragged = (d, i) => {
 
       //Select col summary for this col
-      const summary = select('#' + d.name.replace(/\./g, '\\.').replace(/ /g, '_') + '_summary');
-      const dataCol = select('#' + d.name.replace(/\./g, '\\.').replace(/ /g, '_') + '_data');
-      const header = select('#' + d.name.replace(/\./g, '\\.').replace(/ /g, '_') + '_header');
+      const summary = select('#' + this.deriveID(d) + '_summary');
+      const dataCol = select('#' + this.deriveID(d) + '_data');
+      const header = select('#' + this.deriveID(d) + '_header');
 
       currPos = event.x - offset;
 
@@ -2010,9 +2019,9 @@ class AttributeTable {
       .attr('opacity', 1)
       .on('click', (e) => {
         if (e.includes('Star')) {
-          const header = select('#' + d.name.replace(/\./g, '\\.').replace(/ /g, '_') + '_header');
+          const header = select('#' + this.deriveID(d) + '_header');
           console.log(header.empty());
-          const starBackground = select('.starRect_' + d.name.replace(/\./g, '\\.').replace(/ /g, '_'));
+          const starBackground = select('.starRect_' + this.deriveID(d));
           header.classed('star', !header.classed('star'));
 
           if (header.classed('star')) {
@@ -2057,7 +2066,7 @@ class AttributeTable {
       })
       .classed('tooltipTitle', true)
       .classed('star', (e) => {
-        const header = select('#' + d.name.replace(/\./g, '\\.').replace(/ /g, '_') + '_header');
+        const header = select('#' + this.deriveID(d) + '_header');
         return e.includes('Star') && header.classed('star');
       })
       .classed('poi', (e) => {
@@ -2424,11 +2433,10 @@ class AttributeTable {
       } else if (data.type === 'int') {
         content = data.name + ' : ' + data.data.sort((a, b) => { return (a - b); }); //display sorted values
       } else if (data.type === 'string') {
-        content = data.name + ' : ' + data.data[0].toLowerCase();
+        content = data.name + ' : ' + data.data[0].toString().toLowerCase();
       } else if (data.type === 'dataDensity') {
       content = data.name + ' : ' + (data.data[0] ? data.data[0].toLowerCase() : data.data);
     } else if (data.type === 'idtype') {
-    console.log(data);
   content = data.name + ' : ' +  data.data;
 }
 
@@ -2894,7 +2902,7 @@ class AttributeTable {
       textLabel = '';
     } else {
 
-      textLabel = cellData.data[0].toLowerCase().slice(0, numChar);
+      textLabel = cellData.data[0].toString().toLowerCase().slice(0, numChar);
       if (cellData.data[0].length > numChar) {
         textLabel = textLabel.concat(['...']);
       }
@@ -3084,7 +3092,6 @@ class AttributeTable {
     // });
 
     events.on(TABLE_VIS_ROWS_CHANGED_EVENT, () => {
-      console.log('3039');
       self.update();
     });
 

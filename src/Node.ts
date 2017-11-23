@@ -128,12 +128,12 @@ export default class Node {
   public initialize(columnNameToIndex: any, row: any) {
     this.sex = (row[columnNameToIndex.sex] === 'M') ? Sex.Male : Sex.Female;
     this.id = row[columnNameToIndex.RelativeID].toString();
-    this.bdate = +row[columnNameToIndex.bdate];
-    this.ddate = +row[columnNameToIndex.ddate];
+    this.bdate = +row[columnNameToIndex.bdate] ;
+    this.ddate = (columnNameToIndex.ddate ? +row[columnNameToIndex.ddate] : undefined);
     this.x = +row[columnNameToIndex.bdate];
     this.maID = row[columnNameToIndex.MaID].toString();
     this.paID = row[columnNameToIndex.PaID].toString();
     this.kindredID = row[columnNameToIndex.KindredID].toString();
-    this.deceased = row[columnNameToIndex.deceased].toString();
+    // this.deceased = row[columnNameToIndex.deceased].toString();
   }
 }

@@ -170,6 +170,7 @@ export default class TableManager {
   /** Holds the information for the 'affectedState' including variable and threshold */
   public affectedState: IAffectedState;
 
+  public dataSets = ['Dataset 1','Dataset 2', 'Dataset 3'];
 
   //Keeps track of selected primary/secondary variable
   private primaryAttribute: IPrimaryAttribute;
@@ -353,7 +354,7 @@ export default class TableManager {
    */
   public async setAffectedState(varName, isAffectedCallbackFcn?) {
 
-    
+
     const attributeVector = await this.getAttributeVector(varName, true);
     const varType = attributeVector.valuetype.type;
 

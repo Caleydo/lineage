@@ -263,7 +263,7 @@ class GraphData {
     this.nodes = [];
     const columns = this.graphTable.cols();
 
-    
+
     // const nrow = this.graphTable.nrow;
 
 
@@ -302,14 +302,14 @@ class GraphData {
     let i = 0;
     for (const row of allData) {
       const node = new Node(this.ids[i]);
-      
+
       // const node = new Node(peopleIDs[i]);
-      
+
       node.initialize(columnNameToIndex, row);
       this.nodes.push(node);
       i++;
     }
-    
+
     //Sort nodes by y value, always starting at the founder (largest y) ;
     this.nodes.sort(function (a, b) {
       return b.y - a.y;
@@ -339,13 +339,13 @@ class GraphData {
         n.ddate = CURRENT_YEAR;
       }
     });
-  } while (this.nodes.filter((node)=> {return isNaN(node.bdate)}).length>0) 
+  } while (this.nodes.filter((node)=> {return isNaN(node.bdate);}).length>0);
 
-    if (this.nodes.filter((node)=> {return isNaN(node.bdate)}).length>0){
-      console.log('Houston we have a problem')
+    if (this.nodes.filter((node)=> {return isNaN(node.bdate);}).length>0) {
+      console.log('Houston we have a problem');
     }
 
-    
+
 
     //Remove cycles by creating duplicate nodes where necessary
     this.removeCycles();
@@ -839,7 +839,7 @@ class GraphData {
       }
 
       if (isUndefined(lastAssignedNode)) {
-        console.log(lastAssignedNodes)
+        console.log(lastAssignedNodes);
       }
 
       //if the last assigned Node is affected or if it is an unaffected leaf, start a new row; This does not apply when hiding.

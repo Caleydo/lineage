@@ -12,7 +12,8 @@ import './style.scss';
 import * as icon from 'html-loader!./icon-database.html';
 
 import {
-  select
+  select,
+  selectAll
 } from 'd3-selection';
 // import './open-iconic-bootstrap.scss'
 import { create as createApp } from './app';
@@ -53,6 +54,42 @@ menu.on(LoginMenu.EVENT_LOGGED_OUT, () => {
   select('#app').append('div').attr('id', 'loading').append('h1').style('margin', '5px').html('You have logged out...');
 
 });
+
+
+//Add a Dataset Picker
+const datasetPicker = select('.navbar-collapse')
+.append('ul').attr('class', 'nav navbar-nav navbar-left').attr('id', 'datasetPicker');
+
+const dropdownList = datasetPicker.append('li').attr('class', 'dropdown');
+dropdownList
+      .append('a')
+      .attr('class', 'dropdown-toggle')
+      .attr('data-toggle', 'dropdown')
+      .attr('role', 'button')
+      .html('Pick Dataset')
+      .append('span')
+      .attr('class', 'caret');
+
+    const dataMenu = dropdownList.append('ul').attr('class', 'dropdown-menu');
+
+
+    let menuItems = dataMenu.selectAll('.datasetMenuItem')
+      .data([
+        {'title':'Suicide Families (10)','file':''},
+        {'title':'Suicide Families (550)','file':''},
+        {'title':'Autism Families','file':''}]);
+
+    menuItems = menuItems.enter()
+      .append('li')
+      .append('a')
+      .attr('class', 'datasetMenuItem')
+      .classed('active', false)
+      .html((d:any) => { return d.title; })
+      .merge(menuItems);
+
+      menuItems.on('click',function(d){
+        selectAll('.datasetMenuItem').classed('active',false);
+        select(this).classed('active',true);});
 
 
 // createHeader(

@@ -701,7 +701,6 @@ class AttributeTable {
 
     let allPromises = [];
     orderedCols.forEach((vector, index) => {
-      console.log(vector.desc.name) 
       allPromises = allPromises.concat([
         vector.data(),
         vector.names(),
@@ -1771,7 +1770,7 @@ class AttributeTable {
     animated(select('#col2'))
     .style('width',(550+Config.slopeChartWidth)+'px');
 
-    
+
     animated(select('#columns').selectAll('.cell'))
       // .transition(t2)
       .attr('transform', (cell: any) => {

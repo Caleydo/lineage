@@ -27,7 +27,7 @@ export class Config {
   public static panelSVGwidth = 220;
 
   public static collapseSlopeChartWidth = 45;
-  public static slopeChartWidth = 200;
+  public static slopeChartWidth = 150;
 
   public static rowHeight = Config.glyphSize * 2.5 - 4;
 

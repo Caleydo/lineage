@@ -254,6 +254,10 @@ class GenealogyTree {
     this.visibleXAxis = axisTop(this.x).tickFormat(format('d'));
     this.extremesXAxis = axisTop(this.x2);
 
+    select('#col2')
+    .style('width',(550+Config.collapseSlopeChartWidth)+'px');
+
+
     this.$node.append('nav').attr('class', 'navbar navbar-expand-lg navbar-light bg-light')
       .append('div').attr('id', 'tableNav');
 
@@ -338,19 +342,19 @@ class GenealogyTree {
 
     headerDiv.append('g').append('svg')
     .attr('id','personView')
-    .attr('width',550)
+    .attr('width',550+Config.collapseSlopeChartWidth)
     .attr('height',120);
 
     select('#personView')
     .append('rect')
-     .attr('width',550)
+     .attr('width',550+Config.collapseSlopeChartWidth)
     .attr('height',30)
     .attr('fill', 'white')
     .attr('opacity',.5);
 
     select('#personView')
     .append('rect')
-     .attr('width',550)
+     .attr('width',550+Config.collapseSlopeChartWidth)
     .attr('height',60)
     .attr('fill', 'white')
     .attr('opacity',.5);
@@ -462,10 +466,10 @@ class GenealogyTree {
 
     // const headerSVG = select('#headersDIV').append('svg')
     headerDiv.append('svg')
-      // .attr('width', 550)
-      // .attr('height',170)
-      .attr('id', 'headers')
-      .attr('viewBox', '0 0 ' + (this.width) + ' 75');
+      .attr('width', this.width)
+      .attr('height',170)
+      .attr('id', 'headers');
+      // .attr('viewBox', '0 0 ' + (this.width+Config.collapseSlopeChartWidth) + ' 75');
 
     // headerSVG.append('rect')
     //   .attr('width', 970)
@@ -488,87 +492,6 @@ class GenealogyTree {
         selectAll('.clicked').classed('clicked', false);
       });
 
-    //Create gradients for fading life lines and kidGrids
-    const gradient = svg.append('defs')
-      .append('linearGradient')
-      .attr('id', 'gradient')
-      .attr('x1', '0%')
-      .attr('y1', '50%')
-      .attr('x2', '100%')
-      .attr('y2', '50%')
-      .attr('spreadMethod', 'pad');
-
-    gradient.append('stop')
-      .attr('offset', '0%')
-      .attr('stop-color', '#9e9d9b')
-      .attr('stop-opacity', 1);
-
-    gradient.append('stop')
-      .attr('offset', '80%')
-      .attr('stop-color', '#9e9d9b')
-      .attr('stop-opacity', 1);
-
-    gradient.append('stop')
-      .attr('offset', '100%')
-      .attr('stop-color', 'white')
-      .attr('stop-opacity', 0);
-
-    const slopeGradient = svg.append('defs')
-      .append('linearGradient')
-      .attr('id', 'linear')
-      .attr('x1', '0%')
-      .attr('y1', '0%')
-      .attr('x2', '100%')
-      .attr('y2', '0%');
-
-    slopeGradient.append('stop')
-      .attr('offset', '0%')
-      .attr('stop-color', '#05a');
-
-    slopeGradient.append('stop')
-      .attr('offset', '0%')
-      .attr('stop-color', '#0a5');
-
-
-    const kidGridGradient = svg.append('defs')
-      .append('linearGradient')
-      .attr('id', 'kidGridGradient')
-      .attr('x1', '0%')
-      .attr('y1', '50%')
-      .attr('x2', '100%')
-      .attr('y2', '50%')
-      .attr('spreadMethod', 'pad');
-
-    kidGridGradient.append('stop')
-      .attr('offset', '0%')
-      .attr('stop-color', '#f7f7f6')
-      .attr('stop-opacity', 0);
-
-    kidGridGradient.append('stop')
-      .attr('offset', '10%')
-      .attr('stop-color', '#f7f7f6')
-      .attr('stop-opacity', 1);
-
-    kidGridGradient.append('stop')
-      .attr('offset', '20%')
-      .attr('stop-color', '#f7f7f6')
-      .attr('stop-opacity', 1);
-
-    kidGridGradient.append('stop')
-      .attr('offset', '60%')
-      .attr('stop-color', '#f7f7f6')
-      .attr('stop-opacity', 1);
-
-    kidGridGradient.append('stop')
-      .attr('offset', '75%')
-      .attr('stop-color', '#f7f7f6')
-      .attr('stop-opacity', 1);
-
-    kidGridGradient.append('stop')
-      .attr('offset', '100%')
-      .attr('stop-color', '#f7f7f6')
-      .attr('stop-opacity', 0);
-
     //Add scroll listener for the graph table div
     document.getElementById('graph').addEventListener('scroll', () => {
 
@@ -582,13 +505,20 @@ class GenealogyTree {
     });
 
     //Create group for genealogy tree
-
-
-
-
     svg.append('g')
       .attr('transform', 'translate(' + this.margin.left + ',' + (Config.glyphSize + this.margin.top) + ')')
       .attr('id', 'genealogyTree');
+
+      //Create group for slope chart
+   svg.append('g')
+      .attr('transform', 'translate(' + this.width + ',' + this.margin.top + ')')
+      .attr('id', 'slopeChart');
+
+    select('#slopeChart').append('g')
+      .attr('id', 'firstCol');
+
+    select('#slopeChart').append('g')
+      .attr('id', 'slopeLines');
 
     //Ensure the right order of all the elements by creating seprate groups
 
@@ -738,7 +668,7 @@ class GenealogyTree {
     this.$node.select('#graph')
       // .attr('viewBox','0 0 ' + this.width +  ' ' +  (this.height + this.margin.top + this.margin.bottom))
       // .attr('preserveAspectRatio','none');
-      .attr('width', this.width)
+      .attr('width', this.width+Config.slopeChartWidth)
       .attr('height', this.height);
 
     this.update_edges();

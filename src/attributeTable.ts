@@ -169,7 +169,7 @@ class AttributeTable {
       .append('ul').attr('class', 'nav navbar-nav').attr('id', 'attributeMenu');
 
     this.$node.select('.navbar')
-      .append('ul').attr('class', 'nav navbar-nav').attr('id', 'Sort by Tree')
+      .append('ul').attr('class', 'nav navbar-nav').attr('id', 'Export')
       .append('li')
       .append('a')
       .attr('class', 'btn-link')
@@ -232,6 +232,8 @@ class AttributeTable {
         selectAll('.sortIcon')
           .classed('sortSelected', false);
 
+          animated(select('#col2'))
+          .style('width',(550+Config.collapseSlopeChartWidth)+'px');
 
         animated(select('#columns').selectAll('.cell'))
           .attr('transform', (cell: any) => {
@@ -242,13 +244,13 @@ class AttributeTable {
         animated(select('#tableGroup'))
           // .transition(t2)
           .attr('transform', () => {
-            return ('translate(' + Config.collapseSlopeChartWidth + ' ,0)');
+            return ('translate(0,0)');
           });
 
         animated(select('#headerGroup'))
           // .transition(t2)
           .attr('transform', () => {
-            return ('translate(' + Config.collapseSlopeChartWidth + ' ,80)');
+            return ('translate(0,80)');
           });
 
         animated(select('#colSummaries'))
@@ -383,7 +385,6 @@ class AttributeTable {
       .attr('transform', 'translate(0 ,' + this.margin.top + ')');
 
     select('#marginGroup').append('g')
-      .attr('transform', 'translate(' + Config.collapseSlopeChartWidth + ' , 0)')
       .attr('id', 'tableGroup');
 
     //HEADERS
@@ -407,15 +408,15 @@ class AttributeTable {
       .attr('id', 'highlightBars');
 
     //SlopeChart and first col
-    select('#marginGroup').append('g')
-      // .attr('transform', 'translate(0, ' + this.margin.top + ')')
-      .attr('id', 'slopeChart');
+    // select('#marginGroup').append('g')
+    //   // .attr('transform', 'translate(0, ' + this.margin.top + ')')
+    //   .attr('id', 'slopeChart');
 
-    select('#slopeChart').append('g')
-      .attr('id', 'firstCol');
+    // select('#slopeChart').append('g')
+    //   .attr('id', 'firstCol');
 
-    select('#slopeChart').append('g')
-      .attr('id', 'slopeLines');
+    // select('#slopeChart').append('g')
+    //   .attr('id', 'slopeLines');
 
 
     //Add button to slopeChart Div that says 'revert to Tree Order'
@@ -1725,9 +1726,9 @@ class AttributeTable {
       return;
     }
 
-    select('#revertTreeOrder')
-      // .transition(t2.transition().duration(500).ease(easeLinear))
-      .attr('visibility', 'visible');
+    // select('#revertTreeOrder')
+    //   // .transition(t2.transition().duration(500).ease(easeLinear))
+    //   .attr('visibility', 'visible');
 
     // sorting the mapped array containing the reduced values
     if (sortOrder === sortedState.Ascending) {
@@ -1767,7 +1768,10 @@ class AttributeTable {
 
     // let cellSelection = select('#columns').selectAll('.cell');
 
+    animated(select('#col2'))
+    .style('width',(550+Config.slopeChartWidth)+'px');
 
+    
     animated(select('#columns').selectAll('.cell'))
       // .transition(t2)
       .attr('transform', (cell: any) => {
@@ -1780,14 +1784,14 @@ class AttributeTable {
     animated(select('#tableGroup'))
       // .transition(t2)
       .attr('transform', (cell: any) => {
-        return ('translate(' + Config.slopeChartWidth + ' ,0)');
+        return ('translate(0,0)');
       });
 
 
     animated(select('#headerGroup'))
       // .transition(t2)
       .attr('transform', (cell: any) => {
-        return ('translate(' + (Config.slopeChartWidth) + ' ,80)');
+        return ('translate(0,80)');
       });
 
     animated(select('#colSummaries'))

@@ -149,12 +149,12 @@ export default class TableManager {
   // private defaultCols: String[] =
   //   ['KindredID','PersonID', 'Asthma', 'Bipolar', 'sex', 'deceased', 'suicide', 'gen', 'Age', 'FirstBMI', 'AgeFirstBMI', 'race', 'cause_death', 'weapon']; //set of default cols to read in, minimizes load time for large files;
 
-  private defaultCols: String[] =
-  ['KindredID', 'RelativeID', 'sex', 'deceased', 'suicide', 'Age','LabID','alcohol','Nr.Diag_alcohol','psychosis','Nr.Diag_psychosis','anxiety-non-trauma','Nr.Diag_anxiety-non-trauma', 'depression','cause_death']; //set of default cols to read in, minimizes load time for large files;
+  // private defaultCols: String[] =
+  // ['KindredID', 'RelativeID', 'sex', 'deceased', 'suicide', 'Age','LabID','alcohol','Nr.Diag_alcohol','psychosis','Nr.Diag_psychosis','anxiety-non-trauma','Nr.Diag_anxiety-non-trauma', 'depression','cause_death']; //set of default cols to read in, minimizes load time for large files;
 
   // //default cols for Autism data
-  // private defaultCols: String[] =
-  // ['KindredID', 'RelativeID', 'sex', 'affected', 'labid'];
+  private defaultCols: String[] =
+  ['KindredID', 'RelativeID', 'sex', 'affected', 'labid'];
 
   //Array of attributes that are 'starred' in the table;
   private starCols=[];

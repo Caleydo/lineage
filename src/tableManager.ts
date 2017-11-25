@@ -149,8 +149,7 @@ export default class TableManager {
   // private defaultCols: String[] =
   //   ['KindredID','PersonID', 'Asthma', 'Bipolar', 'sex', 'deceased', 'suicide', 'gen', 'Age', 'FirstBMI', 'AgeFirstBMI', 'race', 'cause_death', 'weapon']; //set of default cols to read in, minimizes load time for large files;
 
-  private defaultCols: String[] =
-  ['KindredID', 'RelativeID', 'sex', 'deceased', 'suicide', 'Age','LabID','alcohol','Nr.Diag_alcohol','psychosis','Nr.Diag_psychosis','anxiety-non-trauma','Nr.Diag_anxiety-non-trauma', 'depression','cause_death']; //set of default cols to read in, minimizes load time for large files;
+    private defaultCols: String[];
 
   // //default cols for Autism data
   // private defaultCols: String[] =
@@ -192,6 +191,14 @@ export default class TableManager {
    * @param: id of the dataset
    */
   public async loadData(descendDataSetID: string, attributeDataSetID: string) {
+
+    if (descendDataSetID === 'AllFamiliesDescend') {
+      this.defaultCols = ['KindredID', 'RelativeID', 'sex', 'deceased', 'suicide', 'Age','LabID','alcohol','Nr.Diag_alcohol','psychosis','Nr.Diag_psychosis','anxiety-non-trauma','Nr.Diag_anxiety-non-trauma', 'depression','cause_death']; //set of default cols to read in, minimizes load time for large files;
+    } else {
+      this.defaultCols = ['KindredID', 'RelativeID', 'sex', 'affected', 'labid'];
+    };
+
+    this.colOrder = this.defaultCols;
 
     //retrieving the desired dataset by name
     this.attributeTable = <ITable>await getById(attributeDataSetID);

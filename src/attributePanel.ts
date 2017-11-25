@@ -34,9 +34,14 @@ class AttributePanel {
    * that is resolved as soon the view is completely initialized.
    * @returns {Promise<FilterBar>}
    */
-  init(tableManager) {
+  init(tableManager,dataset) {
 
-    tableManager.setAffectedState('suicide');
+    if (dataset === 'suicide') {
+      tableManager.setAffectedState('suicide');
+    } else {
+      tableManager.setAffectedState('affected');
+    }
+
     // tableManager.setAffectedState('affected');
 
     // return the promise directly as long there is no dynamical data to update

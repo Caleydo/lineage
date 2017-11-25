@@ -178,9 +178,10 @@ class AttributeTable {
 
         csvContent += 'RelativeID,LabID\r\n'; // add carriage return
 
-        const labIDcells = select('#LabID_data').selectAll('.cell');
-
-        const labIDVector = await this.tableManager.getAttributeVector('LabID', false);
+        let labIDVector = await this.tableManager.getAttributeVector('LabID', false);
+        if (!labIDVector) {
+          labIDVector = await this.tableManager.getAttributeVector('labid', false);
+        }
         const labIDData = await labIDVector.data();
         const personIDs = await labIDVector.names();
 
@@ -2658,6 +2659,7 @@ class AttributeTable {
       .append('rect')
       .classed('checkbox', true)
       .on('click', function () {
+        event.stopPropagation();
         //toggle visibility of both checkbox icon and checkbox color;
         element.select('.checkboxIcon').classed('checked', !select(this).classed('checked'));
         select(this).classed('checked', !select(this).classed('checked'));

@@ -91,8 +91,8 @@ export class App {
     const tableManager = TableManager.create();
 
    const parsedUrl = new URL(window.location.href);
-   const dataset = parsedUrl.search.split('ds=')[1]; // suicide
-
+   let dataset = parsedUrl.search.split('ds=')[1]; // suicide
+    console.log(dataset)
   //  console.log(c);
     // This executes asynchronously, so you'll have to pass
     // back a promise and resolve that before you keep going
@@ -107,7 +107,8 @@ export class App {
     /** =====  PRIVATE CASES - WORKS ONLY WITH THE RIGHT DATA LOCALLY ===== */
 
     //await tableManager.loadData('TenFamiliesDescend', 'TenFamiliesAttr');
-    if (dataset === 'suicide') {
+    if (dataset === 'suicide' || !dataset) {
+      dataset = 'suicide';
       await tableManager.loadData('AllFamiliesDescend', 'AllFamiliesAttributes');
     } else if (dataset === 'autism') {
      await tableManager.loadData('AllAutismFamiliesDescend', 'AllAutismFamiliesAttributes');

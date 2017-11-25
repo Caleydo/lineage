@@ -212,13 +212,13 @@ class GenealogyTree {
    * that is resolved as soon the view is completely initialized.
    * @returns {Promise<genealogyTree>}
    */
-  init(data,tableManager) {
+  init(data, tableManager) {
     this.data = data;
     this.tableManager = tableManager;
 
     this.build();
-    // this.data.collapseAll();
-    this.update();
+
+    // this.update();
     this.attachListeners();
     // return the promise directly as long there is no dynamical data to update
     return Promise.resolve(this);
@@ -227,9 +227,7 @@ class GenealogyTree {
   /**
    * Updates the view when the input data changes
    */
-
-  private update() {
-
+  public update() {
     //Filter data to only render what is visible in the current window
     this.update_time_axis();
     //Call function that updates the position of all elements in the tree
@@ -242,21 +240,13 @@ class GenealogyTree {
    * Build the basic DOM elements and binds the change function
    */
   private build() {
-
-    //fetch the svg bounds
-    const svgBounds = document.querySelector('#col2').getBoundingClientRect();
-    const parentWidth = 500;
-
-
-    // this.width = parentWidth - this.margin.left - this.margin.right;
     this.width = 550;
 
     this.visibleXAxis = axisTop(this.x).tickFormat(format('d'));
     this.extremesXAxis = axisTop(this.x2);
 
     select('#col2')
-    .style('width',(550+Config.collapseSlopeChartWidth)+'px');
-
+      .style('width', (this.width + Config.collapseSlopeChartWidth) + 'px');
 
     this.$node.append('nav').attr('class', 'navbar navbar-expand-lg navbar-light bg-light')
       .append('div').attr('id', 'tableNav');
@@ -268,22 +258,22 @@ class GenealogyTree {
     const buttonMenu = this.$node.select('.navbar')
       .append('ul').attr('class', 'nav navbar-nav');
 
-      buttonMenu
+    buttonMenu
       .append('li')
       .append('a')
       .attr('class', 'btn-link')
       .attr('role', 'button')
-      .attr('id','LegendPersonView')
+      .attr('id', 'LegendPersonView')
       .html('View Legend')
       .on('click', (d) => {
         const text = select('#LegendPersonView').html();
         if (text === 'View Legend') {
-          select('#personView').style('display','none');
-          select('#legendSVG').style('display','inherit');
+          select('#personView').style('display', 'none');
+          select('#legendSVG').style('display', 'inherit');
           select('#LegendPersonView').html('View Person Details');
         } else {
-          select('#personView').style('display','inherit');
-          select('#legendSVG').style('display','none');
+          select('#personView').style('display', 'inherit');
+          select('#legendSVG').style('display', 'none');
           select('#LegendPersonView').html('View Legend');
         }
       });
@@ -314,7 +304,6 @@ class GenealogyTree {
         selectAll('.highlightBar').classed('selected', false);
 
         this.data.aggregateTreeWrapper(undefined, layoutState.Hidden);
-        // this.update_graph();
       });
 
     buttonMenu
@@ -329,161 +318,129 @@ class GenealogyTree {
         selectAll('.highlightBar').classed('selected', false);
 
         this.data.aggregateTreeWrapper(undefined, layoutState.Expanded);
-        // this.update_graph();
       });
 
     const headerDiv = this.$node.append('div').attr('id', 'graphHeaders');
 
     //Add svg legend
     headerDiv.append('g')
-    .style('display','none')
-    .attr('id','legendSVG')
-    .html(String(icon));
+      .style('display', 'none')
+      .attr('id', 'legendSVG')
+      .html(String(icon));
 
     headerDiv.append('g').append('svg')
-    .attr('id','personView')
-    .attr('width',550+Config.collapseSlopeChartWidth)
-    .attr('height',120);
+      .attr('id', 'personView')
+      .attr('width', this.width + Config.collapseSlopeChartWidth)
+      .attr('height', 120);
 
     select('#personView')
-    .append('rect')
-     .attr('width',550+Config.collapseSlopeChartWidth)
-    .attr('height',30)
-    .attr('fill', 'white')
-    .attr('opacity',.5);
+      .append('rect')
+      .attr('width', this.width + Config.collapseSlopeChartWidth)
+      .attr('height', 30)
+      .attr('fill', 'white')
+      .attr('opacity', .5);
 
     select('#personView')
-    .append('rect')
-     .attr('width',550+Config.collapseSlopeChartWidth)
-    .attr('height',60)
-    .attr('fill', 'white')
-    .attr('opacity',.5);
+      .append('rect')
+      .attr('width', this.width + Config.collapseSlopeChartWidth)
+      .attr('height', 60)
+      .attr('fill', 'white')
+      .attr('opacity', .5);
 
     select('#personView')
-    .append('text')
-    .classed('personViewStaticLabel',true)
-    .attr('x',10)
-    .attr('y',20)
-    .text('RelativeID: ')
-    .style('font-weight','bolder');
+      .append('text')
+      .classed('personViewStaticLabel', true)
+      .attr('x', 10)
+      .attr('y', 20)
+      .text('RelativeID: ')
+      .style('font-weight', 'bolder');
 
     select('#personView')
-    .append('text')
-    .style('font-weight','bolder')
-    .attr('x',80)
-    .attr('y',20)
-    .attr('id','person')
-    .classed('personViewLabel',true);
+      .append('text')
+      .style('font-weight', 'bolder')
+      .attr('x', 80)
+      .attr('y', 20)
+      .attr('id', 'person')
+      .classed('personViewLabel', true);
 
     select('#personView')
-    .append('text')
-    .classed('personViewStaticLabel',true)
-    .attr('x',10)
-    .attr('y',50)
-    .text('Family ID(s): ');
+      .append('text')
+      .classed('personViewStaticLabel', true)
+      .attr('x', 10)
+      .attr('y', 50)
+      .text('Family ID(s): ');
 
     select('#personView')
-    .append('g')
-    .attr('transform','translate(' + 90 + ',' + 50 + ')')
-    .attr('id','kindredLabel')
-    .classed('personViewLabel',true);
-
-
-    select('#personView')
-    .append('text')
-    .classed('personViewStaticLabel',true)
-    .attr('x',150)
-    .attr('y',20)
-    .text('MotherID: ');
-
-    select('#personView')
-    .append('text')
-    .attr('x',210)
-    .attr('y',20)
-    .attr('id','motherLabel')
-    .classed('personViewLabel',true);
-
-    select('#personView')
-    .append('text')
-    .classed('personViewStaticLabel',true)
-    .attr('x',280)
-    .attr('y',20)
-    .text('FatherID: ');
-
-    select('#personView')
-    .append('text')
-    .attr('x',335)
-    .attr('y',20)
-    .attr('id','fatherLabel')
-    .classed('personViewLabel',true);
-
-    select('#personView')
-    .append('text')
-    .classed('personViewStaticLabel',true)
-    .attr('x',10)
-    .attr('y',80)
-    .text('Spouse(s): ');
-
-    select('#personView')
-    .append('g')
-    .attr('id','spouseLabels')
-    .classed('personViewLabel',true)
-    .attr('transform','translate(' + 80 + ',' + 80 + ')');
+      .append('g')
+      .attr('transform', 'translate(' + 90 + ',' + 50 + ')')
+      .attr('id', 'kindredLabel')
+      .classed('personViewLabel', true);
 
 
     select('#personView')
-    .append('text')
-    .classed('personViewStaticLabel',true)
-    .attr('x',10)
-    .attr('y',110)
-    .text('Child(ren): ');
+      .append('text')
+      .classed('personViewStaticLabel', true)
+      .attr('x', 150)
+      .attr('y', 20)
+      .text('MotherID: ');
 
     select('#personView')
-    .append('g')
-    .attr('id','childrenLabels')
-    .classed('personViewLabel',true)
-    .attr('transform','translate(' + 80 + ',' + 110 + ')');
+      .append('text')
+      .attr('x', 210)
+      .attr('y', 20)
+      .attr('id', 'motherLabel')
+      .classed('personViewLabel', true);
 
-    // select('#personView')
-    // .append('text')
-    // .classed('personViewStaticLabel',true)
-    // .attr('x',150)
-    // .attr('y',80)
-    // .text('Sibling(s): ');
+    select('#personView')
+      .append('text')
+      .classed('personViewStaticLabel', true)
+      .attr('x', 280)
+      .attr('y', 20)
+      .text('FatherID: ');
 
-    // select('#personView')
-    // .append('g')
-    // .attr('id','siblingsLabels')
-    // .classed('personViewLabel',true)
-    // .attr('transform','translate(' + 240 + ',' + 80 + ')');
+    select('#personView')
+      .append('text')
+      .attr('x', 335)
+      .attr('y', 20)
+      .attr('id', 'fatherLabel')
+      .classed('personViewLabel', true);
+
+    select('#personView')
+      .append('text')
+      .classed('personViewStaticLabel', true)
+      .attr('x', 10)
+      .attr('y', 80)
+      .text('Spouse(s): ');
+
+    select('#personView')
+      .append('g')
+      .attr('id', 'spouseLabels')
+      .classed('personViewLabel', true)
+      .attr('transform', 'translate(' + 80 + ',' + 80 + ')');
 
 
+    select('#personView')
+      .append('text')
+      .classed('personViewStaticLabel', true)
+      .attr('x', 10)
+      .attr('y', 110)
+      .text('Child(ren): ');
 
-    //Create a static div for the headers
-    // this.$node.append('div').attr('id', 'headersDIV');
+    select('#personView')
+      .append('g')
+      .attr('id', 'childrenLabels')
+      .classed('personViewLabel', true)
+      .attr('transform', 'translate(' + 80 + ',' + 110 + ')');
 
-
-
-    // const headerSVG = select('#headersDIV').append('svg')
     headerDiv.append('svg')
       .attr('width', this.width)
-      .attr('height',170)
+      .attr('height', 170)
       .attr('id', 'headers');
-      // .attr('viewBox', '0 0 ' + (this.width+Config.collapseSlopeChartWidth) + ' 75');
 
-    // headerSVG.append('rect')
-    //   .attr('width', 970)
-    //   .attr('height',160)
-    //   .attr('fill','white')
-
-    // headerSVG.append('g')
-    //   .attr('transform', 'translate(' + this.margin.left + ',90)')
-    //   .attr('id', 'headerGroup');
-
-    const svg = this.$node.append('div').attr('id', 'graphDiv')
-    // .attr('height',window.innerHeight-200)
-    .append('svg')
-      // .attr('width', this.width + this.margin.left + this.margin.right)
+    const svg = this.$node
+      .append('div')
+      .attr('id', 'graphDiv')
+      .append('svg')
       .attr('id', 'graph')
       .on('click', () => {
         select('#treeMenu').select('.menu').remove();
@@ -509,8 +466,8 @@ class GenealogyTree {
       .attr('transform', 'translate(' + this.margin.left + ',' + (Config.glyphSize + this.margin.top) + ')')
       .attr('id', 'genealogyTree');
 
-      //Create group for slope chart
-   svg.append('g')
+    //Create group for slope chart
+    svg.append('g')
       .attr('transform', 'translate(' + this.width + ',' + this.margin.top + ')')
       .attr('id', 'slopeChart');
 
@@ -658,7 +615,7 @@ class GenealogyTree {
       return Math.round(+d.y);
     })];
 
-    this.height = Config.glyphSize * 4 * (yrange[1] - yrange[0] + 1) ; // - this.margin.top - this.margin.bottom;
+    this.height = Config.glyphSize * 4 * (yrange[1] - yrange[0] + 1); // - this.margin.top - this.margin.bottom;
 
     this.y.range([0, this.height * .7]).domain(yrange);
 
@@ -668,7 +625,7 @@ class GenealogyTree {
     this.$node.select('#graph')
       // .attr('viewBox','0 0 ' + this.width +  ' ' +  (this.height + this.margin.top + this.margin.bottom))
       // .attr('preserveAspectRatio','none');
-      .attr('width', this.width+Config.slopeChartWidth)
+      .attr('width', this.width + Config.slopeChartWidth)
       .attr('height', this.height);
 
     this.update_edges();
@@ -882,16 +839,17 @@ class GenealogyTree {
     for (let i = yRange[0]; i <= yRange[1]; i++) {
       //find all nodes in this row
       const yNodes = this.data.nodes.filter((n: Node) => {
-         return Math.round(n.y) === i;
+        return Math.round(n.y) === i;
       });
 
+      // console.log(yNodes[0])
       // if (yNodes.length>0) {
-        yData.push({
-          y: i, x: min(yNodes, (d: Node) => {
-            return d.x;
-          })
-          , id: yNodes[0].uniqueID
-        });
+      yData.push({
+        y: i, x: min(yNodes, (d: Node) => {
+          return d.x;
+        })
+        , id: yNodes[0].uniqueID
+      });
       // }
 
     }
@@ -1097,12 +1055,13 @@ class GenealogyTree {
       return undefined;
     }
 
-      //no couples lines for affected person/couple
-      if ((n.affected || n.spouse.reduce(function (accumulator, currentValue) {
-        return currentValue.affected || accumulator;
-      }, false))) {
-        // console.log('returning undefined for node ', n.id);
-        return undefined;};
+    //no couples lines for affected person/couple
+    if ((n.affected || n.spouse.reduce(function (accumulator, currentValue) {
+      return currentValue.affected || accumulator;
+    }, false))) {
+      // console.log('returning undefined for node ', n.id);
+      return undefined;
+    };
 
     if (n.affected && !isUndefined(n.spouse.find((s: Node) => { return !s.aggregated && !s.affected; }))) {
       return undefined;
@@ -1450,55 +1409,55 @@ class GenealogyTree {
 
     if (!d) {
       select('#personView')
-      .append('text')
-      .attr('id','error')
-      .text('No Data found for this person!')
-      .attr('fill','red')
-      .attr('x',550/2)
-      .attr('y',110);
+        .append('text')
+        .attr('id', 'error')
+        .text('No Data found for this person!')
+        .attr('fill', 'red')
+        .attr('x', 550 / 2)
+        .attr('y', 110);
       return;
     } else {
       select('#personView').select('#error').remove();
     }
 
-  select('#person')
-    .text( d.id)
-    .attr('fill',()=> {return d.affected ? '#285880' : 'black';})
-    .on('mouseover',()=> {
-      //Find node for this person in tree (if current visible)
-      const selectNode = selectAll('.node')
-      .filter((node:any)=> {return node.id === d.id;});
+    select('#person')
+      .text(d.id)
+      .attr('fill', () => { return d.affected ? '#285880' : 'black'; })
+      .on('mouseover', () => {
+        //Find node for this person in tree (if current visible)
+        const selectNode = selectAll('.node')
+          .filter((node: any) => { return node.id === d.id; });
 
-      selectNode.select('.nodeIcon').classed('highlightedNode', true);
-    })
-    .on('click',()=> {this.renderPersonView(d);});
+        selectNode.select('.nodeIcon').classed('highlightedNode', true);
+      })
+      .on('click', () => { this.renderPersonView(d); });
 
     select('#motherLabel')
-    .text(d.maID)
+      .text(d.maID)
 
-    .style('font-weight',()=> {return d.ma && d.ma.affected ? 'bolder' : 'normal';})
-    .attr('fill',()=> {return (d.ma && d.ma.affected) ? '#285880' : 'black';})
-    .on('mouseover',()=> {
-      //Find node for this person in tree (if current visible)
-      const selectNode = selectAll('.node')
-      .filter((node:any)=> {return node.id === d.ma.id;});
+      .style('font-weight', () => { return d.ma && d.ma.affected ? 'bolder' : 'normal'; })
+      .attr('fill', () => { return (d.ma && d.ma.affected) ? '#285880' : 'black'; })
+      .on('mouseover', () => {
+        //Find node for this person in tree (if current visible)
+        const selectNode = selectAll('.node')
+          .filter((node: any) => { return node.id === d.ma.id; });
 
-      selectNode.select('.nodeIcon').classed('highlightedNode', true);
-    })
-    .on('click',()=> {this.renderPersonView(d.ma);});
+        selectNode.select('.nodeIcon').classed('highlightedNode', true);
+      })
+      .on('click', () => { this.renderPersonView(d.ma); });
 
     select('#fatherLabel')
-    .text(d.paID)
-    .style('font-weight',()=> {return d.pa && d.pa.affected ? 'bolder' : 'normal';})
-    .attr('fill',()=> {return (d.pa && d.pa.affected) ? '#285880' : 'black';})
-    .on('mouseover',()=> {
-      //Find node for this person in tree (if current visible)
-      const selectNode = selectAll('.node')
-      .filter((node:any)=> {return node.id === d.pa.id;});
+      .text(d.paID)
+      .style('font-weight', () => { return d.pa && d.pa.affected ? 'bolder' : 'normal'; })
+      .attr('fill', () => { return (d.pa && d.pa.affected) ? '#285880' : 'black'; })
+      .on('mouseover', () => {
+        //Find node for this person in tree (if current visible)
+        const selectNode = selectAll('.node')
+          .filter((node: any) => { return node.id === d.pa.id; });
 
-      selectNode.select('.nodeIcon').classed('highlightedNode', true);
-    })
-    .on('click',()=> {this.renderPersonView(d.pa);});
+        selectNode.select('.nodeIcon').classed('highlightedNode', true);
+      })
+      .on('click', () => { this.renderPersonView(d.pa); });
 
     //clear all spouses, siblings, and children;
     select('#spouseLabels').selectAll('text').remove();
@@ -1506,12 +1465,12 @@ class GenealogyTree {
     select('#childrenLabels').selectAll('text').remove();
     select('#kindredLabel').selectAll('text').remove();
 
-    const kindredIDVector = await this.tableManager.getAttributeVector('KindredID',true);
+    const kindredIDVector = await this.tableManager.getAttributeVector('KindredID', true);
     const peopleIDs = await kindredIDVector.names();
     const kindredIDs = await kindredIDVector.data();
 
     const familyIDs = [];
-    peopleIDs.map((person,ind)=> {
+    peopleIDs.map((person, ind) => {
       // console.log(person)
       if (person === d.id) {
         familyIDs.push(kindredIDs[ind]);
@@ -1520,54 +1479,56 @@ class GenealogyTree {
 
     const offset = [0];
     //One text element per kindredID
-    familyIDs.map((s,i)=> {
+    familyIDs.map((s, i) => {
       select('#kindredLabel')
-      .append('text')
-      .text((i === familyIDs.length-1 ? s: s+','))
-      .attr('x',()=> {offset.push((offset[i]+5+(s.toString().length*7.5))); return offset[i];})
-      .on('click',()=> {console.log(s);});
+        .append('text')
+        .text((i === familyIDs.length - 1 ? s : s + ','))
+        .attr('x', () => { offset.push((offset[i] + 5 + (s.toString().length * 7.5))); return offset[i]; })
+        .on('click', () => { console.log(s); });
     });
 
     //One text element per spouse
-    d.spouse.map((s,i)=> {
+    d.spouse.map((s, i) => {
       select('#spouseLabels')
-      .append('text')
-      .text(s.id)
-      .style('font-weight',()=> {return s.affected ? 'bolder' : 'normal';})
-      .attr('x',i*75)
-      .attr('fill',()=> {return s.affected ? '#285880' : 'black';})
-      .on('mouseover',()=> {
-        //Find node for this person in tree (if current visible)
-        const selectNode = selectAll('.node')
-        .filter((node:any)=> {return node.id === s.id;});
+        .append('text')
+        .text(s.id)
+        .style('font-weight', () => { return s.affected ? 'bolder' : 'normal'; })
+        .attr('x', i * 75)
+        .attr('fill', () => { return s.affected ? '#285880' : 'black'; })
+        .on('mouseover', () => {
+          //Find node for this person in tree (if current visible)
+          const selectNode = selectAll('.node')
+            .filter((node: any) => { return node.id === s.id; });
 
-        selectNode.select('.nodeIcon').classed('highlightedNode', true);
-      })
-      .on('click',()=> {this.renderPersonView(s);});
-      ;});
+          selectNode.select('.nodeIcon').classed('highlightedNode', true);
+        })
+        .on('click', () => { this.renderPersonView(s); });
+      ;
+    });
 
 
     //One text element per child
-    d.children.map((c,i)=> {
+    d.children.map((c, i) => {
       select('#childrenLabels')
-      .append('text')
-      .text(c.id)
-      .attr('x',i*75)
-      .style('font-weight',()=> {return c.affected ? 'bolder' : 'normal';})
-      .attr('fill',()=> {return c.affected ? '#285880' : 'black';})
-      .on('mouseover',()=> {
-        //Find node for this person in tree (if current visible)
-        const selectNode = selectAll('.node')
-        .filter((node:any)=> {return node.id === c.id;});
+        .append('text')
+        .text(c.id)
+        .attr('x', i * 75)
+        .style('font-weight', () => { return c.affected ? 'bolder' : 'normal'; })
+        .attr('fill', () => { return c.affected ? '#285880' : 'black'; })
+        .on('mouseover', () => {
+          //Find node for this person in tree (if current visible)
+          const selectNode = selectAll('.node')
+            .filter((node: any) => { return node.id === c.id; });
 
-        selectNode.select('.nodeIcon').classed('highlightedNode', true);
-      })
-      .on('click',()=> {this.renderPersonView(c);});
-      ;});
+          selectNode.select('.nodeIcon').classed('highlightedNode', true);
+        })
+        .on('click', () => { this.renderPersonView(c); });
+      ;
+    });
 
-      select('#personView')
+    select('#personView')
       .selectAll('.personViewLabel')
-      .on('mouseout',()=> {
+      .on('mouseout', () => {
         selectAll('.nodeIcon').classed('highlightedNode', false);
       });
 
@@ -2445,98 +2406,98 @@ class GenealogyTree {
 
     select('#treeMenu').select('.menu').remove();
 
-        const menuLabels = ['Set as POI','Star','Other Option', 'Another Option'];
+    const menuLabels = ['Set as POI', 'Star', 'Other Option', 'Another Option'];
 
-        const container = document.getElementById('app');
-        const coordinates = mouse(container);
+    const container = document.getElementById('app');
+    const coordinates = mouse(container);
 
-        const menuWidth = 90;
-        const menuItemHeight = 25;
-        const menuHeight = 5 + actions.length*menuItemHeight;
+    const menuWidth = 90;
+    const menuItemHeight = 25;
+    const menuHeight = 5 + actions.length * menuItemHeight;
 
-        const menu = select('#treeMenu')
-        .append('svg')
-        .attr('class', 'menu')
-        .attr('height', menuHeight)
-        .attr('transform', 'translate(' + (coordinates[0] + 10) + ',' + (coordinates[1] - menuHeight / 2) + ')')
-        .append('g')
-        .attr('transform','translate(10,0)');
+    const menu = select('#treeMenu')
+      .append('svg')
+      .attr('class', 'menu')
+      .attr('height', menuHeight)
+      .attr('transform', 'translate(' + (coordinates[0] + 10) + ',' + (coordinates[1] - menuHeight / 2) + ')')
+      .append('g')
+      .attr('transform', 'translate(10,0)');
 
-        select('.menu')
-        .select('g')
-        .append('g')
-        .classed('tooltipTriangle',true).append('rect');
+    select('.menu')
+      .select('g')
+      .append('g')
+      .classed('tooltipTriangle', true).append('rect');
 
-        let menuItems = menu.selectAll('text').data(actions);
+    let menuItems = menu.selectAll('text').data(actions);
 
-        const menuItemsEnter = menuItems.enter()
-          .append('g').attr('class','menuItem');
+    const menuItemsEnter = menuItems.enter()
+      .append('g').attr('class', 'menuItem');
 
-        menuItemsEnter.append('rect').classed('menuItemBackground',true);
-        menuItemsEnter.append('text').classed('icon', true);
-        menuItemsEnter.append('text').classed('label', true);
-        menuItemsEnter.append('line').classed('menuDivider', true);
+    menuItemsEnter.append('rect').classed('menuItemBackground', true);
+    menuItemsEnter.append('text').classed('icon', true);
+    menuItemsEnter.append('text').classed('label', true);
+    menuItemsEnter.append('line').classed('menuDivider', true);
 
-        menuItems = menuItemsEnter.merge(menuItems);
+    menuItems = menuItemsEnter.merge(menuItems);
 
-        menuItems.select('.menuItemBackground')
-          .attr('width',menuWidth)
-          .attr('fill', '#f7f7f7')
-          .attr('height', menuItemHeight)
-          .attr('opacity', 1)
-          .on('click', (d: any) => {
-            select('#treeMenu').select('.menu').remove();
-            this.data.aggregateTreeWrapper(data.uniqueID, d.state);
-            this.update_graph();
-          });
+    menuItems.select('.menuItemBackground')
+      .attr('width', menuWidth)
+      .attr('fill', '#f7f7f7')
+      .attr('height', menuItemHeight)
+      .attr('opacity', 1)
+      .on('click', (d: any) => {
+        select('#treeMenu').select('.menu').remove();
+        this.data.aggregateTreeWrapper(data.uniqueID, d.state);
+        this.update_graph();
+      });
 
-          select('.tooltipTriangle')
-          .attr('transform','translate(-5,'+ (menuItemHeight) + ')')
-          .select('rect')
-          .attr('width',10)
-          .attr('fill', '#909090')
-          .attr('height', 10)
-          .attr('opacity', 1)
-          .attr('transform',' rotate(45)')
-          .attr('transform-origin','center');
+    select('.tooltipTriangle')
+      .attr('transform', 'translate(-5,' + (menuItemHeight) + ')')
+      .select('rect')
+      .attr('width', 10)
+      .attr('fill', '#909090')
+      .attr('height', 10)
+      .attr('opacity', 1)
+      .attr('transform', ' rotate(45)')
+      .attr('transform-origin', 'center');
 
 
-        menuItems.attr('transform', ((d,i)=> {return 'translate(0,' + (5 + i*menuItemHeight) + ')';}));
+    menuItems.attr('transform', ((d, i) => { return 'translate(0,' + (5 + i * menuItemHeight) + ')'; }));
 
-        menuItems
-          .select('.label')
-          .attr('x', 10)
-          .attr('y', menuItemHeight/2+5)
-          .text((d: any) => d.string)
-          .classed('tooltipTitle', true);
+    menuItems
+      .select('.label')
+      .attr('x', 10)
+      .attr('y', menuItemHeight / 2 + 5)
+      .text((d: any) => d.string)
+      .classed('tooltipTitle', true);
 
-        menuItems
-          .select('.icon')
-          .attr('x', menuWidth - 20)
-          .attr('y', menuItemHeight/2+5)
-          .attr('class', 'icon')
-          .text((d: any) => { return d.state === 1 ? '\uf0c9' : (d.state === 2 ? '\uf0ca' : '\uf0cb'); })
-          .classed('tooltipTitle', true);
+    menuItems
+      .select('.icon')
+      .attr('x', menuWidth - 20)
+      .attr('y', menuItemHeight / 2 + 5)
+      .attr('class', 'icon')
+      .text((d: any) => { return d.state === 1 ? '\uf0c9' : (d.state === 2 ? '\uf0ca' : '\uf0cb'); })
+      .classed('tooltipTitle', true);
 
-          menuItems
-          .select('.menuDivider')
-          .attr('x1', 0)
-          .attr('x2', menuWidth)
-          .attr('y1', menuItemHeight)
-          .attr('y2', menuItemHeight)
-          .attr('stroke-width', '1px')
-          .attr('stroke', 'white');
+    menuItems
+      .select('.menuDivider')
+      .attr('x1', 0)
+      .attr('x2', menuWidth)
+      .attr('y1', menuItemHeight)
+      .attr('y2', menuItemHeight)
+      .attr('stroke-width', '1px')
+      .attr('stroke', 'white');
 
-        select('#treeMenu')
-          .attr('width', menuWidth);
+    select('#treeMenu')
+      .attr('width', menuWidth);
 
-        menu.append('line')
-          .attr('x1', 0)
-          .attr('x2', menuWidth)
-          .attr('y1', 5)
-          .attr('y2', 5)
-          .attr('stroke-width', '5px')
-          .attr('stroke', '#e86c37');
+    menu.append('line')
+      .attr('x1', 0)
+      .attr('x2', menuWidth)
+      .attr('y1', 5)
+      .attr('y2', 5)
+      .attr('stroke-width', '5px')
+      .attr('stroke', '#e86c37');
   }
 
   private attachListeners() {

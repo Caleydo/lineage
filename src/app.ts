@@ -46,6 +46,39 @@ export class App {
    * @returns {Promise<App>}
    */
   init() {
+
+
+    //Add a Dataset Picker
+    const datasetPicker = select('.navbar-collapse')
+      .append('ul').attr('class', 'nav navbar-nav navbar-left').attr('id', 'datasetPicker');
+
+    const dropdownList = datasetPicker.append('li').attr('class', 'dropdown');
+    dropdownList
+      .append('a')
+      .attr('class', 'dropdown-toggle')
+      .attr('data-toggle', 'dropdown')
+      .attr('role', 'button')
+      .html('Pick Dataset')
+      .append('span')
+      .attr('class', 'caret');
+
+    const dataMenu = dropdownList.append('ul').attr('class', 'dropdown-menu');
+
+
+    let menuItems = dataMenu.selectAll('.datasetMenuItem')
+      .data([
+        { 'title': 'Suicide Families (Anonymized)', 'type': 'suicide_anon' },
+        { 'title': 'Suicide Families', 'type': 'suicide' },
+        { 'title': 'Autism Families', 'type': 'autism' }]);
+
+    menuItems = menuItems.enter()
+      .append('li')
+      .append('a')
+      .attr('class', 'datasetMenuItem')
+      .classed('active', false)
+      .html((d: any) => { return d.title; })
+      .merge(menuItems);
+
     return this.build();
   }
 
@@ -56,6 +89,7 @@ export class App {
   private async build() {
 
     const tableManager = TableManager.create();
+
     // This executes asynchronously, so you'll have to pass
     // back a promise and resolve that before you keep going
     // await tableManager.loadData('big-decent-clipped-38');
@@ -66,13 +100,11 @@ export class App {
     //await tableManager.loadData('TenFamiliesDescendAnon', 'TenFamiliesAttrAnon');
     //await tableManager.loadData('TwoFamiliesDescendAnon', 'TwoFamiliesAttrAnon');
 
-
-
     /** =====  PRIVATE CASES - WORKS ONLY WITH THE RIGHT DATA LOCALLY ===== */
 
     //await tableManager.loadData('TenFamiliesDescend', 'TenFamiliesAttr');
-    //await tableManager.loadData('AllFamiliesDescend', 'AllFamiliesAttributes');
-    await tableManager.loadData('AllAutismFamiliesDescend', 'AllAutismFamiliesAttributes');
+    await tableManager.loadData('AllFamiliesDescend', 'AllFamiliesAttributes');
+    // await tableManager.loadData('AllAutismFamiliesDescend', 'AllAutismFamiliesAttributes');
 
     //await tableManager.loadData('TenFamiliesDescend', 'TenFamiliesAttr');
     //await tableManager.loadData('FiftyFamiliesDescendAnon', 'FiftyFamiliesAttributes');
@@ -80,29 +112,62 @@ export class App {
     /** ============= */
 
     const attributePanel = panel.create(this.$node.select('#data_selection').node());
+    attributePanel.build();
     attributePanel.init(tableManager);
 
     const graphDataObj = graphData.create(tableManager);
     await graphDataObj.createTree();
 
     const genealogyTree = tree.create(this.$node.select('#graph').node());
-    genealogyTree.init(graphDataObj,tableManager);
+    genealogyTree.init(graphDataObj, tableManager);
+    genealogyTree.update();
 
     const attributeTable = table.create(this.$node.select('#table').node());
     attributeTable.init(tableManager);
 
     const familySelectorView = familySelector.create(this.$node.select('#familySelector').node());
     familySelectorView.init(tableManager);
+    familySelectorView.updateTable();
 
+    const changeDataset = async function(d:any){
+
+      //If item is already selected, do nothing;
+      if (select(this).classed('active')) {
+        return;
+      }
+
+      // if (d.type === 'suicide_anon') {
+      //   await tableManager.loadData('TenFamiliesDescend', 'TenFamiliesAttr');
+      //   tableManager.setAffectedState('suicide');
+      // } else if (d.type === 'suicide') {
+      //   await tableManager.loadData('AllAutismFamiliesDescend', 'AllAutismFamiliesAttributes');
+      //   tableManager.setAffectedState('affected');
+      //   // console.log('here')
+      //   // return;
+      //   // await tableManager.loadData('AllFamiliesDescend', 'AllFamiliesAttr');
+      // } else if (d.type === 'autism') {
+      //   // tableManager.setAffectedState('affected');
+      //   // await tableManager.loadData('AllAutismFamiliesDescend', 'AllAutismFamiliesAttributes');
+      // }
+
+      selectAll('.datasetMenuItem').classed('active',false);
+      select(this).classed('active',true);
+
+      // attributePanel.init(tableManager);
+      // await graphDataObj.createTree();
+      // genealogyTree.update();
+      // genealogyTree.init(graphDataObj, tableManager);
+      // attributeTable.init(tableManager);
+      // familySelectorView.updateTable();
+    };
+
+    selectAll('.datasetMenuItem').on('click',changeDataset);
 
     this.$node.select('#loading').remove();
     this.setBusy(false);
 
-    //temporary hack. to do: remove properly
-    select('.menu-list').remove();
-
     //Set listener on document so that clicking anywhere removes the menus
-    select('body').on('click',() => {
+    select('body').on('click', () => {
       console.log('clearing all...');
       select('#treeMenu').select('.menu').remove();
       selectAll('.highlightedNode').classed('highlightedNode', false);
@@ -114,6 +179,8 @@ export class App {
 
     return Promise.resolve(this);
   }
+
+  
 
   /**
    * Show or hide the application loading indicator

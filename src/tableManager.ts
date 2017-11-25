@@ -149,17 +149,16 @@ export default class TableManager {
   // private defaultCols: String[] =
   //   ['KindredID','PersonID', 'Asthma', 'Bipolar', 'sex', 'deceased', 'suicide', 'gen', 'Age', 'FirstBMI', 'AgeFirstBMI', 'race', 'cause_death', 'weapon']; //set of default cols to read in, minimizes load time for large files;
 
-  // private defaultCols: String[] =
-  // ['KindredID', 'RelativeID', 'sex', 'deceased', 'suicide', 'Age','LabID','alcohol','Nr.Diag_alcohol','psychosis','Nr.Diag_psychosis','anxiety-non-trauma','Nr.Diag_anxiety-non-trauma', 'depression','cause_death']; //set of default cols to read in, minimizes load time for large files;
+  private defaultCols: String[] =
+  ['KindredID', 'RelativeID', 'sex', 'deceased', 'suicide', 'Age','LabID','alcohol','Nr.Diag_alcohol','psychosis','Nr.Diag_psychosis','anxiety-non-trauma','Nr.Diag_anxiety-non-trauma', 'depression','cause_death']; //set of default cols to read in, minimizes load time for large files;
 
   // //default cols for Autism data
-  private defaultCols: String[] =
-  ['KindredID', 'RelativeID', 'sex', 'affected', 'labid'];
+  // private defaultCols: String[] =
+  // ['KindredID', 'RelativeID', 'sex', 'affected', 'labid'];
 
+  public colOrder = this.defaultCols;
   //Array of attributes that are 'starred' in the table;
   private starCols=[];
-
-  public colOrder: String[]; //array that keeps track which attributes are displayed in the panel and in the table and their correct order.
 
   /** Basic information about all the loaded families */
   public readonly familyInfo: IFamilyInfo[] = [];
@@ -202,9 +201,6 @@ export default class TableManager {
     this.table = <ITable>await getById(descendDataSetID);
 
     await this.parseFamilyInfo(); //this needs to come first because the setAffectedState sets default values based on the data for a selected family.
-
-
-
     return Promise.resolve(this);
   }
 
@@ -475,7 +471,6 @@ export default class TableManager {
    */
   public async selectFamily(chosenFamilyIDs: number[] = [this.familyInfo[0].id]) {
     console.log('selectingFamily',chosenFamilyIDs);
-    // select('body').classed('progress',true);
 
     const family = this.familyInfo.find((family) => { return family.id === chosenFamilyIDs[0]; });
     let familyRange = range.list(family.range); //familyRange.concat(family.range);
@@ -513,7 +508,6 @@ export default class TableManager {
     await this.refreshActiveTableView();
 
     this.updatePOI_Primary();
-
 
       events.fire(FAMILY_SELECTED_EVENT);
 
@@ -689,7 +683,6 @@ export default class TableManager {
 
     await this.refreshActiveGraphView();
 
-    console.log('calling empty selectFamily');
     await this.selectFamily(); //call to selectFamily is now made from the familySelector object
   }
 
@@ -718,8 +711,6 @@ export default class TableManager {
   public async refreshActiveGraphView() {
     const graphRange = range.join(this._activeGraphRows, this.activeGraphColumns);
     this.graphTable = await this.table.view(graphRange); //view on graph table
-
-
   }
 
 

@@ -36,13 +36,8 @@ class AttributePanel {
    */
   init(tableManager) {
 
-    this.tableManager = tableManager;
-    this.tableManager.colOrder = this.tableManager.defaultCols;
-
-    this.build();
-
-    // this.tableManager.setAffectedState('suicide');
-    this.tableManager.setAffectedState('affected');
+    tableManager.setAffectedState('suicide');
+    // tableManager.setAffectedState('affected');
 
     // return the promise directly as long there is no dynamical data to update
     return Promise.resolve(this);
@@ -52,8 +47,9 @@ class AttributePanel {
   /**
    * Build the basic DOM elements and binds the change function
    */
-  private build() {
+  public build() {
 
+    //Add Family Selector Nav Bar
     this.$node.append('nav').attr('class', 'navbar navbar-expand-lg navbar-light bg-light')
       .append('div').attr('id', 'tableNav');
 
@@ -72,6 +68,7 @@ class AttributePanel {
       .html('Expand')
       .attr('id', 'collapseTableButton');
 
+    //Append div for Family Selector
     const familySelector = this.$node.append('div')
       .attr('id', 'familySelector');
   }

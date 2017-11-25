@@ -130,8 +130,6 @@ class AttributeTable {
 
     this.build(); //builds the DOM
 
-    // sets up the data & binds it to svg groups
-
     await this.update();
 
     this.attachListener();
@@ -142,10 +140,8 @@ class AttributeTable {
 
 
   public async update() {
-
     await this.initData();
     this.render();
-    console.log('done updating table');
   }
 
   /**
@@ -205,9 +201,6 @@ class AttributeTable {
 
         link.click();
       });
-
-
-
 
     this.$node.select('.navbar')
       .append('ul').attr('class', 'nav navbar-nav').attr('id', 'Sort by Tree')
@@ -345,10 +338,8 @@ class AttributeTable {
       .attr('id', 'headers');
 
     headerSVG.append('g')
-      .attr('transform', 'translate(' + Config.collapseSlopeChartWidth + ',80)')
+      .attr('transform', 'translate(0,80)')
       .attr('id', 'headerGroup');
-
-
 
     //Exctract y values from dict.
     const svg = tableDiv.append('div').attr('id', 'tableDiv2').append('svg')
@@ -1203,7 +1194,7 @@ class AttributeTable {
     .attr('class', (d) => { return 'starRect_' + this.deriveID(d); })
     .classed('starRect', true)
     .attr('opacity', ((d) => {
-      const header = select(this.deriveID(d)+'_header');
+      const header = select('#' + this.deriveID(d) + '_header');
       return (!header.empty() && header.classed('star')) ? .2 : 0;
     }));
 
@@ -3073,26 +3064,7 @@ class AttributeTable {
     }
   }
   private attachListener() {
-    // //NODE BEGIN HOVER
-    // events.on('row_mouseover', (evt, item) => {
-    //   let cell = selectAll('.cell').filter((d:any)=> {return d.y === item}).select('.boundary')
-    //     // .classed('tablehovered', function (d: any) {return (d.y === item);});
-    //     .classed('tablehovered', true);
-    // });
-    //
-    // //NODE END HOVER
-    // events.on('row_mouseout', (evt, item) => {
-    //   return selectAll('.boundary').classed('tablehovered', false);
-    // });
-
     const self = this;
-
-    //
-    // events.on('redraw_tree', () => {
-    //   console.log(' redraw_tree calling self.update()')
-    //   self.update();
-    //
-    // });
 
     events.on(TABLE_VIS_ROWS_CHANGED_EVENT, () => {
       self.update();

@@ -258,52 +258,33 @@ class GraphData {
    *
    */
   public async createTree() {
-      // console.log('creating Tree');
 
     this.nodes = [];
     const columns = this.graphTable.cols();
-
-
-    // const nrow = this.graphTable.nrow;
-
-
     const peopleIDs = await columns[0].names();
-
     const idRanges = await columns[0].ids();
     const kindredRanges = await columns[1].data();
-
-    // console.log(peopleIDs,idRanges.dim(0).asList(),kindredRanges);
-
 
     this.ids = idRanges.dim(0).asList().map((d) => {
       return d.toString();
     });
 
-    // console.log(this.ids);
-
     this.uniqueIDs = idRanges.dim(0).asList().map((d,i) => {
       return d.toString() + kindredRanges[i].toString();
     });
-
 
     const columnDesc = this.graphTable.desc.columns;
     const columnNameToIndex: { [name: string]: number } = {};
 
     const allData = await this.graphTable.data();
-    // console.log(columnNameToIndex);
     for (let i = 0; i < columnDesc.length; i++) {
-      //console.log(columns[i]);
       const name = columnDesc[i].name;
       columnNameToIndex[name] = i;
-      // console.log(name,i,columnNameToIndex[name])
     }
 
-    // console.log('started checking')
     let i = 0;
     for (const row of allData) {
       const node = new Node(this.ids[i]);
-
-      // const node = new Node(peopleIDs[i]);
 
       node.initialize(columnNameToIndex, row);
       this.nodes.push(node);
@@ -315,8 +296,6 @@ class GraphData {
       return b.y - a.y;
     });
 
-
-    // console.log('affected state is ', this.tableManager.affectedState)
     this.defineAffected(this.tableManager.affectedState);
 
     this.buildTree();
@@ -680,8 +659,6 @@ class GraphData {
       });
     });
 
-    // console.log ('starting node is', startNode)
-
     //If starting node is not the 'center' of the founding spouses or is not a direct descendant
     if (startNode.spouse.length === 1 && (startNode.spouse[0].spouse.length > 1 || isUndefined(startNode.ma))) {
       startNode = startNode.spouse[0];
@@ -702,16 +679,7 @@ class GraphData {
       startNode.aggregated = startNode.state === layoutState.Aggregated;
     }
 
-    // if (!isUndefined(state) && state !== layoutState.Expanded && !startNode.affected && startNode.hasChildren && (startNode.state !== layoutState.Expanded || applyToAll)) {
-    //   startNode.hidden = true;
-    //   startNode.aggregated = state === layoutState.Aggregated;
-    //   this.aggregateHelper(startNode);
-    // } else {
-
-    // console.log ('starting node is', startNode)
     this.aggregateHelper(startNode);
-    // }
-
 
     //Recursively call aggregateTree to handle any nodes that were not assigned a y value.
     this.aggregateTree();

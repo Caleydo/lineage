@@ -61,9 +61,7 @@ class FamilySelector {
   init(tableManager) {
     this.tableManager = tableManager;
     this.build();
-    this.updateTable();
-    // this.loadFamily();
-
+    // this.updateTable();
     events.on(FAMILY_INFO_UPDATED, (evt, tableManagerObject) => { this.updateTable(); });
 
     // return the promise directly as long there is no dynamical data to update
@@ -112,7 +110,7 @@ class FamilySelector {
   /**
    * Build the table and populate with list of families.
    */
-  private updateTable() {
+  public updateTable() {
 
     const self = this;
 

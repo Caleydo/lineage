@@ -92,7 +92,7 @@ export class App {
 
    const parsedUrl = new URL(window.location.href);
    let dataset = parsedUrl.search.split('ds=')[1]; // suicide
-    console.log(dataset)
+    console.log(dataset);
   //  console.log(c);
     // This executes asynchronously, so you'll have to pass
     // back a promise and resolve that before you keep going

@@ -185,8 +185,8 @@ ul.nav.navbar-nav{
 }
 
 #tableBody{
-  min-height: calc(100vh - 310px);
-  max-height: calc(100vh - 210px);
+  height: calc(100vh - 310px);
+  // max-height: calc(100vh - 210px);
 }
 
 #data_selection {

@@ -180,7 +180,7 @@ export class App {
     return Promise.resolve(this);
   }
 
-  
+
 
   /**
    * Show or hide the application loading indicator

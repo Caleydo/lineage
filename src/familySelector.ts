@@ -110,7 +110,7 @@ class FamilySelector {
   /**
    * Build the table and populate with list of families.
    */
-  public updateTable() {
+  public  updateTable() {
 
     const self = this;
 

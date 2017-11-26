@@ -629,6 +629,14 @@ class AttributeTable {
     const y2personDict = {};
     const yDict = this.tableManager.yValues;
 
+    console.log('YDict',yDict);
+
+    let maxRow=0;
+    //Find max value in yDict
+    Object.keys(yDict).forEach((person)=> {
+      maxRow = yDict[person][0] > maxRow ? yDict[person][0] : maxRow;
+    });
+
     // console.log(yDict,ids);
     ids.forEach((person, ind) => {
       // console.log(person,KindredIDs[ind]);
@@ -637,8 +645,7 @@ class AttributeTable {
         //Handle Duplicate Nodes
         yDict[person].forEach((y) => {
           if (y in y2personDict) {
-            // y2personDict[y].push({'uniqueID':person,'id':graphIDs[ind]});
-            y2personDict[y].push(person); //create uniqueID from uniqueID and kindredID
+            y2personDict[y].push(person); 
 
           } else {
             y2personDict[y] = [person];
@@ -651,15 +658,15 @@ class AttributeTable {
 
     //Find y indexes of all rows
     const allRows = Object.keys(y2personDict).map(Number);
-
+    console.log('AllRows', allRows);
     //Set height and width of svg
-    this.height = Config.glyphSize * 4 * (max(allRows) - min(allRows) + 1);
+    this.height = Config.glyphSize * 4 * (maxRow);
     // select('.tableSVG').attr('viewBox','0 0 ' + this.width + ' ' + (this.height + this.margin.top + this.margin.bottom))
 
     select('.tableSVG').attr('height', this.height);
     select('.tableSVG').attr('width', this.tableManager.colOrder.length * 100);
 
-    this.y.range([0, this.height * .7]).domain([1, max(allRows)]);
+    this.y.range([0, this.height * .7]).domain([1, maxRow]);
     this.rowOrder = allRows; //will be used to set the y position of each cell/row;
 
 
@@ -1174,7 +1181,8 @@ class AttributeTable {
       .classed('dataCols', true)
       .attr('id', (d) => { return this.deriveID(d) + '_data'; });
 
-    console.log(this.y.range());
+    console.log('yrange',this.y.range());
+    console.log('domain',this.y.domain());
     //Append background rect
     colsEnter.append('rect')
       .classed('starRect', true);

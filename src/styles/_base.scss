@@ -209,8 +209,15 @@ ul.nav.navbar-nav{
 
 #tableDiv2, #graphDiv{
   height: calc(100vh - 310px);
-  overflow-x: visible;
   overflow-y: scroll;
+}
+
+#graphDiv{
+  overflow-x: hidden;
+}
+
+#tableDiv2{
+  overflow-x: visible;
 }
 
 .dropdown-item{

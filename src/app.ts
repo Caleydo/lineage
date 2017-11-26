@@ -112,6 +112,9 @@ export class App {
       await tableManager.loadData('AllFamiliesDescend', 'AllFamiliesAttributes');
     } else if (dataset === 'autism') {
      await tableManager.loadData('AllAutismFamiliesDescend', 'AllAutismFamiliesAttributes');
+    } else if (dataset === 'suicide_anon') {
+      dataset = 'suicide';
+      await tableManager.loadData('TenFamiliesDescendAnon', 'TenFamiliesAttrAnon');
     }
     //await tableManager.loadData('TenFamiliesDescend', 'TenFamiliesAttr');
     //await tableManager.loadData('FiftyFamiliesDescendAnon', 'FiftyFamiliesAttributes');

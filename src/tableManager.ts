@@ -155,7 +155,7 @@ export default class TableManager {
   // private defaultCols: String[] =
   // ['KindredID', 'RelativeID', 'sex', 'affected', 'labid'];
 
-  public colOrder = this.defaultCols;
+  public colOrder;
   //Array of attributes that are 'starred' in the table;
   private starCols=[];
 
@@ -192,7 +192,7 @@ export default class TableManager {
    */
   public async loadData(descendDataSetID: string, attributeDataSetID: string) {
 
-    if (descendDataSetID === 'AllFamiliesDescend') {
+    if (descendDataSetID === 'AllFamiliesDescend' || 'TenFamiliesDescendAnon') {
       this.defaultCols = ['KindredID', 'RelativeID', 'sex', 'deceased', 'suicide', 'Age','LabID','alcohol','Nr.Diag_alcohol','psychosis','Nr.Diag_psychosis','anxiety-non-trauma','Nr.Diag_anxiety-non-trauma', 'depression','cause_death']; //set of default cols to read in, minimizes load time for large files;
     } else {
       this.defaultCols = ['KindredID', 'RelativeID', 'sex', 'affected', 'labid'];

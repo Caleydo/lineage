@@ -5,20 +5,13 @@ body, html {
 	width: 100%;
 }
 
-
-
-// th, label, strong, b, .label {
-//   font-weight: 500 !important;
-// }
+.table{
+  table-layout: fixed;
+}
 
 ::-webkit-scrollbar { 
   display: none; 
 }
-
-// body {
-//   font-family: sans-serif;
-//   line-height: 1.4;
-// }
 
 h1 {
   font-size: 150%;
@@ -45,13 +38,6 @@ p {
 	flex: 1;
 }
 
-// .equalHMWrap {
-// 	justify-content: space-between;
-// }
-
-// .equalHM {
-// 	width: 32%;
-// }
 
 #col1{
   width:250px;
@@ -62,10 +48,6 @@ p {
   width:500px;
   transition: all 400ms ease;
 }
-
-// #col2{
-//   width:595px;
-// }
 
 #col3{
   flex:1;
@@ -104,14 +86,6 @@ table text{
 	margin-left: 0;	
 }
 
-
-
-
-// nav.navbar{
-//   border-right:2px solid !important;
-//   border-right-color: #929292 !important;
-// }
-
 .btn-link,.dropdown-toggle{
   background-color: #e4e4e4;
   margin-left:5px;
@@ -125,36 +99,8 @@ ul.nav.navbar-nav{
   float:left;
 }
 
-
-// .col, .col-4, .col-2{
-//   overflow:scroll;
-// }
-
-// #col1,#col2,#col3{
-//   padding-right: 5px;
-// }
-
-// #col1{
-//   flex:1;
-//   transition: all 400ms ease;
-// }
-
-// #col1-expanded{
-//   flex:2;
-//   transition: all 400ms ease;
-// }
-
-// #col2{
-//   flex:1
-// }
-
-// #col3{
-//   flex:1;
-// }
-
 .headerTitle{
   pointer-events:none;
-  // cursor: move;;
 }
 
 .starRect{
@@ -186,32 +132,19 @@ ul.nav.navbar-nav{
 
 #tableBody{
   height: calc(100vh - 310px);
-  // max-height: calc(100vh - 210px);
 }
 
 #data_selection {
-  // resize: horizontal;
   overflow: scroll;
 }
 
 #tableBody{
-  // height: 1200px;
   overflow-y: scroll;
 }
 
 #tableHead{
   overflow-x:scroll;
 }
-
-// tbody{
-//   display: block;
-//   height: 300px;
-//   overflow-y:scroll;
-// }
-
-// .colSummary{
-//   cursor: context-menu;
-// }
 
 #personView{
   background-color:#dddede;
@@ -240,11 +173,9 @@ ul.nav.navbar-nav{
 }
 
 .familyBar{
-  // width:5px;
   stroke-width: 3px;
   stroke:rgb(25, 25, 25);
   stroke-dasharray: 5px;
-  // fill:rgb(25, 25, 25);
 }
 
 #loading{
@@ -253,23 +184,6 @@ ul.nav.navbar-nav{
   margin-top:200px;
   text-align: center;
 }
-
-// #col2{
-//   width:550px;
-// }
-
-
-// .col-4 {
-//   flex-grow: 1;
-//   transition: all 400ms ease;
-// }
-
-// .col-2 {
-//   //width: 0; 
-//   // flex-shrink: 1;
-//   transition: all 400ms ease;
-// }
-
 
 .dropdown-item.active, .datasetMenuItem.active{
     background-color: #d9d9d9 !important;
@@ -292,7 +206,6 @@ ul.nav.navbar-nav{
 #viewPort{
   height:100%;
 }
-
 
 #tableDiv2, #graphDiv{
   height: calc(100vh - 310px);

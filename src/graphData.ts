@@ -366,7 +366,7 @@ class GraphData {
 
     //Create hashmap of personID to y value;
     const dict = {};
-    
+
     this.nodes.forEach((node) => {
       if (node.uniqueID in dict) {
         dict[node.id+'_'+node.kindredID].push(Math.round(node.y));

@@ -564,34 +564,7 @@ class AttributeTable {
           return this.slopeChart({ y: d.y, ind, width });
         }
       });
-
-    // selectAll('.slopeLine')
-    // .attr('d', (d: any) => {
-    //   return this.slopeChart(d);
-    // });
-
-    // console.log('updating SlopeLines');
-    // const divHeight = document.getElementById('graphDiv').clientHeight;
-    // const scrollOffset = document.getElementById('graphDiv').scrollTop;
-
-    // selectAll('.slopeLine').classed('test',false);
-
-    // const hiddenLines = selectAll('.slopeLine')
-    // .filter((d:any,i)=> {
-    //   const start = this.y(d.y);
-    //   const end = this.y(this.rowOrder[this.sortedRowOrder.indexOf(d.ind)]);
-    //   return ((start < scrollOffset) || (start > (divHeight + scrollOffset))
-    //  || (end < scrollOffset) || (end> (divHeight + scrollOffset)));
-    // });
-
-    // hiddenLines
-    // .classed('test',true);
-
-    // hiddenLines
-    // .attr('d', ()=> { return 'M0.571 4.571h12.571q0.232 0 0.402 0.17t0.17 0.42v15.411h3.429q0.714 0 1.036 0.661t-0.161 1.232l-5.714 6.857q-0.321 0.393-0.875 0.393t-0.875-0.393l-5.714-6.857q-0.464-0.554-0.161-1.232 0.321-0.661 1.036-0.661h3.429v-11.429h-5.714q-0.25 0-0.446-0.196l-2.857-3.429q-0.232-0.25-0.071-0.607 0.161-0.339 0.518-0.339z';});
-
-    // M18.179 10.768q-0.321 0.661-1.036 0.661h-3.429v15.429q0 0.25-0.161 0.411t-0.411 0.161h-12.571q-0.375 0-0.518-0.321-0.143-0.357 0.071-0.625l2.857-3.429q0.161-0.196 0.446-0.196h5.714v-11.429h-3.429q-0.714 0-1.036-0.661-0.304-0.661 0.161-1.214l5.714-6.857q0.321-0.393 0.875-0.393t0.875 0.393l5.714 6.857q0.482 0.571 0.161 1.214z
-  };
+};
 
   public async initData() {
 
@@ -609,7 +582,6 @@ class AttributeTable {
     for (const colName of colOrder) {
       for (const vector of allCols) {
         if (vector.desc.name === colName) {
-          // console.log(vector.desc.name, await vector.data())
           orderedCols.push(vector);
         }
       }
@@ -629,23 +601,18 @@ class AttributeTable {
     const y2personDict = {};
     const yDict = this.tableManager.yValues;
 
-    console.log('YDict',yDict);
-
     let maxRow=0;
     //Find max value in yDict
     Object.keys(yDict).forEach((person)=> {
       maxRow = yDict[person][0] > maxRow ? yDict[person][0] : maxRow;
     });
 
-    // console.log(yDict,ids);
     ids.forEach((person, ind) => {
-      // console.log(person,KindredIDs[ind]);
-      if (person in yDict) { //may not be if dangling nodes were removed
-        // console.log(person,yDict[person]);
+      if (person in yDict) {
         //Handle Duplicate Nodes
         yDict[person].forEach((y) => {
           if (y in y2personDict) {
-            y2personDict[y].push(person); 
+            y2personDict[y].push(person);
 
           } else {
             y2personDict[y] = [person];
@@ -658,7 +625,6 @@ class AttributeTable {
 
     //Find y indexes of all rows
     const allRows = Object.keys(y2personDict).map(Number);
-    console.log('AllRows', allRows);
     //Set height and width of svg
     this.height = Config.glyphSize * 4 * (maxRow);
     // select('.tableSVG').attr('viewBox','0 0 ' + this.width + ' ' + (this.height + this.margin.top + this.margin.bottom))
@@ -690,7 +656,6 @@ class AttributeTable {
 
 
     col.ids = allRows.map((row) => {
-      // console.log(y2personDict[row]);
       return y2personDict[row].map((d) => { return d.split('_')[0]; }); //only first part is the id
     });
 
@@ -766,18 +731,10 @@ class AttributeTable {
             //Only return unique personIDs.
             //TODO find out why there are multiple instances of a person id.
             const people = y2personDict[row];
-            // .filter(function (value, index, self) {
-            //   return self.indexOf(value.id) === index;
-            // });
-
-            // console.log(people,ids);
-            // console.log('about to call people.map()');
             people.map((person) => {
-              // console.log(col.name, person.split('_')[0]);
               const ind = (col.name === 'KindredID' ? ids.indexOf(person) : peopleIDs.indexOf(person.split('_')[0])); //find this person in the attribute data
               //If there are only two categories, save both category values in this column. Else, only save the ones that match the category at hand.
               if (ind > -1 && (allCategories.length < 3 || ind > -1 && (allCategories.length > 2 && data[ind] === cat))) {
-                // console.log('person:',person, 'value:',data[ind])
                 colData.push(data[ind]);
               } else {
                 colData.push(undefined);
@@ -878,14 +835,8 @@ class AttributeTable {
         col.data = allRows.map((row) => {
           const colData = [];
           const people = y2personDict[row];
-          // .filter(function (value, index, self) {
-          //   return self.indexOf(value.id) === index;
-          // });
-          // console.log(data,ids,people);
           people.map((person, i) => {
             const ind = (col.name === 'KindredID' ? ids.lastIndexOf(person) : peopleIDs.lastIndexOf(person.split('_')[0])); //find this person in the attribute data
-            // const ind = ids.indexOf(person); //find this person in the attribute data
-            // console.log(person,ind,peopleIDs[i],peopleIDs[ind],data[ind]);
             if (ind > -1) {
               if (isUndefined(data[ind])) {
                 console.log('problem');
@@ -931,9 +882,7 @@ class AttributeTable {
       const type = vector.valuetype.type;
       const name = vector.desc.name;
 
-      // console.log(index)
       let maxOffset = max(this.colOffsets);
-      // console.log(maxOffset)
       if (type === VALUE_TYPE_CATEGORICAL) {
 
         //Build col offsets array ;
@@ -1180,9 +1129,6 @@ class AttributeTable {
       .append('g')
       .classed('dataCols', true)
       .attr('id', (d) => { return this.deriveID(d) + '_data'; });
-
-    console.log('yrange',this.y.range());
-    console.log('domain',this.y.domain());
     //Append background rect
     colsEnter.append('rect')
       .classed('starRect', true);
@@ -1411,8 +1357,7 @@ class AttributeTable {
       .classed('slopeLine', true)
       .attr('d', (d: any) => {
         return this.slopeChart(d);
-      })
-      .on('click', (d, i) => { console.log(d, this.y(this.rowOrder[d.ind])); });
+      });
 
     let slopeIcons = select('#slopeLines').selectAll('.slopeIcon')
       .data(this.rowOrder
@@ -1559,8 +1504,6 @@ class AttributeTable {
       .on('click', this.clickHighlight);
 
     cells = cellsEnter.merge(cells);
-
-    // console.log('there are a total of ', cells.size() , 'cells')
 
     cellsEnter.attr('opacity', 0);
 
@@ -1925,7 +1868,7 @@ class AttributeTable {
         this.tableManager.removeStar(d.name);
 
         //Update menu
-        selectAll('.dropdown-item').filter((item: any) => { console.log(item); return item === d.name; })
+        selectAll('.dropdown-item').filter((item: any) => { return item === d.name; })
           .classed('active', false);
         events.fire(COL_ORDER_CHANGED_EVENT);
       });
@@ -2023,7 +1966,6 @@ class AttributeTable {
       .on('click', (e) => {
         if (e.includes('Star')) {
           const header = select('#' + this.deriveID(d) + '_header');
-          console.log(header.empty());
           const starBackground = select('.starRect_' + this.deriveID(d));
           header.classed('star', !header.classed('star'));
 
@@ -2348,7 +2290,6 @@ class AttributeTable {
       .tickFormat(format('.0f'));
 
     if (element.selectAll('.hist_xscale').size() === 0) {
-      // console.log('creating new axis');
 
       element.append('text').classed('maxValue', true);
       element.append('g')
@@ -2680,8 +2621,7 @@ class AttributeTable {
         .classed('dataDens', true);
 
       element.append('text')
-        .classed('label', true)
-        .on('click', () => { return console.log(cellData.data); });
+        .classed('label', true);
 
       if (cellData.type === 'dataDensity') {
         element.append('text').text('\uf00c')
@@ -2994,8 +2934,7 @@ class AttributeTable {
     if (element.selectAll('.string').size() === 0) {
       element
         .append('text')
-        .classed('string', true)
-        .on('click', () => { return console.log(cellData.data); });
+        .classed('string', true);
     }
 
     let textLabel;
@@ -3060,11 +2999,6 @@ class AttributeTable {
     const end = this.y(this.rowOrder[d.ind]);
 
     const highlightedRow = selectAll('.highlightBar').filter('.selected').filter((bar: any) => { return bar.y === d.y || (this.sortedRowOrder && bar.i === this.sortedRowOrder[d.ind]); });
-
-    // if (!highlightedRow.empty()) {
-    //   highlightedRow.filter((b)=> {console.log(b); return true;})
-    //   console.log(d,this.sortedRowOrder[d.ind]);
-    // }
 
     if (highlightedRow.empty() && (start < scrollOffset) || (start > (divHeight + scrollOffset))
       || (end < scrollOffset) || (end > (divHeight + scrollOffset))) {

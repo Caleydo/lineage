@@ -314,9 +314,9 @@ class GraphData {
           n.bdate = CURRENT_YEAR - 3;
         }
       }
-      if (n.ddate === 0 || isNaN(n.ddate)) {
-        n.ddate = CURRENT_YEAR;
-      }
+      // if (n.ddate === 0 || isNaN(n.ddate)) {
+      //   n.ddate = CURRENT_YEAR;
+      // }
     });
   } while (this.nodes.filter((node)=> {return isNaN(node.bdate);}).length>0);
 

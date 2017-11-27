@@ -1306,7 +1306,6 @@ class GenealogyTree {
       .filter((d) => {
         return !(d.hidden && !d.hasChildren);
       })
-      // .transition(t)
       .attr('transform', (node: Node) => {
         const xpos = this.xPOS(node);
         const ypos = this.yPOS(node);
@@ -1498,7 +1497,7 @@ class GenealogyTree {
       .on('mouseover', () => {
         //Find node for this person in tree (if current visible)
         const selectNode = selectAll('.node')
-          .filter((node: any) => { return node.id === d.ma.id; });
+          .filter((node: any) => { return d.ma && node.id === d.ma.id; });
 
         selectNode.select('.nodeIcon').classed('highlightedNode', true);
       })
@@ -1511,7 +1510,7 @@ class GenealogyTree {
       .on('mouseover', () => {
         //Find node for this person in tree (if current visible)
         const selectNode = selectAll('.node')
-          .filter((node: any) => { return node.id === d.pa.id; });
+          .filter((node: any) => { return d.pa && node.id === d.pa.id; });
 
         selectNode.select('.nodeIcon').classed('highlightedNode', true);
       })
@@ -1602,7 +1601,7 @@ class GenealogyTree {
       });
 
     //Add ageLine first to ensure it goes behind the node;
-    if (element.selectAll('.ageLineGroup').size() === 0) {
+    if (element.selectAll('.ageLineGroup').size() === 0 && !d.inferredBdate && d.hasDdate) {
 
       const ageLineGroup = element
         .append('g')
@@ -1617,7 +1616,7 @@ class GenealogyTree {
 
 
       //Add cross at the end of lifelines for deceased people
-      if (d.deceased === 'Y') {
+      if (d.ddate) {
         ageLineGroup
           .append('line')
           .attr('class', 'endOfTheLine');
@@ -1627,7 +1626,7 @@ class GenealogyTree {
     }
 
     //Add cross through lines for deceased people
-    if (d.deceased === 'Y' && element.selectAll('.nodeLine').size() === 0) {
+    if (d.ddate  && element.selectAll('.nodeLine').size() === 0) {
       element
         .append('line')
         .attr('class', 'nodeLine');
@@ -2233,7 +2232,7 @@ class GenealogyTree {
       return +d.bdate - 5;
     }),
     max(filteredNodes, function (d: Node) {
-      return +d.ddate + 5;
+      return d.ddate ? +d.ddate + 5 : +d.bdate + 5; //account for datasets without a death date
     })];
 
 
@@ -2241,7 +2240,7 @@ class GenealogyTree {
       return +d.bdate - 5;
     }),
     max(this.data.nodes, function (d: Node) {
-      return +d.ddate;
+      return d.ddate ? +d.ddate: +d.bdate; //account for datasets without a death date
     })];
 
     //Temporary cap @ 2016. Not sure why the axis are scaling to 2025 automatically.
@@ -2347,12 +2346,7 @@ class GenealogyTree {
    * @param node node to position
    * @param offset optional flag to only return the offset for male/female and not the position in the whole svg.
    */
-  private xPOS(node: Node, offset?: boolean) {
-
-    if (offset == null) {
-      offset = false;
-    }
-
+  private xPOS(node: Node, offset: boolean = false) {
     if (node.sex === Sex.Male) {
       if (node.hidden && node.hasChildren) {
         return !offset ? this.x(node.x) - Config.hiddenGlyphSize * .8 : -Config.hiddenGlyphSize * .8;

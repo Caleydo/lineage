@@ -97,6 +97,12 @@ export default class Node {
   // used for deCycling the tree
   visited: boolean;
 
+  //flag for bdates that are inferred.
+  inferredBdate:boolean;
+
+  //flag for whether there was death/deceased information. 
+  hasDdate:boolean;
+    
   // TODO what is target?
   target: Node;
 
@@ -122,6 +128,8 @@ export default class Node {
     this.deceased = 'Y';
     this.affected = false;
     this.state = layoutState.Expanded;
+    this.inferredBdate = false;
+    this.hasDdate = true;
   }
 
   /** Initialize the node based on rows */
@@ -134,6 +142,7 @@ export default class Node {
     this.maID = row[columnNameToIndex.MaID].toString();
     this.paID = row[columnNameToIndex.PaID].toString();
     this.kindredID = row[columnNameToIndex.KindredID].toString();
+    this.hasDdate = columnNameToIndex.ddate ? true : false;
     // this.deceased = row[columnNameToIndex.deceased].toString();
   }
 }

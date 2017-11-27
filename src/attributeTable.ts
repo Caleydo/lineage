@@ -154,17 +154,17 @@ class AttributeTable {
     this.height = Config.glyphSize * 3 * this.tableManager.graphTable.nrow; //- this.margin.top - this.margin.bottom;
 
 
-    this.$node.append('nav').attr('class', 'navbar navbar-expand-lg navbar-light bg-light')
-      .append('div').attr('id', 'tableNav');
+    // this.$node.append('nav').attr('class', 'navbar navbar-expand-lg navbar-light bg-light')
+    //   .append('div').attr('id', 'tableNav');
 
-    this.$node.select('#tableNav')
-      .append('a').attr('class', 'navbar-brand')
-      .html('Attribute Table');
+    // this.$node.select('#tableNav')
+    //   .append('a').attr('class', 'navbar-brand')
+    //   .html('Attribute Table');
 
-    const dropdownMenu = this.$node.select('.navbar')
-      .append('ul').attr('class', 'nav navbar-nav').attr('id', 'attributeMenu');
+    const dropdownMenu = select('.navbar-collapse')
+      .append('ul').attr('class', 'nav navbar-nav navbar-left').attr('id', 'attributeMenu');
 
-    this.$node.select('.navbar')
+    select('.navbar-collapse')
       .append('ul').attr('class', 'nav navbar-nav').attr('id', 'Export')
       .append('li')
       .append('a')
@@ -203,8 +203,8 @@ class AttributeTable {
         link.click();
       });
 
-    this.$node.select('.navbar')
-      .append('ul').attr('class', 'nav navbar-nav').attr('id', 'Sort by Tree')
+    select('.navbar-collapse')
+      .append('ul').attr('class', 'nav navbar-nav navbar-left').attr('id', 'Sort by Tree')
       .append('li')
       .append('a')
       .attr('class', 'btn-link')
@@ -272,7 +272,7 @@ class AttributeTable {
       .attr('class', 'dropdown-toggle')
       .attr('data-toggle', 'dropdown')
       .attr('role', 'button')
-      .html('Add Attributes')
+      .html('Table Attributes')
       .append('span')
       .attr('class', 'caret');
 
@@ -293,7 +293,7 @@ class AttributeTable {
       .append('a')
       .attr('class', 'dropdown-item demoAttr')
       .classed('active', (d) => { return this.tableManager.colOrder.includes(d); })
-      .html((d) => { return d; })
+      .html((d:any) => { return d; })
       .merge(menuItems);
 
     menu.append('li').attr('class', 'divider').attr('role', 'separator');
@@ -309,7 +309,7 @@ class AttributeTable {
       .append('a')
       .attr('class', 'dropdown-item clinicalAttr')
       .classed('active', (d) => { return this.tableManager.colOrder.includes(d); })
-      .html((d) => { return d; })
+      .html((d:any) => { return d; })
       .merge(menuItems);
 
     const self = this;
@@ -1149,7 +1149,6 @@ class AttributeTable {
     .attr('class', (d) => { return 'starRect_' + this.deriveID(d); })
     .classed('starRect', true)
     .attr('opacity', ((d) => {
-      console.log('d is ',d.name,this.tableManager.affectedState.name);
       const header = select('#' + this.deriveID(d) + '_header');
       return (!header.empty() && header.classed('star')) || (this.tableManager.affectedState.name === d.name)
        ? .2 : 0;
@@ -1485,8 +1484,6 @@ class AttributeTable {
         return d.id[0];
       });
 
-    cells.exit().remove();
-
     const cellsEnter = cells.enter()
       .append('g')
       .attr('class', 'cell')
@@ -1505,14 +1502,15 @@ class AttributeTable {
       })
       .on('click', this.clickHighlight);
 
+    cells.exit().remove();
+
     cells = cellsEnter.merge(cells);
 
     cellsEnter.attr('opacity', 0);
 
     cells
-      // .transition(t)
       .attr('transform', (cell: any, i) => {
-        return ('translate(0, ' + y(this.rowOrder[i]) + ' )'); //the x translation is taken care of by the group this cell is nested in.
+        return (this.rowOrder[i] ? 'translate(0, ' + y(this.rowOrder[i]) + ' )' : ''); //the x translation is taken care of by the group this cell is nested in.
       });
 
     cellsEnter.attr('opacity', 1);

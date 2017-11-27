@@ -76,6 +76,8 @@ class AttributePanel {
     //Append div for Family Selector
     const familySelector = this.$node.append('div')
       .attr('id', 'familySelector');
+
+
   }
 }
 

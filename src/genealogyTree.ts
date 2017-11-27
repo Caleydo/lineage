@@ -248,15 +248,73 @@ class GenealogyTree {
     select('#col2')
       .style('width', (this.width + Config.collapseSlopeChartWidth) + 'px');
 
-    this.$node.append('nav').attr('class', 'navbar navbar-expand-lg navbar-light bg-light')
-      .append('div').attr('id', 'tableNav');
+      const dropdownMenu = select('.navbar-collapse')
+      .append('ul').attr('class', 'nav navbar-nav navbar-left').attr('id', 'treeLayoutMenu');
 
-    this.$node.select('#tableNav')
-      .append('a').attr('class', 'navbar-brand')
-      .html('Genealogy Tree');
+      const list = dropdownMenu.append('li').attr('class', 'dropdown');
 
-    const buttonMenu = this.$node.select('.navbar')
-      .append('ul').attr('class', 'nav navbar-nav');
+          list
+            .append('a')
+            .attr('class', 'dropdown-toggle')
+            .attr('data-toggle', 'dropdown')
+            .attr('role', 'button')
+            .html('Tree Layout')
+            .append('span')
+            .attr('class', 'caret');
+
+          const menu = list.append('ul').attr('class', 'dropdown-menu');
+
+
+            let menuItems = menu.selectAll('.demoAttr')
+            .data(['Aggregate','Hide','Expand']);
+
+          menuItems = menuItems.enter()
+            .append('li')
+            .append('a')
+            .attr('class', 'layoutMenu')
+            .classed('active', function(d) { return d === 'Expand';})
+            .html((d:any) => { return d; })
+            .merge(menuItems);
+
+            menuItems.on('click',(d)=> {
+              const currSelection = selectAll('.layoutMenu').filter((e)=> {return e === d;});
+
+              // if (currSelection.classed('active')) {
+              //   return;
+              // }
+
+              selectAll('.layoutMenu').classed('active',false);
+              currSelection.classed('active',true);
+
+              if (d === 'Aggregate') {
+                selectAll('.slopeLine').classed('clickedSlope', false);
+                selectAll('.highlightBar').classed('selected', false);
+
+                this.data.aggregateTreeWrapper(undefined, layoutState.Aggregated);
+              } else if (d === 'Hide') {
+                selectAll('.slopeLine').classed('clickedSlope', false);
+                selectAll('.highlightBar').classed('selected', false);
+
+                this.data.aggregateTreeWrapper(undefined, layoutState.Hidden);
+              } else {
+                selectAll('.slopeLine').classed('clickedSlope', false);
+                selectAll('.highlightBar').classed('selected', false);
+
+                this.data.aggregateTreeWrapper(undefined, layoutState.Expanded);
+              }
+
+            });
+
+
+    // this.$node.append('nav').attr('class', 'navbar navbar-expand-lg navbar-light bg-light')
+    //   .append('div').attr('id', 'tableNav');
+
+    // this.$node.select('#tableNav')
+    //   .append('a').attr('class', 'navbar-brand')
+    //   .html('Genealogy Tree');
+
+    const buttonMenu = select('.navbar-collapse')
+      .append('ul').attr('class', 'nav navbar-nav navbar-left');
 
     buttonMenu
       .append('li')
@@ -278,47 +336,47 @@ class GenealogyTree {
         }
       });
 
-    buttonMenu
-      .append('li')
-      .append('a')
-      .attr('class', 'btn-link')
-      .attr('role', 'button')
-      .html('Aggregate')
-      .on('click', (d) => {
-        selectAll('.slopeLine').classed('clickedSlope', false);
-        selectAll('.highlightBar').classed('selected', false);
+    // buttonMenu
+    //   .append('li')
+    //   .append('a')
+    //   .attr('class', 'btn-link')
+    //   .attr('role', 'button')
+    //   .html('Aggregate')
+    //   .on('click', (d) => {
+    //     selectAll('.slopeLine').classed('clickedSlope', false);
+    //     selectAll('.highlightBar').classed('selected', false);
 
-        this.data.aggregateTreeWrapper(undefined, layoutState.Aggregated);
-        // this.update_graph();
-      });
+    //     this.data.aggregateTreeWrapper(undefined, layoutState.Aggregated);
+    //     // this.update_graph();
+    //   });
 
-    buttonMenu
-      .append('li')
-      .append('a')
-      .attr('class', 'btn-link')
-      .attr('role', 'button')
-      .html('Hide')
-      .on('click', (d) => {
+    // buttonMenu
+    //   .append('li')
+    //   .append('a')
+    //   .attr('class', 'btn-link')
+    //   .attr('role', 'button')
+    //   .html('Hide')
+    //   .on('click', (d) => {
 
-        selectAll('.slopeLine').classed('clickedSlope', false);
-        selectAll('.highlightBar').classed('selected', false);
+    //     selectAll('.slopeLine').classed('clickedSlope', false);
+    //     selectAll('.highlightBar').classed('selected', false);
 
-        this.data.aggregateTreeWrapper(undefined, layoutState.Hidden);
-      });
+    //     this.data.aggregateTreeWrapper(undefined, layoutState.Hidden);
+    //   });
 
-    buttonMenu
-      .append('li')
-      .append('a')
-      .attr('class', 'btn-link')
-      .attr('role', 'button')
-      .html('Expand')
-      .on('click', (d) => {
+    // buttonMenu
+    //   .append('li')
+    //   .append('a')
+    //   .attr('class', 'btn-link')
+    //   .attr('role', 'button')
+    //   .html('Expand')
+    //   .on('click', (d) => {
 
-        selectAll('.slopeLine').classed('clickedSlope', false);
-        selectAll('.highlightBar').classed('selected', false);
+    //     selectAll('.slopeLine').classed('clickedSlope', false);
+    //     selectAll('.highlightBar').classed('selected', false);
 
-        this.data.aggregateTreeWrapper(undefined, layoutState.Expanded);
-      });
+    //     this.data.aggregateTreeWrapper(undefined, layoutState.Expanded);
+    //   });
 
     const headerDiv = this.$node.append('div').attr('id', 'graphHeaders');
 

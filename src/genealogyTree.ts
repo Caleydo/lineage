@@ -683,7 +683,7 @@ class GenealogyTree {
     this.$node.select('#graph')
       // .attr('viewBox','0 0 ' + this.width +  ' ' +  (this.height + this.margin.top + this.margin.bottom))
       // .attr('preserveAspectRatio','none');
-      .attr('width', this.width + Config.slopeChartWidth)
+      .attr('width', this.width + Config.slopeChartWidth);
       // .attr('height', this.height);
 
     this.update_edges();

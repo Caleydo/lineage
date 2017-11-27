@@ -22,7 +22,7 @@ p {
 }
 
 .paddingBlock {
-	padding: 20px 0;
+	padding: 20px 0 0 0 ;
 }
 
 .eqWrap {
@@ -134,6 +134,10 @@ ul.nav.navbar-nav{
   height: calc(100vh - 310px);
 }
 
+#data_selection{
+  height: calc(100vh - 60px);
+}
+
 #data_selection {
   overflow: scroll;
 }
@@ -208,7 +212,7 @@ ul.nav.navbar-nav{
 }
 
 #tableDiv2, #graphDiv{
-  height: calc(100vh - 310px);
+  height: calc(100vh - 255px);
   overflow-y: scroll;
 }
 

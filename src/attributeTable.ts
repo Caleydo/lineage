@@ -628,7 +628,8 @@ class AttributeTable {
     this.height = Config.glyphSize * 4 * (maxRow);
     // select('.tableSVG').attr('viewBox','0 0 ' + this.width + ' ' + (this.height + this.margin.top + this.margin.bottom))
 
-    select('.tableSVG').attr('height', this.height);
+    // select('.tableSVG').attr('height', this.height);
+    select('.tableSVG').attr('height',document.getElementById('genealogyTree').getBoundingClientRect().height);
     select('.tableSVG').attr('width', this.tableManager.colOrder.length * 100);
 
     this.y.range([0, this.height * .7]).domain([1, maxRow]);

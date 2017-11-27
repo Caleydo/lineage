@@ -684,12 +684,14 @@ class GenealogyTree {
       // .attr('viewBox','0 0 ' + this.width +  ' ' +  (this.height + this.margin.top + this.margin.bottom))
       // .attr('preserveAspectRatio','none');
       .attr('width', this.width + Config.slopeChartWidth)
-      .attr('height', this.height);
+      // .attr('height', this.height);
 
     this.update_edges();
     this.update_nodes();
 
     this.addFamilyBars();
+    this.$node.select('#graph')
+    .attr('height',document.getElementById('genealogyTree').getBoundingClientRect().height);
   }
 
   private addFamilyBars() {

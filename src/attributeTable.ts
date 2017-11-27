@@ -1149,8 +1149,10 @@ class AttributeTable {
     .attr('class', (d) => { return 'starRect_' + this.deriveID(d); })
     .classed('starRect', true)
     .attr('opacity', ((d) => {
+      console.log('d is ',d.name,this.tableManager.affectedState.name);
       const header = select('#' + this.deriveID(d) + '_header');
-      return (!header.empty() && header.classed('star')) ? .2 : 0;
+      return (!header.empty() && header.classed('star')) || (this.tableManager.affectedState.name === d.name)
+       ? .2 : 0;
     }));
 
     //translate columns horizontally to their position;

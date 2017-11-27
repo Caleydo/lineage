@@ -100,9 +100,9 @@ export default class Node {
   //flag for bdates that are inferred.
   inferredBdate:boolean;
 
-  //flag for whether there was death/deceased information. 
+  //flag for whether there was death/deceased information.
   hasDdate:boolean;
-    
+
   // TODO what is target?
   target: Node;
 

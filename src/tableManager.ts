@@ -192,7 +192,7 @@ export default class TableManager {
    */
   public async loadData(descendDataSetID: string, attributeDataSetID: string) {
 
-    if (descendDataSetID === 'AllFamiliesDescend' || 'TenFamiliesDescendAnon') {
+    if (descendDataSetID === 'AllFamiliesDescend' || descendDataSetID ===  'TenFamiliesDescendAnon') {
       this.defaultCols = ['KindredID', 'RelativeID', 'sex', 'deceased', 'suicide', 'Age','LabID','alcohol','Nr.Diag_alcohol','psychosis','Nr.Diag_psychosis','anxiety-non-trauma','Nr.Diag_anxiety-non-trauma', 'depression','cause_death']; //set of default cols to read in, minimizes load time for large files;
     } else {
       this.defaultCols = ['KindredID', 'RelativeID', 'sex', 'affected', 'labid'];

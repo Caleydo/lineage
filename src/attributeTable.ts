@@ -578,7 +578,6 @@ class AttributeTable {
 
     this.allCols = allCols;
 
-
     for (const colName of colOrder) {
       for (const vector of allCols) {
         if (vector.desc.name === colName) {

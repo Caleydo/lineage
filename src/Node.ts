@@ -138,7 +138,7 @@ export default class Node {
     this.id = row[columnNameToIndex.RelativeID].toString();
     this.bdate = +row[columnNameToIndex.bdate] ;
     this.ddate = (columnNameToIndex.ddate ? +row[columnNameToIndex.ddate] : undefined);
-    this.x = +row[columnNameToIndex.bdate];
+    this.x= +row[columnNameToIndex.bdate];
     this.maID = row[columnNameToIndex.MaID].toString();
     this.paID = row[columnNameToIndex.PaID].toString();
     this.kindredID = row[columnNameToIndex.KindredID].toString();

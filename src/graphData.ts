@@ -96,10 +96,12 @@ class GraphData {
 
 
       //Create Duplicate Node in the 'child' role and leave the current one as the parent/spouse
-      const duplicateNode = Object.assign({}, node);
+      const duplicateNode = Object.assign(Object.create(node), node);
+      // const duplicateNode = Object.assign({}, node);
+      // Object.setPrototypeOf( duplicateNode, Node );
 
       duplicateNode.id = node.id;
-      duplicateNode.uniqueID = Math.random().toString();
+      duplicateNode.uniqueID = node.uniqueID.toString()+'_2';
       duplicateNode.visited = false;
 
       //Add each node to the other's 'duplicate' array
@@ -859,14 +861,15 @@ class GraphData {
       //Assign all spouses to the x level of either the affected spouse or if not, a token male in the couple.
 
       //Align node's x value to youngest affected spouse:
-      const affectedSpouseXValue = max([node, node.spouse].filter((n: Node) => {
+      const affectedSpouseXValue = max([node].concat(node.spouse).filter((n: Node) => {
         return n.affected;
       }), (n: Node) => {
         return n.x;
       });
 
       let xValue = affectedSpouseXValue;
-      //No affected spouse
+      
+      //No affected spouse or node is a duplicate (must preserve x values for duplicates)
       if (isUndefined(affectedSpouseXValue)) {
         xValue = node.x;
       }

@@ -201,8 +201,12 @@ export default class TableManager {
     this.colOrder = this.defaultCols;
 
     //retrieving the desired dataset by name
-    this.attributeTable = <ITable>await getById(attributeDataSetID);
-    await this.parseAttributeData();
+    const attributeTable = <ITable>await getById(attributeDataSetID);
+    if (!attributeTable) {
+      return;
+    };
+
+    this.attributeTable = attributeTable;
 
     //retrieving the desired dataset by name
     this.table = <ITable>await getById(descendDataSetID);

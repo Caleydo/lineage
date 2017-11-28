@@ -1207,7 +1207,7 @@ class GenealogyTree {
     .filter((n)=> {return !n.affected &&
       n.spouse.filter((spouse)=> {return spouse.affected;}).length <1
       && n.hasChildren;});
-    
+
     familyNodes.forEach((n: Node) => {
       const familyPos = this.getFamilyPos(n);
       if (!isUndefined(familyPos)) {
@@ -1215,7 +1215,7 @@ class GenealogyTree {
       }
     });
 
-    
+
     // Attach Couples Lines
     let couplesLines = couplesLinesGroup.selectAll('.couplesLine')
       .data(couplesData, (d) => { return d.id; });

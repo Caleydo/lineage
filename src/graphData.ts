@@ -94,15 +94,18 @@ class GraphData {
     if (node.visited && node.spouse.length > 0) {
       console.log('found child cycle with ', node.id, node.spouse);
 
+      node.visited = false;
+      [node].concat(node.spouse).map((n)=> {this.clearVisitedBranch(n);});
+
 
       //Create Duplicate Node in the 'child' role and leave the current one as the parent/spouse
       const duplicateNode = Object.assign(Object.create(node), node);
-      // const duplicateNode = Object.assign({}, node);
-      // Object.setPrototypeOf( duplicateNode, Node );
 
       duplicateNode.id = node.id;
       duplicateNode.uniqueID = node.uniqueID.toString()+'_2';
       duplicateNode.visited = false;
+
+      this.clearVisitedBranch(duplicateNode);
 
       //Add each node to the other's 'duplicate' array
       node.duplicates.push(duplicateNode);
@@ -138,13 +141,6 @@ class GraphData {
 
       this.nodes.push(duplicateNode);
 
-
-      // console.log('L132')
-      //clear visited status of this persons spouse(s) and the branch starting at this couple;
-      // console.log('clearing visited status of', node.id)
-      node.visited = false;
-      this.clearVisitedBranch(node);
-      // console.log('L136')
     } else {
       // console.log('setting node ', node.id, ' visited status to true')
       node.visited = true;
@@ -214,17 +210,19 @@ class GraphData {
 
         }
 
-        // console.log('setting spouse ', s.id , ' visited status to true')
+        // console.log('setting spouse of ', node.id, ': ', s.id , ' visited status to true');
         s.visited = true;
 
 
       });
     }
 
+    if (node.ma || node.pa) {
     node.children.forEach((c) => {
-      // console.log('applying RCH on ', c.id , ' from ', node.id);
+      // console.log('applying RCH on ', c.uniqueID ,'/',c.id,  ' from ', node.uniqueID,'/',node.id);
       this.removeCyclesHelper(c);
     });
+  }
 
     if (!node.hasChildren) {
       return;
@@ -243,11 +241,13 @@ class GraphData {
     //set all spouses to false
     node.spouse.forEach((s) => {
       s.visited = false;
+      // console.log('clearing node ', s.id)
     });
 
     //recursively call this function on the children
     node.children.forEach((c) => {
       c.visited = false;
+      // console.log('clearing node ', c.id);
       this.clearVisitedBranch(c);
     });
   }
@@ -868,7 +868,7 @@ class GraphData {
       });
 
       let xValue = affectedSpouseXValue;
-      
+
       //No affected spouse or node is a duplicate (must preserve x values for duplicates)
       if (isUndefined(affectedSpouseXValue)) {
         xValue = node.x;

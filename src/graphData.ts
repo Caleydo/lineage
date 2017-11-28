@@ -16,13 +16,13 @@ import {
 
 import * as events from 'phovea_core/src/event';
 import * as Range from 'phovea_core/src/range';
-import {VIEW_CHANGED_EVENT, FAMILY_SELECTED_EVENT, default as TableManager} from './tableManager';
-import {isUndefined} from 'util';
+import { VIEW_CHANGED_EVENT, FAMILY_SELECTED_EVENT, default as TableManager } from './tableManager';
+import { isUndefined } from 'util';
 import Node from './Node';
-import {Sex} from './Node';
-import {layoutState} from './Node';
-import {ITable} from 'phovea_core/src/table/ITable';
-import {CURRENT_YEAR} from './genealogyTree';
+import { Sex } from './Node';
+import { layoutState } from './Node';
+import { ITable } from 'phovea_core/src/table/ITable';
+import { CURRENT_YEAR } from './genealogyTree';
 
 
 class GraphData {
@@ -32,7 +32,7 @@ class GraphData {
   public attributeTable: ITable;
   private tableManager: TableManager;
   private ids: string[]; //unique identifier for each person. Is used to create new range on graphView
-
+  private uniqueIDs: string[];
   public yValues;
 
   //Array of Parent Child Edges
@@ -51,7 +51,7 @@ class GraphData {
   private setListeners() {
 
     events.on(FAMILY_SELECTED_EVENT, () => {
-      console.log('family was selected')
+      console.log('family was selected');
       this.graphTable = this.tableManager.graphTable;
 
       //Once tree has been created for the new family, fire redraw tree event.
@@ -71,16 +71,16 @@ class GraphData {
   private removeCycles() {
 
     const toDecycle = this.nodes.filter((n) => {
-      return !n.visited;
+      return !n.visited && n.ma && n.pa;
     });
 
     if (toDecycle.length === 0) {
       return;
     }
     const startNode = toDecycle.find((n) => {
-      return n.bdate === min(toDecycle, n => {
-          return n.bdate
-        })
+      return n.bdate === min(toDecycle, (n) => {
+        return n.bdate;
+      });
     });
 
     this.removeCyclesHelper(startNode);
@@ -89,17 +89,23 @@ class GraphData {
   }
 
   private removeCyclesHelper(node: Node) {
+    //  console.log('visiting node ', node.id, node.visited);
 
-    if (node.visited && node.spouse.length>0) {
+    if (node.visited && node.spouse.length > 0) {
       console.log('found child cycle with ', node.id, node.spouse);
+
+      node.visited = false;
+      [node].concat(node.spouse).map((n)=> {this.clearVisitedBranch(n);});
 
 
       //Create Duplicate Node in the 'child' role and leave the current one as the parent/spouse
-      const duplicateNode = Object.assign({}, node);
+      const duplicateNode = Object.assign(Object.create(node), node);
 
       duplicateNode.id = node.id;
-      duplicateNode.uniqueID = Math.random().toString();
+      duplicateNode.uniqueID = node.uniqueID.toString()+'_2';
       duplicateNode.visited = false;
+
+      this.clearVisitedBranch(duplicateNode);
 
       //Add each node to the other's 'duplicate' array
       node.duplicates.push(duplicateNode);
@@ -135,18 +141,11 @@ class GraphData {
 
       this.nodes.push(duplicateNode);
 
-
-      // console.log('L132')
-      //clear visited status of this persons spouse(s) and the branch starting at this couple;
-      // console.log('clearing visited status of', node.id)
-      node.visited = false;
-      this.clearVisitedBranch(node);
-      // console.log('L136')
     } else {
       // console.log('setting node ', node.id, ' visited status to true')
       node.visited = true;
       node.spouse.forEach((s: Node) => {
-        // console.log('visited status of ', s.id, ' is ', s.visited)
+        // console.log('visiting spouse',s.id,s.visited);
         if (s.visited) {
           console.log('found spouse cycle between  ', node.id, ' and ', s.id);
           //choose the person who is part of the blood family (i.e, who have a mom and dad in this family) and duplicate them.
@@ -156,7 +155,7 @@ class GraphData {
           } else if (s.ma) {
             toDuplicate = s;
           } else {
-            console.log('neither person has parents in this family!');
+            console.log('neither person has parents in this family!',node.id,s.id);
           }
 
 
@@ -211,17 +210,19 @@ class GraphData {
 
         }
 
-        // console.log('setting spouse ', s.id , ' visited status to true')
+        // console.log('setting spouse of ', node.id, ': ', s.id , ' visited status to true');
         s.visited = true;
 
 
       });
     }
 
+    if (node.ma || node.pa) {
     node.children.forEach((c) => {
-      // console.log('applying RCH on ', c.id)
+      // console.log('applying RCH on ', c.uniqueID ,'/',c.id,  ' from ', node.uniqueID,'/',node.id);
       this.removeCyclesHelper(c);
     });
+  }
 
     if (!node.hasChildren) {
       return;
@@ -234,23 +235,20 @@ class GraphData {
    */
   private clearVisitedBranch(node) {
 
-    // console.log('L220. Visiting ', node.id)
-
     if (!node.hasChildren) {
       return;
     }
     //set all spouses to false
     node.spouse.forEach((s) => {
       s.visited = false;
+      // console.log('clearing node ', s.id)
     });
 
     //recursively call this function on the children
     node.children.forEach((c) => {
       c.visited = false;
-      // console.log('L233')
-      // console.log('clearing visited of children within CVB', c.id)
+      // console.log('clearing node ', c.id);
       this.clearVisitedBranch(c);
-      // console.log('L235')
     });
   }
 
@@ -263,38 +261,35 @@ class GraphData {
    */
   public async createTree() {
 
-
     this.nodes = [];
     const columns = this.graphTable.cols();
-    // const nrow = this.graphTable.nrow;
-
-
-    let peopleIDs = await columns[0].names();
-
+    const peopleIDs = await columns[0].names();
     const idRanges = await columns[0].ids();
+    const kindredRanges = await columns[1].data();
 
-
-    this.ids = idRanges.dim(0).asList().map(d => {
+    this.ids = idRanges.dim(0).asList().map((d) => {
       return d.toString();
     });
 
+    this.uniqueIDs = idRanges.dim(0).asList().map((d,i) => {
+      return d.toString() + kindredRanges[i].toString();
+    });
 
     const columnDesc = this.graphTable.desc.columns;
-    const columnNameToIndex: {[name: string]: number} = {};
+    const columnNameToIndex: { [name: string]: number } = {};
 
+    const allData = await this.graphTable.data();
     for (let i = 0; i < columnDesc.length; i++) {
-      //console.log(columns[i]);
       const name = columnDesc[i].name;
       columnNameToIndex[name] = i;
-      // console.log(name,i,columnNameToIndex[name])
     }
 
     let i = 0;
-    for (const row of await this.graphTable.data()) {
+    for (const row of allData) {
       const node = new Node(this.ids[i]);
-      // const node = new Node(peopleIDs[i]);
-      this.nodes.push(node);
+
       node.initialize(columnNameToIndex, row);
+      this.nodes.push(node);
       i++;
     }
 
@@ -303,29 +298,35 @@ class GraphData {
       return b.y - a.y;
     });
 
-
-    // console.log('affected state is ', this.tableManager.affectedState)
     this.defineAffected(this.tableManager.affectedState);
 
     this.buildTree();
 
+    do {
     //Create fake birthdays for people w/o a bdate or ddate.
     this.nodes.forEach((n) => {
       if (n.bdate === 0 || isNaN(n.bdate)) { //random number
+        n.inferredBdate = true;
         // subtract 20 from the age of the first kid
         if (n.hasChildren) {
-          n.bdate = n.children[0].bdate - 20;
-          n.x = n.bdate;
+          n.bdate = n.children[0].bdate && n.children[0].bdate - 20;
+          n.x = n.children[0].bdate &&  n.bdate;
         } else {
           // The not-so-nice case when we don't have an age and no children
           n.x = CURRENT_YEAR - 3;
           n.bdate = CURRENT_YEAR - 3;
         }
       }
-      if (n.ddate === 0 || isNaN(n.ddate)) {
-        n.ddate = CURRENT_YEAR;
-      }
+      // if (n.ddate === 0 || isNaN(n.ddate)) {
+      //   n.ddate = CURRENT_YEAR;
+      // }
     });
+  } while (this.nodes.filter((node)=> {return isNaN(node.bdate);}).length>0);
+
+    if (this.nodes.filter((node)=> {return isNaN(node.bdate);}).length>0) {
+      console.log('Houston we have a problem');
+    }
+
 
 
     //Remove cycles by creating duplicate nodes where necessary
@@ -369,12 +370,11 @@ class GraphData {
     //Create hashmap of personID to y value;
     const dict = {};
 
-
     this.nodes.forEach((node) => {
-      if (node.id in dict) {
-        dict[node.id].push(Math.round(node.y));
+      if (node.uniqueID in dict) {
+        dict[node.id+'_'+node.kindredID].push(Math.round(node.y));
       } else {
-        dict[node.id] = [Math.round(node.y)];
+        dict[node.id+'_'+node.kindredID] = [Math.round(node.y)];
       }
     });
 
@@ -402,9 +402,9 @@ class GraphData {
 
     //Find oldest person in this set of nodes and set as founder
     const founder = nodeList.find((n) => {
-      return n.bdate === min(nodeList, n => {
-          return n.bdate
-        })
+      return n.bdate === min(nodeList, (n) => {
+        return n.bdate;
+      });
     });
 
     founder.y = nodeList.length; //Set first y index;
@@ -424,9 +424,9 @@ class GraphData {
 
     this.linearizeLogic(node);
 
-      node.children.map((child:Node)=>{
-        this.linearizeHelper(child);
-      })
+    node.children.map((child: Node) => {
+      this.linearizeHelper(child);
+    });
 
 
     //Base case are leaf nodes. Reached end of this branch.
@@ -442,12 +442,12 @@ class GraphData {
    * @param node - node that needs to be linearized;
    *
    */
-  private linearizeLogic(node:Node){
+  private linearizeLogic(node: Node) {
 
     if (node.y === undefined) {
       node.y = min(this.nodes, (n: any) => {
-          return n.y;
-        }) + (-1);
+        return n.y;
+      }) + (-1);
     }
 
     //Assign y position of all spouses.
@@ -456,16 +456,21 @@ class GraphData {
       node.spouse.forEach((s) => {
         if (s.y === undefined) {
           s.y = min(this.nodes, (n: any) => {
-              return n.y;
-            }) + (-1);
+            return n.y;
+          }) + (-1);
         }
         s.spouse.forEach((ss) => {
           if (ss.y === undefined) {
             ss.y = min(this.nodes, (n: any) => {
-                return n.y;
-              }) + (-1);
+              return n.y;
+            }) + (-1);
           }
         });
+
+        if (s.id === '652900') {
+          console.log(node.id,node.y,s.y);
+        }
+
       });
 
       //If person has two spouses, put this one in the middle.
@@ -475,7 +480,7 @@ class GraphData {
         }));
         ys.sort();
         //sort spouses by mean child age:
-        node.spouse.sort((s1,s2)=>{return (min(s1.children,(child:Node)=>{return child.bdate}) - min(s2.children,(child:Node)=>{return child.bdate}))})
+        node.spouse.sort((s1, s2) => { return (min(s1.children, (child: Node) => { return child.bdate; }) - min(s2.children, (child: Node) => { return child.bdate; })); });
 
         node.y = ys[1];
         node.spouse[0].y = ys[0];
@@ -483,19 +488,22 @@ class GraphData {
       }
 
       //sort kids by spouse order, then by age;
-      node.spouse.sort((a,b)=>{return b.y - a.y});
+      node.spouse.sort((a, b) => { return b.y - a.y; });
 
-      let allKids =[];
+      let allKids = [];
 
-      node.spouse.forEach((s:Node)=>{
+      node.spouse.forEach((s: Node) => {
         // console.log('spouse for ', node.id, ' ',  s.y)
         s.children.sort((a, b) => {
           return b.bdate - a.bdate;
         });
-        allKids = allKids.concat(s.children)
-      })
+        allKids = allKids.concat(s.children);
+      });
 
-      node.children = allKids;
+      //Add back in kids that don't have a father;
+
+
+      node.children = node.children.filter((c:Node)=> {return c.paID === '0';}).concat(allKids);
     }
 
   }
@@ -507,88 +515,89 @@ class GraphData {
    * @param nodeID, starting node for the aggregate/hide/expand operation. If undefined, apply to entire tree.
    * @pram state, defines operation as one of the three enums: state.expanded, state.aggregated, state.hidden.
    */
-  private aggregateTreeWrapper(nodeID: string, state:layoutState) {
+  private aggregateTreeWrapper(nodeID: string, state: layoutState) {
 
-     if (!isUndefined(nodeID) && !isUndefined(state)) {
-        //find node
-        let node = this.nodes.find((n: Node) => {
-          return n.uniqueID === nodeID;
-        });
+    if (!isUndefined(nodeID) && !isUndefined(state)) {
+      //find node
+      let node = this.nodes.find((n: Node) => {
+        return n.uniqueID === nodeID;
+      });
 
-        //If node is not descendant, find descendant;
-        if (!node.ma && !node.pa) {
+      //If node is not descendant, find descendant;
+      if (!node.ma && !node.pa) {
+        node = node.spouse[0];
+      }
+      //If node is still not descendant, pick the one with the most spouses; Multi spouse founders
+      if (!node.ma && !node.pa) {
+        if (node.spouse.length > 1) {
           node = node.spouse[0];
         }
-        //If node is still not descendant, pick the one with the most spouses; Multi spouse founders
-        if (!node.ma && !node.pa) {
-          if (node.spouse.length>1) {
-            node = node.spouse[0];
-          }
-        };
+      };
 
-        //Toggle layout state of this node;
-        node.state = state;
+      //Toggle layout state of this node;
+      node.state = state;
 
-        //perpetuate state to the rest of this branch;
-        this.perpetuateState(node);
-      }
+      //perpetuate state to the rest of this branch;
+      this.perpetuateState(node);
+    }
 
 
     //Clear tree of y values and aggregated and hidden flags;
-    this.nodes.forEach((n:Node) => {
-      n.y = undefined
+    this.nodes.forEach((n: Node) => {
+      n.y = undefined;
       n.aggregated = false;
       n.hidden = false;
       n.x = n.originalX;
       //Set aggregate/hide/expand flag for each node
       if (isUndefined(nodeID) && !isUndefined(state)) {
-        n.state =state;
+        n.state = state;
       }
 
-    })
+    });
 
     this.aggregateTree();
 
     //clean out extra rows at the top of the tree;
     const minY = min(this.nodes, (n: any) => {
       return n.y;
-    }) -1;
+    }) - 1;
 
-    this.nodes.forEach((n)=> {n.y = n.y - minY});
+    this.nodes.forEach((n) => { n.y = n.y - minY; });
 
     //Adjust y position for non affected nodes in the tree;
-    this.nodes.forEach((n:Node)=>{
-      if (n.hidden && !n.affected){
-        if (n.sex === Sex.Male){
-          n.y = n.y-0.2;
+    this.nodes.forEach((n: Node) => {
+      if (n.hidden && !n.affected) {
+        if (n.sex === Sex.Male) {
+          n.y = n.y - 0.2;
         }
-        if (n.sex === Sex.Female){
-          n.y = n.y+0.2;
+        if (n.sex === Sex.Female) {
+          n.y = n.y + 0.2;
         }
       }
     });
 
     //Hide Mode
 
-      //Adjust x position for spouses of affected nodes;
-      this.nodes.forEach((n:Node) => {
-        if (n.state === layoutState.Hidden) {
-          if (n.hidden && !n.affected && n.hasChildren && n.spouse.find(s => {
-              return s.affected;
-            })) {
-            n.x = n.x - Config.glyphSize * .6;
-          }
+    //Adjust x position for spouses of affected nodes;
+    this.nodes.forEach((n: Node) => {
+      if (n.state === layoutState.Hidden) {
+        if (n.hidden && !n.affected && n.hasChildren && n.spouse.find((s) => {
+          return s.affected;
+        })) {
+          n.x = n.x - Config.glyphSize * .6;
         }
-      });
+      }
+    });
 
 
     const idRange = [];
     this.nodes.forEach((n: any) => {
       if (!(!n.aggregated && n.hidden)) {
-        const ind: number = this.ids.indexOf(n.uniqueID);
+        // const ind: number = this.uniqueIDs.indexOf(n.uniqueID);
         idRange.push(n.uniqueID);
       }
     });
+
 
     this.exportYValues();
     this.tableManager.activeGraphRows = idRange;
@@ -602,18 +611,18 @@ class GraphData {
    * @param node, starting point of the branch
    *
    */
-  private perpetuateState(n:Node) {
+  private perpetuateState(n: Node) {
 
     if (!n.hasChildren) {
       return;
     }
 
     //apply state to spouses
-    n.spouse.forEach((s:Node)=> {s.state = n.state});
+    n.spouse.forEach((s: Node) => { s.state = n.state; });
 
     //recursively call function on children.
-    n.children.forEach((child:Node)=>{
-      child.state = n.state
+    n.children.forEach((child: Node) => {
+      child.state = n.state;
       this.perpetuateState(child);
     });
 
@@ -623,7 +632,7 @@ class GraphData {
    *
    * This function aggregates all nodes in the branch starting at a given node X.
    * @param applyToAll, boolean flag indicating if operation should be apply to entire tree;
-   *@param aggregate, true for aggregation, false for hiding, undefined for expand.
+   * @param aggregate, true for aggregation, false for hiding, undefined for expand.
    *
    */
   private aggregateTree() {
@@ -640,24 +649,23 @@ class GraphData {
     //Find oldest person in this set of nodes and set as founder
     let startNode = nodeList.find((n) => {
       return n.bdate === min(nodeList, (n) => {
-          return n.bdate;
-        });
+        return n.bdate;
+      });
     });
 
-
     //If starting node is not the 'center' of the founding spouses or is not a direct descendant
-    if (startNode.spouse.length === 1 && (startNode.spouse[0].spouse.length>1 || isUndefined(startNode.ma))){
+    if (startNode.spouse.length === 1 && (startNode.spouse[0].spouse.length > 1 || isUndefined(startNode.ma))) {
       startNode = startNode.spouse[0];
     }
 
     const minY = min(this.nodes, (n: any) => {
-        return n.y;
-      });
+      return n.y;
+    });
 
     if (isUndefined(minY)) {
       startNode.y = nodeList.length; //Set first y index;
-    } else{
-      startNode.y = minY -1; //Set first y index;
+    } else {
+      startNode.y = minY - 1; //Set first y index;
     }
 
     if (!startNode.affected && startNode.hasChildren && startNode.state !== layoutState.Expanded) {
@@ -665,15 +673,7 @@ class GraphData {
       startNode.aggregated = startNode.state === layoutState.Aggregated;
     }
 
-    // if (!isUndefined(state) && state !== layoutState.Expanded && !startNode.affected && startNode.hasChildren && (startNode.state !== layoutState.Expanded || applyToAll)) {
-    //   startNode.hidden = true;
-    //   startNode.aggregated = state === layoutState.Aggregated;
-    //   this.aggregateHelper(startNode);
-    // } else {
-
-      this.aggregateHelper(startNode);
-    // }
-
+    this.aggregateHelper(startNode);
 
     //Recursively call aggregateTree to handle any nodes that were not assigned a y value.
     this.aggregateTree();
@@ -691,9 +691,10 @@ class GraphData {
 
     if (node.state === layoutState.Expanded) {
       this.linearizeLogic(node);
-      node.children.forEach((child:Node)=>{
-        this.aggregateHelper(child)
-      })} else {
+      node.children.forEach((child: Node) => {
+        this.aggregateHelper(child);
+      });
+    } else {
       //Base case are leaf nodes. Reached end of this branch.
       if (!node.affected && !node.hasChildren) {
         return;
@@ -705,18 +706,17 @@ class GraphData {
         //find any affected nodes in the last row
         const isLastNodeAffected: Node = this.nodes.filter((n: Node) => {
           return n.y === min(this.nodes, (nd: Node) => {
-              return nd.y;
-            })
+            return nd.y;
+          });
         }).find((n: Node) => {
-          return n.affected
-        })
+          return n.affected;
+        });
 
         if (node.state === layoutState.Aggregated || !isUndefined(isLastNodeAffected)) {
           node.y = min(this.nodes, (n: any) => {
-              return n.y;
-            }) + (-1);
-        }
-        else {
+            return n.y;
+          }) + (-1);
+        } else {
           node.y = min(this.nodes, (n: any) => {
             return n.y;
           });
@@ -730,17 +730,17 @@ class GraphData {
 
       //Handle spouses
       // If any spouse are affected, give them their own row.
-      node.spouse.map(s => {
+      node.spouse.map((s) => {
         if (isUndefined(s.y) && s.affected) {
           s.y = min(this.nodes, (n: any) => {
             return n.y;
-          })
-          if (node.state === layoutState.Aggregated ) {
+          });
+          if (node.state === layoutState.Aggregated) {
             s.y = s.y - 1;
           } else {
             node.y = minY;
             node.hidden = true;
-            node.aggregated = false ;
+            node.aggregated = false;
           }
         }
       });
@@ -748,71 +748,75 @@ class GraphData {
       //find any unaggregated nodes in the last row
       const isLastNodeHidden: Node = this.nodes.filter((n: Node) => {
         return n.y === min(this.nodes, (nd: Node) => {
-            return nd.y;
-          });
+          return nd.y;
+        });
       }).find((n: Node) => {
         return !n.hidden;
       });
 
-      if (!isUndefined(isLastNodeHidden) && isUndefined(node.y)){
+      if (!isUndefined(isLastNodeHidden) && isUndefined(node.y)) {
         node.y = min(this.nodes, (n: any) => {
-            return n.y;
-          }) - 1;
+          return n.y;
+        }) - 1;
 
         node.hidden = true;
-        node.aggregated = node.state === layoutState.Aggregated ;
+        node.aggregated = node.state === layoutState.Aggregated;
       };
 
 
       //If node has any affected spouses, place node above them.
-      if (node.state === layoutState.Aggregated  && isUndefined(node.y) && node.spouse.filter(n => {
-          return n.affected;
-        }).length > 0) {
+      if (node.state === layoutState.Aggregated && isUndefined(node.y) && node.spouse.filter((n) => {
+        return n.affected;
+      }).length > 0) {
 
         node.y = min(this.nodes, (n: any) => {
           return n.y;
         });
-        if (node.state === layoutState.Aggregated ) {
+        if (node.state === layoutState.Aggregated) {
           node.y = node.y - 1;
         }
 
         node.hidden = true;
-        node.aggregated = node.state === layoutState.Aggregated ;
+        node.aggregated = node.state === layoutState.Aggregated;
       }
 
       //find all nodes in the last row, will only be one if it is affected
       const lastAssignedNodes: Node[] = this.nodes.filter((n: Node) => {
         return n.y === min(this.nodes, (nd: Node) => {
-            return nd.y;
-          });
+          return nd.y;
+        });
       });
 
       //of all the nodes in the last row, find either the affect one, or the one at the far right (latest bdate)
       let lastAssignedNode: Node = lastAssignedNodes.find((n: Node) => {
-        return n.affected
+        return n.affected;
       });
 
       if (isUndefined(lastAssignedNode)) {
         lastAssignedNode = lastAssignedNodes.find((n: Node) => {
           return n.bdate === max(lastAssignedNodes, (nd: Node) => {
-              return nd.bdate;
-            })
+            return nd.bdate;
+          });
         });
       }
 
-      //if the last assigned Node is affected or if it is an unaffected leaf, start a new row; This does not apply when hiding.
-      if (isUndefined(node.y) && (lastAssignedNode.affected || (!lastAssignedNode.hasChildren && !lastAssignedNode.affected))) {
+      if (isUndefined(lastAssignedNode)) {
+        console.log(lastAssignedNodes);
+      }
 
+      //if the last assigned Node is affected or if it is an unaffected leaf, start a new row; This does not apply when hiding.
+      if (isUndefined(node.y) && (lastAssignedNode.affected ||
+         (!lastAssignedNode.hasChildren && !lastAssignedNode.affected))) {
         node.y = min(this.nodes, (n: any) => {
-            return n.y;
-          }) - 1;
+          return n.y;
+        }) - 1;
 
         node.hidden = true;
-        node.aggregated = node.state === layoutState.Aggregated ;
+        node.aggregated = node.state === layoutState.Aggregated;
       } else if (isUndefined(node.y)) {
         node.y = min(this.nodes, (n: any) => {
           return n.y;
-        })
+        });
         node.hidden = true;
         node.aggregated = node.state === layoutState.Aggregated;
       }
@@ -822,31 +826,50 @@ class GraphData {
       });
 
       //Iterate through spouses again and assign any undefined y values to the current y
-      node.spouse.map(s => {
+      node.spouse.map((s) => {
+
 
         if (isUndefined(s.y) && !s.affected) {
           //If current node is affected, place spouses above it:
           if (node.affected && node.state === layoutState.Aggregated) {
             s.y = minY - 1;
+            //place spouses spouses above it as well.
+            s.spouse.map((ss)=> {
+              if (!ss.affected) {
+                ss.y = s.y;
+                ss.hidden = true;
+                ss.aggregated = !ss.affected && node.state === layoutState.Aggregated;
+              }
+            });
           } else { //place spouses alongside it;
-            s.y = node.y
+            s.y = node.y;
+            //place spouses spouses alongside it as well.
+            s.spouse.map((ss)=> {
+              if (!ss.affected) {
+                ss.y = node.y;
+                ss.hidden = true;
+                ss.aggregated = !ss.affected && node.state === layoutState.Aggregated;
+              }
+            });
           }
           s.hidden = true;
           s.aggregated = node.state === layoutState.Aggregated;
         }
+
       });
 
       //Assign all spouses to the x level of either the affected spouse or if not, a token male in the couple.
 
       //Align node's x value to youngest affected spouse:
-      let affectedSpouseXValue = max([node, node.spouse].filter((n: Node) => {
-        return n.affected
+      const affectedSpouseXValue = max([node].concat(node.spouse).filter((n: Node) => {
+        return n.affected;
       }), (n: Node) => {
-        return n.x
+        return n.x;
       });
 
       let xValue = affectedSpouseXValue;
-      //No affected spouse
+
+      //No affected spouse or node is a duplicate (must preserve x values for duplicates)
       if (isUndefined(affectedSpouseXValue)) {
         xValue = node.x;
       }
@@ -862,9 +885,9 @@ class GraphData {
 
       //If node is affected, find unaffected spouse
       if (node.affected) {
-        let unaffectedSpouse = node.spouse.find((n) => {
-          return !n.affected
-        })
+        const unaffectedSpouse = node.spouse.find((n) => {
+          return !n.affected;
+        });
         if (!isUndefined(unaffectedSpouse)) {
           childY = unaffectedSpouse.y;
         } else {
@@ -876,7 +899,7 @@ class GraphData {
           }
         }
       } else {
-        childY = node.y
+        childY = node.y;
       }
 
       //Assign y levels to leaf children;
@@ -887,9 +910,9 @@ class GraphData {
           child.hidden = true;
           child.aggregated = node.state === layoutState.Aggregated;
         } else {
-          this.aggregateHelper(child)
+          this.aggregateHelper(child);
         }
-      })
+      });
     }
 
   }
@@ -904,7 +927,6 @@ class GraphData {
    * Currently has a single value that indicates true.
    */
   private defineAffected(affectedState) {
-    console.log(affectedState, 'affectedState')
     this.nodes.forEach((node) => {
       const data = this.tableManager.getAttribute(affectedState.name, node.id);
       node.affected = affectedState.isAffected(data);
@@ -928,15 +950,15 @@ class GraphData {
     this.parentParentEdges = [];
 
     this.nodes
-      .forEach((node:Node) => {
+      .forEach((node: Node) => {
         //Check if there are mother and father nodes in this family (founder won't have them for example)
         const maNode = this.nodes.find((d) => {
-          return d.id === node.maID;
+          return d.id === node.maID && d.kindredID === node.kindredID; //Make sure to get the person from the right family
         });
         // if (maNode)
         // console.log(maNode, node )
         const paNode = this.nodes.find((d) => {
-          return d.id === node.paID;
+          return d.id === node.paID && d.kindredID === node.kindredID;
         });
         // if (paNode)
         //   console.log(paNode, node)
@@ -944,9 +966,38 @@ class GraphData {
 
         //No parents found
         if ((maNode === undefined || paNode === undefined) && (maNode !== node && paNode !== node)) {
-          node.ma = undefined;
-          node.pa = undefined;
-          // console.log('no parents :( ')
+          node.ma = maNode;
+          node.pa = paNode;
+
+         if (maNode) {
+          maNode.hasChildren = true;
+          //Add child to array of children of each parent
+          maNode.children.push(node);
+          // console.log('pushing ' , node.id , ' as child of ', maNode.id);
+
+          this.parentChildEdges.push({
+            ma: maNode,
+            pa: maNode,
+            target: node,
+            'id': node.id //id of parentChild Edge is the id of the child.
+          });
+         } else if (paNode) {
+          paNode.hasChildren = true;
+          //Add child to array of children of each parent
+          paNode.children.push(node);
+          // console.log('pushing ' , node.id , ' as child of ', maNode.id);
+
+          this.parentChildEdges.push({
+            ma: paNode,
+            pa: paNode,
+            target: node,
+            'id': node.id //id of parentChild Edge is the id of the child.
+          });
+         }
+
+
+
+          //  console.log('no parents :( for ',node.id);
         } else { //If found parents, create edges between parent and children, spouses, and add references to build tree
           // console.log('found parents :) ')
           //Replace ma and pa fields with reference to actual ma/pa nodes
@@ -963,8 +1014,8 @@ class GraphData {
 
           //Only add parent parent Edge if it's not already there;
           if (!this.parentParentEdges.some((d) => {
-              return d.ma === rnode.ma && d.pa === rnode.pa;
-            })) {
+            return d.ma === rnode.ma && d.pa === rnode.pa;
+          })) {
             this.parentParentEdges.push(rnode);
 
             //Set spouse fields
@@ -975,9 +1026,6 @@ class GraphData {
           //Set flag for people with children so they are not placed in the kidGrid
           maNode.hasChildren = true;
           paNode.hasChildren = true;
-
-          // console.log(node.id ,  ' is a child of ', maNode.id , ' and ', paNode.id)
-
 
           //Add child to array of children of each parent
           maNode.children.push(node);

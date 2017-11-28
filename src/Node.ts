@@ -21,7 +21,6 @@ export default class Node {
   /** This node's uniqueID */
   uniqueID: string;
 
-
   // TODO - what's type?
   type: string;
 
@@ -35,7 +34,7 @@ export default class Node {
   /** keeps track of nodes original x position - can change for kid grids on hide. */
   originalX: number;
 
-  /** flag to indicate a starting point of aggregation. used to recreate aggregate states when POI is changed*/
+  /** flag to indicate a starting point of aggregation. used to recreate aggregate states when POI is changed */
   aggregateBranch: boolean;
 
   // ------ Attributes of the node from the data  ------
@@ -50,6 +49,8 @@ export default class Node {
 
   maID: string;
   paID: string;
+
+  kindredID: string;
   /** Reference to the mother */
   ma: Node;
   /** Reference to the father */
@@ -96,6 +97,12 @@ export default class Node {
   // used for deCycling the tree
   visited: boolean;
 
+  //flag for bdates that are inferred.
+  inferredBdate:boolean;
+
+  //flag for whether there was death/deceased information.
+  hasDdate:boolean;
+
   // TODO what is target?
   target: Node;
 
@@ -103,7 +110,8 @@ export default class Node {
   constructor(id: string) {
     this.type = 'single';
     this.id = undefined;
-    this.uniqueID = id;
+    this.kindredID = undefined;
+    this.uniqueID = id; //use phovea defined unique id
     this.hidden = false;
     this.aggregated = false;
     this.generation = -1;
@@ -120,16 +128,21 @@ export default class Node {
     this.deceased = 'Y';
     this.affected = false;
     this.state = layoutState.Expanded;
+    this.inferredBdate = false;
+    this.hasDdate = true;
   }
 
   /** Initialize the node based on rows */
   public initialize(columnNameToIndex: any, row: any) {
     this.sex = (row[columnNameToIndex.sex] === 'M') ? Sex.Male : Sex.Female;
-    this.id =row[columnNameToIndex.RelativeID].toString();
-    this.bdate = +row[columnNameToIndex.bdate];
-    this.ddate = +row[columnNameToIndex.ddate];
-    this.x = +row[columnNameToIndex.bdate];
+    this.id = row[columnNameToIndex.RelativeID].toString();
+    this.bdate = +row[columnNameToIndex.bdate] ;
+    this.ddate = (columnNameToIndex.ddate ? +row[columnNameToIndex.ddate] : undefined);
+    this.x= +row[columnNameToIndex.bdate];
     this.maID = row[columnNameToIndex.MaID].toString();
     this.paID = row[columnNameToIndex.PaID].toString();
+    this.kindredID = row[columnNameToIndex.KindredID].toString();
+    this.hasDdate = columnNameToIndex.ddate ? true : false;
+    // this.deceased = row[columnNameToIndex.deceased].toString();
   }
 }

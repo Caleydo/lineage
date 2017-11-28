@@ -63,7 +63,7 @@ class Histogram {
     this.xScale = scaleLinear().range([0, this.width]).domain([0,1]);
     this.yScale = scaleLinear().range([0, this.height]).domain([0,1]);
     this.update(dataVec);
-    this.attachListener();
+    // this.attachListener();
 
     //return the promise
     return Promise.resolve(this);
@@ -75,14 +75,14 @@ class Histogram {
       await this.renderCategoricalHistogram(dataVec);
     } else if (this.type === VALUE_TYPE_INT || this.type === VALUE_TYPE_REAL) {
       await this.renderNumHistogram(dataVec);
-    } else if (this.type === 'string') {
-    }
+    };
+    // else if (this.type === 'string') {}
   }
 
   /**
    * Removes all interaction from the  histogram. (brushes and selecting bars)
    */
-  public clearInteraction(){
+  public clearInteraction() {
     this.removeBrush();
     this.removeCategorySelection();
   }
@@ -97,13 +97,13 @@ class Histogram {
     this.$node.selectAll('.catBar').on('click', function (d:any) {
       if (select(this).classed('picked')) {
         select(this).classed('picked', false);
-        events.fire('poi_selected',{'name':attrName, 'callback':(attr:String) => {return false}}); //if a bar is unclicked affected State is false for all
+        events.fire('poi_selected',{'name':attrName, 'callback':(attr:String) => {return false;}}); //if a bar is unclicked affected State is false for all
       } else {
         selectAll('.picked').classed('picked', false);
         select(this).classed('picked', true);
       }
 
-      events.fire('poi_selected',{'name':attrName, 'callback':(attr:String) => {return attr.toLowerCase() === d.key.toLowerCase()}});
+      events.fire('poi_selected',{'name':attrName, 'callback':(attr:String) => {return attr.toLowerCase() === d.key.toLowerCase();}});
 
     });
 
@@ -112,8 +112,8 @@ class Histogram {
   /**
    * Set categorical bar as selected.
    */
-  public setSelected(category){
-    if (this.type !== VALUE_TYPE_CATEGORICAL){
+  public setSelected(category) {
+    if (this.type !== VALUE_TYPE_CATEGORICAL) {
       return;
     }
     //Bars are not clickable
@@ -130,7 +130,7 @@ class Histogram {
   /**
    * Set categorical bar as primary or secondary.
    */
-  public setPrimarySecondary(attributeObj){
+  public setPrimarySecondary(attributeObj) {
 
     //Only need to set colors for categorical type
     if (this.type === VALUE_TYPE_INT || this.type === VALUE_TYPE_REAL) {
@@ -141,7 +141,6 @@ class Histogram {
     if (this.type === VALUE_TYPE_CATEGORICAL) {
       //Color Bars appropriately.
       attributeObj.categories.forEach((category, i) => {
-        console.log(category)
         this.$node.selectAll('.catBar').filter((bar) => {
           return bar.key === category;
         }).attr('fill', attributeObj.color[i]);
@@ -152,7 +151,7 @@ class Histogram {
   /**
    * Clear coloring for categorical bar as primary or secondary.
    */
-  public clearPrimarySecondary(){
+  public clearPrimarySecondary() {
 
     //Only need to set colors for categorical type
     if (this.type === VALUE_TYPE_INT || this.type === VALUE_TYPE_REAL) {
@@ -172,36 +171,36 @@ class Histogram {
   /**
    * Remove ability to select categories.
    */
-  private removeCategorySelection(){
-    this.$node.selectAll('.catBar').classed('picked',false)
+  private removeCategorySelection() {
+    this.$node.selectAll('.catBar').classed('picked',false);
     this.$node.selectAll('.catBar').on('click', null);
   }
 
   /**
    * Adds a brush to this histogram.
    */
-  private addBrush(){
+  private addBrush() {
 
-    let attrName = this.attrName;
+    const attrName = this.attrName;
 
-    let element = this.$node;
-    let xScale = this.xScale;
+    const element = this.$node;
+    const xScale = this.xScale;
 
     const topAxis = element.select('g').append('g')
       .attr('class', 'axis brushAxis')
       .attr('transform', 'translate(' + this.margin.left + ',0)')
       .call(axisTop(xScale)
-        .ticks(0))
+        .ticks(0));
 
-    let brushGroup = element.select('.barContainer').append("g")
-      .attr("class", "brush")
+    const brushGroup = element.select('.barContainer').append('g')
+      .attr('class', 'brush');
 
 
-    let brush = brushX()
+    const brush = brushX()
       .extent([[0, 0], [this.width, this.height]])
       .handleSize(8)
-      .on("brush", brushed)
-      .on("end", fireEvent)
+      .on('brush', brushed)
+      .on('end', fireEvent);
 
     brushGroup
       .call(brush)
@@ -210,15 +209,15 @@ class Histogram {
     this.brush = brush; //save as class variable since we will need to modify it later when user clicks on POI
 
     function brushed() {
-      let extent = brushSelection(brushGroup.node());
-      let lowerBound = xScale.invert(<Number>extent[0]);
-      let upperBound = xScale.invert(<Number>extent[1]);
+      const extent = brushSelection(brushGroup.node());
+      const lowerBound = xScale.invert(<Number>extent[0]);
+      const upperBound = xScale.invert(<Number>extent[1]);
 
-      let domain = xScale.domain();
+      const domain = xScale.domain();
       // let allTicks = Array.from(new Set([lowerBound,upperBound].concat(domain)));
 
       let allTicks=[];
-      if (lowerBound !== domain[0] || upperBound !== domain[1]){
+      if (lowerBound !== domain[0] || upperBound !== domain[1]) {
         allTicks = [lowerBound,upperBound];
       }
 
@@ -226,22 +225,22 @@ class Histogram {
       topAxis.call(axisTop(xScale)
         .tickSize(5)
         .tickValues(allTicks)
-        .tickFormat(format(".0f")));
+        .tickFormat(format('.0f')));
     }
 
     function fireEvent() {
-      let extent = brushSelection(brushGroup.node());
+      const extent = brushSelection(brushGroup.node());
 
       if (isNull(extent)) { //user cleared brush entirely
         topAxis.call(axisTop(xScale)
-          .ticks(0))
-        if (!isNull(event.sourceEvent)){ //user cleared brush, nobody is 'affected'
-          events.fire('poi_selected',{'name':attrName, 'callback':(attr:Number) => {return false} })
+          .ticks(0));
+        if (!isNull(event.sourceEvent)) { //user cleared brush, nobody is 'affected'
+          events.fire('poi_selected',{'name':attrName, 'callback':(attr:Number) => {return false;} });
         }
-      }else{
+      }else {
         console.log('extent is ', extent);
-        if (!isNull(event.sourceEvent)){ //ideally will check if sourceEvent === MouseEvent but that check doesn' work...
-          events.fire('poi_selected',{'name':attrName, 'callback':(attr:Number) => {return attr >= xScale.invert(extent[0]) && attr <= xScale.invert(extent[1])} })
+        if (!isNull(event.sourceEvent)) { //ideally will check if sourceEvent === MouseEvent but that check doesn' work...
+          events.fire('poi_selected',{'name':attrName, 'callback':(attr:Number) => {return attr >= xScale.invert(extent[0]) && attr <= xScale.invert(extent[1]);}});
         }
 
       }
@@ -255,7 +254,7 @@ class Histogram {
    */
   public setBrush(threshold) {
 
-    if (!this.brush){ //no brush exists. define default
+    if (!this.brush) { //no brush exists. define default
       this.addBrush();
       this.$node.select('.brush')
         .call(this.brush.move, [this.xScale(threshold), this.xScale.range()[1]]);
@@ -267,34 +266,34 @@ class Histogram {
    * Removes the brush from this histogram
    */
   private removeBrush() {
-      this.$node.select('.brush').remove()
+      this.$node.select('.brush').remove();
       this.$node.select('.brushAxis').remove();
       this.brush = undefined;
   }
 
-    /**
+  /**
    * This function renders the histogram for categorical attribute in the attribute panel
    *
    */
   private async renderCategoricalHistogram(dataVec) {
 
-    let currentHist = this.$node;
+    const currentHist = this.$node;
 
     const categoricalDataVec = <ICategoricalVector>dataVec;
 
     const numElements = categoricalDataVec.length;
 
-    const histData: IHistogram = await categoricalDataVec.hist();
+    const histData: any = await categoricalDataVec.hist();
     // console.log(histData)
     const catData = [];
-    histData.forEach((d, i) => {catData.push({key: histData['categories'][i], value: d})});
+    histData.forEach((d, i) => {catData.push({key: histData.categories[i], value: d});});
 
-    let t = transition('t').duration(500).ease(easeLinear);
+    const t = transition('t').duration(500).ease(easeLinear);
 
 
     //scales
-    let xScale = scaleBand();
-    let yScale = scaleLinear();
+    const xScale = scaleBand();
+    const yScale = scaleLinear();
 
     //scales
     xScale.rangeRound([0, this.width]).padding(0.2)
@@ -309,23 +308,23 @@ class Histogram {
       })]);
 
 
-    let bandwidth = min([xScale.bandwidth(),40]);
+    const bandwidth = min([xScale.bandwidth(),40]);
     if (currentHist.selectAll('.svg-g').size() === 0) {
       currentHist.append('g')
         .attr('transform', 'scale(0.6,0.6) translate(' + this.margin.left + ',' + this.margin.top + ')')
 
           .attr('class', 'svg-g');
 
-      let element = currentHist.selectAll('.svg-g');
+      const element = currentHist.selectAll('.svg-g');
 
       element.append('g')
         .attr('class', 'axis axis--x')
         .attr('transform', 'translate(' + this.margin.left + ',' + this.height + ')')
-        .call(axisBottom(xScale).tickFormat((d)=>{return d[0]}));
+        .call(axisBottom(xScale).tickFormat((d)=> {return d[0];}));
 
       element.append('g')
         .classed('barContainer',true)
-        .attr('transform', 'translate(' + this.margin.left + ',0)')
+        .attr('transform', 'translate(' + this.margin.left + ',0)');
     }
 
     let bars = currentHist
@@ -333,7 +332,7 @@ class Histogram {
       .selectAll('.catBar')
       .data(catData);
 
-    let barsEnter = bars
+    const barsEnter = bars
       .enter().append('rect')
       .classed('catBar', true)
       .classed('bar', true)
@@ -366,19 +365,19 @@ class Histogram {
    */
   private async renderNumHistogram(dataVec) {
 
-    let histData = await dataVec.hist(10);
-    let range = [0, this.width];
+    const histData = await dataVec.hist(10);
+    const range = [0, this.width];
 
-    var data = [],
+    const data = [],
       cols = scaleLinear<string,string>().domain([, 0]).range(['#111111', '#999999']),
       total = histData.validCount,
-      binWidth = (range[1] - range[0]) / histData.bins,
-      acc = 0;
+      binWidth = (range[1] - range[0]) / histData.bins;
+      let acc = 0;
 
     histData.forEach((b, i) => {
       data[i] = {
         v: b,
-        acc: acc,
+        acc,
         ratio: b / total,
         valueRange: histData.valueRange,
         name: 'Bin ' + (i + 1) + ' (center: ' + Math.round((i + 0.5) * binWidth) + ')',
@@ -392,18 +391,18 @@ class Histogram {
     //let xScale = scaleLinear().range([0,this.width]).domain([0,histData.bins])
     this.xScale.domain(histData.valueRange);//.nice();
     // let yScale = scaleLinear().range([0,height]).domain([0,maxFrequency]);
-    let bin2value = scaleLinear().range(histData.valueRange).domain([0, histData.bins]);
+    const bin2value = scaleLinear().range(histData.valueRange).domain([0, histData.bins]);
     this.yScale.domain([0, histData.largestFrequency]);
 
     const xScale = this.xScale;
 
     const currentHist = this.$node;
 
-    if (currentHist.select('.elementGroup').size() === 0){
+    if (currentHist.select('.elementGroup').size() === 0) {
 
       const element = currentHist.append('g')
         .classed('elementGroup',true)
-        .attr('transform', 'scale(0.6,0.6) translate(' + this.margin.left + ',' + this.margin.top + ')')
+        .attr('transform', 'scale(0.6,0.6) translate(' + this.margin.left + ',' + this.margin.top + ')');
 
       //axis
       element.append('g')
@@ -412,12 +411,12 @@ class Histogram {
         .call(axisBottom(xScale)
           .tickSize(5)
           .tickValues(xScale.domain())
-          .tickFormat(format(".0f")));
+          .tickFormat(format('.0f')));
 
 
      element.append('g')
         .attr('transform', 'translate(' + this.margin.left + ',0)')
-        .attr('class','barContainer')
+        .attr('class','barContainer');
 
     }
 
@@ -427,7 +426,7 @@ class Histogram {
       .data(data);
 
 
-    let barsEnter = bars
+    const barsEnter = bars
       .enter()
       .append('rect')
       .classed('numBar', true)
@@ -440,22 +439,22 @@ class Histogram {
 
     bars
       .attr('width', binWidth * 0.8)
-      .attr('height', d => {
-        return this.yScale(d.v)
+      .attr('height', (d) => {
+        return this.yScale(d.v);
       })
-      .attr('y', d => {
-        return (this.height - this.yScale(d.v))
+      .attr('y', (d) => {
+        return (this.height - this.yScale(d.v));
       })
       .attr('x', (d, i) => {
-        return xScale(bin2value(i))
-      })
+        return xScale(bin2value(i));
+      });
 
     // this.addBrush(); //For now only add brush when the POI button is clicked
   }
 
-  private attachListener() {
+  // private attachListener() {
 
-  }
+  // }
 
 
 }

@@ -16,8 +16,8 @@ export class Config {
   public static svgHeight = 600;
   public static margin = {
         axisTop: 80,
-        top: 170,
-        right: 0,
+        top: 10,
+        right: 10,
         bottom: 60,
         left: 40
     };
@@ -26,8 +26,8 @@ export class Config {
   public static panelAttributeHeight = 100;
   public static panelSVGwidth = 220;
 
-  public static collapseSlopeChartWidth = 30;
-  public static slopeChartWidth = 200;
+  public static collapseSlopeChartWidth = 45;
+  public static slopeChartWidth = 150;
 
   public static rowHeight = Config.glyphSize * 2.5 - 4;
 

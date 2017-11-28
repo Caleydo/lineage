@@ -1203,13 +1203,19 @@ class GenealogyTree {
 
     const couplesData = [];
 
-    this.data.nodes.forEach((n: Node) => {
+    const familyNodes = this.data.nodes
+    .filter((n)=> {return !n.affected &&
+      n.spouse.filter((spouse)=> {return spouse.affected;}).length <1
+      && n.hasChildren;});
+    
+    familyNodes.forEach((n: Node) => {
       const familyPos = this.getFamilyPos(n);
       if (!isUndefined(familyPos)) {
         couplesData.push(familyPos);
       }
     });
 
+    
     // Attach Couples Lines
     let couplesLines = couplesLinesGroup.selectAll('.couplesLine')
       .data(couplesData, (d) => { return d.id; });

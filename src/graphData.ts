@@ -54,7 +54,7 @@ class GraphData {
 
       //Once tree has been created for the new family, fire redraw tree event.
       this.createTree().then(() => {
-        this.aggregateTreeWrapper(undefined, layoutState.Hidden); //default to hidden state;
+        this.aggregateTreeWrapper(undefined, layoutState.Aggregated); //default to aggregated state;
       }).catch(function (error) {
         console.log('Error: ' + error);
       });
@@ -300,7 +300,7 @@ class GraphData {
 
     this.buildTree();
 
-    //remove people w/o a mother/father or children;
+    //remove people w/o a mother/father or children (stragglers)
     this.nodes = this.nodes.filter((node)=> {return node.ma || node.pa || node.hasChildren;});
 
     do {
@@ -318,17 +318,8 @@ class GraphData {
           n.bdate = CURRENT_YEAR - 3;
         }
       }
-      // if (n.ddate === 0 || isNaN(n.ddate)) {
-      //   n.ddate = CURRENT_YEAR;
-      // }
     });
   } while (this.nodes.filter((node)=> {return isNaN(node.bdate);}).length>0);
-
-    if (this.nodes.filter((node)=> {return isNaN(node.bdate);}).length>0) {
-      console.log('Houston we have a problem');
-    }
-
-
 
     //Remove cycles by creating duplicate nodes where necessary
     this.removeCycles();
@@ -378,7 +369,6 @@ class GraphData {
         dict[node.id+'_'+node.kindredID] = [Math.round(node.y)];
       }
     });
-
 
     //Assign y values to the tableManager object
     this.tableManager.yValues = dict;
@@ -594,11 +584,9 @@ class GraphData {
     const idRange = [];
     this.nodes.forEach((n: any) => {
       if (!(!n.aggregated && n.hidden)) {
-        // const ind: number = this.uniqueIDs.indexOf(n.uniqueID);
         idRange.push(n.uniqueID);
       }
     });
-
 
     this.exportYValues();
     this.tableManager.activeGraphRows = idRange;

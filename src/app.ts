@@ -90,19 +90,11 @@ export class App {
    */
   private async build() {
 
-
-
-
     const tableManager = TableManager.create();
 
    const parsedUrl = new URL(window.location.href);
    let dataset = parsedUrl.search.split('ds=')[1]; // suicide
-    console.log(dataset);
-  //  console.log(c);
-    // This executes asynchronously, so you'll have to pass
-    // back a promise and resolve that before you keep going
-    // await tableManager.loadData('big-decent-clipped-38');
-
+    // console.log('Dataset is ',dataset);
 
     /** =====  PUBLIC CASE ===== */
 
@@ -136,7 +128,7 @@ export class App {
 
     const graphDataObj = graphData.create(tableManager);
     await graphDataObj.createTree().then(() => {
-      graphDataObj.aggregateTreeWrapper(undefined, layoutState.Hidden); //default to hidden state;
+      graphDataObj.aggregateTreeWrapper(undefined, layoutState.Aggregated); //default to aggregated state;
     });
 
     const genealogyTree = tree.create(this.$node.select('#graph').node());

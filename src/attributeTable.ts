@@ -596,6 +596,8 @@ class AttributeTable {
     // const ids = uniqueIDs.map((id,i)=> {return id+'_'+kindredIDs[i];});
     const ids = graphIDs.map((id, i) => { return id + '_' + kindredIDs[i]; });
 
+    console.log('ids', ids);
+
     //Create a dictionary of y value to people
     const y2personDict = {};
     const yDict = this.tableManager.yValues;

@@ -1442,7 +1442,9 @@ class AttributeTable {
     //create table Lines
     // //Bind data to the cells
     let rowLines = select('#columns').selectAll('.rowLine')
-      .data(this.rowOrder, (d: any) => {
+      .data(Array.apply(null, {length: this.y.range()[1]}).map(function(value, index){
+        return index + 1;
+      }), (d: any) => {
         return d;
       });
 

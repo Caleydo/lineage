@@ -50,7 +50,6 @@ class GraphData {
 
   private setListeners() {
     events.on(FAMILY_SELECTED_EVENT, () => {
-      console.log('family was selected');
       this.graphTable = this.tableManager.graphTable;
 
       //Once tree has been created for the new family, fire redraw tree event.
@@ -300,6 +299,9 @@ class GraphData {
     this.defineAffected(this.tableManager.affectedState);
 
     this.buildTree();
+
+    //remove people w/o a mother/father or children;
+    this.nodes = this.nodes.filter((node)=> {return node.ma || node.pa || node.hasChildren;});
 
     do {
     //Create fake birthdays for people w/o a bdate or ddate.

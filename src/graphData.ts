@@ -804,9 +804,14 @@ class GraphData {
         console.log(lastAssignedNodes);
       }
 
+      //check if lastFamily is the end of the branch
+      const parentLastFamily = lastAssignedNode.ma || lastAssignedNode.pa;
+
+      const isTerminal = parentLastFamily && parentLastFamily.children.filter((child)=> {return child.hasChildren;}).length === 0;
+
       //if the last assigned Node is affected or if it is an unaffected leaf, start a new row; This does not apply when hiding.
-      if (isUndefined(node.y) && (lastAssignedNode.affected ||
-         (!lastAssignedNode.hasChildren && !lastAssignedNode.affected))) {
+      if (isUndefined(node.y) &&
+      (lastAssignedNode.affected || isTerminal)) {
         node.y = min(this.nodes, (n: any) => {
           return n.y;
         }) - 1;

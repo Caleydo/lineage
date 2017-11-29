@@ -532,8 +532,6 @@ export default class TableManager {
     await this.refreshActiveTableView();
 
     this.updatePOI_Primary();
-
-      console.log( 'Firing Family Selected Event')
       events.fire(FAMILY_SELECTED_EVENT);
 
   }

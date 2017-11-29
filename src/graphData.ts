@@ -49,7 +49,6 @@ class GraphData {
   };
 
   private setListeners() {
-    console.log('setting listeners')
     events.on(FAMILY_SELECTED_EVENT, () => {
       console.log('family was selected');
       this.graphTable = this.tableManager.graphTable;

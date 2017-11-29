@@ -202,6 +202,19 @@ export default class TableManager {
 
     //retrieving the desired dataset by name
     const attributeTable = <ITable>await getById(attributeDataSetID);
+
+    try {
+      await attributeTable.col(0).data().then();
+    } catch (err) {
+      return undefined;
+  }
+
+    // console.log('error is ',error)
+    // if (error) {
+    //   return undefined;
+    // }
+    console.log('AttributeTable is ',attributeTable);
+
     if (!attributeTable) {
       return;
     };

@@ -111,7 +111,11 @@ export class App {
     //await tableManager.loadData('TenFamiliesDescend', 'TenFamiliesAttr');
     if (dataset === 'suicide' || !dataset) {
       dataset = 'suicide';
-      await tableManager.loadData('AllFamiliesDescend', 'AllFamiliesAttributes');
+      const table = await tableManager.loadData('AllFamiliesDescend', 'AllFamiliesAttributes');
+      if (!table) {
+        console.log('loading Anonymous Dataset');
+        await tableManager.loadData('TenFamiliesDescendAnon', 'TenFamiliesAttrAnon');
+      }
     } else if (dataset === 'autism') {
      await tableManager.loadData('AllAutismFamiliesDescend', 'AllAutismFamiliesAttributes');
     } else if (dataset === 'suicide_anon') {

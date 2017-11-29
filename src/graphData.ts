@@ -42,14 +42,14 @@ class GraphData {
   public parentParentEdges = [];
 
 
-  constructor(data) {
-    this.graphTable = data.graphTable;
-    this.tableManager = data;
+  constructor(tableManager) {
+    this.graphTable = tableManager.graphTable;
+    this.tableManager = tableManager;
     this.setListeners();
   };
 
   private setListeners() {
-
+    console.log('setting listeners')
     events.on(FAMILY_SELECTED_EVENT, () => {
       console.log('family was selected');
       this.graphTable = this.tableManager.graphTable;
@@ -515,7 +515,7 @@ class GraphData {
    * @param nodeID, starting node for the aggregate/hide/expand operation. If undefined, apply to entire tree.
    * @pram state, defines operation as one of the three enums: state.expanded, state.aggregated, state.hidden.
    */
-  private aggregateTreeWrapper(nodeID: string, state: layoutState) {
+  public aggregateTreeWrapper(nodeID: string, state: layoutState) {
 
     if (!isUndefined(nodeID) && !isUndefined(state)) {
       //find node

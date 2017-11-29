@@ -11,9 +11,12 @@ import * as table from './attributeTable';
 import * as panel from './attributePanel';
 import * as familySelector from './familySelector';
 
+
+
 //Import Data Structure for graph & table
 import * as graphData from './graphData';
 import * as TableManager from './tableManager';
+import { layoutState } from './Node';
 
 /**
  * The main class for the Lineage app
@@ -126,13 +129,15 @@ export class App {
     //await tableManager.loadData('FiftyFamiliesDescendAnon', 'FiftyFamiliesAttributes');
 
     /** ============= */
-
     const attributePanel = panel.create(this.$node.select('#data_selection').node());
+
     attributePanel.build();
     attributePanel.init(tableManager,dataset);
 
     const graphDataObj = graphData.create(tableManager);
-    await graphDataObj.createTree();
+    await graphDataObj.createTree().then(() => {
+      graphDataObj.aggregateTreeWrapper(undefined, layoutState.Hidden); //default to hidden state;
+    });
 
     const genealogyTree = tree.create(this.$node.select('#graph').node());
     genealogyTree.init(graphDataObj, tableManager);

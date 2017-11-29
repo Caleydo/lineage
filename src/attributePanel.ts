@@ -42,8 +42,6 @@ class AttributePanel {
       tableManager.setAffectedState('affected');
     }
 
-    // tableManager.setAffectedState('affected');
-
     // return the promise directly as long there is no dynamical data to update
     return Promise.resolve(this);
   }

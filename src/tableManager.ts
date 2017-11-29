@@ -533,6 +533,7 @@ export default class TableManager {
 
     this.updatePOI_Primary();
 
+      console.log( 'Firing Family Selected Event')
       events.fire(FAMILY_SELECTED_EVENT);
 
   }

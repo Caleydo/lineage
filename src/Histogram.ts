@@ -249,12 +249,11 @@ export default class Histogram {
         topAxis.call(axisTop(xScale)
           .ticks(0));
         if (!isNull(event.sourceEvent)) { //user cleared brush, nobody is 'affected'
-          events.fire('poi_selected',{'name':attrName, 'callback':(attr:Number) => {return false;} });
+          events.fire('poiSelected',{'name':attrName, 'callback':(attr:Number) => {return false;} });
         }
       }else {
-        console.log('extent is ', extent);
-        if (!isNull(event.sourceEvent)) { //ideally will check if sourceEvent === MouseEvent but that check doesn' work...
-          events.fire('poi_selected',{'name':attrName, 'callback':(attr:Number) => {return attr >= xScale.invert(extent[0]) && attr <= xScale.invert(extent[1]);}});
+        if (!isNull(event.sourceEvent)) {
+          events.fire('poiSelected',{'name':attrName, 'callback':(attr:Number) => {return attr >= xScale.invert(extent[0]) && attr <= xScale.invert(extent[1]);}});
         }
 
       }

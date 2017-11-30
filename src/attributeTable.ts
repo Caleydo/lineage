@@ -1918,7 +1918,7 @@ class AttributeTable {
       option2 = 'Show NOT ' + d.category;
     }
 
-    const menuLabels = (d.type === 'categorical' ? [option1, option2, 'Set as POI', 'Star'] : ['Set as POI', 'Star']);
+    const menuLabels = (d.type === 'categorical' ? [option1, option2, 'Set as POI', 'Set as Primary Attribute', 'Star'] : ['Set as POI', 'Set as Primary Attribute',  'Star']);
 
     const container = document.getElementById('app');
     const coordinates = mouse(container);
@@ -2029,6 +2029,13 @@ class AttributeTable {
           });
 
 
+        } else if (e.includes('Primary')) {
+          events.fire('primarySelected', { 'name': d.name});
+
+          selectAll('.icon').filter('.tooltipTitle').classed('primaryAttribute', (ee: any) => {
+            return ee.includes('Primary') && this.tableManager.primaryAttribute && this.tableManager.primaryAttribute.name === d.name;
+          });
+
         }
         select('#treeMenu').select('.menu').remove();
       });
@@ -2045,13 +2052,17 @@ class AttributeTable {
           return '\uf111';
         } else if (i === 1 && d.includes('Show')) {
           return '\uf22d';
-        } else if (i === 0 || i === 2) {
+        } else if (i === 0 || (i === 2 && d.includes('Set'))) {
           return '\uf007';
         } else if (i === 1 || i === 3) {
+          return '\uf012';
+        } else if (i === 2 || i === 4) {
           return '\uf005';
         } else {
           return '';
         }
+
+        
       })
       .classed('tooltipTitle', true)
       .classed('star', (e) => {
@@ -2060,6 +2071,9 @@ class AttributeTable {
       })
       .classed('poi', (e) => {
         return e.includes('POI') && this.tableManager.affectedState.name === d.name;
+      })
+      .classed('primaryAttribute', (e) => {
+        return e.includes('Primary') && this.tableManager.primaryAttribute && this.tableManager.primaryAttribute.name === d.name;
       });
 
     menuItems
@@ -3063,9 +3077,43 @@ class AttributeTable {
     const self = this;
 
 
-    events.on('poi_selected', (evt,info) => {
+    events.on('poiSelected', (evt,info) => {
       this.tableManager.setAffectedState(info.name, info.callback);
     });
+
+    events.on('primarySelected', (evt, item) => {
+      
+            // const attribute = this.tableManager[item.primary_secondary + 'Attribute'];
+      
+            // //A primary or secondary attribute had been previously defined
+            // if (attribute) {
+            //   //Clear previously colored histogram for primary/secondary
+            //   const previousHist = this.histograms.filter((h) => {
+            //     return h.attrName === attribute.name;
+            //   });
+      
+            //   if (previousHist.length > 0) {
+            //     previousHist[0].clearPrimarySecondary();
+            //   }
+            // }
+      
+            // const otherAttributePrimarySecondary = ['primary', 'secondary'].filter((a) => { return a !== item.primary_secondary; });
+            // const otherAttribute = this.tableManager[otherAttributePrimarySecondary + 'Attribute'];
+      
+            // //If the attribute you are setting as secondary is the same as the one you had as primary, (or vice versa) set the primary (secondary) to undefined;
+            // if (otherAttribute && item.name === otherAttribute.name) {
+            //   this.tableManager[otherAttributePrimarySecondary + 'Attribute'] = undefined;
+            // }
+      
+            this.tableManager.setPrimaryAttribute(item.name);
+            // .then((obj) => {
+      
+            //   // const hist = this.histograms.filter((h) => { return h.attrName === item.name; })[0];
+            //   // hist.setPrimarySecondary(obj);
+      
+            // });
+          });
+
 
 
     events.on(TABLE_VIS_ROWS_CHANGED_EVENT, () => {

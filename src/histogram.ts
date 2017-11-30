@@ -22,7 +22,7 @@ import {isNullOrUndefined} from 'util';
 
 class Histogram {
   //DOM elements
-  private $node;
+  private node;
   public attrName;
   private type;
   private $histogram;
@@ -30,8 +30,8 @@ class Histogram {
   //settings
 
   private margin = {top: 40, right: 30, bottom: 5, left: 65};
-  private width = Config.panelSVGwidth;
-  private height = Config.panelAttributeHeight*0.8;
+  private width;
+  private height;
 
   private xScale;
   private yScale;
@@ -47,14 +47,14 @@ class Histogram {
 
 
   constructor(parent: Element) {
-    this.$node = select(parent);
+    this.node = parent;
   }
 
   /**
    * initalize the histogram and return a promise
    * that is resolved as soon the view is completely initialized
    */
-  async init(name, dataVec, type) {
+  async init(name, dataVec, type,width,height) {
     this.attrName = name;
     this.dataVec = dataVec;
     this.type = type;
@@ -63,6 +63,8 @@ class Histogram {
     this.xScale = scaleLinear().range([0, this.width]).domain([0,1]);
     this.yScale = scaleLinear().range([0, this.height]).domain([0,1]);
     this.update(dataVec);
+    this.width = width;
+    this.height = height;
     // this.attachListener();
 
     //return the promise
@@ -94,7 +96,7 @@ class Histogram {
 
     const attrName = this.attrName;
 
-    this.$node.selectAll('.catBar').on('click', function (d:any) {
+    this.node.selectAll('.catBar').on('click', function (d:any) {
       if (select(this).classed('picked')) {
         select(this).classed('picked', false);
         events.fire('poi_selected',{'name':attrName, 'callback':(attr:String) => {return false;}}); //if a bar is unclicked affected State is false for all
@@ -117,13 +119,13 @@ class Histogram {
       return;
     }
     //Bars are not clickable
-    if (isNullOrUndefined(this.$node.select('.catBar').on('click'))) {
+    if (isNullOrUndefined(this.node.select('.catBar').on('click'))) {
       this.addCategorySelection();
     }
 
-    this.$node.selectAll('.catBar').attr('fill','#5f6262');
+    this.node.selectAll('.catBar').attr('fill','#5f6262');
     //select right bar and set classed to picked.
-    this.$node.selectAll('.catBar').filter((bar)=> { return bar.key.toLowerCase() === category.toLowerCase(); }).classed('picked',true);
+    this.node.selectAll('.catBar').filter((bar)=> { return bar.key.toLowerCase() === category.toLowerCase(); }).classed('picked',true);
     }
 
 
@@ -134,14 +136,14 @@ class Histogram {
 
     //Only need to set colors for categorical type
     if (this.type === VALUE_TYPE_INT || this.type === VALUE_TYPE_REAL) {
-      this.$node.selectAll('.numBar').attr('fill',attributeObj.color);
+      this.node.selectAll('.numBar').attr('fill',attributeObj.color);
 
     }
 
     if (this.type === VALUE_TYPE_CATEGORICAL) {
       //Color Bars appropriately.
       attributeObj.categories.forEach((category, i) => {
-        this.$node.selectAll('.catBar').filter((bar) => {
+        this.node.selectAll('.catBar').filter((bar) => {
           return bar.key === category;
         }).attr('fill', attributeObj.color[i]);
       });
@@ -155,12 +157,12 @@ class Histogram {
 
     //Only need to set colors for categorical type
     if (this.type === VALUE_TYPE_INT || this.type === VALUE_TYPE_REAL) {
-      this.$node.selectAll('.numBar').attr('fill','#5f6262');
+      this.node.selectAll('.numBar').attr('fill','#5f6262');
     }
 
     if (this.type === VALUE_TYPE_CATEGORICAL) {
       //Set Bars back to original color.
-      this.$node.selectAll('.catBar').attr('fill', '#5f6262');
+      this.node.selectAll('.catBar').attr('fill', '#5f6262');
     }
   }
 
@@ -172,8 +174,8 @@ class Histogram {
    * Remove ability to select categories.
    */
   private removeCategorySelection() {
-    this.$node.selectAll('.catBar').classed('picked',false);
-    this.$node.selectAll('.catBar').on('click', null);
+    this.node.selectAll('.catBar').classed('picked',false);
+    this.node.selectAll('.catBar').on('click', null);
   }
 
   /**
@@ -183,7 +185,7 @@ class Histogram {
 
     const attrName = this.attrName;
 
-    const element = this.$node;
+    const element = this.node;
     const xScale = this.xScale;
 
     const topAxis = element.select('g').append('g')
@@ -256,7 +258,7 @@ class Histogram {
 
     if (!this.brush) { //no brush exists. define default
       this.addBrush();
-      this.$node.select('.brush')
+      this.node.select('.brush')
         .call(this.brush.move, [this.xScale(threshold), this.xScale.range()[1]]);
     }
 
@@ -266,8 +268,8 @@ class Histogram {
    * Removes the brush from this histogram
    */
   private removeBrush() {
-      this.$node.select('.brush').remove();
-      this.$node.select('.brushAxis').remove();
+      this.node.select('.brush').remove();
+      this.node.select('.brushAxis').remove();
       this.brush = undefined;
   }
 
@@ -277,7 +279,7 @@ class Histogram {
    */
   private async renderCategoricalHistogram(dataVec) {
 
-    const currentHist = this.$node;
+    const currentHist = this.node;
 
     const categoricalDataVec = <ICategoricalVector>dataVec;
 
@@ -302,7 +304,6 @@ class Histogram {
       }));
 
     yScale.rangeRound([this.height, 0])
-    // .domain([0, numElements]);
       .domain([0, max(catData, function (d) {
         return d.value;
       })]);
@@ -311,20 +312,16 @@ class Histogram {
     const bandwidth = min([xScale.bandwidth(),40]);
     if (currentHist.selectAll('.svg-g').size() === 0) {
       currentHist.append('g')
-        .attr('transform', 'scale(0.6,0.6) translate(' + this.margin.left + ',' + this.margin.top + ')')
-
-          .attr('class', 'svg-g');
+     .attr('class', 'svg-g');
 
       const element = currentHist.selectAll('.svg-g');
 
       element.append('g')
         .attr('class', 'axis axis--x')
-        .attr('transform', 'translate(' + this.margin.left + ',' + this.height + ')')
         .call(axisBottom(xScale).tickFormat((d)=> {return d[0];}));
 
       element.append('g')
-        .classed('barContainer',true)
-        .attr('transform', 'translate(' + this.margin.left + ',0)');
+        .classed('barContainer',true);
     }
 
     let bars = currentHist
@@ -388,37 +385,59 @@ class Histogram {
       acc += b;
 
     });
-    //let xScale = scaleLinear().range([0,this.width]).domain([0,histData.bins])
-    this.xScale.domain(histData.valueRange);//.nice();
-    // let yScale = scaleLinear().range([0,height]).domain([0,maxFrequency]);
+
     const bin2value = scaleLinear().range(histData.valueRange).domain([0, histData.bins]);
-    this.yScale.domain([0, histData.largestFrequency]);
+    const xScale = scaleLinear().range([0, this.width]).domain(histData.valueRange).nice();
+    const yScale = scaleLinear().range([0, this.height * 0.8]).domain([0, max(data, (d) => {
+      return d.v;
+    })]);
 
-    const xScale = this.xScale;
+    this.xScale = xScale;
+    this.yScale = yScale;
 
-    const currentHist = this.$node;
+    const currentHist = this.node;
 
     if (currentHist.select('.elementGroup').size() === 0) {
 
       const element = currentHist.append('g')
-        .classed('elementGroup',true)
-        .attr('transform', 'scale(0.6,0.6) translate(' + this.margin.left + ',' + this.margin.top + ')');
+        .classed('elementGroup',true);
 
-      //axis
+      element.append('text').classed('maxValue', true);
+
+      //Axis Group
       element.append('g')
         .attr('class', 'axis axis--x')
-        .attr('transform', 'translate(' + this.margin.left + ',' + this.height + ')')
-        .call(axisBottom(xScale)
-          .tickSize(5)
-          .tickValues(xScale.domain())
-          .tickFormat(format('.0f')));
-
+        .classed('hist_xscale', true)
+        .attr('transform', 'translate(0,' + this.height + ')');
 
      element.append('g')
-        .attr('transform', 'translate(' + this.margin.left + ',0)')
         .attr('class','barContainer');
 
     }
+
+    this.node.select('.hist_xscale')
+    .call(axisBottom(xScale)
+    .tickSize(5)
+    .tickValues(xScale.domain())
+    .tickFormat(format('.0f')));
+
+     //Position tick labels to be 'inside' the axis bounds. avoid overlap
+    this.node.select('.hist_xscale').selectAll('.tick').each(function (cell) {
+      const xtranslate = +select(this).attr('transform').split('translate(')[1].split(',')[0];
+      if (xtranslate === 0) {//first label in the axis
+        select(this).select('text').style('text-anchor', 'start');
+      } else { //last label in the axis
+        select(this).select('text').style('text-anchor', 'end');
+      }
+    });
+
+    const totalLabel = (data[data.length - 1]).acc + (data[data.length - 1]).v;
+    this.node.select('.maxValue')
+      .text('Total:' + total)
+
+      .attr('x', this.width / 2)
+      .attr('y', -this.height * 0.08)
+      .attr('text-anchor', 'middle');
 
     let bars = currentHist
       .select('.barContainer')
@@ -440,10 +459,10 @@ class Histogram {
     bars
       .attr('width', binWidth * 0.8)
       .attr('height', (d) => {
-        return this.yScale(d.v);
+        return yScale(d.v);
       })
       .attr('y', (d) => {
-        return (this.height - this.yScale(d.v));
+        return (this.height - yScale(d.v));
       })
       .attr('x', (d, i) => {
         return xScale(bin2value(i));

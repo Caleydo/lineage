@@ -15,6 +15,8 @@ import { transition } from 'd3-transition';
 import { easeLinear } from 'd3-ease';
 import { curveBasis, curveLinear } from 'd3-shape';
 
+import * as histogram from './histogram';
+
 import { VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL, VALUE_TYPE_STRING } from 'phovea_core/src/datatype';
 
 import { line } from 'd3-shape';
@@ -981,14 +983,27 @@ class AttributeTable {
       headerEnter
       .append('rect')
       .attr('class','titleBackground')
-      .attr('width',50)
       .attr('height',20)
-      .attr('transform', 'translate(0,-20)');
+      .attr('fill','red')
+      .on('dblclick',((d)=> {
+        //reset this col width.
+        this.customColWidths[d.name] = this.colWidths[d.type];
+        this.update();
+      }));
 
       headerEnter.append('text')
       .classed('headerTitle', true);
+    
 
     headers = headerEnter.merge(headers);
+
+    headers.select('.titleBackground')
+    .attr('width',(d)=> {
+      const colWidth = this.customColWidths[d.name] || this.colWidths[d.type];
+      return d.type === 'categorical' ?  colWidth + d.name.length*7 : colWidth;})
+    .attr('transform', (d, i) => {
+      return 'translate(0,-20)';
+    })
 
     headers
     .attr('id', (d) => {return this.deriveID(d) + '_header'; })
@@ -1984,6 +1999,26 @@ class AttributeTable {
 
         } else if (e.includes('POI')) {
           this.tableManager.setAffectedState(d.name);
+
+          // this.tableManager.setAffectedState(item.name, item.callback).then((obj) => {
+
+          //           //find histogram with this name and set the brush extent
+          //           const hist = this.histograms.filter((h) => { return h.attrName === item.name; })[0];
+          //           if (obj.threshold !== undefined) { //setAffectedState returned a default value. Was not set by user brushing or selecting bar;
+
+          //             //New POI has been set, remove all other brush and rect selection interactions;
+          //             this.histograms.map((hist) => { hist.clearInteraction(); });
+          //             // if (obj.type === VALUE_TYPE_CATEGORICAL) {
+          //             //   hist.setSelected(obj.threshold);
+          //             // } else if (obj.type === VALUE_TYPE_REAL || obj.type === VALUE_TYPE_INT) {
+          //             //   hist.setBrush(obj.threshold);
+          //             // }
+
+          //           }
+
+          // });
+
+
           selectAll('.icon').filter('.tooltipTitle').classed('poi', (ee: any) => {
             return ee.includes('POI') && this.tableManager.affectedState.name === d.name;
           });
@@ -2219,15 +2254,11 @@ class AttributeTable {
    * @param cellData the data bound to the column header element being passed in.
    */
 
-  private renderIntHeaderHist(element, headerData) {
+  private async renderIntHeaderHist(element, headerData) {
 
-    // let t = transition('t').duration(500).ease(easeLinear);
     //Check for custom column width value, if none, use default
     const colWidth = this.customColWidths[headerData.name] || this.colWidths.int;
 
-
-
-    // const colWidth = this.colWidths.int;
     const height = this.headerHeight;
 
     element.select('.backgroundRect')
@@ -2242,113 +2273,124 @@ class AttributeTable {
       .attr('stroke-width', '4px')
       .attr('stroke', 'white');
 
-    const hist = headerData.hist;
+      this.addSortingIcons(element, headerData);
 
-    const range = [0, colWidth];
+      const attributeHistogram = histogram.create(element);
 
-    // var data = [],
-    // cols = scaleLinear<string,string>().domain([hist.largestFrequency, 0]).range(['#111111', '#999999']),
-    let total = hist.validCount;
-    const binWidth = (range[1] - range[0]) / hist.bins;
-    let acc = 0;
-
-    const data = [];
-
-    hist.forEach((b, i) => {
-      data[i] = {
-        v: b,
-        acc,
-        ratio: b / total,
-        range: hist.range(i),
-      };
-      acc += b;
+    const graphView = await this.tableManager.graphTable;
+    const attributeView = await this.tableManager.tableTable;
+    const allCols = graphView.cols().concat(attributeView.cols());
 
 
-    });
-
-    const xScale = scaleLinear().range([0, colWidth]).domain(hist.valueRange).nice();
-    const bin2value = scaleLinear().range(hist.valueRange).domain([0, hist.bins]);
-    const yScale = scaleLinear().range([0, height * 0.8]).domain([0, max(data, (d) => {
-      return d.v;
-    })]);
-
-
-    const bars = element.selectAll('.histogram')
-      .data(data);
-
-    const barsEnter = bars.enter();
-
-    barsEnter
-      .append('rect')
-      .classed('histogram', true);
-
-    bars.exit().remove();
-
-    //bars = barsEnter.merge(bars);
-
-    element.select('.hist_xscale').remove();
-
-    const xAxis = axisBottom(xScale)
-      .tickSize(5)
-      .tickValues(xScale.domain())
-      .tickFormat(format('.0f'));
-
-    if (element.selectAll('.hist_xscale').size() === 0) {
-
-      element.append('text').classed('maxValue', true);
-      element.append('g')
-        .attr('transform', 'translate(0,' + height + ')')
-        .classed('hist_xscale', true)
-        .call(xAxis);
-    }
+    const dataVec = allCols.filter((col)=> {return col.desc.name === headerData.name;})[0];
+    // initiate this object
+    await attributeHistogram.init(headerData.name, dataVec, dataVec.desc.value.type,colWidth,this.headerHeight);
 
 
 
-    this.addSortingIcons(element, headerData);
+    // const hist = headerData.hist;
 
-    element.selectAll('.histogram')
-      .attr('width', binWidth * 0.8)
-      // .transition(t)
-      .attr('height', (d) => {
-        return yScale(d.v);
-      })
-      .attr('y', (d) => {
-        return (height - yScale(d.v));
-      })
-      .attr('x', (d, i) => {
-        return xScale(bin2value(i));
-      })
-      .attr('fill', () => {
-        let attr = this.tableManager.primaryAttribute;
-        if (attr && attr.name === headerData.name) {
-          return attr.color;
-        } else {
-          attr = this.tableManager.affectedState;
-          if (attr && attr.attributeInfo.name === headerData.name) {
-            return attr.attributeInfo.color;
-          }
-        }
-      }
-      );
+    // const range = [0, colWidth];
+
+    // // var data = [],
+    // // cols = scaleLinear<string,string>().domain([hist.largestFrequency, 0]).range(['#111111', '#999999']),
+    // let total = hist.validCount;
+    // const binWidth = (range[1] - range[0]) / hist.bins;
+    // let acc = 0;
+
+    // const data = [];
+
+    // hist.forEach((b, i) => {
+    //   data[i] = {
+    //     v: b,
+    //     acc,
+    //     ratio: b / total,
+    //     range: hist.range(i),
+    //   };
+    //   acc += b;
 
 
-    //Position tick labels to be 'inside' the axis bounds. avoid overlap
-    element.selectAll('.tick').each(function (cell) {
-      const xtranslate = +select(this).attr('transform').split('translate(')[1].split(',')[0];
-      if (xtranslate === 0) {//first label in the axis
-        select(this).select('text').style('text-anchor', 'start');
-      } else { //last label in the axis
-        select(this).select('text').style('text-anchor', 'end');
-      }
-    });
+    // });
 
-    total = (data[data.length - 1]).acc + (data[data.length - 1]).v;
-    element.select('.maxValue')
-      .text('Total:' + total)
+    // const xScale = scaleLinear().range([0, colWidth]).domain(hist.valueRange).nice();
+    // const bin2value = scaleLinear().range(hist.valueRange).domain([0, hist.bins]);
+    // const yScale = scaleLinear().range([0, height * 0.8]).domain([0, max(data, (d) => {
+    //   return d.v;
+    // })]);
 
-      .attr('x', colWidth / 2)
-      .attr('y', -height * 0.08)
-      .attr('text-anchor', 'middle');
+
+    // const bars = element.selectAll('.histogram')
+    //   .data(data);
+
+    // const barsEnter = bars.enter();
+
+    // barsEnter
+    //   .append('rect')
+    //   .classed('histogram', true);
+
+    // bars.exit().remove();
+
+    // //bars = barsEnter.merge(bars);
+
+    // element.select('.hist_xscale').remove();
+
+    // const xAxis = axisBottom(xScale)
+    //   .tickSize(5)
+    //   .tickValues(xScale.domain())
+    //   .tickFormat(format('.0f'));
+
+    // if (element.selectAll('.hist_xscale').size() === 0) {
+
+    //   element.append('text').classed('maxValue', true);
+    //   element.append('g')
+    //     .attr('transform', 'translate(0,' + height + ')')
+    //     .classed('hist_xscale', true)
+    //     .call(xAxis);
+    // }
+
+    // element.selectAll('.histogram')
+    //   .attr('width', binWidth * 0.8)
+    //   // .transition(t)
+    //   .attr('height', (d) => {
+    //     return yScale(d.v);
+    //   })
+    //   .attr('y', (d) => {
+    //     return (height - yScale(d.v));
+    //   })
+    //   .attr('x', (d, i) => {
+    //     return xScale(bin2value(i));
+    //   })
+    //   .attr('fill', () => {
+    //     let attr = this.tableManager.primaryAttribute;
+    //     if (attr && attr.name === headerData.name) {
+    //       return attr.color;
+    //     } else {
+    //       attr = this.tableManager.affectedState;
+    //       if (attr && attr.attributeInfo.name === headerData.name) {
+    //         return attr.attributeInfo.color;
+    //       }
+    //     }
+    //   }
+    //   );
+
+
+    // //Position tick labels to be 'inside' the axis bounds. avoid overlap
+    // element.selectAll('.tick').each(function (cell) {
+    //   const xtranslate = +select(this).attr('transform').split('translate(')[1].split(',')[0];
+    //   if (xtranslate === 0) {//first label in the axis
+    //     select(this).select('text').style('text-anchor', 'start');
+    //   } else { //last label in the axis
+    //     select(this).select('text').style('text-anchor', 'end');
+    //   }
+    // });
+
+    // total = (data[data.length - 1]).acc + (data[data.length - 1]).v;
+    // element.select('.maxValue')
+    //   .text('Total:' + total)
+
+    //   .attr('x', colWidth / 2)
+    //   .attr('y', -height * 0.08)
+    //   .attr('text-anchor', 'middle');
 
 
   };
@@ -2694,7 +2736,7 @@ class AttributeTable {
    */
   private renderIntCell(element, cellData) {
 
-    console.log(cellData);
+    // console.log(cellData);
 
     // console.log(cellData)
     //Check for custom column width value, if none, use default
@@ -2751,7 +2793,7 @@ class AttributeTable {
         return colWidth;
       })
       .attr('height', rowHeight);
-    
+
     let ellipses = element
       .selectAll('ellipse')
       .data((d) => {
@@ -2769,10 +2811,10 @@ class AttributeTable {
       .classed('quant_ellipse', true);
 
     ellipses.exit().remove();
-    
+
     ellipses = ellipsesEnter.merge(ellipses);
 
-    
+
 
     element.selectAll('.quant_ellipse')
       .attr('cx',

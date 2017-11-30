@@ -371,8 +371,8 @@ label {
 rect.selected{
 //     stroke:  #ff6400;
     stroke-width:0px;
-    opacity: .2;
-    fill:#ff6400
+    opacity: .4;
+    fill:#df7813
 }
 
 // .node rect,
@@ -620,7 +620,7 @@ visibility:hidden;
 .slopeLine{
   stroke-width:6;
   stroke: #e2e2e0;
-  opacity:1;
+  opacity:.6;
   fill:none;
   //fill: #dfdfdf
 }
@@ -634,6 +634,7 @@ visibility:hidden;
 .clickedSlope{
   stroke: #df7813;
   stroke-width: 8px;
+  opacity:.4;
 }
 
 #revertTreeOrder{

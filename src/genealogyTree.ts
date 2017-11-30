@@ -1105,27 +1105,26 @@ class GenealogyTree {
   private getFamilyPos(n: Node) {
 
     //Not a direct ancestor
-    if (isUndefined(n.ma) && isUndefined(n.pa)) {
+    if (isUndefined(n.ma) && isUndefined(n.pa) && !n.aggregated) {
       return undefined;
     }
 
-    //no couples lines for affected person/couple
-    if (n.affected) {
-      // console.log('returning undefined for node ', n.id);
-      return undefined;
-    }
+    // //no couples lines for affected person/couple
+    // if (n.affected) {
+    //   // console.log('returning undefined for node ', n.id);
+    //   return undefined;
+    // }
 
-    //no couples lines for affected person/couple
-    if ((n.affected || n.spouse.reduce(function (accumulator, currentValue) {
-      return currentValue.affected || accumulator;
-    }, false))) {
-      // console.log('returning undefined for node ', n.id);
-      return undefined;
-    };
+    // //no couples lines for affected person/couple
+    // if ((n.affected || n.spouse.reduce(function (accumulator, currentValue) {
+    //   return currentValue.affected || accumulator;
+    // }, false))) {
+    //   return undefined;
+    // };
 
-    if (n.affected && !isUndefined(n.spouse.find((s: Node) => { return !s.aggregated && !s.affected; }))) {
-      return undefined;
-    }
+    // if (n.affected && !isUndefined(n.spouse.find((s: Node) => { return !s.aggregated && !s.affected; }))) {
+    //   return undefined;
+    // }
 
     //return undefined for couples without a kid grid
     if (n.hasChildren && n.children.reduce(function (accumulator, currentValue) {
@@ -1205,7 +1204,7 @@ class GenealogyTree {
 
     const familyNodes = this.data.nodes
     .filter((n)=> {return !n.affected &&
-      n.spouse.filter((spouse)=> {return spouse.affected;}).length <1
+      (n.spouse.filter((spouse)=> {return spouse.affected;}).length <1 || n.aggregated)
       && n.hasChildren;});
 
     familyNodes.forEach((n: Node) => {

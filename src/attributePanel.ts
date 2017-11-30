@@ -6,7 +6,6 @@ import { select, selectAll, event } from 'd3-selection';
 import { keys } from 'd3-collection';
 import { IAnyVector } from 'phovea_core/src/vector';
 import { ICategoricalVector, INumericalVector } from 'phovea_core/src/vector/IVector';
-import * as histogram from './histogram';
 import { VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL } from 'phovea_core/src/datatype';
 import * as range from 'phovea_core/src/range';
 

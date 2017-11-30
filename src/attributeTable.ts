@@ -2062,7 +2062,7 @@ class AttributeTable {
           return '';
         }
 
-        
+
       })
       .classed('tooltipTitle', true)
       .classed('star', (e) => {
@@ -3082,35 +3082,35 @@ class AttributeTable {
     });
 
     events.on('primarySelected', (evt, item) => {
-      
+
             // const attribute = this.tableManager[item.primary_secondary + 'Attribute'];
-      
+
             // //A primary or secondary attribute had been previously defined
             // if (attribute) {
             //   //Clear previously colored histogram for primary/secondary
             //   const previousHist = this.histograms.filter((h) => {
             //     return h.attrName === attribute.name;
             //   });
-      
+
             //   if (previousHist.length > 0) {
             //     previousHist[0].clearPrimarySecondary();
             //   }
             // }
-      
+
             // const otherAttributePrimarySecondary = ['primary', 'secondary'].filter((a) => { return a !== item.primary_secondary; });
             // const otherAttribute = this.tableManager[otherAttributePrimarySecondary + 'Attribute'];
-      
+
             // //If the attribute you are setting as secondary is the same as the one you had as primary, (or vice versa) set the primary (secondary) to undefined;
             // if (otherAttribute && item.name === otherAttribute.name) {
             //   this.tableManager[otherAttributePrimarySecondary + 'Attribute'] = undefined;
             // }
-      
+
             this.tableManager.setPrimaryAttribute(item.name);
             // .then((obj) => {
-      
+
             //   // const hist = this.histograms.filter((h) => { return h.attrName === item.name; })[0];
             //   // hist.setPrimarySecondary(obj);
-      
+
             // });
           });
 

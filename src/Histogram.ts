@@ -237,7 +237,7 @@ export default class Histogram {
 
       //Create a tick mark at the edges of the brush
       topAxis.call(axisTop(xScale)
-        .tickSize(2)
+        .tickSize(0)
         .tickValues(allTicks)
         .tickFormat(format('.0f')));
     }

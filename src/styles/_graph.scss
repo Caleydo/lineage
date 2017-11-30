@@ -422,8 +422,13 @@ rect.selected{
  	fill: white  !important
 }
 
+.brushAxis text {
+  fill:#df7813;
+  font-weight:bolder;
+}
+
 .handle{
-  fill: #f61637;
+  fill: #df7813;
   fill-opacity: 0.8;
   stroke-width: 3;
   stroke-linecap: round;

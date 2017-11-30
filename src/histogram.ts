@@ -20,7 +20,7 @@ import {isNull} from 'util';
 import {isNullOrUndefined} from 'util';
 
 
-class Histogram {
+export default class Histogram {
   //DOM elements
   private node;
   public attrName;
@@ -190,9 +190,21 @@ class Histogram {
 
     const topAxis = element.select('g').append('g')
       .attr('class', 'axis brushAxis')
-      .attr('transform', 'translate(' + this.margin.left + ',0)')
-      .call(axisTop(xScale)
-        .ticks(0));
+      // .attr('transform', 'translate(0,-20)')
+      .classed('hist_xscale', true)
+      .attr('id','brushScale')
+      // .attr('transform', 'translate(0,' + this.height + ')');
+
+      // element.select('#brushScale')
+      // .call(axisBottom(xScale))
+      // .ticks(0);
+
+      // .call(axisTop(xScale)
+      //   .ticks(0));
+
+
+
+
 
     const brushGroup = element.select('.barContainer').append('g')
       .attr('class', 'brush');
@@ -200,7 +212,7 @@ class Histogram {
 
     const brush = brushX()
       .extent([[0, 0], [this.width, this.height]])
-      .handleSize(8)
+      .handleSize(4)
       .on('brush', brushed)
       .on('end', fireEvent);
 
@@ -225,7 +237,7 @@ class Histogram {
 
       //Create a tick mark at the edges of the brush
       topAxis.call(axisTop(xScale)
-        .tickSize(5)
+        .tickSize(0)
         .tickValues(allTicks)
         .tickFormat(format('.0f')));
     }
@@ -408,6 +420,7 @@ class Histogram {
       element.append('g')
         .attr('class', 'axis axis--x')
         .classed('hist_xscale', true)
+        .attr('id','histAxis')
         .attr('transform', 'translate(0,' + this.height + ')');
 
      element.append('g')
@@ -415,11 +428,13 @@ class Histogram {
 
     }
 
-    this.node.select('.hist_xscale')
+    this.node.select('#histAxis')
     .call(axisBottom(xScale)
     .tickSize(5)
     .tickValues(xScale.domain())
     .tickFormat(format('.0f')));
+
+
 
      //Position tick labels to be 'inside' the axis bounds. avoid overlap
     this.node.select('.hist_xscale').selectAll('.tick').each(function (cell) {
@@ -432,12 +447,12 @@ class Histogram {
     });
 
     const totalLabel = (data[data.length - 1]).acc + (data[data.length - 1]).v;
-    this.node.select('.maxValue')
-      .text('Total:' + total)
+    // this.node.select('.maxValue')
+    //   .text('Total:' + total)
 
-      .attr('x', this.width / 2)
-      .attr('y', -this.height * 0.08)
-      .attr('text-anchor', 'middle');
+    //   .attr('x', this.width / 2)
+    //   .attr('y', -this.height * 0.08)
+    //   .attr('text-anchor', 'middle');
 
     let bars = currentHist
       .select('.barContainer')
@@ -483,7 +498,7 @@ class Histogram {
  * Factory method to create a new instance of the histogram
  * @param parent
  * @param options
- * @returns {histogram}
+ * @returns {Histogram}
  */
 export function create(parent: Element) {
   return new Histogram(parent);

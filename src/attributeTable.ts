@@ -15,7 +15,7 @@ import { transition } from 'd3-transition';
 import { easeLinear } from 'd3-ease';
 import { curveBasis, curveLinear } from 'd3-shape';
 
-import * as histogram from './histogram';
+import Histogram from './Histogram';
 
 import { VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL, VALUE_TYPE_STRING } from 'phovea_core/src/datatype';
 
@@ -87,6 +87,10 @@ class AttributeTable {
 
   //Used to store col widths if user resizes a col;
   private customColWidths = {};
+
+
+  //store histogram objects for tableHeaders
+  private histograms: Histogram[]=[];
 
   private lineFunction = line<any>()
     .x((d: any) => {
@@ -984,7 +988,6 @@ class AttributeTable {
       .append('rect')
       .attr('class','titleBackground')
       .attr('height',20)
-      .attr('fill','red')
       .on('dblclick',((d)=> {
         //reset this col width.
         this.customColWidths[d.name] = this.colWidths[d.type];
@@ -993,7 +996,7 @@ class AttributeTable {
 
       headerEnter.append('text')
       .classed('headerTitle', true);
-    
+
 
     headers = headerEnter.merge(headers);
 
@@ -1003,7 +1006,7 @@ class AttributeTable {
       return d.type === 'categorical' ?  colWidth + d.name.length*7 : colWidth;})
     .attr('transform', (d, i) => {
       return 'translate(0,-20)';
-    })
+    });
 
     headers
     .attr('id', (d) => {return this.deriveID(d) + '_header'; })
@@ -1804,7 +1807,7 @@ class AttributeTable {
 
     icon
       .text('\uf0dd')
-      .attr('y', this.rowHeight * 1.8 + 20)
+      .attr('y', this.rowHeight * 1.8 + 24)
       .attr('x', (d) => {
         return colWidth / 2 - 5;
       });
@@ -1818,6 +1821,12 @@ class AttributeTable {
       .classed('icon', true)
       .classed('ascending', true);
 
+    icon
+    .attr('y', this.rowHeight * 1.8 + 24)
+    .attr('x', (d) => {
+      return colWidth / 2 - 5;
+    });
+
     //Add 'remove col icon'
     icon.enter().append('text')
       .classed('icon', true)
@@ -1825,7 +1834,6 @@ class AttributeTable {
       .text(' \uf057');
 
     element.select('.deleteIcon')
-      // .text('\uf077')
       .attr('y', this.rowHeight * 2 + 40)
       .attr('x', (d) => {
         return colWidth / 2 - 8;
@@ -1839,7 +1847,6 @@ class AttributeTable {
       .text('\uf141');
 
     element.select('.menuIcon')
-      // .text('\uf077')
       .attr('y', this.rowHeight * 2 + 40)
       .attr('x', (d) => {
         return colWidth / 2 + 5;
@@ -1850,7 +1857,6 @@ class AttributeTable {
 
     icon
       .text('\uf0de')
-      // .text('\uf077')
       .attr('y', this.rowHeight * 1.8 + 30)
       .attr('x', (d) => {
         return colWidth / 2 + 5;
@@ -1998,25 +2004,24 @@ class AttributeTable {
 
 
         } else if (e.includes('POI')) {
-          this.tableManager.setAffectedState(d.name);
 
-          // this.tableManager.setAffectedState(item.name, item.callback).then((obj) => {
+          this.tableManager.setAffectedState(d.name).then((obj) => {
 
-          //           //find histogram with this name and set the brush extent
-          //           const hist = this.histograms.filter((h) => { return h.attrName === item.name; })[0];
-          //           if (obj.threshold !== undefined) { //setAffectedState returned a default value. Was not set by user brushing or selecting bar;
+                    //find histogram with this name and set the brush extent
+                    const hist = this.histograms.filter((h) => { return h.attrName === d.name; })[0];
+                    if (obj.threshold !== undefined) { //setAffectedState returned a default value. Was not set by user brushing or selecting bar;
 
-          //             //New POI has been set, remove all other brush and rect selection interactions;
-          //             this.histograms.map((hist) => { hist.clearInteraction(); });
-          //             // if (obj.type === VALUE_TYPE_CATEGORICAL) {
-          //             //   hist.setSelected(obj.threshold);
-          //             // } else if (obj.type === VALUE_TYPE_REAL || obj.type === VALUE_TYPE_INT) {
-          //             //   hist.setBrush(obj.threshold);
-          //             // }
+                      //New POI has been set, remove all other brush and rect selection interactions;
+                      this.histograms.map((hist) => { hist.clearInteraction(); });
+                      if (hist && obj.type === VALUE_TYPE_CATEGORICAL) {
+                        hist.setSelected(obj.threshold);
+                      } else if (hist && obj.type === VALUE_TYPE_REAL || obj.type === VALUE_TYPE_INT) {
+                        hist.setBrush(obj.threshold);
+                      }
 
-          //           }
+                    }
 
-          // });
+          });
 
 
           selectAll('.icon').filter('.tooltipTitle').classed('poi', (ee: any) => {
@@ -2275,7 +2280,13 @@ class AttributeTable {
 
       this.addSortingIcons(element, headerData);
 
-      const attributeHistogram = histogram.create(element);
+      //Check if histogram already exists
+      let attributeHistogram = this.histograms.filter((hist)=> {return hist.attrName === headerData.name;})[0];
+
+      if (!attributeHistogram) {
+        attributeHistogram = new Histogram(element);
+        this.histograms.push(attributeHistogram);
+      };
 
     const graphView = await this.tableManager.graphTable;
     const attributeView = await this.tableManager.tableTable;
@@ -3050,6 +3061,12 @@ class AttributeTable {
   }
   private attachListener() {
     const self = this;
+
+
+    events.on('poi_selected', (evt,info) => {
+      this.tableManager.setAffectedState(info.name, info.callback);
+    });
+
 
     events.on(TABLE_VIS_ROWS_CHANGED_EVENT, () => {
       self.update();

@@ -192,7 +192,7 @@ export default class Histogram {
       .attr('class', 'axis brushAxis')
       // .attr('transform', 'translate(0,-20)')
       .classed('hist_xscale', true)
-      .attr('id','brushScale')
+      .attr('id','brushScale');
       // .attr('transform', 'translate(0,' + this.height + ')');
 
       // element.select('#brushScale')
@@ -237,7 +237,7 @@ export default class Histogram {
 
       //Create a tick mark at the edges of the brush
       topAxis.call(axisTop(xScale)
-        .tickSize(0)
+        .tickSize(2)
         .tickValues(allTicks)
         .tickFormat(format('.0f')));
     }

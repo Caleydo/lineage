@@ -2694,6 +2694,8 @@ class AttributeTable {
    */
   private renderIntCell(element, cellData) {
 
+    console.log(cellData);
+
     // console.log(cellData)
     //Check for custom column width value, if none, use default
     const colWidth = this.customColWidths[cellData.name] || this.colWidths.int;
@@ -2749,15 +2751,7 @@ class AttributeTable {
         return colWidth;
       })
       .attr('height', rowHeight);
-      // .on('mouseover', (d) => {
-      //   this.addTooltip('cell', cellData);
-      // })
-      // .on('mouseout', () => {
-      //   select('#tooltipMenu').select('.menu').remove();
-      // })
-
-    // element.selectAll('.quant_ellipse').remove(); //Hack. don't know why ellipsis.exit().remove() isn' removing the extra ones.
-
+    
     let ellipses = element
       .selectAll('ellipse')
       .data((d) => {
@@ -2774,10 +2768,11 @@ class AttributeTable {
       .append('ellipse')
       .classed('quant_ellipse', true);
 
+    ellipses.exit().remove();
+    
     ellipses = ellipsesEnter.merge(ellipses);
 
-    ellipses.exit().remove(); //Dont'know why these is not removing ellipses. :-/
-
+    
 
     element.selectAll('.quant_ellipse')
       .attr('cx',

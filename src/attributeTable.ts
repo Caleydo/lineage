@@ -1919,6 +1919,7 @@ class AttributeTable {
     }
 
     const menuLabels = (d.type === 'categorical' ? [option1, option2, 'Set as POI', 'Set as Primary Attribute', 'Star'] : ['Set as POI', 'Set as Primary Attribute',  'Star']);
+    const menuObjects = menuLabels.map((m)=> {return {label:m,attr:d.name};});
 
     const container = document.getElementById('app');
     const coordinates = mouse(container);
@@ -1938,7 +1939,7 @@ class AttributeTable {
       .append('g')
       .classed('tooltipTriangle', true).append('rect');
 
-    let menuItems = menu.selectAll('text').data(menuLabels);
+    let menuItems = menu.selectAll('text').data(menuObjects);
 
     const menuItemsEnter = menuItems.enter()
       .append('g').attr('class', 'menuItem');
@@ -1954,7 +1955,7 @@ class AttributeTable {
       .select('.label')
       .attr('x', 10)
       .attr('y', menuItemHeight / 2 + 3)
-      .text((d: any) => d)
+      .text((d: any) => d.label)
       .classed('tooltipTitle', true)
       .on('click', (d: any) => {
         select('#treeMenu').select('.menu').remove();
@@ -1989,7 +1990,7 @@ class AttributeTable {
       .attr('height', menuItemHeight)
       .attr('opacity', 1)
       .on('click', (e) => {
-        if (e.includes('Star')) {
+        if (e.label.includes('Star')) {
           const header = select('#' + this.deriveID(d) + '_header');
           const starBackground = select('.starRect_' + this.deriveID(d));
           header.classed('star', !header.classed('star'));
@@ -2003,7 +2004,7 @@ class AttributeTable {
           };
 
 
-        } else if (e.includes('POI')) {
+        } else if (e.label.includes('POI')) {
 
           this.tableManager.setAffectedState(d.name).then((obj) => {
 
@@ -2029,11 +2030,33 @@ class AttributeTable {
           });
 
 
-        } else if (e.includes('Primary')) {
-          events.fire('primarySelected', { 'name': d.name});
+        } else if (e.label.includes('Primary')) {
+
+          const currentMenuIcon = selectAll('.icon').filter('.tooltipTitle')
+          .filter((ee:any)=> {return ee.label.includes('Primary') && this.tableManager.primaryAttribute && this.tableManager.primaryAttribute.name === d.name;});
+
+          const isSelected = !currentMenuIcon.empty() && currentMenuIcon.classed('primaryAttribute');
+
+          const currentMenuLabel = selectAll('.label').filter('.tooltipTitle')
+          .filter((ee:any)=> {return ee.label.includes('Primary') && ee.attr === d.name;});
+
+
+          if (isSelected) {
+            events.fire('primarySelected',{'name':undefined});
+            currentMenuIcon.classed('primaryAttribute',false);
+            currentMenuLabel.text('Set as Primary Attribute');
+            return;
+          } else {
+            events.fire('primarySelected', { 'name': d.name});
+            const currentMenuLabel = selectAll('.label').filter('.tooltipTitle')
+            .filter((ee:any)=> {return ee.label.includes('Primary') && e.attr === d.name;});
+
+           currentMenuLabel.text('Clear Primary Attribute');
+          }
+
 
           selectAll('.icon').filter('.tooltipTitle').classed('primaryAttribute', (ee: any) => {
-            return ee.includes('Primary') && this.tableManager.primaryAttribute && this.tableManager.primaryAttribute.name === d.name;
+            return ee.label.includes('Primary') && this.tableManager.primaryAttribute && this.tableManager.primaryAttribute.name === d.name;
           });
 
         }
@@ -2048,15 +2071,15 @@ class AttributeTable {
       .attr('y', menuItemHeight / 2 + 5)
       .attr('class', 'icon')
       .text((d: any, i) => {
-        if (i === 0 && d.includes('Show')) {
+        if (i === 0 && d.label.includes('Show')) {
           return '\uf111';
-        } else if (i === 1 && d.includes('Show')) {
+        } else if (i === 1 && d.label.includes('Show')) {
           return '\uf22d';
-        } else if (i === 0 || (i === 2 && d.includes('Set'))) {
+        } else if (d.label.includes('POI')) {
           return '\uf007';
-        } else if (i === 1 || i === 3) {
+        } else if (d.label.includes('Attribute')) {
           return '\uf012';
-        } else if (i === 2 || i === 4) {
+        } else if (d.label.includes('Star')) {
           return '\uf005';
         } else {
           return '';
@@ -2067,13 +2090,13 @@ class AttributeTable {
       .classed('tooltipTitle', true)
       .classed('star', (e) => {
         const header = select('#' + this.deriveID(d) + '_header');
-        return e.includes('Star') && header.classed('star');
+        return e.label.includes('Star') && header.classed('star');
       })
       .classed('poi', (e) => {
-        return e.includes('POI') && this.tableManager.affectedState.name === d.name;
+        return e.label.includes('POI') && this.tableManager.affectedState.name === d.name;
       })
       .classed('primaryAttribute', (e) => {
-        return e.includes('Primary') && this.tableManager.primaryAttribute && this.tableManager.primaryAttribute.name === d.name;
+        return e.label.includes('Primary') && this.tableManager.primaryAttribute && this.tableManager.primaryAttribute.name === d.name;
       });
 
     menuItems

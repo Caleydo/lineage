@@ -291,8 +291,13 @@ export default class TableManager {
   }
 
 
-  public async setPrimaryAttribute(attributeName) {
+  public async setPrimaryAttribute(attributeName?) {
 
+    if (!attributeName) {
+      this.primaryAttribute = undefined;
+      events.fire(PRIMARY_SELECTED, undefined);
+      return;
+    }
     let binaryColorChoice1, binaryColorChoice2, multipleColorChoice;
 
     binaryColorChoice1 = PRIMARY_COLOR;
@@ -342,7 +347,7 @@ export default class TableManager {
 
     events.fire(PRIMARY_SELECTED, attributeDefinition);
 
-    return attributeDefinition; //used by the attribute Panel to set the appropriate colors;
+    return attributeDefinition;
 
   }
 

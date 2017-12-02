@@ -602,8 +602,6 @@ class AttributeTable {
     // const ids = uniqueIDs.map((id,i)=> {return id+'_'+kindredIDs[i];});
     const ids = graphIDs.map((id, i) => { return id + '_' + kindredIDs[i]; });
 
-    console.log('ids', ids);
-
     //Create a dictionary of y value to people
     const y2personDict = {};
     const yDict = this.tableManager.yValues;
@@ -2048,10 +2046,6 @@ class AttributeTable {
             return;
           } else {
             events.fire('primarySelected', { 'name': d.name});
-            const currentMenuLabel = selectAll('.label').filter('.tooltipTitle')
-            .filter((ee:any)=> {return ee.label.includes('Primary') && e.attr === d.name;});
-
-           currentMenuLabel.text('Clear Primary Attribute');
           }
 
 

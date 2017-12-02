@@ -363,12 +363,14 @@ class GraphData {
     const dict = {};
 
     this.nodes.forEach((node) => {
-      if (node.uniqueID in dict) {
+      if ((node.id+'_'+node.kindredID) in dict) {
         dict[node.id+'_'+node.kindredID].push(Math.round(node.y));
       } else {
         dict[node.id+'_'+node.kindredID] = [Math.round(node.y)];
       }
     });
+
+    console.log(dict);
 
     //Assign y values to the tableManager object
     this.tableManager.yValues = dict;

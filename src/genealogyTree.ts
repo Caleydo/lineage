@@ -322,7 +322,7 @@ class GenealogyTree {
       .attr('class', 'btn-link')
       .attr('role', 'button')
       .attr('id', 'LegendPersonView')
-      .html('View Legend')
+      .html('View Person Details')
       .on('click', (d) => {
         const text = select('#LegendPersonView').html();
         if (text === 'View Legend') {
@@ -382,11 +382,12 @@ class GenealogyTree {
 
     //Add svg legend
     headerDiv.append('g')
-      .style('display', 'none')
+      .style('display', 'inherit')
       .attr('id', 'legendSVG')
       .html(String(icon));
 
     headerDiv.append('g').append('svg')
+      .style('display', 'none')
       .attr('id', 'personView')
       .attr('width', this.width + Config.collapseSlopeChartWidth)
       .attr('height', 120);

@@ -54,7 +54,7 @@ class GraphData {
 
       //Once tree has been created for the new family, fire redraw tree event.
       this.createTree().then(() => {
-        this.aggregateTreeWrapper(undefined, layoutState.Aggregated); //default to aggregated state;
+        this.aggregateTreeWrapper(undefined, layoutState.Hidden); //default to aggregated state;
       }).catch(function (error) {
         console.log('Error: ' + error);
       });

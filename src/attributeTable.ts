@@ -2024,7 +2024,7 @@ class AttributeTable {
 
 
           selectAll('.icon').filter('.tooltipTitle').classed('poi', (ee: any) => {
-            return ee.includes('POI') && this.tableManager.affectedState.name === d.name;
+            return ee.label.includes('POI') && this.tableManager.affectedState.name === d.name;
           });
 
 

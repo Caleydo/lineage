@@ -1901,7 +1901,9 @@ class GenealogyTree {
 
     element.selectAll('.primary')
       .attr('x', () => {
-        return d.sex === Sex.Female ? Config.glyphSize * 2 : Config.glyphSize * 3;
+        // console.log(this.x.range()[1] - this.xPOS(d) -20)
+        // return this.x.range()[1] - this.xPOS(d);
+        return d.sex === Sex.Female ? Config.glyphSize * 2 +8 : Config.glyphSize * 3 +8;
       });
 
 

@@ -32,6 +32,9 @@ const header = createHeader(
 const menu = new LoginMenu(header);
 header.insertCustomRightMenu(menu.node);
 
+(<HTMLInputElement>document.querySelector('input#login_username')).value = 'admin';
+(<HTMLInputElement>document.querySelector('input#login_password')).value = 'admin';
+
 menu.on(LoginMenu.EVENT_LOGGED_IN, () => {
   console.assert(isLoggedIn());
   console.log(currentUser());

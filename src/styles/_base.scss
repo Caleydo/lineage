@@ -5,6 +5,52 @@ body, html {
 	width: 100%;
 }
 
+.node {
+  stroke: #222;
+  stroke-width: 1.5px;
+}
+
+.node.actor {
+  fill: #888;
+}
+
+.node.movie {
+  fill: #BBB;
+}
+
+.link {
+  stroke: #999;
+  stroke-opacity: .6;
+  stroke-width: 1px;
+}
+
+.visible{
+  stroke: #999;
+  stroke-opacity: 0.6;
+}
+
+.hiddenEdge{
+  stroke: rgb(223, 85, 85);
+  stroke-opacity: 0.6; 
+ stroke-dasharray: 3px;
+}
+
+line {
+  stroke-width: 3px;
+}
+
+.nodes circle {
+  stroke: #fff;
+  stroke-width: 1.5px;
+}
+
+.treeLink{
+  fill:none;
+  stroke-width: 3px;
+  stroke:black;
+}
+
+
 .table{
   table-layout: fixed;
 }

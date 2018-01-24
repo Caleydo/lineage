@@ -10,6 +10,7 @@ import * as tree from './genealogyTree';
 import * as table from './attributeTable';
 import * as panel from './attributePanel';
 import * as familySelector from './familySelector';
+import * as graph from './graph';
 
 
 
@@ -90,104 +91,78 @@ export class App {
    */
   private async build() {
 
-    const tableManager = TableManager.create();
+  //   const tableManager = TableManager.create();
 
-   const parsedUrl = new URL(window.location.href);
-   let dataset = parsedUrl.search.split('ds=')[1]; // suicide
-    // console.log('Dataset is ',dataset);
+  //  const parsedUrl = new URL(window.location.href);
+  //  let dataset = parsedUrl.search.split('ds=')[1]; // suicide
+  //   // console.log('Dataset is ',dataset);
 
-    /** =====  PUBLIC CASE ===== */
+  //   /** =====  PUBLIC CASE ===== */
 
-    //await tableManager.loadData('TenFamiliesDescendAnon', 'TenFamiliesAttrAnon');
-    //await tableManager.loadData('TwoFamiliesDescendAnon', 'TwoFamiliesAttrAnon');
+  //   //await tableManager.loadData('TenFamiliesDescendAnon', 'TenFamiliesAttrAnon');
+  //   //await tableManager.loadData('TwoFamiliesDescendAnon', 'TwoFamiliesAttrAnon');
 
-    /** =====  PRIVATE CASES - WORKS ONLY WITH THE RIGHT DATA LOCALLY ===== */
+  //   /** =====  PRIVATE CASES - WORKS ONLY WITH THE RIGHT DATA LOCALLY ===== */
 
-    //await tableManager.loadData('TenFamiliesDescend', 'TenFamiliesAttr');
-    if (dataset === 'suicide' || !dataset) {
-      dataset = 'suicide';
-      const table = await tableManager.loadData('AllFamiliesDescend', 'AllFamiliesAttributes');
-      if (!table) {
-        console.log('loading Anonymous Dataset');
-        await tableManager.loadData('TenFamiliesDescendAnon', 'TenFamiliesAttrAnon');
-      }
-    } else if (dataset === 'autism') {
-     await tableManager.loadData('AllAutismFamiliesDescend', 'AllAutismFamiliesAttributes');
-    } else if (dataset === 'suicide_anon') {
-      dataset = 'suicide';
-      await tableManager.loadData('TenFamiliesDescendAnon', 'TenFamiliesAttrAnon');
-    }
-    //await tableManager.loadData('TenFamiliesDescend', 'TenFamiliesAttr');
-    //await tableManager.loadData('FiftyFamiliesDescendAnon', 'FiftyFamiliesAttributes');
+  //   //await tableManager.loadData('TenFamiliesDescend', 'TenFamiliesAttr');
+  //   if (dataset === 'suicide' || !dataset) {
+  //     dataset = 'suicide';
+  //     const table = await tableManager.loadData('AllFamiliesDescend', 'AllFamiliesAttributes');
+  //     if (!table) {
+  //       console.log('loading Anonymous Dataset');
+  //       await tableManager.loadData('TenFamiliesDescendAnon', 'TenFamiliesAttrAnon');
+  //     }
+  //   } else if (dataset === 'autism') {
+  //    await tableManager.loadData('AllAutismFamiliesDescend', 'AllAutismFamiliesAttributes');
+  //   } else if (dataset === 'suicide_anon') {
+  //     dataset = 'suicide';
+  //     await tableManager.loadData('TenFamiliesDescendAnon', 'TenFamiliesAttrAnon');
+  //   }
+  //   //await tableManager.loadData('TenFamiliesDescend', 'TenFamiliesAttr');
+  //   //await tableManager.loadData('FiftyFamiliesDescendAnon', 'FiftyFamiliesAttributes');
 
-    /** ============= */
-    const attributePanel = panel.create(this.$node.select('#data_selection').node());
+  //   /** ============= */
+  //   const attributePanel = panel.create(this.$node.select('#data_selection').node());
 
-    attributePanel.build();
-    attributePanel.init(tableManager,dataset);
+  //   attributePanel.build();
+  //   attributePanel.init(tableManager,dataset);
 
-    const graphDataObj = graphData.create(tableManager);
-    await graphDataObj.createTree().then(() => {
-      graphDataObj.aggregateTreeWrapper(undefined, layoutState.Aggregated); //default to aggregated state;
-    });
 
-    const genealogyTree = tree.create(this.$node.select('#graph').node());
-    genealogyTree.init(graphDataObj, tableManager);
-    genealogyTree.update();
+    const graphObj = graph.create(1500,1100,10,'#graph');
 
-    const attributeTable = table.create(this.$node.select('#table').node());
-    attributeTable.init(tableManager);
+  // let load  = ()=>{
+    graphObj.loadGraph();
 
-    const familySelectorView = familySelector.create(this.$node.select('#familySelector').node());
-    familySelectorView.init(tableManager);
-    familySelectorView.updateTable();
 
-    // const changeDataset = async function(d:any){
+    // const graphDataObj = graphData.create(tableManager);
+    // await graphDataObj.createTree().then(() => {
+    //   graphDataObj.aggregateTreeWrapper(undefined, layoutState.Aggregated); //default to aggregated state;
+    // });
 
-    //   //If item is already selected, do nothing;
-    //   if (select(this).classed('active')) {
-    //     return;
-    //   }
+    // const genealogyTree = tree.create(this.$node.select('#graph').node());
+    // genealogyTree.init(graphDataObj, tableManager);
+    // genealogyTree.update();
 
-    //   // if (d.type === 'suicide_anon') {
-    //   //   await tableManager.loadData('TenFamiliesDescend', 'TenFamiliesAttr');
-    //   //   tableManager.setAffectedState('suicide');
-    //   // } else if (d.type === 'suicide') {
-    //   //   await tableManager.loadData('AllAutismFamiliesDescend', 'AllAutismFamiliesAttributes');
-    //   //   tableManager.setAffectedState('affected');
-    //   //   // console.log('here')
-    //   //   // return;
-    //   //   // await tableManager.loadData('AllFamiliesDescend', 'AllFamiliesAttr');
-    //   // } else if (d.type === 'autism') {
-    //   //   // tableManager.setAffectedState('affected');
-    //   //   // await tableManager.loadData('AllAutismFamiliesDescend', 'AllAutismFamiliesAttributes');
-    //   // }
+    // const attributeTable = table.create(this.$node.select('#table').node());
+    // attributeTable.init(tableManager);
 
-    //   selectAll('.datasetMenuItem').classed('active',false);
-    //   select(this).classed('active',true);
+    // const familySelectorView = familySelector.create(this.$node.select('#familySelector').node());
+    // familySelectorView.init(tableManager);
+    // familySelectorView.updateTable();
 
-    //   // attributePanel.init(tableManager);
-    //   // await graphDataObj.createTree();
-    //   // genealogyTree.update();
-    //   // genealogyTree.init(graphDataObj, tableManager);
-    //   // attributeTable.init(tableManager);
-    //   // familySelectorView.updateTable();
-    // };
-
-    // selectAll('.datasetMenuItem').on('click',changeDataset);
 
     this.$node.select('#loading').remove();
     this.setBusy(false);
 
-    //Set listener on document so that clicking anywhere removes the menus
-    select('body').on('click', () => {
-      console.log('clearing all...');
-      select('#treeMenu').select('.menu').remove();
-      selectAll('.highlightedNode').classed('highlightedNode', false);
-      selectAll('.edges').classed('selected', false);
-      selectAll('.parentEdges').classed('selected', false);
-      selectAll('.clicked').classed('clicked', false);
-    });
+    // //Set listener on document so that clicking anywhere removes the menus
+    // select('body').on('click', () => {
+    //   console.log('clearing all...');
+    //   select('#treeMenu').select('.menu').remove();
+    //   selectAll('.highlightedNode').classed('highlightedNode', false);
+    //   selectAll('.edges').classed('selected', false);
+    //   selectAll('.parentEdges').classed('selected', false);
+    //   selectAll('.clicked').classed('clicked', false);
+    // });
 
 
     return Promise.resolve(this);

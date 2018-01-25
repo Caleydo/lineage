@@ -10,6 +10,7 @@ body, html {
   font-size:14px;
   font-family:FontAwesome;
   fill:  #555;
+  cursor:pointer;
 }
 .node {
   stroke: #222;
@@ -33,12 +34,16 @@ body, html {
 .visible{
   stroke: #999;
   stroke-opacity: 0.6;
+  fill:none;
+  // stroke-width: 4px;
 }
 
 .hiddenEdge{
   stroke: rgb(223, 85, 85);
   stroke-opacity: 0.6; 
  stroke-dasharray: 3px;
+ fill:none;
+ stroke-width: 4px;
 }
 
 line {

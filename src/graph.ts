@@ -65,7 +65,24 @@ class Graph {
 
   private ypos = 0;
 
+  private padding={left:150,right:100};
+
   private t2 = transition('t').duration(600).ease(easeLinear);
+
+  private xScale;
+  private yScale;
+
+  private interGenerationScale = scaleLinear();
+
+  private lineFunction = line<any>()
+  .x((d: any) => {
+    return this.xScale(d.x);
+  }).y((d: any) => {
+    return this.yScale(d.y);
+  })
+  .curve(curveBasis);
+
+
   /**
    * Creates a Map Object
    */
@@ -79,6 +96,7 @@ class Graph {
       .attr('height', this.height)
       .attr('pointer-events', 'all');
 
+    
 
     this.color = scaleOrdinal(schemeCategory20);
 
@@ -88,6 +106,7 @@ class Graph {
     this.svg.append('g')
       .attr('class', 'nodes');
 
+      
     // this.simulation = forceSimulation()
     //   .force('link', forceLink()
     //     .strength((d) => {
@@ -113,6 +132,8 @@ class Graph {
       }
 
       this.graph = graph;
+
+      this.interGenerationScale.range([.75, .25]).domain([2, this.graph.nodes.length]);
 
       //create dictionary of nodes with
       //1) set of adjacent nodes in the graph
@@ -277,8 +298,6 @@ class Graph {
         return n.y;
       });
 
-      //   c.y = maxY > -1 ? (maxY < node.y ? node.y : maxY + 1) : node.y;
-      //   c.y = node.yPos;
       c.x = node.x + 1;
       this.layoutTreeHelper(c);
     });
@@ -289,19 +308,18 @@ class Graph {
 
     const graph = this.graph;
 
-    console.log(graph.links);
     let link = this.svg.select('.links')
-      .selectAll('line')
+      // .selectAll('line')
+      .selectAll('.edge')
       .data(graph.links, (d) => {
         return d.index;
       });
 
-    console.log('link selection is', this.svg.select('.links')
-      .selectAll('line').size());
-
     const linksEnter = link
       .enter()
-      .append('line');
+      .append('path')
+      // .append('line')
+      .attr('class','edge');
 
     link.exit().remove();
 
@@ -315,31 +333,71 @@ class Graph {
       return +n.y;
     });
 
-    this.height = maxY * 18;
+    this.height = maxY * 22;
 
-    const xScale = scaleLinear().domain([0, maxX]).range([20, this.width - 200]);
+    const xScale = scaleLinear().domain([0, maxX]).range([this.padding.left, this.width - this.padding.right]);
     const yScale = scaleLinear().domain([0, maxY]).range([20, this.height - 40]);
 
+    this.xScale = xScale;
+    this.yScale = yScale;
+
     link
-      .attr('class', (d) => {
-        return d.visible ? 'visible' : 'hiddenEdge';
+      .classed('visible', (d) => {
+        return d.visible ? true : false;
+      })
+      .classed('hiddenEdge', (d) => {
+        return d.visible ? false : true;
       });
 
       link
       .transition('t')
       .duration(1000)
-      .attr('x1', function (d) {
-        return xScale(graph.nodes[d.source].x);
-      })
-      .attr('y1', function (d) {
-        return yScale(graph.nodes[d.source].y);
-      })
-      .attr('x2', function (d) {
-        return xScale(graph.nodes[d.target].x);
-      })
-      .attr('y2', function (d) {
-        return yScale(graph.nodes[d.target].y);
+
+      .attr('d', (d) => {
+          return this.elbow(d, this.interGenerationScale, this.lineFunction, true);
       });
+
+
+      // .attr('d', (d)=> { console.log(d); return line()
+      // .curve(curveBasis)
+      // .x(function(d:any) { return xScale(d.x); })
+      // .y(function(d:any) { return yScale(d.y); })}
+  // );
+
+    //   .attr('d', (d)=> { 
+    //     const dx =  xScale(graph.nodes[d.target].x) -  xScale(graph.nodes[d.source].x),
+    //         dy =  yScale(graph.nodes[d.target].y) -  yScale(graph.nodes[d.source].y),
+    //         dr = Math.sqrt(dx * dx + dy * dy);
+    //         let x1 = xScale(graph.nodes[d.source].x);
+    //         let y1 = yScale(graph.nodes[d.source].y);
+    //         let x2 = xScale(graph.nodes[d.target].x);
+    //         let y2 = yScale(graph.nodes[d.target].y);
+
+
+    //         if (x1<x2) {
+    //           let t = x1;
+    //           x1 = x2;
+    //           x2 = t;
+    //           t = y1;
+    //           y1 = y2;
+    //           y2 = t;
+    //         }
+    //     return 'M' +  x1 + ',' +  y1 + 'A' + dr + ',' + dr + ' 0 0,1 ' + x2 + ',' +   y2;
+    // });
+
+
+      // .attr('x1', function (d) {
+      //   return xScale(graph.nodes[d.source].x);
+      // })
+      // .attr('y1', function (d) {
+      //   return yScale(graph.nodes[d.source].y);
+      // })
+      // .attr('x2', function (d) {
+      //   return xScale(graph.nodes[d.target].x);
+      // })
+      // .attr('y2', function (d) {
+      //   return yScale(graph.nodes[d.target].y);
+      // });
 
     select('#graph').select('svg').attr('height', this.height);
 
@@ -400,7 +458,7 @@ class Graph {
       //   return yScale(d.y);
       // });
       .attr('x', (d) => {
-        return xScale(d.x);
+        return xScale(d.x-.5);
       })
       .attr('y', (d) => {
         return yScale(d.y);
@@ -511,7 +569,73 @@ class Graph {
   }
 
 
+  private elbow(d, interGenerationScale, lineFunction, curves) {
+
+    let source = this.graph.nodes[d.source];
+    let target = this.graph.nodes[d.target];
+
+   console.log(source.x)
+
+    if (source.x < target.x) {
+      const t = target;
+      target = source;
+      source = t;
+    }
+    const xdiff = source.x - target.x;
+    const ydiff = source.y - target.y;
+    let nx = source.x - xdiff * interGenerationScale(ydiff);
+    
+    let linedata;
+    if (curves) {
+      nx = source.x - xdiff;
+      linedata = [{
+        x: source.x,
+        y: source.y
+      },
+      {
+        x: nx,
+        y: source.y
+      },
+      {
+        x: nx,
+        y: target.y
+      },
+      {
+        x: target.x,
+        y: target.y
+      }];
+    } else {
+      linedata = [{
+        x: source.x,
+        y:source.y
+      },
+      {
+        x: nx,
+        y: source.y
+      },
+      {
+        x: nx,
+        y: target.y
+      },
+      {
+        x: target.x,
+        y: target.y
+      }];
+    }
+
+    if (curves) {
+      lineFunction.curve(curveBasis);
+    } else {
+      lineFunction.curve(curveLinear);
+    }
+
+    return lineFunction(linedata);
+  }
+
+
 }
+
+
 
 /**
  * Factory method to create a new instance of the genealogyTree

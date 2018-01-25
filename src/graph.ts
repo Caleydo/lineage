@@ -5,7 +5,7 @@ import {
   mouse,
   event
 } from 'd3-selection';
-import{
+import {
   json
 } from 'd3-request';
 import {
@@ -45,7 +45,7 @@ import {
 import {
   drag
 } from 'd3-drag';
-import{
+import {
   forceSimulation,
   forceLink,
   forceManyBody,
@@ -72,7 +72,7 @@ class Graph {
 
   private ypos = 0;
 
-  private padding={left:150,right:100};
+  private padding = { left: 150, right: 100 };
 
   private t2 = transition('t').duration(600).ease(easeLinear);
 
@@ -82,12 +82,12 @@ class Graph {
   private interGenerationScale = scaleLinear();
 
   private lineFunction = line<any>()
-  .x((d: any) => {
-    return this.xScale(d.x);
-  }).y((d: any) => {
-    return this.yScale(d.y);
-  })
-  .curve(curveBasis);
+    .x((d: any) => {
+      return this.xScale(d.x);
+    }).y((d: any) => {
+      return this.yScale(d.y);
+    })
+    .curve(curveBasis);
 
 
   /**
@@ -103,39 +103,56 @@ class Graph {
       .attr('height', this.height)
       .attr('pointer-events', 'all');
 
-      // Create the svg:defs element and the main gradient definition.
-      let svgDefs = this.svg.append('defs');
-      
-                  const mainGradient = svgDefs.append('linearGradient')
-                      .attr('id', 'mainGradient');
-      
-                  // Create the stops of the main gradient. Each stop will be assigned
-                  // a class to style the stop using CSS.
-                  mainGradient.append('stop')
-                      // .attr('stop-color', 'green')
-                      .attr('offset', '0%')
-                      .attr('class','start');
+    // Create the svg:defs element and the main gradient definition.
+    const svgDefs = this.svg.append('defs');
 
-                      mainGradient.append('stop')
-                      // .attr('stop-color', 'green')
-                      // .style('opacity','0')
-                      .attr('offset', '5%')
-                      .attr('class','stop-left');
-                      
+    const marker = svgDefs.append('marker')
+    .attr('id','circleMarker')
+    .attr('markerWidth',this.radius)
+    .attr('markerHeight',this.radius)
+    .attr('refX',2)
+    .attr('refY',2);
 
-                      mainGradient.append('stop')
-                      // .attr('stop-color', 'green')
-                      // .style('opacity','1')
-                      .attr('offset', '95%')
-                      .attr('class','stop-right')
 
-      
-                  mainGradient.append('stop')
-                      // .attr('stop-color', 'green')
-                      .attr('offset', '100%')
-                      .attr('class','end')
+    marker.append('circle')
+    .attr('cx',2)
+    .attr('cy',2)
+    .attr('r',2);
 
-    
+
+  //   <marker id="arrow" markerWidth="10" markerHeight="10" refX="0" refY="3" orient="auto" markerUnits="strokeWidth">
+  //   <path d="M0,0 L0,6 L9,3 z" fill="#f00" />
+  // </marker>
+
+    const mainGradient = svgDefs.append('linearGradient')
+      .attr('id', 'mainGradient');
+
+    // Create the stops of the main gradient. Each stop will be assigned
+    // a class to style the stop using CSS.
+    mainGradient.append('stop')
+      // .attr('stop-color', 'green')
+      .attr('offset', '0%')
+      .attr('class', 'start');
+
+    mainGradient.append('stop')
+      // .attr('stop-color', 'green')
+      // .style('opacity','0')
+      .attr('offset', '5%')
+      .attr('class', 'stop-left');
+
+    mainGradient.append('stop')
+      // .attr('stop-color', 'green')
+      // .style('opacity','1')
+      .attr('offset', '95%')
+      .attr('class', 'stop-right')
+
+
+    mainGradient.append('stop')
+      // .attr('stop-color', 'green')
+      .attr('offset', '100%')
+      .attr('class', 'end')
+
+
 
     this.color = scaleOrdinal(schemeCategory20);
 
@@ -145,10 +162,10 @@ class Graph {
     this.svg.append('g')
       .attr('class', 'nodes');
 
-      
+
     this.simulation = forceSimulation()
       .force('link', forceLink()
-        .strength((d:any) => {
+        .strength((d: any) => {
           return (d.source.label === 'actor' && d.target.label === 'movie') ? .3 : 1.5;
         })
       )
@@ -243,7 +260,7 @@ class Graph {
 
       // let root = this.graph.nodes[rootIndex];
 
-      const maxY = max(this.graph.nodes, (n:any) => {
+      const maxY = max(this.graph.nodes, (n: any) => {
         return +n.y;
       });
 
@@ -262,13 +279,13 @@ class Graph {
         this.extractTreeHelper(node, queue, evalFcn, depth);
       }
 
-        // //DFS of the tree
-        // while (queue.length>0) {
-        //   const node = queue.splice(queue.length-1,1)[0];;
-        //   // node.y = yPos +1;
-        //   // yPos = yPos +1;
-        //   this.extractTreeHelper(node, queue, evalFcn, depth);
-        // }
+      // //DFS of the tree
+      // while (queue.length>0) {
+      //   const node = queue.splice(queue.length-1,1)[0];;
+      //   // node.y = yPos +1;
+      //   // yPos = yPos +1;
+      //   this.extractTreeHelper(node, queue, evalFcn, depth);
+      // }
 
       //   this.extractTreeHelper(root, evalFcn, depth)
       this.ypos = 0;
@@ -324,7 +341,7 @@ class Graph {
   layoutTreeHelper(node) {
 
     node.y = this.ypos;
-    this.ypos = this.ypos +1;
+    this.ypos = this.ypos + 1;
 
     node.children.map((c) => {
 
@@ -333,7 +350,7 @@ class Graph {
         return nn.x === node.x + 1;
       });
 
-      const maxY = max(xNodes, (n:any) => {
+      const maxY = max(xNodes, (n: any) => {
         return n.y;
       });
 
@@ -347,8 +364,8 @@ class Graph {
 
     const graph = this.graph;
 
+
     let link = this.svg.select('.links')
-      // .selectAll('line')
       .selectAll('.edge')
       .data(graph.links, (d) => {
         return d.index;
@@ -357,18 +374,17 @@ class Graph {
     const linksEnter = link
       .enter()
       .append('path')
-      // .append('line')
-      .attr('class','edge');
+      .attr('class', 'edge');
 
     link.exit().remove();
 
     link = linksEnter.merge(link);
 
 
-    const maxX = max(graph.nodes, (n:any) => {
+    const maxX = max(graph.nodes, (n: any) => {
       return +n.x;
     });
-    const maxY = max(graph.nodes, (n:any) => {
+    const maxY = max(graph.nodes, (n: any) => {
       return +n.y;
     });
 
@@ -380,6 +396,63 @@ class Graph {
     this.xScale = xScale;
     this.yScale = yScale;
 
+    let linkClips = this.svg.select('defs')
+    .selectAll('clipPath')
+    .data(graph.links.filter((l)=> {return !l.visible;}), (d) => {
+      return d.index;
+    });
+
+    const linkClipsEnter =  linkClips.enter()
+    .append('clipPath')
+    .attr('id',(d)=> {
+      const st = this.graph.nodes[d.source].title.replace(/ /g, '_').replace(/'/g, '');
+      const tt = this.graph.nodes[d.target].title.replace(/ /g, '_').replace(/'/g, '');
+      return st + '_' + tt;});
+
+    linkClipsEnter
+    .append('circle')
+    .attr('id','sourceCircle1');
+    linkClipsEnter
+    .append('circle')
+    .attr('id','sourceCircle2');
+    linkClipsEnter
+    .append('circle')
+    .attr('id','sourceCircle3');
+
+    linkClipsEnter
+    .append('circle')
+    .attr('id','targetCircle1');
+    linkClipsEnter
+    .append('circle')
+    .attr('id','targetCircle2');
+    linkClipsEnter
+    .append('circle')
+    .attr('id','targetCircle3');
+
+    linkClips.exit().remove();
+
+    linkClips = linkClips.merge(linkClipsEnter);
+
+    linkClips.select('#sourceCircle1')
+    .attr('cx',(d)=> {return xScale(this.graph.nodes[d.source].x);})
+    .attr('cy',(d)=> {return yScale(this.graph.nodes[d.source].y);})
+    .attr('r',this.radius*2);
+
+    linkClips.select('#sourceCircle1')
+    .attr('cx',(d)=> {return xScale(this.graph.nodes[d.source].x);})
+    .attr('cy',(d)=> {return yScale(this.graph.nodes[d.source].y);})
+    .attr('r',this.radius);
+
+    linkClips.select('#targetCircle1')
+    .attr('cx',(d)=> {return xScale(this.graph.nodes[d.target].x);})
+    .attr('cy',(d)=> {return yScale(this.graph.nodes[d.target].y);})
+    .attr('r',this.radius*2);
+
+    linkClips.select('#targetCircle2')
+    .attr('cx',(d)=> {return xScale(this.graph.nodes[d.target].x);})
+    .attr('cy',(d)=> {return yScale(this.graph.nodes[d.target].y);})
+    .attr('r',this.radius*2);
+    
     link
       .classed('visible', (d) => {
         return d.visible ? true : false;
@@ -388,55 +461,40 @@ class Graph {
         return d.visible ? false : true;
       });
 
-      link
+   
+      //  link.on('click', (d)=> {
+      //   const element = selectAll('.hiddenEdge').filter((dd)=> { return dd === d;});
+      //   if (element.attr('clip-path') !== 'undefined') {
+      //     element.attr('clip-path','undefined');
+      //   } else {
+      //     const st = this.graph.nodes[d.source].title.replace(/ /g, '_').replace(/'/g, '');
+      //     const tt = this.graph.nodes[d.target].title.replace(/ /g, '_').replace(/'/g, '');
+      //     element.attr('clip-path','url(#' + st + '_' + tt + ')');
+      //   }
+      //  });
+
+    selectAll('.hiddenEdge')
+    .attr('clip-path',(d:any)=> {
+      const st = this.graph.nodes[d.source].title.replace(/ /g, '_').replace(/'/g, '');
+      const tt = this.graph.nodes[d.target].title.replace(/ /g, '_').replace(/'/g, '');
+      return 'url(#' + st + '_' + tt + ')';})
+      .attr('marker-end','')
+      .attr('marker-start','');
+      
+
+    selectAll('.visible')
+    .attr('marker-end','url(#circleMarker)')
+    .attr('marker-start','url(#circleMarker)');
+
+
+    link
       .transition('t')
       .duration(1000)
 
       .attr('d', (d) => {
-          return this.elbow(d, this.interGenerationScale, this.lineFunction, d.visible === true);
-      });
-
-
-      // .attr('d', (d)=> { console.log(d); return line()
-      // .curve(curveBasis)
-      // .x(function(d:any) { return xScale(d.x); })
-      // .y(function(d:any) { return yScale(d.y); })}
-  // );
-
-    //   .attr('d', (d)=> { 
-    //     const dx =  xScale(graph.nodes[d.target].x) -  xScale(graph.nodes[d.source].x),
-    //         dy =  yScale(graph.nodes[d.target].y) -  yScale(graph.nodes[d.source].y),
-    //         dr = Math.sqrt(dx * dx + dy * dy);
-    //         let x1 = xScale(graph.nodes[d.source].x);
-    //         let y1 = yScale(graph.nodes[d.source].y);
-    //         let x2 = xScale(graph.nodes[d.target].x);
-    //         let y2 = yScale(graph.nodes[d.target].y);
-
-
-    //         if (x1<x2) {
-    //           let t = x1;
-    //           x1 = x2;
-    //           x2 = t;
-    //           t = y1;
-    //           y1 = y2;
-    //           y2 = t;
-    //         }
-    //     return 'M' +  x1 + ',' +  y1 + 'A' + dr + ',' + dr + ' 0 0,1 ' + x2 + ',' +   y2;
-    // });
-
-
-      // .attr('x1', function (d) {
-      //   return xScale(graph.nodes[d.source].x);
-      // })
-      // .attr('y1', function (d) {
-      //   return yScale(graph.nodes[d.source].y);
-      // })
-      // .attr('x2', function (d) {
-      //   return xScale(graph.nodes[d.target].x);
-      // })
-      // .attr('y2', function (d) {
-      //   return yScale(graph.nodes[d.target].y);
-      // });
+        return this.elbow(d, this.interGenerationScale, this.lineFunction, d.visible === true);
+      })
+      
 
     select('#graph').select('svg').attr('height', this.height);
 
@@ -449,8 +507,9 @@ class Graph {
       });
 
     const nodesEnter = node.enter()
-    .append('text')
-    .attr('class','title')
+      .append('text')
+      .attr('class', 'title')
+      .attr('alignment-baseline','middle');
     // .append('circle');
 
 
@@ -459,7 +518,7 @@ class Graph {
     node = nodesEnter.merge(node);
 
     node
-      .text((d)=> {return d.label === 'movie' ? d.title + '  \uf008'  : d.title + '  \uf007' ;})
+      .text((d) => { return d.label === 'movie' ? d.title + '  \uf008' : d.title + '  \uf007'; })
       // .attr('r', (d) => {
       //   return d.label === 'actor' ? 7 : 10;
       // })
@@ -472,7 +531,29 @@ class Graph {
         this.extractTree(d);
         this.drawTree();
       });
-      // .on('mouseover', (d) => { console.log(d); });
+
+      node.on('mouseover', (d)=> {
+        const element = selectAll('.hiddenEdge').filter((dd:any)=> {
+          return this.graph.nodes[dd.source].title === d.title || this.graph.nodes[dd.target].title === d.title;
+        });
+
+        element.attr('clip-path','undefined');
+       })
+       .on('mouseout',(d) => {
+
+        const element = selectAll('.hiddenEdge').filter((dd:any)=> {
+          return this.graph.nodes[dd.source].title === d.title || this.graph.nodes[dd.target].title === d.title;
+        });
+
+        element.attr('clip-path',(dd:any)=> {
+          const st = this.graph.nodes[dd.source].title.replace(/ /g, '_').replace(/'/g, '');
+          const tt = this.graph.nodes[dd.target].title.replace(/ /g, '_').replace(/'/g, '');
+         return 'url(#' + st + '_' + tt + ')';
+        });
+       });
+
+
+    // .on('mouseover', (d) => { console.log(d); });
     //   .on('mouseover', (d) => {
     //     // d3.selectAll('.hiddenEdge').attr('display','none');
     //     // console.log(d);
@@ -485,7 +566,8 @@ class Graph {
     node.append('title')
       .text(function (d) {
         return d.title;
-      });
+      })
+      
 
     node
       .transition('t')
@@ -497,7 +579,9 @@ class Graph {
       //   return yScale(d.y);
       // });
       .attr('x', (d) => {
-        return xScale(d.x-.5);
+        // const bbox = select(d).node().getBoundingClientRect();
+        // console.log('bbox',bbox);
+        return xScale(d.x) + this.radius;
       })
       .attr('y', (d) => {
         return yScale(d.y);
@@ -517,8 +601,8 @@ class Graph {
       .data(graph.links)
       .enter()
       .append('line')
-      .attr('class','visible')
-      
+      .attr('class', 'visible')
+
 
 
     const dragstarted = (d) => {
@@ -548,8 +632,8 @@ class Graph {
       .data(graph.nodes)
       .enter()
       .append('text')
-      .attr('class','title')
-      .text((d)=> {return d.label === 'movie' ? d.title + '  \uf008'  : d.title + '  \uf007' ;})
+      .attr('class', 'title')
+      .text((d) => { return d.label === 'movie' ? d.title + '  \uf008' : d.title + '  \uf007'; })
 
 
 
@@ -603,12 +687,12 @@ class Graph {
       //     return d.y = Math.max(this.radius, Math.min(this.height - this.radius, d.y));
       //   });
 
-        node.attr('x', (d) => {
-          return d.x = Math.max(this.radius, Math.min(this.width - this.radius, d.x));
-        })
-          .attr('y', (d) => {
-            return d.y = Math.max(this.radius, Math.min(this.height - this.radius, d.y));
-          });
+      node.attr('x', (d) => {
+        return d.x = Math.max(this.radius, Math.min(this.width - this.radius, d.x));
+      })
+        .attr('y', (d) => {
+          return d.y = Math.max(this.radius, Math.min(this.height - this.radius, d.y));
+        });
 
     };
 
@@ -657,7 +741,7 @@ class Graph {
     } else {
       linedata = [{
         x: source.x,
-        y:source.y
+        y: source.y
       },
       {
         x: target.x,
@@ -685,6 +769,6 @@ class Graph {
  * @param options
  * @returns {graph}
  */
-export function create(width,height,radius,selector) {
-  return new Graph(width,height,radius,selector);
+export function create(width, height, radius, selector) {
+  return new Graph(width, height, radius, selector);
 }

@@ -128,7 +128,7 @@ export class App {
   //   attributePanel.init(tableManager,dataset);
 
 
-    const graphObj = graph.create(800,500,10,'#graph');
+    const graphObj = graph.create(800,1500,10,'#graph');
 
   // let load  = ()=>{
     graphObj.loadGraph();

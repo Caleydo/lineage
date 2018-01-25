@@ -6,7 +6,7 @@ body, html {
 }
 
 .title{
-  text-decoration: underline;
+  // text-decoration: underline;
   font-size:14px;
   font-family:FontAwesome;
   fill:  #555;
@@ -25,6 +25,25 @@ body, html {
   fill: #BBB;
 }
 
+.start {
+  stop-color: #009688;  /* Teal */
+}
+
+.stop-left{
+  opacity: 0;
+  stop-color: #ffffff;  /* Indigo */
+}
+
+.stop-right{
+  opacity: 1;
+  stop-color: #ffffff;  /* Indigo */
+}
+
+.end {
+  stop-color: #009688;  /* Teal */
+}
+
+
 .link {
   stroke: #999;
   stroke-opacity: .6;
@@ -39,11 +58,14 @@ body, html {
 }
 
 .hiddenEdge{
-  stroke: rgb(223, 85, 85);
+  // stroke: rgb(223, 85, 85);
+  stroke: url(#mainGradient);
+  stroke-width: 6;
+
   stroke-opacity: 0.6; 
- stroke-dasharray: 3px;
+//  stroke-dasharray: 3px;
  fill:none;
- stroke-width: 4px;
+//  stroke-width: 4px;
 }
 
 line {

@@ -45,6 +45,13 @@ import {
 import {
   drag
 } from 'd3-drag';
+import{
+  forceSimulation,
+  forceLink,
+  forceManyBody,
+  forceCollide,
+  forceCenter
+} from 'd3-force';
 
 /** Class implementing the map view. */
 class Graph {
@@ -96,6 +103,38 @@ class Graph {
       .attr('height', this.height)
       .attr('pointer-events', 'all');
 
+      // Create the svg:defs element and the main gradient definition.
+      let svgDefs = this.svg.append('defs');
+      
+                  const mainGradient = svgDefs.append('linearGradient')
+                      .attr('id', 'mainGradient');
+      
+                  // Create the stops of the main gradient. Each stop will be assigned
+                  // a class to style the stop using CSS.
+                  mainGradient.append('stop')
+                      // .attr('stop-color', 'green')
+                      .attr('offset', '0%')
+                      .attr('class','start');
+
+                      mainGradient.append('stop')
+                      // .attr('stop-color', 'green')
+                      // .style('opacity','0')
+                      .attr('offset', '5%')
+                      .attr('class','stop-left');
+                      
+
+                      mainGradient.append('stop')
+                      // .attr('stop-color', 'green')
+                      // .style('opacity','1')
+                      .attr('offset', '95%')
+                      .attr('class','stop-right')
+
+      
+                  mainGradient.append('stop')
+                      // .attr('stop-color', 'green')
+                      .attr('offset', '100%')
+                      .attr('class','end')
+
     
 
     this.color = scaleOrdinal(schemeCategory20);
@@ -107,17 +146,17 @@ class Graph {
       .attr('class', 'nodes');
 
       
-    // this.simulation = forceSimulation()
-    //   .force('link', forceLink()
-    //     .strength((d) => {
-    //       return (d.source.label === 'actor' && d.target.label === 'movie') ? .3 : 1.5;
-    //     })
-    //   )
-    //   .force('charge', forceManyBody().strength(-30))
-    //   .force('center', forceCenter(this.width / 2, this.height / 2))
-    //   .force('collision', forceCollide().radius((d) => {
-    //     return this.radius * 1.5;
-    //   }));
+    this.simulation = forceSimulation()
+      .force('link', forceLink()
+        .strength((d:any) => {
+          return (d.source.label === 'actor' && d.target.label === 'movie') ? .3 : 1.5;
+        })
+      )
+      .force('charge', forceManyBody().strength(-70))
+      .force('center', forceCenter(this.width / 2, this.height / 2))
+      .force('collision', forceCollide().radius((d) => {
+        return this.radius * 3;
+      }));
 
   }
 
@@ -354,7 +393,7 @@ class Graph {
       .duration(1000)
 
       .attr('d', (d) => {
-          return this.elbow(d, this.interGenerationScale, this.lineFunction, true);
+          return this.elbow(d, this.interGenerationScale, this.lineFunction, d.visible === true);
       });
 
 
@@ -473,15 +512,13 @@ class Graph {
 
     const graph = this.graph;
 
-    const link = this.svg.append('g')
-      .attr('class', 'links')
+    const link = this.svg.select('.links')
       .selectAll('line')
       .data(graph.links)
       .enter()
       .append('line')
-      .attr('stroke-width', function (d) {
-        return Math.sqrt(d.value);
-      });
+      .attr('class','visible')
+      
 
 
     const dragstarted = (d) => {
@@ -505,18 +542,26 @@ class Graph {
       d.fy = null;
     };
 
-    const node = this.svg.append('g')
-      .attr('class', 'nodes')
-      .selectAll('circle')
+    const node = this.svg.select('.nodes')
+      // .selectAll('circle')
+      .selectAll('.title')
       .data(graph.nodes)
-      .enter().append('circle')
-      .attr('r', (d) => {
-        return d.label === 'actor' ? 7 : 10;
-      })
-      .attr('fill', (d, i) => {
-        console.log(this.color(0), this.color(1), this.color(20));
-        return (d.label === 'actor' ? this.color(2) : this.color(10));
-      })
+      .enter()
+      .append('text')
+      .attr('class','title')
+      .text((d)=> {return d.label === 'movie' ? d.title + '  \uf008'  : d.title + '  \uf007' ;})
+
+
+
+
+      // .append('circle')
+      // .attr('r', (d) => {
+      //   return d.label === 'actor' ? 7 : 10;
+      // })
+      // .attr('fill', (d, i) => {
+      //   console.log(this.color(0), this.color(1), this.color(20));
+      //   return (d.label === 'actor' ? this.color(2) : this.color(10));
+      // })
       .call(drag()
         .on('start', dragstarted)
         .on('drag', dragged)
@@ -551,17 +596,24 @@ class Graph {
         });
 
 
-      node.attr('cx', (d) => {
-        return d.x = Math.max(this.radius, Math.min(this.width - this.radius, d.x));
-      })
-        .attr('cy', (d) => {
-          return d.y = Math.max(this.radius, Math.min(this.height - this.radius, d.y));
-        });
+      // node.attr('cx', (d) => {
+      //   return d.x = Math.max(this.radius, Math.min(this.width - this.radius, d.x));
+      // })
+      //   .attr('cy', (d) => {
+      //     return d.y = Math.max(this.radius, Math.min(this.height - this.radius, d.y));
+      //   });
+
+        node.attr('x', (d) => {
+          return d.x = Math.max(this.radius, Math.min(this.width - this.radius, d.x));
+        })
+          .attr('y', (d) => {
+            return d.y = Math.max(this.radius, Math.min(this.height - this.radius, d.y));
+          });
 
     };
 
     this.simulation
-      .nodes(graph.nodes)
+      .nodes(this.graph.nodes)
       .on('tick', ticked);
 
     this.simulation.force('link')
@@ -574,8 +626,6 @@ class Graph {
     let source = this.graph.nodes[d.source];
     let target = this.graph.nodes[d.target];
 
-   console.log(source.x)
-
     if (source.x < target.x) {
       const t = target;
       target = source;
@@ -584,7 +634,7 @@ class Graph {
     const xdiff = source.x - target.x;
     const ydiff = source.y - target.y;
     let nx = source.x - xdiff * interGenerationScale(ydiff);
-    
+
     let linedata;
     if (curves) {
       nx = source.x - xdiff;
@@ -608,14 +658,6 @@ class Graph {
       linedata = [{
         x: source.x,
         y:source.y
-      },
-      {
-        x: nx,
-        y: source.y
-      },
-      {
-        x: nx,
-        y: target.y
       },
       {
         x: target.x,

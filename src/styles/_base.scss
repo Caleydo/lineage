@@ -5,6 +5,12 @@ body, html {
 	width: 100%;
 }
 
+.title{
+  text-decoration: underline;
+  font-size:14px;
+  font-family:FontAwesome;
+  fill:  #555;
+}
 .node {
   stroke: #222;
   stroke-width: 1.5px;

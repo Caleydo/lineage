@@ -63,6 +63,8 @@ class Graph {
 
   private treeEdges;
 
+  private ypos = 0;
+
   private t2 = transition('t').duration(600).ease(easeLinear);
   /**
    * Creates a Map Object
@@ -168,7 +170,7 @@ class Graph {
     this.treeEdges = [];
 
     //Iterate through to capture multiple trees
-    let yPos = 0;
+    // let yPos = 0;
 
     while (this.graph.nodes.filter((n) => {
       return n.visited === false;
@@ -192,23 +194,24 @@ class Graph {
       // this.root = root; //save root for easy tree traversal later;
       const queue = [root];
 
-      //BFS of the tree
+      // //BFS of the tree
       while (queue.length > 0) {
         const node = queue.splice(0, 1)[0];;
-        node.y = yPos + 1;
-        yPos = yPos + 1;
-        this.extractTreeHelper(node, queue, yPos, evalFcn, depth);
+        // node.y = yPos + 1;
+        // yPos = yPos + 1;
+        this.extractTreeHelper(node, queue, evalFcn, depth);
       }
 
         // //DFS of the tree
-        // while (queue.length>0){
-        //   let node = queue.splice(queue.length-1,1)[0];;
-        //   node.y = yPos +1;
-        //   yPos = yPos +1;
-        //   this.extractTreeHelper(node, queue, evalFcn, depth)
+        // while (queue.length>0) {
+        //   const node = queue.splice(queue.length-1,1)[0];;
+        //   // node.y = yPos +1;
+        //   // yPos = yPos +1;
+        //   this.extractTreeHelper(node, queue, evalFcn, depth);
         // }
 
       //   this.extractTreeHelper(root, evalFcn, depth)
+      this.ypos = 0;
       this.layoutTree(root);
     }
 
@@ -217,7 +220,7 @@ class Graph {
   }
 
   // recursive helper function to extract tree from graph
-  extractTreeHelper(node, queue, yPos, evalFcn = undefined, depth = undefined) {
+  extractTreeHelper(node, queue, evalFcn = undefined, depth = undefined) {
 
     //Find all edges that start or end on that node
     node.visited = true;
@@ -260,7 +263,11 @@ class Graph {
 
   layoutTreeHelper(node) {
 
+    node.y = this.ypos;
+    this.ypos = this.ypos +1;
+
     node.children.map((c) => {
+
 
       const xNodes = this.graph.nodes.filter((nn) => {
         return nn.x === node.x + 1;
@@ -273,9 +280,6 @@ class Graph {
       //   c.y = maxY > -1 ? (maxY < node.y ? node.y : maxY + 1) : node.y;
       //   c.y = node.yPos;
       c.x = node.x + 1;
-    });
-
-    node.children.map((c) => {
       this.layoutTreeHelper(c);
     });
 
@@ -311,9 +315,9 @@ class Graph {
       return +n.y;
     });
 
-    this.height = maxY * 20;
+    this.height = maxY * 18;
 
-    const xScale = scaleLinear().domain([0, maxX]).range([20, this.width - 40]);
+    const xScale = scaleLinear().domain([0, maxX]).range([20, this.width - 200]);
     const yScale = scaleLinear().domain([0, maxY]).range([20, this.height - 40]);
 
     link
@@ -341,12 +345,16 @@ class Graph {
 
 
     let node = this.svg.select('.nodes')
-      .selectAll('circle')
+      // .selectAll('circle')
+      .selectAll('.title')
       .data(graph.nodes, (d) => {
         return d.index;
       });
 
-    const nodesEnter = node.enter().append('circle');
+    const nodesEnter = node.enter()
+    .append('text')
+    .attr('class','title')
+    // .append('circle');
 
 
     node.exit().remove();
@@ -354,19 +362,20 @@ class Graph {
     node = nodesEnter.merge(node);
 
     node
-      .attr('r', (d) => {
-        return d.label === 'actor' ? 7 : 10;
-      })
-      .attr('fill', (d, i) => {
-        console.log(this.color(0), this.color(1), this.color(20));
-        return (d.label === 'actor' ? this.color(2) : this.color(10));
-      })
+      .text((d)=> {return d.label === 'movie' ? d.title + '  \uf008'  : d.title + '  \uf007' ;})
+      // .attr('r', (d) => {
+      //   return d.label === 'actor' ? 7 : 10;
+      // })
+      // .attr('fill', (d, i) => {
+      //   console.log(this.color(0), this.color(1), this.color(20));
+      //   return (d.label === 'actor' ? this.color(2) : this.color(10));
+      // })
       .on('click', (d) => {
         console.log(d);
         this.extractTree(d);
         this.drawTree();
-      })
-      .on('mouseover', (d) => { console.log(d); });
+      });
+      // .on('mouseover', (d) => { console.log(d); });
     //   .on('mouseover', (d) => {
     //     // d3.selectAll('.hiddenEdge').attr('display','none');
     //     // console.log(d);
@@ -384,10 +393,16 @@ class Graph {
     node
       .transition('t')
       .duration(1000)
-      .attr('cx', (d) => {
+      // .attr('cx', (d) => {
+      //   return xScale(d.x);
+      // })
+      // .attr('cy', (d) => {
+      //   return yScale(d.y);
+      // });
+      .attr('x', (d) => {
         return xScale(d.x);
       })
-      .attr('cy', (d) => {
+      .attr('y', (d) => {
         return yScale(d.y);
       });
 

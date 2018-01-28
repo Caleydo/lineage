@@ -9,6 +9,11 @@ body, html {
 #circleMarker circle {
   fill:rgb(164, 163, 163);
 }
+
+#edgeCircleMarker circle {
+  fill:rgba(164, 163, 163, 0.69);
+}
+
 .title{
   // text-decoration: underline;
   font-size:14px;
@@ -64,9 +69,9 @@ body, html {
 }
 
 .hiddenEdge{
-  stroke: rgb(223, 85, 85);
+  stroke: #e8902b;
   // stroke: url(#mainGradient);
-  stroke-width: 2;
+  stroke-width: 3;
   stroke-linecap: round;
 
   stroke-opacity: 0.8; 

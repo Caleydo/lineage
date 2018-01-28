@@ -116,14 +116,24 @@ class Graph {
       .attr('r', '50%');
 
     radGrad.append('stop')
-      .attr('stop-opacity', '1')
+      .attr('stop-opacity', '0')
       .attr('stop-color', 'white')
       .attr('offset', '30%');
 
+      radGrad.append('stop')
+      .attr('stop-opacity', '1')
+      .attr('stop-color', 'white')
+      .attr('offset', '31%');
+
     radGrad.append('stop')
       .attr('stop-color', 'white')
+      .attr('stop-opacity', '1')
+      .attr('offset', '80%');
+
+      radGrad.append('stop')
+      .attr('stop-color', 'white')
       .attr('stop-opacity', '0')
-      .attr('offset', '100%');
+      .attr('offset', '81%');
 
     //Used @ the start and end of edges
     const marker = svgDefs.append('marker')
@@ -137,6 +147,19 @@ class Graph {
       .attr('cx', 2)
       .attr('cy', 2)
       .attr('r', 2);
+
+          //Used @ the start and end of edges
+    const marker2 = svgDefs.append('marker')
+    .attr('id', 'edgeCircleMarker')
+    .attr('markerWidth', this.radius)
+    .attr('markerHeight', this.radius)
+    .attr('refX', 1.8)
+    .attr('refY', 1.8);
+
+    marker2.append('circle')
+    .attr('cx', 1.8)
+    .attr('cy',1.8)
+    .attr('r', 1.8);
 
     this.svg.append('g')
       .attr('class', 'links');
@@ -340,9 +363,6 @@ class Graph {
 
     const graph = this.graph;
 
-    console.log(this.graph)
-
-
     let link = this.svg.select('.links')
       .selectAll('.edge')
       .data(graph.links, (d) => {
@@ -357,6 +377,28 @@ class Graph {
     link.exit().remove();
 
     link = linksEnter.merge(link);
+
+  //   //Add markers for hidden edges
+  //   let hiddenLinks = this.svg.select('.links')
+  //   .selectAll('.hiddenLink')
+  //   .data(graph.links.filter((l)=> {return !l.visible;}), (d) => {
+  //     return d.index;
+  //   });
+
+  // const hiddenLinksEnter = hiddenLinks
+  //   .enter();
+
+  //   hiddenLinksEnter
+  //   .append('circle')
+  //   .attr('class', 'hiddenLink');
+
+  //   hiddenLinksEnter
+  //   .append('circle')
+  //   .attr('class', 'hiddenLink');
+
+  //   hiddenLinks.exit().remove();
+
+  //   hiddenLinks = hiddenLinksEnter.merge(hiddenLinks);
 
 
     const maxX = max(graph.nodes, (n: any) => {
@@ -404,13 +446,13 @@ class Graph {
     linkClips.select('#sourceCircle')
       .attr('cx', (d) => { return xScale(this.graph.nodes[d.source].x); })
       .attr('cy', (d) => { return yScale(this.graph.nodes[d.source].y); })
-      .attr('r', this.radius);
+      .attr('r', this.radius*0.9);
 
 
     linkClips.select('#targetCircle')
       .attr('cx', (d) => { return xScale(this.graph.nodes[d.target].x); })
       .attr('cy', (d) => { return yScale(this.graph.nodes[d.target].y); })
-      .attr('r', this.radius);
+      .attr('r', this.radius*0.9);
 
 
     let linkMasks = this.svg.select('defs')
@@ -430,13 +472,15 @@ class Graph {
     linkMasksEnter
       .append('circle')
       .attr('id', 'sourceCircleMask')
-      .attr('r', this.radius * 2)
+      .attr('r', this.radius )
       .attr('fill', 'url(#radialGrad)');
+      // .attr('fill','#df5555');
 
     linkMasksEnter
       .append('circle')
       .attr('id', 'targetCircleMask')
-      .attr('r', this.radius * 2)
+      .attr('r', this.radius )
+      // .attr('fill','#df5555');
       .attr('fill', 'url(#radialGrad)');
 
     linkMasks.exit().remove();
@@ -457,28 +501,32 @@ class Graph {
         const tt = this.graph.nodes[d.target].title.replace(/ /g, '_').replace(/'/g, '');
         return 'url(#' + st + '_' + tt + ')';
       })
-      // .attr('mask', (d: any) => {
-      //   const st = this.graph.nodes[d.source].title.replace(/ /g, '_').replace(/'/g, '');
-      //   const tt = this.graph.nodes[d.target].title.replace(/ /g, '_').replace(/'/g, '');
-      //   return 'url(#m_' + st + '_' + tt + ')';
-      // })
+      .attr('mask', (d: any) => {
+        const st = this.graph.nodes[d.source].title.replace(/ /g, '_').replace(/'/g, '');
+        const tt = this.graph.nodes[d.target].title.replace(/ /g, '_').replace(/'/g, '');
+        return 'url(#m_' + st + '_' + tt + ')';
+      })
       .attr('marker-end', '')
       .attr('marker-start', '');
 
     linkMasks.select('#sourceCircleMask')
       .attr('cx', (d) => { return xScale(this.graph.nodes[d.source].x); })
       .attr('cy', (d) => { return yScale(this.graph.nodes[d.source].y); })
-      .attr('r', this.radius * 2);
+      .attr('r', this.radius);
 
     linkMasks.select('#targetCircleMask')
       .attr('cx', (d) => { return xScale(this.graph.nodes[d.target].x); })
       .attr('cy', (d) => { return yScale(this.graph.nodes[d.target].y); })
-      .attr('r', this.radius * 2);
+      .attr('r', this.radius);
 
 
     selectAll('.visible')
       .attr('marker-end', 'url(#circleMarker)')
       .attr('marker-start', 'url(#circleMarker)');
+
+      selectAll('.hiddenEdge')
+      .attr('marker-end', 'url(#edgeCircleMarker)')
+      .attr('marker-start', 'url(#edgeCircleMarker)');
 
 
     link

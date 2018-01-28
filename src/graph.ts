@@ -103,92 +103,40 @@ class Graph {
       .attr('height', this.height)
       .attr('pointer-events', 'all');
 
-    // Create the svg:defs element and the main gradient definition.
+    this.color = scaleOrdinal(schemeCategory20);
+
+    //Create Defs
     const svgDefs = this.svg.append('defs');
 
-  //   <linearGradient id="Gradient">
-  //   <stop offset="0" stop-color="white" stop-opacity="0" />
-  //   <stop offset="1" stop-color="white" stop-opacity="1" />
-  // </linearGradient>
-
-  const linGrad = svgDefs.append('linearGradient')
-  .attr('id','linearGrad');
-
-  linGrad.append('stop')
-  .attr('offset',0)
-  .attr('stop-color','white')
-  .attr('stop-opacity',0);
-
-  linGrad.append('stop')
-  .attr('offset',1)
-  .attr('stop-color','white')
-  .attr('stop-opacity',1);
-
+    //Gradient used to fade out the stubs of hidden edges
     const radGrad = svgDefs.append('radialGradient')
-    .attr('id','radialGrad')
-    .attr('cx','50%')
-    .attr('cy','50%')
-    .attr('r','50%');
+      .attr('id', 'radialGrad')
+      .attr('cx', '50%')
+      .attr('cy', '50%')
+      .attr('r', '50%');
 
     radGrad.append('stop')
-    .attr('stop-opacity','1')
-    .attr('stop-color','white')
-    .attr('offset','30%');
+      .attr('stop-opacity', '1')
+      .attr('stop-color', 'white')
+      .attr('offset', '30%');
 
     radGrad.append('stop')
-    .attr('stop-color','white')
-    .attr('stop-opacity','0')
-    .attr('offset','100%');
+      .attr('stop-color', 'white')
+      .attr('stop-opacity', '0')
+      .attr('offset', '100%');
 
-     const marker = svgDefs.append('marker')
-    .attr('id','circleMarker')
-    .attr('markerWidth',this.radius)
-    .attr('markerHeight',this.radius)
-    .attr('refX',2)
-    .attr('refY',2);
-
+    //Used @ the start and end of edges
+    const marker = svgDefs.append('marker')
+      .attr('id', 'circleMarker')
+      .attr('markerWidth', this.radius)
+      .attr('markerHeight', this.radius)
+      .attr('refX', 2)
+      .attr('refY', 2);
 
     marker.append('circle')
-    .attr('cx',2)
-    .attr('cy',2)
-    .attr('r',2);
-
-
-  //   <marker id="arrow" markerWidth="10" markerHeight="10" refX="0" refY="3" orient="auto" markerUnits="strokeWidth">
-  //   <path d="M0,0 L0,6 L9,3 z" fill="#f00" />
-  // </marker>
-
-    const mainGradient = svgDefs.append('linearGradient')
-      .attr('id', 'mainGradient');
-
-    // Create the stops of the main gradient. Each stop will be assigned
-    // a class to style the stop using CSS.
-    mainGradient.append('stop')
-      // .attr('stop-color', 'green')
-      .attr('offset', '0%')
-      .attr('class', 'start');
-
-    mainGradient.append('stop')
-      // .attr('stop-color', 'green')
-      // .style('opacity','0')
-      .attr('offset', '5%')
-      .attr('class', 'stop-left');
-
-    mainGradient.append('stop')
-      // .attr('stop-color', 'green')
-      // .style('opacity','1')
-      .attr('offset', '95%')
-      .attr('class', 'stop-right')
-
-
-    mainGradient.append('stop')
-      // .attr('stop-color', 'green')
-      .attr('offset', '100%')
-      .attr('class', 'end')
-
-
-
-    this.color = scaleOrdinal(schemeCategory20);
+      .attr('cx', 2)
+      .attr('cy', 2)
+      .attr('r', 2);
 
     this.svg.append('g')
       .attr('class', 'links');
@@ -198,11 +146,7 @@ class Graph {
 
 
     this.simulation = forceSimulation()
-      .force('link', forceLink()
-        .strength((d: any) => {
-          return (d.source.label === 'actor' && d.target.label === 'movie') ? .3 : 1.5;
-        })
-      )
+      .force('link', forceLink())
       .force('charge', forceManyBody().strength(-70))
       .force('center', forceCenter(this.width / 2, this.height / 2))
       .force('collision', forceCollide().radius((d) => {
@@ -216,7 +160,7 @@ class Graph {
    */
   async loadGraph() {
 
-    json('api/data_api/graph', (error, graph) => {
+    json('api/data_api/graph/got', (error, graph) => {
       if (error) {
         throw error;
       }
@@ -247,7 +191,6 @@ class Graph {
 
         target.neighbors.add(this.graph.nodes[l.source]);
         target.degree = target.neighbors.size;
-
 
         source.neighbors.add(this.graph.nodes[l.target]);
         source.degree = source.neighbors.size;
@@ -280,8 +223,7 @@ class Graph {
     });
     this.treeEdges = [];
 
-    //Iterate through to capture multiple trees
-    // let yPos = 0;
+    this.ypos = 0;
 
     while (this.graph.nodes.filter((n) => {
       return n.visited === false;
@@ -322,7 +264,7 @@ class Graph {
       // }
 
       //   this.extractTreeHelper(root, evalFcn, depth)
-      this.ypos = 0;
+      
       this.layoutTree(root);
     }
 
@@ -398,6 +340,8 @@ class Graph {
 
     const graph = this.graph;
 
+    console.log(this.graph)
+
 
     let link = this.svg.select('.links')
       .selectAll('.edge')
@@ -424,32 +368,33 @@ class Graph {
 
     this.height = maxY * 22;
 
-    const xScale = scaleLinear().domain([0, maxX]).range([this.padding.left, this.width - this.padding.right]);
+    const xScale = scaleLinear().domain([0, maxX]).range([this.padding.left, this.width - this.padding.right-this.padding.left]);
     const yScale = scaleLinear().domain([0, maxY]).range([20, this.height - 40]);
 
     this.xScale = xScale;
     this.yScale = yScale;
 
     let linkClips = this.svg.select('defs')
-    .selectAll('clipPath')
-    .data(graph.links.filter((l)=> {return !l.visible;}), (d) => {
-      return d.index;
-    });
+      .selectAll('clipPath')
+      .data(graph.links.filter((l) => { return !l.visible; }), (d) => {
+        return d.index;
+      });
 
-    const linkClipsEnter =  linkClips.enter()
-    .append('clipPath')
-    .attr('id',(d)=> {
-      const st = this.graph.nodes[d.source].title.replace(/ /g, '_').replace(/'/g, '');
-      const tt = this.graph.nodes[d.target].title.replace(/ /g, '_').replace(/'/g, '');
-      return st + '_' + tt;});
-
-    linkClipsEnter
-    .append('circle')
-    .attr('id','sourceCircle');
+    const linkClipsEnter = linkClips.enter()
+      .append('clipPath')
+      .attr('id', (d) => {
+        const st = this.graph.nodes[d.source].title.replace(/ /g, '_').replace(/'/g, '');
+        const tt = this.graph.nodes[d.target].title.replace(/ /g, '_').replace(/'/g, '');
+        return st + '_' + tt;
+      });
 
     linkClipsEnter
-    .append('circle')
-    .attr('id','targetCircle');
+      .append('circle')
+      .attr('id', 'sourceCircle');
+
+    linkClipsEnter
+      .append('circle')
+      .attr('id', 'targetCircle');
 
     linkClips.exit().remove();
 
@@ -457,45 +402,46 @@ class Graph {
 
 
     linkClips.select('#sourceCircle')
-    .attr('cx',(d)=> {return xScale(this.graph.nodes[d.source].x);})
-    .attr('cy',(d)=> {return yScale(this.graph.nodes[d.source].y);})
-    .attr('r',this.radius*2);
+      .attr('cx', (d) => { return xScale(this.graph.nodes[d.source].x); })
+      .attr('cy', (d) => { return yScale(this.graph.nodes[d.source].y); })
+      .attr('r', this.radius);
 
 
     linkClips.select('#targetCircle')
-    .attr('cx',(d)=> {return xScale(this.graph.nodes[d.target].x);})
-    .attr('cy',(d)=> {return yScale(this.graph.nodes[d.target].y);})
-    .attr('r',this.radius*2);
+      .attr('cx', (d) => { return xScale(this.graph.nodes[d.target].x); })
+      .attr('cy', (d) => { return yScale(this.graph.nodes[d.target].y); })
+      .attr('r', this.radius);
 
 
     let linkMasks = this.svg.select('defs')
-    .selectAll('mask')
-    .data(graph.links.filter((l)=> {return !l.visible;}), (d) => {
-      return d.index;
-    });
+      .selectAll('mask')
+      .data(graph.links.filter((l) => { return !l.visible; }), (d) => {
+        return d.index;
+      });
 
-    const linkMasksEnter =  linkMasks.enter()
-    .append('mask')
-    .attr('id',(d)=> {
-      const st = this.graph.nodes[d.source].title.replace(/ /g, '_').replace(/'/g, '');
-      const tt = this.graph.nodes[d.target].title.replace(/ /g, '_').replace(/'/g, '');
-      return 'm_' + st + '_' + tt;});
+    const linkMasksEnter = linkMasks.enter()
+      .append('mask')
+      .attr('id', (d) => {
+        const st = this.graph.nodes[d.source].title.replace(/ /g, '_').replace(/'/g, '');
+        const tt = this.graph.nodes[d.target].title.replace(/ /g, '_').replace(/'/g, '');
+        return 'm_' + st + '_' + tt;
+      });
 
-      linkMasksEnter
+    linkMasksEnter
       .append('circle')
-      .attr('id','sourceCircleMask')
-      .attr('r',this.radius*2)
-      .attr('fill','url(#radialGrad)');
+      .attr('id', 'sourceCircleMask')
+      .attr('r', this.radius * 2)
+      .attr('fill', 'url(#radialGrad)');
 
-      linkMasksEnter
+    linkMasksEnter
       .append('circle')
-      .attr('id','targetCircleMask')
-      .attr('r',this.radius*2)
-      .attr('fill','url(#radialGrad)');
+      .attr('id', 'targetCircleMask')
+      .attr('r', this.radius * 2)
+      .attr('fill', 'url(#radialGrad)');
 
-      linkMasks.exit().remove();
-      linkMasks = linkMasks.merge(linkMasksEnter);
-    
+    linkMasks.exit().remove();
+    linkMasks = linkMasks.merge(linkMasksEnter);
+
     link
       .classed('visible', (d) => {
         return d.visible ? true : false;
@@ -506,31 +452,33 @@ class Graph {
 
 
     selectAll('.hiddenEdge')
-    .attr('clip-path',(d:any)=> {
-      const st = this.graph.nodes[d.source].title.replace(/ /g, '_').replace(/'/g, '');
-      const tt = this.graph.nodes[d.target].title.replace(/ /g, '_').replace(/'/g, '');
-      return 'url(#' + st + '_' + tt + ')';})
-    .attr('mask',(d:any)=> {
+      .attr('clip-path', (d: any) => {
         const st = this.graph.nodes[d.source].title.replace(/ /g, '_').replace(/'/g, '');
         const tt = this.graph.nodes[d.target].title.replace(/ /g, '_').replace(/'/g, '');
-        return 'url(#m_' + st + '_' + tt + ')';})
-      .attr('marker-end','')
-      .attr('marker-start','');
+        return 'url(#' + st + '_' + tt + ')';
+      })
+      // .attr('mask', (d: any) => {
+      //   const st = this.graph.nodes[d.source].title.replace(/ /g, '_').replace(/'/g, '');
+      //   const tt = this.graph.nodes[d.target].title.replace(/ /g, '_').replace(/'/g, '');
+      //   return 'url(#m_' + st + '_' + tt + ')';
+      // })
+      .attr('marker-end', '')
+      .attr('marker-start', '');
 
-      linkMasks.select('#sourceCircleMask')
-      .attr('cx',(d)=> {return xScale(this.graph.nodes[d.source].x);})
-      .attr('cy',(d)=> {return yScale(this.graph.nodes[d.source].y);})
-      .attr('r',this.radius*2);
+    linkMasks.select('#sourceCircleMask')
+      .attr('cx', (d) => { return xScale(this.graph.nodes[d.source].x); })
+      .attr('cy', (d) => { return yScale(this.graph.nodes[d.source].y); })
+      .attr('r', this.radius * 2);
 
-      linkMasks.select('#targetCircleMask')
-      .attr('cx',(d)=> {return xScale(this.graph.nodes[d.target].x);})
-      .attr('cy',(d)=> {return yScale(this.graph.nodes[d.target].y);})
-      .attr('r',this.radius*2);
-    
+    linkMasks.select('#targetCircleMask')
+      .attr('cx', (d) => { return xScale(this.graph.nodes[d.target].x); })
+      .attr('cy', (d) => { return yScale(this.graph.nodes[d.target].y); })
+      .attr('r', this.radius * 2);
+
 
     selectAll('.visible')
-    .attr('marker-end','url(#circleMarker)')
-    .attr('marker-start','url(#circleMarker)');
+      .attr('marker-end', 'url(#circleMarker)')
+      .attr('marker-start', 'url(#circleMarker)');
 
 
     link
@@ -540,7 +488,7 @@ class Graph {
       .attr('d', (d) => {
         return this.elbow(d, this.interGenerationScale, this.lineFunction, d.visible === true);
       })
-      
+
 
     select('#graph').select('svg').attr('height', this.height);
 
@@ -555,7 +503,7 @@ class Graph {
     const nodesEnter = node.enter()
       .append('text')
       .attr('class', 'title')
-      .attr('alignment-baseline','middle');
+      .attr('alignment-baseline', 'middle');
     // .append('circle');
 
 
@@ -564,7 +512,7 @@ class Graph {
     node = nodesEnter.merge(node);
 
     node
-      .text((d) => { return d.label === 'movie' ? '\uf008 ' +  d.title  : '\uf007 ' + d.title; })
+      .text((d) => { return d.label === 'actor' ? '\uf008 ' + d.title : '\uf007 ' + d.title; })
       // .attr('r', (d) => {
       //   return d.label === 'actor' ? 7 : 10;
       // })
@@ -578,33 +526,33 @@ class Graph {
         this.drawTree();
       });
 
-      node.on('mouseover', (d)=> {
-        const element = selectAll('.hiddenEdge').filter((dd:any)=> {
+    node.on('mouseover', (d) => {
+      const element = selectAll('.hiddenEdge').filter((dd: any) => {
+        return this.graph.nodes[dd.source].title === d.title || this.graph.nodes[dd.target].title === d.title;
+      });
+
+      element.attr('clip-path', 'undefined');
+      element.attr('mask', 'undefined');
+    })
+      .on('mouseout', (d) => {
+
+        const element = selectAll('.hiddenEdge').filter((dd: any) => {
           return this.graph.nodes[dd.source].title === d.title || this.graph.nodes[dd.target].title === d.title;
         });
 
-        element.attr('clip-path','undefined');
-        element.attr('mask','undefined');
-       })
-       .on('mouseout',(d) => {
-
-        const element = selectAll('.hiddenEdge').filter((dd:any)=> {
-          return this.graph.nodes[dd.source].title === d.title || this.graph.nodes[dd.target].title === d.title;
-        });
-
-        element.attr('clip-path',(dd:any)=> {
+        element.attr('clip-path', (dd: any) => {
           const st = this.graph.nodes[dd.source].title.replace(/ /g, '_').replace(/'/g, '');
           const tt = this.graph.nodes[dd.target].title.replace(/ /g, '_').replace(/'/g, '');
-         return 'url(#' + st + '_' + tt + ')';
+          return 'url(#' + st + '_' + tt + ')';
         });
 
-        element.attr('mask',(dd:any)=> {
+        element.attr('mask', (dd: any) => {
           const st = this.graph.nodes[dd.source].title.replace(/ /g, '_').replace(/'/g, '');
           const tt = this.graph.nodes[dd.target].title.replace(/ /g, '_').replace(/'/g, '');
-         return 'url(#m_' + st + '_' + tt + ')';
+          return 'url(#m_' + st + '_' + tt + ')';
         });
 
-       });
+      });
 
 
     // .on('mouseover', (d) => { console.log(d); });
@@ -621,7 +569,7 @@ class Graph {
       .text(function (d) {
         return d.title;
       })
-      
+
 
     node
       .transition('t')

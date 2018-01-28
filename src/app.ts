@@ -12,6 +12,8 @@ import * as panel from './attributePanel';
 import * as familySelector from './familySelector';
 import * as graph from './graph';
 
+import * as headerMenus from './headers';
+
 
 
 //Import Data Structure for graph & table
@@ -127,8 +129,8 @@ export class App {
   //   attributePanel.build();
   //   attributePanel.init(tableManager,dataset);
 
-
-    const graphObj = graph.create(800,1500,10,'#graph');
+    headerMenus.create();
+    const graphObj = graph.create(650,1500,10,'#graph');
 
   // let load  = ()=>{
     graphObj.loadGraph();

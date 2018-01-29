@@ -128,12 +128,12 @@ class Graph {
     radGrad.append('stop')
       .attr('stop-opacity', '0')
       .attr('stop-color', 'white')
-      .attr('offset', '30%');
+      .attr('offset', '25%');
 
       radGrad.append('stop')
       .attr('stop-opacity', '1')
       .attr('stop-color', 'white')
-      .attr('offset', '31%');
+      .attr('offset', '26%');
 
     radGrad.append('stop')
       .attr('stop-color', 'white')
@@ -148,8 +148,8 @@ class Graph {
     //Used @ the start and end of edges
     const marker = svgDefs.append('marker')
       .attr('id', 'circleMarker')
-      .attr('markerWidth', this.radius)
-      .attr('markerHeight', this.radius)
+      .attr('markerWidth', this.radius*2)
+      .attr('markerHeight', this.radius*2)
       .attr('refX', 2)
       .attr('refY', 2);
 
@@ -163,13 +163,13 @@ class Graph {
     .attr('id', 'edgeCircleMarker')
     .attr('markerWidth', this.radius)
     .attr('markerHeight', this.radius)
-    .attr('refX', 1.8)
-    .attr('refY', 1.8);
+    .attr('refX', 2)
+    .attr('refY', 2);
 
     marker2.append('circle')
-    .attr('cx', 1.8)
-    .attr('cy',1.8)
-    .attr('r', 1.8);
+    .attr('cx', 2)
+    .attr('cy',2)
+    .attr('r', 1.5);
 
     this.svg.append('g')
       .attr('class', 'links');
@@ -447,8 +447,8 @@ class Graph {
     const linkClipsEnter = linkClips.enter()
       .append('clipPath')
       .attr('id', (d) => {
-        const st = this.graph.nodes[d.source].title.replace(/ /g, '_').replace(/'/g, '');
-        const tt = this.graph.nodes[d.target].title.replace(/ /g, '_').replace(/'/g, '');
+        const st = this.createID(this.graph.nodes[d.source].title);
+        const tt = this.createID(this.graph.nodes[d.target].title);
         return st + '_' + tt;
       });
 
@@ -486,22 +486,22 @@ class Graph {
     const linkMasksEnter = linkMasks.enter()
       .append('mask')
       .attr('id', (d) => {
-        const st = this.graph.nodes[d.source].title.replace(/ /g, '_').replace(/'/g, '');
-        const tt = this.graph.nodes[d.target].title.replace(/ /g, '_').replace(/'/g, '');
+        const st = this.createID(this.graph.nodes[d.source].title);
+        const tt = this.createID(this.graph.nodes[d.target].title);
         return 'm_' + st + '_' + tt;
       });
 
     linkMasksEnter
       .append('circle')
       .attr('id', 'sourceCircleMask')
-      .attr('r', this.radius )
+      .attr('r', this.radius*2 )
       .attr('fill', 'url(#radialGrad)');
       // .attr('fill','#df5555');
 
     linkMasksEnter
       .append('circle')
       .attr('id', 'targetCircleMask')
-      .attr('r', this.radius )
+      .attr('r', this.radius*2 )
       // .attr('fill','#df5555');
       .attr('fill', 'url(#radialGrad)');
 
@@ -519,13 +519,13 @@ class Graph {
 
     selectAll('.hiddenEdge')
       .attr('clip-path', (d: any) => {
-        const st = this.graph.nodes[d.source].title.replace(/ /g, '_').replace(/'/g, '');
-        const tt = this.graph.nodes[d.target].title.replace(/ /g, '_').replace(/'/g, '');
+        const st = this.createID(this.graph.nodes[d.source].title);
+        const tt = this.createID(this.graph.nodes[d.target].title);
         return 'url(#' + st + '_' + tt + ')';
       })
       .attr('mask', (d: any) => {
-        const st = this.graph.nodes[d.source].title.replace(/ /g, '_').replace(/'/g, '');
-        const tt = this.graph.nodes[d.target].title.replace(/ /g, '_').replace(/'/g, '');
+        const st = this.createID(this.graph.nodes[d.source].title);
+        const tt = this.createID(this.graph.nodes[d.target].title);
         return 'url(#m_' + st + '_' + tt + ')';
       })
       .attr('marker-end', '')
@@ -611,14 +611,14 @@ class Graph {
         });
 
         element.attr('clip-path', (dd: any) => {
-          const st = this.graph.nodes[dd.source].title.replace(/ /g, '_').replace(/'/g, '');
-          const tt = this.graph.nodes[dd.target].title.replace(/ /g, '_').replace(/'/g, '');
+          const st = this.createID(this.graph.nodes[d.source].title);
+          const tt = this.createID(this.graph.nodes[d.target].title);
           return 'url(#' + st + '_' + tt + ')';
         });
 
         element.attr('mask', (dd: any) => {
-          const st = this.graph.nodes[dd.source].title.replace(/ /g, '_').replace(/'/g, '');
-          const tt = this.graph.nodes[dd.target].title.replace(/ /g, '_').replace(/'/g, '');
+          const st = this.createID(this.graph.nodes[d.source].title);
+          const tt = this.createID(this.graph.nodes[d.target].title);
           return 'url(#m_' + st + '_' + tt + ')';
         });
 
@@ -775,6 +775,14 @@ class Graph {
     this.simulation.force('link')
       .links(graph.links);
   }
+
+
+  private createID(title) {
+    return title.replace(/ /g, '_').replace(/'/g, '').replace(/\(/g, '').replace(/\)/g, '');
+  }
+    
+
+  
 
 
   private elbow(d, interGenerationScale, lineFunction, curves) {

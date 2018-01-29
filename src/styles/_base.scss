@@ -11,7 +11,9 @@ body, html {
 }
 
 #edgeCircleMarker circle {
-  fill:rgba(164, 163, 163, 0.69);
+  stroke:rgb(180, 180, 180);
+  stroke-width: .3px;
+  fill:none;
 }
 
 .title{
@@ -74,7 +76,7 @@ body, html {
   stroke-width: 3;
   stroke-linecap: round;
 
-  stroke-opacity: 0.8; 
+  stroke-opacity: 0.5; 
 //  stroke-dasharray: 3px;
  fill:none;
 //  stroke-dasharray: 5,5,3,5,2,5,1,;

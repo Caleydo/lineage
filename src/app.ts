@@ -93,7 +93,7 @@ export class App {
    */
   private async build() {
 
-  //   const tableManager = TableManager.create();
+    const tableManager = TableManager.create();
 
   //  const parsedUrl = new URL(window.location.href);
   //  let dataset = parsedUrl.search.split('ds=')[1]; // suicide
@@ -130,10 +130,14 @@ export class App {
   //   attributePanel.init(tableManager,dataset);
 
     headerMenus.create();
-    const graphObj = graph.create(650,1500,10,'#graph');
+
+    await tableManager.loadData('characters', 'episodes');
+    const graphObj = graph.create(650,1500,10,'#graph',tableManager);
 
   // let load  = ()=>{
-    graphObj.loadGraph();
+    const graphView = await graphObj.loadGraph();
+    
+    console.log('here');
 
 
     // const graphDataObj = graphData.create(tableManager);
@@ -145,8 +149,8 @@ export class App {
     // genealogyTree.init(graphDataObj, tableManager);
     // genealogyTree.update();
 
-    // const attributeTable = table.create(this.$node.select('#table').node());
-    // attributeTable.init(tableManager);
+    const attributeTable = table.create(this.$node.select('#table').node());
+    attributeTable.init(tableManager);
 
     // const familySelectorView = familySelector.create(this.$node.select('#familySelector').node());
     // familySelectorView.init(tableManager);

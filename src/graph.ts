@@ -56,6 +56,8 @@ import {
 /** Class implementing the map view. */
 class Graph {
 
+  private tableManager;
+
   private width;
   private height;
   private radius;
@@ -93,15 +95,23 @@ class Graph {
   /**
    * Creates a Map Object
    */
-  constructor(width, height, radius, selector) {
+  constructor(width, height, radius, selector,tmanager) {
+
+    this.tableManager = tmanager;
     this.width = width;
     this.height = height;
     this.radius = radius;
 
-    this.svg = select(selector).append('svg')
+    select(selector).append('div')
+    .attr('id','graphHeaders');
+
+    const graphDiv = select(selector).append('div')
+    .attr('id','graphDiv');
+
+    this.svg = graphDiv.append('svg')
       .attr('width', this.width)
       .attr('height', this.height)
-      .attr('pointer-events', 'all');
+      .attr('id','genealogyTree');
 
     this.color = scaleOrdinal(schemeCategory20);
 
@@ -181,7 +191,13 @@ class Graph {
   /**
    * Function that loads up the graph
    */
-  async loadGraph() {
+  public async loadGraph() {
+    let resolvePromise;
+    let rejectPromise;
+    let p = new Promise((resolve, reject) => {
+      resolvePromise = resolve;
+      rejectPromise = reject;
+    });
 
     json('api/data_api/graph/got', (error, graph) => {
       if (error) {
@@ -221,9 +237,15 @@ class Graph {
 
       this.extractTree();
 
+      this.exportYValues();
+
       // this.drawGraph();
       this.drawTree();
+      
+      resolvePromise();
     });
+
+    return p;
   };
 
 
@@ -808,6 +830,31 @@ class Graph {
     return lineFunction(linedata);
   }
 
+    /**
+   *
+   * This function passes the newly computed y values to the tableManager
+   *
+   */
+  private exportYValues() {
+    
+        //Create hashmap of personID to y value;
+        const dict = {};
+    
+        this.graph.nodes.forEach((node) => {
+          if ((node.uuid) in dict) {
+            dict[node.uuid].push(Math.round(node.y));
+          } else {
+            dict[node.uuid] = [Math.round(node.y)];
+          }
+        });
+    
+        console.log(dict);
+    
+        //Assign y values to the tableManager object
+        this.tableManager.yValues = dict;
+        // this.yValues = dict; //store dict for tree to use when creating slope chart
+      }
+
 
 }
 
@@ -819,6 +866,6 @@ class Graph {
  * @param options
  * @returns {graph}
  */
-export function create(width, height, radius, selector) {
-  return new Graph(width, height, radius, selector);
+export function create(width, height, radius, selector,tmanager) {
+  return new Graph(width, height, radius, selector,tmanager);
 }

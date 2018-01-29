@@ -197,7 +197,7 @@ export default class TableManager {
       this.defaultCols = ['KindredID', 'RelativeID', 'sex', 'deceased', 'suicide', 'Age','LabID','bipolar spectrum illness','anxiety-non-trauma','alcohol','PD','psychosis','depression','cause_death']; //set of default cols to read in, minimizes load time for large files;
 
     } else {
-      this.defaultCols = ['KindredID', 'RelativeID', 'sex', 'affected', 'labid'];
+      this.defaultCols = ['name', 'title', 'season'];
     };
 
     this.colOrder = this.defaultCols;
@@ -215,7 +215,7 @@ export default class TableManager {
     // if (error) {
     //   return undefined;
     // }
-    console.log('AttributeTable is ',attributeTable);
+    // console.log('AttributeTable is ',attributeTable);
 
     if (!attributeTable) {
       return;
@@ -226,7 +226,10 @@ export default class TableManager {
     //retrieving the desired dataset by name
     this.table = <ITable>await getById(descendDataSetID);
 
-    await this.parseFamilyInfo(); //this needs to come first because the setAffectedState sets default values based on the data for a selected family.
+    // await this.parseFamilyInfo(); //this needs to come first because the setAffectedState sets default values based on the data for a selected family.
+
+    await this.refreshActiveGraphView();
+    await this.refreshActiveTableView();
     return Promise.resolve(this);
   }
 

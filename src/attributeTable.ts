@@ -72,6 +72,7 @@ class AttributeTable {
   private firstCol; //bind separetly on the left side of the slope chart.
 
   private allCols; //array of col vectors (needed for re-ordering, does not contain dadta)
+  private allRows;
 
   private rowHeight = Config.glyphSize * 2.5 - 4;
   private headerHeight = this.rowHeight * 2;
@@ -637,18 +638,19 @@ class AttributeTable {
 
     //Find y indexes of all rows
     const allRows = Object.keys(y2personDict).map(Number);
+    this.allRows = allRows;
     //Set height and width of svg
-    this.height = Config.glyphSize * 4 * (maxRow);
+    this.height = Config.glyphSize * 4 * (maxRow+1);
     // select('.tableSVG').attr('viewBox','0 0 ' + this.width + ' ' + (this.height + this.margin.top + this.margin.bottom))
 
     // select('.tableSVG').attr('height', this.height);
     select('.tableSVG').attr('height',document.getElementById('genealogyTree').getBoundingClientRect().height);
     select('.tableSVG').attr('width', this.tableManager.colOrder.length * 100);
 
-    this.y.range([0, this.height * .7]).domain([1, maxRow]);
+    this.y.range([0, this.height * .7]).domain([0, maxRow]);
     this.rowOrder = allRows; //will be used to set the y position of each cell/row;
 
-
+    console.log('rowOrder', this.y(this.rowOrder[0]), this.y(this.rowOrder[1]), this.y(this.rowOrder[2]));
     //set up first column with #People per row.
     const col: any = {};
     col.data = [];
@@ -841,7 +843,7 @@ class AttributeTable {
           people.map((person) => {
             
             const ind = peopleIDs.lastIndexOf(person); //find this person in the attribute data
-            console.log(person,ind)
+            // console.log(person,ind)
             // const ind = ids.lastIndexOf(person); //find this person in the attribute data
             if (ind > -1) {
               colData.push(data[ind]);
@@ -1162,7 +1164,6 @@ class AttributeTable {
     //Bind data to the col groups
     let cols = select('#columns').selectAll('.dataCols')
       .data(this.colData.map((d, i) => {
-        console.log(d);
         return {
           'name': d.name, 'data': d.data, 'ind': i, 'type': d.type,
           'ids': d.ids, 'stats': d.stats, 'varName': d.name, 'category': d.category, 'vector': d.vector
@@ -1486,15 +1487,11 @@ class AttributeTable {
       self.renderDataDensCell(select(this), cell);
     });
 
-
+    // console.log(Array.apply(null, {length: this.y.range()[1]}));
     //create table Lines
     // //Bind data to the cells
     let rowLines = select('#columns').selectAll('.rowLine')
-      .data(Array.apply(null, {length: this.y.range()[1]}).map(function(value, index){
-        return index + 1;
-      }), (d: any) => {
-        return d;
-      });
+      .data(this.allRows.map((d,i)=> {return i;}));
 
     rowLines.exit().remove();
 

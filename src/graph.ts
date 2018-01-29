@@ -78,7 +78,7 @@ class Graph {
 
   private ypos = 0;
 
-  private padding = { left: 150, right: 100 };
+  private padding = { left: 0, right: 200 };
 
   private t2 = transition('t').duration(600).ease(easeLinear);
 
@@ -105,7 +105,7 @@ class Graph {
 
     this.tableManager = tmanager;
     this.width = width;
-    this.height = height;
+    this.height = 200;
     this.radius = radius;
 
     select(selector).append('div')
@@ -118,6 +118,7 @@ class Graph {
     .append('svg')
       .attr('width', this.width)
       .attr('height', this.height)
+      .attr('id','graph')
       .append('g')
       .attr('id','genealogyTree')
       .attr('transform', 'translate(' + this.margin.left + ',' + (Config.glyphSize + this.margin.top) + ')');
@@ -441,10 +442,21 @@ class Graph {
       return +n.y;
     });
 
-    this.height = maxY * 22;
+    // this.height = maxY * 22;
+
+    const yrange: number[] = [min(graph.nodes, function (d: any) {
+      return Math.round(d.y);
+    }), max(graph.nodes, function (d: any) {
+      return Math.round(d.y);
+    })];
+
+    this.height = Config.glyphSize * 4 * (yrange[1] - yrange[0] + 1); // - this.margin.top - this.margin.bottom;
+
+
+    select('#graph').select('svg').attr('height', this.height);
 
     const xScale = scaleLinear().domain([0, maxX]).range([this.padding.left, this.width - this.padding.right-this.padding.left]);
-    const yScale = scaleLinear().domain([0, maxY]).range([0, this.height *.7]);
+    const yScale = scaleLinear().range([0, this.height * .7]).domain(yrange);
 
     this.xScale = xScale;
     this.yScale = yScale;
@@ -571,7 +583,6 @@ class Graph {
       })
 
 
-    select('#graph').select('svg').attr('height', this.height);
 
 
     let node = this.svg.select('.nodes')
@@ -672,6 +683,8 @@ class Graph {
 
     // d3.selectAll('.hiddenEdge').attr('display', 'none');
 
+    select('#graph')
+    .attr('height',document.getElementById('genealogyTree').getBoundingClientRect().height);
 
   }
 

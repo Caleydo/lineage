@@ -53,6 +53,10 @@ import {
   forceCenter
 } from 'd3-force';
 
+import {
+  Config
+} from './config';
+
 /** Class implementing the map view. */
 class Graph {
 
@@ -81,6 +85,8 @@ class Graph {
   private xScale;
   private yScale;
 
+  private margin = Config.margin;
+
   private interGenerationScale = scaleLinear();
 
   private lineFunction = line<any>()
@@ -108,10 +114,15 @@ class Graph {
     const graphDiv = select(selector).append('div')
     .attr('id','graphDiv');
 
-    this.svg = graphDiv.append('svg')
+    this.svg = select('#graphDiv')
+    .append('svg')
       .attr('width', this.width)
       .attr('height', this.height)
-      .attr('id','genealogyTree');
+      .append('g')
+      .attr('id','genealogyTree')
+      .attr('transform', 'translate(' + this.margin.left + ',' + (Config.glyphSize + this.margin.top) + ')');
+      
+      
 
     this.color = scaleOrdinal(schemeCategory20);
 
@@ -433,7 +444,7 @@ class Graph {
     this.height = maxY * 22;
 
     const xScale = scaleLinear().domain([0, maxX]).range([this.padding.left, this.width - this.padding.right-this.padding.left]);
-    const yScale = scaleLinear().domain([0, maxY]).range([20, this.height - 40]);
+    const yScale = scaleLinear().domain([0, maxY]).range([0, this.height *.7]);
 
     this.xScale = xScale;
     this.yScale = yScale;
@@ -611,14 +622,14 @@ class Graph {
         });
 
         element.attr('clip-path', (dd: any) => {
-          const st = this.createID(this.graph.nodes[d.source].title);
-          const tt = this.createID(this.graph.nodes[d.target].title);
+          const st = this.createID(this.graph.nodes[dd.source].title);
+          const tt = this.createID(this.graph.nodes[dd.target].title);
           return 'url(#' + st + '_' + tt + ')';
         });
 
         element.attr('mask', (dd: any) => {
-          const st = this.createID(this.graph.nodes[d.source].title);
-          const tt = this.createID(this.graph.nodes[d.target].title);
+          const st = this.createID(this.graph.nodes[dd.source].title);
+          const tt = this.createID(this.graph.nodes[dd.target].title);
           return 'url(#m_' + st + '_' + tt + ')';
         });
 

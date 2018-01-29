@@ -602,12 +602,13 @@ class AttributeTable {
     // const ids = uniqueIDs.map((id,i)=> {return id+'_'+kindredIDs[i];});
     const ids = graphIDs.map((id, i) => { return id });
 
-    // console.log(ids)
+
+    // console.log('ids:',ids)
 
     //Create a dictionary of y value to people
     const y2personDict = {};
     const yDict = this.tableManager.yValues;
-
+    console.log('yDict',yDict)
     let maxRow=0;
 
     //Find max value in yDict
@@ -615,8 +616,9 @@ class AttributeTable {
       maxRow = yDict[person][0] > maxRow ? yDict[person][0] : maxRow;
     });
 
-    ids.forEach((person, ind) => {
-      if (person in yDict) {
+    console.log('maxRow is ', maxRow)
+    Object.keys(yDict).forEach((person, ind) => {
+      // if (person in yDict) {
         //Handle Duplicate Nodes
         yDict[person].forEach((y) => {
           if (y in y2personDict) {
@@ -625,8 +627,10 @@ class AttributeTable {
           } else {
             y2personDict[y] = [person];
           }
+
+          console.log('setting y2person Dict ', y2personDict[y])
         });
-      }
+      // }
     });
 
     // console.log(y2personDict)
@@ -823,10 +827,11 @@ class AttributeTable {
 
 
         console.log(name,data[0]);
-        console.log(peopleIDs);
+        // console.log(peopleIDs);
 
         col.name = name;
 
+        console.log('allRows',allRows);
         col.data = allRows.map((row) => {
           const colData = [];
           const people = y2personDict[row];

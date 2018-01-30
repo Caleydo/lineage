@@ -22,6 +22,14 @@ export class Config {
         left: 40
     };
 
+  public static icons = {
+      Gene:'\uf074',
+      Compound:'\uf1e0', //\uf1d5
+      Pathway:'\uf18b',
+      Movie:'\uf008',
+      Actor:'\uf007'
+  };
+
   public static panelAttributeWidth = 300;
   public static panelAttributeHeight = 100;
   public static panelSVGwidth = 220;
@@ -39,5 +47,6 @@ export class Config {
   public static expGraphTableWidth = '100%';
 
   public static legendHeight = 150;
+
 
 }

@@ -78,7 +78,7 @@ class Graph {
 
   private ypos = 0;
 
-  private padding = { left: 0, right: 200 };
+  private padding = { left: 0, right: 300 };
 
   private t2 = transition('t').duration(600).ease(easeLinear);
 
@@ -183,6 +183,21 @@ class Graph {
     .attr('cy',2)
     .attr('r', 1.5);
 
+        //create a group for highlight bars
+        select('#genealogyTree')
+        .append('g')
+        .attr('id', 'allBars');
+  
+      //create a group for highlight bars of hidden nodes
+      select('#allBars')
+        .append('g')
+        .attr('id', 'hiddenHighlightBars');
+  
+      //create a group for highlight bars of non hidden nodes
+      select('#allBars')
+        .append('g')
+        .attr('id', 'highlightBars');
+
     this.svg.append('g')
       .attr('class', 'links');
 
@@ -253,6 +268,7 @@ class Graph {
 
       // this.drawGraph();
       this.drawTree();
+      
       
       resolvePromise();
     });
@@ -604,7 +620,7 @@ class Graph {
     node = nodesEnter.merge(node);
 
     node
-      .text((d) => { return d.label === 'actor' ? '\uf008 ' + d.title : '\uf007 ' + d.title; })
+      .text((d) => { return Config.icons[d.label] + ' ' + d.title; })
       // .attr('r', (d) => {
       //   return d.label === 'actor' ? 7 : 10;
       // })
@@ -683,6 +699,8 @@ class Graph {
 
     // d3.selectAll('.hiddenEdge').attr('display', 'none');
 
+     this.addHightlightBars();
+    
     select('#graph')
     .attr('height',document.getElementById('genealogyTree').getBoundingClientRect().height);
 
@@ -800,6 +818,228 @@ class Graph {
       .links(graph.links);
   }
 
+  private addHightlightBars() {
+    
+        // const t = transition('t').duration(500).ease(easeLinear);
+    
+        const highlightBarGroup = select('#genealogyTree').select('#highlightBars');
+    
+        const yRange: number[] = [min(this.graph.nodes, function (d: any) {
+          return Math.round(d.y);
+        }), max(this.graph.nodes, function (d: any) {
+          return Math.round(d.y);
+        })];
+    
+        //Create data to bind to highlightBars
+        const yData: any[] = [];
+        for (let i = yRange[0]; i <= yRange[1]; i++) {
+          //find all nodes in this row
+          const yNodes = this.graph.nodes.filter((n: any) => {
+            return Math.round(n.y) === i;
+          });
+    
+          // console.log(yNodes[0])
+          // if (yNodes.length>0) {
+          yData.push({
+            y: i, x: min(yNodes, (d: any) => {
+              return d.x;
+            })
+            , id: yNodes[0].uuid
+          });
+          // }
+    
+        }
+    
+        //Create data to bind to aggregateBars
+        const aggregateBarData: any[] = [];
+        for (let i = yRange[0]; i <= yRange[1]; i++) {
+          //find all nodes in this row
+          const yNodes = this.graph.nodes.filter((n: any) => {
+            return Math.round(n.y) === i && n.aggregated;
+          });
+          if (yNodes.length > 0) {
+            aggregateBarData.push({
+              y: i, x: min(yNodes, (d:any) => {
+                return d.x;
+              })
+            });
+          }
+    
+        }
+    
+        // Attach aggregateBars
+        let aggregateBars = highlightBarGroup.selectAll('.aggregateBar')
+          .data(aggregateBarData, (d) => { return d.y; });
+    
+    
+        aggregateBars.exit().remove();
+    
+        const aggregateBarsEnter = aggregateBars
+          .enter()
+          .append('rect')
+          .classed('aggregateBar', true)
+          .attr('opacity', 0);
+    
+        aggregateBars = aggregateBarsEnter.merge(aggregateBars);
+    
+        aggregateBars
+          // .transition(t)
+          .attr('transform', (row: any) => {
+            return 'translate(0,' + (this.yScale(row.y) - Config.glyphSize * 1.25) + ')';
+          })
+          .attr('width', (row: any) => {
+            let range = this.xScale.range();
+            return (max([range[0],range[1]]) - this.xScale(row.x) + this.margin.right);
+          })
+          .attr('x', (row: any) => {
+            return this.xScale(row.x);
+          })
+          .attr('height', Config.glyphSize * 2.5);
+    
+    
+        aggregateBars
+          // .transition(t.transition().duration(500).ease(easeLinear))
+          .attr('opacity', 1);
+    
+    
+        // Attach highlight Bars
+        let allBars = highlightBarGroup.selectAll('.bars')
+          .data(yData, (d) => { return d.id; });
+    
+        allBars.exit().remove();
+    
+        const allBarsEnter = allBars
+          .enter()
+          .append('g')
+          .classed('bars', true);
+    
+        allBarsEnter
+          .append('rect')
+          .classed('backgroundBar', true);
+    
+        allBarsEnter
+          .append('rect')
+          .classed('highlightBar', true);
+    
+        allBars = allBarsEnter.merge(allBars);
+    
+        //Position all bars:
+        allBars
+          .attr('transform', (row: any) => {
+            return 'translate(0,' + (this.yScale(row.y) - Config.glyphSize) + ')';
+          });
+    
+    
+        allBars
+          .select('.backgroundBar')
+          .attr('width', () => {
+            let range = this.xScale.range();
+            return (max([range[0],range[1]]) - min([range[0],range[1]]) + this.margin.right + this.padding.right);
+          })
+          .attr('height', Config.glyphSize * 2);
+    
+        allBars
+          .select('.highlightBar')
+          .attr('width', (row: any) => {
+            let range = this.xScale.range();
+            return (max([range[0],range[1]]) - this.xScale(row.x) + this.margin.right + this.padding.right);
+          })
+          .attr('x', (row: any) => {
+            return this.xScale(row.x);
+          })
+          .attr('height', Config.glyphSize * 2);
+    
+    
+        //Set both the background bar and the highlight bar to opacity 0;
+        selectAll('.bars')
+          .selectAll('.backgroundBar')
+          .attr('opacity', 0);
+    
+        selectAll('.bars')
+          .selectAll('.highlightBar')
+          .attr('opacity', 0);
+    
+        function highlightRows(d: any) {
+    
+          function selected(e: any) {
+            let returnValue = false;
+            //Highlight the current row in the graph and table
+    
+            if (e.y === Math.round(d.y)) {
+              returnValue = true;
+            }
+            return returnValue;
+          }
+    
+          selectAll('.slopeLine').classed('selectedSlope', false);
+    
+          selectAll('.slopeLine').filter((e: any) => {
+    
+            return e.y === Math.round(d.y);
+          }).classed('selectedSlope', true);
+    
+          //Set opacity of corresponding highlightBar
+          selectAll('.highlightBar').filter(selected).attr('opacity', .2);
+    
+          //Set the age label on the lifeLine of this row to visible
+          selectAll('.ageLineGroup').filter((e:any) => {
+            return e.y === Math.round(d.y);
+          }).filter((d: any) => {
+            return !d.aggregated && !d.hidden;
+          }).select('.ageLabel').attr('visibility', 'visible');
+    
+          // selectAll('.duplicateLine').filter(selected).attr('visibility', 'visible');
+        }
+    
+        function clearHighlights() {
+          // selectAll('.duplicateLine').attr('visibility', 'hidden');
+    
+          selectAll('.slopeLine').classed('selectedSlope', false);
+    
+          //Hide all the highlightBars
+          selectAll('.highlightBar').attr('opacity', 0);
+    
+          selectAll('.ageLabel').attr('visibility', 'hidden');
+        }
+    
+    
+        selectAll('.highlightBar')
+          .on('mouseover', highlightRows)
+          .on('mouseout', clearHighlights)
+          .on('click', (d: any, i) => {
+            if (event.defaultPrevented) { return; } // dragged
+    
+            const wasSelected = selectAll('.highlightBar').filter((e: any) => {
+              return e.y === d.y || e.y === Math.round(d.y);
+            }).classed('selected');
+    
+    
+            //'Unselect all other background bars if ctrl was not pressed
+            if (!event.metaKey) {
+              selectAll('.slopeLine').classed('clickedSlope', false);
+              selectAll('.highlightBar').classed('selected', false);
+            }
+    
+            selectAll('.slopeLine').filter((e: any) => {
+              return e.y === d.y || e.y === Math.round(d.y);
+            }).classed('clickedSlope', function () {
+              return (!wasSelected);
+            });
+    
+            selectAll('.highlightBar').filter((e: any) => {
+              return e.y === d.y || e.y === Math.round(d.y);
+            }).classed('selected', function () {
+              return (!wasSelected);
+            });
+          });
+    
+        selectAll('.bars')
+          .selectAll('.backgroundBar')
+          .on('mouseover', highlightRows)
+          .on('mouseout', clearHighlights);
+    
+      }
+    
 
   private createID(title) {
     return title.replace(/ /g, '_').replace(/'/g, '').replace(/\(/g, '').replace(/\)/g, '');

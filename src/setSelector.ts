@@ -63,7 +63,7 @@ class SetSelector {
    */
   init() {
     // this.tableManager = tableManager;
-    this.build();
+    // this.build();
     // events.on(FAMILY_INFO_UPDATED, (evt, tableManagerObject) => { this.updateTable(); });
 
     // return the promise directly as long there is no dynamical data to update
@@ -74,45 +74,127 @@ class SetSelector {
   /**
    * Build the basic DOM elements and binds the change function
    */
-  private build() {
-    // select('#collapseTableButton')
-    //   .on('click', () => {
-    //     const text = select('#collapseTableButton').html();
-    //     if (text === 'Expand') {
-    //       select('#collapseTableButton').html('Collapse');
-    //       select('#col1').attr('id', 'col1-expanded');
+  private build(labels) {
 
-    //     } else {
-    //       select('#collapseTableButton').html('Expand');
-    //       select('#col1-expanded').attr('id', 'col1');
-    //     }
-    //   });
+    //creat an accordion div and a table for each label
+    let panels =  select('#accordion')
+    .selectAll('.panel-default')
+    .data(labels);
 
-    const table = this.$node
+    const panelsEnter = panels.enter();
+
+    const panelDefault = panelsEnter
+    .append('div')
+      .attr('class','panel panel-default');
+
+    panelDefault
+    .append('div')
+      .attr('class','panel-heading')
+    .append('h4')
+      .attr('class','panel-title')
+    .append('a')
+      .attr('data-toggle','collapse')
+      .attr('data-parent','#accordion')
+      .attr('href',(d,i)=> {return '#collapse_' + i;})
+      .text((d:any)=> { return d;});
+
+   let table = panelDefault
+    .append('div')
+      .attr('id',(d,i)=> {return 'collapse_' + i;})
+      .attr('class','panel-collapse collapse ')
+      .classed('in',(d,i)=> {return i<1;})
+    .append('div')
+      .attr('id',(d)=> {return d + '_body';})
+      .attr('class','panel-body');
+
+
+      table
       .append('div')
-      .attr('id', 'tableHead')
+        .attr('id', 'tableHead')
       .append('table')
-      .attr('class', 'table');
+        .attr('class', 'table')
+        .append('thead').append('tr');
 
-    table.append('thead').append('tr');
-    table.append('tbody')
+   table.append('tbody')
     .style('background','rgb(155, 173, 185)');
 
 
-    const tbody = this.$node
+    const tbody = table
       .append('div')
       .attr('id', 'tableBody')
       .append('table')
       .attr('class', 'table');
 
-    // tbody.append('thead').append('tr');
-    tbody.append('tbody');
+      tbody.append('tbody');
+
+      // Populate Headers 
+      labels.map((d)=> {this.updateTableHeader('#'+d + '_body');});
+
+  }
+
+  private updateTableHeader(parentID) {
+
+    const tableHeaders = this.headerInfo
+    
+          //Upate Header
+          let headers = select(parentID)
+          .select('#tableHead')
+            .select('tr')
+            .selectAll('th')
+            .data(tableHeaders);
+
+             console.log(headers, tableHeaders)
+      
+          const headerEnter = headers.enter()
+            .append('th');
+      
+          headers.exit().remove();
+      
+          headers = headerEnter.merge(headers);
+      
+          headers
+            .style('width', (d: any, i) => {
+              const width = (i <2 ? 10 : (90 / (tableHeaders.length - 2)));
+              return width + '%';
+            })
+      //       .on('click', function (d) {
+      //         const isAscending = select(this).classed('des');
+      //         if (isAscending) {
+      //           self.rows.sort(function (a, b) {
+      //             if (b[d.dataAttr] > a[d.dataAttr]) {
+      //               return -1;
+      //             } else {
+      //               return 1;
+      //             }
+      //           });
+      //           selectAll('th').classed('des', false);
+      //           selectAll('th').classed('aes', false);
+      //           select(this).attr('class', 'aes');
+      //         } else {
+      //           self.rows.sort(function (a, b) {
+      //             if (b[d.dataAttr] < a[d.dataAttr]) {
+      //               return -1;
+      //             } else {
+      //               return 1;
+      //             }
+      //           });
+      //           selectAll('th').classed('des', false);
+      //           selectAll('th').classed('aes', false);
+      //           select(this).attr('class', 'des');
+      //         }
+      //       });
+      
+          headers
+            .text(function (column) {
+              return column.header;
+            })
+            .style('text-align', 'center');
   }
 
   /**
    * Build the table and populate with list of families.
    */
-  public  updateTable(db = 'got') {
+  public  buildTables(db) {
 
     const self = this;
 
@@ -122,74 +204,11 @@ class SetSelector {
 
     //    // this.familyInfo = this.tableManager.familyInfo;
     const data = graphData['labels'];
+
+        let labels = data.map((d)=>{ return d.name});
+        this.build(labels);
     
-    //     const attrCols = this.tableManager.familyInfo[0].starCols.map((attr) => { return { header: attr.attribute, dataAttr: attr.attribute }; });
-        const tableHeaders = this.headerInfo
-    
-    //     let maxValue = max(data.familyInfo, (d: any) => { return +d.size; });
-    
-    //     this.peopleScale
-    //       .range([0, 100])
-    //       .domain([0, maxValue]);
-    
-    //     maxValue = max(data.familyInfo, (d: any) => { return +d.affected; });
-    
-    //     this.casesScale
-    //       .range([0, 50])
-    //       .domain([0, maxValue]);
-    
-        //Upate Header
-        let headers = this.$node.select('#tableHead')
-          .select('tr')
-          .selectAll('th')
-          .data(tableHeaders);
-    
-    
-        const headerEnter = headers.enter()
-          .append('th');
-    
-        headers.exit().remove();
-    
-        headers = headerEnter.merge(headers);
-    
-        headers
-          .style('width', (d: any, i) => {
-            const width = (i <2 ? 10 : (90 / (tableHeaders.length - 2)));
-            return width + '%';
-          })
-    //       .on('click', function (d) {
-    //         const isAscending = select(this).classed('des');
-    //         if (isAscending) {
-    //           self.rows.sort(function (a, b) {
-    //             if (b[d.dataAttr] > a[d.dataAttr]) {
-    //               return -1;
-    //             } else {
-    //               return 1;
-    //             }
-    //           });
-    //           selectAll('th').classed('des', false);
-    //           selectAll('th').classed('aes', false);
-    //           select(this).attr('class', 'aes');
-    //         } else {
-    //           self.rows.sort(function (a, b) {
-    //             if (b[d.dataAttr] < a[d.dataAttr]) {
-    //               return -1;
-    //             } else {
-    //               return 1;
-    //             }
-    //           });
-    //           selectAll('th').classed('des', false);
-    //           selectAll('th').classed('aes', false);
-    //           select(this).attr('class', 'des');
-    //         }
-    //       });
-    
-        headers
-          .text(function (column) {
-            return column.header;
-          })
-          .style('text-align', 'center');
-    
+      
     //     const rowData = this.tableManager.familyInfo.map((d) => {
     //       const baseObject = {
     //         'id': d.id,
@@ -205,10 +224,10 @@ class SetSelector {
     //       });
     //       return baseObject;
     //     });
-          console.log(data,graphData);
-    
-        this.populateTableRows('#tableBody', data[0].nodes,tableHeaders);
-    //     const selectedRows = rowData.filter((row) => { return this.selectedFamilyIds.indexOf(row.id)>-1; });
+       data.map((d)=> {
+        this.populateTableRows('#' + d.name + '_body', d.nodes,this.headerInfo.length);
+       });
+            //     const selectedRows = rowData.filter((row) => { return this.selectedFamilyIds.indexOf(row.id)>-1; });
     //     this.populateTableRows('#tableHead', selectedRows,tableHeaders.length-2);
     
     //     select('#tableBody').select('tbody').selectAll('tr').classed('selected',(d:any)=> {return this.selectedFamilyIds.indexOf(d.id) > -1;});
@@ -258,11 +277,11 @@ class SetSelector {
 
   // }
 
-  private populateTableRows(tableSelector, rowData,numCols) {
+  private populateTableRows(tableDiv, rowData,numCols) {
 
-
+    const tableSelector = select(tableDiv).select('#tableBody');
     // create a row for each object in the data
-    let rows = select(tableSelector).select('tbody').selectAll('tr')
+    let rows = tableSelector.select('tbody').selectAll('tr')
       .data(rowData);
 
 
@@ -340,7 +359,7 @@ class SetSelector {
       })
       // cells
       .html((d: any) => {
-        console.log(d);
+        // console.log(d);
         return d.value;
       })
       .style('text-align', 'center');

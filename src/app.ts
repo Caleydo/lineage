@@ -94,6 +94,8 @@ export class App {
    */
   private async build() {
 
+    const defaultDB = 'got';
+
     const tableManager = TableManager.create();
 
   //  const parsedUrl = new URL(window.location.href);
@@ -136,11 +138,8 @@ export class App {
     const graphObj = graph.create(650,1500,10,'#graph',tableManager);
 
   // let load  = ()=>{
-    const graphView = await graphObj.loadGraph();
+    const graphView = await graphObj.loadGraph(defaultDB);
     
-    console.log('here');
-
-
     // const graphDataObj = graphData.create(tableManager);
     // await graphDataObj.createTree().then(() => {
     //   graphDataObj.aggregateTreeWrapper(undefined, layoutState.Aggregated); //default to aggregated state;
@@ -153,9 +152,9 @@ export class App {
     const attributeTable = table.create(this.$node.select('#table').node());
     attributeTable.init(tableManager);
 
-    const setSelectorView = setSelector.create(this.$node.select('#pathway_body').node());
+    const setSelectorView = setSelector.create(this.$node.select('#accordion').node());
     setSelectorView.init();
-    setSelectorView.updateTable();
+    setSelectorView.buildTables(defaultDB);
 
 
     this.$node.select('#loading').remove();

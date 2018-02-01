@@ -230,7 +230,7 @@ class Graph {
   /**
    * Function that loads up the graph
    */
-  public async loadGraph(db = 'got') {
+  public async loadGraph(db) {
     let resolvePromise;
     let rejectPromise;
     let p = new Promise((resolve, reject) => {

@@ -32,6 +32,7 @@ import IFamilyInfo from './tableManager';
 
 import { FAMILY_INFO_UPDATED, TABLE_VIS_ROWS_CHANGED_EVENT } from './tableManager';
 
+export const SUBGRAPH_CHANGED_EVENT = 'subgraph_changed';
 
 /**
  * Creates the family selector view
@@ -51,6 +52,8 @@ class SetSelector {
   // private rows;
 
   // private tableManager;
+
+  private selectedDB; 
 
   private headerInfo = [
     {'header': 'Name', 'dataAttr': 'title' },
@@ -141,9 +144,7 @@ class SetSelector {
 
       tbody.append('tbody');
 
-      // Populate Headers 
-      labels.map((d)=> {this.updateTableHeader('#'+d + '_body');});
-
+      
       panels = panels.merge(panelsEnter);
 
       selectAll('a')
@@ -152,15 +153,19 @@ class SetSelector {
       selectAll('.panel-body')
         .attr('id',(d)=> {return d + '_body';})
 
+      // Populate Headers 
+      labels.map((d)=> {this.updateTableHeader('#'+d + '_body');});
+      
+
   }
 
   private updateTableHeader(parentID) {
 
     const tableHeaders = this.headerInfo
-    
+
           //Upate Header
           let headers = select(parentID)
-          .select('#tableHead')
+            .select('#tableHead')
             .select('tr')
             .selectAll('th')
             .data(tableHeaders);
@@ -206,7 +211,7 @@ class SetSelector {
       
           headers
             .text(function (column) {
-              return column.header;
+              return column.header ;
             })
             .style('text-align', 'center');
   }
@@ -215,6 +220,8 @@ class SetSelector {
    * Build the table and populate with list of families.
    */
   public  buildTables(db) {
+
+    this.selectedDB = db;
     const self = this;
 
     const url = 'api/data_api/labels/' + db
@@ -312,7 +319,10 @@ class SetSelector {
       rows = rowsEnter.merge(rows);
 
 
-      // rows.on('click', (d: any) => {
+      rows.on('click', (d: any) => {
+        console.log('clicked')
+        events.fire(SUBGRAPH_CHANGED_EVENT,{'db':this.selectedDB,'rootID':d.id,'depth':1,'replace':true});
+      });
 
       //         //set all icons to +
       //       select('#tableBody').select('tbody').selectAll('.addRemoveIcon').html('\uf055');
@@ -352,8 +362,8 @@ class SetSelector {
       .data((d: any) => {
         const baseValues = [
         // { 'name': d.id, 'value': undefined, 'type': 'button' },
-        { 'title': d.title, 'value': d.title, 'type': 'title' },
-        { 'degree': d.degree, 'value': d.degree, 'type': 'degree' }];
+        { 'id': d.id, 'value': d.title, 'type': 'title' },
+        { 'id': d.id, 'value': d.degree, 'type': 'degree' }];
 
         return baseValues;
       });
@@ -379,7 +389,7 @@ class SetSelector {
       // cells
       .html((d: any) => {
         // console.log(d);
-        return d.value;
+        return '<span class="title">' + d.value + '</span>';
       })
       .style('text-align', 'center');
 
@@ -388,9 +398,11 @@ class SetSelector {
         return c.type === 'degree';
       })
       .html((d: any) => {
-        return d.value;
+        return '<span class="badge degree">' + d.value + '</span>';
       })
-      .style('text-align', 'center')
+      .style('text-align', 'center');
+
+      
   }
 
   // private loadFamily() {

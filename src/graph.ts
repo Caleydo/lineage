@@ -5,6 +5,10 @@ import {
 } from './headers';
 
 import {
+  SUBGRAPH_CHANGED_EVENT
+} from './setSelector';
+
+import {
   select,
   selectAll,
   selection,
@@ -75,6 +79,8 @@ class Graph {
 
   private graph;
 
+  private selectedDB; 
+
   private svg;
   private simulation;
 
@@ -110,8 +116,13 @@ class Graph {
   constructor(width, height, radius, selector,tmanager) {
 
     events.on(DB_CHANGED_EVENT,(evt,info) => {
-      // this.loadGraph(info.value);;
+
+      this.loadGraph(info.value);;
     });
+
+    events.on(SUBGRAPH_CHANGED_EVENT,(evt,info) => {
+            this.loadGraph(info.db,info.rootID,info.depth,info.replace);;
+          });
 
 
     this.tableManager = tmanager;
@@ -229,7 +240,15 @@ class Graph {
   /**
    * Function that loads up the graph
    */
-  public async loadGraph(db) {
+  public async loadGraph(db,root = undefined, depth = undefined, replace = false) {
+
+    // if (!this.selectedDB) {
+    //   console.log('No Database Selected');
+    //   return;
+    // }
+
+    this.selectedDB = db;
+
     let resolvePromise;
     let rejectPromise;
     let p = new Promise((resolve, reject) => {
@@ -238,15 +257,34 @@ class Graph {
     });
 
 
-    const url = 'api/data_api/graph/'+db
+    const url = root ? 'api/data_api/graph/'+db + '/' + root + '/' + depth : 'api/data_api/graph/'+db;
 
-    json(url, (error, graph) => {
+    json(url, (error, graph:any) => {
       if (error) {
         throw error;
       }
 
-      this.graph = graph;
+      console.log('url is', url)
+      console.log('this.graph is ', this.graph);
 
+      //Replace graph or merge with incoming subgraph
+      if (!replace || !this.graph) {
+        this.graph = graph;
+      } else {
+        this.graph.nodes = Array.from(new Set(this.graph.nodes.concat(graph.nodes))); //avoid duplicate nodes
+        this.graph.root = Array.from(new Set(this.graph.root.concat(graph.root))); //avoid duplicate nodes
+
+        console.log('after un-duplication',this.graph.nodes);
+        
+        //update indexes on incoming graph object
+        graph.links.forEach((link)=>{
+          link.source = this.graph.nodes.indexOf(graph.nodes[link.source]);
+          link.target = this.graph.nodes.indexOf(graph.nodes[link.target]);
+        })
+
+        this.graph.links = Array.from(new Set(this.graph.links.concat(graph.links))); //avoid duplicate nodes
+      }
+     
       this.interGenerationScale.range([.75, .25]).domain([2, this.graph.nodes.length]);
 
       //create dictionary of nodes with
@@ -276,9 +314,11 @@ class Graph {
         source.degree = source.neighbors.size;
       });
 
-      const root = this.graph.nodes.filter((n)=> { return n.uuid == this.graph.root;});
+      const roots = this.graph.nodes.filter((n)=> {return this.graph.root.indexOf(n.uuid) >-1;});
+      console.log('root', roots)
 
-      this.extractTree(root.length>0 ? root[0] : undefined);
+
+      this.extractTree(roots.length>0 ? roots : undefined);
 
       this.exportYValues();
 
@@ -296,8 +336,9 @@ class Graph {
   //Function that extracts tree from Graph
   //takes in two parameters:
   // fcn that evaluates which edge to pick when traversing a graph and the depth of the tree to extract.
-  extractTree(userChosenRoot = undefined, evalFcn = undefined, depth = undefined) {
+  extractTree(roots = undefined, evalFcn = undefined, depth = undefined) {
 
+    console.log('user chose', roots)
     this.graph.nodes.map((n, i) => {
       n.index = i;
       n.visited = false;
@@ -319,7 +360,7 @@ class Graph {
     }).length > 0) {
 
       //Pick node with highest degree if none was supplied.
-      const root = (userChosenRoot && userChosenRoot.visited === false) ? userChosenRoot : this.graph.nodes.filter((n) => {
+      const root = (roots && roots.filter((r)=> {return r.visited === false;}).length>0) ? roots.filter((r)=> {return r.visited === false;})[0] : this.graph.nodes.filter((n) => {
         return n.visited === false;
       }).reduce((a, b) => this.nodeNeighbors[a.index].degree > this.nodeNeighbors[b.index].degree ? a : b);
 
@@ -428,6 +469,8 @@ class Graph {
   drawTree() {
 
     const graph = this.graph;
+
+    console.log(this.graph.nodes)
 
     let link = this.svg.select('.links')
       .selectAll('.edge')
@@ -615,8 +658,7 @@ class Graph {
     node
       .text((d) => { return Config.icons[d.label] + ' ' + d.title; })
       .on('click', (d) => {
-        console.log(d);
-        this.extractTree(d);
+        this.extractTree([d]);
         this.drawTree();
       });
 
@@ -1105,8 +1147,6 @@ class Graph {
             dict[node.uuid] = [Math.round(node.y)];
           }
         });
-    
-        console.log(dict);
     
         //Assign y values to the tableManager object
         this.tableManager.yValues = dict;

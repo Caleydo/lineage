@@ -5,6 +5,14 @@ body, html {
 	width: 100%;
 }
 
+td {
+  vertical-align: middle;
+} 
+
+.badge.degree, table .title {
+  border-radius:10px !important;
+  cursor:copy
+}
 
 #circleMarker circle {
   fill:rgb(164, 163, 163);
@@ -116,7 +124,7 @@ p {
 }
 
 .paddingBlock {
-	padding: 20px 0 0 0 ;
+	padding: 20px 0 0 10px ;
 }
 
 .eqWrap {

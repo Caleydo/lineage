@@ -138,7 +138,7 @@ export class App {
     const graphObj = graph.create(650,1500,10,'#graph',tableManager);
 
   // let load  = ()=>{
-    const graphView = await graphObj.loadGraph(defaultDB);
+    // const graphView = await graphObj.loadGraph(defaultDB);
     
     // const graphDataObj = graphData.create(tableManager);
     // await graphDataObj.createTree().then(() => {
@@ -149,8 +149,8 @@ export class App {
     // genealogyTree.init(graphDataObj, tableManager);
     // genealogyTree.update();
 
-    const attributeTable = table.create(this.$node.select('#table').node());
-    attributeTable.init(tableManager);
+    // const attributeTable = table.create(this.$node.select('#table').node());
+    // attributeTable.init(tableManager);
 
     const setSelectorView = setSelector.create(this.$node.select('#accordion').node());
     setSelectorView.init();

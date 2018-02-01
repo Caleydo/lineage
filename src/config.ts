@@ -29,7 +29,8 @@ export class Config {
       Movie:'\uf008',
       Actor:'\uf007',
       Episode:'\uf008',
-      Character:'\uf007'
+      Character:'\uf007',
+      House:'\uf1d0'
   };
 
   public static panelAttributeWidth = 300;

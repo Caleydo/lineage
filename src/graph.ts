@@ -271,18 +271,26 @@ class Graph {
       if (!replace || !this.graph) {
         this.graph = graph;
       } else {
-        this.graph.nodes = Array.from(new Set(this.graph.nodes.concat(graph.nodes))); //avoid duplicate nodes
+        graph.nodes.forEach((node)=>{
+          if (this.graph.nodes.filter((n)=> {return n.uuid === node.uuid; }).length<1) {
+            console.log('adding node')
+            this.graph.nodes = this.graph.nodes.concat(node);
+          }
+        }) 
+        
         this.graph.root = Array.from(new Set(this.graph.root.concat(graph.root))); //avoid duplicate nodes
 
         console.log('after un-duplication',this.graph.nodes);
         
         //update indexes on incoming graph object
         graph.links.forEach((link)=>{
-          link.source = this.graph.nodes.indexOf(graph.nodes[link.source]);
-          link.target = this.graph.nodes.indexOf(graph.nodes[link.target]);
+          let sourceNode = this.graph.nodes.filter((n)=> {return n.uuid === graph.nodes[link.source].uuid; })[0];
+          let targetNode = this.graph.nodes.filter((n)=> {return n.uuid === graph.nodes[link.target].uuid; })[0];
+          link.source = this.graph.nodes.indexOf(sourceNode);
+          link.target = this.graph.nodes.indexOf(targetNode);
         })
 
-        this.graph.links = Array.from(new Set(this.graph.links.concat(graph.links))); //avoid duplicate nodes
+        this.graph.links = this.graph.links.concat(graph.links); //avoid duplicate nodes
       }
      
       this.interGenerationScale.range([.75, .25]).domain([2, this.graph.nodes.length]);
@@ -315,9 +323,6 @@ class Graph {
       });
 
       const roots = this.graph.nodes.filter((n)=> {return this.graph.root.indexOf(n.uuid) >-1;});
-      console.log('root', roots)
-
-
       this.extractTree(roots.length>0 ? roots : undefined);
 
       this.exportYValues();

@@ -110,8 +110,7 @@ class Graph {
   constructor(width, height, radius, selector,tmanager) {
 
     events.on(DB_CHANGED_EVENT,(evt,info) => {
-      this.loadGraph(info.value);;
-
+      // this.loadGraph(info.value);;
     });
 
 

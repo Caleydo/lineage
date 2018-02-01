@@ -6,6 +6,10 @@ import { keys } from 'd3-collection';
 import { Config } from './config';
 
 import {
+  DB_CHANGED_EVENT
+} from './headers';
+
+import {
   scaleLinear,
 } from 'd3-scale';
 
@@ -66,6 +70,11 @@ class SetSelector {
     // this.build();
     // events.on(FAMILY_INFO_UPDATED, (evt, tableManagerObject) => { this.updateTable(); });
 
+    events.on(DB_CHANGED_EVENT,(evt,info) => {
+      this.buildTables(info.value);;
+
+    });
+
     // return the promise directly as long there is no dynamical data to update
     return Promise.resolve(this);
   }
@@ -76,10 +85,15 @@ class SetSelector {
    */
   private build(labels) {
 
+    select('#accordion').selectAll('.panel').remove(); //total hack.
+
+
     //creat an accordion div and a table for each label
     let panels =  select('#accordion')
     .selectAll('.panel-default')
     .data(labels);
+
+    panels.exit().remove();
 
     const panelsEnter = panels.enter();
 
@@ -96,30 +110,30 @@ class SetSelector {
       .attr('data-toggle','collapse')
       .attr('data-parent','#accordion')
       .attr('href',(d,i)=> {return '#collapse_' + i;})
-      .text((d:any)=> { return d;});
+      
 
-   let table = panelDefault
+   let pDefault = panelDefault
     .append('div')
       .attr('id',(d,i)=> {return 'collapse_' + i;})
       .attr('class','panel-collapse collapse ')
       .classed('in',(d,i)=> {return i<1;})
     .append('div')
-      .attr('id',(d)=> {return d + '_body';})
+      // .attr('id',(d)=> {return d + '_body';})
       .attr('class','panel-body');
 
 
-      table
+      pDefault
       .append('div')
         .attr('id', 'tableHead')
       .append('table')
         .attr('class', 'table')
         .append('thead').append('tr');
 
-   table.append('tbody')
+        pDefault.append('tbody')
     .style('background','rgb(155, 173, 185)');
 
 
-    const tbody = table
+    const tbody = pDefault
       .append('div')
       .attr('id', 'tableBody')
       .append('table')
@@ -129,6 +143,14 @@ class SetSelector {
 
       // Populate Headers 
       labels.map((d)=> {this.updateTableHeader('#'+d + '_body');});
+
+      panels = panels.merge(panelsEnter);
+
+      selectAll('a')
+      .text((d:any)=> {return d;});
+
+      selectAll('.panel-body')
+        .attr('id',(d)=> {return d + '_body';})
 
   }
 
@@ -142,8 +164,6 @@ class SetSelector {
             .select('tr')
             .selectAll('th')
             .data(tableHeaders);
-
-             console.log(headers, tableHeaders)
       
           const headerEnter = headers.enter()
             .append('th');
@@ -195,7 +215,6 @@ class SetSelector {
    * Build the table and populate with list of families.
    */
   public  buildTables(db) {
-
     const self = this;
 
     const url = 'api/data_api/labels/' + db

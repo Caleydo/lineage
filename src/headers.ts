@@ -1,3 +1,7 @@
+import * as events from 'phovea_core/src/event';
+
+export const DB_CHANGED_EVENT = 'db_changed';
+
 import {
   select,
   selectAll,
@@ -21,22 +25,32 @@ class HeaderMenus {
     // .append('label')
     // .text('Select a Dataset:');
 
+    function onchange() {
+      const selectValue = select('#sel').property('value');
+      events.fire(DB_CHANGED_EVENT,{'value':selectValue});
+    };
+
     const dropdownMenu = select('.navbar-collapse')
     .append('div')
     .attr('class', 'nav navbar-nav navbar-left form-group')
     .attr('id', 'dbSelector');
 
-    let selectMenu = dropdownMenu.append('select')
+    let selectMenu = dropdownMenu
+    .append('select')
     .attr('class','form-control')
     .attr('id','sel')
+    .on('change', onchange);
 
     selectMenu.append('option')
+    .attr('value','got')
     .text('Game of Thrones')
 
     selectMenu.append('option')
+    .attr('value','coauth')
     .text('Co-author Network')
 
     selectMenu.append('option')
+    .attr('value','path')
     .text('KEG Pathways')
 
   }

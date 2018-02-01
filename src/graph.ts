@@ -1,3 +1,9 @@
+import * as events from 'phovea_core/src/event';
+
+import {
+  DB_CHANGED_EVENT
+} from './headers';
+
 import {
   select,
   selectAll,
@@ -102,6 +108,12 @@ class Graph {
    * Creates a Map Object
    */
   constructor(width, height, radius, selector,tmanager) {
+
+    events.on(DB_CHANGED_EVENT,(evt,info) => {
+      this.loadGraph(info.value);;
+
+    });
+
 
     this.tableManager = tmanager;
     this.width = width;
@@ -218,7 +230,7 @@ class Graph {
   /**
    * Function that loads up the graph
    */
-  public async loadGraph() {
+  public async loadGraph(db = 'got') {
     let resolvePromise;
     let rejectPromise;
     let p = new Promise((resolve, reject) => {
@@ -226,7 +238,10 @@ class Graph {
       rejectPromise = reject;
     });
 
-    json('api/data_api/graph/got', (error, graph) => {
+
+    const url = 'api/data_api/graph/'+db
+
+    json(url, (error, graph) => {
       if (error) {
         throw error;
       }
@@ -262,7 +277,9 @@ class Graph {
         source.degree = source.neighbors.size;
       });
 
-      this.extractTree();
+      const root = this.graph.nodes.filter((n)=> { return n.uuid == this.graph.root;});
+
+      this.extractTree(root.length>0 ? root[0] : undefined);
 
       this.exportYValues();
 
@@ -428,29 +445,6 @@ class Graph {
 
     link = linksEnter.merge(link);
 
-  //   //Add markers for hidden edges
-  //   let hiddenLinks = this.svg.select('.links')
-  //   .selectAll('.hiddenLink')
-  //   .data(graph.links.filter((l)=> {return !l.visible;}), (d) => {
-  //     return d.index;
-  //   });
-
-  // const hiddenLinksEnter = hiddenLinks
-  //   .enter();
-
-  //   hiddenLinksEnter
-  //   .append('circle')
-  //   .attr('class', 'hiddenLink');
-
-  //   hiddenLinksEnter
-  //   .append('circle')
-  //   .attr('class', 'hiddenLink');
-
-  //   hiddenLinks.exit().remove();
-
-  //   hiddenLinks = hiddenLinksEnter.merge(hiddenLinks);
-
-
     const maxX = max(graph.nodes, (n: any) => {
       return +n.x;
     });
@@ -516,7 +510,10 @@ class Graph {
       .attr('r', this.radius*0.9);
 
 
-    let linkMasks = this.svg.select('defs')
+   this.svg.select('defs')
+      .selectAll('mask').remove();
+
+  let linkMasks = this.svg.select('defs')
       .selectAll('mask')
       .data(graph.links.filter((l) => { return !l.visible; }), (d) => {
         return d.index;
@@ -593,16 +590,14 @@ class Graph {
     link
       .transition('t')
       .duration(1000)
-
       .attr('d', (d) => {
         return this.elbow(d, this.interGenerationScale, this.lineFunction, d.visible === true);
-      })
+      });
 
 
 
 
     let node = this.svg.select('.nodes')
-      // .selectAll('circle')
       .selectAll('.title')
       .data(graph.nodes, (d) => {
         return d.index;
@@ -612,7 +607,6 @@ class Graph {
       .append('text')
       .attr('class', 'title')
       .attr('alignment-baseline', 'middle');
-    // .append('circle');
 
 
     node.exit().remove();
@@ -621,13 +615,6 @@ class Graph {
 
     node
       .text((d) => { return Config.icons[d.label] + ' ' + d.title; })
-      // .attr('r', (d) => {
-      //   return d.label === 'actor' ? 7 : 10;
-      // })
-      // .attr('fill', (d, i) => {
-      //   console.log(this.color(0), this.color(1), this.color(20));
-      //   return (d.label === 'actor' ? this.color(2) : this.color(10));
-      // })
       .on('click', (d) => {
         console.log(d);
         this.extractTree(d);

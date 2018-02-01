@@ -86,7 +86,7 @@ class FamilySelector {
         }
       });
 
-    const table = select('#familySelector')
+    const table = this.$node
       .append('div')
       .attr('id', 'tableHead')
       .append('table')
@@ -97,7 +97,7 @@ class FamilySelector {
     .style('background','rgb(155, 173, 185)');
 
 
-    const tbody = select('#familySelector')
+    const tbody = this.$node
       .append('div')
       .attr('id', 'tableBody')
       .append('table')

@@ -27,7 +27,9 @@ export class Config {
       Compound:'\uf1e0', //\uf1d5
       Pathway:'\uf18b',
       Movie:'\uf008',
-      Actor:'\uf007'
+      Actor:'\uf007',
+      Episode:'\uf008',
+      Character:'\uf007'
   };
 
   public static panelAttributeWidth = 300;

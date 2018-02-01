@@ -617,7 +617,7 @@ class AttributeTable {
       maxRow = yDict[person][0] > maxRow ? yDict[person][0] : maxRow;
     });
 
-    console.log('maxRow is ', maxRow)
+    // console.log('maxRow is ', maxRow)
     Object.keys(yDict).forEach((person, ind) => {
       // if (person in yDict) {
         //Handle Duplicate Nodes
@@ -629,7 +629,7 @@ class AttributeTable {
             y2personDict[y] = [person];
           }
 
-          console.log('setting y2person Dict ', y2personDict[y])
+          // console.log('setting y2person Dict ', y2personDict[y])
         });
       // }
     });
@@ -650,7 +650,7 @@ class AttributeTable {
     this.y.range([0, this.height * .7]).domain([0, maxRow]);
     this.rowOrder = allRows; //will be used to set the y position of each cell/row;
 
-    console.log('rowOrder', this.y(this.rowOrder[0]), this.y(this.rowOrder[1]), this.y(this.rowOrder[2]));
+    // console.log('rowOrder', this.y(this.rowOrder[0]), this.y(this.rowOrder[1]), this.y(this.rowOrder[2]));
     //set up first column with #People per row.
     const col: any = {};
     col.data = [];
@@ -676,7 +676,7 @@ class AttributeTable {
 
     this.firstCol = [col];
 
-    console.log(col)
+    // console.log(col)
     const colDataAccum = [];
 
     let allPromises = [];
@@ -813,7 +813,7 @@ class AttributeTable {
 
         colDataAccum.push(col);
 
-        console.log(col);
+        // console.log(col);
       } else if (type === VALUE_TYPE_STRING) {
 
         // console.log('here we are', data)
@@ -828,12 +828,12 @@ class AttributeTable {
         });
 
 
-        console.log(name,data[0]);
+        // console.log(name,data[0]);
         // console.log(peopleIDs);
 
         col.name = name;
 
-        console.log('allRows',allRows);
+        // console.log('allRows',allRows);
         col.data = allRows.map((row) => {
           const colData = [];
           const people = y2personDict[row];

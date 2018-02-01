@@ -9,7 +9,7 @@ import { select, selectAll } from 'd3-selection';
 import * as tree from './genealogyTree';
 import * as table from './attributeTable';
 import * as panel from './attributePanel';
-import * as familySelector from './familySelector';
+import * as setSelector from './setSelector';
 import * as graph from './graph';
 
 import * as headerMenus from './headers';
@@ -35,7 +35,8 @@ export class App {
 
     // this.$node = select('#col1');
 
-    this.$node.select('#col1').append('div').attr('id', 'data_selection');
+    // this.$node.select('#col1').append('div').attr('id', 'data_selection');
+    this.$node.select('#col1').append('div').attr('id', 'accordion').attr('class','panel-group');
     this.$node.select('#col2').append('div').attr('id', 'graph');
     this.$node.select('#col3').append('div').attr('id', 'table');
 
@@ -152,9 +153,9 @@ export class App {
     const attributeTable = table.create(this.$node.select('#table').node());
     attributeTable.init(tableManager);
 
-    // const familySelectorView = familySelector.create(this.$node.select('#familySelector').node());
-    // familySelectorView.init(tableManager);
-    // familySelectorView.updateTable();
+    const setSelectorView = setSelector.create(this.$node.select('#pathway_body').node());
+    setSelectorView.init();
+    setSelectorView.updateTable();
 
 
     this.$node.select('#loading').remove();

@@ -79,9 +79,6 @@ class Graph {
 
   private graph;
 
-  //Store the latest root selected to ensure all of its children are linked to it.
-  private seed;
-
   private selectedDB;
 
   private svg;
@@ -124,7 +121,7 @@ class Graph {
     });
 
     events.on(SUBGRAPH_CHANGED_EVENT, (evt, info) => {
-      this.loadGraph(info.db, info.rootID, info.depth, info.replace);;
+      this.loadGraph(info.db, info.rootID, info.depth, info.replace,info.remove);;
     });
 
 
@@ -243,7 +240,7 @@ class Graph {
   /**
    * Function that loads up the graph
    */
-  public async loadGraph(db, root = undefined, depth = undefined, replace = true) {
+  public async loadGraph(db, root = undefined, depth = undefined, replace = true, remove = false) {
 
     // if (!this.selectedDB) {
     //   console.log('No Database Selected');
@@ -268,69 +265,91 @@ class Graph {
       }
 
       console.log('url is', url);
-      this.seed = graph.root;
       //Replace graph or merge with incoming subgraph
       if (replace || !this.graph) {
         this.graph = graph;
       } else {
-
-
         const rootNode = graph.nodes.filter((n) => { return n.uuid == graph.root; });
-        const existingNodes = []; //nodes in the current subgraph that already exist in the tree
+        
+        if (remove) { 
+          const rootNode = this.graph.nodes.filter((n) => { return n.uuid == graph.root; });
+          const toRemove = [];
+          //remove non-root nodes from this.graph.nodes
+          rootNode[0].children.forEach((node) => {
+              const index = this.graph.nodes.indexOf(node);
+              // remove all links to children
+              this.graph.links.forEach((link,i) => {
+                if (link.source === index || link.target === index) {
+                  toRemove.push(i);
+                }
+              });
+          });
 
-        graph.nodes.forEach((node) => {
-          const eNode = this.graph.nodes.filter((n) => { return n.uuid === node.uuid; });
-          if (eNode.length < 1) {
-            this.graph.nodes = this.graph.nodes.concat(node);
-          } else {
-            existingNodes.push(eNode[0]);
-          }
+          rootNode[0].children.forEach((node) => {
+            const index = this.graph.nodes.indexOf(node);
+            this.graph.nodes.splice(index,1);
         });
 
-        //only add root to array of roots if it does not already exist in the graph;
-        if (this.graph.nodes.filter((n) => { return n.uuid == graph.root; }).length < 1) {
-          console.log('adding root ', graph.root);
-          this.graph.root = this.graph.root.concat(graph.root);
-        };
+          
+           toRemove.sort().reverse(); //start @ the end of the array
+           toRemove.map((l)=> {this.graph.links.splice(l,1);});
 
+           console.log(toRemove)
 
-        console.log('existing nodes', existingNodes);
-        //remove link to parent (already exists)
-        
+          rootNode[0].children=[];
 
-        //update indexes
-        graph.links.forEach((link) => {
-          const sourceNode = this.graph.nodes.filter((n) => { return n.uuid === graph.nodes[link.source].uuid; })[0];
-          const targetNode = this.graph.nodes.filter((n) => { return n.uuid === graph.nodes[link.target].uuid; })[0];
-          link.source = this.graph.nodes.indexOf(sourceNode);
-          link.target = this.graph.nodes.indexOf(targetNode);
+          
 
-          //Set link visibility to hidden if the node already exists
-          if (existingNodes.indexOf(sourceNode) > -1 && existingNodes.indexOf(targetNode) > -1) {
-            link.visible = false;
-            link.visited = true;
-            // console.log('setting link to hidden ', 's', sourceNode.title, 't', targetNode.title);
-          } else { //set the visibility to true if the link is directly with the root
-            if (sourceNode.uuid === rootNode[0].uuid || targetNode.uuid === rootNode[0].uuid) {
-              link.visible = true;
-              link.visited = true;
+          console.log(this.graph)
+          
+        } else {
+           const existingNodes = []; //nodes in the current subgraph that already exist in the tree
+  
+          graph.nodes.forEach((node) => {
+            const eNode = this.graph.nodes.filter((n) => { return n.uuid === node.uuid; });
+            if (eNode.length < 1) {
+              this.graph.nodes = this.graph.nodes.concat(node);
             } else {
+              existingNodes.push(eNode[0]);
+            }
+          });
+  
+          //only add root to array of roots if it does not already exist in the graph;
+          if (this.graph.nodes.filter((n) => { return n.uuid == graph.root; }).length < 1) {
+            console.log('adding root ', graph.root);
+            this.graph.root = this.graph.root.concat(graph.root);
+          };
+  
+          //update indexes
+          graph.links.forEach((link) => {
+            const sourceNode = this.graph.nodes.filter((n) => { return n.uuid === graph.nodes[link.source].uuid; })[0];
+            const targetNode = this.graph.nodes.filter((n) => { return n.uuid === graph.nodes[link.target].uuid; })[0];
+            link.source = this.graph.nodes.indexOf(sourceNode);
+            link.target = this.graph.nodes.indexOf(targetNode);
+  
+            //Set link visibility to hidden if the node already exists
+            if (existingNodes.indexOf(sourceNode) > -1 && existingNodes.indexOf(targetNode) > -1) {
               link.visible = false;
               link.visited = true;
+              // console.log('setting link to hidden ', 's', sourceNode.title, 't', targetNode.title);
+            } else { //set the visibility to true if the link is directly with the root
+              if (sourceNode.uuid === rootNode[0].uuid || targetNode.uuid === rootNode[0].uuid) {
+                link.visible = true;
+                link.visited = true;
+              } else {
+                link.visible = false;
+                link.visited = true;
+              }
             }
-          }
-
-          //Do not add link to parent (already exists in the tree)
-          if (sourceNode !== targetNode.parent  && targetNode !== sourceNode.parent) {
-            this.graph.links = this.graph.links.concat([link]);
-            // console.log('adding link between ', 's', sourceNode.title, 't', targetNode.title);
-          } else{
-            // console.log('ommitting link between ', 's', sourceNode.title, 't', targetNode.title);
-          }
-
-        });
-
-        // this.graph.links = this.graph.links.concat(graph.links); 
+  
+            //Do not add link to parent (already exists in the tree)
+            if (sourceNode !== targetNode.parent  && targetNode !== sourceNode.parent) {
+              this.graph.links = this.graph.links.concat([link]);
+            };
+  
+          });
+        }
+        
       }
 
       this.interGenerationScale.range([.75, .25]).domain([2, this.graph.nodes.length]);
@@ -398,23 +417,12 @@ class Graph {
 
     //set default values for unvisited links;
     localGraph.links.map((l, i) => {
-      // if (!l.visited || replace) {
-        //preserve edge decisions made on load for preferential seed;
-        l.visible = (l.visited && !replace) ? l.visible : false; 
+        l.visible = (l.visited && !replace) ? l.visible : false;
         l.visited = (l.visited && !replace) ? l.visited : false;
         l.index = i;
-      // }
     });
-
-    //If it's a brand new tree extraction see these to 0
-    // if (replace) {
       this.ypos = 0;
-    // }
 
-    const seed = localGraph.nodes.filter((n) => { return n.uuid == this.seed; });
-    // seed[0].visited = false;
-
-    console.log('seed is ',seed);
 
     while (localGraph.nodes.filter((n) => {
       return n.visited === false;
@@ -426,16 +434,12 @@ class Graph {
         this.graph.nodes.filter((n) => {
           return n.visited === false;
         }).reduce((a, b) => this.nodeNeighbors[a.index].degree > this.nodeNeighbors[b.index].degree ? a : b); //potential problem with indexing if this is on a subset of the graph
-
-      console.log('starting at ', root)
-      // root.visited = true;
-
       const maxY = max(this.graph.nodes, (n: any) => {
         return +n.y;
       });
 
-      root.x = root.x ? root.x : 0;
-      root.y = root.y ? root.y : (maxY > -1 ? maxY + 2 : 0);
+      root.x = root.x && !replace ? root.x : 0;
+      root.y = root.y && !replace ? root.y : (maxY > -1 ? maxY + 2 : 0);
 
 
       const queue = [root];
@@ -447,19 +451,6 @@ class Graph {
       }
       this.layoutTree(root);
     }
-
-    // //Separate layout from tree extraction to account for preferential roots in the middle of the tree
-    // while (localGraph.nodes.filter((n) => {
-    //   return n.y === undefined;
-    // }).length > 0) {
-
-    //   const root = (roots && roots.filter((r) => { return !r.visited; }).length > 0) ? roots.filter((r) => { return !r.visited; })[0] :
-    //     localGraph.nodes.filter((n) => {
-    //       return n.y === undefined;
-    //     }).reduce((a, b) => this.nodeNeighbors[a.index].degree > this.nodeNeighbors[b.index].degree ? a : b);
-
-
-    // }
   }
 
   // recursive helper function to extract tree from graph
@@ -467,23 +458,16 @@ class Graph {
 
     // if (!node.visited) {
       node.visited = true;
-      console.log('visiting ', node);
-      // node.yPos = yPos[0];
-      // yPos[0] = yPos[0] + 1;
-  
       const edges = this.graph.links.filter((l) => {
         return l.target === node.index || l.source === node.index;
       });
   
-      // const prefParent = this.graph.nodes.filter((n) => { return n.uuid == this.seed; })[0];
-      console.log('there are ',  edges.length , ' edges connected to ', node.title)
+      // console.log('there are ',  edges.length , ' edges connected to ', node.title)
   
       edges.map((e) => {
         
         const target = this.graph.nodes[e.target];
         const source = this.graph.nodes[e.source];
-        // console.log('t',target.title, 's', source.title)
-        // console.log('target', target.title, target.visited, 'source', source.title, source.visited)
   
         if (!target.visited) {
           e.visible = e.visited ? e.visible : true;
@@ -518,20 +502,8 @@ class Graph {
 
       node.y = this.ypos;
       this.ypos = this.ypos + 1;
-    
-    
-
-    console.log('laying out', node.title, node.x, node.y);
 
     node.children.map((c) => {
-      // const xNodes = this.graph.nodes.filter((nn) => {
-      //   return nn.x === node.x + 1;
-      // });
-
-      // const maxY = max(xNodes, (n: any) => {
-      //   return n.y;
-      // });
-
       c.x = node.x + 1;
       this.layoutTreeHelper(c);
     });
@@ -673,11 +645,11 @@ class Graph {
         const tt = this.createID(this.graph.nodes[d.target].title);
         return 'url(#' + st + '_' + tt + ')';
       })
-      .attr('mask', (d: any) => {
-        const st = this.createID(this.graph.nodes[d.source].title);
-        const tt = this.createID(this.graph.nodes[d.target].title);
-        return 'url(#m_' + st + '_' + tt + ')';
-      })
+      // .attr('mask', (d: any) => {
+      //   const st = this.createID(this.graph.nodes[d.source].title);
+      //   const tt = this.createID(this.graph.nodes[d.target].title);
+      //   return 'url(#m_' + st + '_' + tt + ')';
+      // })
       .attr('marker-end', '')
       .attr('marker-start', '');
 
@@ -730,9 +702,16 @@ class Graph {
     node
       .text((d) => { return Config.icons[d.label] + ' ' + d.title; })
       .on('click', (d) => {
-        console.log(d);
-        // this.seed = d.uuid;
+        console.log(d)
+        events.fire(SUBGRAPH_CHANGED_EVENT,{'db':this.selectedDB,'rootID':d.uuid,'depth':1,'replace':false,'remove':d.children.length>0});
+
         // // extractTree(roots = undefined, localGraph = this.graph, replace = true)
+        // this.extractTree([d]);
+        // this.drawTree();
+      })
+      .on('contextmenu', (d) => {
+        console.log('right click')
+        // extractTree(roots = undefined, localGraph = this.graph, replace = true)
         // this.extractTree([d]);
         // this.drawTree();
       });
@@ -757,11 +736,11 @@ class Graph {
           return 'url(#' + st + '_' + tt + ')';
         });
 
-        element.attr('mask', (dd: any) => {
-          const st = this.createID(this.graph.nodes[dd.source].title);
-          const tt = this.createID(this.graph.nodes[dd.target].title);
-          return 'url(#m_' + st + '_' + tt + ')';
-        });
+        // element.attr('mask', (dd: any) => {
+        //   const st = this.createID(this.graph.nodes[dd.source].title);
+        //   const tt = this.createID(this.graph.nodes[dd.target].title);
+        //   return 'url(#m_' + st + '_' + tt + ')';
+        // });
 
       });
 

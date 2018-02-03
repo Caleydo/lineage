@@ -80,7 +80,7 @@ class Graph {
   private graph;
 
   //Store the latest root selected to ensure all of its children are linked to it.
-  private preferentialParent;
+  private seed;
 
   private selectedDB;
 
@@ -89,7 +89,7 @@ class Graph {
 
   private nodeNeighbors;
 
-  private treeEdges;
+  private treeEdges = [];
 
   private ypos = 0;
 
@@ -116,16 +116,16 @@ class Graph {
   /**
    * Creates a Map Object
    */
-  constructor(width, height, radius, selector,tmanager) {
+  constructor(width, height, radius, selector, tmanager) {
 
-    events.on(DB_CHANGED_EVENT,(evt,info) => {
+    events.on(DB_CHANGED_EVENT, (evt, info) => {
 
       this.loadGraph(info.value);;
     });
 
-    events.on(SUBGRAPH_CHANGED_EVENT,(evt,info) => {
-            this.loadGraph(info.db,info.rootID,info.depth,info.replace);;
-          });
+    events.on(SUBGRAPH_CHANGED_EVENT, (evt, info) => {
+      this.loadGraph(info.db, info.rootID, info.depth, info.replace);;
+    });
 
 
     this.tableManager = tmanager;
@@ -134,18 +134,18 @@ class Graph {
     this.radius = radius;
 
     select(selector).append('div')
-    .attr('id','graphHeaders');
+      .attr('id', 'graphHeaders');
 
     const graphDiv = select(selector).append('div')
-    .attr('id','graphDiv');
+      .attr('id', 'graphDiv');
 
     this.svg = select('#graphDiv')
-    .append('svg')
+      .append('svg')
       .attr('width', this.width)
       .attr('height', this.height)
-      .attr('id','graph')
+      .attr('id', 'graph')
       .append('g')
-      .attr('id','genealogyTree')
+      .attr('id', 'genealogyTree')
       .attr('transform', 'translate(' + this.margin.left + ',' + (Config.glyphSize + this.margin.top) + ')');
 
 
@@ -167,7 +167,7 @@ class Graph {
       .attr('stop-color', 'white')
       .attr('offset', '25%');
 
-      radGrad.append('stop')
+    radGrad.append('stop')
       .attr('stop-opacity', '1')
       .attr('stop-color', 'white')
       .attr('offset', '26%');
@@ -177,7 +177,7 @@ class Graph {
       .attr('stop-opacity', '1')
       .attr('offset', '80%');
 
-      radGrad.append('stop')
+    radGrad.append('stop')
       .attr('stop-color', 'white')
       .attr('stop-opacity', '0')
       .attr('offset', '81%');
@@ -185,8 +185,8 @@ class Graph {
     //Used @ the start and end of edges
     const marker = svgDefs.append('marker')
       .attr('id', 'circleMarker')
-      .attr('markerWidth', this.radius*2)
-      .attr('markerHeight', this.radius*2)
+      .attr('markerWidth', this.radius * 2)
+      .attr('markerHeight', this.radius * 2)
       .attr('refX', 2)
       .attr('refY', 2);
 
@@ -195,33 +195,33 @@ class Graph {
       .attr('cy', 2)
       .attr('r', 2);
 
-          //Used @ the start and end of edges
+    //Used @ the start and end of edges
     const marker2 = svgDefs.append('marker')
-    .attr('id', 'edgeCircleMarker')
-    .attr('markerWidth', this.radius)
-    .attr('markerHeight', this.radius)
-    .attr('refX', 2)
-    .attr('refY', 2);
+      .attr('id', 'edgeCircleMarker')
+      .attr('markerWidth', this.radius)
+      .attr('markerHeight', this.radius)
+      .attr('refX', 2)
+      .attr('refY', 2);
 
     marker2.append('circle')
-    .attr('cx', 2)
-    .attr('cy',2)
-    .attr('r', 1.5);
+      .attr('cx', 2)
+      .attr('cy', 2)
+      .attr('r', 1.5);
 
-        //create a group for highlight bars
-        select('#genealogyTree')
-        .append('g')
-        .attr('id', 'allBars');
+    //create a group for highlight bars
+    select('#genealogyTree')
+      .append('g')
+      .attr('id', 'allBars');
 
-      //create a group for highlight bars of hidden nodes
-      select('#allBars')
-        .append('g')
-        .attr('id', 'hiddenHighlightBars');
+    //create a group for highlight bars of hidden nodes
+    select('#allBars')
+      .append('g')
+      .attr('id', 'hiddenHighlightBars');
 
-      //create a group for highlight bars of non hidden nodes
-      select('#allBars')
-        .append('g')
-        .attr('id', 'highlightBars');
+    //create a group for highlight bars of non hidden nodes
+    select('#allBars')
+      .append('g')
+      .attr('id', 'highlightBars');
 
     this.svg.append('g')
       .attr('class', 'links');
@@ -243,7 +243,7 @@ class Graph {
   /**
    * Function that loads up the graph
    */
-  public async loadGraph(db,root = undefined, depth = undefined, replace = true) {
+  public async loadGraph(db, root = undefined, depth = undefined, replace = true) {
 
     // if (!this.selectedDB) {
     //   console.log('No Database Selected');
@@ -260,64 +260,77 @@ class Graph {
     });
 
 
-    const url = root ? 'api/data_api/graph/'+db + '/' + root + '/' + depth : 'api/data_api/graph/'+db;
+    const url = root ? 'api/data_api/graph/' + db + '/' + root + '/' + depth : 'api/data_api/graph/' + db;
 
-    json(url, (error, graph:any) => {
+    json(url, (error, graph: any) => {
       if (error) {
         throw error;
       }
 
       console.log('url is', url);
-      this.preferentialParent = graph.root;
+      this.seed = graph.root;
       //Replace graph or merge with incoming subgraph
       if (replace || !this.graph) {
         this.graph = graph;
       } else {
 
 
-        let subGraph;
-        subGraph.nodes=[];
-        subGraph.links=[];
+        const rootNode = graph.nodes.filter((n) => { return n.uuid == graph.root; });
+        const existingNodes = []; //nodes in the current subgraph that already exist in the tree
 
-        //Start off with 
-        let wholeGraph = this.graph;
-
-        let allRoots = this.graph.root;
-
-        graph.nodes.forEach((node)=> {
-          if (this.graph.nodes.filter((n)=> {return n.uuid === node.uuid; }).length<1) {
-            wholeGraph.nodes = this.graph.nodes.concat(node);
-            subGraph.nodes.push(node);
+        graph.nodes.forEach((node) => {
+          const eNode = this.graph.nodes.filter((n) => { return n.uuid === node.uuid; });
+          if (eNode.length < 1) {
+            this.graph.nodes = this.graph.nodes.concat(node);
+          } else {
+            existingNodes.push(eNode[0]);
           }
         });
 
         //only add root to array of roots if it does not already exist in the graph;
-        if (this.graph.nodes.filter((n)=> {return n.uuid == graph.root; }).length<1) {
-          console.log('adding root ', graph.root)
-          allRoots = this.graph.root.concat(graph.root);
+        if (this.graph.nodes.filter((n) => { return n.uuid == graph.root; }).length < 1) {
+          console.log('adding root ', graph.root);
+          this.graph.root = this.graph.root.concat(graph.root);
         };
 
 
+        console.log('existing nodes', existingNodes);
+        //remove link to parent (already exists)
+        
 
-        //update indexes on incoming graph object
-        graph.links.forEach((link)=> {
-          const sourceNode = subGraph.nodes.filter((n)=> {return n.uuid === graph.nodes[link.source].uuid; })[0];
-          const targetNode = subGraph.nodes.filter((n)=> {return n.uuid === graph.nodes[link.target].uuid; })[0];
+        //update indexes
+        graph.links.forEach((link) => {
+          const sourceNode = this.graph.nodes.filter((n) => { return n.uuid === graph.nodes[link.source].uuid; })[0];
+          const targetNode = this.graph.nodes.filter((n) => { return n.uuid === graph.nodes[link.target].uuid; })[0];
+          link.source = this.graph.nodes.indexOf(sourceNode);
+          link.target = this.graph.nodes.indexOf(targetNode);
 
-          const sourceNode2 = wholeGraph.nodes.filter((n)=> {return n.uuid === graph.nodes[link.source].uuid; })[0];
-          const targetNode2 = wholeGraph.nodes.filter((n)=> {return n.uuid === graph.nodes[link.target].uuid; })[0];
+          //Set link visibility to hidden if the node already exists
+          if (existingNodes.indexOf(sourceNode) > -1 && existingNodes.indexOf(targetNode) > -1) {
+            link.visible = false;
+            link.visited = true;
+            // console.log('setting link to hidden ', 's', sourceNode.title, 't', targetNode.title);
+          } else { //set the visibility to true if the link is directly with the root
+            if (sourceNode.uuid === rootNode[0].uuid || targetNode.uuid === rootNode[0].uuid) {
+              link.visible = true;
+              link.visited = true;
+            } else {
+              link.visible = false;
+              link.visited = true;
+            }
+          }
 
-          link.source = subGraph.nodes.indexOf(sourceNode);
-          link.target = subGraph.nodes.indexOf(targetNode);
+          //Do not add link to parent (already exists in the tree)
+          if (sourceNode !== targetNode.parent  && targetNode !== sourceNode.parent) {
+            this.graph.links = this.graph.links.concat([link]);
+            // console.log('adding link between ', 's', sourceNode.title, 't', targetNode.title);
+          } else{
+            // console.log('ommitting link between ', 's', sourceNode.title, 't', targetNode.title);
+          }
 
-          let link2
-          link2.source = wholeGraph.nodes.indexOf(sourceNode2);
-          link2.target = wholeGraph.nodes.indexOf(targetNode2);
-
-          wholeGraph.links.push(link2);
         });
 
-        subGraph.links = graph.links;
+        // this.graph.links = this.graph.links.concat(graph.links); 
       }
 
       this.interGenerationScale.range([.75, .25]).domain([2, this.graph.nodes.length]);
@@ -349,9 +362,9 @@ class Graph {
         source.degree = source.neighbors.size;
       });
 
-      const roots = this.graph.nodes.filter((n)=> {return this.graph.root.indexOf(n.uuid) >-1;});
+      const roots = this.graph.nodes.filter((n) => { return this.graph.root.indexOf(n.uuid) > -1; });
 
-      this.extractTree(roots.length>0 ? roots : undefined);
+      this.extractTree(roots.length > 0 ? roots : undefined, this.graph, false);
 
       this.exportYValues();
 
@@ -371,40 +384,59 @@ class Graph {
   // roots, which graph to extract, and whether to replace any existing tree.
   extractTree(roots = undefined, localGraph = this.graph, replace = true) {
 
+    //set default values for unvisited nodes;
     localGraph.nodes.map((n, i) => {
-      n.index = i;
-      n.visited = false;
-      n.children = [];
-      n.parent = n.parent? n.parent :[]; //preserve parents from past tree extractions;
-      n.y = undefined;
-      n.x = undefined;
+      // if (replace) {
+        n.index = i;
+        n.visited = false;
+        n.children = [];
+        n.parent = undefined;
+        n.y = undefined;
+        n.x = undefined;
+      // }
     });
 
+    //set default values for unvisited links;
     localGraph.links.map((l, i) => {
-      l.visible = false;
-      l.index = i;
+      // if (!l.visited || replace) {
+        //preserve edge decisions made on load for preferential seed;
+        l.visible = (l.visited && !replace) ? l.visible : false; 
+        l.visited = (l.visited && !replace) ? l.visited : false;
+        l.index = i;
+      // }
     });
-    
+
     //If it's a brand new tree extraction see these to 0
-    if (replace) {
-      this.treeEdges = [];
+    // if (replace) {
       this.ypos = 0;
-    }
-    
+    // }
+
+    const seed = localGraph.nodes.filter((n) => { return n.uuid == this.seed; });
+    // seed[0].visited = false;
+
+    console.log('seed is ',seed);
 
     while (localGraph.nodes.filter((n) => {
       return n.visited === false;
     }).length > 0) {
 
-      const prefParent = localGraph.nodes.filter((n)=> {return n.uuid == this.preferentialParent;})[0];
-
+      
       //Start with preferential root, then pick node with highest degree if none was supplied.
-      const root = (roots && roots.filter((r)=> {return r.visited === false;}).length>0) ? [prefParent].concat(roots).filter((r)=> {return r.visited === false;})[0] :
-      this.graph.nodes.filter((n) => {
-        return n.visited === false;
-      }).reduce((a, b) => this.nodeNeighbors[a.index].degree > this.nodeNeighbors[b.index].degree ? a : b); //potential problem with indexing if this is on a subset of the graph
+      const root = (roots.filter((r) => { return !r.visited;}).length > 0) ? roots.filter((r) => { return !r.visited; })[0] :
+        this.graph.nodes.filter((n) => {
+          return n.visited === false;
+        }).reduce((a, b) => this.nodeNeighbors[a.index].degree > this.nodeNeighbors[b.index].degree ? a : b); //potential problem with indexing if this is on a subset of the graph
 
-      root.visited = true;
+      console.log('starting at ', root)
+      // root.visited = true;
+
+      const maxY = max(this.graph.nodes, (n: any) => {
+        return +n.y;
+      });
+
+      root.x = root.x ? root.x : 0;
+      root.y = root.y ? root.y : (maxY > -1 ? maxY + 2 : 0);
+
 
       const queue = [root];
 
@@ -413,78 +445,69 @@ class Graph {
         const node = queue.splice(0, 1)[0];;
         this.extractTreeHelper(node, queue);
       }
-    }
-    //Separate layout from tree extraction to account for preferential roots in the middle of the tree
-    while (localGraph.nodes.filter((n) => {
-      return n.y === undefined;
-    }).length > 0) {
-
-      const root = (roots && roots.filter((r)=> {return r.y === undefined;}).length>0) ? roots.filter((r)=> {return r.y === undefined;})[0] :
-      localGraph.nodes.filter((n) => {
-        return n.y === undefined;
-      }).reduce((a, b) => this.nodeNeighbors[a.index].degree > this.nodeNeighbors[b.index].degree ? a : b);
-
-      const maxY = max(this.graph.nodes, (n: any) => {
-        return +n.y;
-      });
-      console.log('root is ', root);
-      root.x = 0;
-      root.y = maxY > -1 ? maxY + 2 : 0;
-
       this.layoutTree(root);
     }
+
+    // //Separate layout from tree extraction to account for preferential roots in the middle of the tree
+    // while (localGraph.nodes.filter((n) => {
+    //   return n.y === undefined;
+    // }).length > 0) {
+
+    //   const root = (roots && roots.filter((r) => { return !r.visited; }).length > 0) ? roots.filter((r) => { return !r.visited; })[0] :
+    //     localGraph.nodes.filter((n) => {
+    //       return n.y === undefined;
+    //     }).reduce((a, b) => this.nodeNeighbors[a.index].degree > this.nodeNeighbors[b.index].degree ? a : b);
+
+
+    // }
   }
 
   // recursive helper function to extract tree from graph
   extractTreeHelper(node, queue, evalFcn = undefined, depth = undefined) {
 
-    //Find all edges that start or end on that node
-    node.visited = true;
-    // node.yPos = yPos[0];
-    // yPos[0] = yPos[0] + 1;
-
-    const edges = this.graph.links.filter((l) => {
-      return l.target === node.index || l.source === node.index;
-    });
-
-    const prefParent = this.graph.nodes.filter((n)=> {return n.uuid == this.preferentialParent;})[0];
-    console.log(prefParent)
-    
-    edges.map((e) => {
-      const target = this.graph.nodes[e.target];
-      const source = this.graph.nodes[e.source];
-      // console.log('target', target.title, 'source', source.title)
-
-      if (!target.visited) {
-        //Make sure target was not parent of the current prefParent before; 
-        // if (node.uuid !== this.preferentialParent &&  prefParent.parent.indexOf(target) <0 ) {
-          e.visible = true;
-          this.treeEdges.push(e);
-          target.visited = true;
-          node.children.push(target);
-          // if (target !== prefParent) {
-            target.parent.push(node);
-            queue.push(target);
-          // }
-          
-        // }
-       
-      } else if (!source.visited) {
-        // if (node.uuid !== this.preferentialParent && prefParent.parent.indexOf(source) <0 ) {
-          e.visible = true;
-          this.treeEdges.push(e);
-          source.visited = true;
-          node.children.push(source);
-          // if (source !== prefParent) {
-            source.parent.push(node);
-            queue.push(source);
-          // }
-          
-          
-        // }
+    // if (!node.visited) {
+      node.visited = true;
+      console.log('visiting ', node);
+      // node.yPos = yPos[0];
+      // yPos[0] = yPos[0] + 1;
+  
+      const edges = this.graph.links.filter((l) => {
+        return l.target === node.index || l.source === node.index;
+      });
+  
+      // const prefParent = this.graph.nodes.filter((n) => { return n.uuid == this.seed; })[0];
+      console.log('there are ',  edges.length , ' edges connected to ', node.title)
+  
+      edges.map((e) => {
         
-      }
-    });
+        const target = this.graph.nodes[e.target];
+        const source = this.graph.nodes[e.source];
+        // console.log('t',target.title, 's', source.title)
+        // console.log('target', target.title, target.visited, 'source', source.title, source.visited)
+  
+        if (!target.visited) {
+          e.visible = e.visited ? e.visible : true;
+          
+          if (e.visible) {
+           target.visited = true;
+           target.parent=node;
+           node.children.push(target);
+           queue.push(target);
+          }
+        } else if (!source.visited) {
+          e.visible = e.visited ? e.visible : true;
+          if (e.visible) {
+            source.visited = true;
+            source.parent=node;
+            node.children.push(source);
+            queue.push(source);
+          }
+        }
+
+        e.visited = true;
+      });
+    // }
+    
   }
 
   layoutTree(root) {
@@ -493,18 +516,14 @@ class Graph {
 
   layoutTreeHelper(node) {
 
-    // console.log('laying out' , node.title)
-
+      node.y = this.ypos;
+      this.ypos = this.ypos + 1;
+    
     
 
-    node.y = this.ypos;
-    this.ypos = this.ypos + 1;
-
-    console.log('laying out' , node.title, node.x, node.y);
+    console.log('laying out', node.title, node.x, node.y);
 
     node.children.map((c) => {
-
-
       // const xNodes = this.graph.nodes.filter((nn) => {
       //   return nn.x === node.x + 1;
       // });
@@ -512,9 +531,8 @@ class Graph {
       // const maxY = max(xNodes, (n: any) => {
       //   return n.y;
       // });
-      
+
       c.x = node.x + 1;
-      console.log('visiting ' , c.title, c.x, c.y);
       this.layoutTreeHelper(c);
     });
 
@@ -561,7 +579,7 @@ class Graph {
 
     select('#graph').select('svg').attr('height', this.height);
 
-    const xScale = scaleLinear().domain([0, maxX]).range([this.padding.left, this.width - this.padding.right-this.padding.left]);
+    const xScale = scaleLinear().domain([0, maxX]).range([this.padding.left, this.width - this.padding.right - this.padding.left]);
     const yScale = scaleLinear().range([0, this.height * .7]).domain(yrange);
 
     this.xScale = xScale;
@@ -597,19 +615,19 @@ class Graph {
     linkClips.select('#sourceCircle')
       .attr('cx', (d) => { return xScale(this.graph.nodes[d.source].x); })
       .attr('cy', (d) => { return yScale(this.graph.nodes[d.source].y); })
-      .attr('r', this.radius*0.9);
+      .attr('r', this.radius * 0.9);
 
 
     linkClips.select('#targetCircle')
       .attr('cx', (d) => { return xScale(this.graph.nodes[d.target].x); })
       .attr('cy', (d) => { return yScale(this.graph.nodes[d.target].y); })
-      .attr('r', this.radius*0.9);
+      .attr('r', this.radius * 0.9);
 
 
-   this.svg.select('defs')
+    this.svg.select('defs')
       .selectAll('mask').remove();
 
-  let linkMasks = this.svg.select('defs')
+    let linkMasks = this.svg.select('defs')
       .selectAll('mask')
       .data(graph.links.filter((l) => { return !l.visible; }), (d) => {
         return d.index;
@@ -626,14 +644,14 @@ class Graph {
     linkMasksEnter
       .append('circle')
       .attr('id', 'sourceCircleMask')
-      .attr('r', this.radius*2 )
+      .attr('r', this.radius * 2)
       .attr('fill', 'url(#radialGrad)');
-      // .attr('fill','#df5555');
+    // .attr('fill','#df5555');
 
     linkMasksEnter
       .append('circle')
       .attr('id', 'targetCircleMask')
-      .attr('r', this.radius*2 )
+      .attr('r', this.radius * 2)
       // .attr('fill','#df5555');
       .attr('fill', 'url(#radialGrad)');
 
@@ -678,7 +696,7 @@ class Graph {
       .attr('marker-end', 'url(#circleMarker)')
       .attr('marker-start', 'url(#circleMarker)');
 
-      selectAll('.hiddenEdge')
+    selectAll('.hiddenEdge')
       .attr('marker-end', 'url(#edgeCircleMarker)')
       .attr('marker-start', 'url(#edgeCircleMarker)');
 
@@ -712,10 +730,11 @@ class Graph {
     node
       .text((d) => { return Config.icons[d.label] + ' ' + d.title; })
       .on('click', (d) => {
-        this.preferentialParent = d.uuid;
-        // extractTree(roots = undefined, localGraph = this.graph, replace = true) 
-        this.extractTree([d]);
-        this.drawTree();
+        console.log(d);
+        // this.seed = d.uuid;
+        // // extractTree(roots = undefined, localGraph = this.graph, replace = true)
+        // this.extractTree([d]);
+        // this.drawTree();
       });
 
     node.on('mouseover', (d) => {
@@ -783,10 +802,10 @@ class Graph {
 
     // d3.selectAll('.hiddenEdge').attr('display', 'none');
 
-     this.addHightlightBars();
+    this.addHightlightBars();
 
     select('#graph')
-    .attr('height',document.getElementById('genealogyTree').getBoundingClientRect().height);
+      .attr('height', document.getElementById('genealogyTree').getBoundingClientRect().height);
 
   }
 
@@ -904,225 +923,225 @@ class Graph {
 
   private addHightlightBars() {
 
-        // const t = transition('t').duration(500).ease(easeLinear);
+    // const t = transition('t').duration(500).ease(easeLinear);
 
-        const highlightBarGroup = select('#genealogyTree').select('#highlightBars');
+    const highlightBarGroup = select('#genealogyTree').select('#highlightBars');
 
-        const yRange: number[] = [min(this.graph.nodes, function (d: any) {
-          return Math.round(d.y);
-        }), max(this.graph.nodes, function (d: any) {
-          return Math.round(d.y);
-        })];
+    const yRange: number[] = [min(this.graph.nodes, function (d: any) {
+      return Math.round(d.y);
+    }), max(this.graph.nodes, function (d: any) {
+      return Math.round(d.y);
+    })];
 
-        //Create data to bind to highlightBars
-        const yData: any[] = [];
-        for (let i = yRange[0]; i <= yRange[1]; i++) {
-          //find all nodes in this row
-          const yNodes = this.graph.nodes.filter((n: any) => {
-            return Math.round(n.y) === i;
-          });
+    //Create data to bind to highlightBars
+    const yData: any[] = [];
+    for (let i = yRange[0]; i <= yRange[1]; i++) {
+      //find all nodes in this row
+      const yNodes = this.graph.nodes.filter((n: any) => {
+        return Math.round(n.y) === i;
+      });
 
-          // console.log(yNodes[0])
-          // if (yNodes.length>0) {
-          yData.push({
-            y: i, x: min(yNodes, (d: any) => {
-              return d.x;
-            })
-            , id: yNodes[0].uuid
-          });
-          // }
+      // console.log(yNodes[0])
+      // if (yNodes.length>0) {
+      yData.push({
+        y: i, x: min(yNodes, (d: any) => {
+          return d.x;
+        })
+        , id: yNodes[0].uuid
+      });
+      // }
 
-        }
+    }
 
-        //Create data to bind to aggregateBars
-        const aggregateBarData: any[] = [];
-        for (let i = yRange[0]; i <= yRange[1]; i++) {
-          //find all nodes in this row
-          const yNodes = this.graph.nodes.filter((n: any) => {
-            return Math.round(n.y) === i && n.aggregated;
-          });
-          if (yNodes.length > 0) {
-            aggregateBarData.push({
-              y: i, x: min(yNodes, (d:any) => {
-                return d.x;
-              })
-            });
-          }
-
-        }
-
-        // Attach aggregateBars
-        let aggregateBars = highlightBarGroup.selectAll('.aggregateBar')
-          .data(aggregateBarData, (d) => { return d.y; });
-
-
-        aggregateBars.exit().remove();
-
-        const aggregateBarsEnter = aggregateBars
-          .enter()
-          .append('rect')
-          .classed('aggregateBar', true)
-          .attr('opacity', 0);
-
-        aggregateBars = aggregateBarsEnter.merge(aggregateBars);
-
-        aggregateBars
-          // .transition(t)
-          .attr('transform', (row: any) => {
-            return 'translate(0,' + (this.yScale(row.y) - Config.glyphSize * 1.25) + ')';
+    //Create data to bind to aggregateBars
+    const aggregateBarData: any[] = [];
+    for (let i = yRange[0]; i <= yRange[1]; i++) {
+      //find all nodes in this row
+      const yNodes = this.graph.nodes.filter((n: any) => {
+        return Math.round(n.y) === i && n.aggregated;
+      });
+      if (yNodes.length > 0) {
+        aggregateBarData.push({
+          y: i, x: min(yNodes, (d: any) => {
+            return d.x;
           })
-          .attr('width', (row: any) => {
-            const range = this.xScale.range();
-            return (max([range[0],range[1]]) - this.xScale(row.x) + this.margin.right);
-          })
-          .attr('x', (row: any) => {
-            return this.xScale(row.x);
-          })
-          .attr('height', Config.glyphSize * 2.5);
-
-
-        aggregateBars
-          // .transition(t.transition().duration(500).ease(easeLinear))
-          .attr('opacity', 1);
-
-
-        // Attach highlight Bars
-        let allBars = highlightBarGroup.selectAll('.bars')
-          .data(yData, (d) => { return d.id; });
-
-        allBars.exit().remove();
-
-        const allBarsEnter = allBars
-          .enter()
-          .append('g')
-          .classed('bars', true);
-
-        allBarsEnter
-          .append('rect')
-          .classed('backgroundBar', true);
-
-        allBarsEnter
-          .append('rect')
-          .classed('highlightBar', true);
-
-        allBars = allBarsEnter.merge(allBars);
-
-        //Position all bars:
-        allBars
-          .attr('transform', (row: any) => {
-            return 'translate(0,' + (this.yScale(row.y) - Config.glyphSize) + ')';
-          });
-
-
-        allBars
-          .select('.backgroundBar')
-          .attr('width', () => {
-            const range = this.xScale.range();
-            return (max([range[0],range[1]]) - min([range[0],range[1]]) + this.margin.right + this.padding.right);
-          })
-          .attr('height', Config.glyphSize * 2);
-
-        allBars
-          .select('.highlightBar')
-          .attr('width', (row: any) => {
-            const range = this.xScale.range();
-            return (max([range[0],range[1]]) - this.xScale(row.x) + this.margin.right + this.padding.right);
-          })
-          .attr('x', (row: any) => {
-            return this.xScale(row.x);
-          })
-          .attr('height', Config.glyphSize * 2);
-
-
-        //Set both the background bar and the highlight bar to opacity 0;
-        selectAll('.bars')
-          .selectAll('.backgroundBar')
-          .attr('opacity', 0);
-
-        selectAll('.bars')
-          .selectAll('.highlightBar')
-          .attr('opacity', 0);
-
-        function highlightRows(d: any) {
-
-          function selected(e: any) {
-            let returnValue = false;
-            //Highlight the current row in the graph and table
-
-            if (e.y === Math.round(d.y)) {
-              returnValue = true;
-            }
-            return returnValue;
-          }
-
-          selectAll('.slopeLine').classed('selectedSlope', false);
-
-          selectAll('.slopeLine').filter((e: any) => {
-
-            return e.y === Math.round(d.y);
-          }).classed('selectedSlope', true);
-
-          //Set opacity of corresponding highlightBar
-          selectAll('.highlightBar').filter(selected).attr('opacity', .2);
-
-          //Set the age label on the lifeLine of this row to visible
-          selectAll('.ageLineGroup').filter((e:any) => {
-            return e.y === Math.round(d.y);
-          }).filter((d: any) => {
-            return !d.aggregated && !d.hidden;
-          }).select('.ageLabel').attr('visibility', 'visible');
-
-          // selectAll('.duplicateLine').filter(selected).attr('visibility', 'visible');
-        }
-
-        function clearHighlights() {
-          // selectAll('.duplicateLine').attr('visibility', 'hidden');
-
-          selectAll('.slopeLine').classed('selectedSlope', false);
-
-          //Hide all the highlightBars
-          selectAll('.highlightBar').attr('opacity', 0);
-
-          selectAll('.ageLabel').attr('visibility', 'hidden');
-        }
-
-
-        selectAll('.highlightBar')
-          .on('mouseover', highlightRows)
-          .on('mouseout', clearHighlights)
-          .on('click', (d: any, i) => {
-            if (event.defaultPrevented) { return; } // dragged
-
-            const wasSelected = selectAll('.highlightBar').filter((e: any) => {
-              return e.y === d.y || e.y === Math.round(d.y);
-            }).classed('selected');
-
-
-            //'Unselect all other background bars if ctrl was not pressed
-            if (!event.metaKey) {
-              selectAll('.slopeLine').classed('clickedSlope', false);
-              selectAll('.highlightBar').classed('selected', false);
-            }
-
-            selectAll('.slopeLine').filter((e: any) => {
-              return e.y === d.y || e.y === Math.round(d.y);
-            }).classed('clickedSlope', function () {
-              return (!wasSelected);
-            });
-
-            selectAll('.highlightBar').filter((e: any) => {
-              return e.y === d.y || e.y === Math.round(d.y);
-            }).classed('selected', function () {
-              return (!wasSelected);
-            });
-          });
-
-        selectAll('.bars')
-          .selectAll('.backgroundBar')
-          .on('mouseover', highlightRows)
-          .on('mouseout', clearHighlights);
-
+        });
       }
+
+    }
+
+    // Attach aggregateBars
+    let aggregateBars = highlightBarGroup.selectAll('.aggregateBar')
+      .data(aggregateBarData, (d) => { return d.y; });
+
+
+    aggregateBars.exit().remove();
+
+    const aggregateBarsEnter = aggregateBars
+      .enter()
+      .append('rect')
+      .classed('aggregateBar', true)
+      .attr('opacity', 0);
+
+    aggregateBars = aggregateBarsEnter.merge(aggregateBars);
+
+    aggregateBars
+      // .transition(t)
+      .attr('transform', (row: any) => {
+        return 'translate(0,' + (this.yScale(row.y) - Config.glyphSize * 1.25) + ')';
+      })
+      .attr('width', (row: any) => {
+        const range = this.xScale.range();
+        return (max([range[0], range[1]]) - this.xScale(row.x) + this.margin.right);
+      })
+      .attr('x', (row: any) => {
+        return this.xScale(row.x);
+      })
+      .attr('height', Config.glyphSize * 2.5);
+
+
+    aggregateBars
+      // .transition(t.transition().duration(500).ease(easeLinear))
+      .attr('opacity', 1);
+
+
+    // Attach highlight Bars
+    let allBars = highlightBarGroup.selectAll('.bars')
+      .data(yData, (d) => { return d.id; });
+
+    allBars.exit().remove();
+
+    const allBarsEnter = allBars
+      .enter()
+      .append('g')
+      .classed('bars', true);
+
+    allBarsEnter
+      .append('rect')
+      .classed('backgroundBar', true);
+
+    allBarsEnter
+      .append('rect')
+      .classed('highlightBar', true);
+
+    allBars = allBarsEnter.merge(allBars);
+
+    //Position all bars:
+    allBars
+      .attr('transform', (row: any) => {
+        return 'translate(0,' + (this.yScale(row.y) - Config.glyphSize) + ')';
+      });
+
+
+    allBars
+      .select('.backgroundBar')
+      .attr('width', () => {
+        const range = this.xScale.range();
+        return (max([range[0], range[1]]) - min([range[0], range[1]]) + this.margin.right + this.padding.right);
+      })
+      .attr('height', Config.glyphSize * 2);
+
+    allBars
+      .select('.highlightBar')
+      .attr('width', (row: any) => {
+        const range = this.xScale.range();
+        return (max([range[0], range[1]]) - this.xScale(row.x) + this.margin.right + this.padding.right);
+      })
+      .attr('x', (row: any) => {
+        return this.xScale(row.x);
+      })
+      .attr('height', Config.glyphSize * 2);
+
+
+    //Set both the background bar and the highlight bar to opacity 0;
+    selectAll('.bars')
+      .selectAll('.backgroundBar')
+      .attr('opacity', 0);
+
+    selectAll('.bars')
+      .selectAll('.highlightBar')
+      .attr('opacity', 0);
+
+    function highlightRows(d: any) {
+
+      function selected(e: any) {
+        let returnValue = false;
+        //Highlight the current row in the graph and table
+
+        if (e.y === Math.round(d.y)) {
+          returnValue = true;
+        }
+        return returnValue;
+      }
+
+      selectAll('.slopeLine').classed('selectedSlope', false);
+
+      selectAll('.slopeLine').filter((e: any) => {
+
+        return e.y === Math.round(d.y);
+      }).classed('selectedSlope', true);
+
+      //Set opacity of corresponding highlightBar
+      selectAll('.highlightBar').filter(selected).attr('opacity', .2);
+
+      //Set the age label on the lifeLine of this row to visible
+      selectAll('.ageLineGroup').filter((e: any) => {
+        return e.y === Math.round(d.y);
+      }).filter((d: any) => {
+        return !d.aggregated && !d.hidden;
+      }).select('.ageLabel').attr('visibility', 'visible');
+
+      // selectAll('.duplicateLine').filter(selected).attr('visibility', 'visible');
+    }
+
+    function clearHighlights() {
+      // selectAll('.duplicateLine').attr('visibility', 'hidden');
+
+      selectAll('.slopeLine').classed('selectedSlope', false);
+
+      //Hide all the highlightBars
+      selectAll('.highlightBar').attr('opacity', 0);
+
+      selectAll('.ageLabel').attr('visibility', 'hidden');
+    }
+
+
+    selectAll('.highlightBar')
+      .on('mouseover', highlightRows)
+      .on('mouseout', clearHighlights)
+      .on('click', (d: any, i) => {
+        if (event.defaultPrevented) { return; } // dragged
+
+        const wasSelected = selectAll('.highlightBar').filter((e: any) => {
+          return e.y === d.y || e.y === Math.round(d.y);
+        }).classed('selected');
+
+
+        //'Unselect all other background bars if ctrl was not pressed
+        if (!event.metaKey) {
+          selectAll('.slopeLine').classed('clickedSlope', false);
+          selectAll('.highlightBar').classed('selected', false);
+        }
+
+        selectAll('.slopeLine').filter((e: any) => {
+          return e.y === d.y || e.y === Math.round(d.y);
+        }).classed('clickedSlope', function () {
+          return (!wasSelected);
+        });
+
+        selectAll('.highlightBar').filter((e: any) => {
+          return e.y === d.y || e.y === Math.round(d.y);
+        }).classed('selected', function () {
+          return (!wasSelected);
+        });
+      });
+
+    selectAll('.bars')
+      .selectAll('.backgroundBar')
+      .on('mouseover', highlightRows)
+      .on('mouseout', clearHighlights);
+
+  }
 
 
   private createID(title) {
@@ -1193,21 +1212,21 @@ class Graph {
    */
   private exportYValues() {
 
-        //Create hashmap of personID to y value;
-        const dict = {};
+    //Create hashmap of personID to y value;
+    const dict = {};
 
-        this.graph.nodes.forEach((node) => {
-          if ((node.uuid) in dict) {
-            dict[node.uuid].push(Math.round(node.y));
-          } else {
-            dict[node.uuid] = [Math.round(node.y)];
-          }
-        });
-
-        //Assign y values to the tableManager object
-        this.tableManager.yValues = dict;
-        // this.yValues = dict; //store dict for tree to use when creating slope chart
+    this.graph.nodes.forEach((node) => {
+      if ((node.uuid) in dict) {
+        dict[node.uuid].push(Math.round(node.y));
+      } else {
+        dict[node.uuid] = [Math.round(node.y)];
       }
+    });
+
+    //Assign y values to the tableManager object
+    this.tableManager.yValues = dict;
+    // this.yValues = dict; //store dict for tree to use when creating slope chart
+  }
 
 
 }
@@ -1220,6 +1239,6 @@ class Graph {
  * @param options
  * @returns {graph}
  */
-export function create(width, height, radius, selector,tmanager) {
-  return new Graph(width, height, radius, selector,tmanager);
+export function create(width, height, radius, selector, tmanager) {
+  return new Graph(width, height, radius, selector, tmanager);
 }

@@ -321,7 +321,7 @@ class SetSelector {
 
       rows.on('click', (d: any) => {
         console.log('clicked');
-        events.fire(SUBGRAPH_CHANGED_EVENT,{'db':this.selectedDB,'rootID':d.id,'depth':1,'replace':true});
+        events.fire(SUBGRAPH_CHANGED_EVENT,{'db':this.selectedDB,'rootID':d.id,'depth':1,'replace':false});
       });
 
       //         //set all icons to +

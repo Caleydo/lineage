@@ -35,7 +35,7 @@ class HeaderMenus {
     .attr('class', 'nav navbar-nav navbar-left form-group')
     .attr('id', 'dbSelector');
 
-    let selectMenu = dropdownMenu
+    const selectMenu = dropdownMenu
     .append('select')
     .attr('class','form-control')
     .attr('id','sel')
@@ -43,15 +43,15 @@ class HeaderMenus {
 
     selectMenu.append('option')
     .attr('value','got')
-    .text('Game of Thrones')
+    .text('Game of Thrones');
 
     selectMenu.append('option')
     .attr('value','coauth')
-    .text('Co-author Network')
+    .text('Co-author Network');
 
     selectMenu.append('option')
     .attr('value','path')
-    .text('KEG Pathways')
+    .text('KEG Pathways');
 
   }
 }

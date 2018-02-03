@@ -601,7 +601,7 @@ class AttributeTable {
     const uniqueIDs = idVector.dim(0).asList().map((i) => { return i.toString(); });
 
     // const ids = uniqueIDs.map((id,i)=> {return id+'_'+kindredIDs[i];});
-    const ids = graphIDs.map((id, i) => { return id });
+    const ids = graphIDs.map((id, i) => { return id; });
 
 
     // console.log('ids:',ids)
@@ -609,7 +609,6 @@ class AttributeTable {
     //Create a dictionary of y value to people
     const y2personDict = {};
     const yDict = this.tableManager.yValues;
-    console.log('yDict',yDict)
     let maxRow=0;
 
     //Find max value in yDict
@@ -697,7 +696,7 @@ class AttributeTable {
       const peopleIDs = finishedPromises[index * 5 + 1];
       const phoveaIDs = finishedPromises[index * 5 + 2].dim(0).asList().map((i) => { return i.toString(); });
 
-      
+
       const type = vector.valuetype.type;
       const name = vector.desc.name;
 
@@ -779,7 +778,7 @@ class AttributeTable {
         // console.log(allRows,y2personDict)
         col.ids = allRows.map((row) => {
           // return y2personDict[row].map((d) => { return d.split('_')[0]; }); //only first part is the id
-          return y2personDict[row].map((d) => { return d }); //only first part is the id
+          return y2personDict[row].map((d) => { return d; }); //only first part is the id
         });
 
 
@@ -824,7 +823,7 @@ class AttributeTable {
         const col: any = {};
         col.isSorted = false;
         col.ids = allRows.map((row) => {
-          return y2personDict[row].map((d) => {return d}); //only first part is the id
+          return y2personDict[row].map((d) => {return d;}); //only first part is the id
         });
 
 
@@ -841,7 +840,7 @@ class AttributeTable {
           //   return self.indexOf(value.id) === index;
           // });
           people.map((person) => {
-            
+
             const ind = peopleIDs.lastIndexOf(person); //find this person in the attribute data
             // console.log(person,ind)
             // const ind = ids.lastIndexOf(person); //find this person in the attribute data
@@ -860,7 +859,7 @@ class AttributeTable {
 
         const col: any = {};
         col.ids = allRows.map((row) => {
-          return y2personDict[row].map((d) => { return d}); //only first part is the id
+          return y2personDict[row].map((d) => { return d;}); //only first part is the id
           // .filter(function (value, index, self) {
           //   return self.indexOf(value) === index;
           // });

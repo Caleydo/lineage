@@ -53,7 +53,7 @@ class SetSelector {
 
   // private tableManager;
 
-  private selectedDB; 
+  private selectedDB;
 
   private headerInfo = [
     {'header': 'Name', 'dataAttr': 'title' },
@@ -112,10 +112,10 @@ class SetSelector {
     .append('a')
       .attr('data-toggle','collapse')
       .attr('data-parent','#accordion')
-      .attr('href',(d,i)=> {return '#collapse_' + i;})
-      
+      .attr('href',(d,i)=> {return '#collapse_' + i;});
 
-   let pDefault = panelDefault
+
+   const pDefault = panelDefault
     .append('div')
       .attr('id',(d,i)=> {return 'collapse_' + i;})
       .attr('class','panel-collapse collapse ')
@@ -144,24 +144,24 @@ class SetSelector {
 
       tbody.append('tbody');
 
-      
+
       panels = panels.merge(panelsEnter);
 
       selectAll('a')
       .text((d:any)=> {return d;});
 
       selectAll('.panel-body')
-        .attr('id',(d)=> {return d + '_body';})
+        .attr('id',(d)=> {return d + '_body';});
 
-      // Populate Headers 
+      // Populate Headers
       labels.map((d)=> {this.updateTableHeader('#'+d + '_body');});
-      
+
 
   }
 
   private updateTableHeader(parentID) {
 
-    const tableHeaders = this.headerInfo
+    const tableHeaders = this.headerInfo;
 
           //Upate Header
           let headers = select(parentID)
@@ -169,19 +169,19 @@ class SetSelector {
             .select('tr')
             .selectAll('th')
             .data(tableHeaders);
-      
+
           const headerEnter = headers.enter()
             .append('th');
-      
+
           headers.exit().remove();
-      
+
           headers = headerEnter.merge(headers);
-      
+
           headers
             .style('width', (d: any, i) => {
               const width = (i <2 ? 10 : (90 / (tableHeaders.length - 2)));
               return width + '%';
-            })
+            });
       //       .on('click', function (d) {
       //         const isAscending = select(this).classed('des');
       //         if (isAscending) {
@@ -208,7 +208,7 @@ class SetSelector {
       //           select(this).attr('class', 'des');
       //         }
       //       });
-      
+
           headers
             .text(function (column) {
               return column.header ;
@@ -224,17 +224,17 @@ class SetSelector {
     this.selectedDB = db;
     const self = this;
 
-    const url = 'api/data_api/labels/' + db
+    const url = 'api/data_api/labels/' + db;
 
-    json(url, (error, graphData) => {
+    json(url, (error, graphData:any) => {
 
     //    // this.familyInfo = this.tableManager.familyInfo;
-    const data = graphData['labels'];
+    const data = graphData.labels;
 
-        let labels = data.map((d)=>{ return d.name});
+        const labels = data.map((d)=> { return d.name;});
         this.build(labels);
-    
-      
+
+
     //     const rowData = this.tableManager.familyInfo.map((d) => {
     //       const baseObject = {
     //         'id': d.id,
@@ -244,7 +244,7 @@ class SetSelector {
     //         'percentage': Math.round(d.percentage * 1000) / 10,
     //         'starCols': d.starCols
     //       };
-    
+
     //       d.starCols.map((attr) => {
     //         baseObject[attr.attribute] = attr.percentage;
     //       });
@@ -255,11 +255,11 @@ class SetSelector {
        });
             //     const selectedRows = rowData.filter((row) => { return this.selectedFamilyIds.indexOf(row.id)>-1; });
     //     this.populateTableRows('#tableHead', selectedRows,tableHeaders.length-2);
-    
+
     //     select('#tableBody').select('tbody').selectAll('tr').classed('selected',(d:any)=> {return this.selectedFamilyIds.indexOf(d.id) > -1;});
-    
+
     //     selectAll('.addRemoveIcon').on('click', ((d)=> {event.stopPropagation(); this.selectRow(d,rowData,tableHeaders.length-2);}));
-    
+
     //     if (selectAll('.selected').size() === 0) {
     //       console.log('emptyFamily!');
     //       this.selectRow({'id':data.familyInfo[0].id},rowData,tableHeaders.length-2,false);
@@ -320,7 +320,7 @@ class SetSelector {
 
 
       rows.on('click', (d: any) => {
-        console.log('clicked')
+        console.log('clicked');
         events.fire(SUBGRAPH_CHANGED_EVENT,{'db':this.selectedDB,'rootID':d.id,'depth':1,'replace':true});
       });
 
@@ -402,7 +402,7 @@ class SetSelector {
       })
       .style('text-align', 'center');
 
-      
+
   }
 
   // private loadFamily() {

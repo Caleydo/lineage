@@ -139,7 +139,7 @@ export class App {
 
   // let load  = ()=>{
     // const graphView = await graphObj.loadGraph(defaultDB);
-    
+
     // const graphDataObj = graphData.create(tableManager);
     // await graphDataObj.createTree().then(() => {
     //   graphDataObj.aggregateTreeWrapper(undefined, layoutState.Aggregated); //default to aggregated state;

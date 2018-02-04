@@ -127,7 +127,7 @@ class Graph {
 
     this.tableManager = tmanager;
     this.width = width;
-    this.height = 200;
+    this.height = 1000; // change to window height so force directed graph has room to breath;
     this.radius = radius;
 
     select(selector).append('div')
@@ -192,7 +192,7 @@ class Graph {
       .attr('cy', 2)
       .attr('r', 2);
 
-    //Used @ the start and end of edges
+    //Used @ the start and end of hidden edges
     const marker2 = svgDefs.append('marker')
       .attr('id', 'edgeCircleMarker')
       .attr('markerWidth', this.radius)
@@ -242,11 +242,6 @@ class Graph {
    */
   public async loadGraph(db, root = undefined, depth = undefined, replace = true, remove = false) {
 
-    // if (!this.selectedDB) {
-    //   console.log('No Database Selected');
-    //   return;
-    // }
-
     this.selectedDB = db;
 
     let resolvePromise;
@@ -267,41 +262,42 @@ class Graph {
       console.log('url is', url);
       //Replace graph or merge with incoming subgraph
       if (replace || !this.graph) {
+        //update indexes to contain refs of the actual nodes;
+        graph.links.forEach((link) => {
+          const sourceNode = graph.nodes.filter((n)=> {return n.uuid == link.source.uuid;})[0];
+          const targetNode = graph.nodes.filter((n)=> {return n.uuid == link.target.uuid;})[0];
+          link.source = sourceNode;
+          link.target = targetNode;
+        });
+
         this.graph = graph;
       } else {
         const rootNode = graph.nodes.filter((n) => { return n.uuid == graph.root; });
-        
+
         if (remove) { 
           const rootNode = this.graph.nodes.filter((n) => { return n.uuid == graph.root; });
           const toRemove = [];
-          //remove non-root nodes from this.graph.nodes
+          // remove all links to children
           rootNode[0].children.forEach((node) => {
-              const index = this.graph.nodes.indexOf(node);
-              // remove all links to children
+              // const index = this.graph.nodes.indexOf(node);
               this.graph.links.forEach((link,i) => {
-                if (link.source === index || link.target === index) {
+                // if (link.source === index || link.target === index) {
+                if (link.source.uuid === node.uuid || link.target.uuid === node.uuid) {
+                  // console.log('removing link from ', link.source , ' to ', link.target)
                   toRemove.push(i);
-                }
+                } 
               });
           });
-
+          //remove all children of the root from this.graph.nodes
           rootNode[0].children.forEach((node) => {
             const index = this.graph.nodes.indexOf(node);
             this.graph.nodes.splice(index,1);
         });
 
-          
            toRemove.sort().reverse(); //start @ the end of the array
-           toRemove.map((l)=> {this.graph.links.splice(l,1);});
-
-           console.log(toRemove)
+           toRemove.map((l)=> {return this.graph.links.splice(l,1);});
 
           rootNode[0].children=[];
-
-          
-
-          console.log(this.graph)
-          
         } else {
            const existingNodes = []; //nodes in the current subgraph that already exist in the tree
   
@@ -316,17 +312,23 @@ class Graph {
   
           //only add root to array of roots if it does not already exist in the graph;
           if (this.graph.nodes.filter((n) => { return n.uuid == graph.root; }).length < 1) {
-            console.log('adding root ', graph.root);
             this.graph.root = this.graph.root.concat(graph.root);
           };
   
           //update indexes
           graph.links.forEach((link) => {
-            const sourceNode = this.graph.nodes.filter((n) => { return n.uuid === graph.nodes[link.source].uuid; })[0];
-            const targetNode = this.graph.nodes.filter((n) => { return n.uuid === graph.nodes[link.target].uuid; })[0];
-            link.source = this.graph.nodes.indexOf(sourceNode);
-            link.target = this.graph.nodes.indexOf(targetNode);
-  
+            // const sourceNode = this.graph.nodes.filter((n) => { return n.uuid === graph.nodes[link.source].uuid; })[0];
+            // const targetNode = this.graph.nodes.filter((n) => { return n.uuid === graph.nodes[link.target].uuid; })[0];
+
+            // link.source = this.graph.nodes.indexOf(sourceNode);
+            // link.target = this.graph.nodes.indexOf(targetNode);
+
+            const sourceNode = this.graph.nodes.filter((n)=> {return n.uuid == link.source.uuid;})[0];
+            const targetNode = this.graph.nodes.filter((n)=> {return n.uuid == link.target.uuid;})[0];
+            
+            link.source = sourceNode;
+            link.target = targetNode;
+
             //Set link visibility to hidden if the node already exists
             if (existingNodes.indexOf(sourceNode) > -1 && existingNodes.indexOf(targetNode) > -1) {
               link.visible = false;
@@ -361,7 +363,7 @@ class Graph {
       // this.visibleNodeNeighbors = {};
 
       this.graph.nodes.map((n, i) => {
-        this.nodeNeighbors[i] = {
+        this.nodeNeighbors[n.uuid] = {
           'neighbors': new Set(),
           'degree': 0
         };
@@ -371,14 +373,22 @@ class Graph {
       //Populate dictionary
       //Find all edges that start or end on that node
       this.graph.links.map((l) => {
-        const target = this.nodeNeighbors[l.target.toString()];
-        const source = this.nodeNeighbors[l.source.toString()];
+        // const targetNode = this.graph.nodes[l.target];
+        // const sourceNode = this.graph.nodes[l.source];
 
-        target.neighbors.add(this.graph.nodes[l.source]);
-        target.degree = target.neighbors.size;
+        const targetNode = l.target;
+        const sourceNode = l.source;
 
-        source.neighbors.add(this.graph.nodes[l.target]);
-        source.degree = source.neighbors.size;
+        const targetDictEntry = this.nodeNeighbors[targetNode.uuid];
+        const sourceDictEntry = this.nodeNeighbors[sourceNode.uuid];
+
+        // targetDictEntry.neighbors.add(this.graph.nodes[l.source]);
+        targetDictEntry.neighbors.add(sourceNode);
+        targetDictEntry.degree = targetDictEntry.neighbors.size;
+
+        // sourceDictEntry.neighbors.add(this.graph.nodes[l.target]);
+        sourceDictEntry.neighbors.add(sourceNode);
+        sourceDictEntry.degree = sourceDictEntry.neighbors.size;
       });
 
       const roots = this.graph.nodes.filter((n) => { return this.graph.root.indexOf(n.uuid) > -1; });
@@ -438,6 +448,7 @@ class Graph {
         return +n.y;
       });
 
+      //If root already has an x or y value, do not overwrite
       root.x = root.x && !replace ? root.x : 0;
       root.y = root.y && !replace ? root.y : (maxY > -1 ? maxY + 2 : 0);
 
@@ -459,19 +470,22 @@ class Graph {
     // if (!node.visited) {
       node.visited = true;
       const edges = this.graph.links.filter((l) => {
-        return l.target === node.index || l.source === node.index;
+        // return l.target === node.index || l.source === node.index;
+        return l.target.uuid === node.uuid || l.source.uuid === node.uuid;
       });
   
       // console.log('there are ',  edges.length , ' edges connected to ', node.title)
   
       edges.map((e) => {
         
-        const target = this.graph.nodes[e.target];
-        const source = this.graph.nodes[e.source];
+        // const target = this.graph.nodes[e.target];
+        // const source = this.graph.nodes[e.source];
+        const target = e.target;
+        const source = e.source;
   
         if (!target.visited) {
           e.visible = e.visited ? e.visible : true;
-          
+          //only visit edge if there are no previous constraints on this edge visibility
           if (e.visible) {
            target.visited = true;
            target.parent=node;
@@ -480,6 +494,7 @@ class Graph {
           }
         } else if (!source.visited) {
           e.visible = e.visited ? e.visible : true;
+          //only visit edge if there are no previous constraints on this edge visibility
           if (e.visible) {
             source.visited = true;
             source.parent=node;
@@ -513,8 +528,6 @@ class Graph {
   drawTree() {
 
     const graph = this.graph;
-
-    console.log(this.graph.nodes);
 
     let link = this.svg.select('.links')
       .selectAll('.edge')
@@ -566,8 +579,10 @@ class Graph {
     const linkClipsEnter = linkClips.enter()
       .append('clipPath')
       .attr('id', (d) => {
-        const st = this.createID(this.graph.nodes[d.source].title);
-        const tt = this.createID(this.graph.nodes[d.target].title);
+        // const st = this.createID(this.graph.nodes[d.source].title);
+        // const tt = this.createID(this.graph.nodes[d.target].title);
+        const st = this.createID(d.source.title);
+        const tt = this.createID(d.target.title);
         return st + '_' + tt;
       });
 
@@ -585,14 +600,18 @@ class Graph {
 
 
     linkClips.select('#sourceCircle')
-      .attr('cx', (d) => { return xScale(this.graph.nodes[d.source].x); })
-      .attr('cy', (d) => { return yScale(this.graph.nodes[d.source].y); })
+      // .attr('cx', (d) => { return xScale(this.graph.nodes[d.source].x); })
+      // .attr('cy', (d) => { return yScale(this.graph.nodes[d.source].y); })
+      .attr('cx', (d) => { return xScale(d.source.x); })
+      .attr('cy', (d) => { return yScale(d.source.y); })
       .attr('r', this.radius * 0.9);
 
 
     linkClips.select('#targetCircle')
-      .attr('cx', (d) => { return xScale(this.graph.nodes[d.target].x); })
-      .attr('cy', (d) => { return yScale(this.graph.nodes[d.target].y); })
+      // .attr('cx', (d) => { return xScale(this.graph.nodes[d.target].x); })
+      // .attr('cy', (d) => { return yScale(this.graph.nodes[d.target].y); })
+      .attr('cx', (d) => { return xScale(d.target.x); })
+      .attr('cy', (d) => { return yScale(d.target.y); })
       .attr('r', this.radius * 0.9);
 
 
@@ -608,8 +627,10 @@ class Graph {
     const linkMasksEnter = linkMasks.enter()
       .append('mask')
       .attr('id', (d) => {
-        const st = this.createID(this.graph.nodes[d.source].title);
-        const tt = this.createID(this.graph.nodes[d.target].title);
+        // const st = this.createID(this.graph.nodes[d.source].title);
+        // const tt = this.createID(this.graph.nodes[d.target].title);
+        const st = this.createID(d.source.title);
+        const tt = this.createID(d.target.title);
         return 'm_' + st + '_' + tt;
       });
 
@@ -641,8 +662,10 @@ class Graph {
 
     selectAll('.hiddenEdge')
       .attr('clip-path', (d: any) => {
-        const st = this.createID(this.graph.nodes[d.source].title);
-        const tt = this.createID(this.graph.nodes[d.target].title);
+        // const st = this.createID(this.graph.nodes[d.source].title);
+        // const tt = this.createID(this.graph.nodes[d.target].title);
+        const st = this.createID(d.source.title);
+        const tt = this.createID(d.target.title);
         return 'url(#' + st + '_' + tt + ')';
       })
       // .attr('mask', (d: any) => {
@@ -654,13 +677,17 @@ class Graph {
       .attr('marker-start', '');
 
     linkMasks.select('#sourceCircleMask')
-      .attr('cx', (d) => { return xScale(this.graph.nodes[d.source].x); })
-      .attr('cy', (d) => { return yScale(this.graph.nodes[d.source].y); })
+      // .attr('cx', (d) => { return xScale(this.graph.nodes[d.source].x); })
+      // .attr('cy', (d) => { return yScale(this.graph.nodes[d.source].y); })
+      .attr('cx', (d) => { return xScale(d.source.x); })
+      .attr('cy', (d) => { return yScale(d.source.y); })      
       .attr('r', this.radius);
 
     linkMasks.select('#targetCircleMask')
-      .attr('cx', (d) => { return xScale(this.graph.nodes[d.target].x); })
-      .attr('cy', (d) => { return yScale(this.graph.nodes[d.target].y); })
+      // .attr('cx', (d) => { return xScale(this.graph.nodes[d.target].x); })
+      // .attr('cy', (d) => { return yScale(this.graph.nodes[d.target].y); })
+      .attr('cx', (d) => { return xScale(d.source.x); })
+      .attr('cy', (d) => { return yScale(d.source.y); })
       .attr('r', this.radius);
 
 
@@ -700,7 +727,7 @@ class Graph {
     node = nodesEnter.merge(node);
 
     node
-      .text((d) => { return Config.icons[d.label] + ' ' + d.title; })
+      .text((d) => { return Config.icons[d.label] + ' ' + d.title + ' (' + this.nodeNeighbors[d.uuid].degree + ')'; })
       .on('click', (d) => {
         console.log(d)
         events.fire(SUBGRAPH_CHANGED_EVENT,{'db':this.selectedDB,'rootID':d.uuid,'depth':1,'replace':false,'remove':d.children.length>0});
@@ -718,7 +745,8 @@ class Graph {
 
     node.on('mouseover', (d) => {
       const element = selectAll('.hiddenEdge').filter((dd: any) => {
-        return this.graph.nodes[dd.source].title === d.title || this.graph.nodes[dd.target].title === d.title;
+        // return this.graph.nodes[dd.source].title === d.title || this.graph.nodes[dd.target].title === d.title;
+        return dd.source.title === d.title || dd.target.title === d.title;
       });
 
       element.attr('clip-path', 'undefined');
@@ -727,18 +755,24 @@ class Graph {
       .on('mouseout', (d) => {
 
         const element = selectAll('.hiddenEdge').filter((dd: any) => {
-          return this.graph.nodes[dd.source].title === d.title || this.graph.nodes[dd.target].title === d.title;
+          // return this.graph.nodes[dd.source].title === d.title || this.graph.nodes[dd.target].title === d.title;
+          return dd.source.title === d.title || dd.target.title === d.title;
         });
 
         element.attr('clip-path', (dd: any) => {
-          const st = this.createID(this.graph.nodes[dd.source].title);
-          const tt = this.createID(this.graph.nodes[dd.target].title);
+          // const st = this.createID(this.graph.nodes[dd.source].title);
+          // const tt = this.createID(this.graph.nodes[dd.target].title);
+          const st = this.createID(dd.source.title);
+          const tt = this.createID(dd.target.title);
           return 'url(#' + st + '_' + tt + ')';
         });
 
         // element.attr('mask', (dd: any) => {
         //   const st = this.createID(this.graph.nodes[dd.source].title);
         //   const tt = this.createID(this.graph.nodes[dd.target].title);
+        // const st = this.createID(dd.source.title);
+        // const tt = this.createID(dd.target.title);
+        
         //   return 'url(#m_' + st + '_' + tt + ')';
         // });
 
@@ -1133,8 +1167,11 @@ class Graph {
 
   private elbow(d, interGenerationScale, lineFunction, curves) {
 
-    let source = this.graph.nodes[d.source];
-    let target = this.graph.nodes[d.target];
+    // let source = this.graph.nodes[d.source];
+    // let target = this.graph.nodes[d.target];
+
+    let source = d.source;
+    let target = d.target; 
 
     if (source.x < target.x) {
       const t = target;

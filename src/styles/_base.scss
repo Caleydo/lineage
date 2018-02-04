@@ -95,9 +95,30 @@ line {
   stroke-width: 3px;
 }
 
+// .nodes circle {
+//   stroke: rgb(249, 249, 249);
+//   stroke-width: 3.5px;
+// }
+
+
+.links line {
+  stroke: #999;
+  stroke-opacity: 0.6;
+}
+
 .nodes circle {
   stroke: #fff;
   stroke-width: 1.5px;
+}
+
+
+.title text{
+  alignment-baseline:central;
+  text-anchor: middle;
+  fill:rgb(59, 59, 59);
+  font-weight: bold;
+  font-size:13px
+
 }
 
 .treeLink{

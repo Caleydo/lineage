@@ -33,6 +33,17 @@ export class Config {
       House:'\uf1d0'
   };
 
+  public static colors = {
+    Gene:'#B0CACF',
+    Compound:'#CFA399',
+    Pathway:'#9DBBAE',
+    Movie:'#B0CACF',
+    Actor:'#9DBBAE',
+    Episode:'#B0CACF',
+    Character:'#9DBBAE',
+    House:'#CFA399'
+};
+
   public static panelAttributeWidth = 300;
   public static panelAttributeHeight = 100;
   public static panelSVGwidth = 220;

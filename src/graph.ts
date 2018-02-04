@@ -237,6 +237,30 @@ class Graph {
 
   }
 
+  public removeBranch (rootNode){
+    const toRemove = [];
+    // remove all links to children
+    rootNode.children.forEach((node) => {
+        this.removeBranch(node);
+        this.graph.links.forEach((link,i) => {
+          if (link.source.uuid === node.uuid || link.target.uuid === node.uuid) {
+            toRemove.push(i);
+          }
+        });
+    });
+    //remove all children of the root from this.graph.nodes
+    rootNode.children.forEach((node) => {
+      const index = this.graph.nodes.indexOf(node);
+      this.graph.nodes.splice(index,1);
+  });
+
+     toRemove.sort().reverse(); //start @ the end of the array
+     toRemove.map((l)=> {return this.graph.links.splice(l,1);});
+
+    rootNode.children=[];
+
+  }
+
   /**
    * Function that loads up the graph
    */
@@ -251,6 +275,22 @@ class Graph {
       rejectPromise = reject;
     });
 
+    if (remove) { 
+      const rootNode = this.graph.nodes.filter((n) => { return n.uuid == root; });
+      
+      //recursive function to remove all nodes down this branch;
+      this.removeBranch(rootNode[0]);
+
+      const roots = this.graph.nodes.filter((n) => { return this.graph.root.indexOf(n.uuid) > -1; });
+      this.extractTree(roots.length > 0 ? roots : undefined, this.graph, false);
+      
+            this.exportYValues();
+      
+            // this.drawGraph();
+            this.drawTree();
+
+      resolvePromise();
+    } else {
 
     const url = root ? 'api/data_api/graph/' + db + '/' + root + '/' + depth : 'api/data_api/graph/' + db;
 
@@ -274,31 +314,6 @@ class Graph {
       } else {
         const rootNode = graph.nodes.filter((n) => { return n.uuid == graph.root; });
 
-        if (remove) { 
-          const rootNode = this.graph.nodes.filter((n) => { return n.uuid == graph.root; });
-          const toRemove = [];
-          // remove all links to children
-          rootNode[0].children.forEach((node) => {
-              // const index = this.graph.nodes.indexOf(node);
-              this.graph.links.forEach((link,i) => {
-                // if (link.source === index || link.target === index) {
-                if (link.source.uuid === node.uuid || link.target.uuid === node.uuid) {
-                  // console.log('removing link from ', link.source , ' to ', link.target)
-                  toRemove.push(i);
-                } 
-              });
-          });
-          //remove all children of the root from this.graph.nodes
-          rootNode[0].children.forEach((node) => {
-            const index = this.graph.nodes.indexOf(node);
-            this.graph.nodes.splice(index,1);
-        });
-
-           toRemove.sort().reverse(); //start @ the end of the array
-           toRemove.map((l)=> {return this.graph.links.splice(l,1);});
-
-          rootNode[0].children=[];
-        } else {
            const existingNodes = []; //nodes in the current subgraph that already exist in the tree
   
           graph.nodes.forEach((node) => {
@@ -317,12 +332,6 @@ class Graph {
   
           //update indexes
           graph.links.forEach((link) => {
-            // const sourceNode = this.graph.nodes.filter((n) => { return n.uuid === graph.nodes[link.source].uuid; })[0];
-            // const targetNode = this.graph.nodes.filter((n) => { return n.uuid === graph.nodes[link.target].uuid; })[0];
-
-            // link.source = this.graph.nodes.indexOf(sourceNode);
-            // link.target = this.graph.nodes.indexOf(targetNode);
-
             const sourceNode = this.graph.nodes.filter((n)=> {return n.uuid == link.source.uuid;})[0];
             const targetNode = this.graph.nodes.filter((n)=> {return n.uuid == link.target.uuid;})[0];
             
@@ -352,29 +361,23 @@ class Graph {
           });
         }
         
-      }
+      
 
       this.interGenerationScale.range([.75, .25]).domain([2, this.graph.nodes.length]);
 
       //create dictionary of nodes with
       //1) set of adjacent nodes in the graph
       this.nodeNeighbors = {};
-      // 2) list of visible adjacent nodes, ordered by degree
-      // this.visibleNodeNeighbors = {};
-
       this.graph.nodes.map((n, i) => {
         this.nodeNeighbors[n.uuid] = {
           'neighbors': new Set(),
           'degree': 0
         };
-        // this.visibleNodeNeighbors[i.toString()] = [];
       });
 
       //Populate dictionary
       //Find all edges that start or end on that node
       this.graph.links.map((l) => {
-        // const targetNode = this.graph.nodes[l.target];
-        // const sourceNode = this.graph.nodes[l.source];
 
         const targetNode = l.target;
         const sourceNode = l.source;
@@ -382,11 +385,9 @@ class Graph {
         const targetDictEntry = this.nodeNeighbors[targetNode.uuid];
         const sourceDictEntry = this.nodeNeighbors[sourceNode.uuid];
 
-        // targetDictEntry.neighbors.add(this.graph.nodes[l.source]);
         targetDictEntry.neighbors.add(sourceNode);
         targetDictEntry.degree = targetDictEntry.neighbors.size;
 
-        // sourceDictEntry.neighbors.add(this.graph.nodes[l.target]);
         sourceDictEntry.neighbors.add(sourceNode);
         sourceDictEntry.degree = sourceDictEntry.neighbors.size;
       });
@@ -403,6 +404,7 @@ class Graph {
 
       resolvePromise();
     });
+  }
 
     return p;
   };

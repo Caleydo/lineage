@@ -88,6 +88,93 @@ class SetSelector {
    */
   private build(labels) {
 
+    //add search box
+    const panelHeading = select('#col1')
+    .select('#searchBar')
+    .selectAll('.panel-heading')
+    .data([0]) // ensure there is only one search box
+    .enter()
+    .append('div')
+    .attr('class', 'panel-heading');
+
+    panelHeading.append('input')
+    .attr('type','text')
+    .attr('class','form-control')
+    .attr('id', 'searchBoxInput')
+    .attr('placeholder', 'Search for node name');
+
+    //add nodeAttribute filter
+    select('#nodeFilter').selectAll('.panel').remove(); //total hack.
+    
+    
+        //creat an accordion div and a table for each label
+        let p =  select('#nodeFilter')
+        .selectAll('.panel-default')
+        .data(['Filter by Node Type']);
+    
+        p.exit().remove();
+    
+        const pEnter = p.enter();
+    
+        const pDefault1 = pEnter
+        .append('div')
+          .attr('class','panel panel-default');
+    
+          pDefault1
+        .append('div')
+          .attr('class','panel-heading')
+        .append('h4')
+          .attr('class','panel-title')
+        .append('a')
+          .attr('data-toggle','collapse')
+          .attr('data-parent','#nodeFilter')
+          .attr('href',(d,i)=> {return '#ncollapse_' + i;});
+    
+    
+       const pDefault2 = pDefault1
+        .append('div')
+          .attr('id',(d,i)=> {return 'ncollapse_' + i;})
+          .attr('class','panel-collapse collapse')
+          .classed('in',(d,i)=> {return i<1;})
+        .append('div')
+          .attr('class','panel-body')
+          .attr('id', 'filterPanel');
+          
+
+          const cboxes = select('#filterPanel')
+          .selectAll('.checkbox')
+          .data(labels)
+          .enter()
+          .append('div');
+
+          const label = cboxes
+          .attr('class','checkbox')
+          .append('label');
+
+          label
+          .append('input')
+          .attr('type','checkbox')
+          .attr('value','');
+
+          label
+          .html(function (d:any) {
+             return select(this).html() + d;});
+          
+
+          // Add checkboxes for each label type.
+
+        //   <div class="checkbox">
+        //   <label><input type="checkbox" value="">Option 1</label>
+        // </div>
+        // <div class="checkbox">
+        //   <label><input type="checkbox" value="">Option 2</label>
+        // </div>
+        // <div class="checkbox disabled">
+        //   <label><input type="checkbox" value="" disabled>Option 3</label>
+        // </div>
+      
+
+
     select('#accordion').selectAll('.panel').remove(); //total hack.
 
 
@@ -150,7 +237,7 @@ class SetSelector {
       selectAll('a')
       .text((d:any)=> {return d;});
 
-      selectAll('.panel-body')
+      select('#accordion').selectAll('.panel-body')
         .attr('id',(d)=> {return d + '_body';});
 
       // Populate Headers

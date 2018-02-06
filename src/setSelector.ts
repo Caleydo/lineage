@@ -56,8 +56,8 @@ class SetSelector {
   private selectedDB;
 
   private headerInfo = [
-    {'header': 'Name', 'dataAttr': 'title' },
-  { 'header': 'Degree', 'dataAttr': 'degree' }];
+    { 'header': 'Name', 'dataAttr': 'title' },
+    { 'header': 'Degree', 'dataAttr': 'degree' }];
 
   constructor(parent: Element) {
     this.$node = select(parent);
@@ -73,7 +73,7 @@ class SetSelector {
     // this.build();
     // events.on(FAMILY_INFO_UPDATED, (evt, tableManagerObject) => { this.updateTable(); });
 
-    events.on(DB_CHANGED_EVENT,(evt,info) => {
+    events.on(DB_CHANGED_EVENT, (evt, info) => {
       this.buildTables(info.value);;
 
     });
@@ -90,143 +90,144 @@ class SetSelector {
 
     //add search box
     const panelHeading = select('#col1')
-    .select('#searchBar')
-    .selectAll('.panel-heading')
-    .data([0]) // ensure there is only one search box
-    .enter()
-    .append('div')
-    .attr('class', 'panel-heading');
+      .select('#searchBar')
+      .selectAll('.panel-heading')
+      .data([0]) // ensure there is only one search box
+      .enter()
+      .append('div')
+      .attr('class', 'panel-heading');
 
     panelHeading.append('input')
-    .attr('list','allNodes')
-    .attr('name', 'allNode')
-    .attr('type','text')
-    .attr('class','form-control')
-    .attr('id', 'searchBoxInput')
-    .attr('placeholder', 'Search for node name');
+      .attr('list', '')
+      .attr('name', 'allNode')
+      .attr('type', 'text')
+      .attr('class', 'form-control')
+      .attr('id', 'searchBoxInput')
+      .attr('placeholder', 'Search for node name');
 
     const dataList = panelHeading.append('datalist')
-    .attr('id','allNodes');
+      .attr('id', 'allNodes');
 
     console.log('one')
 
     //add nodeAttribute filter
     select('#nodeFilter').selectAll('.panel').remove(); //total hack.
-    
-    
-        //creat an accordion div and a table for each label
-        let p =  select('#nodeFilter')
-        .selectAll('.panel-default')
-        .data(['Filter by Node Type']);
-    
-        p.exit().remove();
-    
-        const pEnter = p.enter();
-    
-        const pDefault1 = pEnter
-        .append('div')
-          .attr('class','panel panel-default');
-    
-          pDefault1
-        .append('div')
-          .attr('class','panel-heading')
-        .append('h4')
-          .attr('class','panel-title')
-        .append('a')
-          .attr('data-toggle','collapse')
-          .attr('data-parent','#nodeFilter')
-          .attr('href',(d,i)=> {return '#ncollapse_' + i;});
-    
-    
-       const pDefault2 = pDefault1
-        .append('div')
-          .attr('id',(d,i)=> {return 'ncollapse_' + i;})
-          .attr('class','panel-collapse collapse')
-          .classed('in',(d,i)=> {return i<1;})
-        .append('div')
-          .attr('class','panel-body')
-          .attr('id', 'filterPanel');
 
-          const cboxes = select('#filterPanel')
-          .selectAll('.checkbox')
-          .data(labels)
-          .enter()
-          .append('div');
 
-          const label = cboxes
-          .attr('class','checkbox')
-          .append('label');
+    //creat an accordion div and a table for each label
+    let p = select('#nodeFilter')
+      .selectAll('.panel-default')
+      .data(['Filter by Node Type']);
 
-          label
-          .append('input')
-          .attr('type','checkbox')
-          .attr('value','');
+    p.exit().remove();
 
-          label
-          .html(function (d:any) {
-             return select(this).html() + d;});
-          
+    const pEnter = p.enter();
 
-          // Add checkboxes for each label type.
+    const pDefault1 = pEnter
+      .append('div')
+      .attr('class', 'panel panel-default');
 
-        //   <div class="checkbox">
-        //   <label><input type="checkbox" value="">Option 1</label>
-        // </div>
-        // <div class="checkbox">
-        //   <label><input type="checkbox" value="">Option 2</label>
-        // </div>
-        // <div class="checkbox disabled">
-        //   <label><input type="checkbox" value="" disabled>Option 3</label>
-        // </div>
-      
+    pDefault1
+      .append('div')
+      .attr('class', 'panel-heading')
+      .append('h4')
+      .attr('class', 'panel-title')
+      .append('a')
+      .attr('data-toggle', 'collapse')
+      .attr('data-parent', '#nodeFilter')
+      .attr('href', (d, i) => { return '#ncollapse_' + i; });
+
+
+    const pDefault2 = pDefault1
+      .append('div')
+      .attr('id', (d, i) => { return 'ncollapse_' + i; })
+      .attr('class', 'panel-collapse collapse')
+      .classed('in', (d, i) => { return i < 1; })
+      .append('div')
+      .attr('class', 'panel-body')
+      .attr('id', 'filterPanel');
+
+    const cboxes = select('#filterPanel')
+      .selectAll('.checkbox')
+      .data(labels)
+      .enter()
+      .append('div');
+
+    const label = cboxes
+      .attr('class', 'checkbox')
+      .append('label');
+
+    label
+      .append('input')
+      .attr('type', 'checkbox')
+      .attr('value', '');
+
+    label
+      .html(function (d: any) {
+        return select(this).html() + d;
+      });
+
+
+    // Add checkboxes for each label type.
+
+    //   <div class="checkbox">
+    //   <label><input type="checkbox" value="">Option 1</label>
+    // </div>
+    // <div class="checkbox">
+    //   <label><input type="checkbox" value="">Option 2</label>
+    // </div>
+    // <div class="checkbox disabled">
+    //   <label><input type="checkbox" value="" disabled>Option 3</label>
+    // </div>
+
 
 
     select('#accordion').selectAll('.panel').remove(); //total hack.
 
 
     //creat an accordion div and a table for each label
-    let panels =  select('#accordion')
-    .selectAll('.panel-default')
-    .data(labels);
+    let panels = select('#accordion')
+      .selectAll('.panel-default')
+      .data(labels);
 
     panels.exit().remove();
 
     const panelsEnter = panels.enter();
 
     const panelDefault = panelsEnter
-    .append('div')
-      .attr('class','panel panel-default');
+      .append('div')
+      .attr('class', 'panel panel-default');
 
     panelDefault
-    .append('div')
-      .attr('class','panel-heading')
-    .append('h4')
-      .attr('class','panel-title')
-    .append('a')
-      .attr('data-toggle','collapse')
-      .attr('data-parent','#accordion')
-      .attr('href',(d,i)=> {return '#collapse_' + i;});
-
-
-   const pDefault = panelDefault
-    .append('div')
-      .attr('id',(d,i)=> {return 'collapse_' + i;})
-      .attr('class','panel-collapse collapse ')
-      .classed('in',(d,i)=> {return i<1;})
-    .append('div')
-      // .attr('id',(d)=> {return d + '_body';})
-      .attr('class','panel-body');
-
-
-      pDefault
       .append('div')
-        .attr('id', 'tableHead')
-      .append('table')
-        .attr('class', 'table')
-        .append('thead').append('tr');
+      .attr('class', 'panel-heading')
+      .append('h4')
+      .attr('class', 'panel-title')
+      .append('a')
+      .attr('data-toggle', 'collapse')
+      .attr('data-parent', '#accordion')
+      .attr('href', (d, i) => { return '#collapse_' + i; });
 
-        pDefault.append('tbody')
-    .style('background','rgb(155, 173, 185)');
+
+    const pDefault = panelDefault
+      .append('div')
+      .attr('id', (d, i) => { return 'collapse_' + i; })
+      .attr('class', 'panel-collapse collapse ')
+      .classed('in', (d, i) => { return i < 1; })
+      .append('div')
+      // .attr('id',(d)=> {return d + '_body';})
+      .attr('class', 'panel-body');
+
+
+    pDefault
+      .append('div')
+      .attr('id', 'tableHead')
+      .append('table')
+      .attr('class', 'table')
+      .append('thead').append('tr');
+
+    pDefault.append('tbody')
+      .style('background', 'rgb(155, 173, 185)');
 
 
     const tbody = pDefault
@@ -235,19 +236,19 @@ class SetSelector {
       .append('table')
       .attr('class', 'table');
 
-      tbody.append('tbody');
+    tbody.append('tbody');
 
 
-      panels = panels.merge(panelsEnter);
+    panels = panels.merge(panelsEnter);
 
-      selectAll('a')
-      .text((d:any)=> {return d;});
+    selectAll('a')
+      .text((d: any) => { return d; });
 
-      select('#accordion').selectAll('.panel-body')
-        .attr('id',(d)=> {return d + '_body';});
+    select('#accordion').selectAll('.panel-body')
+      .attr('id', (d) => { return d + '_body'; });
 
-      // Populate Headers
-      labels.map((d)=> {this.updateTableHeader('#'+d + '_body');});
+    // Populate Headers
+    labels.map((d) => { this.updateTableHeader('#' + d + '_body'); });
 
 
   }
@@ -256,124 +257,126 @@ class SetSelector {
 
     const tableHeaders = this.headerInfo;
 
-          //Upate Header
-          let headers = select(parentID)
-            .select('#tableHead')
-            .select('tr')
-            .selectAll('th')
-            .data(tableHeaders);
+    //Upate Header
+    let headers = select(parentID)
+      .select('#tableHead')
+      .select('tr')
+      .selectAll('th')
+      .data(tableHeaders);
 
-          const headerEnter = headers.enter()
-            .append('th');
+    const headerEnter = headers.enter()
+      .append('th');
 
-          headers.exit().remove();
+    headers.exit().remove();
 
-          headers = headerEnter.merge(headers);
+    headers = headerEnter.merge(headers);
 
-          headers
-            .style('width', (d: any, i) => {
-              const width = (i <2 ? 10 : (90 / (tableHeaders.length - 2)));
-              return width + '%';
-            });
-      //       .on('click', function (d) {
-      //         const isAscending = select(this).classed('des');
-      //         if (isAscending) {
-      //           self.rows.sort(function (a, b) {
-      //             if (b[d.dataAttr] > a[d.dataAttr]) {
-      //               return -1;
-      //             } else {
-      //               return 1;
-      //             }
-      //           });
-      //           selectAll('th').classed('des', false);
-      //           selectAll('th').classed('aes', false);
-      //           select(this).attr('class', 'aes');
-      //         } else {
-      //           self.rows.sort(function (a, b) {
-      //             if (b[d.dataAttr] < a[d.dataAttr]) {
-      //               return -1;
-      //             } else {
-      //               return 1;
-      //             }
-      //           });
-      //           selectAll('th').classed('des', false);
-      //           selectAll('th').classed('aes', false);
-      //           select(this).attr('class', 'des');
-      //         }
-      //       });
+    headers
+      .style('width', (d: any, i) => {
+        const width = (i < 2 ? 10 : (90 / (tableHeaders.length - 2)));
+        return width + '%';
+      });
+    //       .on('click', function (d) {
+    //         const isAscending = select(this).classed('des');
+    //         if (isAscending) {
+    //           self.rows.sort(function (a, b) {
+    //             if (b[d.dataAttr] > a[d.dataAttr]) {
+    //               return -1;
+    //             } else {
+    //               return 1;
+    //             }
+    //           });
+    //           selectAll('th').classed('des', false);
+    //           selectAll('th').classed('aes', false);
+    //           select(this).attr('class', 'aes');
+    //         } else {
+    //           self.rows.sort(function (a, b) {
+    //             if (b[d.dataAttr] < a[d.dataAttr]) {
+    //               return -1;
+    //             } else {
+    //               return 1;
+    //             }
+    //           });
+    //           selectAll('th').classed('des', false);
+    //           selectAll('th').classed('aes', false);
+    //           select(this).attr('class', 'des');
+    //         }
+    //       });
 
-          headers
-            .text(function (column) {
-              return column.header ;
-            })
-            .style('text-align', 'center');
+    headers
+      .text(function (column) {
+        return column.header;
+      })
+      .style('text-align', 'center');
   }
 
   /**
    * Build the table and populate with list of families.
    */
-  public  buildTables(db) {
+  public buildTables(db) {
 
     this.selectedDB = db;
     const self = this;
 
     const url = 'api/data_api/labels/' + db;
 
-    json(url, (error, graphData:any) => {
+    json(url, (error, graphData: any) => {
 
-    //    // this.familyInfo = this.tableManager.familyInfo;
-    const data = graphData.labels;
+      //    // this.familyInfo = this.tableManager.familyInfo;
+      const data = graphData.labels;
 
-    console.log('graphData.labels', data)
+      const datalistItems = [];
 
-    const datalistItems =[];
-    
-    
-        const labels = data.map((d)=> { return d.name;});
-        this.build(labels);
+      const labels = data.map((d) => { return d.name; });
+      this.build(labels);
 
-        data.map((key)=> {
-          key.nodes.map((el)=> {
-            datalistItems.push({uuid:el.uuid, title:el.title , type:key.name});
-          });
+      select('#searchBoxInput').on('input', function(e) {
+        console.log('here');
+        const input =select('#searchBoxInput');
+        console.log(input.property('value'))
+        if(input.property('value').length < 3) {
+            input.attr('list', '');
+        } else {
+            input.attr('list', 'allNodes');
+        }
+      });
+
+      data.map((key) => {
+        key.nodes.map((el) => {
+          datalistItems.push({ uuid: el.uuid, title: el.title, type: key.name });
         });
-    
-        console.log('two')
-        //Populate datalist for input form
-        let listItems = select('datalist').selectAll('option')
+      });
+
+      //Populate datalist for input form
+      let listItems = select('datalist').selectAll('option')
         .data(datalistItems);
-    
-        // console.log(datalistItems)
-    
-        let listItemsEnter = listItems.enter()
+
+      let listItemsEnter = listItems.enter()
         .append('option');
-    
-        // console.log(select('datalist').size())
-        listItems.exit().remove();
-    
-        listItems = listItems.merge(listItemsEnter);
-    
-        console.log(listItems.size())
-    
-        listItems
-        .attr('value',(d:any)=> {return d.uuid;})
-        .text((d:any)=> {return d.title + ' (' + d.type + ')';});
+
+      listItems.exit().remove();
+
+      listItems = listItems.merge(listItemsEnter);
+
+      listItems
+        .attr('value', (d: any) => { return d.uuid; })
+        .text((d: any) => { return d.title + ' (' + d.type + ')'; });
 
 
-       data.map((d)=> {
-        this.populateTableRows('#' + d.name + '_body', d.nodes,this.headerInfo.length);
-       });
-    //     const selectedRows = rowData.filter((row) => { return this.selectedFamilyIds.indexOf(row.id)>-1; });
-    //     this.populateTableRows('#tableHead', selectedRows,tableHeaders.length-2);
+      data.map((d) => {
+        this.populateTableRows('#' + d.name + '_body', d.nodes, this.headerInfo.length);
+      });
+      //     const selectedRows = rowData.filter((row) => { return this.selectedFamilyIds.indexOf(row.id)>-1; });
+      //     this.populateTableRows('#tableHead', selectedRows,tableHeaders.length-2);
 
-    //     select('#tableBody').select('tbody').selectAll('tr').classed('selected',(d:any)=> {return this.selectedFamilyIds.indexOf(d.id) > -1;});
+      //     select('#tableBody').select('tbody').selectAll('tr').classed('selected',(d:any)=> {return this.selectedFamilyIds.indexOf(d.id) > -1;});
 
-    //     selectAll('.addRemoveIcon').on('click', ((d)=> {event.stopPropagation(); this.selectRow(d,rowData,tableHeaders.length-2);}));
+      //     selectAll('.addRemoveIcon').on('click', ((d)=> {event.stopPropagation(); this.selectRow(d,rowData,tableHeaders.length-2);}));
 
-    //     if (selectAll('.selected').size() === 0) {
-    //       console.log('emptyFamily!');
-    //       this.selectRow({'id':data.familyInfo[0].id},rowData,tableHeaders.length-2,false);
-    //     }
+      //     if (selectAll('.selected').size() === 0) {
+      //       console.log('emptyFamily!');
+      //       this.selectRow({'id':data.familyInfo[0].id},rowData,tableHeaders.length-2,false);
+      //     }
 
 
 
@@ -413,7 +416,7 @@ class SetSelector {
 
   // }
 
-  private populateTableRows(tableDiv, rowData,numCols) {
+  private populateTableRows(tableDiv, rowData, numCols) {
 
     const tableSelector = select(tableDiv).select('#tableBody');
     // create a row for each object in the data
@@ -425,40 +428,40 @@ class SetSelector {
       .enter()
       .append('tr');
 
-      rows.exit().remove();
-      rows = rowsEnter.merge(rows);
+    rows.exit().remove();
+    rows = rowsEnter.merge(rows);
 
 
-      rows.on('click', (d: any) => {
-        console.log('clicked');
-        events.fire(SUBGRAPH_CHANGED_EVENT,{'db':this.selectedDB,'rootID':d.id,'depth':1,'replace':false});
-      });
+    rows.on('click', (d: any) => {
+      console.log('clicked');
+      events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.id, 'depth': 1, 'replace': false });
+    });
 
-      //         //set all icons to +
-      //       select('#tableBody').select('tbody').selectAll('.addRemoveIcon').html('\uf055');
+    //         //set all icons to +
+    //       select('#tableBody').select('tbody').selectAll('.addRemoveIcon').html('\uf055');
 
-      //       //Set this icon to -
-      //        select('#tableBody').select('tbody').selectAll('.addRemoveIcon').filter((row: any) => {
-      //           return row.id === d.id;
-      //         }).html('\uf056');
+    //       //Set this icon to -
+    //        select('#tableBody').select('tbody').selectAll('.addRemoveIcon').filter((row: any) => {
+    //           return row.id === d.id;
+    //         }).html('\uf056');
 
-      //         this.selectedFamilyIds = [];
-      //         this.selectedFamilyIds.push(d.id);
+    //         this.selectedFamilyIds = [];
+    //         this.selectedFamilyIds.push(d.id);
 
-      //         select('#tableBody').select('tbody').selectAll('tr').classed('selected', false);
+    //         select('#tableBody').select('tbody').selectAll('tr').classed('selected', false);
 
-      //         select('#tableBody').select('tbody').selectAll('tr').filter((row: any) => {
-      //           return row.id === d.id;
-      //         })
-      //           .classed('selected', true);
+    //         select('#tableBody').select('tbody').selectAll('tr').filter((row: any) => {
+    //           return row.id === d.id;
+    //         })
+    //           .classed('selected', true);
 
-      //         const selectedRows = rowData.filter((row) => { return this.selectedFamilyIds.indexOf(row.id)>-1; });
-      //         this.populateTableRows('#tableHead', selectedRows,numCols);
+    //         const selectedRows = rowData.filter((row) => { return this.selectedFamilyIds.indexOf(row.id)>-1; });
+    //         this.populateTableRows('#tableHead', selectedRows,numCols);
 
-      //         this.loadFamily();
+    //         this.loadFamily();
 
 
-      //       });
+    //       });
 
 
 
@@ -471,9 +474,9 @@ class SetSelector {
     let cells = rows.selectAll('td')
       .data((d: any) => {
         const baseValues = [
-        // { 'name': d.id, 'value': undefined, 'type': 'button' },
-        { 'id': d.id, 'value': d.title, 'type': 'title' },
-        { 'id': d.id, 'value': d.degree, 'type': 'degree' }];
+          // { 'name': d.id, 'value': undefined, 'type': 'button' },
+          { 'id': d.id, 'value': d.title, 'type': 'title' },
+          { 'id': d.id, 'value': d.degree, 'type': 'degree' }];
 
         return baseValues;
       });
@@ -487,7 +490,7 @@ class SetSelector {
 
     cells
       .style('width', (d: any, i) => {
-        const width = (i <2 ? 10 : (90 /numCols));
+        const width = (i < 2 ? 10 : (90 / numCols));
         return width + '%';
       })
       .style('text-align', 'center');
@@ -503,7 +506,7 @@ class SetSelector {
       })
       .style('text-align', 'center');
 
-      cells
+    cells
       .filter((c: any) => {
         return c.type === 'degree';
       })

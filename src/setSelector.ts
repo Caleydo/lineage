@@ -98,10 +98,17 @@ class SetSelector {
     .attr('class', 'panel-heading');
 
     panelHeading.append('input')
+    .attr('list','allNodes')
+    .attr('name', 'allNode')
     .attr('type','text')
     .attr('class','form-control')
     .attr('id', 'searchBoxInput')
     .attr('placeholder', 'Search for node name');
+
+    const dataList = panelHeading.append('datalist')
+    .attr('id','allNodes');
+
+    console.log('one')
 
     //add nodeAttribute filter
     select('#nodeFilter').selectAll('.panel').remove(); //total hack.
@@ -139,7 +146,6 @@ class SetSelector {
         .append('div')
           .attr('class','panel-body')
           .attr('id', 'filterPanel');
-          
 
           const cboxes = select('#filterPanel')
           .selectAll('.checkbox')
@@ -318,29 +324,46 @@ class SetSelector {
     //    // this.familyInfo = this.tableManager.familyInfo;
     const data = graphData.labels;
 
+    console.log('graphData.labels', data)
+
+    const datalistItems =[];
+    
+    
         const labels = data.map((d)=> { return d.name;});
         this.build(labels);
 
+        data.map((key)=> {
+          key.nodes.map((el)=> {
+            datalistItems.push({uuid:el.uuid, title:el.title , type:key.name});
+          });
+        });
+    
+        console.log('two')
+        //Populate datalist for input form
+        let listItems = select('datalist').selectAll('option')
+        .data(datalistItems);
+    
+        // console.log(datalistItems)
+    
+        let listItemsEnter = listItems.enter()
+        .append('option');
+    
+        // console.log(select('datalist').size())
+        listItems.exit().remove();
+    
+        listItems = listItems.merge(listItemsEnter);
+    
+        console.log(listItems.size())
+    
+        listItems
+        .attr('value',(d:any)=> {return d.uuid;})
+        .text((d:any)=> {return d.title + ' (' + d.type + ')';});
 
-    //     const rowData = this.tableManager.familyInfo.map((d) => {
-    //       const baseObject = {
-    //         'id': d.id,
-    //         'size': d.size,
-    //         // 'selected': false,
-    //         'affected': d.affected,
-    //         'percentage': Math.round(d.percentage * 1000) / 10,
-    //         'starCols': d.starCols
-    //       };
 
-    //       d.starCols.map((attr) => {
-    //         baseObject[attr.attribute] = attr.percentage;
-    //       });
-    //       return baseObject;
-    //     });
        data.map((d)=> {
         this.populateTableRows('#' + d.name + '_body', d.nodes,this.headerInfo.length);
        });
-            //     const selectedRows = rowData.filter((row) => { return this.selectedFamilyIds.indexOf(row.id)>-1; });
+    //     const selectedRows = rowData.filter((row) => { return this.selectedFamilyIds.indexOf(row.id)>-1; });
     //     this.populateTableRows('#tableHead', selectedRows,tableHeaders.length-2);
 
     //     select('#tableBody').select('tbody').selectAll('tr').classed('selected',(d:any)=> {return this.selectedFamilyIds.indexOf(d.id) > -1;});

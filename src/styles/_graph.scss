@@ -106,15 +106,14 @@ rect.total{
 
 #treeMenu text{
   fill:white;
+  pointer-events: none;
+  alignment-baseline:central;
 }
 
 #treeMenu .menuItemBackground:hover{
   fill:rgb(235, 113, 65);
 }
 
-#treeMenu text{
-  pointer-events: none;
-}
 
 // .slopeLine.test{
 //   opacity: .1;

@@ -30,7 +30,10 @@ export class Config {
       Actor:'\uf007',
       Episode:'\uf008',
       Character:'\uf007',
-      House:'\uf1d0'
+      House:'\uf1d0',
+      ExpandTree:'\uf18c',
+      MakeRoot:'\uf192',
+      Add2Matrix:'\uf00a'
   };
 
   public static colors = {

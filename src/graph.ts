@@ -67,6 +67,10 @@ import {
   Config
 } from './config';
 
+import * as menu from './Menu';
+
+export const ROOT_CHANGED_EVENT = 'root_changed';
+
 /** Class implementing the map view. */
 class Graph {
 
@@ -102,6 +106,8 @@ class Graph {
 
   private margin = Config.margin;
 
+  private menuObject = menu.create();
+
   private interGenerationScale = scaleLinear();
 
   private lineFunction = line<any>()
@@ -117,6 +123,9 @@ class Graph {
    * Creates a Map Object
    */
   constructor(width, height, radius, selector, tmanager) {
+
+    select('#graph')
+    .on('click',()=> {select('.menu').remove();});
 
     events.on(DB_CHANGED_EVENT, (evt, info) => {
 
@@ -137,6 +146,11 @@ class Graph {
           this.drawGraph();
         }
       };
+    });
+
+    events.on(ROOT_CHANGED_EVENT,(evt,info) => {
+      this.extractTree([info.root]);
+      this.drawTree();
     });
 
     events.on(SUBGRAPH_CHANGED_EVENT, (evt, info) => {
@@ -458,6 +472,9 @@ class Graph {
   // roots, which graph to extract, and whether to replace any existing tree.
   extractTree(roots = this.graph.root, graph = this.graph, replace = true) {
 
+    //replace graph root with current root; 
+    this.graph.root = roots;
+
     //set default values for unvisited nodes;
     graph.nodes.map((n, i) => {
       n.index = i;
@@ -568,7 +585,9 @@ class Graph {
     let link = this.svg.select('.links')
       .selectAll('.edge')
       .data(graph.links, (d) => {
-        return d.index;
+        const st = this.createID(d.source.title);
+        const tt = this.createID(d.target.title);
+        return st + '_' + tt;
       });
 
     const linksEnter = link
@@ -588,8 +607,6 @@ class Graph {
     }), max(graph.nodes, function (d: any) {
       return Math.round(d.yy);
     })];
-
-    console.log('yrange is ', yrange)
 
     this.height = Config.glyphSize * 4 * (yrange[1] - yrange[0] + 1); // - this.margin.top - this.margin.bottom;
 
@@ -745,7 +762,18 @@ class Graph {
     node
       .text((d) => { return Config.icons[d.label] + ' ' + d.title + ' (' + this.nodeNeighbors[d.uuid].degree + ')'; })
       .on('click', (d) => {
-        events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'depth': 1, 'replace': false, 'remove': d.children.length > 0 });
+        console.log('clicked');
+        const actions = [{ 'icon': 'ExpandTree', 'string': d.children.length > 0 ? 'Remove Children from Tree': 'Add Children to Tree', 'callback': ()=> {
+          events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'depth': 1, 'replace': false, 'remove': d.children.length > 0 });
+        } },
+        { 'icon': 'MakeRoot', 'string': 'Make Root', 'callback': ()=> {
+          console.log(d);
+          events.fire(ROOT_CHANGED_EVENT, {'root': d});
+        } },
+        { 'icon': 'Add2Matrix', 'string': 'Add to Table', 'callback': ()=> {
+          // events.fire(ROOT_CHANGED_EVENT, { 'rootID': d.id, 'replace': false });
+        } }];
+        this.menuObject.addMenu(d,actions);
       })
     // .on('contextmenu', (d) => {
     //   // extractTree(roots = undefined, localGraph = this.graph, replace = true)

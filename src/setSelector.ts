@@ -5,6 +5,8 @@ import { keys } from 'd3-collection';
 
 import { Config } from './config';
 
+import * as menu from './Menu';
+
 import {
   DB_CHANGED_EVENT
 } from './headers';
@@ -41,17 +43,7 @@ class SetSelector {
 
   private $node;
 
-  // private peopleScale = scaleLinear();  //yscale for # of people
-
-  // private casesScale = scaleLinear();  //yscale for cases
-
-  // private selectedFamilyIds: Number[] = []; //array of selected families
-
-  // private familyInfo: IFamilyInfo;
-
-  // private rows;
-
-  // private tableManager;
+  private menuObject = menu.create();
 
   private selectedDB;
 
@@ -331,9 +323,7 @@ class SetSelector {
       this.build(labels);
 
       select('#searchBoxInput').on('input', function(e) {
-        console.log('here');
         const input =select('#searchBoxInput');
-        console.log(input.property('value'))
         if(input.property('value').length < 3) {
             input.attr('list', '');
         } else {
@@ -434,7 +424,18 @@ class SetSelector {
 
     rows.on('click', (d: any) => {
       console.log('clicked');
-      events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.id, 'depth': 1, 'replace': false });
+      const actions = [{ 'icon': 'ExpandTree', 'string': 'Add to Tree', 'callback': ()=> {
+        events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.id, 'depth': 1, 'replace': false });
+      } },
+      { 'icon': 'MakeRoot', 'string': 'Make Root', 'callback': ()=> {
+        // events.fire(ROOT_CHANGED_EVENT, { 'rootID': d.id, 'replace': false });
+      } },
+      { 'icon': 'Add2Matrix', 'string': 'Add to Table', 'callback': ()=> {
+        return undefined;
+      }}];
+      
+      this.menuObject.addMenu(d,actions);
+      // events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.id, 'depth': 1, 'replace': false });
     });
 
     //         //set all icons to +

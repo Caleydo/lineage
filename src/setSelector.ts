@@ -100,8 +100,6 @@ class SetSelector {
     const dataList = panelHeading.append('datalist')
       .attr('id', 'allNodes');
 
-    console.log('one')
-
     //add nodeAttribute filter
     select('#nodeFilter').selectAll('.panel').remove(); //total hack.
 
@@ -408,6 +406,8 @@ class SetSelector {
 
   private populateTableRows(tableDiv, rowData, numCols) {
 
+    //sort data alphabetically; 
+    console.log(rowData.sort((a,b)=>{return a.title < b.title; }))
     const tableSelector = select(tableDiv).select('#tableBody');
     // create a row for each object in the data
     let rows = tableSelector.select('tbody').selectAll('tr')
@@ -424,11 +424,14 @@ class SetSelector {
 
     rows.on('click', (d: any) => {
       console.log('clicked');
-      const actions = [{ 'icon': 'ExpandTree', 'string': 'Add to Tree', 'callback': ()=> {
-        events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.id, 'depth': 1, 'replace': false });
+      const actions = [{ 'icon': 'AddSubGraph', 'string': 'Add Node + Neighbors to Tree', 'callback': ()=> {
+        events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.id, 'depth': 1,'replace': false }); //default values for include root and children is true;
       } },
-      { 'icon': 'MakeRoot', 'string': 'Make Root', 'callback': ()=> {
-        // events.fire(ROOT_CHANGED_EVENT, { 'rootID': d.id, 'replace': false });
+      { 'icon': 'AddChildren', 'string': 'Add Neighbors to Tree', 'callback': ()=> {
+        events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.id, 'depth': 1, 'includeRoot':false, 'replace': false });
+      } },
+      { 'icon': 'AddNode', 'string': 'Add Node to Tree', 'callback': ()=> {
+        events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.id, 'depth': 1, 'includeRoot':false,'includeChildren':false, 'replace': false });
       } },
       { 'icon': 'Add2Matrix', 'string': 'Add to Table', 'callback': ()=> {
         return undefined;

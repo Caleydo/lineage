@@ -154,7 +154,9 @@ class Graph {
     });
 
     events.on(SUBGRAPH_CHANGED_EVENT, (evt, info) => {
-      this.loadGraph(info.db, info.rootID, info.depth, info.replace, info.remove);;
+
+
+      this.loadGraph(info.db, info.rootID, info.depth, info.replace, info.remove,info.includeRoot,info.includeChildren);;
     });
 
 
@@ -295,7 +297,7 @@ class Graph {
   /**
    * Function that loads up the graph
    */
-  public async loadGraph(db, root = undefined, depth = undefined, replace = true, remove = false) {
+  public async loadGraph(db, root = undefined, depth = undefined, replace = true, remove = false, includeRoot = true, includeChildren = true) {
 
     this.selectedDB = db;
 
@@ -762,8 +764,14 @@ class Graph {
     node
       .text((d) => { return Config.icons[d.label] + ' ' + d.title + ' (' + this.nodeNeighbors[d.uuid].degree + ')'; })
       .on('click', (d) => {
-        console.log('clicked');
-        const actions = [{ 'icon': 'ExpandTree', 'string': d.children.length > 0 ? 'Remove Children from Tree': 'Add Children to Tree', 'callback': ()=> {
+        let remove = d.children.length > 0;
+        const actions = [{ 'icon': remove? 'RemoveChildren' : 'AddChildren', 'string': remove ? 'Remove All Children': 'Add All Neighbors', 'callback': ()=> {
+          events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'depth': 1, 'replace': false, 'remove': d.children.length > 0 });
+        } },
+        { 'icon': remove ? 'RemoveChildren': 'AddChildren', 'string': remove ? 'Remove Children by Type': 'Add Neighbors by Type', 'callback': ()=> {
+          events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'depth': 1, 'replace': false, 'remove': d.children.length > 0 });
+        } },
+        { 'icon': 'RemoveNode', 'string':'Remove Node  *leaves children*', 'callback': ()=> {
           events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'depth': 1, 'replace': false, 'remove': d.children.length > 0 });
         } },
         { 'icon': 'MakeRoot', 'string': 'Make Root', 'callback': ()=> {

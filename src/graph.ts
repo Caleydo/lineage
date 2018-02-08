@@ -151,6 +151,7 @@ class Graph {
 
     events.on(ROOT_CHANGED_EVENT,(evt,info) => {
       this.extractTree([info.root]);
+      this.exportYValues();
       this.drawTree();
     });
 
@@ -834,7 +835,7 @@ class Graph {
         return yScale(d.yy);
       });
 
-    this.addHightlightBars();  
+    this.addHightlightBars();
 
     select('#graph')
       .attr('height', document.getElementById('genealogyTree').getBoundingClientRect().height);
@@ -1105,7 +1106,7 @@ class Graph {
         let returnValue = false;
         //Highlight the current row in the graph and table
 
-        if (e.yy === Math.round(d.yy)) {
+        if (e.yy === Math.round(d.yy) || e.y === Math.round(d.yy)) {
           returnValue = true;
         }
         return returnValue;

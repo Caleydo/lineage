@@ -137,7 +137,7 @@ class AttributeTable {
 
     this.build(); //builds the DOM
 
-    await this.update();
+    // await this.update();
 
     this.attachListener();
 
@@ -640,6 +640,7 @@ class AttributeTable {
     this.allRows = allRows;
     //Set height and width of svg
     this.height = Config.glyphSize * 4 * (maxRow+1);
+
     // select('.tableSVG').attr('viewBox','0 0 ' + this.width + ' ' + (this.height + this.margin.top + this.margin.bottom))
 
     // select('.tableSVG').attr('height', this.height);
@@ -1639,8 +1640,9 @@ class AttributeTable {
     // event.stopPropagation();
     function selected(e: any) {
       let returnValue = false;
+
       //Highlight the current row in the graph and table
-      if (e.y === Math.round(d.y)) {
+      if (e.y === Math.round(d.y) || e.yy === Math.round(d.y)) {
         returnValue = true;
       }
 
@@ -3119,56 +3121,8 @@ class AttributeTable {
   private attachListener() {
     const self = this;
 
-
-    events.on('poiSelected', (evt,info) => {
-      this.tableManager.setAffectedState(info.name, info.callback);
-    });
-
-    events.on('primarySelected', (evt, item) => {
-
-            // const attribute = this.tableManager[item.primary_secondary + 'Attribute'];
-
-            // //A primary or secondary attribute had been previously defined
-            // if (attribute) {
-            //   //Clear previously colored histogram for primary/secondary
-            //   const previousHist = this.histograms.filter((h) => {
-            //     return h.attrName === attribute.name;
-            //   });
-
-            //   if (previousHist.length > 0) {
-            //     previousHist[0].clearPrimarySecondary();
-            //   }
-            // }
-
-            // const otherAttributePrimarySecondary = ['primary', 'secondary'].filter((a) => { return a !== item.primary_secondary; });
-            // const otherAttribute = this.tableManager[otherAttributePrimarySecondary + 'Attribute'];
-
-            // //If the attribute you are setting as secondary is the same as the one you had as primary, (or vice versa) set the primary (secondary) to undefined;
-            // if (otherAttribute && item.name === otherAttribute.name) {
-            //   this.tableManager[otherAttributePrimarySecondary + 'Attribute'] = undefined;
-            // }
-
-            this.tableManager.setPrimaryAttribute(item.name);
-            // .then((obj) => {
-
-            //   // const hist = this.histograms.filter((h) => { return h.attrName === item.name; })[0];
-            //   // hist.setPrimarySecondary(obj);
-
-            // });
-          });
-
-
-
     events.on(TABLE_VIS_ROWS_CHANGED_EVENT, () => {
-      self.update();
-    });
-
-    events.on(PRIMARY_SELECTED, (evt, item) => {
-      self.render();
-    });
-
-    events.on(POI_SELECTED, (evt, item) => {
-      self.render();
+      this.update();
     });
 
     events.on(COL_ORDER_CHANGED_EVENT, (evt, item) => {

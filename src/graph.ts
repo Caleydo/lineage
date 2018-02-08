@@ -8,6 +8,8 @@ import {
   SUBGRAPH_CHANGED_EVENT
 } from './setSelector';
 
+import {TABLE_VIS_ROWS_CHANGED_EVENT} from './tableManager';
+
 import {
   select,
   selectAll,
@@ -128,7 +130,6 @@ class Graph {
     .on('click',()=> {select('.menu').remove();});
 
     events.on(DB_CHANGED_EVENT, (evt, info) => {
-
       this.loadGraph(info.value);;
     });
 
@@ -139,7 +140,7 @@ class Graph {
       this.svg.select('.nodes').html('');
 
       if (this.selectedDB) {
-        console.log(this.layout,this.selectedDB);
+        console.log('layout:', this.layout, 'db:', this.selectedDB);
         if (this.layout === 'tree') {
           this.drawTree();
         } else {
@@ -154,8 +155,6 @@ class Graph {
     });
 
     events.on(SUBGRAPH_CHANGED_EVENT, (evt, info) => {
-
-
       this.loadGraph(info.db, info.rootID, info.depth, info.replace, info.remove,info.includeRoot,info.includeChildren);;
     });
 
@@ -180,8 +179,6 @@ class Graph {
       .append('g')
       .attr('id', 'genealogyTree')
       .attr('transform', 'translate(' + this.margin.left + ',' + (Config.glyphSize + this.margin.top) + ')');
-
-
 
     this.color = scaleOrdinal(schemeCategory20);
 
@@ -261,7 +258,6 @@ class Graph {
 
     this.svg.append('g')
       .attr('class', 'nodes');
-
 
     this.simulation = forceSimulation()
       .force('link', forceLink())
@@ -838,7 +834,7 @@ class Graph {
         return yScale(d.yy);
       });
 
-    // this.addHightlightBars();  //temporarily removed.
+    this.addHightlightBars();  
 
     select('#graph')
       .attr('height', document.getElementById('genealogyTree').getBoundingClientRect().height);
@@ -969,9 +965,9 @@ class Graph {
     const highlightBarGroup = select('#genealogyTree').select('#highlightBars');
 
     const yRange: number[] = [min(this.graph.nodes, function (d: any) {
-      return Math.round(d.y);
+      return Math.round(d.yy);
     }), max(this.graph.nodes, function (d: any) {
-      return Math.round(d.y);
+      return Math.round(d.yy);
     })];
 
     //Create data to bind to highlightBars
@@ -979,14 +975,14 @@ class Graph {
     for (let i = yRange[0]; i <= yRange[1]; i++) {
       //find all nodes in this row
       const yNodes = this.graph.nodes.filter((n: any) => {
-        return Math.round(n.y) === i;
+        return Math.round(n.yy) === i;
       });
 
       // console.log(yNodes[0])
       // if (yNodes.length>0) {
       yData.push({
-        y: i, x: min(yNodes, (d: any) => {
-          return d.x;
+        yy: i, xx: min(yNodes, (d: any) => {
+          return d.xx;
         })
         , id: yNodes[0].uuid
       });
@@ -999,12 +995,12 @@ class Graph {
     for (let i = yRange[0]; i <= yRange[1]; i++) {
       //find all nodes in this row
       const yNodes = this.graph.nodes.filter((n: any) => {
-        return Math.round(n.y) === i && n.aggregated;
+        return Math.round(n.yy) === i && n.aggregated;
       });
       if (yNodes.length > 0) {
         aggregateBarData.push({
-          y: i, x: min(yNodes, (d: any) => {
-            return d.x;
+          yy: i, xx: min(yNodes, (d: any) => {
+            return d.xx;
           })
         });
       }
@@ -1070,7 +1066,7 @@ class Graph {
     //Position all bars:
     allBars
       .attr('transform', (row: any) => {
-        return 'translate(0,' + (this.yScale(row.y) - Config.glyphSize) + ')';
+        return 'translate(0,' + (this.yScale(row.yy) - Config.glyphSize) + ')';
       });
 
 
@@ -1086,10 +1082,10 @@ class Graph {
       .select('.highlightBar')
       .attr('width', (row: any) => {
         const range = this.xScale.range();
-        return (max([range[0], range[1]]) - this.xScale(row.x) + this.margin.right + this.padding.right);
+        return (max([range[0], range[1]]) - this.xScale(row.xx) + this.margin.right + this.padding.right);
       })
       .attr('x', (row: any) => {
-        return this.xScale(row.x);
+        return this.xScale(row.xx);
       })
       .attr('height', Config.glyphSize * 2);
 
@@ -1109,7 +1105,7 @@ class Graph {
         let returnValue = false;
         //Highlight the current row in the graph and table
 
-        if (e.y === Math.round(d.y)) {
+        if (e.yy === Math.round(d.yy)) {
           returnValue = true;
         }
         return returnValue;
@@ -1119,7 +1115,7 @@ class Graph {
 
       selectAll('.slopeLine').filter((e: any) => {
 
-        return e.y === Math.round(d.y);
+        return e.yy === Math.round(d.yy);
       }).classed('selectedSlope', true);
 
       //Set opacity of corresponding highlightBar
@@ -1127,7 +1123,7 @@ class Graph {
 
       //Set the age label on the lifeLine of this row to visible
       selectAll('.ageLineGroup').filter((e: any) => {
-        return e.y === Math.round(d.y);
+        return e.yy === Math.round(d.yy);
       }).filter((d: any) => {
         return !d.aggregated && !d.hidden;
       }).select('.ageLabel').attr('visibility', 'visible');
@@ -1154,7 +1150,7 @@ class Graph {
         if (event.defaultPrevented) { return; } // dragged
 
         const wasSelected = selectAll('.highlightBar').filter((e: any) => {
-          return e.y === d.y || e.y === Math.round(d.y);
+          return e.yy === d.yy || e.yy === Math.round(d.yy);
         }).classed('selected');
 
 
@@ -1165,13 +1161,13 @@ class Graph {
         }
 
         selectAll('.slopeLine').filter((e: any) => {
-          return e.y === d.y || e.y === Math.round(d.y);
+          return e.yy === d.yy || e.yy === Math.round(d.yy);
         }).classed('clickedSlope', function () {
           return (!wasSelected);
         });
 
         selectAll('.highlightBar').filter((e: any) => {
-          return e.y === d.y || e.y === Math.round(d.y);
+          return e.yy === d.yy || e.yy === Math.round(d.yy);
         }).classed('selected', function () {
           return (!wasSelected);
         });
@@ -1261,14 +1257,18 @@ class Graph {
 
     this.graph.nodes.forEach((node) => {
       if ((node.uuid) in dict) {
-        dict[node.uuid].push(Math.round(node.y));
+        dict[node.uuid].push(Math.round(node.yy));
       } else {
-        dict[node.uuid] = [Math.round(node.y)];
+        dict[node.uuid] = [Math.round(node.yy)];
       }
     });
 
+
+
     //Assign y values to the tableManager object
     this.tableManager.yValues = dict;
+    events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);
+    console.log('here');
     // this.yValues = dict; //store dict for tree to use when creating slope chart
   }
 

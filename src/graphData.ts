@@ -370,8 +370,6 @@ class GraphData {
       }
     });
 
-    console.log(dict);
-
     //Assign y values to the tableManager object
     this.tableManager.yValues = dict;
     this.yValues = dict; //store dict for tree to use when creating slope chart

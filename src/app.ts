@@ -152,8 +152,8 @@ export class App {
     // genealogyTree.init(graphDataObj, tableManager);
     // genealogyTree.update();
 
-    // const attributeTable = table.create(this.$node.select('#table').node());
-    // attributeTable.init(tableManager);
+    const attributeTable = table.create(this.$node.select('#table').node());
+    attributeTable.init(tableManager);
 
     const setSelectorView = setSelector.create(this.$node.select('#accordion').node());
     setSelectorView.init();

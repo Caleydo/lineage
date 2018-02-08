@@ -67,7 +67,6 @@ class SetSelector {
 
     events.on(DB_CHANGED_EVENT, (evt, info) => {
       this.buildTables(info.value);;
-
     });
 
     // return the promise directly as long there is no dynamical data to update

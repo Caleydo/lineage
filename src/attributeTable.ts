@@ -1606,9 +1606,8 @@ class AttributeTable {
     if (event.defaultPrevented) { return; } // dragged
 
     const wasSelected = selectAll('.highlightBar').filter((e: any) => {
-      return e.y === d.y || e.y === Math.round(d.y);
+      return e.y === d.y || e.y === Math.round(d.y)  || e.yy === d.y || e.yy === Math.round(d.y);
     }).classed('selected');
-
 
     //'Unselect all other background bars if ctrl was not pressed
     if (!event.metaKey) {

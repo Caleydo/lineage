@@ -118,7 +118,15 @@ line {
   fill:rgb(59, 59, 59);
   font-weight: bold;
   font-size:13px
+}
 
+.title tspan{
+  alignment-baseline:central;
+  // text-anchor: middle;
+  fill:#7a7877;
+  font-weight: bold;
+  font-size:15px;
+  pointer-events: all;
 }
 
 .treeLink{

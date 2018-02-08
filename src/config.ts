@@ -31,13 +31,17 @@ export class Config {
       Episode:'\uf008',
       Character:'\uf007',
       House:'\uf1d0',
+
       AddSubGraph:'\uf20e',
       AddNode:'\uf055',
       AddChildren:'\uf1e0',
       RemoveNode:'\uf057',
-      RemoveChildren:'\uf057\uf057',
+      RemoveChildren:'\uf1e0',
       MakeRoot:'\uf192',
-      Add2Matrix:'\uf00a'
+      Add2Matrix:'\uf00a',
+
+      settingsExpand:'\uf013',
+      settingsCollapse:'\uf013'
   };
 
   public static colors = {

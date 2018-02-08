@@ -756,60 +756,67 @@ class Graph {
     node = nodesEnter.merge(node);
 
     node
-      .text((d) => { return Config.icons[d.label] + ' ' + d.title + ' (' + this.nodeNeighbors[d.uuid].degree + ')'; })
-      .on('click', (d) => {
-        const remove = d.children.length > 0;
-        const actions = [{ 'icon': remove? 'RemoveChildren' : 'AddChildren', 'string': remove ? 'Remove All Children': 'Add All Neighbors', 'callback': ()=> {
-          events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': remove });
-        } },
-        { 'icon': remove ? 'RemoveChildren': 'AddChildren', 'string': remove ? 'Remove Children by Type': 'Add Neighbors by Type', 'callback': ()=> {
-          events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': remove });
-        } },
-        { 'icon': 'RemoveNode', 'string':'Remove Node  *leaves children*', 'callback': ()=> {
-          events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': remove });
-        } },
-        { 'icon': 'MakeRoot', 'string': 'Make Root', 'callback': ()=> {
-          // console.log(d);
-          events.fire(ROOT_CHANGED_EVENT, {'root': d});
-        } },
-        { 'icon': 'Add2Matrix', 'string': 'Add to Table', 'callback': ()=> {
-          // events.fire(ROOT_CHANGED_EVENT, { 'rootID': d.id, 'replace': false });
-        } }];
-        this.menuObject.addMenu(d,actions);
-      });
-    // .on('contextmenu', (d) => {
-    //   // extractTree(roots = undefined, localGraph = this.graph, replace = true)
-    //   // this.extractTree([d]);
-    //   // this.drawTree();
-    // });
+      .text((d) => { return Config.icons[d.label] + ' ' + d.title + ' (' + this.nodeNeighbors[d.uuid].degree + ')'; });
 
-    node.on('mouseover', (d) => {
-      const element = selectAll('.hiddenEdge').filter((dd: any) => {
-        return dd.source.title === d.title || dd.target.title === d.title;
-      });
 
-      element.attr('clip-path', 'undefined');
-      element.attr('mask', 'undefined');
-    })
+    node
+    // .on('mouseover', )
+    // (d) => {
+      // const remove = d.children.length > 0;
+      // const element = selectAll('.hiddenEdge').filter((dd: any) => {
+      //   return dd.source.title === d.title || dd.target.title === d.title;
+      // });
+
+      // element.attr('clip-path', 'undefined');
+      // element.attr('mask', 'undefined');
+
+      // const currentText = select('.nodes').selectAll('.title').filter((t:any)=> {return t.title === d.title});
+      // currentText.append('tspan')
+      // .text('  ' + (remove ? Config.icons['settingsCollapse'] : Config.icons['settingsExpand']));
+
+      // select('tspan')
+      // .on('click', () => {
+      //   const remove = d.children.length > 0;
+      //   const actions = [{ 'icon': remove? 'RemoveChildren' : 'AddChildren', 'string': remove ? 'Remove All Children': 'Add All Neighbors', 'callback': ()=> {
+      //     events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': remove });
+      //   } },
+      //   { 'icon': remove ? 'RemoveChildren': 'AddChildren', 'string': remove ? 'Remove Children by Type': 'Add Neighbors by Type', 'callback': ()=> {
+      //     events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': remove });
+      //   } },
+      //   { 'icon': 'RemoveNode', 'string':'Remove Node  *leaves children*', 'callback': ()=> {
+      //     events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': remove });
+      //   } },
+      //   { 'icon': 'MakeRoot', 'string': 'Make Root', 'callback': ()=> {
+      //     // console.log(d);
+      //     events.fire(ROOT_CHANGED_EVENT, {'root': d});
+      //   } },
+      //   { 'icon': 'Add2Matrix', 'string': 'Add to Table', 'callback': ()=> {
+      //     // events.fire(ROOT_CHANGED_EVENT, { 'rootID': d.id, 'replace': false });
+      //   } }];
+      //   this.menuObject.addMenu(d,actions);
+      // });
+    // })
       .on('mouseout', (d) => {
-        const element = selectAll('.hiddenEdge').filter((dd: any) => {
-          return dd.source.title === d.title || dd.target.title === d.title;
-        });
-
-        element.attr('clip-path', (dd: any) => {
-          const st = this.createID(dd.source.title);
-          const tt = this.createID(dd.target.title);
-          return 'url(#' + st + '_' + tt + ')';
-        });
-
-        // element.attr('mask', (dd: any) => {
-        //   const st = this.createID(this.graph.nodes[dd.source].title);
-        //   const tt = this.createID(this.graph.nodes[dd.target].title);
-        // const st = this.createID(dd.source.title);
-        // const tt = this.createID(dd.target.title);
-
-        //   return 'url(#m_' + st + '_' + tt + ')';
+        // const element = selectAll('.hiddenEdge').filter((dd: any) => {
+        //   return dd.source.title === d.title || dd.target.title === d.title;
         // });
+
+        // element.attr('clip-path', (dd: any) => {
+        //   const st = this.createID(dd.source.title);
+        //   const tt = this.createID(dd.target.title);
+        //   return 'url(#' + st + '_' + tt + ')';
+        // });
+
+        // const currentText = select('.nodes').selectAll('.title').filter((t:any)=> {return t.title === d.title});
+        // currentText.select('tspan').remove();
+        // // element.attr('mask', (dd: any) => {
+        // //   const st = this.createID(this.graph.nodes[dd.source].title);
+        // //   const tt = this.createID(this.graph.nodes[dd.target].title);
+        // // const st = this.createID(dd.source.title);
+        // // const tt = this.createID(dd.target.title);
+
+        // //   return 'url(#m_' + st + '_' + tt + ')';
+        // // });
 
       });
 
@@ -961,6 +968,9 @@ class Graph {
 
   private addHightlightBars() {
 
+    selectAll('.title')
+    .on('mouseover',highlightRows);
+
     // const t = transition('t').duration(500).ease(easeLinear);
 
     const highlightBarGroup = select('#genealogyTree').select('#highlightBars');
@@ -982,7 +992,8 @@ class Graph {
       // console.log(yNodes[0])
       // if (yNodes.length>0) {
       yData.push({
-        yy: i, xx: min(yNodes, (d: any) => {
+        //works for individual rows. Need to reconsider for aggregate rows.
+        data: yNodes[0], yy: i, xx: min(yNodes, (d: any) => {
           return d.xx;
         })
         , id: yNodes[0].uuid
@@ -1145,13 +1156,79 @@ class Graph {
 
 
     selectAll('.highlightBar')
-      .on('mouseover', highlightRows)
-      .on('mouseout', clearHighlights)
+      .on('mouseover',(e:any)=> {
+        //Add glyphs;
+        const d = e.data;
+        const remove = d.children.length > 0;
+        const element = selectAll('.hiddenEdge').filter((dd: any) => {
+          return dd.source.title === d.title || dd.target.title === d.title;
+        });
+
+        element.attr('clip-path', 'undefined');
+        element.attr('mask', 'undefined');
+
+        const currentText = select('.nodes').selectAll('.title').filter((t:any)=> {return t.title === d.title;});
+
+        selectAll('tspan').remove();
+
+        // if (currentText.select('tspan').size() <1) {
+          currentText.append('tspan')
+          .text('  ' + (remove ? Config.icons.settingsCollapse : Config.icons.settingsExpand));
+        // }
+
+        currentText.selectAll('tspan')
+        .on('mouseover',()=> {console.log('hovering'); })
+        // .on('mouseout',()=> {selectAll('tspan').remove();})
+        .on('click', () => {
+          const remove = d.children.length > 0;
+          const actions = [{ 'icon': remove? 'RemoveChildren' : 'AddChildren', 'string': remove ? 'Remove All Children': 'Add All Neighbors', 'callback': ()=> {
+            events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': remove });
+          } },
+          { 'icon': remove ? 'RemoveChildren': 'AddChildren', 'string': remove ? 'Remove Children by Type': 'Add Neighbors by Type', 'callback': ()=> {
+            events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': remove });
+          } },
+          { 'icon': 'RemoveNode', 'string':'Remove Node  *leaves children*', 'callback': ()=> {
+            events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': remove });
+          } },
+          { 'icon': 'MakeRoot', 'string': 'Make Root', 'callback': ()=> {
+            // console.log(d);
+            events.fire(ROOT_CHANGED_EVENT, {'root': d});
+          } },
+          { 'icon': 'Add2Matrix', 'string': 'Add to Table', 'callback': ()=> {
+            // events.fire(ROOT_CHANGED_EVENT, { 'rootID': d.id, 'replace': false });
+          } }];
+          this.menuObject.addMenu(d,actions);
+        });
+
+        highlightRows(e);
+      })
+      .on('mouseout', (e:any)=> {
+        const d = e.data;
+        const element = selectAll('.hiddenEdge').filter((dd: any) => {
+          return dd.source.title === d.title || dd.target.title === d.title;
+        });
+
+        element.attr('clip-path', (dd: any) => {
+          const st = this.createID(dd.source.title);
+          const tt = this.createID(dd.target.title);
+          return 'url(#' + st + '_' + tt + ')';
+        });
+
+        // element.attr('mask', (dd: any) => {
+        //   const st = this.createID(this.graph.nodes[dd.source].title);
+        //   const tt = this.createID(this.graph.nodes[dd.target].title);
+        // const st = this.createID(dd.source.title);
+        // const tt = this.createID(dd.target.title);
+
+        //   return 'url(#m_' + st + '_' + tt + ')';
+        // });
+        clearHighlights();
+      } )
       .on('click', (d: any, i) => {
         if (event.defaultPrevented) { return; } // dragged
 
         const wasSelected = selectAll('.highlightBar').filter((e: any) => {
-          return e.yy === d.yy || e.yy === Math.round(d.yy);
+          return e.yy === d.yy || e.y === Math.round(d.yy);
         }).classed('selected');
 
 
@@ -1269,7 +1346,6 @@ class Graph {
     //Assign y values to the tableManager object
     this.tableManager.yValues = dict;
     events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);
-    console.log('here');
     // this.yValues = dict; //store dict for tree to use when creating slope chart
   }
 

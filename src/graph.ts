@@ -308,7 +308,7 @@ class Graph {
     });
 
     if (remove) {
-      const rootNode = this.graph.nodes.filter((n) => { return n.uuid == root; });
+      const rootNode = this.graph.nodes.filter((n) => { return n.uuid.toString() === root.toString(); });
 
       //recursive function to remove all nodes down this branch;
       this.removeBranch(rootNode[0]);
@@ -342,15 +342,15 @@ class Graph {
         if (replace || !this.graph) {
           //update indexes to contain refs of the actual nodes;
           graph.links.forEach((link) => {
-            const sourceNode = graph.nodes.filter((n) => { return n.uuid == link.source.uuid; })[0];
-            const targetNode = graph.nodes.filter((n) => { return n.uuid == link.target.uuid; })[0];
+            const sourceNode = graph.nodes.filter((n) => { return n.uuid.toString() === link.source.uuid.toString(); })[0];
+            const targetNode = graph.nodes.filter((n) => { return n.uuid.toString() === link.target.uuid.toString(); })[0];
             link.source = sourceNode;
             link.target = targetNode;
           });
 
           this.graph = graph;
         } else {
-          const rootNode = graph.nodes.filter((n) => { return n.uuid == graph.root; });
+          const rootNode = graph.nodes.filter((n) => { return n.uuid.toString() === graph.root.toString(); });
 
           const existingNodes = []; //nodes in the current subgraph that already exist in the tree
 
@@ -364,14 +364,14 @@ class Graph {
           });
 
           //only add root to array of roots if it does not already exist in the graph;
-          if (this.graph.nodes.filter((n) => { return n.uuid == graph.root; }).length < 1) {
+          if (this.graph.nodes.filter((n) => { return n.uuid.toString() === graph.root.toString(); }).length < 1) {
             this.graph.root = this.graph.root.concat(graph.root);
           };
 
           //update indexes
           graph.links.forEach((link) => {
-            const sourceNode = this.graph.nodes.filter((n) => { return n.uuid == link.source.uuid; })[0];
-            const targetNode = this.graph.nodes.filter((n) => { return n.uuid == link.target.uuid; })[0];
+            const sourceNode = this.graph.nodes.filter((n) => { return n.uuid.toString() === link.source.uuid.toString(); })[0];
+            const targetNode = this.graph.nodes.filter((n) => { return n.uuid.toString() === link.target.uuid.toString(); })[0];
 
             link.source = sourceNode;
             link.target = targetNode;
@@ -471,7 +471,7 @@ class Graph {
   // roots, which graph to extract, and whether to replace any existing tree.
   extractTree(roots = this.graph.root, graph = this.graph, replace = true) {
 
-    //replace graph root with current root; 
+    //replace graph root with current root;
     this.graph.root = roots;
 
     //set default values for unvisited nodes;
@@ -779,7 +779,7 @@ class Graph {
           // events.fire(ROOT_CHANGED_EVENT, { 'rootID': d.id, 'replace': false });
         } }];
         this.menuObject.addMenu(d,actions);
-      })
+      });
     // .on('contextmenu', (d) => {
     //   // extractTree(roots = undefined, localGraph = this.graph, replace = true)
     //   // this.extractTree([d]);
@@ -1208,7 +1208,7 @@ class Graph {
     }
     const xdiff = source.xx - target.xx > 0 ? source.xx - target.xx : this.xScale.invert(10);
     const ydiff = source.yy - target.yy;
-    let nx = source.xx - xdiff //* interGenerationScale(ydiff);
+    let nx = source.xx - xdiff; //* interGenerationScale(ydiff);
 
     let linedata;
     if (curves) {

@@ -109,13 +109,13 @@ public addMenu(data, actions = null) {
       .classed('tooltipTitle', true);
 
       let longestLabelLength = 0;
-      
+
           menu.selectAll('.menuItem').each(function (element: any, i) {
             const textNode = <SVGTSpanElement>select(this).select('.label').node();
             const labelWidth = textNode.getComputedTextLength();
             longestLabelLength = (labelWidth > longestLabelLength) ? labelWidth : longestLabelLength;
           });
-      
+
       menuWidth = longestLabelLength + 50;
 
       menuItems.select('.menuItemBackground')

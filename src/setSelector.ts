@@ -5,7 +5,7 @@ import { keys } from 'd3-collection';
 
 import { Config } from './config';
 
-import * as menu from './Menu';
+import * as menu from './menu';
 
 import {
   DB_CHANGED_EVENT
@@ -105,7 +105,7 @@ class SetSelector {
 
 
     //creat an accordion div and a table for each label
-    let p = select('#nodeFilter')
+    const p = select('#nodeFilter')
       .selectAll('.panel-default')
       .data(['Filter by Node Type']);
 
@@ -339,7 +339,7 @@ class SetSelector {
       let listItems = select('datalist').selectAll('option')
         .data(datalistItems);
 
-      let listItemsEnter = listItems.enter()
+      const listItemsEnter = listItems.enter()
         .append('option');
 
       listItems.exit().remove();
@@ -406,8 +406,8 @@ class SetSelector {
 
   private populateTableRows(tableDiv, rowData, numCols) {
 
-    //sort data alphabetically; 
-    console.log(rowData.sort((a,b)=>{return a.title < b.title; }))
+    //sort data alphabetically;
+    console.log(rowData.sort((a,b)=> {return a.title < b.title; }));
     const tableSelector = select(tableDiv).select('#tableBody');
     // create a row for each object in the data
     let rows = tableSelector.select('tbody').selectAll('tr')
@@ -436,7 +436,7 @@ class SetSelector {
       { 'icon': 'Add2Matrix', 'string': 'Add to Table', 'callback': ()=> {
         return undefined;
       }}];
-      
+
       this.menuObject.addMenu(d,actions);
       // events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.id, 'depth': 1, 'replace': false });
     });

@@ -67,7 +67,7 @@ import {
   Config
 } from './config';
 
-import * as menu from './Menu';
+import * as menu from './menu';
 
 export const ROOT_CHANGED_EVENT = 'root_changed';
 
@@ -274,7 +274,6 @@ class Graph {
   }
 
   public removeBranch(rootNode) {
-    const toRemove = [];
 
     // remove all links to children
     rootNode.children.forEach((node) => {
@@ -297,7 +296,7 @@ class Graph {
   /**
    * Function that loads up the graph
    */
-  public async loadGraph(db, root = undefined, depth = undefined, replace = true, remove = false, includeRoot = true, includeChildren = true) {
+  public async loadGraph(db, root = undefined, depth = 1, replace = true, remove = false, includeRoot = true, includeChildren = true) {
 
     this.selectedDB = db;
 
@@ -395,7 +394,7 @@ class Graph {
             //Do not add links that already exists in the tree
             const findLink = this.graph.links.filter((ll) => {
               return (ll.source.uuid === sourceNode.uuid && ll.target.uuid === targetNode.uuid)
-                || (ll.target.uuid === sourceNode.uuid && ll.source.uuid === targetNode.uuid) //if we don't care about direction 
+                || (ll.target.uuid === sourceNode.uuid && ll.source.uuid === targetNode.uuid); //if we don't care about direction
             });
 
             if (findLink.length < 1) {
@@ -421,8 +420,6 @@ class Graph {
 
         //Populate dictionary
         //Find all edges that start or end on that node
-
-        console.log('****')
         this.graph.links.map((l) => {
 
           const targetNode = l.target;
@@ -764,18 +761,18 @@ class Graph {
     node
       .text((d) => { return Config.icons[d.label] + ' ' + d.title + ' (' + this.nodeNeighbors[d.uuid].degree + ')'; })
       .on('click', (d) => {
-        let remove = d.children.length > 0;
+        const remove = d.children.length > 0;
         const actions = [{ 'icon': remove? 'RemoveChildren' : 'AddChildren', 'string': remove ? 'Remove All Children': 'Add All Neighbors', 'callback': ()=> {
-          events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'depth': 1, 'replace': false, 'remove': d.children.length > 0 });
+          events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': remove });
         } },
         { 'icon': remove ? 'RemoveChildren': 'AddChildren', 'string': remove ? 'Remove Children by Type': 'Add Neighbors by Type', 'callback': ()=> {
-          events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'depth': 1, 'replace': false, 'remove': d.children.length > 0 });
+          events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': remove });
         } },
         { 'icon': 'RemoveNode', 'string':'Remove Node  *leaves children*', 'callback': ()=> {
-          events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'depth': 1, 'replace': false, 'remove': d.children.length > 0 });
+          events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': remove });
         } },
         { 'icon': 'MakeRoot', 'string': 'Make Root', 'callback': ()=> {
-          console.log(d);
+          // console.log(d);
           events.fire(ROOT_CHANGED_EVENT, {'root': d});
         } },
         { 'icon': 'Add2Matrix', 'string': 'Add to Table', 'callback': ()=> {
@@ -849,7 +846,7 @@ class Graph {
 
   drawGraph() {
 
-    const graph = this.graph; 
+    const graph = this.graph;
 
     const dragstarted = (d) => {
       if (!event.active) {
@@ -874,7 +871,7 @@ class Graph {
 
 
     select('#graph').select('svg').attr('height',this.forceDirectedHeight);
-    
+
     const link = this.svg.select('.links')
       .selectAll('line')
       .data(graph.links)
@@ -963,7 +960,7 @@ class Graph {
       // this.simulation.alphaTarget(0);
   }
 
-  
+
 
   private addHightlightBars() {
 

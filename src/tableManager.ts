@@ -12,6 +12,8 @@ import { isUndefined } from 'util';
 
 import { select } from 'd3-selection';
 
+import * as arrayVec from './ArrayVector';
+
 
 interface IFamilyInfo {
   id: number;
@@ -90,6 +92,7 @@ export const FAMILY_INFO_UPDATED = 'family_stats_updated';
 export const COL_ORDER_CHANGED_EVENT = 'col_ordering_changed';
 export const FAMILY_SELECTED_EVENT = 'family_selected_event';
 export const UPDATE_TABLE_EVENT = 'update_table';
+export const ADJ_MATRIX_CHANGED = 'adjacency_matrix_changed';
 
 
 // export const PRIMARY_COLOR = '#335b8e';
@@ -129,13 +132,14 @@ export default class TableManager {
   /** The table that contains attribute information */
   attributeTable: ITable;
 
+  public adjMatrixCols=[]; //array of cols to add to the table view for the Adj Matrix;
+
   /** The table view (of attributeTable) used in the table visualization */
   public tableTable: ITable; // table view
   /** The columns currently displayed in the table */
   private activeTableColumns: range.Range = range.all(); //default value;
   /** The rows currently shown in the table, a subset of the activeGraphRows */
   private _activeTableRows: range.Range = range.all(); //default value;
-
 
   /** The table view (of table) used for the graph */
   public graphTable: ITable; // table view
@@ -185,6 +189,28 @@ export default class TableManager {
     this.updateFamilySelector(attributeName,undefined,false);
   }
 
+  constructor() {
+
+    events.on(ADJ_MATRIX_CHANGED,(evt,info)=> {
+
+      //append or remove col from adj matrix;
+      if (info.remove) {
+        console.log('nothing');
+      } else {
+        //Add fake vector here:
+        const arrayVector = arrayVec.create();
+        arrayVector.desc.name = info.name;
+
+        this.adjMatrixCols =this.adjMatrixCols.concat(arrayVector);
+
+        events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);
+
+        console.log('adj matrix cols', this.adjMatrixCols);
+      }
+      
+    });
+  }
+  
   /**
    * Loads the graph data and the attribute data from the server and stores it in the public table variable
    * Parses out the familySpecific information to populate the Family Selector
@@ -200,7 +226,7 @@ export default class TableManager {
       this.defaultCols = ['name', 'title', 'season'];
     };
 
-    this.colOrder = this.defaultCols;
+    this.colOrder = this.adjMatrixCols.map((c)=> {return c.desc.name;}).concat(this.defaultCols);
 
     //retrieving the desired dataset by name
     const attributeTable = <ITable>await getById(attributeDataSetID);
@@ -807,6 +833,5 @@ export default class TableManager {
  * @returns {TableManager}
  */
 export function create() {
-
   return new TableManager();
 }

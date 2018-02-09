@@ -8,7 +8,7 @@ import {
   SUBGRAPH_CHANGED_EVENT
 } from './setSelector';
 
-import {TABLE_VIS_ROWS_CHANGED_EVENT} from './tableManager';
+import {TABLE_VIS_ROWS_CHANGED_EVENT, ADJ_MATRIX_CHANGED} from './tableManager';
 
 import {
   select,
@@ -1195,7 +1195,8 @@ class Graph {
             events.fire(ROOT_CHANGED_EVENT, {'root': d});
           } },
           { 'icon': 'Add2Matrix', 'string': 'Add to Table', 'callback': ()=> {
-            // events.fire(ROOT_CHANGED_EVENT, { 'rootID': d.id, 'replace': false });
+            console.log('firing adj matrix changed event')
+            events.fire(ADJ_MATRIX_CHANGED, { 'remove': false, 'name':d.title});
           } }];
           this.menuObject.addMenu(d,actions);
         });

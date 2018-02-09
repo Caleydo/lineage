@@ -579,26 +579,31 @@ class AttributeTable {
     const graphView = await this.tableManager.graphTable;
     const attributeView = await this.tableManager.tableTable;
 
-    const allCols = graphView.cols().concat(attributeView.cols());
-    const colOrder = this.tableManager.colOrder;
+    let allCols = this.tableManager.adjMatrixCols.concat(graphView.cols()).concat(attributeView.cols());
+    const colOrder = this.tableManager.adjMatrixCols.map((c)=> {return c.desc.name;}).concat(this.tableManager.colOrder);
     const orderedCols = [];
-
+    
     this.allCols = allCols;
+
+
 
     for (const colName of colOrder) {
       for (const vector of allCols) {
+        console.log(colName,vector.desc.name);
         if (vector.desc.name === colName) {
           orderedCols.push(vector);
         }
       }
     }
 
+    console.log(orderedCols);
+
     //This are the rows that every col in the table should have;
     const graphIDs = await graphView.col(0).names();
     const kindredIDs = await graphView.col(1).data();
 
     const idVector = await graphView.col(0).ids();
-    const uniqueIDs = idVector.dim(0).asList().map((i) => { return i.toString(); });
+    const uniqueIDs = idVector.dim(0).asList().map((i) => { return i.toString(); }); // WILL HAVE TO FIND A NEW WAY FOR ARRAY VECTORS
 
     // const ids = uniqueIDs.map((id,i)=> {return id+'_'+kindredIDs[i];});
     const ids = graphIDs.map((id, i) => { return id; });
@@ -695,10 +700,11 @@ class AttributeTable {
     orderedCols.forEach((vector, index) => {
       const data = finishedPromises[index * 5];
       const peopleIDs = finishedPromises[index * 5 + 1];
-      const phoveaIDs = finishedPromises[index * 5 + 2].dim(0).asList().map((i) => { return i.toString(); });
+      // const phoveaIDs = finishedPromises[index * 5 + 2].dim(0).asList().map((i) => { return i.toString(); });
 
 
-      const type = vector.valuetype.type;
+      const type = vector.desc.value.type;
+      console.log('vector',vector);
       const name = vector.desc.name;
 
       // console.log('data',data,'type',type,'name',name)
@@ -751,7 +757,7 @@ class AttributeTable {
             //TODO find out why there are multiple instances of a person id.
             const people = y2personDict[row];
             people.map((person) => {
-              const ind = (col.name === 'KindredID' ? ids.indexOf(person) : peopleIDs.indexOf(person.split('_')[0])); //find this person in the attribute data
+              const ind = peopleIDs.indexOf(person); //find this person in the attribute data
               //If there are only two categories, save both category values in this column. Else, only save the ones that match the category at hand.
               if (ind > -1 && (allCategories.length < 3 || ind > -1 && (allCategories.length > 2 && data[ind] === cat))) {
                 colData.push(data[ind]);
@@ -763,9 +769,9 @@ class AttributeTable {
           });
           col.type = type;
 
-          const maxOffset = max(this.colOffsets);
+          // const maxOffset = max(this.colOffsets);
 
-          this.colOffsets.push(maxOffset + this.buffer * 2 + this.colWidths[type]);
+          // this.colOffsets.push(maxOffset + this.buffer * 2 + this.colWidths[type]);
 
           colDataAccum.push(col);
 
@@ -860,10 +866,7 @@ class AttributeTable {
 
         const col: any = {};
         col.ids = allRows.map((row) => {
-          return y2personDict[row].map((d) => { return d;}); //only first part is the id
-          // .filter(function (value, index, self) {
-          //   return self.indexOf(value) === index;
-          // });
+          return y2personDict[row].map((d) => { return d;});
         });
 
         col.name = name;
@@ -873,7 +876,7 @@ class AttributeTable {
           const colData = [];
           const people = y2personDict[row];
           people.map((person, i) => {
-            const ind = (col.name === 'KindredID' ? ids.lastIndexOf(person) : peopleIDs.lastIndexOf(person.split('_')[0])); //find this person in the attribute data
+            const ind =  peopleIDs.lastIndexOf(person); //find this person in the attribute data
             if (ind > -1) {
               if (isUndefined(data[ind])) {
                 console.log('problem');
@@ -916,7 +919,7 @@ class AttributeTable {
 
     orderedCols.forEach((vector, index) => {
 
-      const type = vector.valuetype.type;
+      const type = vector.desc.value.type;
       const name = vector.desc.name;
 
       let maxOffset = max(this.colOffsets);
@@ -986,6 +989,8 @@ class AttributeTable {
   private lazyScroll = _.throttle(this.updateSlopeLines, 300);
   //renders the DOM elements
   private render() {
+
+    console.log('colData', this.colData);
 
     // const t = transition('t').ease(easeLinear);
     // let t= this.tableManager.t;

@@ -197,44 +197,44 @@ export default class TableManager {
 
     events.on(ADJ_MATRIX_CHANGED, (evt,info)=> {
 
-      //append or remove col from adj matrix;
+      //append  col from adj matrix;
+
       if (info.remove) {
-        console.log('nothing');
+        this.colOrder.splice(this.colOrder.indexOf(info.name), 1);
+        events.fire(COL_ORDER_CHANGED_EVENT);
       } else {
+
+      
         //Add fake vector here:
         const arrayVector = arrayVec.create();
 
         arrayVector.desc.name = info.name;
 
-        //Make api call to find out all edges between the current node and nodes in the tree; 
-        //.data will be an array of edge ids
-        //.ids will bea n array of target node ids; 
-        //for now populate .ids with all the ids in the current tree
-        //and populate .data with a random value of 'True' or 'False'; 
-        // const data = this.graph.nodes.map((n)=>Math.random()>.5 ? 'True' : 'False');
-        // const ids = this.graph.nodes.map((n)=>n.uuid);
-
        const url = 'api/data_api/edges/' + info.db + '/' + info.uuid;
 
-       console.log('edge url is ', url)
+      //  console.log('edge url is ', url);
               json(url, (error, edges: any) => {
                 if (error) {
                   throw error;
                 }
-                console.log(edges)
+
                 arrayVector.dataValues = edges.nodes.map((e)=> {return 'True';});
                 arrayVector.idValues = edges.nodes.map((e)=> {return e.uuid;});
         
-                this.adjMatrixCols =this.adjMatrixCols.concat(arrayVector);
-                this.colOrder = [arrayVector.desc.name].concat(this.colOrder);
-        
+                //if it's not already in there:
+                if (this.adjMatrixCols.filter((a:any )=> {return a.desc.name === arrayVector.desc.name; }).length<1) {
+                  this.adjMatrixCols =this.adjMatrixCols.concat(arrayVector); //store array of vectors 
+                }
+
+                //if it's not already in there:
+                if (this.colOrder.filter((a:any )=> {return a === arrayVector.desc.name; }).length<1) {
+                  this.colOrder = [arrayVector.desc.name].concat(this.colOrder); // store array of names
+                }
+
                 events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);
 
-              })
-              
+              });
 
-
-        // console.log('adj matrix cols', this.adjMatrixCols);
       }
       
     });

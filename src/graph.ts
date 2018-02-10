@@ -1183,6 +1183,7 @@ class Graph {
         // .on('mouseout',()=> {selectAll('tspan').remove();})
         .on('click', () => {
           const remove = d.children.length > 0;
+          const removeAdjMatrix = this.tableManager.colOrder.indexOf(d.title) > -1; 
           const actions = [{ 'icon': remove? 'RemoveChildren' : 'AddChildren', 'string': remove ? 'Remove All Children': 'Add All Neighbors', 'callback': ()=> {
             events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': remove });
           } },
@@ -1196,8 +1197,8 @@ class Graph {
             // console.log(d);
             events.fire(ROOT_CHANGED_EVENT, {'root': d});
           } },
-          { 'icon': 'Add2Matrix', 'string': 'Add to Table', 'callback': ()=> {
-            events.fire(ADJ_MATRIX_CHANGED, { 'db':this.selectedDB, 'name':d.title, 'uuid':d.uuid});
+          { 'icon': 'Add2Matrix', 'string': removeAdjMatrix ? 'Remove from Table' : 'Add to Table', 'callback': ()=> {
+            events.fire(ADJ_MATRIX_CHANGED, { 'db':this.selectedDB, 'name':d.title, 'uuid':d.uuid,'remove':removeAdjMatrix});
           } }];
           this.menuObject.addMenu(d,actions);
         });

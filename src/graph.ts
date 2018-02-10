@@ -156,7 +156,7 @@ class Graph {
     });
 
     events.on(SUBGRAPH_CHANGED_EVENT, (evt, info) => {
-      this.loadGraph(info.db, info.rootID, info.depth, info.replace, info.remove,info.includeRoot,info.includeChildren);;
+      this.loadGraph(info.db, info.rootID, info.replace, info.remove,info.includeRoot,info.includeChildren);;
     });
 
 
@@ -293,7 +293,7 @@ class Graph {
   /**
    * Function that loads up the graph
    */
-  public async loadGraph(db, root = undefined, depth = 1, replace = true, remove = false, includeRoot = true, includeChildren = true) {
+  public async loadGraph(db, root = undefined, replace = true, remove = false, includeRoot = true, includeChildren = true) {
 
     this.selectedDB = db;
 
@@ -324,8 +324,8 @@ class Graph {
 
       resolvePromise();
     } else {
-
-      const url = root ? 'api/data_api/graph/' + db + '/' + root + '/' + depth : 'api/data_api/graph/' + db;
+      
+      const url = root ? 'api/data_api/graph/' + db + '/' + root + '/' + includeRoot.toString() : 'api/data_api/graph/' + db;
 
       json(url, (error, graph: any) => {
         if (error) {
@@ -333,6 +333,7 @@ class Graph {
         }
 
         console.log('url is', url);
+        console.log(graph.nodes);
 
 
         //Replace graph or merge with incoming subgraph
@@ -468,6 +469,7 @@ class Graph {
   // roots, which graph to extract, and whether to replace any existing tree.
   extractTree(roots = this.graph.root, graph = this.graph, replace = true) {
 
+    console.log('roots', roots)
     //replace graph root with current root;
     this.graph.root = roots;
 
@@ -845,7 +847,7 @@ class Graph {
     this.addHightlightBars();
 
     select('#graph')
-      .attr('height', document.getElementById('genealogyTree').getBoundingClientRect().height);
+      .attr('height', document.getElementById('genealogyTree').getBoundingClientRect().height + this.margin.top*2);
   }
 
   drawGraph() {
@@ -1195,8 +1197,7 @@ class Graph {
             events.fire(ROOT_CHANGED_EVENT, {'root': d});
           } },
           { 'icon': 'Add2Matrix', 'string': 'Add to Table', 'callback': ()=> {
-            console.log('firing adj matrix changed event')
-            events.fire(ADJ_MATRIX_CHANGED, { 'remove': false, 'name':d.title});
+            events.fire(ADJ_MATRIX_CHANGED, { 'db':this.selectedDB, 'name':d.title, 'uuid':d.uuid});
           } }];
           this.menuObject.addMenu(d,actions);
         });

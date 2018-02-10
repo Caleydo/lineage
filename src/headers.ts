@@ -57,7 +57,7 @@ class HeaderMenus {
 
     selectMenu.append('option')
     .attr('value','path')
-    .text('KEG Pathways');
+    .text('KEGG Pathways');
 
     const layoutSelector = select('.navbar-collapse')
     .append('div')

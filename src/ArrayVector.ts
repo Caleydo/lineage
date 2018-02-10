@@ -10,7 +10,7 @@ class ArrayVector {
     public desc = desc.create();
 
     public dataValues=[];
-    public nameValues=[];
+    public idValues=[];
 
     public data;
     public names;
@@ -21,7 +21,7 @@ class ArrayVector {
     constructor() {
 
       this.data =  async ()=> {return this.dataValues;};
-      this.names = async ()=> {return this.nameValues;};
+      this.names = async ()=> {return this.idValues;};
       this.ids = async ()=>  {return [];};
       this.stats= async ()=> {return Promise.reject;};
       this.hist = async (d)=> {return Promise.reject;};

@@ -580,7 +580,12 @@ class AttributeTable {
     const attributeView = await this.tableManager.tableTable;
 
     let allCols = this.tableManager.adjMatrixCols.concat(graphView.cols()).concat(attributeView.cols());
-    const colOrder = this.tableManager.adjMatrixCols.map((c)=> {return c.desc.name;}).concat(this.tableManager.colOrder);
+
+    //update tableManager colOrder;
+    // this.tableManager.colOrder = this.tableManager.colOrder.length < 1 ? 
+    // this.tableManager.adjMatrixCols.map((c)=> {return c.desc.name;}).concat(this.tableManager.defaultCols) : this.tableManager.colOrder;
+
+    const colOrder = this.tableManager.colOrder;
     const orderedCols = [];
     
     this.allCols = allCols;
@@ -589,14 +594,11 @@ class AttributeTable {
 
     for (const colName of colOrder) {
       for (const vector of allCols) {
-        console.log(colName,vector.desc.name);
         if (vector.desc.name === colName) {
           orderedCols.push(vector);
         }
       }
     }
-
-    console.log(orderedCols);
 
     //This are the rows that every col in the table should have;
     const graphIDs = await graphView.col(0).names();
@@ -704,7 +706,6 @@ class AttributeTable {
 
 
       const type = vector.desc.value.type;
-      console.log('vector',vector);
       const name = vector.desc.name;
 
       // console.log('data',data,'type',type,'name',name)
@@ -981,16 +982,14 @@ class AttributeTable {
   //function that removes spaces and periods to be used as ids and selectors. Also includes categories for categorical data.
   private deriveID(d) {
     return (d.type === 'categorical' ?
-    (d.name.replace(/ /g, '_').replace(/\./g, '')+ '_'
+    (d.name.replace(/ /g, '_').replace(/\./g, '').replace(/\(/g, '').replace(/\)/g, '')+ '_'
     + d.category.replace(/ /g, '_').replace(/\(/g, '').replace(/\)/g, '')) :
-     (d.name.replace(/ /g, '_').replace(/\./g, '')));
+     (d.name.replace(/ /g, '_').replace(/\./g, '').replace(/\(/g, '').replace(/\)/g, '')));
   }
 
   private lazyScroll = _.throttle(this.updateSlopeLines, 300);
   //renders the DOM elements
   private render() {
-
-    console.log('colData', this.colData);
 
     // const t = transition('t').ease(easeLinear);
     // let t= this.tableManager.t;
@@ -1920,7 +1919,7 @@ class AttributeTable {
     selectAll('.deleteIcon')
       .on('click', (d: any) => {
         this.tableManager.colOrder.splice(this.tableManager.colOrder.indexOf(d.name), 1);
-        this.tableManager.removeStar(d.name);
+        // this.tableManager.removeStar(d.name);
 
         //Update menu
         selectAll('.dropdown-item').filter((item: any) => { return item === d.name; })

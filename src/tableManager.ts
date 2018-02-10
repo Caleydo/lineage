@@ -14,6 +14,10 @@ import { select } from 'd3-selection';
 
 import * as arrayVec from './ArrayVector';
 
+import {
+  json
+} from 'd3-request';
+
 
 interface IFamilyInfo {
   id: number;
@@ -153,7 +157,7 @@ export default class TableManager {
   // private defaultCols: String[] =
   //   ['KindredID','PersonID', 'Asthma', 'Bipolar', 'sex', 'deceased', 'suicide', 'gen', 'Age', 'FirstBMI', 'AgeFirstBMI', 'race', 'cause_death', 'weapon']; //set of default cols to read in, minimizes load time for large files;
 
-    private defaultCols: String[];
+  public defaultCols: String[];
 
   // //default cols for Autism data
   // private defaultCols: String[] =
@@ -191,7 +195,7 @@ export default class TableManager {
 
   constructor() {
 
-    events.on(ADJ_MATRIX_CHANGED,(evt,info)=> {
+    events.on(ADJ_MATRIX_CHANGED, (evt,info)=> {
 
       //append or remove col from adj matrix;
       if (info.remove) {
@@ -199,13 +203,38 @@ export default class TableManager {
       } else {
         //Add fake vector here:
         const arrayVector = arrayVec.create();
+
         arrayVector.desc.name = info.name;
 
-        this.adjMatrixCols =this.adjMatrixCols.concat(arrayVector);
+        //Make api call to find out all edges between the current node and nodes in the tree; 
+        //.data will be an array of edge ids
+        //.ids will bea n array of target node ids; 
+        //for now populate .ids with all the ids in the current tree
+        //and populate .data with a random value of 'True' or 'False'; 
+        // const data = this.graph.nodes.map((n)=>Math.random()>.5 ? 'True' : 'False');
+        // const ids = this.graph.nodes.map((n)=>n.uuid);
 
-        events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);
+       const url = 'api/data_api/edges/' + info.db + '/' + info.uuid;
 
-        console.log('adj matrix cols', this.adjMatrixCols);
+       console.log('edge url is ', url)
+              json(url, (error, edges: any) => {
+                if (error) {
+                  throw error;
+                }
+                console.log(edges)
+                arrayVector.dataValues = edges.nodes.map((e)=> {return 'True';});
+                arrayVector.idValues = edges.nodes.map((e)=> {return e.uuid;});
+        
+                this.adjMatrixCols =this.adjMatrixCols.concat(arrayVector);
+                this.colOrder = [arrayVector.desc.name].concat(this.colOrder);
+        
+                events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);
+
+              })
+              
+
+
+        // console.log('adj matrix cols', this.adjMatrixCols);
       }
       
     });
@@ -226,7 +255,7 @@ export default class TableManager {
       this.defaultCols = ['name', 'title', 'season'];
     };
 
-    this.colOrder = this.adjMatrixCols.map((c)=> {return c.desc.name;}).concat(this.defaultCols);
+    this.colOrder = this.defaultCols;
 
     //retrieving the desired dataset by name
     const attributeTable = <ITable>await getById(attributeDataSetID);

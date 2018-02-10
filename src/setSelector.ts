@@ -424,13 +424,13 @@ class SetSelector {
     rows.on('click', (d: any) => {
       console.log('clicked');
       const actions = [{ 'icon': 'AddSubGraph', 'string': 'Add Node + Neighbors to Tree', 'callback': ()=> {
-        events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.id, 'depth': 1,'replace': false }); //default values for include root and children is true;
+        events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.id,'replace': false }); //default values for include root and children is true;
       } },
       { 'icon': 'AddChildren', 'string': 'Add Neighbors to Tree', 'callback': ()=> {
-        events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.id, 'depth': 1, 'includeRoot':false, 'replace': false });
+        events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.id, 'includeRoot':false, 'replace': false });
       } },
       { 'icon': 'AddNode', 'string': 'Add Node to Tree', 'callback': ()=> {
-        events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.id, 'depth': 1, 'includeRoot':false,'includeChildren':false, 'replace': false });
+        events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.id,'includeChildren':false, 'replace': false });
       } },
       { 'icon': 'Add2Matrix', 'string': 'Add to Table', 'callback': ()=> {
         return undefined;

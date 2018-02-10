@@ -40,7 +40,7 @@ export class App {
     this.$node.select('#col1').append('div').attr('id', 'nodeFilter').attr('class','panel-group');
 
     this.$node.select('#col1').append('div').attr('id', 'accordion').attr('class','panel-group');
-    this.$node.select('#col2').append('div').attr('id', 'graph');
+    this.$node.select('#col2').append('div').attr('id', 'treeDiv');
     this.$node.select('#col3').append('div').attr('id', 'table');
 
     //Add div for tooltip that sits on top of all other divs.
@@ -138,7 +138,7 @@ export class App {
     headerMenus.create();
 
     await tableManager.loadData('characters', 'episodes');
-    const graphObj = graph.create(650,1500,10,'#graph',tableManager);
+    const graphObj = graph.create(650,1500,10,'#treeDiv',tableManager);
 
   // let load  = ()=>{
     // const graphView = await graphObj.loadGraph(defaultDB);

@@ -422,7 +422,6 @@ class SetSelector {
 
 
     rows.on('click', (d: any) => {
-      console.log('clicked');
       const actions = [{ 'icon': 'AddSubGraph', 'string': 'Add Node + Neighbors to Tree', 'callback': ()=> {
         events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.id,'replace': false }); //default values for include root and children is true;
       } },

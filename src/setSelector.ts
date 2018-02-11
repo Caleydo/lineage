@@ -100,11 +100,11 @@ class SetSelector {
       .attr('id', 'allNodes');
 
     //add nodeAttribute filter
-    select('#nodeFilter').selectAll('.panel').remove(); //total hack.
+    select('#col1').select('#nodeFilter').selectAll('.panel').remove(); //total hack.
 
 
     //creat an accordion div and a table for each label
-    const p = select('#nodeFilter')
+    const p = select('#col1').select('#nodeFilter')
       .selectAll('.panel-default')
       .data(['Filter by Node Type']);
 
@@ -136,7 +136,8 @@ class SetSelector {
       .attr('class', 'panel-body')
       .attr('id', 'filterPanel');
 
-    const cboxes = select('#filterPanel')
+    const cboxes = select('#col1')
+    .select('#filterPanel')
       .selectAll('.checkbox')
       .data(labels)
       .enter()
@@ -157,25 +158,11 @@ class SetSelector {
       });
 
 
-    // Add checkboxes for each label type.
-
-    //   <div class="checkbox">
-    //   <label><input type="checkbox" value="">Option 1</label>
-    // </div>
-    // <div class="checkbox">
-    //   <label><input type="checkbox" value="">Option 2</label>
-    // </div>
-    // <div class="checkbox disabled">
-    //   <label><input type="checkbox" value="" disabled>Option 3</label>
-    // </div>
-
-
-
-    select('#accordion').selectAll('.panel').remove(); //total hack.
+      select('#col1').select('#accordion').selectAll('.panel').remove(); //total hack.
 
 
     //creat an accordion div and a table for each label
-    let panels = select('#accordion')
+    let panels = select('#col1').select('#accordion')
       .selectAll('.panel-default')
       .data(labels);
 
@@ -230,10 +217,12 @@ class SetSelector {
 
     panels = panels.merge(panelsEnter);
 
-    selectAll('a')
+    select('#col1')
+    .selectAll('a')
       .text((d: any) => { return d; });
 
-    select('#accordion').selectAll('.panel-body')
+      select('#col1')
+      .select('#accordion').selectAll('.panel-body')
       .attr('id', (d) => { return d + '_body'; });
 
     // Populate Headers
@@ -353,55 +342,12 @@ class SetSelector {
       data.map((d) => {
         this.populateTableRows('#' + d.name + '_body', d.nodes, this.headerInfo.length);
       });
-      //     const selectedRows = rowData.filter((row) => { return this.selectedFamilyIds.indexOf(row.id)>-1; });
-      //     this.populateTableRows('#tableHead', selectedRows,tableHeaders.length-2);
-
-      //     select('#tableBody').select('tbody').selectAll('tr').classed('selected',(d:any)=> {return this.selectedFamilyIds.indexOf(d.id) > -1;});
-
-      //     selectAll('.addRemoveIcon').on('click', ((d)=> {event.stopPropagation(); this.selectRow(d,rowData,tableHeaders.length-2);}));
-
-      //     if (selectAll('.selected').size() === 0) {
-      //       console.log('emptyFamily!');
-      //       this.selectRow({'id':data.familyInfo[0].id},rowData,tableHeaders.length-2,false);
-      //     }
 
 
 
     });
 
   }
-
-  // private selectRow(familyID:any,rowData:any,numCols,update = true) {
-
-  //   console.log(familyID);
-
-  //   const thisIcon = select('#tableBody').select('tbody').selectAll('.addRemoveIcon').filter((row: any) => {
-  //     return row.id === familyID.id;
-  //   });
-
-  //   const toRemove = thisIcon.html() ===  '\uf056';
-
-  //   thisIcon.html( toRemove ? '\uf055' : '\uf056');
-
-  //   if (!toRemove) {
-  //     this.selectedFamilyIds.push(familyID.id);
-  //   } else {
-  //     this.selectedFamilyIds.splice(this.selectedFamilyIds.indexOf(familyID.id),1);
-  //   }
-
-  //   select('#tableBody').select('tbody').selectAll('tr').filter((row: any) => {
-  //     return row.id === familyID.id;
-  //   })
-  //     .classed('selected', !toRemove);
-
-  //   const selectedRows = rowData.filter((row) => { return this.selectedFamilyIds.indexOf(row.id)>-1; });
-  //   this.populateTableRows('#tableHead', selectedRows,numCols);
-
-  //   if (update) {
-  //     this.loadFamily();
-  //   };
-
-  // }
 
   private populateTableRows(tableDiv, rowData, numCols) {
 
@@ -438,38 +384,6 @@ class SetSelector {
       this.menuObject.addMenu(d,actions);
       // events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.id, 'depth': 1, 'replace': false });
     });
-
-    //         //set all icons to +
-    //       select('#tableBody').select('tbody').selectAll('.addRemoveIcon').html('\uf055');
-
-    //       //Set this icon to -
-    //        select('#tableBody').select('tbody').selectAll('.addRemoveIcon').filter((row: any) => {
-    //           return row.id === d.id;
-    //         }).html('\uf056');
-
-    //         this.selectedFamilyIds = [];
-    //         this.selectedFamilyIds.push(d.id);
-
-    //         select('#tableBody').select('tbody').selectAll('tr').classed('selected', false);
-
-    //         select('#tableBody').select('tbody').selectAll('tr').filter((row: any) => {
-    //           return row.id === d.id;
-    //         })
-    //           .classed('selected', true);
-
-    //         const selectedRows = rowData.filter((row) => { return this.selectedFamilyIds.indexOf(row.id)>-1; });
-    //         this.populateTableRows('#tableHead', selectedRows,numCols);
-
-    //         this.loadFamily();
-
-
-    //       });
-
-
-
-    // if (tableSelector === '#tableBody') {
-    //   this.rows = rows;
-    // }
 
     //
     // create a cell in each row for each column
@@ -519,14 +433,6 @@ class SetSelector {
 
 
   }
-
-  // private loadFamily() {
-  //   console.log('calling loadFamily');
-  //   this.tableManager.selectFamily(this.selectedFamilyIds);
-  // }
-
-  // private lazyLoad = _.debounce(this.loadFamily, 300, true);
-
 
 }
 

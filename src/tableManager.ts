@@ -217,8 +217,8 @@ export default class TableManager {
                 if (error) {
                   throw error;
                 }
-
-                arrayVector.dataValues = edges.nodes.map((e)=> {return 'True';});
+                console.log(edges);
+                arrayVector.dataValues = edges.nodes.map((e)=> {return e;});
                 arrayVector.idValues = edges.nodes.map((e)=> {return e.uuid;});
         
                 //if it's not already in there:

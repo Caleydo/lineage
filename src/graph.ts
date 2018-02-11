@@ -327,29 +327,36 @@ class Graph {
       
       const url = root ? 'api/data_api/graph/' + db + '/' + root + '/' + includeRoot.toString() : 'api/data_api/graph/' + db;
 
+      console.log('url is ', url);
       json(url, (error, graph: any) => {
         if (error) {
           throw error;
         }
 
-        console.log('url is', url);
-        console.log(graph.nodes);
-
+        console.log(graph.links)
 
         //Replace graph or merge with incoming subgraph
         if (replace || !this.graph) {
+
+          let newLinks = [];
           //update indexes to contain refs of the actual nodes;
           graph.links.forEach((link) => {
             const sourceNode = graph.nodes.filter((n) => { return n.uuid.toString() === link.source.uuid.toString(); })[0];
             const targetNode = graph.nodes.filter((n) => { return n.uuid.toString() === link.target.uuid.toString(); })[0];
             link.source = sourceNode;
             link.target = targetNode;
-          });
 
+            if (link.source && link.target) {
+              newLinks.push(link);
+            }
+          });
+          graph.links = newLinks;
           this.graph = graph;
         } else {
+          
+          console.log('this.graph.root ', this.graph.root, 'graph.root', graph.root)
           const rootNode = graph.nodes.filter((n) => { return n.uuid.toString() === graph.root.toString(); });
-
+          console.log('rootNode', rootNode);
           const existingNodes = []; //nodes in the current subgraph that already exist in the tree
 
           graph.nodes.forEach((node) => {
@@ -363,9 +370,11 @@ class Graph {
 
           //only add root to array of roots if it does not already exist in the graph;
           if (this.graph.nodes.filter((n) => { return n.uuid.toString() === graph.root.toString(); }).length < 1) {
+            console.log('adding root?')
             this.graph.root = this.graph.root.concat(graph.root);
           };
 
+          console.log(graph.links)
           //update indexes
           graph.links.forEach((link) => {
             const sourceNode = this.graph.nodes.filter((n) => { return n.uuid.toString() === link.source.uuid.toString(); })[0];
@@ -374,30 +383,37 @@ class Graph {
             link.source = sourceNode;
             link.target = targetNode;
 
-            //Set link visibility to hidden if the node already exists
-            if (existingNodes.indexOf(sourceNode) > -1 && existingNodes.indexOf(targetNode) > -1) {
-              link.visible = false;
-              link.visited = true;
-              // console.log('setting link to hidden ', 's', sourceNode.title, 't', targetNode.title);
-            } else { //set the visibility to true if the link is directly with the root
-              if (sourceNode.uuid === rootNode[0].uuid || targetNode.uuid === rootNode[0].uuid) {
-                link.visible = true;
-                link.visited = true;
-              } else {
+            if (link.source && link.target) { //both nodes exist in this tree
+
+              //Set link visibility to hidden if the node already exists
+              if (existingNodes.indexOf(sourceNode) > -1 && existingNodes.indexOf(targetNode) > -1) {
                 link.visible = false;
                 link.visited = true;
+                // console.log('setting link to hidden ', 's', sourceNode.title, 't', targetNode.title);
+              } else { //set the visibility to true if the link is directly with the root
+                if (rootNode[0]) {
+                  if (sourceNode.uuid === rootNode[0].uuid || targetNode.uuid === rootNode[0].uuid) {
+                    link.visible = true;
+                    link.visited = true;
+                  } else {
+                    link.visible = false;
+                    link.visited = true;
+                  }
+                }
               }
-            }
+            
 
-            //Do not add links that already exists in the tree
-            const findLink = this.graph.links.filter((ll) => {
-              return (ll.source.uuid === sourceNode.uuid && ll.target.uuid === targetNode.uuid)
-                || (ll.target.uuid === sourceNode.uuid && ll.source.uuid === targetNode.uuid); //if we don't care about direction
-            });
+              //Do not add links that already exists in the tree
+              const findLink = this.graph.links.filter((ll) => {
+                return (ll.source.uuid === sourceNode.uuid && ll.target.uuid === targetNode.uuid)
+                  || (ll.target.uuid === sourceNode.uuid && ll.source.uuid === targetNode.uuid); //if we don't care about direction
+              });
 
-            if (findLink.length < 1) {
-              this.graph.links = this.graph.links.concat([link]);
-            };
+              if (findLink.length < 1) {
+                this.graph.links = this.graph.links.concat([link]);
+              };
+
+          }
 
           });
         }
@@ -426,18 +442,8 @@ class Graph {
           const targetDictEntry = this.nodeNeighbors[targetNode.uuid];
           const sourceDictEntry = this.nodeNeighbors[sourceNode.uuid];
 
-          if (targetDictEntry === undefined) {
-            console.log(targetNode.title, targetDictEntry);
-          }
-
-
           targetDictEntry.neighbors.add(sourceNode);
           targetDictEntry.degree = targetDictEntry.neighbors.size;
-
-          if (sourceDictEntry === undefined) {
-            console.log(sourceNode.title, sourceDictEntry);
-          }
-
 
           sourceDictEntry.neighbors.add(sourceNode);
           sourceDictEntry.degree = sourceDictEntry.neighbors.size;
@@ -445,6 +451,8 @@ class Graph {
 
         const roots = this.graph.nodes.filter((n) => { return this.graph.root.indexOf(n.uuid) > -1; });
 
+        console.log('roots are ', roots)
+        console.log('this.graph.root is ', this.graph.root)
         this.extractTree(roots.length > 0 ? roots : undefined, this.graph, false);
 
         this.exportYValues();
@@ -467,11 +475,12 @@ class Graph {
   //Function that extracts tree from Graph
   //takes in tgree parameters:
   // roots, which graph to extract, and whether to replace any existing tree.
-  extractTree(roots = this.graph.root, graph = this.graph, replace = true) {
+  extractTree(roots = undefined, graph = this.graph, replace = true) {
 
-    console.log('roots', roots)
+    let setNewRoot = true;
+    console.log('roots', roots, 'this.graph.root', this.graph.root)
     //replace graph root with current root;
-    this.graph.root = roots;
+    // this.graph.root = roots;
 
     //set default values for unvisited nodes;
     graph.nodes.map((n, i) => {
@@ -498,12 +507,18 @@ class Graph {
 
 
       //Start with preferential root, then pick node with highest degree if none was supplied.
-      const root = (roots.filter((r) => { return !r.visited; }).length > 0) ? roots.filter((r) => { return !r.visited; })[0] :
+      const root = (roots && roots.filter((r) => { return !r.visited; }).length > 0) ? roots.filter((r) => { return !r.visited; })[0] :
         this.graph.nodes.filter((n) => {
           return n.visited === false;
         }).reduce((a, b) => this.nodeNeighbors[a.uuid].degree > this.nodeNeighbors[b.uuid].degree ? a : b);
 
 
+      // If graph.root is empty, add the node with the highest degree. 
+      if (!roots && setNewRoot) {
+        console.log('setting this.graph.root to ', root)
+        setNewRoot = false;
+        this.graph.root = [root.uuid];
+      }; 
 
       const maxY = max(this.graph.nodes, (n: any) => {
         return +n.yy;

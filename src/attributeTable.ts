@@ -17,7 +17,7 @@ import { curveBasis, curveLinear } from 'd3-shape';
 
 import Histogram from './Histogram';
 
-import { VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL, VALUE_TYPE_STRING } from 'phovea_core/src/datatype';
+import { VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL, VALUE_TYPE_STRING, VALUE_TYPE_ADJMATRIX } from 'phovea_core/src/datatype';
 
 import { line } from 'd3-shape';
 
@@ -79,6 +79,7 @@ class AttributeTable {
   private colWidths = {
     idtype: this.rowHeight * 4,
     categorical: this.rowHeight,
+    adjMatrix:this.rowHeight,
     int: this.rowHeight * 4,
     real: this.rowHeight * 4,
     string: this.rowHeight * 5,
@@ -710,7 +711,7 @@ class AttributeTable {
 
       // console.log('data',data,'type',type,'name',name)
 
-      if (type === VALUE_TYPE_CATEGORICAL) {
+      if (type === VALUE_TYPE_CATEGORICAL || type === VALUE_TYPE_ADJMATRIX) {
         //Build col offsets array ;
         const allCategories = vector.desc.value.categories.map((c) => {
           return c.name;
@@ -744,7 +745,7 @@ class AttributeTable {
           const col: any = {};
           col.isSorted = false;
           col.ids = allRows.map((row) => {
-            return y2personDict[row].map((d) => { return d.split('_')[0]; }); //only first part is the id
+            return y2personDict[row].map((d) => { return d}); //only first part is the id
           });
 
           col.name = name;
@@ -785,7 +786,6 @@ class AttributeTable {
 
         // console.log(allRows,y2personDict)
         col.ids = allRows.map((row) => {
-          // return y2personDict[row].map((d) => { return d.split('_')[0]; }); //only first part is the id
           return y2personDict[row].map((d) => { return d; }); //only first part is the id
         });
 
@@ -905,7 +905,7 @@ class AttributeTable {
   }
 
   private calculateOffset() {
-    this.colOffsets = [this.colWidths.dataDensity + this.buffer];
+    this.colOffsets = [this.buffer];
 
     const colOrder = this.tableManager.colOrder;
     const orderedCols = [];
@@ -924,7 +924,7 @@ class AttributeTable {
       const name = vector.desc.name;
 
       let maxOffset = max(this.colOffsets);
-      if (type === VALUE_TYPE_CATEGORICAL) {
+      if (type === VALUE_TYPE_CATEGORICAL || type === VALUE_TYPE_ADJMATRIX) {
 
         //Build col offsets array ;
         const allCategories = vector.desc.value.categories.map((c) => {
@@ -1045,7 +1045,7 @@ class AttributeTable {
     .attr('id', (d) => {return this.deriveID(d) + '_header'; })
     .attr('transform', (d, i) => {
       const offset = this.colOffsets[i];
-      return d.type === VALUE_TYPE_CATEGORICAL ? 'translate(' + offset + ',0) rotate(-40)' : 'translate(' + offset + ',0)';
+      return d.type === VALUE_TYPE_CATEGORICAL || d.type === VALUE_TYPE_ADJMATRIX ? 'translate(' + offset + ',0) rotate(-40)' : 'translate(' + offset + ',0)';
     });
 
     headers
@@ -1062,10 +1062,10 @@ class AttributeTable {
       })
       .attr('transform', (d, i) => {
         const offset = ((this.customColWidths[d.name] ||this.colWidths[d.type]) / 2);
-        return d.type === VALUE_TYPE_CATEGORICAL ? 'translate(' + offset + ',0)' : 'translate(' + offset + ',0)';
+        return d.type === VALUE_TYPE_CATEGORICAL  || d.type === VALUE_TYPE_ADJMATRIX ? 'translate(' + offset + ',0)' : 'translate(' + offset + ',0)';
       })
       .attr('text-anchor', (d) => {
-        return d.type === VALUE_TYPE_CATEGORICAL ? 'start' : 'middle';
+        return d.type === VALUE_TYPE_CATEGORICAL || d.type === VALUE_TYPE_ADJMATRIX  ? 'start' : 'middle';
         // return (d.type === VALUE_TYPE_CATEGORICAL || d.type === 'dataDensity' || d.name.length>10) ? 'start' : 'middle';
       });
 
@@ -1339,7 +1339,7 @@ class AttributeTable {
     // .on('end', dragended));
 
     colSummaries.each(function (cell) {
-      if (cell.type === VALUE_TYPE_CATEGORICAL) {
+      if (cell.type === VALUE_TYPE_CATEGORICAL || cell.type === VALUE_TYPE_ADJMATRIX) {
         self.renderCategoricalHeader(select(this), cell);
       } else if (cell.type === VALUE_TYPE_INT || cell.type === VALUE_TYPE_REAL) {
         self.renderIntHeaderHist(select(this), cell);
@@ -1570,6 +1570,8 @@ class AttributeTable {
 
       if (cell.type === VALUE_TYPE_CATEGORICAL) {
         self.renderCategoricalCell(select(this), cell);
+      } else if (cell.type === VALUE_TYPE_ADJMATRIX) {
+        self.renderAdjMatrixCell(select(this), cell);
       } else if (cell.type === VALUE_TYPE_INT || cell.type === VALUE_TYPE_REAL) {
         self.renderIntCell(select(this), cell);
       } else if (cell.type === VALUE_TYPE_STRING) {
@@ -2473,6 +2475,8 @@ class AttributeTable {
   }
 
   private addTooltip(type, data = null) {
+
+    console.log(data);
     // console.log('adding tooltip');
     const container = document.getElementById('app');
     const coordinates = mouse(container);
@@ -2577,6 +2581,140 @@ class AttributeTable {
    * @param cellData the data bound to the cell element being passed in.
    */
   private renderCategoricalCell(element, cellData) {
+    // let t = transition('t').duration(500).ease(easeLinear);
+
+
+    const colWidth = this.colWidths.categorical;
+    const rowHeight = this.rowHeight;
+
+    //Add up the undefined values;
+    const numValidValues = cellData.data.reduce((a, v) => {
+      return v ? a + 1 : a;
+    }, 0);
+
+    const numValues = cellData.data.filter((c) => {
+      return (c === cellData.category);
+    }).length;
+
+    element.selectAll('rect').remove(); //Hack. don't know why the height of the rects isn' being updated.
+
+    if (numValidValues < 1) {
+      //Add a faint cross out to indicate no data here;
+      if (element.selectAll('.cross_out').size() === 0) {
+        element
+          .append('line')
+          .attr('class', 'cross_out');
+      }
+
+      element.select('.cross_out')
+        .attr('x1', colWidth * 0.3)
+        .attr('y1', rowHeight / 2)
+        .attr('x2', colWidth * 0.6)
+        .attr('y2', rowHeight / 2)
+        .attr('stroke-width', 2)
+        .attr('stroke', '#9e9d9b')
+        .attr('opacity', .6);
+
+      return;
+    }
+
+    if (element.selectAll('.categorical').size() === 0) {
+      element
+        .append('rect')
+        .classed('frame', true);
+        // .on('mouseover', (d) => {this.addTooltip('cell', cellData); })
+        // .on('mouseout', () => {
+        //   select('#tooltipMenu').select('.menu').remove();
+        // });
+
+      element.append('rect')
+        .classed(VALUE_TYPE_CATEGORICAL, true);
+        // .on('mouseover', (d) => { this.addTooltip('cell', cellData); })
+        // .on('mouseout', () => {
+        //   select('#tooltipMenu').select('.menu').remove();
+        // });
+    }
+
+    this.yScale
+      .domain([0, cellData.data.length])
+      .range([0, rowHeight]);
+
+    element
+      .select('.frame')
+      .attr('width', rowHeight)
+      .attr('height', rowHeight)
+      // .attr('y', 0)
+      .attr('fill', (d) => {
+        let attr;
+
+        const primary = this.tableManager.primaryAttribute;
+        const poi = this.tableManager.affectedState;
+
+        if (primary && primary.name === cellData.varName) {
+          attr = primary;
+        } else if (poi && poi.name === cellData.varName) {
+          attr = poi;
+          attr = attr.attributeInfo;
+        }
+
+        if (attr) {
+          const ind = attr.categories.indexOf(cellData.category);
+
+          if ((poi && poi.name === cellData.varName && poi.isAffected(cellData.data[0])) || (primary && primary.name === cellData.varName)) {
+            if (ind === 0) {
+              return attr.color[1];
+            } else {
+              return attr.color[0];
+            }
+          };
+        }
+        return '#dfdfdf';
+      }
+      );
+
+
+    element
+      .select('.categorical')
+      .attr('width', rowHeight)
+      .attr('height', this.yScale(numValues))
+      .attr('y', (rowHeight - this.yScale(numValues)))
+      .classed('aggregate', () => {
+        return cellData.data.length > 1;
+      })
+
+      .attr('fill', () => {
+        let attr;
+
+        const primary = this.tableManager.primaryAttribute;
+        const poi = this.tableManager.affectedState;
+        if (primary && primary.name === cellData.varName) {
+          attr = primary;
+        } else if (poi && poi.name === cellData.varName) {
+          attr = poi;
+          attr = attr.attributeInfo;
+        }
+
+        if (attr) {
+          const ind = attr.categories.indexOf(cellData.category);
+          if (ind > -1) {
+            if ((poi && poi.name === cellData.varName && poi.isAffected(cellData.data[0])) || (primary && primary.name === cellData.varName)) {
+              return attr.color[ind];
+            };
+          }
+        }
+        return '#767a7a';
+      }
+      );
+  }
+
+  /**
+   *
+   * This function renders the content of Categorical Cells in the Table View.
+   *
+   * @param element d3 selection of the current cell element.
+   * @param cellData the data bound to the cell element being passed in.
+   */
+  private renderAdjMatrixCell(element, cellData) {
     // let t = transition('t').duration(500).ease(easeLinear);
 
 

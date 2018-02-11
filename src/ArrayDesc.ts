@@ -22,7 +22,7 @@ class ArrayDesc {
             'name':'True'
           }
         ],
-        type:'categorical'
+        type:'adjMatrix'
       };
     };
 

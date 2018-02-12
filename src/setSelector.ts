@@ -383,7 +383,16 @@ class SetSelector {
 
       this.menuObject.addMenu(d,actions);
       // events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.id, 'depth': 1, 'replace': false });
+    }) 
+    .on('mouseover',function (d:any) {select(this).select('td').html(() => {
+      return '<span class="title">' + d.title + '</span>';
     });
+  })
+    .on('mouseout',function (d:any) {select(this).select('td').html(() => {
+      const cellString = d.title.length >14 ? d.title.slice(0,12) + '...' :  d.title.slice(0,12);
+      return '<span class="title">' + cellString + '</span>';
+    });
+  });
 
     //
     // create a cell in each row for each column
@@ -418,9 +427,11 @@ class SetSelector {
       // cells
       .html((d: any) => {
         // console.log(d);
-        return '<span class="title">' + d.value + '</span>';
+        const cellString = d.value.length >14 ? d.value.slice(0,12) + '...' :  d.value.slice(0,12);
+        return '<span class="title">' + cellString + '</span>';
       })
-      .style('text-align', 'center');
+      .style('text-align', 'center')
+     
 
     cells
       .filter((c: any) => {

@@ -164,14 +164,14 @@ export class App {
     this.setBusy(false);
 
     // //Set listener on document so that clicking anywhere removes the menus
-    // select('body').on('click', () => {
+    select('body').on('click', () => {
     //   console.log('clearing all...');
-    //   select('#treeMenu').select('.menu').remove();
+      select('#treeMenu').select('.menu').remove();
     //   selectAll('.highlightedNode').classed('highlightedNode', false);
     //   selectAll('.edges').classed('selected', false);
     //   selectAll('.parentEdges').classed('selected', false);
     //   selectAll('.clicked').classed('clicked', false);
-    // });
+    });
 
 
     return Promise.resolve(this);

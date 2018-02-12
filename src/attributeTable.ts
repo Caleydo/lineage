@@ -652,7 +652,7 @@ class AttributeTable {
     // select('.tableSVG').attr('viewBox','0 0 ' + this.width + ' ' + (this.height + this.margin.top + this.margin.bottom))
 
     // select('.tableSVG').attr('height', this.height);
-    select('.tableSVG').attr('height',document.getElementById('genealogyTree').getBoundingClientRect().height);
+    select('.tableSVG').attr('height',document.getElementById('genealogyTree').getBoundingClientRect().height + this.margin.top*2);
     select('.tableSVG').attr('width', this.tableManager.colOrder.length * 100);
 
     this.y.range([0, this.height * .7]).domain([0, maxRow]);
@@ -2239,7 +2239,11 @@ class AttributeTable {
 
     const numPositiveValues = headerData.data.map((singleRow) => {
       return singleRow.reduce((a, v) => {
-        return v === headerData.category ? a + 1 : a;
+        if (headerData.type  === VALUE_TYPE_ADJMATRIX) {
+          return v ? a + 1 : a;
+        } else {
+          return v === headerData.category ? a + 1 : a;
+        }
       }, 0);
     }).reduce((a, v) => {
       return v + a;
@@ -2476,7 +2480,6 @@ class AttributeTable {
 
   private addTooltip(type, data = null) {
 
-    console.log(data);
     // console.log('adding tooltip');
     const container = document.getElementById('app');
     const coordinates = mouse(container);
@@ -2497,7 +2500,18 @@ class AttributeTable {
 
         });
 
-      } else if (data.type === 'int') {
+      } else if (data.type === 'adjMatrix') {
+          
+        if (data.data[0]){
+          const edge = data.data[0].edge.info;
+          content = 'type : '  + edge.type;
+        } else {
+          content = 'no edge';
+        } 
+        
+
+  
+        } else if (data.type === 'int') {
         content = data.name + ' : ' + data.data.sort((a, b) => { return (a - b); }); //display sorted values
       } else if (data.type === 'string') {
         content = data.name + ' : ' + data.data[0].toString().toLowerCase();
@@ -2717,7 +2731,9 @@ class AttributeTable {
   private renderAdjMatrixCell(element, cellData) {
     // let t = transition('t').duration(500).ease(easeLinear);
 
+    const incomingEdge = cellData.data[0] && cellData.name === cellData.data[0].endNode.title;
 
+    // console.log(cellData)
     const colWidth = this.colWidths.categorical;
     const rowHeight = this.rowHeight;
 
@@ -2727,7 +2743,8 @@ class AttributeTable {
     }, 0);
 
     const numValues = cellData.data.filter((c) => {
-      return (c === cellData.category);
+      // return (c === cellData.category);
+      return c;
     }).length;
 
     element.selectAll('rect').remove(); //Hack. don't know why the height of the rects isn' being updated.
@@ -2756,17 +2773,14 @@ class AttributeTable {
       element
         .append('rect')
         .classed('frame', true);
-        // .on('mouseover', (d) => {this.addTooltip('cell', cellData); })
-        // .on('mouseout', () => {
-        //   select('#tooltipMenu').select('.menu').remove();
-        // });
 
       element.append('rect')
         .classed(VALUE_TYPE_CATEGORICAL, true);
-        // .on('mouseover', (d) => { this.addTooltip('cell', cellData); })
-        // .on('mouseout', () => {
-        //   select('#tooltipMenu').select('.menu').remove();
-        // });
+        
+        element.append('text')
+        .attr('transform',()=>{return incomingEdge ? 'translate(8,13)' :' translate(13,8) rotate(90) scale(1,-1)';})
+        .text(Config.icons.edgeIcon)
+        .classed('adjMatrixEdge',true);
     }
 
     this.yScale
@@ -2779,29 +2793,6 @@ class AttributeTable {
       .attr('height', rowHeight)
       // .attr('y', 0)
       .attr('fill', (d) => {
-        let attr;
-
-        const primary = this.tableManager.primaryAttribute;
-        const poi = this.tableManager.affectedState;
-
-        if (primary && primary.name === cellData.varName) {
-          attr = primary;
-        } else if (poi && poi.name === cellData.varName) {
-          attr = poi;
-          attr = attr.attributeInfo;
-        }
-
-        if (attr) {
-          const ind = attr.categories.indexOf(cellData.category);
-
-          if ((poi && poi.name === cellData.varName && poi.isAffected(cellData.data[0])) || (primary && primary.name === cellData.varName)) {
-            if (ind === 0) {
-              return attr.color[1];
-            } else {
-              return attr.color[0];
-            }
-          };
-        }
         return '#dfdfdf';
       }
       );
@@ -2817,25 +2808,6 @@ class AttributeTable {
       })
 
       .attr('fill', () => {
-        let attr;
-
-        const primary = this.tableManager.primaryAttribute;
-        const poi = this.tableManager.affectedState;
-        if (primary && primary.name === cellData.varName) {
-          attr = primary;
-        } else if (poi && poi.name === cellData.varName) {
-          attr = poi;
-          attr = attr.attributeInfo;
-        }
-
-        if (attr) {
-          const ind = attr.categories.indexOf(cellData.category);
-          if (ind > -1) {
-            if ((poi && poi.name === cellData.varName && poi.isAffected(cellData.data[0])) || (primary && primary.name === cellData.varName)) {
-              return attr.color[ind];
-            };
-          }
-        }
         return '#767a7a';
       }
       );

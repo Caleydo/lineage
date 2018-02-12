@@ -41,7 +41,9 @@ export class Config {
       Add2Matrix:'\uf00a',
 
       settingsExpand:'\uf013',
-      settingsCollapse:'\uf013'
+      settingsCollapse:'\uf013',
+
+      edgeIcon:'\uf148'
   };
 
   public static colors = {

@@ -34,6 +34,25 @@ td {
   
 }
 
+p:before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 4px; /* ADJUST HEIGHT TO ADD WEIGHT */
+  background: blue; /* CHANGE COLOR TO SUIT */
+}
+
+.adjMatrixEdge{
+  font-size:14px;
+  font-family:FontAwesome;
+  fill:  rgb(248, 246, 246);
+  cursor:pointer;
+  text-anchor: middle;
+  
+}
+
 .node {
   stroke: #222;
   stroke-width: 1.5px;

@@ -2501,10 +2501,11 @@ class AttributeTable {
         });
 
       } else if (data.type === 'adjMatrix') {
+          const incomingEdge = data.data[0] && data.name === data.data[0].endNode.title;
           
-        if (data.data[0]){
+        if (data.data[0]) {
           const edge = data.data[0].edge.info;
-          content = 'type : '  + edge.type;
+          content = data.data[0].startNode.title + ' '  + edge.type +  ' ' + data.data[0].endNode.title;
         } else {
           content = 'no edge';
         } 

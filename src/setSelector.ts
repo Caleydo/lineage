@@ -106,7 +106,7 @@ class SetSelector {
     //creat an accordion div and a table for each label
     const p = select('#col1').select('#nodeFilter')
       .selectAll('.panel-default')
-      .data(['Filter by Node Type']);
+      .data(['Exclude Node Types']);
 
     p.exit().remove();
 
@@ -150,7 +150,7 @@ class SetSelector {
     label
       .append('input')
       .attr('type', 'checkbox')
-      .attr('value', '');
+      .attr('value', (d:any)=> {return d;});
 
     label
       .html(function (d: any) {

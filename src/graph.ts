@@ -8,7 +8,7 @@ import {
   SUBGRAPH_CHANGED_EVENT, FILTER_CHANGED_EVENT
 } from './setSelector';
 
-import {TABLE_VIS_ROWS_CHANGED_EVENT, ADJ_MATRIX_CHANGED} from './tableManager';
+import { TABLE_VIS_ROWS_CHANGED_EVENT, ADJ_MATRIX_CHANGED } from './tableManager';
 
 import {
   select,
@@ -90,7 +90,7 @@ class Graph {
   private selectedDB;
   private layout = 'tree';
 
-  private exclude =[];
+  private exclude = [];
 
   private svg;
   private simulation;
@@ -131,7 +131,7 @@ class Graph {
   constructor(width, height, radius, selector, tmanager) {
 
     select('#graph')
-    .on('click',()=> {select('.menu').remove();});
+      .on('click', () => { select('.menu').remove(); });
 
     events.on(DB_CHANGED_EVENT, (evt, info) => {
       this.loadGraph(info.value);;
@@ -143,22 +143,13 @@ class Graph {
         this.exclude = this.exclude.concat(info.label);
       } else {
         const ind = this.exclude.indexOf(info.label);
-        this.exclude.splice(ind,1);
+        this.exclude.splice(ind, 1);
       }
 
-      this.extractTree();
-      this.exportYValues();
-      this.drawTree();
-    });
+      if (this.graph) {
+        this.extractTree();
+        this.exportYValues();
 
-    events.on(LAYOUT_CHANGED_EVENT, (evt, info) => {
-      this.layout = info.value;
-
-      this.svg.select('.links').html('');
-      this.svg.select('.nodes').html('');
-
-      if (this.selectedDB) {
-        console.log('layout:', this.layout, 'db:', this.selectedDB);
         if (this.layout === 'tree') {
           this.drawTree();
         } else {
@@ -167,14 +158,43 @@ class Graph {
       };
     });
 
-    events.on(ROOT_CHANGED_EVENT,(evt,info) => {
+    events.on(LAYOUT_CHANGED_EVENT, (evt, info) => {
+      this.layout = info.value;
+
+      this.svg.select('.visibleLinks').html('');
+      this.svg.select('.hiddenLinks').html('');
+      this.svg.select('.nodes').html('');
+
+      if (this.selectedDB) {
+        if (this.layout === 'tree') {
+          select('#allBars').style('visibility', 'visible');
+          select('#col3').style('visibility', 'visible');
+
+          select('#col2').select('svg')
+            .attr('width', this.width);
+
+
+          this.drawTree();
+        } else {
+          select('#allBars').style('visibility', 'hidden');
+          select('#col3').style('visibility', 'hidden');
+
+          select('#col2').select('svg')
+            .attr('width', 1250);
+
+          this.drawGraph();
+        }
+      };
+    });
+
+    events.on(ROOT_CHANGED_EVENT, (evt, info) => {
       this.extractTree([info.root]);
       this.exportYValues();
       this.drawTree();
     });
 
     events.on(SUBGRAPH_CHANGED_EVENT, (evt, info) => {
-      this.loadGraph(info.db, info.rootID, info.replace, info.remove,info.includeRoot,info.includeChildren);;
+      this.loadGraph(info.db, info.rootID, info.replace, info.remove, info.includeRoot, info.includeChildren);;
     });
 
 
@@ -275,22 +295,22 @@ class Graph {
     const linkGroup = this.svg.append('g')
       .attr('class', 'links');
 
-      linkGroup.append('g')
+    linkGroup.append('g')
       .attr('class', 'visibleLinks');
 
-      linkGroup.append('g')
+    linkGroup.append('g')
       .attr('class', 'hiddenLinks')
-      .attr('transform','translate(250,0)');
+      .attr('transform', 'translate(250,0)');
 
     this.svg.append('g')
       .attr('class', 'nodes');
 
     this.simulation = forceSimulation()
       .force('link', forceLink())
-      .force('charge', forceManyBody().strength(-500))
-      .force('center', forceCenter(this.width / 2, this.height / 2))
+      .force('charge', forceManyBody().strength(-300))
+      // .force('center', forceCenter(this.width / 2, this.height / 2))
       .force('collision', forceCollide().radius((d) => {
-        return 70;
+        return 20;
       }));
 
   }
@@ -336,25 +356,25 @@ class Graph {
       this.removeBranch(rootNode[0]);
       const roots = this.graph.nodes.filter((n) => { return this.graph.root.indexOf(n.uuid) > -1; });
 
-      const labels={}; 
-      
-              this.graph.nodes.map((n)=> {
-                if (labels[n.label]) {
-                  labels[n.label] = labels[n.label]+1;
-                } else {
-                  labels[n.label] =1;
-                }
-              });
-      
-              this.labels = labels;
+      const labels = {};
 
-       //Update numbers in Filter Panel
-       const filterLabels = select('#filterPanel')
-       .selectAll('label')
-       .html(function (d:any){
-         const count = labels[d] ? labels[d] : 0;
-         return  d + '(' + count + ')';
-       });
+      this.graph.nodes.map((n) => {
+        if (labels[n.label]) {
+          labels[n.label] = labels[n.label] + 1;
+        } else {
+          labels[n.label] = 1;
+        }
+      });
+
+      this.labels = labels;
+
+      //Update numbers in Filter Panel
+      const filterLabels = select('#filterPanel')
+        .selectAll('label')
+        .html(function (d: any) {
+          const count = labels[d] ? labels[d] : 0;
+          return d + '(' + count + ')';
+        });
 
       // console.log('calling extract tree on ', roots[0], ' input root is ', rootNode[0])
       this.extractTree(roots.length > 0 ? roots : undefined, this.graph, false);
@@ -369,7 +389,7 @@ class Graph {
 
       resolvePromise();
     } else {
-      
+
       const url = root ? 'api/data_api/graph/' + db + '/' + root + '/' + includeRoot.toString() : 'api/data_api/graph/' + db;
 
       console.log('url is ', url);
@@ -397,7 +417,7 @@ class Graph {
           this.graph = graph;
           console.log(graph.links);
         } else {
-          
+
           console.log('this.graph.root ', this.graph.root, 'graph.root', graph.root)
           const rootNode = graph.nodes.filter((n) => { return n.uuid.toString() === graph.root.toString(); });
           console.log('rootNode', rootNode);
@@ -418,7 +438,7 @@ class Graph {
             this.graph.root = this.graph.root.concat(graph.root);
           };
 
-          
+
           //update indexes
           graph.links.forEach((link) => {
             const sourceNode = this.graph.nodes.filter((n) => { return n.uuid.toString() === link.source.uuid.toString(); })[0];
@@ -445,7 +465,7 @@ class Graph {
                   }
                 }
               }
-            
+
 
               //Do not add links that already exists in the tree
               const findLink = this.graph.links.filter((ll) => {
@@ -457,7 +477,7 @@ class Graph {
                 this.graph.links = this.graph.links.concat([link]);
               };
 
-          }
+            }
 
           });
         }
@@ -495,13 +515,13 @@ class Graph {
 
         const roots = this.graph.nodes.filter((n) => { return this.graph.root.indexOf(n.uuid) > -1; });
 
-        const labels={}; 
+        const labels = {};
 
-        this.graph.nodes.map((n)=> {
-          if (labels[n.label]){
-            labels[n.label] = labels[n.label]+1;
+        this.graph.nodes.map((n) => {
+          if (labels[n.label]) {
+            labels[n.label] = labels[n.label] + 1;
           } else {
-            labels[n.label] =1;
+            labels[n.label] = 1;
           }
         });
 
@@ -509,12 +529,12 @@ class Graph {
 
         //Update numbers in Filter Panel
         const filterLabels = select('#filterPanel')
-        .selectAll('label')
-        .html(function (d:any){
-          const count = labels[d] ? labels[d] : 0;
-          return d + '(' + count + ')';
-        });
-      
+          .selectAll('label')
+          .html(function (d: any) {
+            const count = labels[d] ? labels[d] : 0;
+            return d + '(' + count + ')';
+          });
+
         this.extractTree(roots.length > 0 ? roots : undefined, this.graph, false);
 
         this.exportYValues();
@@ -545,13 +565,13 @@ class Graph {
     //   console.log('undefined root');
     //   roots = graph.nodes.filter((n)=> {return n.uuid = graph.root;});
     // }
-    
+
     //replace graph root with current root;
     // this.graph.root = roots;
 
-     //Filter out all nodes to be excluded
-     let excluded = this.exclude;
-     console.log('excluding ', excluded)
+    //Filter out all nodes to be excluded
+    let excluded = this.exclude;
+    console.log('excluding ', excluded)
 
     //set default values for unvisited nodes;
     graph.nodes.map((n, i) => {
@@ -563,7 +583,7 @@ class Graph {
       n.yy = undefined;
       n.xx = undefined;
     });
-    
+
     //set default values for unvisited links;
     graph.links.map((l, i) => {
       l.visible = (l.visited && !replace) ? l.visible : false;
@@ -590,7 +610,7 @@ class Graph {
         console.log('setting this.graph.root to ', root)
         setNewRoot = false;
         this.graph.root = [root.uuid];
-      }; 
+      };
 
       const maxY = max(this.graph.nodes, (n: any) => {
         return +n.yy;
@@ -669,11 +689,13 @@ class Graph {
 
     let link = this.svg.select('.visibleLinks')
       .selectAll('.edge')
-      .data(graph.links.filter((l)=> {return l.source.visible && l.target.visible && l.visible;}), (d) => {
+      .data(graph.links.filter((l) => { return l.source.visible && l.target.visible && l.visible; }), (d) => {
         const st = this.createID(d.source.title);
         const tt = this.createID(d.target.title);
         return st + '_' + tt;
       });
+
+    console.log('linkData is ', graph.links.filter((l) => { return l.source.visible && l.target.visible && l.visible; }))
 
     let linksEnter = link
       .enter()
@@ -685,20 +707,20 @@ class Graph {
 
 
     link = this.svg.select('.hiddenLinks')
-    .selectAll('.edge')
-    .data(graph.links.filter((l)=> {return l.source.visible && l.target.visible && !l.visible;}), (d) => {
-      const st = this.createID(d.source.title);
-      const tt = this.createID(d.target.title);
-      return st + '_' + tt;
-    });
+      .selectAll('.edge')
+      .data(graph.links.filter((l) => { return l.source.visible && l.target.visible && !l.visible; }), (d) => {
+        const st = this.createID(d.source.title);
+        const tt = this.createID(d.target.title);
+        return st + '_' + tt;
+      });
 
-   linksEnter = link
-    .enter()
-    .append('path')
-    .attr('class', 'edge');
+    linksEnter = link
+      .enter()
+      .append('path')
+      .attr('class', 'edge');
 
-  link.exit().remove();
-  // link = linksEnter.merge(link);
+    link.exit().remove();
+    // link = linksEnter.merge(link);
 
 
     const maxX = max(graph.nodes, (n: any) => {
@@ -798,13 +820,13 @@ class Graph {
     linkMasks = linkMasks.merge(linkMasksEnter);
 
     selectAll('.edge')
-      .classed('visible', (d:any) => {
+      .classed('visible', (d: any) => {
         return d.visible ? true : false;
       })
-      .classed('hiddenEdge', (d:any) => {
+      .classed('hiddenEdge', (d: any) => {
         return d.visible ? false : true;
       })
-      .on('click', ((d:any) => console.log(d, d.visible, d.source.title, d.target.title)));
+      .on('click', ((d: any) => console.log(d, d.visible, d.source.title, d.target.title)));
 
 
     selectAll('.hiddenEdge')
@@ -844,13 +866,13 @@ class Graph {
     selectAll('.edge')
       .transition('t')
       .duration(1000)
-      .attr('d', (d:any) => {
+      .attr('d', (d: any) => {
         return this.elbow(d, this.interGenerationScale, this.lineFunction, d.visible);
       });
 
     let node = this.svg.select('.nodes')
       .selectAll('.title')
-      .data(graph.nodes.filter((n)=> {return n.visible;}), (d) => {
+      .data(graph.nodes.filter((n) => { return n.visible; }), (d) => {
         return d.index;
       });
 
@@ -869,8 +891,8 @@ class Graph {
 
 
     node
-    // .on('mouseover', )
-    // (d) => {
+      // .on('mouseover', )
+      // (d) => {
       // const remove = d.children.length > 0;
       // const element = selectAll('.hiddenEdge').filter((dd: any) => {
       //   return dd.source.title === d.title || dd.target.title === d.title;
@@ -904,7 +926,7 @@ class Graph {
       //   } }];
       //   this.menuObject.addMenu(d,actions);
       // });
-    // })
+      // })
       .on('mouseout', (d) => {
         // const element = selectAll('.hiddenEdge').filter((dd: any) => {
         //   return dd.source.title === d.title || dd.target.title === d.title;
@@ -954,12 +976,15 @@ class Graph {
     this.addHightlightBars();
 
     select('#graph')
-      .attr('height', document.getElementById('genealogyTree').getBoundingClientRect().height + this.margin.top*2);
+      .attr('height', document.getElementById('genealogyTree').getBoundingClientRect().height + this.margin.top * 2);
   }
 
   drawGraph() {
 
     const graph = this.graph;
+
+    this.simulation
+      .force('center', forceCenter(1250 / 2, this.forceDirectedHeight / 2));
 
     const dragstarted = (d) => {
       if (!event.active) {
@@ -983,47 +1008,62 @@ class Graph {
     };
 
 
-    select('#graph').select('svg').attr('height',this.forceDirectedHeight);
+    select('#graph').select('svg').attr('height', this.forceDirectedHeight);
 
-    const link = this.svg.select('.links')
+    let link = this.svg.select('.visibleLinks')
       .selectAll('line')
-      .data(graph.links) //.filter((l)=> {return l.source.visible && l.target.visible;}))
+      .data(graph.links.filter((l) => { return l.source.visible && l.target.visible; }));
+
+    const linkEnter = link
       .enter()
       .append('line')
       .attr('class', 'visible');
 
-    const node = this.svg.select('.nodes')
+    link.exit().remove();
+    link = link.merge(linkEnter);
+
+    let node = this.svg.select('.nodes')
       // .selectAll('g')
       .selectAll('.title')
-      .data(graph.nodes)
+      .data(graph.nodes.filter((n) => n.visible));
+
+    const nodeEnter = node
       .enter()
       .append('g')
-      .attr('class', 'title')
+      .attr('class', 'title');
+
+    nodeEnter.append('circle')
+      .attr('r', 15)
+      
+    nodeEnter
+      .append('text');
+
+
+    node.exit().remove();
+
+    node = node.merge(nodeEnter);
+
+    node.select('circle')
+    .attr('fill', ((d) => { return Config.colors[d.label]; }));
+    
+    node.select('text')
+    .text((d) => {
+      const ellipsis = d.title.length > 4 ? '...' : '';
+      return Config.icons[d.label] + ' ' + d.title.slice(0, 4) + ellipsis;
+    })
+    .on('mouseover', function (d) { select(this).text((dd: any) => { return Config.icons[dd.label] + ' ' + dd.title; }); })
+    .on('mouseout', function (d) {
+      select(this).text((dd: any) => {
+        const ellipsis = d.title.length > 4 ? '...' : '';
+        return Config.icons[dd.label] + ' ' + d.title.slice(0, 4) + ellipsis;
+      });
+    });
+
+    node
       .call(drag()
         .on('start', dragstarted)
         .on('drag', dragged)
         .on('end', dragended));
-
-    node.append('circle')
-      .attr('r', 35)
-      .attr('fill', ((d) => { return Config.colors[d.label]; }));
-    node
-    .append('text')
-    .text((d) => {
-      const ellipsis = d.title.length>4 ? '...' : '';
-      return Config.icons[d.label] + ' ' + d.title.slice(0,4) + ellipsis; })
-    .on('mouseover',function (d) {select(this).text((dd:any) => { return Config.icons[dd.label] + ' ' + dd.title;});})
-    .on('mouseout',function (d) {select(this).text((dd:any) => {
-      const ellipsis = d.title.length>4 ? '...' : '';
-      return Config.icons[dd.label] + ' ' + d.title.slice(0,4) + ellipsis;});
-    });
-
-
-    // node.append('title')
-    //   .text(function (d) {
-    //     return d.title;
-    //   });
-
 
 
     const ticked = (e) => {
@@ -1041,23 +1081,27 @@ class Graph {
           return d.target.y;
         });
 
-      const nodeBumper = 100;
+      const nodeBumper = 20;
 
       node.select('circle')
-      .attr('cx', (d) => {
-        return d.x = Math.max(nodeBumper, Math.min(this.width - nodeBumper, d.x));
-      })
+        .attr('cx', (d) => {
+          return d.x;
+          // return d.x = Math.max(nodeBumper, Math.min(this.width - nodeBumper, d.x));
+        })
         .attr('cy', (d) => {
-          return d.y = Math.max(nodeBumper, Math.min(this.forceDirectedHeight - nodeBumper, d.y));
+          return d.y;
+          // return d.y = Math.max(nodeBumper, Math.min(this.forceDirectedHeight - nodeBumper, d.y));
         });
 
       node
         .select('text')
         .attr('x', (d) => {
-          return d.x = Math.max(nodeBumper, Math.min(this.width - nodeBumper, d.x));
+          return d.x;
+          // return d.x = Math.max(nodeBumper, Math.min(this.width - nodeBumper, d.x));
         })
         .attr('y', (d) => {
-          return d.y = Math.max(nodeBumper, Math.min(this.forceDirectedHeight - nodeBumper, d.y));
+          return d.y;
+          // return d.y = Math.max(nodeBumper, Math.min(this.forceDirectedHeight - nodeBumper, d.y));
         });
     };
 
@@ -1068,9 +1112,9 @@ class Graph {
     this.simulation.force('link')
       .links(graph.links);
 
-      //restart simulation;
-      this.simulation.alpha(1).restart();
-      // this.simulation.alphaTarget(0);
+    //restart simulation;
+    this.simulation.alpha(1).restart();
+    // this.simulation.alphaTarget(0);
   }
 
 
@@ -1078,7 +1122,7 @@ class Graph {
   private addHightlightBars() {
 
     selectAll('.title')
-    .on('mouseover',highlightRows);
+      .on('mouseover', highlightRows);
 
     // const t = transition('t').duration(500).ease(easeLinear);
 
@@ -1265,7 +1309,7 @@ class Graph {
 
 
     selectAll('.highlightBar')
-      .on('mouseover',(e:any)=> {
+      .on('mouseover', (e: any) => {
         //Add glyphs;
         const d = e.data;
         const remove = d.children.length > 0;
@@ -1276,43 +1320,53 @@ class Graph {
         // element.attr('clip-path', 'undefined');
         // element.attr('mask', 'undefined');
 
-        const currentText = select('.nodes').selectAll('.title').filter((t:any)=> {return t.title === d.title;});
+        const currentText = select('.nodes').selectAll('.title').filter((t: any) => { return t.title === d.title; });
 
         selectAll('tspan').remove();
 
         // if (currentText.select('tspan').size() <1) {
-          currentText.append('tspan')
+        currentText.append('tspan')
           .text('  ' + (remove ? Config.icons.settingsCollapse : Config.icons.settingsExpand));
         // }
 
         currentText.selectAll('tspan')
-        .on('mouseover',()=> {console.log('hovering'); })
-        // .on('mouseout',()=> {selectAll('tspan').remove();})
-        .on('click', () => {
-          const remove = d.children.length > 0;
-          const removeAdjMatrix = this.tableManager.colOrder.indexOf(d.title) > -1; 
-          const actions = [{ 'icon': remove? 'RemoveChildren' : 'AddChildren', 'string': remove ? 'Remove All Children': 'Add All Neighbors', 'callback': ()=> {
-            events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': remove });
-          } },
-          { 'icon': remove ? 'RemoveChildren': 'AddChildren', 'string': remove ? 'Remove Children by Type': 'Add Neighbors by Type', 'callback': ()=> {
-            events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': remove });
-          } },
-          { 'icon': 'RemoveNode', 'string':'Remove Node  *leaves children*', 'callback': ()=> {
-            events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': remove });
-          } },
-          { 'icon': 'MakeRoot', 'string': 'Make Root', 'callback': ()=> {
-            // console.log(d);
-            events.fire(ROOT_CHANGED_EVENT, {'root': d});
-          } },
-          { 'icon': 'Add2Matrix', 'string': removeAdjMatrix ? 'Remove from Table' : 'Add to Table', 'callback': ()=> {
-            events.fire(ADJ_MATRIX_CHANGED, { 'db':this.selectedDB, 'name':d.title, 'uuid':d.uuid,'remove':removeAdjMatrix});
-          } }];
-          this.menuObject.addMenu(d,actions);
-        });
+          .on('mouseover', () => { console.log('hovering'); })
+          // .on('mouseout',()=> {selectAll('tspan').remove();})
+          .on('click', () => {
+            const remove = d.children.length > 0;
+            const removeAdjMatrix = this.tableManager.colOrder.indexOf(d.title) > -1;
+            const actions = [{
+              'icon': remove ? 'RemoveChildren' : 'AddChildren', 'string': remove ? 'Remove All Children' : 'Add All Neighbors', 'callback': () => {
+                events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': remove });
+              }
+            },
+            {
+              'icon': remove ? 'RemoveChildren' : 'AddChildren', 'string': remove ? 'Remove Children by Type' : 'Add Neighbors by Type', 'callback': () => {
+                events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': remove });
+              }
+            },
+            {
+              'icon': 'RemoveNode', 'string': 'Remove Node  *leaves children*', 'callback': () => {
+                events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': remove });
+              }
+            },
+            {
+              'icon': 'MakeRoot', 'string': 'Make Root', 'callback': () => {
+                // console.log(d);
+                events.fire(ROOT_CHANGED_EVENT, { 'root': d });
+              }
+            },
+            {
+              'icon': 'Add2Matrix', 'string': removeAdjMatrix ? 'Remove from Table' : 'Add to Table', 'callback': () => {
+                events.fire(ADJ_MATRIX_CHANGED, { 'db': this.selectedDB, 'name': d.title, 'uuid': d.uuid, 'remove': removeAdjMatrix });
+              }
+            }];
+            this.menuObject.addMenu(d, actions);
+          });
 
         highlightRows(e);
       })
-      .on('mouseout', (e:any)=> {
+      .on('mouseout', (e: any) => {
         const d = e.data;
         const element = selectAll('.hiddenEdge').filter((dd: any) => {
           return dd.source.title === d.title || dd.target.title === d.title;
@@ -1333,7 +1387,7 @@ class Graph {
         //   return 'url(#m_' + st + '_' + tt + ')';
         // });
         clearHighlights();
-      } )
+      })
       .on('click', (d: any, i) => {
         if (event.defaultPrevented) { return; } // dragged
 
@@ -1457,7 +1511,7 @@ class Graph {
     //Create hashmap of personID to y value;
     const dict = {};
 
-    this.graph.nodes.filter((n)=>{return n.visible;}).forEach((node) => {
+    this.graph.nodes.filter((n) => { return n.visible; }).forEach((node) => {
       if ((node.uuid) in dict) {
         dict[node.uuid].push(Math.round(node.yy));
       } else {

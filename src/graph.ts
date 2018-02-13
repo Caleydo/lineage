@@ -5,7 +5,7 @@ import {
 } from './headers';
 
 import {
-  SUBGRAPH_CHANGED_EVENT
+  SUBGRAPH_CHANGED_EVENT, FILTER_CHANGED_EVENT
 } from './setSelector';
 
 import {TABLE_VIS_ROWS_CHANGED_EVENT, ADJ_MATRIX_CHANGED} from './tableManager';
@@ -90,6 +90,8 @@ class Graph {
   private selectedDB;
   private layout = 'tree';
 
+  private exclude =[];
+
   private svg;
   private simulation;
 
@@ -135,6 +137,20 @@ class Graph {
       this.loadGraph(info.value);;
     });
 
+    events.on(FILTER_CHANGED_EVENT, (evt, info) => {
+      //see if value is already in exclude;
+      if (info.exclude) {
+        this.exclude = this.exclude.concat(info.label);
+      } else {
+        const ind = this.exclude.indexOf(info.label);
+        this.exclude.splice(ind,1);
+      }
+
+      this.extractTree();
+      this.exportYValues();
+      this.drawTree();
+    });
+
     events.on(LAYOUT_CHANGED_EVENT, (evt, info) => {
       this.layout = info.value;
 
@@ -168,8 +184,8 @@ class Graph {
     this.forceDirectedHeight = 1000;
     this.radius = radius;
 
-    select(selector).append('div')
-      .attr('id', 'graphHeaders');
+    // select(selector).append('div')
+    //   .attr('id', 'graphHeaders');
 
     const graphDiv = select(selector).append('div')
       .attr('id', 'graphDiv');
@@ -320,6 +336,26 @@ class Graph {
       this.removeBranch(rootNode[0]);
       const roots = this.graph.nodes.filter((n) => { return this.graph.root.indexOf(n.uuid) > -1; });
 
+      const labels={}; 
+      
+              this.graph.nodes.map((n)=> {
+                if (labels[n.label]) {
+                  labels[n.label] = labels[n.label]+1;
+                } else {
+                  labels[n.label] =1;
+                }
+              });
+      
+              this.labels = labels;
+
+       //Update numbers in Filter Panel
+       const filterLabels = select('#filterPanel')
+       .selectAll('label')
+       .html(function (d:any){
+         const count = labels[d] ? labels[d] : 0;
+         return  d + '(' + count + ')';
+       });
+
       // console.log('calling extract tree on ', roots[0], ' input root is ', rootNode[0])
       this.extractTree(roots.length > 0 ? roots : undefined, this.graph, false);
 
@@ -341,8 +377,6 @@ class Graph {
         if (error) {
           throw error;
         }
-
-        console.log(graph.links)
 
         //Replace graph or merge with incoming subgraph
         if (replace || !this.graph) {
@@ -461,12 +495,6 @@ class Graph {
 
         const roots = this.graph.nodes.filter((n) => { return this.graph.root.indexOf(n.uuid) > -1; });
 
-        console.log('roots are ', roots)
-        console.log('this.graph.root is ', this.graph.root)
-
-        //Update Node/Label count; 
-        console.log('there are ', this.graph.nodes.length , 'nodes in this tree');
-
         const labels={}; 
 
         this.graph.nodes.map((n)=> {
@@ -483,13 +511,10 @@ class Graph {
         const filterLabels = select('#filterPanel')
         .selectAll('label')
         .html(function (d:any){
-          const cbox = '<input type="checkbox" value="' + d + '">';
           const count = labels[d] ? labels[d] : 0;
-          console.log(cbox + d + '(' + count + ')');
-          return cbox + '' + d + '(' + count + ')';
+          return d + '(' + count + ')';
         });
       
-          console.log(labels)
         this.extractTree(roots.length > 0 ? roots : undefined, this.graph, false);
 
         this.exportYValues();
@@ -515,20 +540,30 @@ class Graph {
   extractTree(roots = undefined, graph = this.graph, replace = true) {
 
     let setNewRoot = true;
+
+    // if (roots === undefined) {
+    //   console.log('undefined root');
+    //   roots = graph.nodes.filter((n)=> {return n.uuid = graph.root;});
+    // }
     
     //replace graph root with current root;
     // this.graph.root = roots;
 
+     //Filter out all nodes to be excluded
+     let excluded = this.exclude;
+     console.log('excluding ', excluded)
+
     //set default values for unvisited nodes;
     graph.nodes.map((n, i) => {
       n.index = i;
-      n.visited = false;
+      n.visible = excluded.indexOf(n.label) > -1 ? false : true;
+      n.visited = excluded.indexOf(n.label) > -1 ? true : false;
       n.children = [];
       n.parent = undefined;
       n.yy = undefined;
       n.xx = undefined;
     });
-
+    
     //set default values for unvisited links;
     graph.links.map((l, i) => {
       l.visible = (l.visited && !replace) ? l.visible : false;
@@ -634,7 +669,7 @@ class Graph {
 
     let link = this.svg.select('.visibleLinks')
       .selectAll('.edge')
-      .data(graph.links.filter((l)=> {return l.visible;}), (d) => {
+      .data(graph.links.filter((l)=> {return l.source.visible && l.target.visible && l.visible;}), (d) => {
         const st = this.createID(d.source.title);
         const tt = this.createID(d.target.title);
         return st + '_' + tt;
@@ -651,7 +686,7 @@ class Graph {
 
     link = this.svg.select('.hiddenLinks')
     .selectAll('.edge')
-    .data(graph.links.filter((l)=> {return !l.visible;}), (d) => {
+    .data(graph.links.filter((l)=> {return l.source.visible && l.target.visible && !l.visible;}), (d) => {
       const st = this.createID(d.source.title);
       const tt = this.createID(d.target.title);
       return st + '_' + tt;
@@ -689,7 +724,7 @@ class Graph {
 
     let linkClips = this.svg.select('defs')
       .selectAll('clipPath')
-      .data(graph.links.filter((l) => { return !l.visible; }), (d) => {
+      .data(graph.links.filter((l) => { return l.source.visible && l.target.visible; }), (d) => {
         const st = this.createID(d.source.title);
         const tt = this.createID(d.target.title);
         return st + '_' + tt;
@@ -735,7 +770,7 @@ class Graph {
 
     let linkMasks = this.svg.select('defs')
       .selectAll('mask')
-      .data(graph.links.filter((l) => { return !l.visible; }), (d) => {
+      .data(graph.links.filter((l) => { return l.source.visible && l.target.visible && !l.visible; }), (d) => {
         return d.index;
       });
 
@@ -815,7 +850,7 @@ class Graph {
 
     let node = this.svg.select('.nodes')
       .selectAll('.title')
-      .data(graph.nodes, (d) => {
+      .data(graph.nodes.filter((n)=> {return n.visible;}), (d) => {
         return d.index;
       });
 
@@ -952,7 +987,7 @@ class Graph {
 
     const link = this.svg.select('.links')
       .selectAll('line')
-      .data(graph.links)
+      .data(graph.links) //.filter((l)=> {return l.source.visible && l.target.visible;}))
       .enter()
       .append('line')
       .attr('class', 'visible');
@@ -1422,7 +1457,7 @@ class Graph {
     //Create hashmap of personID to y value;
     const dict = {};
 
-    this.graph.nodes.forEach((node) => {
+    this.graph.nodes.filter((n)=>{return n.visible;}).forEach((node) => {
       if ((node.uuid) in dict) {
         dict[node.uuid].push(Math.round(node.yy));
       } else {

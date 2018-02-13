@@ -35,6 +35,7 @@ import IFamilyInfo from './tableManager';
 import { FAMILY_INFO_UPDATED, TABLE_VIS_ROWS_CHANGED_EVENT } from './tableManager';
 
 export const SUBGRAPH_CHANGED_EVENT = 'subgraph_changed';
+export const FILTER_CHANGED_EVENT = 'filter_changed_event';
 
 /**
  * Creates the family selector view
@@ -100,11 +101,11 @@ class SetSelector {
       .attr('id', 'allNodes');
 
     //add nodeAttribute filter
-    select('#col1').select('#nodeFilter').selectAll('.panel').remove(); //total hack.
+    select('#col2').select('#nodeFilter').selectAll('.panel').remove(); //total hack.
 
 
     //creat an accordion div and a table for each label
-    const p = select('#col1').select('#nodeFilter')
+    const p = select('#col2').select('#nodeFilter')
       .selectAll('.panel-default')
       .data(['Exclude Node Types']);
 
@@ -136,7 +137,7 @@ class SetSelector {
       .attr('class', 'panel-body')
       .attr('id', 'filterPanel');
 
-    const cboxes = select('#col1')
+    const cboxes = select('#col2')
     .select('#filterPanel')
       .selectAll('.checkbox')
       .data(labels)
@@ -145,12 +146,17 @@ class SetSelector {
 
     const label = cboxes
       .attr('class', 'checkbox')
-      .append('label');
+      .append('label')
+      .on('click',function (d){
+        console.log(d);
+        events.fire(FILTER_CHANGED_EVENT,{'label':d, 'exclude':!select(this).classed('exclude')});
+        select(this).classed('exclude',!select(this).classed('exclude'));
+      });
 
-    label
-      .append('input')
-      .attr('type', 'checkbox')
-      .attr('value', (d:any)=> {return d;});
+    // label
+    //   .append('input')
+    //   .attr('type', 'checkbox')
+    //   .attr('value', (d:any)=> {return d;});
 
     label
       .html(function (d: any) {
@@ -217,7 +223,7 @@ class SetSelector {
 
     panels = panels.merge(panelsEnter);
 
-    select('#col1')
+    selectAll('.panel-heading')
     .selectAll('a')
       .text((d: any) => { return d; });
 
@@ -418,7 +424,7 @@ class SetSelector {
         const width = (i < 2 ? 10 : (90 / numCols));
         return width + '%';
       })
-      .style('text-align', 'center');
+      // .style('text-align', 'center');
 
     cells
       .filter((c: any) => {
@@ -430,7 +436,7 @@ class SetSelector {
         const cellString = d.value.length >14 ? d.value.slice(0,12) + '...' :  d.value.slice(0,12);
         return '<span class="title">' + cellString + '</span>';
       })
-      .style('text-align', 'center')
+      // .style('text-align', 'center')
      
 
     cells

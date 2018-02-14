@@ -1337,12 +1337,12 @@ class Graph {
             },
             {
               'icon': remove ? 'RemoveChildren' : 'AddChildren', 'string': remove ? 'Remove Children by Type' : 'Add Neighbors by Type', 'callback': () => {
-                events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': remove });
+                // events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': remove });
               }
             },
             {
               'icon': 'RemoveNode', 'string': 'Remove Node  *leaves children*', 'callback': () => {
-                events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': remove });
+                // events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': remove });
               }
             },
             {
@@ -1490,10 +1490,11 @@ class Graph {
     }
 
     if (curves) {
-      lineFunction.curve(curveBasis);
+      lineFunction.curve(curveLinear);
     } else {
-      lineFunction.curve(curveBasis);
+      lineFunction.curve(curveLinear);
       // lineFunction.curve(curveLinear);
+      // curveBasis
     }
 
     return lineFunction(linedata);

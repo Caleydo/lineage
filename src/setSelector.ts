@@ -382,16 +382,17 @@ class SetSelector {
       } },
       { 'icon': 'AddChildren', 'string': 'Add Neighbors to Tree', 'callback': ()=> {
         events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.id, 'includeRoot':false, 'replace': false });
-      } },
+      } }
+      ,
       { 'icon': 'AddNode', 'string': 'Add Node to Tree', 'callback': ()=> {
-        events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.id,'includeChildren':false, 'replace': false });
+        // events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.id,'includeChildren':false, 'replace': false });
       } },
       { 'icon': 'Add2Matrix', 'string': 'Add to Table', 'callback': ()=> {
-        return undefined;
-      }}];
+        // return undefined;
+      }}
+    ];
 
       this.menuObject.addMenu(d,actions);
-      // events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.id, 'depth': 1, 'replace': false });
     })
     .on('mouseover',function (d:any) {select(this).select('td').html(() => {
       return '<span class="title">' + d.title + '</span>';

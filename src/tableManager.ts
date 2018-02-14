@@ -204,7 +204,7 @@ export default class TableManager {
         events.fire(COL_ORDER_CHANGED_EVENT);
       } else {
 
-      
+
         //Add fake vector here:
         const arrayVector = arrayVec.create();
 
@@ -220,10 +220,10 @@ export default class TableManager {
                 console.log(edges);
                 arrayVector.dataValues = edges.nodes.map((e)=> {return e;});
                 arrayVector.idValues = edges.nodes.map((e)=> {return e.uuid;});
-        
+
                 //if it's not already in there:
                 if (this.adjMatrixCols.filter((a:any )=> {return a.desc.name === arrayVector.desc.name; }).length<1) {
-                  this.adjMatrixCols =this.adjMatrixCols.concat(arrayVector); //store array of vectors 
+                  this.adjMatrixCols =this.adjMatrixCols.concat(arrayVector); //store array of vectors
                 }
 
                 //if it's not already in there:
@@ -236,10 +236,10 @@ export default class TableManager {
               });
 
       }
-      
+
     });
   }
-  
+
   /**
    * Loads the graph data and the attribute data from the server and stores it in the public table variable
    * Parses out the familySpecific information to populate the Family Selector

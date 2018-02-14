@@ -103,9 +103,9 @@ td {
 //  stroke-width: 4px;
 }
 
-line {
-  stroke-width: 3px;
-}
+// line {
+//   stroke-width: 3px;
+// }
 
 // .nodes circle {
 //   stroke: rgb(249, 249, 249);
@@ -335,7 +335,7 @@ ul.nav.navbar-nav{
     background-color: #d9d9d9 !important;
 }
 
-#graphHeaders, #nodeFilter, #tableDiv1{
+#graphHeaders, #nodeFilter, #nodeFilter > div,  #tableDiv1{
   height:195px;
   margin-bottom: 0px;
 }

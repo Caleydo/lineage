@@ -67,12 +67,13 @@ class SetSelector {
     // events.on(FAMILY_INFO_UPDATED, (evt, tableManagerObject) => { this.updateTable(); });
 
     events.on(DB_CHANGED_EVENT, (evt, info) => {
-      this.buildTables(info.value);;
+      this.buildTables(info.value);
     });
 
     // return the promise directly as long there is no dynamical data to update
     return Promise.resolve(this);
   }
+
 
 
   /**
@@ -147,20 +148,14 @@ class SetSelector {
     const label = cboxes
       .attr('class', 'checkbox')
       .append('label')
-      .on('click',function (d){
-        console.log(d);
-        events.fire(FILTER_CHANGED_EVENT,{'label':d, 'exclude':!select(this).classed('exclude')});
+      .on('click',function (d:any){
+        events.fire(FILTER_CHANGED_EVENT,{'label':d.name, 'exclude':!select(this).classed('exclude')});
         select(this).classed('exclude',!select(this).classed('exclude'));
       });
 
-    // label
-    //   .append('input')
-    //   .attr('type', 'checkbox')
-    //   .attr('value', (d:any)=> {return d;});
-
     label
       .html(function (d: any) {
-        return select(this).html() + d;
+        return select(this).html() + d.name;
       });
 
 
@@ -223,16 +218,20 @@ class SetSelector {
 
     panels = panels.merge(panelsEnter);
 
-    selectAll('.panel-heading')
+    select('#col1')
     .selectAll('a')
-      .text((d: any) => { return d; });
+      .text((d: any) => { return d.name +  ' (' + d.size + ')'; });
+
+      select('#col2')
+      .selectAll('a')
+        .text((d: any) => { return d;});
 
       select('#col1')
       .select('#accordion').selectAll('.panel-body')
-      .attr('id', (d) => { return d + '_body'; });
+      .attr('id', (d:any) => { return d.name + '_body'; });
 
     // Populate Headers
-    labels.map((d) => { this.updateTableHeader('#' + d + '_body'); });
+    labels.map((d:any) => { this.updateTableHeader('#' + d.name + '_body'); });
 
 
   }
@@ -302,17 +301,20 @@ class SetSelector {
     this.selectedDB = db;
     const self = this;
 
+
     const url = 'api/data_api/labels/' + db;
 
     json(url, (error, graphData: any) => {
+
 
       //    // this.familyInfo = this.tableManager.familyInfo;
       const data = graphData.labels;
 
       const datalistItems = [];
-
-      const labels = data.map((d) => { return d.name; });
+      const labels = data.map((d) => { return {name:d.name, size:d.nodes.length};});
       this.build(labels);
+
+      // this.updateFilterPanel(labels);
 
       select('#searchBoxInput').on('input', function(e) {
         const input =select('#searchBoxInput');
@@ -346,7 +348,7 @@ class SetSelector {
 
 
       data.map((d) => {
-        this.populateTableRows('#' + d.name + '_body', d.nodes, this.headerInfo.length);
+        this.populateTableRows('#' + d.name + '_body', d.nodes.slice(0,50), this.headerInfo.length);
       });
 
 
@@ -389,7 +391,7 @@ class SetSelector {
 
       this.menuObject.addMenu(d,actions);
       // events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.id, 'depth': 1, 'replace': false });
-    }) 
+    })
     .on('mouseover',function (d:any) {select(this).select('td').html(() => {
       return '<span class="title">' + d.title + '</span>';
     });
@@ -423,7 +425,7 @@ class SetSelector {
       .style('width', (d: any, i) => {
         const width = (i < 2 ? 10 : (90 / numCols));
         return width + '%';
-      })
+      });
       // .style('text-align', 'center');
 
     cells
@@ -435,9 +437,8 @@ class SetSelector {
         // console.log(d);
         const cellString = d.value.length >14 ? d.value.slice(0,12) + '...' :  d.value.slice(0,12);
         return '<span class="title">' + cellString + '</span>';
-      })
-      // .style('text-align', 'center')
-     
+      });
+
 
     cells
       .filter((c: any) => {

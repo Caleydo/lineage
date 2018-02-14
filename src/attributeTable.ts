@@ -580,15 +580,15 @@ class AttributeTable {
     const graphView = await this.tableManager.graphTable;
     const attributeView = await this.tableManager.tableTable;
 
-    let allCols = this.tableManager.adjMatrixCols.concat(graphView.cols()).concat(attributeView.cols());
+    const allCols = this.tableManager.adjMatrixCols.concat(graphView.cols()).concat(attributeView.cols());
 
     //update tableManager colOrder;
-    // this.tableManager.colOrder = this.tableManager.colOrder.length < 1 ? 
+    // this.tableManager.colOrder = this.tableManager.colOrder.length < 1 ?
     // this.tableManager.adjMatrixCols.map((c)=> {return c.desc.name;}).concat(this.tableManager.defaultCols) : this.tableManager.colOrder;
 
     const colOrder = this.tableManager.colOrder;
     const orderedCols = [];
-    
+
     this.allCols = allCols;
 
 
@@ -745,7 +745,7 @@ class AttributeTable {
           const col: any = {};
           col.isSorted = false;
           col.ids = allRows.map((row) => {
-            return y2personDict[row].map((d) => { return d}); //only first part is the id
+            return y2personDict[row].map((d) => { return d;}); //only first part is the id
           });
 
           col.name = name;
@@ -2502,16 +2502,16 @@ class AttributeTable {
 
       } else if (data.type === 'adjMatrix') {
           const incomingEdge = data.data[0] && data.name === data.data[0].endNode.title;
-          
+
         if (data.data[0]) {
           const edge = data.data[0].edge.info;
           content = data.data[0].startNode.title + ' '  + edge.type +  ' ' + data.data[0].endNode.title;
         } else {
           content = 'no edge';
-        } 
-        
+        }
 
-  
+
+
         } else if (data.type === 'int') {
         content = data.name + ' : ' + data.data.sort((a, b) => { return (a - b); }); //display sorted values
       } else if (data.type === 'string') {
@@ -2777,9 +2777,9 @@ class AttributeTable {
 
       element.append('rect')
         .classed(VALUE_TYPE_CATEGORICAL, true);
-        
+
         element.append('text')
-        .attr('transform',()=>{return incomingEdge ? 'translate(8,13)' :' translate(13,8) rotate(90) scale(1,-1)';})
+        .attr('transform',()=> {return incomingEdge ? 'translate(8,13)' :' translate(13,8) rotate(90) scale(1,-1)';})
         .text(Config.icons.edgeIcon)
         .classed('adjMatrixEdge',true);
     }

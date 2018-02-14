@@ -62,7 +62,9 @@ import {
   forceLink,
   forceManyBody,
   forceCollide,
-  forceCenter
+  forceCenter,
+  forceY,
+  forceX
 } from 'd3-force';
 
 import {
@@ -134,7 +136,8 @@ class Graph {
       .on('click', () => { select('.menu').remove(); });
 
     events.on(DB_CHANGED_EVENT, (evt, info) => {
-      this.loadGraph(info.value);;
+
+      // this.loadGraph(info.value);;
     });
 
     events.on(FILTER_CHANGED_EVENT, (evt, info) => {
@@ -305,13 +308,21 @@ class Graph {
     this.svg.append('g')
       .attr('class', 'nodes');
 
-    this.simulation = forceSimulation()
-      .force('link', forceLink())
-      .force('charge', forceManyBody().strength(-300))
-      // .force('center', forceCenter(this.width / 2, this.height / 2))
-      .force('collision', forceCollide().radius((d) => {
-        return 20;
-      }));
+      const forceWidth = 1250;
+
+      this.simulation = forceSimulation()
+      .force('link', forceLink().id(function(d:any) { return d.index; }))
+      .force('collide',forceCollide( function(d:any){return 30;}).iterations(16) )
+      .force('charge', forceManyBody())
+      .force('center', forceCenter(forceWidth / 2, this.forceDirectedHeight / 2))
+      .force('y', forceY(0))
+      .force('x', forceX(0));
+
+    // this.simulation = forceSimulation()
+    //   .force('link', forceLink().strength(5))
+    //   .force('charge', forceManyBody().strength(-300))
+    //   .force('center', forceCenter(forceWidth / 2, this.forceDirectedHeight / 2))
+    //   .force('collision', forceCollide().radius(20));
 
   }
 
@@ -356,25 +367,7 @@ class Graph {
       this.removeBranch(rootNode[0]);
       const roots = this.graph.nodes.filter((n) => { return this.graph.root.indexOf(n.uuid) > -1; });
 
-      const labels = {};
-
-      this.graph.nodes.map((n) => {
-        if (labels[n.label]) {
-          labels[n.label] = labels[n.label] + 1;
-        } else {
-          labels[n.label] = 1;
-        }
-      });
-
-      this.labels = labels;
-
-      //Update numbers in Filter Panel
-      const filterLabels = select('#filterPanel')
-        .selectAll('label')
-        .html(function (d: any) {
-          const count = labels[d] ? labels[d] : 0;
-          return d + '(' + count + ')';
-        });
+      this.updateFilterPanel();
 
       // console.log('calling extract tree on ', roots[0], ' input root is ', rootNode[0])
       this.extractTree(roots.length > 0 ? roots : undefined, this.graph, false);
@@ -401,7 +394,7 @@ class Graph {
         //Replace graph or merge with incoming subgraph
         if (replace || !this.graph) {
 
-          let newLinks = [];
+          const newLinks = [];
           //update indexes to contain refs of the actual nodes;
           graph.links.forEach((link) => {
             const sourceNode = graph.nodes.filter((n) => { return n.uuid.toString() === link.source.uuid.toString(); })[0];
@@ -415,12 +408,9 @@ class Graph {
           });
           graph.links = newLinks;
           this.graph = graph;
-          console.log(graph.links);
         } else {
 
-          console.log('this.graph.root ', this.graph.root, 'graph.root', graph.root)
           const rootNode = graph.nodes.filter((n) => { return n.uuid.toString() === graph.root.toString(); });
-          console.log('rootNode', rootNode);
           const existingNodes = []; //nodes in the current subgraph that already exist in the tree
 
           graph.nodes.forEach((node) => {
@@ -434,7 +424,6 @@ class Graph {
 
           //only add root to array of roots if it does not already exist in the graph;
           if (this.graph.nodes.filter((n) => { return n.uuid.toString() === graph.root.toString(); }).length < 1) {
-            console.log('adding root?')
             this.graph.root = this.graph.root.concat(graph.root);
           };
 
@@ -515,25 +504,11 @@ class Graph {
 
         const roots = this.graph.nodes.filter((n) => { return this.graph.root.indexOf(n.uuid) > -1; });
 
-        const labels = {};
-
         this.graph.nodes.map((n) => {
-          if (labels[n.label]) {
-            labels[n.label] = labels[n.label] + 1;
-          } else {
-            labels[n.label] = 1;
-          }
+          n.degree = this.nodeNeighbors[n.uuid].degree;
         });
 
-        this.labels = labels;
-
-        //Update numbers in Filter Panel
-        const filterLabels = select('#filterPanel')
-          .selectAll('label')
-          .html(function (d: any) {
-            const count = labels[d] ? labels[d] : 0;
-            return d + '(' + count + ')';
-          });
+        this.updateFilterPanel();
 
         this.extractTree(roots.length > 0 ? roots : undefined, this.graph, false);
 
@@ -554,6 +529,29 @@ class Graph {
   };
 
 
+  updateFilterPanel () {
+
+    const labels = {};
+
+            this.graph.nodes.map((n) => {
+              if (labels[n.label]) {
+                labels[n.label] = labels[n.label] + 1;
+              } else {
+                labels[n.label] = 1;
+              }
+            });
+
+            this.labels = labels;
+
+            //Update numbers in Filter Panel
+            const filterLabels = select('#filterPanel')
+              .selectAll('label')
+              .html(function (d: any) {
+                const count = labels[d.name] ? labels[d.name] : 0;
+                return d.name + '(' + count + ')';
+              });
+  }
+
   //Function that extracts tree from Graph
   //takes in tgree parameters:
   // roots, which graph to extract, and whether to replace any existing tree.
@@ -570,8 +568,7 @@ class Graph {
     // this.graph.root = roots;
 
     //Filter out all nodes to be excluded
-    let excluded = this.exclude;
-    console.log('excluding ', excluded)
+    const excluded = this.exclude;
 
     //set default values for unvisited nodes;
     graph.nodes.map((n, i) => {
@@ -605,9 +602,8 @@ class Graph {
         }).reduce((a, b) => this.nodeNeighbors[a.uuid].degree > this.nodeNeighbors[b.uuid].degree ? a : b);
 
 
-      // If graph.root is empty, add the node with the highest degree. 
+      // If graph.root is empty, add the node with the highest degree.
       if (!roots && setNewRoot) {
-        console.log('setting this.graph.root to ', root)
         setNewRoot = false;
         this.graph.root = [root.uuid];
       };
@@ -694,8 +690,6 @@ class Graph {
         const tt = this.createID(d.target.title);
         return st + '_' + tt;
       });
-
-    console.log('linkData is ', graph.links.filter((l) => { return l.source.visible && l.target.visible && l.visible; }))
 
     let linksEnter = link
       .enter()
@@ -983,9 +977,6 @@ class Graph {
 
     const graph = this.graph;
 
-    this.simulation
-      .force('center', forceCenter(1250 / 2, this.forceDirectedHeight / 2));
-
     const dragstarted = (d) => {
       if (!event.active) {
         this.simulation.alphaTarget(0.3).restart();
@@ -1032,9 +1023,8 @@ class Graph {
       .append('g')
       .attr('class', 'title');
 
-    nodeEnter.append('circle')
-      .attr('r', 15)
-      
+    nodeEnter.append('circle');
+
     nodeEnter
       .append('text');
 
@@ -1044,18 +1034,20 @@ class Graph {
     node = node.merge(nodeEnter);
 
     node.select('circle')
-    .attr('fill', ((d) => { return Config.colors[d.label]; }));
-    
+    .attr('fill', ((d) => { return Config.colors[d.label]; }))
+    .attr('r', (d)=> {return 15;});
+
+
     node.select('text')
     .text((d) => {
       const ellipsis = d.title.length > 4 ? '...' : '';
-      return Config.icons[d.label] + ' ' + d.title.slice(0, 4) + ellipsis;
+      return  d.title.slice(0, 4) + ellipsis; //Config.icons[d.label] + ' ' +
     })
     .on('mouseover', function (d) { select(this).text((dd: any) => { return Config.icons[dd.label] + ' ' + dd.title; }); })
     .on('mouseout', function (d) {
       select(this).text((dd: any) => {
         const ellipsis = d.title.length > 4 ? '...' : '';
-        return Config.icons[dd.label] + ' ' + d.title.slice(0, 4) + ellipsis;
+        return d.title.slice(0, 4) + ellipsis; //Config.icons[dd.label] + ' ' +
       });
     });
 
@@ -1086,7 +1078,7 @@ class Graph {
       node.select('circle')
         .attr('cx', (d) => {
           return d.x;
-          // return d.x = Math.max(nodeBumper, Math.min(this.width - nodeBumper, d.x));
+          // return d.x = Math.max(nodeBumper, Math.min(forceWidth - nodeBumper, d.x));
         })
         .attr('cy', (d) => {
           return d.y;
@@ -1097,7 +1089,7 @@ class Graph {
         .select('text')
         .attr('x', (d) => {
           return d.x;
-          // return d.x = Math.max(nodeBumper, Math.min(this.width - nodeBumper, d.x));
+          // return d.x = Math.max(nodeBumper, Math.min(forceWidth - nodeBumper, d.x));
         })
         .attr('y', (d) => {
           return d.y;
@@ -1121,8 +1113,8 @@ class Graph {
 
   private addHightlightBars() {
 
-    selectAll('.title')
-      .on('mouseover', highlightRows);
+    // selectAll('.title')
+    //   .on('mouseover', highlightRows);
 
     // const t = transition('t').duration(500).ease(easeLinear);
 
@@ -1312,6 +1304,8 @@ class Graph {
       .on('mouseover', (e: any) => {
         //Add glyphs;
         const d = e.data;
+
+        if (d) {
         const remove = d.children.length > 0;
         const element = selectAll('.hiddenEdge').filter((dd: any) => {
           return dd.source.title === d.title || dd.target.title === d.title;
@@ -1365,9 +1359,11 @@ class Graph {
           });
 
         highlightRows(e);
+        }
       })
       .on('mouseout', (e: any) => {
         const d = e.data;
+        if (d) {
         const element = selectAll('.hiddenEdge').filter((dd: any) => {
           return dd.source.title === d.title || dd.target.title === d.title;
         });
@@ -1387,6 +1383,7 @@ class Graph {
         //   return 'url(#m_' + st + '_' + tt + ')';
         // });
         clearHighlights();
+      }
       })
       .on('click', (d: any, i) => {
         if (event.defaultPrevented) { return; } // dragged

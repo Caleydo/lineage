@@ -40,7 +40,7 @@ export class App {
       this.$node.select('#col1').append('div').attr('id', 'accordion').attr('class','panel-group');
 
       this.$node.select('#col2').append('div').attr('id', 'nodeFilter').attr('class','panel-group');
-      
+
     this.$node.select('#col2').append('div').attr('id', 'treeDiv');
     this.$node.select('#col3').append('div').attr('id', 'table');
 

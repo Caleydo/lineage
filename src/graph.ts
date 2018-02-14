@@ -183,7 +183,8 @@ class Graph {
           select('#col3').style('visibility', 'hidden');
 
           select('#col2').select('svg')
-            .attr('width', 1250);
+            .attr('width', 1250)
+            .attr('height', 1000);
 
           this.drawGraph();
         }
@@ -1035,7 +1036,7 @@ class Graph {
     node = node.merge(nodeEnter);
 
     node.select('circle')
-    .attr('fill', ((d) => { return Config.colors[d.label]; }))
+    .attr('fill', ((d) => { return Config.colors[d.label] ? Config.colors[d.label] : 'lightblue'; }))
     .attr('r', (d)=> {return 15;});
 
 

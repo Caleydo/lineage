@@ -10,7 +10,7 @@ class ArrayDesc {
 
 
     constructor() {
-        
+
         this.value= {
         categories:[
           {
@@ -31,9 +31,9 @@ class ArrayDesc {
      * that is resolved as soon the view is completely initialized.
      * @returns {Promise<arrayVector>}
      */
-    init() {
+    // init() {
 
-    }
+    // }
 }
 
 /**

@@ -307,8 +307,8 @@ class SetSelector {
 
     json(url, (error, graphData: any) => {
 
-
       console.log(url);
+
       const data = graphData.labels;
 
       const datalistItems = [];

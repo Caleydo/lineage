@@ -733,7 +733,7 @@ class Graph {
 
     select('#graph').select('svg').attr('height', this.height);
 
-    const xScale = scaleLinear().domain([0, maxX]).range([this.padding.left, this.width - this.padding.right - this.padding.left]);
+    const xScale = scaleLinear().domain([0, maxX]).range([this.padding.left, maxX*40 ]); //- this.padding.right - this.padding.left]);
     const yScale = scaleLinear().range([0, this.height * .7]).domain(yrange);
 
     this.xScale = xScale;

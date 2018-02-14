@@ -210,7 +210,9 @@ export default class TableManager {
 
         arrayVector.desc.name = info.name;
 
-       const url = 'api/data_api/edges/' + info.db + '/' + info.uuid;
+        const id = encodeURIComponent(info.uuid);
+
+       const url = 'api/data_api/edges/' + info.db + '/' + id;
 
       //  console.log('edge url is ', url);
               json(url, (error, edges: any) => {

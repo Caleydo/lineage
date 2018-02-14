@@ -32,6 +32,17 @@ export class Config {
       Character:'\uf007',
       House:'\uf1d0',
 
+      ConferencePaper:'\uf0f6',
+      Inproceedings:'\uf0f6',
+      Proceedings:'\uf0f6',
+      Journal:'\uf02d',
+      CHI:'\uf0f6',
+      _Set_Node:'\uf0f6',
+      Author:'\uf007',
+      TVCG:'\uf0f6',
+      Article:'\uf0f6',
+      Publication:'\uf0f6',
+
       AddSubGraph:'\uf20e',
       AddNode:'\uf055',
       AddChildren:'\uf1e0',

@@ -298,6 +298,7 @@ class SetSelector {
    */
   public buildTables(db) {
 
+  
     this.selectedDB = db;
     const self = this;
 
@@ -307,7 +308,7 @@ class SetSelector {
     json(url, (error, graphData: any) => {
 
 
-      //    // this.familyInfo = this.tableManager.familyInfo;
+      console.log(url)
       const data = graphData.labels;
 
       const datalistItems = [];

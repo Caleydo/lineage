@@ -17,7 +17,9 @@ import { curveBasis, curveLinear } from 'd3-shape';
 
 import Histogram from './Histogram';
 
-import { VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL, VALUE_TYPE_STRING, VALUE_TYPE_ADJMATRIX } from 'phovea_core/src/datatype';
+import { VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL, VALUE_TYPE_STRING} from 'phovea_core/src/datatype';
+
+export const VALUE_TYPE_ADJMATRIX = 'adjMatrix';
 
 import { line } from 'd3-shape';
 

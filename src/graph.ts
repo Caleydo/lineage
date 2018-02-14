@@ -383,9 +383,10 @@ class Graph {
       resolvePromise();
     } else {
 
-      const url = root ? 'api/data_api/graph/' + db + '/' + root + '/' + includeRoot.toString() : 'api/data_api/graph/' + db;
+      const rootURI = encodeURIComponent(root);
+      const url = root ? 'api/data_api/graph/' + db + '/' + rootURI + '/' + includeRoot.toString() : 'api/data_api/graph/' + db;
 
-      console.log('url is ', url);
+      console.log('url is ', url , 'root is ', root);
       json(url, (error, graph: any) => {
         if (error) {
           throw error;

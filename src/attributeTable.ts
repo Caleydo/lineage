@@ -1366,7 +1366,7 @@ class AttributeTable {
     //create backgroundHighlight Bars
     let highlightBars = this.$node.select('#highlightBars').selectAll('.highlightBar')
       .data(this.rowOrder.map((d, i) => {
-        return { 'y': d, 'i': i };
+        return { 'y': d, 'i': i, 'uuid':this.colData[0].ids[i][0] };
       }), (d: any) => {
         return d.y;
       });

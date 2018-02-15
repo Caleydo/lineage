@@ -85,7 +85,8 @@ class Graph {
   private radius;
   private color;
 
-  private forceDirectedHeight;
+  private forceDirectedHeight = 1000;
+  private forceDirectedWidth = 1000;
 
   private graph;
 
@@ -136,8 +137,9 @@ class Graph {
       .on('click', () => { select('.menu').remove(); });
 
     events.on(DB_CHANGED_EVENT, (evt, info) => {
-
-      // this.loadGraph(info.value);;
+      this.svg.select('.visibleLinks').html('');
+      this.svg.select('.hiddenLinks').html('');
+      this.svg.select('.nodes').html('');
     });
 
     events.on(FILTER_CHANGED_EVENT, (evt, info) => {
@@ -171,7 +173,7 @@ class Graph {
       if (this.selectedDB) {
         if (this.layout === 'tree') {
           select('#allBars').style('visibility', 'visible');
-          select('#col3').style('visibility', 'visible');
+          // select('#col3').style('visibility', 'visible');
 
           select('#col2').select('svg')
             .attr('width', this.width);
@@ -180,11 +182,11 @@ class Graph {
           this.drawTree();
         } else {
           select('#allBars').style('visibility', 'hidden');
-          select('#col3').style('visibility', 'hidden');
+          // select('#col3').style('visibility', 'hidden');
 
           select('#col2').select('svg')
-            .attr('width', 1250)
-            .attr('height', 1000);
+            .attr('width', this.forceDirectedWidth)
+            .attr('height', this.forceDirectedHeight);
 
           this.drawGraph();
         }
@@ -205,7 +207,6 @@ class Graph {
     this.tableManager = tmanager;
     this.width = width;
     this.height = 600; // change to window height so force directed graph has room to breath;
-    this.forceDirectedHeight = 1000;
     this.radius = radius;
 
     // select(selector).append('div')
@@ -309,13 +310,11 @@ class Graph {
     this.svg.append('g')
       .attr('class', 'nodes');
 
-      const forceWidth = 1250;
-
       this.simulation = forceSimulation()
       .force('link', forceLink().id(function(d:any) { return d.index; }))
       .force('collide',forceCollide( function(d:any){return 30;}).iterations(16) )
       .force('charge', forceManyBody())
-      .force('center', forceCenter(forceWidth / 2, this.forceDirectedHeight / 2))
+      .force('center', forceCenter(this.forceDirectedWidth / 2, this.forceDirectedHeight / 2))
       .force('y', forceY(0))
       .force('x', forceX(0));
 
@@ -1045,12 +1044,17 @@ class Graph {
       const ellipsis = d.title.length > 4 ? '...' : '';
       return  d.title.slice(0, 4) + ellipsis; //Config.icons[d.label] + ' ' +
     })
-    .on('mouseover', function (d) { select(this).text((dd: any) => { return Config.icons[dd.label] + ' ' + dd.title; }); })
-    .on('mouseout', function (d) {
-      select(this).text((dd: any) => {
+    .on('mouseover', (d)=>  {
+      const selectedText = selectAll('.title').select('text').filter((l:any)=> {return l.title === d.title;});
+      selectedText.text((dd: any) => { return Config.icons[dd.label] + ' ' + dd.title; });
+      this.highlightRows(d);})
+    .on('mouseout', (d)=> {
+      const selectedText = selectAll('.title').select('text').filter((l:any)=> {return l.title === d.title;});
+      selectedText.text((dd: any) => {
         const ellipsis = d.title.length > 4 ? '...' : '';
         return d.title.slice(0, 4) + ellipsis; //Config.icons[dd.label] + ' ' +
       });
+      this.clearHighlights();
     });
 
     node
@@ -1287,7 +1291,6 @@ class Graph {
         return !d.aggregated && !d.hidden;
       }).select('.ageLabel').attr('visibility', 'visible');
 
-      // selectAll('.duplicateLine').filter(selected).attr('visibility', 'visible');
     }
 
     function clearHighlights() {
@@ -1420,6 +1423,26 @@ class Graph {
       .on('mouseout', clearHighlights);
 
   }
+
+  //highlight rows for hover on force-directed graph
+  private highlightRows(d: any) {
+
+          function selected(e: any) {
+            let returnValue = false;
+            //Highlight the current row in the graph and table
+            if (e.uuid === d.uuid) {
+              returnValue = true;
+            }
+            return returnValue;
+          }
+
+          //Set opacity of corresponding highlightBar
+          selectAll('.highlightBar').filter(selected).attr('opacity', .2);
+    }
+
+    private clearHighlights() {
+      selectAll('.highlightBar').attr('opacity', 0);
+    }
 
 
   private createID(title) {

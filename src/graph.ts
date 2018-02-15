@@ -10,6 +10,11 @@ import {
 
 import { TABLE_VIS_ROWS_CHANGED_EVENT, ADJ_MATRIX_CHANGED } from './tableManager';
 
+import { VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL, VALUE_TYPE_STRING} from 'phovea_core/src/datatype';
+
+import { VALUE_TYPE_ADJMATRIX} from './attributeTable';
+
+
 import {
   select,
   selectAll,
@@ -72,6 +77,8 @@ import {
 } from './config';
 
 import * as menu from './menu';
+
+import * as arrayVec from './ArrayVector';
 
 export const ROOT_CHANGED_EVENT = 'root_changed';
 
@@ -481,6 +488,7 @@ class Graph {
         this.nodeNeighbors = {};
         this.graph.nodes.map((n, i) => {
           this.nodeNeighbors[n.uuid] = {
+            'title':n.title,
             'neighbors': new Set(),
             'degree': 0
           };
@@ -499,7 +507,7 @@ class Graph {
           targetDictEntry.neighbors.add(sourceNode);
           targetDictEntry.degree = targetDictEntry.neighbors.size;
 
-          sourceDictEntry.neighbors.add(sourceNode);
+          sourceDictEntry.neighbors.add(targetNode);
           sourceDictEntry.degree = sourceDictEntry.neighbors.size;
         });
 
@@ -508,6 +516,8 @@ class Graph {
         this.graph.nodes.map((n) => {
           n.degree = this.nodeNeighbors[n.uuid].degree;
         });
+
+        console.log(this.nodeNeighbors)
 
         this.updateFilterPanel();
 
@@ -627,6 +637,35 @@ class Graph {
       }
       this.layoutTree(root);
     }
+
+      //Add arrayVec for node degree here:
+      const arrayVector = arrayVec.create(VALUE_TYPE_INT);
+
+      arrayVector.desc.name = 'degree';
+
+      arrayVector.dataValues = this.graph.nodes.map((n,i)=> {return this.nodeNeighbors[n.uuid].degree;});
+      arrayVector.idValues = this.graph.nodes.map((n)=> {return n.uuid;});
+
+      arrayVector.desc.value.range = [min(arrayVector.dataValues),max(arrayVector.dataValues)];
+
+
+      //remove existing Vector to replace with newly computed values for new tree;
+      const existingVec = this.tableManager.adjMatrixCols.filter((a:any )=> {return a.desc.name === arrayVector.desc.name; })[0];
+      if (existingVec) {
+        this.tableManager.adjMatrixCols.splice(this.tableManager.colOrder.indexOf(existingVec), 1);
+      }
+      this.tableManager.adjMatrixCols =this.tableManager.adjMatrixCols.concat(arrayVector); //store array of vectors
+
+      // events.fire(COL_ORDER_CHANGED_EVENT);
+
+      //if it's not already in there:
+      if (this.tableManager.colOrder.indexOf(arrayVector.desc.name)<0) {
+          this.tableManager.colOrder = [arrayVector.desc.name].concat(this.tableManager.colOrder); // store array of names
+      }
+
+      events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);
+
+
   }
 
   // recursive helper function to extract tree from graph

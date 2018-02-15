@@ -206,9 +206,10 @@ export default class TableManager {
 
 
         //Add fake vector here:
-        const arrayVector = arrayVec.create();
+        const arrayVector = arrayVec.create(info.type);
 
         arrayVector.desc.name = info.name;
+
 
         const id = encodeURIComponent(info.uuid);
 

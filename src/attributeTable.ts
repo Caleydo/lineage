@@ -2332,7 +2332,7 @@ class AttributeTable {
    */
 
   private async renderIntHeaderHist(element, headerData) {
-
+    console.log(headerData);
     //Check for custom column width value, if none, use default
     const colWidth = this.customColWidths[headerData.name] || this.colWidths.int;
 
@@ -2355,22 +2355,25 @@ class AttributeTable {
       //Check if histogram already exists
       let attributeHistogram = this.histograms.filter((hist)=> {return hist.attrName === headerData.name;})[0];
 
-      if (!attributeHistogram) {
+      const dataVec = headerData.vector;
+
+      if (!attributeHistogram && !dataVec.desc.arrayVec) {
         attributeHistogram = new Histogram(element);
         this.histograms.push(attributeHistogram);
       };
 
-    const graphView = await this.tableManager.graphTable;
-    const attributeView = await this.tableManager.tableTable;
-    const allCols = graphView.cols().concat(attributeView.cols());
+    // const graphView = await this.tableManager.graphTable;
+    // const attributeView = await this.tableManager.tableTable;
+    // const allCols = graphView.cols().concat(attributeView.cols());
+    // const dataVec = allCols.filter((col)=> {return col.desc.name === headerData.name;})[0];
 
-
-    const dataVec = allCols.filter((col)=> {return col.desc.name === headerData.name;})[0];
-    // initiate this object
-    await attributeHistogram.init(headerData.name, dataVec, dataVec.desc.value.type,colWidth,this.headerHeight);
-
-
-
+   console.log(dataVec.desc)
+    if (!dataVec.desc.arrayVec) {
+      await attributeHistogram.init(headerData.name, dataVec, dataVec.desc.value.type,colWidth,this.headerHeight);
+    }
+       // initiate this object
+    
+    
     // const hist = headerData.hist;
 
     // const range = [0, colWidth];

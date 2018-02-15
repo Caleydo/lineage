@@ -7,7 +7,7 @@ import * as desc from './ArrayDesc';
 
 class ArrayVector {
 
-    public desc = desc.create();
+    public desc;
 
     public dataValues=[];
     public idValues=[];
@@ -18,8 +18,9 @@ class ArrayVector {
     public stats;
     public hist;
 
-    constructor() {
+    constructor(type) {
 
+      this.desc = desc.create(type);
       this.data =  async ()=> {return this.dataValues;};
       this.names = async ()=> {return this.idValues;};
       this.ids = async ()=>  {return [];};
@@ -35,6 +36,6 @@ class ArrayVector {
  * @param options
  * @returns {arrayVector}
  */
-export function create() {
-    return new ArrayVector();
+export function create(type) {
+    return new ArrayVector(type);
 }

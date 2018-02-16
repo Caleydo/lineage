@@ -660,31 +660,31 @@ class AttributeTable {
     this.y.range([0, this.height * .7]).domain([0, maxRow]);
     this.rowOrder = allRows; //will be used to set the y position of each cell/row;
 
-    // console.log('rowOrder', this.y(this.rowOrder[0]), this.y(this.rowOrder[1]), this.y(this.rowOrder[2]));
-    //set up first column with #People per row.
-    const col: any = {};
-    col.data = [];
-    col.name = ['# People'];
-    col.type = 'dataDensity';
-    col.stats = [];
-    col.isSorted = false;
+    // // console.log('rowOrder', this.y(this.rowOrder[0]), this.y(this.rowOrder[1]), this.y(this.rowOrder[2]));
+    // //set up first column with #People per row.
+    // const col: any = {};
+    // col.data = [];
+    // col.name = ['# People'];
+    // col.type = 'dataDensity';
+    // col.stats = [];
+    // col.isSorted = false;
 
-    //Creating a scale for the rects in the personID col in the table.
-    let maxAggregates = 1;
-    for (const key of allRows) {
-      //FIXME Don't know why we're getting duplicates here.
-      const value = Array.from(new Set(y2personDict[key])).length;
-      col.data.push(value);
-      maxAggregates = max([maxAggregates, y2personDict[key].length]);
-    }
-    this.idScale.domain([1, maxAggregates]);
+    // //Creating a scale for the rects in the personID col in the table.
+    // let maxAggregates = 1;
+    // for (const key of allRows) {
+    //   //FIXME Don't know why we're getting duplicates here.
+    //   const value = Array.from(new Set(y2personDict[key])).length;
+    //   col.data.push(value);
+    //   maxAggregates = max([maxAggregates, y2personDict[key].length]);
+    // }
+    // this.idScale.domain([1, maxAggregates]);
 
 
-    col.ids = allRows.map((row) => {
-      return y2personDict[row].map((d) => { return d.split('_')[0]; }); //only first part is the id
-    });
+    // col.ids = allRows.map((row) => {
+    //   return y2personDict[row].map((d) => { return d.split('_')[0]; }); //only first part is the id
+    // });
 
-    this.firstCol = [col];
+    // this.firstCol = [col];
 
     // console.log(col)
     const colDataAccum = [];
@@ -781,7 +781,7 @@ class AttributeTable {
 
         }
 
-      } else if (type === VALUE_TYPE_INT || type === VALUE_TYPE_REAL) { //quant
+      } else if (type === VALUE_TYPE_INT || type === VALUE_TYPE_REAL || type === 'dataDensity') { //quant
 
         const col: any = {};
         col.isSorted = false;
@@ -1024,7 +1024,7 @@ class AttributeTable {
       headerEnter
       .append('rect')
       .attr('class','titleBackground')
-      .attr('height',20)
+      .attr('height',15)
       .on('dblclick',((d)=> {
         //reset this col width.
         this.customColWidths[d.name] = this.colWidths[d.type];
@@ -1040,16 +1040,16 @@ class AttributeTable {
     headers.select('.titleBackground')
     .attr('width',(d)=> {
       const colWidth = this.customColWidths[d.name] || this.colWidths[d.type];
-      return d.type === 'categorical' ?  colWidth + d.name.length*7 : colWidth;})
+      return d.type === 'categorical' || d.type === 'dataDensity' ?  colWidth + d.name.length*7 : colWidth;})
     .attr('transform', (d, i) => {
-      return 'translate(0,-20)';
+      return 'translate(0,-10)';
     });
 
     headers
     .attr('id', (d) => {return this.deriveID(d) + '_header'; })
     .attr('transform', (d, i) => {
       const offset = this.colOffsets[i];
-      return d.type === VALUE_TYPE_CATEGORICAL || d.type === VALUE_TYPE_ADJMATRIX ? 'translate(' + offset + ',0) rotate(-40)' : 'translate(' + offset + ',0)';
+      return d.type === VALUE_TYPE_CATEGORICAL || d.type === VALUE_TYPE_ADJMATRIX || d.type === 'dataDensity' ? 'translate(' + offset + ',0) rotate(-40)' : 'translate(' + offset + ',0)';
     });
 
     headers
@@ -1057,7 +1057,7 @@ class AttributeTable {
       .text((d: any) => {
         if (d.category && d.category.toLowerCase() !== 'true' && d.category.toLowerCase() !== 'y') {
           return d.name + ' (' + d.category + ')';
-        } else if (d.category) {
+        } else if ((d.category) || d.type === 'dataDensity') {
           return d.name;
         } else {
           return d.name.slice(0, 8);
@@ -1066,10 +1066,10 @@ class AttributeTable {
       })
       .attr('transform', (d, i) => {
         const offset = ((this.customColWidths[d.name] ||this.colWidths[d.type]) / 2);
-        return d.type === VALUE_TYPE_CATEGORICAL  || d.type === VALUE_TYPE_ADJMATRIX ? 'translate(' + offset + ',0)' : 'translate(' + offset + ',0)';
+        return d.type === VALUE_TYPE_CATEGORICAL  || d.type === VALUE_TYPE_ADJMATRIX  || d.type === 'dataDensity'? 'translate(' + offset + ',0)' : 'translate(' + offset + ',0)';
       })
       .attr('text-anchor', (d) => {
-        return d.type === VALUE_TYPE_CATEGORICAL || d.type === VALUE_TYPE_ADJMATRIX  ? 'start' : 'middle';
+        return d.type === VALUE_TYPE_CATEGORICAL || d.type === VALUE_TYPE_ADJMATRIX  || d.type === 'dataDensity' ? 'start' : 'middle';
         // return (d.type === VALUE_TYPE_CATEGORICAL || d.type === 'dataDensity' || d.name.length>10) ? 'start' : 'middle';
       });
 
@@ -1390,110 +1390,110 @@ class AttributeTable {
     .on('mouseout', this.clearHighlight)
     .on('click', this.clickHighlight);
 
-    //create slope Lines
+    // //create slope Lines
+    // // //Bind data to the cells
+    // let slopeLines = select('#slopeLines').selectAll('.slopeLine')
+    //   .data(this.rowOrder
+    //     .map((d: any, i) => {
+    //       return { y: d, ind: i, width: Config.collapseSlopeChartWidth };
+    //     })
+    //   , (d: any) => {
+    //     return d.y;
+    //   });
+
+    // slopeLines.exit().remove();
+
+    // const slopeLinesEnter = slopeLines.enter().append('path');
+
+
+    // slopeLines = slopeLinesEnter.merge(slopeLines);
+
+
+
+    // slopeLines
+    //   // .append('path')
+    //   .classed('slopeLine', true)
+    //   .attr('d', (d: any) => {
+    //     return this.slopeChart(d);
+    //   });
+
+    // let slopeIcons = select('#slopeLines').selectAll('.slopeIcon')
+    //   .data(this.rowOrder
+    //     .map((d: any, i) => {
+    //       return { y: d, ind: i, width: Config.collapseSlopeChartWidth };
+    //     })
+    //   , (d: any) => {
+    //     return d.y;
+    //   });
+
+    // slopeIcons.exit().remove();
+
+    // const slopeIconsEnter = slopeIcons.enter().append('text').classed('slopeIcon', true);
+
+
+    // slopeIcons = slopeIconsEnter.merge(slopeIcons);
+
+    // //Bind data to the first col group
+    // let firstCol = select('#slopeChart').selectAll('.dataCols')
+    //   .data(this.firstCol.map((d, i) => {
+    //     const out = {
+    //       'name': d.name, 'data': d.data, 'ind': i, 'type': d.type,
+    //       'ids': d.ids, 'stats': d.stats, 'varName': d.name, 'category': d.category, 'vector': d.vector
+    //     };
+    //     return out;
+    //   }), (d: any) => {
+    //     return d.varName;
+    //   });
+
+    // firstCol.exit().attr('opacity', 0).remove(); // should remove on col remove
+
+    // const firstColEnter = firstCol.enter()
+    //   .append('g')
+    //   .classed('dataCols', true);
+
+
+    // firstCol = firstColEnter.merge(firstCol);//;
+
     // //Bind data to the cells
-    let slopeLines = select('#slopeLines').selectAll('.slopeLine')
-      .data(this.rowOrder
-        .map((d: any, i) => {
-          return { y: d, ind: i, width: Config.collapseSlopeChartWidth };
-        })
-      , (d: any) => {
-        return d.y;
-      });
+    // let firstCells = firstCol.selectAll('.cell')
+    //   .data((d) => {
+    //     return d.data.map((e, i) => {
+    //       return {
+    //         'id': d.ids[i],
+    //         'name': d.name,
+    //         'data': e,
+    //         'ind': i,
+    //         'type': d.type,
+    //         'stats': d.stats,
+    //         'varName': d.name,
+    //         'category': d.category,
+    //         'vector': d.vector
+    //       };
+    //     });
+    //   }, (d: any) => {
+    //     return d.id[0];
+    //   });
 
-    slopeLines.exit().remove();
+    // firstCells.exit().remove();
 
-    const slopeLinesEnter = slopeLines.enter().append('path');
+    // const firstCellsEnter = firstCells.enter()
+    //   .append('g')
+    //   .attr('class', 'cell');
 
+    // firstCells = firstCellsEnter.merge(firstCells);
 
-    slopeLines = slopeLinesEnter.merge(slopeLines);
+    // firstCellsEnter.attr('opacity', 0);
 
+    // firstCells
+    //   .attr('transform', (cell: any, i) => {
+    //     return ('translate(0, ' + y(this.rowOrder[i]) + ' )'); //the x translation is taken care of by the group this cell is nested in.
+    //   });
 
+    // firstCellsEnter.attr('opacity', 1);
 
-    slopeLines
-      // .append('path')
-      .classed('slopeLine', true)
-      .attr('d', (d: any) => {
-        return this.slopeChart(d);
-      });
-
-    let slopeIcons = select('#slopeLines').selectAll('.slopeIcon')
-      .data(this.rowOrder
-        .map((d: any, i) => {
-          return { y: d, ind: i, width: Config.collapseSlopeChartWidth };
-        })
-      , (d: any) => {
-        return d.y;
-      });
-
-    slopeIcons.exit().remove();
-
-    const slopeIconsEnter = slopeIcons.enter().append('text').classed('slopeIcon', true);
-
-
-    slopeIcons = slopeIconsEnter.merge(slopeIcons);
-
-    //Bind data to the first col group
-    let firstCol = select('#slopeChart').selectAll('.dataCols')
-      .data(this.firstCol.map((d, i) => {
-        const out = {
-          'name': d.name, 'data': d.data, 'ind': i, 'type': d.type,
-          'ids': d.ids, 'stats': d.stats, 'varName': d.name, 'category': d.category, 'vector': d.vector
-        };
-        return out;
-      }), (d: any) => {
-        return d.varName;
-      });
-
-    firstCol.exit().attr('opacity', 0).remove(); // should remove on col remove
-
-    const firstColEnter = firstCol.enter()
-      .append('g')
-      .classed('dataCols', true);
-
-
-    firstCol = firstColEnter.merge(firstCol);//;
-
-    //Bind data to the cells
-    let firstCells = firstCol.selectAll('.cell')
-      .data((d) => {
-        return d.data.map((e, i) => {
-          return {
-            'id': d.ids[i],
-            'name': d.name,
-            'data': e,
-            'ind': i,
-            'type': d.type,
-            'stats': d.stats,
-            'varName': d.name,
-            'category': d.category,
-            'vector': d.vector
-          };
-        });
-      }, (d: any) => {
-        return d.id[0];
-      });
-
-    firstCells.exit().remove();
-
-    const firstCellsEnter = firstCells.enter()
-      .append('g')
-      .attr('class', 'cell');
-
-    firstCells = firstCellsEnter.merge(firstCells);
-
-    firstCellsEnter.attr('opacity', 0);
-
-    firstCells
-      .attr('transform', (cell: any, i) => {
-        return ('translate(0, ' + y(this.rowOrder[i]) + ' )'); //the x translation is taken care of by the group this cell is nested in.
-      });
-
-    firstCellsEnter.attr('opacity', 1);
-
-    firstCells.each(function (cell) {
-      self.renderDataDensCell(select(this), cell);
-    });
+    // firstCells.each(function (cell) {
+    //   self.renderDataDensCell(select(this), cell);
+    // });
 
     // console.log(Array.apply(null, {length: this.y.range()[1]}));
     //create table Lines
@@ -2367,13 +2367,13 @@ class AttributeTable {
     // const allCols = graphView.cols().concat(attributeView.cols());
     // const dataVec = allCols.filter((col)=> {return col.desc.name === headerData.name;})[0];
 
-   console.log(dataVec.desc)
+    //For now, only render histograms for phovea table vectors
     if (!dataVec.desc.arrayVec) {
       await attributeHistogram.init(headerData.name, dataVec, dataVec.desc.value.type,colWidth,this.headerHeight);
     }
        // initiate this object
-    
-    
+
+
     // const hist = headerData.hist;
 
     // const range = [0, colWidth];
@@ -2524,7 +2524,7 @@ class AttributeTable {
       } else if (data.type === 'string') {
         content = data.name + ' : ' + data.data[0].toString().toLowerCase();
       } else if (data.type === 'dataDensity') {
-      content = data.name + ' : ' + (data.data[0] ? data.data[0].toLowerCase() : data.data);
+      content = data.name + ' : ' + (data.data[0].value ? data.data[0].value : data.data);
     } else if (data.type === 'idtype') {
   content = data.name + ' : ' +  data.data;
 }
@@ -2837,22 +2837,22 @@ class AttributeTable {
     const rowHeight = this.rowHeight;
 
 
-    //append data to checkbox for easy export
-    //only add checkboxes for the dataDensity col;
-    element.selectAll('.checkbox')
-      .data([cellData].filter((c) => { return c.type === 'dataDensity'; }))
-      .enter()
-      .append('rect')
-      .classed('checkbox', true)
-      .on('click', function () {
-        event.stopPropagation();
-        //toggle visibility of both checkbox icon and checkbox color;
-        element.select('.checkboxIcon').classed('checked', !select(this).classed('checked'));
-        select(this).classed('checked', !select(this).classed('checked'));
-      });
+    // //append data to checkbox for easy export
+    // //only add checkboxes for the dataDensity col;
+    // element.selectAll('.checkbox')
+    //   .data([cellData].filter((c) => { return c.type === 'dataDensity'; }))
+    //   .enter()
+    //   .append('rect')
+    //   .classed('checkbox', true)
+    //   .on('click', function () {
+    //     event.stopPropagation();
+    //     //toggle visibility of both checkbox icon and checkbox color;
+    //     element.select('.checkboxIcon').classed('checked', !select(this).classed('checked'));
+    //     select(this).classed('checked', !select(this).classed('checked'));
+    //   });
 
 
-    if (element.selectAll('.dataDens').size() === 0) {
+    if (element.selectAll('.dataDens').size() === 0 && cellData.data[0].value>0) {
       element
         .append('rect')
         .classed('dataDens', true);
@@ -2860,41 +2860,78 @@ class AttributeTable {
       element.append('text')
         .classed('label', true);
 
-      if (cellData.type === 'dataDensity') {
-        element.append('text').text('\uf00c')
-          .classed('checkboxIcon', true)
-          .attr('x', 11)
-          .attr('y', 12);
-      }
+      // if (cellData.type === 'dataDensity') {
+      //   element.append('text').text('\uf00c')
+      //     .classed('checkboxIcon', true)
+      //     .attr('x', 11)
+      //     .attr('y', 12);
+      // }
 
     }
 
-    const colorScale = scaleLinear<string, string>().domain(this.idScale.domain()).range(['#c0bfbb', '#373838']);
+    if (cellData.data[0].value<1) {
 
+            if (element.selectAll('.cross_out').size() === 0) {
+              element
+                .append('line')
+                .attr('class', 'cross_out');
+            }
+
+            element.select('.cross_out')
+              .attr('x1', colWidth * 0.3)
+              .attr('y1', rowHeight / 2)
+              .attr('x2', colWidth * 0.6)
+              .attr('y2', rowHeight / 2)
+              .attr('stroke-width', 2)
+              .attr('stroke', '#9e9d9b')
+              .attr('opacity', .6);
+
+            return;
+          }
+
+    const colorScale = scaleLinear<number, number>().domain(cellData.vector.desc.value.range).range([.3, .8]);
+
+    // console.log(cellData.data[0].value, colorScale.domain());
     element
       .select('.dataDens')
       .attr('width', colWidth)
       .attr('height', rowHeight)
-      .attr('x', (cellData.type === 'dataDensity' ? (this.colWidths.dataDensity + this.buffer) : 0))
+      .attr('x',0)
+      // .attr('x', (cellData.type === 'dataDensity' ? (this.colWidths.dataDensity + this.buffer) : 0))
       .attr('y', 0)
-      .attr('opacity', .4)
-      .attr('fill', (d, i) => { return this.colorScale[0]; });
+      .attr('opacity', (d, i) => {return colorScale(cellData.data[0].value); })
+      .attr('fill', '#343434')
+      .on('click',(d)=> {
+        event.stopPropagation();
+        selectAll('.hiddenEdge')
+        .filter((e:any)=> {
+          return (e.source.uuid !== cellData.data[0].uuid && e.target.uuid !== cellData.data[0].uuid); })
+        .attr('visibility','hidden');
 
-    element
-      .select('.checkbox')
-      .attr('width', colWidth)
-      .attr('height', rowHeight)
-      .attr('x', 3)
-      .attr('y', 0);
+        selectAll('.hiddenEdge').filter((e:any)=> {
+          return (e.source.uuid === cellData.data[0].uuid || e.target.uuid === cellData.data[0].uuid); })
+        .attr('visibility',function(l){
+            return select(this).attr('visibility') === 'visible' ? 'hidden' : 'visible';
+        });
+        // console.log(cellData)
+      });
+
+    // element
+    //   .select('.checkbox')
+    //   .attr('width', colWidth)
+    //   .attr('height', rowHeight)
+    //   .attr('x', 3)
+    //   .attr('y', 0);
 
 
     element
       .select('.label')
-      .attr('x', (cellData.type === 'dataDensity' ? (colWidth / 2 + this.colWidths.dataDensity + this.buffer) : colWidth / 2))
-      // .attr('x', colWidth / 2)
+      // .attr('x',0)
+      // .attr('x', (cellData.type === 'dataDensity' ? (colWidth / 2 + this.colWidths.dataDensity + this.buffer) : colWidth / 2))
+      .attr('x', colWidth / 2)
       .attr('y', rowHeight * 0.8)
       .text(() => {
-        return cellData.data;
+        return cellData.data[0].value;
       })
       .attr('text-anchor', 'middle')
       .attr('fill', '#4e4e4e');
@@ -2927,7 +2964,7 @@ class AttributeTable {
    */
   private renderIntCell(element, cellData) {
 
-    // console.log(cellData);
+    // console.log(cellData.data);
 
     // console.log(cellData)
     //Check for custom column width value, if none, use default

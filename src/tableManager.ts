@@ -255,7 +255,7 @@ export default class TableManager {
       this.defaultCols = ['KindredID', 'RelativeID', 'sex', 'deceased', 'suicide', 'Age','LabID','bipolar spectrum illness','anxiety-non-trauma','alcohol','PD','psychosis','depression','cause_death']; //set of default cols to read in, minimizes load time for large files;
 
     } else {
-      this.defaultCols = ['name', 'title', 'season'];
+      this.defaultCols = ['name'];
     };
 
     this.colOrder = this.defaultCols;

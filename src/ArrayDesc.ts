@@ -14,10 +14,8 @@ class ArrayDesc {
 
     public arrayVec = true;
 
-
-
     constructor(type=VALUE_TYPE_ADJMATRIX) {
-      
+
       if (type === VALUE_TYPE_CATEGORICAL || type === VALUE_TYPE_ADJMATRIX) {
         this.value= {
           categories:[

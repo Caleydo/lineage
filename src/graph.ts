@@ -310,7 +310,7 @@ class Graph {
     linkGroup.append('g')
       .attr('class', 'visibleLinks');
 
-    
+
     linkGroup.append('g')
       .attr('class', 'hiddenLinks')
       .attr('id', 'hiddenLinks');
@@ -531,8 +531,6 @@ class Graph {
           n.degree = this.nodeNeighbors[n.uuid].degree;
         });
 
-        console.log(this.nodeNeighbors)
-
         this.updateFilterPanel();
 
         this.extractTree(roots.length > 0 ? roots : undefined, this.graph, false);
@@ -710,26 +708,26 @@ class Graph {
 
   }
 
-  addArrayVec (vec){
+  addArrayVec (vec) {
     //Add arrayVec for node degree here:
     const arrayVector = arrayVec.create(vec.type);
-    
+
         arrayVector.desc.name = vec.title;
-    
-    
-        arrayVector.dataValues = vec.data
-        arrayVector.idValues = vec.ids
-    
+
+
+        arrayVector.dataValues = vec.data;
+        arrayVector.idValues = vec.ids;
+
         arrayVector.desc.value.range = [min(arrayVector.dataValues,(v)=> {return v.value;}), max(arrayVector.dataValues,(v)=> {return v.value;})];
-    
-    
+
+
         //remove existing Vector to replace with newly computed values for new tree;
         const existingVec = this.tableManager.adjMatrixCols.filter((a: any) => { return a.desc.name === arrayVector.desc.name; })[0];
         if (existingVec) {
           this.tableManager.adjMatrixCols.splice(this.tableManager.adjMatrixCols.indexOf(existingVec), 1);
         }
         this.tableManager.adjMatrixCols = this.tableManager.adjMatrixCols.concat(arrayVector); //store array of vectors
-    
+
         //if it's not already in there:
         if (this.tableManager.colOrder.indexOf(arrayVector.desc.name) < 0) {
           this.tableManager.colOrder = [arrayVector.desc.name].concat(this.tableManager.colOrder); // store array of names

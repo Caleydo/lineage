@@ -462,7 +462,6 @@ class Graph {
           graph.nodes.forEach((node) => {
             const eNode = this.graph.nodes.filter((n) => { return n.uuid === node.uuid; });
             if (eNode.length < 1) {
-              console.log('adding node')
               this.graph.nodes = this.graph.nodes.concat(node);
             } else {
               existingNodes.push(eNode[0]);
@@ -500,17 +499,16 @@ class Graph {
                 link.visited = true;
                 // console.log('setting link to hidden ', 's', sourceNode.title, 't', targetNode.title);
               } else { //set the visibility to true if the link is directly with the root
-      
+
                 if (rootNode[0]) {
                   if (!(includeRoot && !includeChildren) && (sourceNode.uuid === rootNode[0].uuid || targetNode.uuid === rootNode[0].uuid)) {
-                    console.log('visible link',sourceNode.title, targetNode.title, existingNodes.indexOf(sourceNode), existingNodes.indexOf(targetNode));
                     link.visible = true;
                     link.visited = true;
-                  } else 
+                  } else
                   if (!(includeRoot && !includeChildren) || (includeRoot && !includeChildren && targetNode.parent)) {
                     link.visible = false;
                     link.visited = true;
-                  } 
+                  }
                 }
               }
 
@@ -655,10 +653,6 @@ class Graph {
       l.visible = (l.visited && !replace) ? l.visible : false;
       l.visited = (l.visited && !replace) ? l.visited : false;
       l.index = i;
-      if (l.visible){
-        console.log('starting off with ', l.source.title,l.target.title,l.visible)
-      }
-      
     });
     this.ypos = 0;
 
@@ -796,7 +790,6 @@ class Graph {
 
       if (!target.visited) {
         e.visible = e.visited ? e.visible : true;
-        console.log(e.source.title,e.target.title,e.visible)
         // console.log(e.source.title, e.target.title,e.visible);
         //only visit edge if there are no previous constraints on this edge visibility
         if (e.visible) {
@@ -807,7 +800,6 @@ class Graph {
         }
       } if (!source.visited) {
         e.visible = e.visited ? e.visible : true;
-        console.log(e.source.title,e.target.title,e.visible)
         // console.log(e.source.title, e.target.title,e.visible);
         //only visit edge if there are no previous constraints on this edge visibility
         if (e.visible) {

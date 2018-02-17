@@ -390,7 +390,7 @@ class SetSelector {
       } }
       ,
       { 'icon': 'AddNode', 'string': 'Add Node to Tree', 'callback': ()=> {
-        // events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.id,'includeChildren':false, 'replace': false });
+        events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.id,'includeChildren':false, 'replace': false });
       } },
       {
         'icon': 'Add2Matrix', 'string': removeAdjMatrix ? 'Remove from Table' : 'Add to Table', 'callback': () => {

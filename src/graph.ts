@@ -413,9 +413,16 @@ class Graph {
     } else {
 
       const rootURI = encodeURIComponent(root);
-      const url = root ? 'api/data_api/graph/' + db + '/' + rootURI + '/' + includeRoot.toString() : 'api/data_api/graph/' + db;
+      let url;
 
-      console.log('url is ', url, 'root is ', root);
+      if (includeRoot && !includeChildren) {
+        url =  'api/data_api/getNode/' + db + '/' + rootURI;
+
+      } else {
+        url = root ? 'api/data_api/graph/' + db + '/' + rootURI + '/' + includeRoot.toString() : 'api/data_api/graph/' + db;
+      }
+
+      console.log('url is ', url);
       json(url, (error, graph: any) => {
         if (error) {
           throw error;
@@ -455,11 +462,22 @@ class Graph {
           graph.nodes.forEach((node) => {
             const eNode = this.graph.nodes.filter((n) => { return n.uuid === node.uuid; });
             if (eNode.length < 1) {
+              console.log('adding node')
               this.graph.nodes = this.graph.nodes.concat(node);
             } else {
               existingNodes.push(eNode[0]);
             }
           });
+
+          //Keep track of which children node are already in the tree, but don't include new ones in the tree
+          if (includeRoot && !includeChildren) {
+            graph.targetNodes.forEach((node) => {
+              const eNode = this.graph.nodes.filter((n) => { return n.uuid === node.uuid; });
+              if (eNode.length > 1) {
+                existingNodes.push(eNode[0]);
+              }
+            });
+          }
 
           //only add root to array of roots if it does not already exist in the graph;
           if (this.graph.nodes.filter((n) => { return n.uuid.toString() === graph.root.toString(); }).length < 1) {
@@ -476,21 +494,23 @@ class Graph {
             link.target = targetNode;
 
             if (link.source && link.target) { //both nodes exist in this tree
-
               //Set link visibility to hidden if the node already exists
               if (existingNodes.indexOf(sourceNode) > -1 && existingNodes.indexOf(targetNode) > -1) {
                 link.visible = false;
                 link.visited = true;
                 // console.log('setting link to hidden ', 's', sourceNode.title, 't', targetNode.title);
               } else { //set the visibility to true if the link is directly with the root
+      
                 if (rootNode[0]) {
-                  if (sourceNode.uuid === rootNode[0].uuid || targetNode.uuid === rootNode[0].uuid) {
+                  if (!(includeRoot && !includeChildren) && (sourceNode.uuid === rootNode[0].uuid || targetNode.uuid === rootNode[0].uuid)) {
+                    console.log('visible link',sourceNode.title, targetNode.title, existingNodes.indexOf(sourceNode), existingNodes.indexOf(targetNode));
                     link.visible = true;
                     link.visited = true;
-                  } else {
+                  } else 
+                  if (!(includeRoot && !includeChildren) || (includeRoot && !includeChildren && targetNode.parent)) {
                     link.visible = false;
                     link.visited = true;
-                  }
+                  } 
                 }
               }
 
@@ -635,6 +655,10 @@ class Graph {
       l.visible = (l.visited && !replace) ? l.visible : false;
       l.visited = (l.visited && !replace) ? l.visited : false;
       l.index = i;
+      if (l.visible){
+        console.log('starting off with ', l.source.title,l.target.title,l.visible)
+      }
+      
     });
     this.ypos = 0;
 
@@ -772,6 +796,7 @@ class Graph {
 
       if (!target.visited) {
         e.visible = e.visited ? e.visible : true;
+        console.log(e.source.title,e.target.title,e.visible)
         // console.log(e.source.title, e.target.title,e.visible);
         //only visit edge if there are no previous constraints on this edge visibility
         if (e.visible) {
@@ -782,6 +807,7 @@ class Graph {
         }
       } if (!source.visited) {
         e.visible = e.visited ? e.visible : true;
+        console.log(e.source.title,e.target.title,e.visible)
         // console.log(e.source.title, e.target.title,e.visible);
         //only visit edge if there are no previous constraints on this edge visibility
         if (e.visible) {
@@ -1419,13 +1445,13 @@ class Graph {
                   events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': remove });
                 }
               },
+              // {
+              //   'icon': remove ? 'RemoveChildren' : 'AddChildren', 'string': remove ? 'Remove Children by Type' : 'Add Neighbors by Type', 'callback': () => {
+              //     // events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': remove });
+              //   }
+              // },
               {
-                'icon': remove ? 'RemoveChildren' : 'AddChildren', 'string': remove ? 'Remove Children by Type' : 'Add Neighbors by Type', 'callback': () => {
-                  // events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': remove });
-                }
-              },
-              {
-                'icon': 'RemoveNode', 'string': 'Remove Node  *leaves children*', 'callback': () => {
+                'icon': 'RemoveNode', 'string': 'Remove Node  (leaves children)', 'callback': () => {
                     events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': true , 'includeChildren':false});
                 }
               },
@@ -1537,11 +1563,11 @@ class Graph {
     // let i;
     // if (!d.visible) {
     //   const hiddenEdges = Array.from(this.nodeNeighbors[d.source.uuid].hiddenNeighbors);
-      
+
     //   i = hiddenEdges.indexOf(d.target);
     //   console.log(hiddenEdges,i)
     // }
-    
+
     let source = d.source;
     let target = d.target;
 
@@ -1552,7 +1578,7 @@ class Graph {
     }
     const xdiff = source.xx - target.xx > 0 ? source.xx - target.xx : this.xScale.invert(10);
     const ydiff = source.yy - target.yy;
-    let nx = source.xx - xdiff; 
+    let nx = source.xx - xdiff;
 
     let linedata;
     if (curves) {

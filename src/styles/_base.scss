@@ -91,13 +91,17 @@ td {
   // stroke-width: 4px;
 }
 
+.cell .label{
+  pointer-events: none;
+}
+
 .hiddenEdge{
-  stroke: #e8902b;
+  stroke: #d9a366;
   // stroke: url(#mainGradient);
-  stroke-width: 3;
+  stroke-width: 2;
   stroke-linecap: round;
 
-  stroke-opacity: 0.5; 
+  stroke-opacity: 0.3; 
 //  stroke-dasharray: 3px;
  fill:none;
 //  stroke-dasharray: 5,5,3,5,2,5,1,;

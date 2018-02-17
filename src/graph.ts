@@ -335,24 +335,44 @@ class Graph {
 
   }
 
-  public removeBranch(rootNode) {
+  public removeBranch(rootNode,rootOnly = false) {
 
+    let toRemoveArray, childArray;
+    if (rootOnly) {
+      toRemoveArray = [rootNode];
+      childArray = rootNode.children;
+    } else {
+      toRemoveArray = rootNode.children;
+    }
     // remove all links to children
-    rootNode.children.forEach((node) => {
-      this.removeBranch(node);
+    toRemoveArray.forEach((node) => {
+      //Only use recursive mode if removing children
+      if (!rootOnly) {
+        this.removeBranch(node);
+      } else {
+        //remove 'visited status' of hidden edges between children
+        childArray.forEach((c)=> {
+          this.graph.links.map((link) => {
+            if (link.source.uuid !== c.uuid || link.target.uuid !== c.uuid) {
+              link.visited = false;
+            }
+          });
+        });
+      }
       this.graph.links = this.graph.links.filter((link) => {
         return (link.source.uuid !== node.uuid && link.target.uuid !== node.uuid);
-
       });
     });
 
     //remove all children of the root from this.graph.nodes
-    rootNode.children.forEach((node) => {
+    toRemoveArray.forEach((node) => {
       const index = this.graph.nodes.indexOf(node);
       this.graph.nodes.splice(index, 1);
     });
 
-    rootNode.children = [];
+    if (!rootNode) {
+      rootNode.children = [];
+    }
   }
 
   /**
@@ -373,7 +393,7 @@ class Graph {
       const rootNode = this.graph.nodes.filter((n) => { return n.uuid.toString() === root.toString(); });
 
       //recursive function to remove all nodes down this branch;
-      this.removeBranch(rootNode[0]);
+      this.removeBranch(rootNode[0],!includeChildren);
       const roots = this.graph.nodes.filter((n) => { return this.graph.root.indexOf(n.uuid) > -1; });
 
       this.updateFilterPanel();
@@ -685,7 +705,9 @@ class Graph {
       }
     });
 
-    let vec = {
+    let vec;
+
+    vec = {
       type:'dataDensity',
       title:'All Edges',
       data:this.graph.nodes.map((n, i) => {return {'value':this.nodeNeighbors[n.uuid].degree, 'uuid':n.uuid}; }),
@@ -700,6 +722,7 @@ class Graph {
       data:this.graph.nodes.map((n, i) => {return {'value':this.nodeNeighbors[n.uuid].hidden, 'uuid':n.uuid}; }),
       ids: this.graph.nodes.map((n) => { return n.uuid; })
     };
+
 
     this.addArrayVec(vec);
 
@@ -974,14 +997,14 @@ class Graph {
     selectAll('.edge')
       .transition('t')
       .duration(1000)
-      .attr('d', (d: any) => {
-        return this.elbow(d, this.interGenerationScale, this.lineFunction, d.visible);
+      .attr('d', (d: any,i) => {
+        return this.elbow(d,this.lineFunction, d.visible);
         });
 
     let node = this.svg.select('.nodes')
       .selectAll('.title')
       .data(graph.nodes.filter((n) => { return n.visible; }), (d) => {
-        return d.index;
+        return d.uuid;
       });
 
     const nodesEnter = node.enter()
@@ -1403,7 +1426,7 @@ class Graph {
               },
               {
                 'icon': 'RemoveNode', 'string': 'Remove Node  *leaves children*', 'callback': () => {
-                  // events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': remove });
+                    events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': true , 'includeChildren':false});
                 }
               },
               {
@@ -1510,11 +1533,15 @@ class Graph {
 
 
 
-  private elbow(d, interGenerationScale, lineFunction, curves) {
-
-    // let source = this.graph.nodes[d.source];
-    // let target = this.graph.nodes[d.target];
-
+  private elbow(d, lineFunction, curves) {
+    // let i;
+    // if (!d.visible) {
+    //   const hiddenEdges = Array.from(this.nodeNeighbors[d.source.uuid].hiddenNeighbors);
+      
+    //   i = hiddenEdges.indexOf(d.target);
+    //   console.log(hiddenEdges,i)
+    // }
+    
     let source = d.source;
     let target = d.target;
 
@@ -1525,7 +1552,7 @@ class Graph {
     }
     const xdiff = source.xx - target.xx > 0 ? source.xx - target.xx : this.xScale.invert(10);
     const ydiff = source.yy - target.yy;
-    let nx = source.xx - xdiff; //* interGenerationScale(ydiff);
+    let nx = source.xx - xdiff; 
 
     let linedata;
     if (curves) {
@@ -1548,6 +1575,7 @@ class Graph {
       }];
     } else {
       nx = -this.xScale.invert(Math.abs(target.yy - source.yy)*5);
+      // nx = -this.xScale.invert((i+1)*(i+1));
       linedata = [{
         x: 0,
         y: source.yy

@@ -32,7 +32,7 @@ import * as _ from 'underscore';
 
 import IFamilyInfo from './tableManager';
 
-import { FAMILY_INFO_UPDATED, TABLE_VIS_ROWS_CHANGED_EVENT } from './tableManager';
+import { FAMILY_INFO_UPDATED, TABLE_VIS_ROWS_CHANGED_EVENT, ADJ_MATRIX_CHANGED } from './tableManager';
 
 export const SUBGRAPH_CHANGED_EVENT = 'subgraph_changed';
 export const FILTER_CHANGED_EVENT = 'filter_changed_event';
@@ -44,6 +44,8 @@ class SetSelector {
 
   private $node;
 
+  private tableManager;
+
   private menuObject = menu.create();
 
   private selectedDB;
@@ -52,8 +54,9 @@ class SetSelector {
     { 'header': 'Name', 'dataAttr': 'title' },
     { 'header': 'Degree', 'dataAttr': 'degree' }];
 
-  constructor(parent: Element) {
+  constructor(parent: Element, tmanager) {
     this.$node = select(parent);
+    this.tableManager = tmanager;
   }
 
   /**
@@ -377,6 +380,8 @@ class SetSelector {
 
 
     rows.on('click', (d: any) => {
+      const removeAdjMatrix = this.tableManager.colOrder.indexOf(d.title) > -1;
+      console.log(d);
       const actions = [{ 'icon': 'AddSubGraph', 'string': 'Add Node + Neighbors to Tree', 'callback': ()=> {
         events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.id,'replace': false }); //default values for include root and children is true;
       } },
@@ -387,9 +392,11 @@ class SetSelector {
       { 'icon': 'AddNode', 'string': 'Add Node to Tree', 'callback': ()=> {
         // events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.id,'includeChildren':false, 'replace': false });
       } },
-      { 'icon': 'Add2Matrix', 'string': 'Add to Table', 'callback': ()=> {
-        // return undefined;
-      }}
+      {
+        'icon': 'Add2Matrix', 'string': removeAdjMatrix ? 'Remove from Table' : 'Add to Table', 'callback': () => {
+          events.fire(ADJ_MATRIX_CHANGED, { 'db': this.selectedDB, 'name': d.title, 'uuid': d.id, 'remove': removeAdjMatrix });
+        }
+      }
     ];
 
       this.menuObject.addMenu(d,actions);
@@ -465,6 +472,6 @@ class SetSelector {
  * @param options
  * @returns {SetSelector}
  */
-export function create(parent: Element) {
-  return new SetSelector(parent);
+export function create(parent: Element, tmanager) {
+  return new SetSelector(parent, tmanager);
 }

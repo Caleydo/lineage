@@ -156,7 +156,7 @@ export class App {
     const attributeTable = table.create(this.$node.select('#table').node());
     attributeTable.init(tableManager);
 
-    const setSelectorView = setSelector.create(this.$node.select('#accordion').node());
+    const setSelectorView = setSelector.create(this.$node.select('#accordion').node(), tableManager);
     setSelectorView.init();
     setSelectorView.buildTables(defaultDB);
 

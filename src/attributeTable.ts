@@ -2778,17 +2778,20 @@ class AttributeTable {
     }
 
     if (element.selectAll('.categorical').size() === 0) {
+      
+      element.append('rect')
+      .classed(VALUE_TYPE_CATEGORICAL, true);
+      
       element
         .append('rect')
         .classed('frame', true);
 
-      element.append('rect')
-        .classed(VALUE_TYPE_CATEGORICAL, true);
+      
 
-        element.append('text')
-        .attr('transform',()=> {return incomingEdge ? 'translate(8,13)' :' translate(13,8) rotate(90) scale(1,-1)';})
-        .text(Config.icons.edgeIcon)
-        .classed('adjMatrixEdge',true);
+        // element.append('text')
+        // .attr('transform',()=> {return incomingEdge ? 'translate(8,13)' :' translate(13,8) rotate(90) scale(1,-1)';})
+        // .text(Config.icons.edgeIcon)
+        // .classed('adjMatrixEdge',true);
     }
 
     this.yScale
@@ -2799,11 +2802,13 @@ class AttributeTable {
       .select('.frame')
       .attr('width', rowHeight)
       .attr('height', rowHeight)
+       .attr('fill','lightgrey')
       // .attr('y', 0)
-      .attr('fill', (d) => {
-        return '#dfdfdf';
-      }
-      );
+      // .attr('fill', (d) => {
+      //   return incomingEdge ? '#4c6999'  : '#4c8899';
+      //   // return '#dfdfdf';
+      // }
+      // );
 
 
     element
@@ -2811,14 +2816,21 @@ class AttributeTable {
       .attr('width', rowHeight)
       .attr('height', this.yScale(numValues))
       .attr('y', (rowHeight - this.yScale(numValues)))
+      // .attr('transform',()=>{return incomingEdge ?  'rotate(45,' + rowHeight + ',' + this.yScale(numValues) + ') scale(.7,.7)' : 'rotate(45,0,0) scale(.7,.7)';})
+      .attr('transform',()=>{return incomingEdge ?  'rotate(-45,0,0) scale(.7,.7)' : 'rotate(45,0,0) scale(.7,.7)';})
+
       .classed('aggregate', () => {
         return cellData.data.length > 1;
       })
+      .attr('fill', (d) => {
+        return incomingEdge ? '#4c5c7d'  : '#c7a95e';
+        // return '#dfdfdf';
+      })
 
-      .attr('fill', () => {
-        return '#767a7a';
-      }
-      );
+      // .attr('fill', () => {
+      //   return '#767a7a';
+      // }
+      // );
   }
 
   /**
@@ -2871,6 +2883,13 @@ class AttributeTable {
 
     if (cellData.data[0].value<1) {
 
+      element
+      .select('.dataDens').remove();
+
+      element
+      .select('.label').remove();
+      
+
             if (element.selectAll('.cross_out').size() === 0) {
               element
                 .append('line')
@@ -2902,6 +2921,7 @@ class AttributeTable {
       .attr('opacity', (d, i) => {return colorScale(cellData.data[0].value); })
       .attr('fill', '#343434')
       .on('click',(d)=> {
+        console.log('data',d, cellData)
         event.stopPropagation();
         selectAll('.hiddenEdge')
         .filter((e:any)=> {

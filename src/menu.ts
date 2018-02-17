@@ -131,14 +131,14 @@ public addMenu(data, actions = null) {
 
 
     select('.tooltipTriangle')
-      .attr('transform', 'translate(-5,' + (menuItemHeight*actions.length/2 -1) + ')')
+      // .attr('transform', 'translate(-5,' + (menuItemHeight*actions.length/2 -1) + ')')
       .select('rect')
       .attr('width', 10)
       .attr('fill', '#909090')
       .attr('height', 10)
       .attr('opacity', 1)
-      .attr('transform', ' rotate(45)')
-      .attr('transform-origin', 'center');
+      .attr('transform', 'translate(0,' + (menuItemHeight*actions.length/2 -1) + ')' + ' rotate(45)')
+      // .attr('transform-origin', 'center');
 
 
     menuItems.attr('transform', ((d, i) => { return 'translate(0,' + (5 + i * menuItemHeight) + ')'; }));

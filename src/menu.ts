@@ -137,7 +137,7 @@ public addMenu(data, actions = null) {
       .attr('fill', '#909090')
       .attr('height', 10)
       .attr('opacity', 1)
-      .attr('transform', 'translate(0,' + (menuItemHeight*actions.length/2 -1) + ')' + ' rotate(45)')
+      .attr('transform', 'translate(0,' + (menuItemHeight*actions.length/2 -1) + ')' + ' rotate(45)');
       // .attr('transform-origin', 'center');
 
 

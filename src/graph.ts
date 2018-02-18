@@ -868,10 +868,12 @@ class Graph {
     node.visited = true;
 
     if (node.aggregated) {
-      const lines = Math.floor(i/10);
+      const lines = Math.floor((i-1)/10);
       node.yy = max([node.parent.yy +1 + lines, this.ypos]);
       this.ypos = max([this.ypos,node.yy]);
-      // console.log(node.title,node.yy,this.ypos)
+
+      console.log(i, node.title, node.xx, node.yy)
+
     } else {
       this.ypos = this.ypos + 1;
       node.yy = this.ypos;
@@ -889,7 +891,7 @@ class Graph {
 
     let link = this.svg.select('.visibleLinks')
       .selectAll('.edge')
-      .data(graph.links.filter((l) => { return l.source.visible && l.target.visible && l.visible; }), (d) => {
+      .data(graph.links.filter((l) => { return l.source.visible && !l.source.aggregated && !l.target.aggregated && l.target.visible && l.visible; }), (d) => {
         const st = this.createID(d.source.title);
         const tt = this.createID(d.target.title);
         return st + '_' + tt;

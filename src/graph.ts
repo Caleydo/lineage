@@ -8,7 +8,7 @@ import {
   SUBGRAPH_CHANGED_EVENT, FILTER_CHANGED_EVENT
 } from './setSelector';
 
-import { TABLE_VIS_ROWS_CHANGED_EVENT, ADJ_MATRIX_CHANGED } from './tableManager';
+import { TABLE_VIS_ROWS_CHANGED_EVENT, ADJ_MATRIX_CHANGED, AGGREGATE_CHILDREN } from './tableManager';
 
 import { VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL, VALUE_TYPE_STRING } from 'phovea_core/src/datatype';
 
@@ -147,6 +147,16 @@ class Graph {
       this.svg.select('.visibleLinks').html('');
       this.svg.select('.hiddenLinks').html('');
       this.svg.select('.nodes').html('');
+    });
+
+    events.on(AGGREGATE_CHILDREN, (evt, info) => {
+      console.log(info.uuid)
+      const root = this.graph.nodes.filter((n)=> {return n.uuid === info.uuid;})[0];
+      console.log(root,info.aggregate)
+      this.setAggregation(root,info.aggregate);
+      this.layoutEntireTree();
+      this.exportYValues();
+      this.drawTree();
     });
 
     events.on(FILTER_CHANGED_EVENT, (evt, info) => {
@@ -634,6 +644,7 @@ class Graph {
 
     //set default values for unvisited nodes;
     graph.nodes.map((n, i) => {
+      n.aggregated = false; //will clear all previously aggregated branches.
       n.index = i;
       n.visible = excluded.indexOf(n.label) > -1 ? false : true;
       n.visited = excluded.indexOf(n.label) > -1 ? true : false;
@@ -654,7 +665,7 @@ class Graph {
       l.visited = (l.visited && !replace) ? l.visited : false;
       l.index = i;
     });
-    this.ypos = 0;
+    this.ypos = -1;
 
 
     while (graph.nodes.filter((n) => {
@@ -815,17 +826,64 @@ class Graph {
 
   }
 
-  layoutTree(root) {
-    this.layoutTreeHelper(root);
+  //function that iterates down branch and sets aggregate flag to true/false
+  setAggregation(root, aggregate) {
+    root.children.map((c) => {
+      this.aggregateHelper(c, aggregate);
+    });
+    console.log('done');
+   
   }
 
-  layoutTreeHelper(node) {
-    node.yy = this.ypos;
-    this.ypos = this.ypos + 1;
-
+  aggregateHelper (node,aggregate) {
+    node.aggregated = aggregate;
     node.children.map((c) => {
-      c.xx = node.xx + 1;
-      this.layoutTreeHelper(c);
+      this.aggregateHelper(c, aggregate);
+    });
+  }
+
+
+  layoutEntireTree() {
+    this.graph.nodes.map((n)=> {n.visited = false;});
+    this.ypos = -1;
+    
+    while (this.graph.nodes.filter((n) => {
+      return n.visited === false;
+    }).length > 0) {
+
+      const roots = this.graph.nodes.filter((n)=> {return n.yy === 0;});
+
+      //Start with preferential root, then pick node with highest degree if none was supplied.
+      const root = (roots && roots.filter((r) => { return !r.visited; }).length > 0) ? roots.filter((r) => { return !r.visited; })[0] :
+        this.graph.nodes.filter((n) => {
+          return n.visited === false;
+        }).reduce((a, b) => this.nodeNeighbors[a.uuid].degree > this.nodeNeighbors[b.uuid].degree ? a : b);
+  
+      this.layoutTree(root);
+    }
+  }
+
+  layoutTree(root) {
+      this.layoutTreeHelper(root);
+  }
+
+  layoutTreeHelper(node,i=0) {
+
+    node.visited = true;
+
+    if (node.aggregated) {
+      const lines = Math.floor(i/10);
+      node.yy = max([node.parent.yy +1 + lines, this.ypos]);
+      this.ypos = max([this.ypos,node.yy]);
+      console.log(node.title,node.yy,this.ypos)
+    } else {
+      this.ypos = this.ypos + 1;
+      node.yy = this.ypos;
+    }
+
+    node.children.map((c,i) => {
+      c.xx = c.aggregated ? node.xx + ((i%10)+1)*this.xScale.invert(Config.glyphSize*2.5) : node.xx + 1;
+      this.layoutTreeHelper(c,i+1);
     });
 
   }
@@ -1036,7 +1094,8 @@ class Graph {
     node = nodesEnter.merge(node);
 
     node
-      .text((d) => { return Config.icons[d.label] + ' ' + d.title + ' (' + this.nodeNeighbors[d.uuid].degree + ')'; });
+      .text((d) => { 
+        return d.aggregated ?  Config.icons[d.label] : Config.icons[d.label] + ' ' + d.title + ' (' + this.nodeNeighbors[d.uuid].degree + ')'; });
 
 
     node.append('title')
@@ -1270,7 +1329,7 @@ class Graph {
 
     // Attach aggregateBars
     let aggregateBars = highlightBarGroup.selectAll('.aggregateBar')
-      .data(aggregateBarData, (d) => { return d.y; });
+      .data(aggregateBarData, (d) => { return d.yy; });
 
 
     aggregateBars.exit().remove();
@@ -1283,19 +1342,20 @@ class Graph {
 
     aggregateBars = aggregateBarsEnter.merge(aggregateBars);
 
-    aggregateBars
-      // .transition(t)
-      .attr('transform', (row: any) => {
-        return 'translate(0,' + (this.yScale(row.y) - Config.glyphSize * 1.25) + ')';
-      })
-      .attr('width', (row: any) => {
-        const range = this.xScale.range();
-        return (max([range[0], range[1]]) - this.xScale(row.x) + this.margin.right);
-      })
-      .attr('x', (row: any) => {
-        return this.xScale(row.x);
-      })
-      .attr('height', Config.glyphSize * 2.5);
+    // aggregateBars
+    //   // .transition(t)
+    //   .attr('transform', (row: any) => {
+    //     console.log(row,this.yScale(row.y))
+    //     return 'translate(0,' + (this.yScale(row.y) - Config.glyphSize * 1.25) + ')';
+    //   })
+    //   .attr('width', (row: any) => {
+    //     const range = this.xScale.range();
+    //     return (max([range[0], range[1]]) - this.xScale(row.x) + this.margin.right);
+    //   })
+    //   .attr('x', (row: any) => {
+    //     return this.xScale(row.x);
+    //   })
+    //   .attr('height', Config.glyphSize * 2.5);
 
 
     aggregateBars
@@ -1432,7 +1492,7 @@ class Graph {
             .on('click', () => {
               const remove = d.children.length > 0;
               const removeAdjMatrix = this.tableManager.colOrder.indexOf(d.title) > -1;
-              const actions = [{
+              let actions = [{
                 'icon': remove ? 'RemoveChildren' : 'AddChildren', 'string': remove ? 'Remove All Children' : 'Add All Neighbors', 'callback': () => {
                   events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': remove });
                 }
@@ -1458,6 +1518,17 @@ class Graph {
                   events.fire(ADJ_MATRIX_CHANGED, { 'db': this.selectedDB, 'name': d.title, 'uuid': d.uuid, 'remove': removeAdjMatrix });
                 }
               }];
+
+              if (d.children.length>0) {
+                const aggregate = d.children[0] && !d.children[0].aggregated;
+                actions = actions.concat(
+                  [{
+                      'icon': 'Aggregate', 'string': aggregate ? 'Aggregate Children' : 'Expand Children', 'callback': () => {
+                        events.fire(AGGREGATE_CHILDREN, { 'uuid': d.uuid, 'aggregate': aggregate });
+                      }
+                    }]
+                );
+              }
               this.menuObject.addMenu(d, actions);
             });
 
@@ -1645,10 +1716,13 @@ class Graph {
       }
     });
 
+  
+
 
 
     //Assign y values to the tableManager object
     this.tableManager.yValues = dict;
+    
     events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);
     // this.yValues = dict; //store dict for tree to use when creating slope chart
   }

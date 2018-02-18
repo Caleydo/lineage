@@ -50,6 +50,7 @@ export class Config {
       RemoveChildren:'\uf1e0',
       MakeRoot:'\uf192',
       Add2Matrix:'\uf00a',
+      Aggregate:'\uf0c9',
 
       settingsExpand:'\uf013',
       settingsCollapse:'\uf013',

@@ -97,6 +97,7 @@ export const COL_ORDER_CHANGED_EVENT = 'col_ordering_changed';
 export const FAMILY_SELECTED_EVENT = 'family_selected_event';
 export const UPDATE_TABLE_EVENT = 'update_table';
 export const ADJ_MATRIX_CHANGED = 'adjacency_matrix_changed';
+export const AGGREGATE_CHILDREN = 'aggregate_children';
 
 
 // export const PRIMARY_COLOR = '#335b8e';

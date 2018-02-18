@@ -2929,6 +2929,14 @@ class AttributeTable {
           })
           .attr('visibility', 'hidden');
 
+          selectAll('.title')
+          .filter((t: any) => {
+            console.log(t.uuid, cellData.data[0].uuid);
+            // return Math.random() >.7;
+            return (t.uuid !== cellData.data[0].uuid);
+          })
+          .style('opacity',.2);
+
         selectAll('.hiddenEdge').filter((e: any) => {
           return (e.source.uuid === cellData.data[0].uuid || e.target.uuid === cellData.data[0].uuid);
         })

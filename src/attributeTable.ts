@@ -2929,20 +2929,34 @@ class AttributeTable {
           })
           .attr('visibility', 'hidden');
 
-          selectAll('.title')
-          .filter((t: any) => {
-            console.log(t.uuid, cellData.data[0].uuid);
-            // return Math.random() >.7;
-            return (t.uuid !== cellData.data[0].uuid);
-          })
-          .style('opacity',.2);
-
-        selectAll('.hiddenEdge').filter((e: any) => {
-          return (e.source.uuid === cellData.data[0].uuid || e.target.uuid === cellData.data[0].uuid);
-        })
-          .attr('visibility', function (l) {
-            return select(this).attr('visibility') === 'visible' ? 'hidden' : 'visible';
+          const hiddenEdges = selectAll('.hiddenEdge').filter((e: any) => {
+            return (e.source.uuid === cellData.data[0].uuid || e.target.uuid === cellData.data[0].uuid);
           });
+
+          select('.nodes')
+          .selectAll('.title')
+          .style('opacity',function() {
+            return hiddenEdges.attr('visibility') === 'visible' ? 1 : .4;
+          });
+
+          const eoi = selectAll('.edge').filter((e: any) => {
+            return (e.source.uuid === cellData.data[0].uuid || e.target.uuid === cellData.data[0].uuid);
+          });
+
+          //only highlight connected nodes
+          eoi.each((element:any) => {
+            select('.nodes')
+            .selectAll('.title')
+            .filter((t: any) => {
+              return (t.uuid === element.source.uuid || t.uuid === element.target.uuid);
+            })
+            .style('opacity',1);
+          });
+
+          hiddenEdges
+            .attr('visibility', function (l) {
+              return select(this).attr('visibility') === 'visible' ? 'hidden' : 'visible';
+            });
         // console.log(cellData)
       });
 

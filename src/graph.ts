@@ -150,9 +150,7 @@ class Graph {
     });
 
     events.on(AGGREGATE_CHILDREN, (evt, info) => {
-      console.log(info.uuid)
       const root = this.graph.nodes.filter((n)=> {return n.uuid === info.uuid;})[0];
-      console.log(root,info.aggregate)
       this.setAggregation(root,info.aggregate);
       this.layoutEntireTree();
       this.exportYValues();
@@ -831,8 +829,6 @@ class Graph {
     root.children.map((c) => {
       this.aggregateHelper(c, aggregate);
     });
-    console.log('done');
-   
   }
 
   aggregateHelper (node,aggregate) {
@@ -846,7 +842,7 @@ class Graph {
   layoutEntireTree() {
     this.graph.nodes.map((n)=> {n.visited = false;});
     this.ypos = -1;
-    
+
     while (this.graph.nodes.filter((n) => {
       return n.visited === false;
     }).length > 0) {
@@ -858,7 +854,7 @@ class Graph {
         this.graph.nodes.filter((n) => {
           return n.visited === false;
         }).reduce((a, b) => this.nodeNeighbors[a.uuid].degree > this.nodeNeighbors[b.uuid].degree ? a : b);
-  
+
       this.layoutTree(root);
     }
   }
@@ -875,7 +871,7 @@ class Graph {
       const lines = Math.floor(i/10);
       node.yy = max([node.parent.yy +1 + lines, this.ypos]);
       this.ypos = max([this.ypos,node.yy]);
-      console.log(node.title,node.yy,this.ypos)
+      // console.log(node.title,node.yy,this.ypos)
     } else {
       this.ypos = this.ypos + 1;
       node.yy = this.ypos;
@@ -1094,7 +1090,7 @@ class Graph {
     node = nodesEnter.merge(node);
 
     node
-      .text((d) => { 
+      .text((d) => {
         return d.aggregated ?  Config.icons[d.label] : Config.icons[d.label] + ' ' + d.title + ' (' + this.nodeNeighbors[d.uuid].degree + ')'; });
 
 
@@ -1716,13 +1712,13 @@ class Graph {
       }
     });
 
-  
+
 
 
 
     //Assign y values to the tableManager object
     this.tableManager.yValues = dict;
-    
+
     events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);
     // this.yValues = dict; //store dict for tree to use when creating slope chart
   }

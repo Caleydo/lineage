@@ -107,6 +107,9 @@ class Graph {
 
   private nodeNeighbors;
 
+  private numIcons = 15;
+  private xCount = 0;
+
   private treeEdges = [];
 
   private labels;
@@ -826,15 +829,28 @@ class Graph {
 
   //function that iterates down branch and sets aggregate flag to true/false
   setAggregation(root, aggregate) {
-    root.children.map((c) => {
-      this.aggregateHelper(c, aggregate);
-    });
+          root.hops=0;
+          root.level = 0;
+          const queue = [root];
+              // //BFS of the tree
+          while (queue.length > 0) {
+            const node = queue.splice(0, 1)[0];;
+            this.aggregateHelper(root,node, aggregate,queue);
+          }
   }
 
-  aggregateHelper (node,aggregate) {
-    node.aggregated = aggregate;
+  aggregateHelper (root,node,aggregate,queue) {
+    let maxHop = Math.floor(this.xCount/this.numIcons);
+    this.xCount = node.children.length > 0 ? 0 :this.xCount;
     node.children.map((c) => {
-      this.aggregateHelper(c, aggregate);
+      c.aggregated = aggregate;
+      c.level = node.level +1;
+      c.hops = Math.floor(this.xCount/this.numIcons) + maxHop + node.hops +1;
+      console.log(c.title,maxHop,node.level,c.hops)
+      c.xCount = this.xCount;
+      this.xCount = this.xCount +1;
+      c.aggregateRoot = root;
+      queue.push(c);
     });
   }
 
@@ -864,38 +880,41 @@ class Graph {
   }
 
   layoutTreeHelper(node,i=0,numIcons=0) {
-
-    
-
     node.visited = true;
 
-    let step, spacing;
+    // let step, spacing;
 
-    //define numItems in row on first child to be aggregated.
-    if ((this.xScale && !node.aggregated) || node.aggregated && i === 0) {
-      spacing = Config.glyphSize*2.5;
-      step = this.xScale.invert(spacing);
-      const startingX = !node.aggregated ? this.xScale(node.xx)+spacing : this.xScale(node.parent.xx)+spacing;
-      const endingX = this.width - this.margin.left- 40;
-      numIcons = Math.floor((endingX - startingX) / spacing);
-    }
+    // //define numItems in row on first child to be aggregated.
+    // if ((this.xScale && !node.aggregated) || node.aggregated && i === 0) {
+    //   spacing = Config.glyphSize*2.5;
+    //   step = this.xScale.invert(spacing);
+    //   const startingX = !node.aggregated ? this.xScale(node.xx)+spacing : this.xScale(node.parent.xx)+spacing;
+    //   const endingX = this.width - this.margin.left- 40;
+    //   numIcons = Math.floor((endingX - startingX) / spacing);
+    // }
 
     if (node.aggregated) {
-      const lines = Math.floor((i-1)/numIcons);
-      const parentLines =  Math.floor(node.parent.children.length/numIcons)+1;
-      if (node.parent.aggregated) {
-        console.log('numIcons:',numIcons,node.title,node.parent.title,parentLines);
-      }
-      node.yy = node.parent.aggregated ? node.parent.yy + lines + parentLines : node.parent.yy + 1 + lines;
+      // const lines = Math.floor((i-1)/numIcons);
+      // const parentLines =  Math.floor(node.parent.children.length/numIcons)+1;
+      // node.yy = node.parent.yy + 1; //max([node.parent.yy + 1 + lines, this.ypos])
+      node.yy = node.aggregateRoot.yy + node.hops;
       this.ypos = max([this.ypos,node.yy]);
-      console.log(node.title,node.xx,node.yy);
     } else {
       this.ypos = this.ypos + 1;
       node.yy = this.ypos;
     }
 
     node.children.map((c,i) => {
-      c.xx = c.aggregated ? node.xx + ((i%numIcons)+1)*this.xScale.invert(Config.glyphSize*2.5) : node.xx + 1;
+      let maxX = max(this.graph.nodes.filter((n:any)=> (n.visited && c.aggregateRoot && n.yy === c.aggregateRoot.yy +c.hops)), (n:any)=> n.xx);
+      
+      if (!maxX && c.aggregateRoot) {
+        maxX = c.aggregateRoot.xx + this.xScale.invert(c.level * Config.glyphSize*2.5);
+      } 
+      // c.xx = c.aggregated ? node.xx + ((i%numIcons)+1)*this.xScale.invert(Config.glyphSize*2.5) : node.xx + 1;
+      // c.xx = c.aggregated ? node.xx + (i+1)*this.xScale.invert(Config.glyphSize*2.5) : node.xx + 1;
+      // c.xx = c.aggregated ? maxX + this.xScale.invert(Config.glyphSize*2.5) : node.xx + 1;
+      c.xx = c.aggregated ? maxX + this.xScale.invert(Config.glyphSize*2.5) : node.xx + 1;
+      
       this.layoutTreeHelper(c,i+1,numIcons);
     });
 

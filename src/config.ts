@@ -52,8 +52,10 @@ export class Config {
       Add2Matrix:'\uf00a',
       Aggregate:'\uf0c9',
 
-      settingsExpand:'\uf013',
-      settingsCollapse:'\uf013',
+      settingsExpand:'\uf105',
+      settingsCollapse:'\uf107',
+      // settingsCollapse:'\uf013',
+
 
       edgeIcon:'\uf148'
   };

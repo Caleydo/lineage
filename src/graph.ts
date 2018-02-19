@@ -642,7 +642,7 @@ class Graph {
 
     //set default values for unvisited nodes;
     graph.nodes.map((n, i) => {
-      n.aggregated = false; //will clear all previously aggregated branches.
+      // n.aggregated = false; //will clear all previously aggregated branches.
       n.index = i;
       n.visible = excluded.indexOf(n.label) > -1 ? false : true;
       n.visited = excluded.indexOf(n.label) > -1 ? true : false;
@@ -863,25 +863,40 @@ class Graph {
       this.layoutTreeHelper(root);
   }
 
-  layoutTreeHelper(node,i=0) {
+  layoutTreeHelper(node,i=0,numIcons=0) {
+
+    
 
     node.visited = true;
 
+    let step, spacing;
+
+    //define numItems in row on first child to be aggregated.
+    if ((this.xScale && !node.aggregated) || node.aggregated && i === 0) {
+      spacing = Config.glyphSize*2.5;
+      step = this.xScale.invert(spacing);
+      const startingX = !node.aggregated ? this.xScale(node.xx)+spacing : this.xScale(node.parent.xx)+spacing;
+      const endingX = this.width - this.margin.left- 40;
+      numIcons = Math.floor((endingX - startingX) / spacing);
+    }
+
     if (node.aggregated) {
-      const lines = Math.floor((i-1)/10);
-      node.yy = max([node.parent.yy +1 + lines, this.ypos]);
+      const lines = Math.floor((i-1)/numIcons);
+      const parentLines =  Math.floor(node.parent.children.length/numIcons)+1;
+      if (node.parent.aggregated) {
+        console.log('numIcons:',numIcons,node.title,node.parent.title,parentLines);
+      }
+      node.yy = node.parent.aggregated ? node.parent.yy + lines + parentLines : node.parent.yy + 1 + lines;
       this.ypos = max([this.ypos,node.yy]);
-
-      console.log(i, node.title, node.xx, node.yy)
-
+      console.log(node.title,node.xx,node.yy);
     } else {
       this.ypos = this.ypos + 1;
       node.yy = this.ypos;
     }
 
     node.children.map((c,i) => {
-      c.xx = c.aggregated ? node.xx + ((i%10)+1)*this.xScale.invert(Config.glyphSize*2.5) : node.xx + 1;
-      this.layoutTreeHelper(c,i+1);
+      c.xx = c.aggregated ? node.xx + ((i%numIcons)+1)*this.xScale.invert(Config.glyphSize*2.5) : node.xx + 1;
+      this.layoutTreeHelper(c,i+1,numIcons);
     });
 
   }
@@ -1093,7 +1108,7 @@ class Graph {
 
     node
       .text((d) => {
-        return d.aggregated ?  Config.icons[d.label] : Config.icons[d.label] + ' ' + d.title + ' (' + this.nodeNeighbors[d.uuid].degree + ')'; });
+        return d.aggregated ?  Config.icons[d.label] : Config.icons[d.label] + ' ' + d.title; });
 
 
     node.append('title')
@@ -1482,10 +1497,10 @@ class Graph {
           // if (currentText.select('tspan').size() <1) {
           currentText.append('tspan')
             .text('  ' + (remove ? Config.icons.settingsCollapse : Config.icons.settingsExpand));
-          // }
+          // // }
 
           currentText.selectAll('tspan')
-            .on('mouseover', () => { console.log('hovering'); })
+            // .on('mouseover', () => { console.log('hovering'); })
             // .on('mouseout',()=> {selectAll('tspan').remove();})
             .on('click', () => {
               const remove = d.children.length > 0;

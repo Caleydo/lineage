@@ -840,13 +840,12 @@ class Graph {
   }
 
   aggregateHelper (root,node,aggregate,queue) {
-    let maxHop = Math.floor(this.xCount/this.numIcons);
+    const maxHop = Math.floor(this.xCount/this.numIcons);
     this.xCount = node.children.length > 0 ? 0 :this.xCount;
     node.children.map((c) => {
       c.aggregated = aggregate;
       c.level = node.level +1;
       c.hops = Math.floor(this.xCount/this.numIcons) + maxHop + node.hops +1;
-      console.log(c.title,maxHop,node.level,c.hops)
       c.xCount = this.xCount;
       this.xCount = this.xCount +1;
       c.aggregateRoot = root;
@@ -906,15 +905,15 @@ class Graph {
 
     node.children.map((c,i) => {
       let maxX = max(this.graph.nodes.filter((n:any)=> (n.visited && c.aggregateRoot && n.yy === c.aggregateRoot.yy +c.hops)), (n:any)=> n.xx);
-      
+
       if (!maxX && c.aggregateRoot) {
         maxX = c.aggregateRoot.xx + this.xScale.invert(c.level * Config.glyphSize*2.5);
-      } 
+      }
       // c.xx = c.aggregated ? node.xx + ((i%numIcons)+1)*this.xScale.invert(Config.glyphSize*2.5) : node.xx + 1;
       // c.xx = c.aggregated ? node.xx + (i+1)*this.xScale.invert(Config.glyphSize*2.5) : node.xx + 1;
       // c.xx = c.aggregated ? maxX + this.xScale.invert(Config.glyphSize*2.5) : node.xx + 1;
       c.xx = c.aggregated ? maxX + this.xScale.invert(Config.glyphSize*2.5) : node.xx + 1;
-      
+
       this.layoutTreeHelper(c,i+1,numIcons);
     });
 

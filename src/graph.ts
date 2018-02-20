@@ -829,8 +829,8 @@ class Graph {
 
   //function that iterates down branch and sets aggregate flag to true/false
   setAggregation(root, aggregate) {
-    root.hops = 0;
     root.summary = {};
+    root.hops = {};
     root.level = 0;
     const queue = [root];
     // //BFS of the tree
@@ -852,19 +852,11 @@ class Graph {
               root.summary[level] =[c.label];
             }
     });
-
-    // root.summary[(node.level + 1).toString()] = Array.from(root.summary[(node.level + 1).toString()])
-
-
-    // const maxHop = Math.floor(this.xCount / this.numIcons);
-    // this.xCount = node.children.length > 0 ? 0 : this.xCount;
+    
     node.children.map((c) => {
       c.aggregated = aggregate;
       c.level = node.level + 1;
-      // c.hops = Math.floor(this.xCount / this.numIcons) + maxHop + node.hops + 1;
-      // c.xCount = this.xCount;
-      // this.xCount = this.xCount + 1;
-      c.aggregateRoot = root;
+      c.aggregateRoot = aggregate ? root : undefined;
       queue.push(c);
     });
   }
@@ -902,11 +894,11 @@ class Graph {
       const levels = Object.keys(node.aggregateRoot.summary).map(Number)
       .filter((l)=> {return l<= node.level;});
 
-     const hops = levels.reduce((accumulator, level) => {
+      const hops = levels.reduce((accumulator, level) => {
       const cValue = level < node.level ? node.aggregateRoot.summary[level.toString()].length
       : node.aggregateRoot.summary[level.toString()].indexOf(node.label);
       return accumulator + cValue;},1);
-
+      node.aggregateRoot.hops[(node.level+1).toString()] = hops;;
       node.yy = node.aggregateRoot.yy + hops;
       this.ypos = max([this.ypos, node.yy]);
     } else {
@@ -931,7 +923,7 @@ class Graph {
 
         if (!maxX && c.aggregateRoot) {
           // maxX = c.aggregateRoot.xx + this.xScale.invert(c.level * Config.glyphSize * 2.5);
-          maxX = c.level;
+          maxX = 0;
         } 
         // else {
         //   console.log('maxX for ',c.title, ' is ',  maxX)
@@ -1143,10 +1135,7 @@ class Graph {
         levels.map((l)=> {
           r.summary[l].map(((n)=> {
             const xx =r.xx+ +l*.5;
-            const yy =r.yy+ r.summary[l].indexOf(n)+1 ;
-
-            console.log(r.uuid+'_'+l+'_'+n);
-
+            const yy =r.yy+ r.hops[l]; // + r.summary[l].indexOf(n)+1 ;
             aggregateIcons.push({uuid:r.uuid+'_'+l+'_'+n,label:n,visible:true,aggregated:false,title:'',xx,yy});
           })
 
@@ -1197,11 +1186,17 @@ class Graph {
       //   return yScale(d.y);
       // });
       .attr('x', (d) => {
-        const xpos = d.aggregated ? Math.floor(d.xx/3)* this.xScale.invert(6) + d.aggregateRoot.xx + d.level+.5 : undefined;
+        const xpos = d.aggregated ? Math.floor((d.xx-1)/3)* this.xScale.invert(6) + d.aggregateRoot.xx + d.level+.5 : undefined;
+        if (d.aggregated) {
+          console.log(d.title,xpos);
+        }
         return d.aggregated ? xScale(xpos): xScale(d.xx) + this.radius;
       })
       .attr('y', (d) => {
-        const ypos = d.yy +.5 - (1/3*(d.xx%3+1)*this.yScale.invert(18));
+        const ypos = d.yy +.5 - (1/3*((d.xx-1)%3+1)*this.yScale.invert(18));
+        if (d.aggregated) {
+          console.log(d.title,ypos);
+        }
         return d.aggregated ? yScale(ypos) :yScale(d.yy);
       });
 

@@ -56,6 +56,8 @@ export class Config {
       settingsCollapse:'\uf107',
       // settingsCollapse:'\uf013',
 
+      aggregateIcon:'\uf04d',
+
 
       edgeIcon:'\uf148'
   };

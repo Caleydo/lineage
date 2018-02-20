@@ -886,7 +886,7 @@ class Graph {
     this.layoutTreeHelper(root);
   }
 
-  layoutTreeHelper(node, i = 0, numIcons = 0) {
+  layoutTreeHelper(node) {
     node.visited = true;
 
     if (node.aggregated) {
@@ -898,7 +898,6 @@ class Graph {
       const cValue = level < node.level ? node.aggregateRoot.summary[level.toString()].length
       : node.aggregateRoot.summary[level.toString()].indexOf(node.label);
       return accumulator + cValue;},1);
-      node.aggregateRoot.hops[(node.level+1).toString()] = hops;;
       node.yy = node.aggregateRoot.yy + hops;
       this.ypos = max([this.ypos, node.yy]);
     } else {
@@ -933,7 +932,7 @@ class Graph {
         // c.xx = c.aggregated ? maxX + this.xScale.invert(Config.glyphSize*2.5) : node.xx + 1;
         c.xx = c.aggregated ? maxX + 1 : node.xx + 1;
         
-      this.layoutTreeHelper(c, i + 1, numIcons);
+      this.layoutTreeHelper(c);
     });
 
   }
@@ -1127,7 +1126,7 @@ class Graph {
         return this.elbow(d, this.lineFunction, d.visible);
       });
 
-      const aggregateRoots = graph.nodes.filter((n)=>n.summary && n.children[0].aggregated);
+      const aggregateRoots = graph.nodes.filter((n)=>n.summary && n.children && n.children[0].aggregated);
       const aggregateIcons = [];
 
       aggregateRoots.map((r)=> {
@@ -1135,7 +1134,17 @@ class Graph {
         levels.map((l)=> {
           r.summary[l].map(((n)=> {
             const xx =r.xx+ +l*.5;
-            const yy =r.yy+ r.hops[l]; // + r.summary[l].indexOf(n)+1 ;
+
+              //find offset
+              const lev = Object.keys(r.summary).map(Number)
+              .filter((ll)=> {return ll<= +l;});
+
+              const hops = lev.reduce((accumulator, level) => {
+              const cValue = level < +l ? r.summary[level.toString()].length
+              : r.summary[level.toString()].indexOf(n);
+              return accumulator + cValue;},1);
+             
+            const yy =r.yy+ hops; // + r.summary[l].indexOf(n)+1 ;
             aggregateIcons.push({uuid:r.uuid+'_'+l+'_'+n,label:n,visible:true,aggregated:false,title:'',xx,yy});
           })
 
@@ -1186,17 +1195,11 @@ class Graph {
       //   return yScale(d.y);
       // });
       .attr('x', (d) => {
-        const xpos = d.aggregated ? Math.floor((d.xx-1)/3)* this.xScale.invert(6) + d.aggregateRoot.xx + d.level+.5 : undefined;
-        if (d.aggregated) {
-          console.log(d.title,xpos);
-        }
+        const xpos = d.aggregated ? Math.floor((d.xx-1)/3)* this.xScale.invert(6) + d.aggregateRoot.xx + 1 + d.level*0.5 : undefined;
         return d.aggregated ? xScale(xpos): xScale(d.xx) + this.radius;
       })
       .attr('y', (d) => {
         const ypos = d.yy +.5 - (1/3*((d.xx-1)%3+1)*this.yScale.invert(18));
-        if (d.aggregated) {
-          console.log(d.title,ypos);
-        }
         return d.aggregated ? yScale(ypos) :yScale(d.yy);
       });
 

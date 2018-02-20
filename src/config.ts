@@ -32,6 +32,17 @@ export class Config {
       Character:'\uf007',
       House:'\uf1d0',
 
+      Person:'\uf263',
+      Battle:'\uf05b',
+      Culture:'\uf1ce',
+      Dead:'\uf235',
+      Book:'\uf02d',
+      King:'\uf1ce',
+      Knight:'\uf1ce',
+      Location:'\uf14e',
+      Region:'\f1d1',
+      Status:'\uf091',
+
       ConferencePaper:'\uf0f6',
       Inproceedings:'\uf0f6',
       Proceedings:'\uf0f6',

@@ -8,7 +8,7 @@ import {
   SUBGRAPH_CHANGED_EVENT, FILTER_CHANGED_EVENT
 } from './setSelector';
 
-import { TABLE_VIS_ROWS_CHANGED_EVENT, ADJ_MATRIX_CHANGED, AGGREGATE_CHILDREN } from './tableManager';
+import { TABLE_VIS_ROWS_CHANGED_EVENT, ADJ_MATRIX_CHANGED, AGGREGATE_CHILDREN, ATTR_COL_ADDED } from './tableManager';
 
 import { VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL, VALUE_TYPE_STRING } from 'phovea_core/src/datatype';
 
@@ -1126,7 +1126,7 @@ class Graph {
         return this.elbow(d, this.lineFunction, d.visible);
       });
 
-      const aggregateRoots = graph.nodes.filter((n)=>n.summary && n.children && n.children[0].aggregated);
+      const aggregateRoots = graph.nodes.filter((n)=>n.summary && n.children.length>0 && n.children[0].aggregated);
       const aggregateIcons = [];
 
       aggregateRoots.map((r)=> {
@@ -1575,16 +1575,17 @@ class Graph {
             .on('click', () => {
               const remove = d.children.length > 0;
               const removeAdjMatrix = this.tableManager.colOrder.indexOf(d.title) > -1;
+              const removeAttr = this.tableManager.colOrder.indexOf('age') > -1;
               let actions = [{
                 'icon': remove ? 'RemoveChildren' : 'AddChildren', 'string': remove ? 'Remove All Children' : 'Add All Neighbors', 'callback': () => {
                   events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': remove });
                 }
               },
-              // {
-              //   'icon': remove ? 'RemoveChildren' : 'AddChildren', 'string': remove ? 'Remove Children by Type' : 'Add Neighbors by Type', 'callback': () => {
-              //     // events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': remove });
-              //   }
-              // },
+              {
+                'icon': removeAttr ? 'RemoveChildren' : 'AddChildren', 'string': removeAttr ? 'Remove Attribute' : 'Add Attribute', 'callback': () => {
+                  events.fire(ATTR_COL_ADDED, { 'db': this.selectedDB, 'name': 'age', 'type':'int', 'remove': removeAttr });
+                }
+              },
               {
                 'icon': 'RemoveNode', 'string': 'Remove Node  (leaves children)', 'callback': () => {
                   events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': true, 'includeChildren': false });

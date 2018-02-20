@@ -97,6 +97,7 @@ export const COL_ORDER_CHANGED_EVENT = 'col_ordering_changed';
 export const FAMILY_SELECTED_EVENT = 'family_selected_event';
 export const UPDATE_TABLE_EVENT = 'update_table';
 export const ADJ_MATRIX_CHANGED = 'adjacency_matrix_changed';
+export const ATTR_COL_ADDED = 'adjacency_matrix_changed';
 export const AGGREGATE_CHILDREN = 'aggregate_children';
 
 
@@ -196,6 +197,53 @@ export default class TableManager {
 
   constructor() {
 
+
+    events.on(ATTR_COL_ADDED, (evt,info)=> {
+
+      if (info.remove) {
+        this.colOrder.splice(this.colOrder.indexOf(info.name), 1);
+        events.fire(COL_ORDER_CHANGED_EVENT);
+      } else {
+
+        //Add fake vector here:
+        const arrayVector = arrayVec.create(info.type);
+
+        arrayVector.desc.name = info.name;
+
+       const url = 'api/data_api/property/' + info.db + '/' + info.name ;
+
+              json(url, (error, resultObj: any) => {
+                if (error) {
+                  throw error;
+                }
+                const nodes = resultObj.results;
+                arrayVector.dataValues = nodes.map((e)=> {return e.value;});
+                arrayVector.idValues = nodes.map((e)=> {return e.uuid;});
+
+                arrayVector.desc.value.range = [min([max(arrayVector.dataValues),0]), max(arrayVector.dataValues)];
+                console.log('range for age is ', arrayVector.desc.value.range)
+                
+
+                console.log(arrayVector);
+
+                //if it's not already in there:
+                if (this.adjMatrixCols.filter((a:any )=> {return a.desc.name === arrayVector.desc.name; }).length<1) {
+                  this.adjMatrixCols =this.adjMatrixCols.concat(arrayVector); //store array of vectors
+                }
+
+                //if it's not already in there:
+                if (this.colOrder.filter((a:any )=> {return a === arrayVector.desc.name; }).length<1) {
+                  this.colOrder = [arrayVector.desc.name].concat(this.colOrder); // store array of names
+                }
+
+                events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);
+
+              });
+
+      }
+
+    });
+
     events.on(ADJ_MATRIX_CHANGED, (evt,info)=> {
 
       //append  col from adj matrix;
@@ -221,7 +269,7 @@ export default class TableManager {
                 if (error) {
                   throw error;
                 }
-                console.log(edges);
+
                 arrayVector.dataValues = edges.nodes.map((e)=> {return e;});
                 arrayVector.idValues = edges.nodes.map((e)=> {return e.uuid;});
 

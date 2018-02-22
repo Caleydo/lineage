@@ -2936,7 +2936,7 @@ class AttributeTable {
           select('.nodes')
           .selectAll('.title')
           .style('opacity',function() {
-            return hiddenEdges.attr('visibility') === 'visible' ? 1 : .4;
+            return hiddenEdges && hiddenEdges.attr('visibility') !== 'visible' ? .4 : 1;
           });
 
           const eoi = selectAll('.edge').filter((e: any) => {
@@ -3022,6 +3022,7 @@ class AttributeTable {
       .domain([0, 1])
       .range([rowHeight * 0.3, rowHeight * 0.7]);
 
+      console.log(cellData.vector.desc.value.range)
     this.xScale
       .domain(cellData.vector.desc.value.range)
       .range([colWidth * 0.1, colWidth * 0.9])

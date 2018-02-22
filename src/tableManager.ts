@@ -97,8 +97,9 @@ export const COL_ORDER_CHANGED_EVENT = 'col_ordering_changed';
 export const FAMILY_SELECTED_EVENT = 'family_selected_event';
 export const UPDATE_TABLE_EVENT = 'update_table';
 export const ADJ_MATRIX_CHANGED = 'adjacency_matrix_changed';
-export const ATTR_COL_ADDED = 'adjacency_matrix_changed';
+export const ATTR_COL_ADDED = 'attr_col_added';
 export const AGGREGATE_CHILDREN = 'aggregate_children';
+export const PATHWAY_SELECTED = 'pathway_selected';
 
 
 // export const PRIMARY_COLOR = '#335b8e';
@@ -269,7 +270,7 @@ export default class TableManager {
                 if (error) {
                   throw error;
                 }
-
+                console.log(edges);
                 arrayVector.dataValues = edges.nodes.map((e)=> {return e;});
                 arrayVector.idValues = edges.nodes.map((e)=> {return e.uuid;});
 

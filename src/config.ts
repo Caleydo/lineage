@@ -32,7 +32,7 @@ export class Config {
       Character:'\uf007',
       House:'\uf1d0',
 
-      Person:'\uf263',
+      Person:'\uf007',
       Battle:'\uf05b',
       Culture:'\uf1ce',
       Dead:'\uf235',
@@ -40,7 +40,7 @@ export class Config {
       King:'\uf1ce',
       Knight:'\uf1ce',
       Location:'\uf14e',
-      Region:'\f1d1',
+      Region:'\uf1d1',
       Status:'\uf091',
 
       ConferencePaper:'\uf0f6',
@@ -65,6 +65,8 @@ export class Config {
 
       settingsExpand:'\uf105',
       settingsCollapse:'\uf107',
+
+      menu:'\uf141',
       // settingsCollapse:'\uf013',
 
       aggregateIcon:'\uf04d',

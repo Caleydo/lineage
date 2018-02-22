@@ -8,7 +8,7 @@ import {
   SUBGRAPH_CHANGED_EVENT, FILTER_CHANGED_EVENT
 } from './setSelector';
 
-import { TABLE_VIS_ROWS_CHANGED_EVENT, ADJ_MATRIX_CHANGED, AGGREGATE_CHILDREN, ATTR_COL_ADDED } from './tableManager';
+import { TABLE_VIS_ROWS_CHANGED_EVENT, ADJ_MATRIX_CHANGED, AGGREGATE_CHILDREN, ATTR_COL_ADDED, PATHWAY_SELECTED } from './tableManager';
 
 import { VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL, VALUE_TYPE_STRING } from 'phovea_core/src/datatype';
 
@@ -107,8 +107,7 @@ class Graph {
 
   private nodeNeighbors;
 
-  private numIcons = 15;
-  private xCount = 0;
+  private pathway={start:undefined,end:undefined};
 
   private treeEdges = [];
 
@@ -146,6 +145,37 @@ class Graph {
     select('#graph')
       .on('click', () => { select('.menu').remove(); });
 
+      events.on(PATHWAY_SELECTED, (evt, info) => {
+
+        if (info.clear || info.start) {
+          this.graph.nodes.map((n)=> {n.pathway = false; n.moved = false;});
+          selectAll('.edge.visible').classed('pathway',false);
+          //clear pathway info
+          this.pathway.start = undefined; 
+          this.pathway.end = undefined;;
+        }
+
+
+        let sNode = this.graph.nodes.filter((n)=> n.uuid === info.uuid)[0];
+        let node = sNode;
+
+        if (info.start) {
+          this.pathway.start = sNode;
+        } else if (info.end) {
+          this.pathway.end = sNode;
+        }
+        
+        if (info.clear === undefined) {
+          this.calculatePathway();
+        }
+
+        this.layoutEntireTree();
+        this.exportYValues();
+        this.drawTree();
+        
+      });
+
+
     events.on(DB_CHANGED_EVENT, (evt, info) => {
       this.svg.select('.visibleLinks').html('');
       this.svg.select('.hiddenLinks').html('');
@@ -155,6 +185,7 @@ class Graph {
     events.on(AGGREGATE_CHILDREN, (evt, info) => {
       const root = this.graph.nodes.filter((n) => { return n.uuid === info.uuid; })[0];
       this.setAggregation(root, info.aggregate);
+      this.graph.nodes.map((n)=> n.visited = false);
       this.layoutEntireTree();
       this.exportYValues();
       this.drawTree();
@@ -346,6 +377,73 @@ class Graph {
 
   }
 
+  private clearPathway(node) {
+      if (node.parent) { 
+        const filteredPathways = selectAll('.pathway').filter((e:any)=> {
+          if (node.parent) {
+            const edge1 = (e.source.uuid === node.uuid && e.target.uuid === node.parent.uuid);
+            const edge2 = (e.source.uuid === node.parent.uuid && e.target.uuid === node.uuid);
+            return (edge1 || edge2);
+          } else {
+            return false;
+          }
+        });
+    
+        filteredPathways
+          .classed('pathway',false);
+
+      node.parent.pathway = undefined;
+      this.clearPathway(node.parent);
+    }
+
+  }
+
+  private calculatePathway() {
+      const nodes = this.pathway.start ? (this.pathway.end ? [this.pathway.end] : [this.pathway.start]) : [];
+      let quit = false;
+      nodes.map((node)=> {
+        node.pathway = true;
+        while (node.parent && !quit) {
+          //if node is already tagged as pathway, you have found a shorter path than going all the way to the root;
+          if (node.parent.pathway) {
+            console.log('found', node.parent.title);
+
+            selectAll('.edge.visible').filter((e:any)=> {
+              return (e.source.uuid === node.uuid && e.target.uuid === node.parent.uuid)
+              || (e.source.uuid === node.parent.uuid && e.target.uuid === node.uuid);})
+              .classed('pathway',true);
+             
+              quit = true;
+              this.clearPathway(node.parent);
+
+          } else {
+            //find edge;
+            
+            selectAll('.edge.visible').filter((e:any)=> {
+              return (e.source.uuid === node.uuid && e.target.uuid === node.parent.uuid)
+              || (e.source.uuid === node.parent.uuid && e.target.uuid === node.uuid);})
+              .classed('pathway',true);
+            //set new node, will stop @ the root
+            node = node.parent;
+            node.pathway = true;
+          }
+        }
+      });
+     
+
+    // if (this.pathway.end) {
+    //   let sNode = this.pathway.end;
+    //   let y = 0;
+    //   while (sNode.parent && sNode.pathway) {
+    //     sNode.moved = true;
+    //     sNode.yy = y;
+    //     y = y+1;
+
+    //     sNode = sNode.parent;
+    //   }
+    // }
+  }
+
   public removeBranch(rootNode, rootOnly = false) {
 
     let toRemoveArray, childArray;
@@ -438,6 +536,7 @@ class Graph {
         if (error) {
           throw error;
         }
+        console.log('data return is ', graph)
 
         //Replace graph or merge with incoming subgraph
         if (replace || !this.graph) {
@@ -621,7 +720,7 @@ class Graph {
       .selectAll('label')
       .html(function (d: any) {
         const count = labels[d.name] ? labels[d.name] : 0;
-        return d.name + '(' + count + ')';
+        return Config.icons[d.name] + ' ' + d.name + ' [' + count + '] ' ; //+  Config.icons.menu;
       });
   }
 
@@ -645,7 +744,6 @@ class Graph {
 
     //set default values for unvisited nodes;
     graph.nodes.map((n, i) => {
-      // n.aggregated = false; //will clear all previously aggregated branches.
       n.index = i;
       n.visible = excluded.indexOf(n.label) > -1 ? false : true;
       n.visited = excluded.indexOf(n.label) > -1 ? true : false;
@@ -654,6 +752,8 @@ class Graph {
       n.yy = undefined;
       n.xx = undefined;
     });
+
+
 
     // console.log(graph.nodes.map(n=>n.title))
 
@@ -666,13 +766,12 @@ class Graph {
       l.visited = (l.visited && !replace) ? l.visited : false;
       l.index = i;
     });
-    this.ypos = -1;
 
+    
 
     while (graph.nodes.filter((n) => {
       return n.visited === false;
     }).length > 0) {
-
 
       //Start with preferential root, then pick node with highest degree if none was supplied.
       const root = (roots && roots.filter((r) => { return !r.visited; }).length > 0) ? roots.filter((r) => { return !r.visited; })[0] :
@@ -703,6 +802,17 @@ class Graph {
         const node = queue.splice(0, 1)[0];;
         this.extractTreeHelper(node, queue);
       }
+
+      this.calculatePathway();
+      // this.graph.nodes.map((n) => { n.visited = (n.pathway && n.moved) ? true : false; });
+
+      const pathwayNodes = this.graph.nodes.filter((n)=> n.pathway && n.moved);
+      this.ypos = pathwayNodes.length >0 ? +max(pathwayNodes,(n:any)=> n.yy) : -1;
+
+      console.log(this.ypos)
+
+      //clear visited status
+      // this.graph.nodes.map((n)=>n.visited = false);
       this.layoutTree(root);
     }
 
@@ -829,6 +939,7 @@ class Graph {
 
   //function that iterates down branch and sets aggregate flag to true/false
   setAggregation(root, aggregate) {
+
     root.summary = {};
     root.hops = {};
     root.level = 0;
@@ -863,14 +974,19 @@ class Graph {
 
 
   layoutEntireTree() {
-    this.graph.nodes.map((n) => { n.visited = false; });
+
+    // this.graph.nodes.map((n) => { n.visited = (n.pathway && n.moved) ? true : false; });
+
+    // const pathwayNodes = this.graph.nodes.filter((n)=> n.pathway && n.moved);
+    // this.ypos = pathwayNodes.length >0 ? +max(pathwayNodes,(n:any)=> n.yy) : -1;
     this.ypos = -1;
+
 
     while (this.graph.nodes.filter((n) => {
       return n.visited === false;
     }).length > 0) {
 
-      const roots = this.graph.nodes.filter((n) => { return n.yy === 0; });
+      const roots = this.graph.nodes.filter((n) => { return n.parent === undefined; });
 
       //Start with preferential root, then pick node with highest degree if none was supplied.
       const root = (roots && roots.filter((r) => { return !r.visited; }).length > 0) ? roots.filter((r) => { return !r.visited; })[0] :
@@ -887,25 +1003,32 @@ class Graph {
   }
 
   layoutTreeHelper(node) {
-    node.visited = true;
+    // if (!node.visited) {
+        node.visited = true;
+      
+      // if (!node.moved) {
+        if (node.aggregated) {
+          //find offset
+          const levels = Object.keys(node.aggregateRoot.summary).map(Number)
+          .filter((l)=> {return l<= node.level;});
 
-    if (node.aggregated) {
-      //find offset
-      const levels = Object.keys(node.aggregateRoot.summary).map(Number)
-      .filter((l)=> {return l<= node.level;});
+          const hops = levels.reduce((accumulator, level) => {
+          const cValue = level < node.level ? node.aggregateRoot.summary[level.toString()].length
+          : node.aggregateRoot.summary[level.toString()].indexOf(node.label);
+          return accumulator + cValue;},1);
+          node.yy = node.aggregateRoot.yy + hops;
+          this.ypos = max([this.ypos, node.yy]);
+        } else {
+          this.ypos = this.ypos + 1;
+          node.yy = this.ypos;
+        }
+    // }
+    // }
 
-      const hops = levels.reduce((accumulator, level) => {
-      const cValue = level < node.level ? node.aggregateRoot.summary[level.toString()].length
-      : node.aggregateRoot.summary[level.toString()].indexOf(node.label);
-      return accumulator + cValue;},1);
-      node.yy = node.aggregateRoot.yy + hops;
-      this.ypos = max([this.ypos, node.yy]);
-    } else {
-      this.ypos = this.ypos + 1;
-      node.yy = this.ypos;
-    }
-
-    node.children.map((c, i) => {
+    //prioritize children that are part of a pathway
+    node.children
+    // .sort((a,b)=> {return a.pathway ? -1 :(b.pathway ? 1 : 0);})
+    .map((c, i) => {
       let hops;
       if (c.aggregated) {
         const levels = Object.keys(c.aggregateRoot.summary).map(Number)
@@ -915,23 +1038,16 @@ class Graph {
           const cValue = level < c.level ? c.aggregateRoot.summary[level.toString()].length
           : c.aggregateRoot.summary[level.toString()].indexOf(c.label);
           return accumulator + cValue;},1);
-    
+
       }
-      
+
         let maxX = +max(this.graph.nodes.filter((n: any) => (n.visited && c.aggregateRoot && n.yy === c.aggregateRoot.yy+ hops)), (n: any) => n.xx);
 
         if (!maxX && c.aggregateRoot) {
-          // maxX = c.aggregateRoot.xx + this.xScale.invert(c.level * Config.glyphSize * 2.5);
           maxX = 0;
-        } 
-        // else {
-        //   console.log('maxX for ',c.title, ' is ',  maxX)
-        // }
-        // c.xx = c.aggregated ? node.xx + ((i%numIcons)+1)*this.xScale.invert(Config.glyphSize*2.5) : node.xx + 1;
-        // c.xx = c.aggregated ? node.xx + (i+1)*this.xScale.invert(Config.glyphSize*2.5) : node.xx + 1;
-        // c.xx = c.aggregated ? maxX + this.xScale.invert(Config.glyphSize*2.5) : node.xx + 1;
+        }
         c.xx = c.aggregated ? maxX + 1 : node.xx + 1;
-        
+
       this.layoutTreeHelper(c);
     });
 
@@ -1143,7 +1259,7 @@ class Graph {
               const cValue = level < +l ? r.summary[level.toString()].length
               : r.summary[level.toString()].indexOf(n);
               return accumulator + cValue;},1);
-             
+
             const yy =r.yy+ hops; // + r.summary[l].indexOf(n)+1 ;
             aggregateIcons.push({uuid:r.uuid+'_'+l+'_'+n,label:n,visible:true,aggregated:false,title:'',xx,yy});
           })
@@ -1158,7 +1274,7 @@ class Graph {
         return d.uuid;
       });
 
-    
+
     const nodesEnter = node.enter()
       .append('text')
       .attr('class', 'title')
@@ -1184,7 +1300,7 @@ class Graph {
         return d.title;
       });
 
-    
+
     node
       .transition('t')
       .duration(1000)
@@ -1581,11 +1697,13 @@ class Graph {
                   events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': remove });
                 }
               },
-              {
-                'icon': removeAttr ? 'RemoveChildren' : 'AddChildren', 'string': removeAttr ? 'Remove Attribute' : 'Add Attribute', 'callback': () => {
-                  events.fire(ATTR_COL_ADDED, { 'db': this.selectedDB, 'name': 'age', 'type':'int', 'remove': removeAttr });
-                }
-              },
+              // {
+              //   'icon': removeAttr ? 'RemoveChildren' : 'AddChildren', 'string': removeAttr ? 'Remove Attribute' : 'Add Attribute', 'callback': () => {
+              //     events.fire(ATTR_COL_ADDED, { 'db': this.selectedDB, 'name': 'age', 'type':'int', 'remove': removeAttr });
+              //     events.fire(ATTR_COL_ADDED, { 'db': this.selectedDB, 'name': 'gender', 'type':'categorical', 'remove': removeAttr });
+              //     events.fire(ATTR_COL_ADDED, { 'db': this.selectedDB, 'name': 'battle_type', 'type':'string', 'remove': removeAttr });
+              //   }
+              // },
               {
                 'icon': 'RemoveNode', 'string': 'Remove Node  (leaves children)', 'callback': () => {
                   events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': true, 'includeChildren': false });
@@ -1603,6 +1721,31 @@ class Graph {
                 }
               }];
 
+              if (!d.pathway) {
+                actions = actions.concat(
+                  [ {
+                  'icon': 'setPathway', 'string': 'Set as Pathway Start', 'callback': () => {
+                    events.fire(PATHWAY_SELECTED, { 'start':true, 'uuid': d.uuid });
+                  }
+                }]);
+              }
+              if (this.pathway.start && !d.pathway) {
+                actions = actions.concat(
+                  [{
+                  'icon': 'setPathway', 'string': 'Set as Pathway End', 'callback': () => {
+                    events.fire(PATHWAY_SELECTED, { 'end':true, 'uuid': d.uuid });
+                  }
+                }]);
+              }
+              if (d.pathway) {
+                actions = actions.concat(
+                  [{
+                    'icon': 'setPathway', 'string': 'Clear Pathway', 'callback': () => {
+                      events.fire(PATHWAY_SELECTED, { 'clear':true});
+                    }
+                  }]
+                );
+              }
               if (d.children.length > 0) {
                 const aggregate = d.children[0] && !d.children[0].aggregated;
                 actions = actions.concat(
@@ -1613,6 +1756,7 @@ class Graph {
                   }]
                 );
               }
+              
               this.menuObject.addMenu(d, actions);
             });
 

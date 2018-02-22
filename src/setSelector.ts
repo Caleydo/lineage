@@ -57,6 +57,11 @@ class SetSelector {
   constructor(parent: Element, tmanager) {
     this.$node = select(parent);
     this.tableManager = tmanager;
+
+    //add nodeFilter div to header
+    select('#caleydoHeader')
+    .append('div')
+    .attr('id','nodeFilter');
   }
 
   /**
@@ -105,13 +110,15 @@ class SetSelector {
       .attr('id', 'allNodes');
 
     //add nodeAttribute filter
-    select('#col2').select('#nodeFilter').selectAll('.panel').remove(); //total hack.
+    select('#nodeFilter').selectAll('.panel').remove(); //total hack.
 
-
+    
     //creat an accordion div and a table for each label
-    const p = select('#col2').select('#nodeFilter')
+    const p = select('#nodeFilter')
       .selectAll('.panel-default')
       .data(['Exclude Node Types']);
+
+
 
     p.exit().remove();
 
@@ -121,15 +128,16 @@ class SetSelector {
       .append('div')
       .attr('class', 'panel panel-default');
 
-    pDefault1
-      .append('div')
-      .attr('class', 'panel-heading')
-      .append('h4')
-      .attr('class', 'panel-title')
-      .append('a')
-      .attr('data-toggle', 'collapse')
-      .attr('data-parent', '#nodeFilter')
-      .attr('href', (d, i) => { return '#ncollapse_' + i; });
+    //Filter Panel Heading
+    // pDefault1
+    //   .append('div')
+    //   .attr('class', 'panel-heading')
+    //   .append('h4')
+    //   .attr('class', 'panel-title')
+    //   .append('a')
+    //   .attr('data-toggle', 'collapse')
+    //   .attr('data-parent', '#nodeFilter')
+    //   .attr('href', (d, i) => { return '#ncollapse_' + i; });
 
 
     const pDefault2 = pDefault1
@@ -141,8 +149,8 @@ class SetSelector {
       .attr('class', 'panel-body')
       .attr('id', 'filterPanel');
 
-    const cboxes = select('#col2')
-    .select('#filterPanel')
+    const cboxes = 
+    select('#filterPanel')
       .selectAll('.checkbox')
       .data(labels)
       .enter()
@@ -152,16 +160,16 @@ class SetSelector {
       .attr('class', 'checkbox')
       .append('label')
       .on('click',function (d:any){
+        console.log('fired event')
         events.fire(FILTER_CHANGED_EVENT,{'label':d.name, 'exclude':!select(this).classed('exclude')});
         select(this).classed('exclude',!select(this).classed('exclude'));
       });
 
     label
       .html(function (d: any) {
-        return select(this).html() + d.name;
+        return select(this).html() + Config.icons[d.name] + ' ' + d.name + ' [0]';
       });
-
-
+      
       select('#col1').select('#accordion').selectAll('.panel').remove(); //total hack.
 
 
@@ -225,7 +233,7 @@ class SetSelector {
     .selectAll('a')
       .text((d: any) => { return d.name +  ' (' + d.size + ')'; });
 
-      select('#col2')
+      select('#nodeFilter')
       .selectAll('a')
         .text((d: any) => { return d;});
 
@@ -364,7 +372,7 @@ class SetSelector {
   private populateTableRows(tableDiv, rowData, numCols) {
 
     //sort data alphabetically;
-    console.log(rowData.sort((a,b)=> {return a.title < b.title; }));
+    // console.log(rowData.sort((a,b)=> {return a.title < b.title; }));
     const tableSelector = select(tableDiv).select('#tableBody');
     // create a row for each object in the data
     let rows = tableSelector.select('tbody').selectAll('tr')

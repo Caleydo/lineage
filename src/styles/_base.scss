@@ -1,11 +1,14 @@
 body, html {
-  font-family: Yantramanav, 'Helvetica Neue', Helvetica, sans-serif;
+  font-family: 'Raleway', Yantramanav, 'Helvetica Neue', Helvetica, sans-serif !important;
   font-weight: 400;
   height: 100%;
 	width: 100%;
 }
 
-.title.aggregated{
+.icon{
+  font-family: font-awesome;
+}
+.title.aggregated tspan{
   fill:#466187;
   font-size:5px;
 }
@@ -32,7 +35,7 @@ td {
 .title{
   // text-decoration: underline;
   font-size:14px;
-  font-family:FontAwesome;
+  // font-family:FontAwesome;
   fill:  #555;
   cursor:pointer;
   text-anchor: start;
@@ -43,7 +46,7 @@ td {
 
 .adjMatrixEdge{
   font-size:14px;
-  font-family:FontAwesome;
+  // font-family:FontAwesome;
   fill:  rgb(248, 246, 246);
   cursor:pointer;
   text-anchor: middle;

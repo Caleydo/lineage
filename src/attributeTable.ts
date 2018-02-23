@@ -1513,7 +1513,7 @@ class AttributeTable {
     rowLines = rowLinesEnter.merge(rowLines);
 
     selectAll('.rowLine')
-      .attr('x1', 0)
+      .attr('x1', 120)
       .attr('y1', (d: any) => {
         return this.y(d) + this.rowHeight;
       })

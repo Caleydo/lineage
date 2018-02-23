@@ -167,7 +167,7 @@ class SetSelector {
 
     label
       .html(function (d: any) {
-        return select(this).html() + Config.icons[d.name] + ' ' + d.name + ' [0]';
+        return select(this).html() + '<tspan class="icon">' + Config.icons[d.name] + '</tspan> ' + d.name + ' [0] ' ; //+  Config.icons.menu;
       });
       
       select('#col1').select('#accordion').selectAll('.panel').remove(); //total hack.

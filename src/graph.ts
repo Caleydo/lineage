@@ -721,7 +721,7 @@ class Graph {
       .selectAll('label')
       .html(function (d: any) {
         const count = labels[d.name] ? labels[d.name] : 0;
-        return Config.icons[d.name] + ' ' + d.name + ' [' + count + '] ' ; //+  Config.icons.menu;
+        return '<tspan class="icon">' + Config.icons[d.name] + '</tspan> ' + d.name + ' [' + count + '] ' ; //+  Config.icons.menu;
       });
   }
 
@@ -1285,8 +1285,8 @@ class Graph {
     node = nodesEnter.merge(node);
 
     node
-      .text((d) => {
-        return d.aggregated ? Config.icons.aggregateIcon : Config.icons[d.label] + ' ' + d.title;
+      .html((d) => {
+        return d.aggregated ? '<tspan class="icon">' + Config.icons.aggregateIcon + '</tspan>' : '.<tspan class="icon">' + Config.icons[d.label] + '</tspan> ' + d.title;
       });
       // Config.icons.aggregateIcon
       // Config.icons[d.label]
@@ -1322,7 +1322,7 @@ class Graph {
               // console.log(i,select('.nodes').selectAll('text').size())
               if (i>=select('.nodes').selectAll('text').size()-1) {
                 const nodeGroupWidth = document.getElementById('nodeGroup').getBoundingClientRect().width;
-
+                    console.log('here')
                       //set width of svg to size of node group + margin.left
                       select('#graph')
                       .transition('t')
@@ -1419,7 +1419,7 @@ class Graph {
       })
       .on('mouseover', (d) => {
         const selectedText = selectAll('.title').select('text').filter((l: any) => { return l.title === d.title; });
-        selectedText.text((dd: any) => { return Config.icons[dd.label] + ' ' + dd.title; });
+        selectedText.html((dd: any) => { return '<tspan class="icon">'+ Config.icons[dd.label] + '</tspan> ' + dd.title; });
         this.highlightRows(d);
       })
       .on('mouseout', (d) => {
@@ -1694,10 +1694,11 @@ class Graph {
 
           const currentText = select('.nodes').selectAll('.title').filter((t: any) => { return t.title === d.title; });
 
-          selectAll('tspan').remove();
+          selectAll('tspan.menu').remove();
 
           // if (currentText.select('tspan').size() <1) {
           currentText.append('tspan')
+            .attr('class','icon menu')
             .text('  ' + (remove ? Config.icons.settingsCollapse : Config.icons.settingsExpand));
           // // }
 

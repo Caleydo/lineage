@@ -139,7 +139,7 @@ export class App {
     headerMenus.create();
 
     await tableManager.loadData('characters', 'episodes');
-    const graphObj = graph.create(650,1500,10,'#treeDiv',tableManager);
+    const graphObj = graph.create(350,1500,10,'#treeDiv',tableManager);
 
   // let load  = ()=>{
     // const graphView = await graphObj.loadGraph(defaultDB);

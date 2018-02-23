@@ -1319,17 +1319,18 @@ class Graph {
       })
       .on('end', (d,i)=> {
 
-              console.log(i,select('.nodes').selectAll('text').size())
-              if (i>=select('.nodes').selectAll('text').size()) {
+              // console.log(i,select('.nodes').selectAll('text').size())
+              if (i>=select('.nodes').selectAll('text').size()-1) {
                 const nodeGroupWidth = document.getElementById('nodeGroup').getBoundingClientRect().width;
-                
-                      console.log(d,i)
+
                       //set width of svg to size of node group + margin.left
                       select('#graph')
-                      .attr('width',nodeGroupWidth + this.margin.left + 20);
+                      .transition('t')
+                      .duration(500)
+                      .attr('width',nodeGroupWidth + this.margin.left + 50);
                 
                       select('#hiddenLinks')
-                      .attr('transform', 'translate(' + (nodeGroupWidth + 20 - Config.glyphSize) + ' ,0)');
+                      .attr('transform', 'translate(' + (nodeGroupWidth + 50 - Config.glyphSize) + ' ,0)');
               }
              
       });

@@ -926,7 +926,7 @@ class AttributeTable {
       const name = vector.desc.name;
 
       let maxOffset = max(this.colOffsets);
-      if (type === VALUE_TYPE_CATEGORICAL || type === VALUE_TYPE_ADJMATRIX) {
+      if (type === VALUE_TYPE_CATEGORICAL) {
 
         //Build col offsets array ;
         const allCategories = vector.desc.value.categories.map((c) => {
@@ -965,7 +965,15 @@ class AttributeTable {
             this.colOffsets.push(maxOffset + this.buffer * 2 + this.colWidths[type]);
           }
         };
-      } else {
+      } else if (type === VALUE_TYPE_ADJMATRIX) {
+           // const maxOffset = max(this.colOffsets);
+        if (this.customColWidths[name]) {
+          this.colOffsets.push(maxOffset + 2 + this.customColWidths[name]);
+        } else {
+          this.colOffsets.push(maxOffset + 2 + this.colWidths[type]);
+        }
+      }
+      else {
         // const maxOffset = max(this.colOffsets);
         if (this.customColWidths[name]) {
           this.colOffsets.push(maxOffset + this.buffer + this.customColWidths[name]);
@@ -984,9 +992,9 @@ class AttributeTable {
   //function that removes spaces and periods to be used as ids and selectors. Also includes categories for categorical data.
   private deriveID(d) {
     const id = (d.type === 'categorical' ?
-      (d.name.replace(/ /g, '_').replace(/\./g, '').replace(/\:/g, '').replace(/\(/g, '').replace(/\)/g, '') + '_'
+      (d.name.replace(/ /g, '_').replace(/\./g, '').replace(/\:/g, '').replace(/\(/g, '').replace(/\)/g, '').replace(/\'/g, '') + '_'
         + d.category.replace(/ /g, '_').replace(/\(/g, '').replace(/\)/g, '')) :
-      (d.name.replace(/ /g, '_').replace(/\./g, '').replace(/\:/g, '').replace(/\(/g, '').replace(/\)/g, '')));
+      (d.name.replace(/ /g, '_').replace(/\./g, '').replace(/\:/g, '').replace(/\(/g, '').replace(/\)/g, '').replace(/\'/g, '')));
 
     return id;
   }
@@ -1199,18 +1207,14 @@ class AttributeTable {
     cols.select('.starRect')
       .attr('width', (d) => {
         const width = this.customColWidths[d.name] || this.colWidths[d.type];
-        return (width + 10);
+        return (d.type === VALUE_TYPE_ADJMATRIX ? width : width + 10);
       })
       .attr('height', this.y.range()[1] + 40)
-      .attr('x', -5)
+      .attr('x', (d)=> d.type === VALUE_TYPE_ADJMATRIX ? 0 : -5)
       .attr('y', -this.buffer + 3)
       .attr('class', (d) => { return 'starRect_' + this.deriveID(d); })
       .classed('starRect', true)
-      .attr('opacity', ((d) => {
-        const header = select('#' + this.deriveID(d) + '_header');
-        return (!header.empty() && header.classed('star')) || (this.tableManager.affectedState && this.tableManager.affectedState.name === d.name)
-          ? .2 : 0;
-      }));
+      .attr('opacity', 0);
 
     //translate columns horizontally to their position;
     cols
@@ -1644,6 +1648,7 @@ class AttributeTable {
     selectAll('.slopeLine').classed('selectedSlope', false);
     //Hide all the highlightBars
     selectAll('.highlightBar').attr('opacity', 0);
+    selectAll('.starRect').attr('opacity', 0);
   }
 
   private highlightRow(d) {
@@ -1659,14 +1664,17 @@ class AttributeTable {
       return returnValue;
     }
 
-    selectAll('.slopeLine').classed('selectedSlope', false);
+    // selectAll('.slopeLine').classed('selectedSlope', false);
 
-    selectAll('.slopeLine').filter((e: any) => {
-      return e.y === Math.round(d.y);
-    }).classed('selectedSlope', true);
+    // selectAll('.slopeLine').filter((e: any) => {
+    //   return e.y === Math.round(d.y);
+    // }).classed('selectedSlope', true);
 
     //Set opacity of corresponding highlightBar
     selectAll('.highlightBar').filter(selected).attr('opacity', .2);
+    // const className = 'starRect_' + this.deriveID(d);
+    // console.log(d,className)
+    // select('.'+className).attr('opacity',.2);
   }
 
   /**
@@ -2780,8 +2788,8 @@ class AttributeTable {
 
     if (element.selectAll('.categorical').size() === 0) {
 
-      element.append('rect')
-        .classed(VALUE_TYPE_CATEGORICAL, true);
+      // element.append('rect')
+      //   .classed(VALUE_TYPE_CATEGORICAL, true);
 
       element
         .append('rect')
@@ -2803,7 +2811,8 @@ class AttributeTable {
       .select('.frame')
       .attr('width', rowHeight)
       .attr('height', rowHeight)
-      .attr('fill', 'lightgrey');
+      .attr('fill', '#6994a9')
+      .style('opacity',Math.random());
     // .attr('y', 0)
     // .attr('fill', (d) => {
     //   return incomingEdge ? '#4c6999'  : '#4c8899';

@@ -359,7 +359,8 @@ class Graph {
     // .attr('transform', 'translate(520,0)');
 
     this.svg.append('g')
-      .attr('class', 'nodes');
+      .attr('class', 'nodes')
+      .attr('id', 'nodeGroup');
 
     this.simulation = forceSimulation()
       .force('link', forceLink().id(function (d: any) { return d.index; }))
@@ -767,7 +768,13 @@ class Graph {
       l.index = i;
     });
 
-    
+    this.calculatePathway();
+    // this.graph.nodes.map((n) => { n.visited = (n.pathway && n.moved) ? true : false; });
+
+    const pathwayNodes = this.graph.nodes.filter((n)=> n.pathway && n.moved);
+    this.ypos = pathwayNodes.length >0 ? +max(pathwayNodes,(n:any)=> n.yy) : -1;
+
+    // console.log(this.ypos)
 
     while (graph.nodes.filter((n) => {
       return n.visited === false;
@@ -802,14 +809,6 @@ class Graph {
         const node = queue.splice(0, 1)[0];;
         this.extractTreeHelper(node, queue);
       }
-
-      this.calculatePathway();
-      // this.graph.nodes.map((n) => { n.visited = (n.pathway && n.moved) ? true : false; });
-
-      const pathwayNodes = this.graph.nodes.filter((n)=> n.pathway && n.moved);
-      this.ypos = pathwayNodes.length >0 ? +max(pathwayNodes,(n:any)=> n.yy) : -1;
-
-      console.log(this.ypos)
 
       //clear visited status
       // this.graph.nodes.map((n)=>n.visited = false);
@@ -1317,6 +1316,22 @@ class Graph {
       .attr('y', (d) => {
         const ypos = d.yy +.5 - (1/3*((d.xx-1)%3+1)*this.yScale.invert(18));
         return d.aggregated ? yScale(ypos) :yScale(d.yy);
+      })
+      .on('end', (d,i)=> {
+
+              console.log(i,select('.nodes').selectAll('text').size())
+              if (i>=select('.nodes').selectAll('text').size()) {
+                const nodeGroupWidth = document.getElementById('nodeGroup').getBoundingClientRect().width;
+                
+                      console.log(d,i)
+                      //set width of svg to size of node group + margin.left
+                      select('#graph')
+                      .attr('width',nodeGroupWidth + this.margin.left + 20);
+                
+                      select('#hiddenLinks')
+                      .attr('transform', 'translate(' + (nodeGroupWidth + 20 - Config.glyphSize) + ' ,0)');
+              }
+             
       });
 
     this.addHightlightBars();
@@ -1324,8 +1339,10 @@ class Graph {
     select('#graph')
       .attr('height', document.getElementById('genealogyTree').getBoundingClientRect().height + this.margin.top * 2);
 
-    select('#hiddenLinks')
-      .attr('transform', 'translate(' + (this.width - this.margin.left - Config.glyphSize) + ' ,0)');
+    
+      
+
+
 
   }
 
@@ -1619,47 +1636,45 @@ class Graph {
       .selectAll('.highlightBar')
       .attr('opacity', 0);
 
-    function highlightRows(d: any) {
+    // function highlightRows(d: any) {
 
-      function selected(e: any) {
-        let returnValue = false;
-        //Highlight the current row in the graph and table
+    //   function selected(e: any) {
+    //     let returnValue = false;
+    //     //Highlight the current row in the graph and table
 
-        if (e.yy === Math.round(d.yy) || e.y === Math.round(d.yy)) {
-          returnValue = true;
-        }
-        return returnValue;
-      }
+    //     if (e.yy === Math.round(d.yy) || e.y === Math.round(d.yy)) {
+    //       returnValue = true;
+    //     }
+    //     return returnValue;
+    //   }
 
-      selectAll('.slopeLine').classed('selectedSlope', false);
+    //   selectAll('.slopeLine').classed('selectedSlope', false);
 
-      selectAll('.slopeLine').filter((e: any) => {
+    //   selectAll('.slopeLine').filter((e: any) => {
 
-        return e.yy === Math.round(d.yy);
-      }).classed('selectedSlope', true);
+    //     return e.yy === Math.round(d.yy);
+    //   }).classed('selectedSlope', true);
 
-      //Set opacity of corresponding highlightBar
-      selectAll('.highlightBar').filter(selected).attr('opacity', .2);
+    //   //Set opacity of corresponding highlightBar
+    //   selectAll('.highlightBar').filter(selected).attr('opacity', .2);
 
-      //Set the age label on the lifeLine of this row to visible
-      selectAll('.ageLineGroup').filter((e: any) => {
-        return e.yy === Math.round(d.yy);
-      }).filter((d: any) => {
-        return !d.aggregated && !d.hidden;
-      }).select('.ageLabel').attr('visibility', 'visible');
+    //   const className = 'starRect_' + this.createID(d.data.title);
+    //   console.log(this)
+      
+    //   select('.'+className).attr('opacity',.2);
 
-    }
+    // }
 
-    function clearHighlights() {
-      // selectAll('.duplicateLine').attr('visibility', 'hidden');
+    // function clearHighlights() {
+    //   // selectAll('.duplicateLine').attr('visibility', 'hidden');
 
-      selectAll('.slopeLine').classed('selectedSlope', false);
+    //   selectAll('.slopeLine').classed('selectedSlope', false);
 
-      //Hide all the highlightBars
-      selectAll('.highlightBar').attr('opacity', 0);
+    //   //Hide all the highlightBars
+    //   selectAll('.highlightBar').attr('opacity', 0);
 
-      selectAll('.ageLabel').attr('visibility', 'hidden');
-    }
+    //   selectAll('.ageLabel').attr('visibility', 'hidden');
+    // }
 
 
     selectAll('.highlightBar')
@@ -1759,8 +1774,7 @@ class Graph {
               
               this.menuObject.addMenu(d, actions);
             });
-
-          highlightRows(e);
+          this.highlightRows(e);
         }
       })
       .on('mouseout', (e: any) => {
@@ -1784,7 +1798,7 @@ class Graph {
 
           //   return 'url(#m_' + st + '_' + tt + ')';
           // });
-          clearHighlights();
+          this.clearHighlights();
         }
       })
       .on('click', (d: any, i) => {
@@ -1814,10 +1828,10 @@ class Graph {
         });
       });
 
-    selectAll('.bars')
-      .selectAll('.backgroundBar')
-      .on('mouseover', highlightRows)
-      .on('mouseout', clearHighlights);
+    // selectAll('.bars')
+    //   .selectAll('.backgroundBar')
+    //   .on('mouseover', this.highlightRows)
+    //   .on('mouseout', this.clearHighlights);
 
   }
 
@@ -1827,7 +1841,8 @@ class Graph {
     function selected(e: any) {
       let returnValue = false;
       //Highlight the current row in the graph and table
-      if (e.uuid === d.uuid) {
+
+       if (e.y === Math.round(d.y) || e.yy === Math.round(d.y) || e.y === Math.round(d.yy) || e.yy === Math.round(d.yy) ) {
         returnValue = true;
       }
       return returnValue;
@@ -1835,20 +1850,21 @@ class Graph {
 
     //Set opacity of corresponding highlightBar
     selectAll('.highlightBar').filter(selected).attr('opacity', .2);
+
+    
+      const className = 'starRect_' + this.createID(d.data.title);
+      select('.'+className).attr('opacity',.2);
   }
 
   private clearHighlights() {
     selectAll('.highlightBar').attr('opacity', 0);
+    selectAll('.starRect').attr('opacity',0);
   }
 
 
   private createID(title) {
-    return title.replace(/ /g, '_').replace(/'/g, '').replace(/\(/g, '').replace(/\)/g, '');
+    return title.replace(/ /g, '_').replace(/\./g, '').replace(/\:/g, '').replace(/\(/g, '').replace(/\)/g, '').replace(/\'/g, '');
   }
-
-
-
-
 
   private elbow(d, lineFunction, curves) {
     // let i;

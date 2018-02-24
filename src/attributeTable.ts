@@ -925,7 +925,9 @@ class AttributeTable {
       const type = vector.desc.value.type;
       const name = vector.desc.name;
 
-      let maxOffset = max(this.colOffsets);
+      const firstNonAdjMatrix = index <orderedCols.length-1 && type === VALUE_TYPE_ADJMATRIX && orderedCols[index+1].desc.value.type !== VALUE_TYPE_ADJMATRIX; 
+      console.log(name,type,firstNonAdjMatrix)
+      let maxOffset = firstNonAdjMatrix ? max(this.colOffsets)+30 :  max(this.colOffsets);
       if (type === VALUE_TYPE_CATEGORICAL) {
 
         //Build col offsets array ;
@@ -958,7 +960,7 @@ class AttributeTable {
         }
 
         for (const cat of categories) {
-          maxOffset = max(this.colOffsets);
+          maxOffset = firstNonAdjMatrix ? max(this.colOffsets)+30 :  max(this.colOffsets);
           if (this.customColWidths[name]) {
             this.colOffsets.push(maxOffset + this.buffer * 2 + this.customColWidths[name]);
           } else {
@@ -1106,7 +1108,7 @@ class AttributeTable {
     colSummariesEnter
       .append('rect')
       .attr('class', 'backgroundRect')
-      .attr('x', -5)
+      // .attr('x', -5)
       .attr('y', -11)
       .on('mouseover', function (d) {
         select(this).classed('hoverRect', true);
@@ -1513,7 +1515,19 @@ class AttributeTable {
     rowLines = rowLinesEnter.merge(rowLines);
 
     selectAll('.rowLine')
-      .attr('x1', 120)
+      .attr('x1', ()=> {
+        const firstTableCol=[];
+        const colVector = this.tableManager.colOrder.filter((colName)=> { 
+          for (const vector of this.allCols) {
+            if (vector.desc.name === colName && vector.desc.value.type !== VALUE_TYPE_ADJMATRIX ) {
+              firstTableCol.push(vector);
+            };
+          }
+        });
+
+        const ind = this.tableManager.colOrder.indexOf(firstTableCol[0].desc.name);
+        return this.colOffsets[ind];
+      })
       .attr('y1', (d: any) => {
         return this.y(d) + this.rowHeight;
       })
@@ -1853,7 +1867,7 @@ class AttributeTable {
       .text('\uf0dd')
       .attr('y', this.rowHeight * 1.8 + 24)
       .attr('x', (d) => {
-        return colWidth / 2 - 5;
+        return  cellData.type === VALUE_TYPE_ADJMATRIX ? colWidth / 2 : colWidth / 2 - 5;
       });
 
     icon = element.selectAll('.ascending')
@@ -1865,11 +1879,17 @@ class AttributeTable {
       .classed('icon', true)
       .classed('ascending', true);
 
+      icon = iconEnter.merge(icon);
+
     icon
-      .attr('y', this.rowHeight * 1.8 + 24)
+      .text('\uf0de')
+      .attr('y', cellData.type === VALUE_TYPE_ADJMATRIX ? this.rowHeight * 1.8 + 23 : this.rowHeight * 1.8 + 24)
       .attr('x', (d) => {
-        return colWidth / 2 - 5;
+        return cellData.type === VALUE_TYPE_ADJMATRIX ? colWidth / 2 : colWidth / 2 - 5;
       });
+
+      icon = element.selectAll('.deleteIcon')
+      .data([cellData]);
 
     //Add 'remove col icon'
     icon.enter().append('text')
@@ -1880,31 +1900,34 @@ class AttributeTable {
     element.select('.deleteIcon')
       .attr('y', this.rowHeight * 2 + 40)
       .attr('x', (d) => {
-        return colWidth / 2 - 8;
+        return cellData.type === VALUE_TYPE_ADJMATRIX ? colWidth/2 : colWidth / 2 - 8;
       });
 
 
-    //append menu ellipsis
-    icon.enter().append('text')
-      .classed('icon', true)
-      .classed('menuIcon', true)
-      .text('\uf141');
+    if (cellData.type !== VALUE_TYPE_ADJMATRIX) {
+          //append menu ellipsis
+        icon.enter().append('text')
+        .classed('icon', true)
+        .classed('menuIcon', true)
+        .text('\uf141');
 
-    element.select('.menuIcon')
-      .attr('y', this.rowHeight * 2 + 40)
-      .attr('x', (d) => {
-        return colWidth / 2 + 5;
-      })
-      .on('click', ((d) => { this.addMenu(d); }));
+      element.select('.menuIcon')
+        .attr('y', this.rowHeight * 2 + 40)
+        .attr('x', (d) => {
+          return colWidth / 2 + 5;
+        })
+        .on('click', ((d) => { this.addMenu(d); }));
+    };
+    
 
-    icon = iconEnter.merge(icon);
+    
 
-    icon
-      .text('\uf0de')
-      .attr('y', this.rowHeight * 1.8 + 30)
-      .attr('x', (d) => {
-        return colWidth / 2 + 5;
-      });
+    // icon
+    //   .text('\uf0de')
+    //   .attr('y', this.rowHeight * 1.8 + 30)
+    //   .attr('x', (d) => {
+    //     return colWidth / 2 + 5;
+    //   });
 
     const self = this;
 
@@ -2212,7 +2235,7 @@ class AttributeTable {
     const height = this.headerHeight;
 
     element.select('.backgroundRect')
-      .attr('width', colWidth + 10)
+      .attr('width', colWidth)
       .attr('height', height + 11);
 
     element.select('.resizeBar')
@@ -2247,7 +2270,7 @@ class AttributeTable {
     const height = this.headerHeight;
 
     element.select('.backgroundRect')
-      .attr('width', colWidth + 10)
+      .attr('width', colWidth)
       .attr('height', height + 11);
 
     const numPositiveValues = headerData.data.map((singleRow) => {
@@ -2288,8 +2311,9 @@ class AttributeTable {
 
     element.select('.histogram')
       .attr('opacity', 0)
-      .attr('width', colWidth)
+      .attr('width', headerData.type === VALUE_TYPE_ADJMATRIX ? colWidth*.8 : colWidth)
       .attr('height', summaryScale(numPositiveValues))
+      .attr('x', headerData.type === VALUE_TYPE_ADJMATRIX ? colWidth*.1 : 0)
       .attr('y', (height - summaryScale(numPositiveValues)))
       .attr('opacity', 1)
       .attr('fill', () => {
@@ -2327,6 +2351,7 @@ class AttributeTable {
           return percentage.toFixed(0) + '%';
         }
       })
+      .attr('x',colWidth/2)
       .attr('y', (height - summaryScale(numPositiveValues) - 2))
       .attr('opacity', 1);
 
@@ -2783,6 +2808,8 @@ class AttributeTable {
         .attr('stroke', '#9e9d9b')
         .attr('opacity', .6);
 
+        element.selectAll('.cross_out').remove();
+
       return;
     }
 
@@ -2812,7 +2839,7 @@ class AttributeTable {
       .attr('width', rowHeight)
       .attr('height', rowHeight)
       .attr('fill', '#6994a9')
-      .style('opacity',Math.random());
+      // .style('opacity',.5);
     // .attr('y', 0)
     // .attr('fill', (d) => {
     //   return incomingEdge ? '#4c6999'  : '#4c8899';

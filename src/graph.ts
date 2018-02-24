@@ -77,10 +77,12 @@ import {
 } from './config';
 
 import * as menu from './menu';
+import * as tooltip from './tooltip';
 
 import * as arrayVec from './ArrayVector';
 
 export const ROOT_CHANGED_EVENT = 'root_changed';
+export const REPLACE_EDGE_EVENT = 'replace_edge_event';
 
 /** Class implementing the map view. */
 class Graph {
@@ -126,6 +128,8 @@ class Graph {
 
   private menuObject = menu.create();
 
+  private ttip = tooltip.create();
+
   private interGenerationScale = scaleLinear();
 
   private lineFunction = line<any>()
@@ -144,6 +148,53 @@ class Graph {
 
     select('#graph')
       .on('click', () => { select('.menu').remove(); });
+
+      events.on(REPLACE_EDGE_EVENT,(evt,info)=> {
+
+        //replace parent of selected target as source
+        const source = this.graph.nodes.filter((node)=>{return node.uuid === info.source;})[0];
+        const target = this.graph.nodes.filter((node)=>{return node.uuid === info.target;})[0];
+
+        const oldParent = target.parent;
+        //remove target from list of old parent's children
+        const oldChild = oldParent.children.indexOf(target);
+        console.log('oldChild',oldChild)
+        oldParent.children.splice(oldChild,1);
+
+        //Set new Parent and child;
+        target.parent =  source;
+        source.children.push(target);
+
+        //make old edge hidden
+       //Do not add links that already exists in the tree
+       const oldEdge = this.graph.links.filter((ll) => {
+        return (ll.source.uuid === oldParent.uuid && ll.target.uuid === target.uuid)
+          || (ll.target.uuid === oldParent.uuid && ll.source.uuid === target.uuid); //if we don't care about direction
+      })[0];
+      console.log('oldEdge',oldEdge)
+        
+      oldEdge.visible = false;
+      oldEdge.visited = true;
+        //make new edge visible
+
+       
+        const newEdge = this.graph.links.filter((ll) => {
+          return (ll.source.uuid === source.uuid && ll.target.uuid === target.uuid)
+            || (ll.target.uuid === source.uuid && ll.source.uuid === target.uuid); //if we don't care about direction
+        })[0];
+        console.log('newEdge',newEdge)
+
+        newEdge.visible = true;
+        newEdge.visited = true;
+
+        console.log(oldParent,target,source,oldEdge,newEdge)
+
+        this.graph.nodes.map((n)=> n.visited = false);
+        this.layoutEntireTree();
+        this.exportYValues();
+        this.drawTree();
+
+      })
 
       events.on(PATHWAY_SELECTED, (evt, info) => {
 
@@ -1110,80 +1161,80 @@ class Graph {
     this.xScale = xScale;
     this.yScale = yScale;
 
-    let linkClips = this.svg.select('defs')
-      .selectAll('clipPath')
-      .data(graph.links.filter((l) => { return l.source.visible && l.target.visible; }), (d) => {
-        const st = this.createID(d.source.title);
-        const tt = this.createID(d.target.title);
-        return st + '_' + tt;
-      });
+    // let linkClips = this.svg.select('defs')
+    //   .selectAll('clipPath')
+    //   .data(graph.links.filter((l) => { return l.source.visible && l.target.visible; }), (d) => {
+    //     const st = this.createID(d.source.title);
+    //     const tt = this.createID(d.target.title);
+    //     return st + '_' + tt;
+    //   });
 
 
-    const linkClipsEnter = linkClips.enter()
-      .append('clipPath')
-      .attr('id', (d) => {
-        const st = this.createID(d.source.title);
-        const tt = this.createID(d.target.title);
-        return st + '_' + tt;
-      });
+    // const linkClipsEnter = linkClips.enter()
+    //   .append('clipPath')
+    //   .attr('id', (d) => {
+    //     const st = this.createID(d.source.title);
+    //     const tt = this.createID(d.target.title);
+    //     return st + '_' + tt;
+    //   });
 
-    linkClipsEnter
-      .append('circle')
-      .attr('id', 'sourceCircle');
+    // linkClipsEnter
+    //   .append('circle')
+    //   .attr('id', 'sourceCircle');
 
-    linkClipsEnter
-      .append('circle')
-      .attr('id', 'targetCircle');
+    // linkClipsEnter
+    //   .append('circle')
+    //   .attr('id', 'targetCircle');
 
-    linkClips.exit().remove();
+    // linkClips.exit().remove();
 
-    linkClips = linkClips.merge(linkClipsEnter);
+    // linkClips = linkClips.merge(linkClipsEnter);
 
-    linkClips.select('#sourceCircle')
-      // .attr('cx', (d) => { return xScale(d.source.xx); })
-      .attr('cx', (d) => { return xScale.range()[1]; })
-      .attr('cy', (d) => { return yScale(d.source.yy); })
-      .attr('r', this.radius * 0.9);
-
-
-    linkClips.select('#targetCircle')
-      // .attr('cx', (d) => { return xScale(d.target.xx); })
-      .attr('cx', (d) => { return xScale.range()[1]; })
-      .attr('cy', (d) => { return yScale(d.target.yy); })
-      .attr('r', this.radius * 0.9);
+    // linkClips.select('#sourceCircle')
+    //   // .attr('cx', (d) => { return xScale(d.source.xx); })
+    //   .attr('cx', (d) => { return xScale.range()[1]; })
+    //   .attr('cy', (d) => { return yScale(d.source.yy); })
+    //   .attr('r', this.radius * 0.9);
 
 
-    this.svg.select('defs')
-      .selectAll('mask').remove();
+    // linkClips.select('#targetCircle')
+    //   // .attr('cx', (d) => { return xScale(d.target.xx); })
+    //   .attr('cx', (d) => { return xScale.range()[1]; })
+    //   .attr('cy', (d) => { return yScale(d.target.yy); })
+    //   .attr('r', this.radius * 0.9);
 
-    let linkMasks = this.svg.select('defs')
-      .selectAll('mask')
-      .data(graph.links.filter((l) => { return l.source.visible && l.target.visible && !l.visible; }), (d) => {
-        return d.index;
-      });
 
-    const linkMasksEnter = linkMasks.enter()
-      .append('mask')
-      .attr('id', (d) => {
-        const st = this.createID(d.source.title);
-        const tt = this.createID(d.target.title);
-        return 'm_' + st + '_' + tt;
-      });
+    // this.svg.select('defs')
+    //   .selectAll('mask').remove();
 
-    linkMasksEnter
-      .append('circle')
-      .attr('id', 'sourceCircleMask')
-      .attr('r', this.radius * 2)
-      .attr('fill', 'url(#radialGrad)');
+    // let linkMasks = this.svg.select('defs')
+    //   .selectAll('mask')
+    //   .data(graph.links.filter((l) => { return l.source.visible && l.target.visible && !l.visible; }), (d) => {
+    //     return d.index;
+    //   });
 
-    linkMasksEnter
-      .append('circle')
-      .attr('id', 'targetCircleMask')
-      .attr('r', this.radius * 2)
-      .attr('fill', 'url(#radialGrad)');
+    // const linkMasksEnter = linkMasks.enter()
+    //   .append('mask')
+    //   .attr('id', (d) => {
+    //     const st = this.createID(d.source.title);
+    //     const tt = this.createID(d.target.title);
+    //     return 'm_' + st + '_' + tt;
+    //   });
 
-    linkMasks.exit().remove();
-    linkMasks = linkMasks.merge(linkMasksEnter);
+    // linkMasksEnter
+    //   .append('circle')
+    //   .attr('id', 'sourceCircleMask')
+    //   .attr('r', this.radius * 2)
+    //   .attr('fill', 'url(#radialGrad)');
+
+    // linkMasksEnter
+    //   .append('circle')
+    //   .attr('id', 'targetCircleMask')
+    //   .attr('r', this.radius * 2)
+    //   .attr('fill', 'url(#radialGrad)');
+
+    // linkMasks.exit().remove();
+    // linkMasks = linkMasks.merge(linkMasksEnter);
 
     selectAll('.edge')
       .classed('visible', (d: any) => {
@@ -1194,45 +1245,34 @@ class Graph {
       })
       .on('click', ((d: any) => console.log(d, d.visible, d.source.title, d.target.title)));
 
-
+    const self = this;
     selectAll('.hiddenEdge')
-      // .attr('class', function (d: any) {
-      //   return select(this).attr('class') +  '  ' + d.source.uuid + ' ' + d.target.uuid;
-      // })
       .attr('visibility', 'hidden')
-
-      // .attr('clip-path', (d: any) => {
-      //   const st = this.createID(d.source.title);
-      //   const tt = this.createID(d.target.title);
-      //   return 'url(#' + st + '_' + tt + ')';
-      // })
-      // .attr('mask', (d: any) => {
-      // const st = this.createID(d.source.title);
-      // const tt = this.createID(d.target.title);
-      //   return 'url(#m_' + st + '_' + tt + ')';
-      // })
       .attr('marker-end', 'url(#edgeCircleMarker)')
-      .attr('marker-start', 'url(#edgeCircleMarker)');
-
-    // linkMasks.select('#sourceCircleMask')
-    //   .attr('cx', (d) => { return xScale(d.source.xx); })
-    //   .attr('cy', (d) => { return yScale(d.source.yy); })
-    //   .attr('r', this.radius);
-
-    // linkMasks.select('#targetCircleMask')
-    //   .attr('cx', (d) => { return xScale(d.source.xx); })
-    //   .attr('cy', (d) => { return yScale(d.source.yy); })
-    //   .attr('r', this.radius);
+      .attr('marker-start', 'url(#edgeCircleMarker)')
+      .on('click',(d:any)=> {
+        console.log(d);
+        const actions = [{
+          'icon': 'edge', 'string': 'Add This Edge to Graph', 'callback': () => {
+            events.fire(REPLACE_EDGE_EVENT, {'source':d.source.uuid, 'target': d.target.uuid })
+          }}];
+        this.menuObject.addMenu(d,actions);
+        })
+      .on('mouseover',function (d) {
+        select('#treeMenu').select('.menu').remove();
+        select(this).classed('highlightEdge', true);
+        return self.ttip.addTooltip('edge',d);
+      })
+      .on('mouseout',function (d) {
+        select(this).classed('highlightEdge', false);
+        console.log(select('#tooltipMenu').size(), select('#tooltipMenu').select('svg').size())
+        select('#tooltipMenu').select('svg').remove();
+      });
 
 
     selectAll('.visible')
       .attr('marker-end', 'url(#circleMarker)')
       .attr('marker-start', 'url(#circleMarker)');
-
-    // selectAll('.hiddenEdge')
-    //   .attr('marker-end', 'url(#edgeCircleMarker)')
-    //   .attr('marker-start', 'url(#edgeCircleMarker)');
-
 
     selectAll('.edge')
       .transition('t')

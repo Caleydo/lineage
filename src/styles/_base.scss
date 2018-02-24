@@ -103,6 +103,11 @@ td {
   pointer-events: none;
 }
 
+.edge.hiddenEdge.highlightEdge{
+  stroke: rgb(232, 108, 55);
+  stroke-width: 4px;
+}
+
 .hiddenEdge{
   stroke: #979797;
   // stroke: url(#mainGradient);

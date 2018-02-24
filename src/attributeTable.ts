@@ -15,6 +15,9 @@ import { transition } from 'd3-transition';
 import { easeLinear } from 'd3-ease';
 import { curveBasis, curveLinear } from 'd3-shape';
 
+
+import * as tooltip from './tooltip';
+
 import Histogram from './Histogram';
 
 import { VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL, VALUE_TYPE_STRING } from 'phovea_core/src/datatype';
@@ -54,6 +57,8 @@ class AttributeTable {
   private width;
   private height;
   private buffer = 13; //pixel dist between columns
+
+  private ttip = tooltip.create();
 
   //for entire Table
   private y = scaleLinear();
@@ -773,10 +778,6 @@ class AttributeTable {
           });
           col.type = type;
 
-          // const maxOffset = max(this.colOffsets);
-
-          // this.colOffsets.push(maxOffset + this.buffer * 2 + this.colWidths[type]);
-
           colDataAccum.push(col);
 
         }
@@ -926,7 +927,6 @@ class AttributeTable {
       const name = vector.desc.name;
 
       const firstNonAdjMatrix = index <orderedCols.length-1 && type === VALUE_TYPE_ADJMATRIX && orderedCols[index+1].desc.value.type !== VALUE_TYPE_ADJMATRIX; 
-      console.log(name,type,firstNonAdjMatrix)
       let maxOffset = firstNonAdjMatrix ? max(this.colOffsets)+30 :  max(this.colOffsets);
       if (type === VALUE_TYPE_CATEGORICAL) {
 
@@ -1086,7 +1086,7 @@ class AttributeTable {
 
     headers
       .on('mouseover', (d) => {
-        this.addTooltip('header', d);
+        this.ttip.addTooltip('header', d);
       })
       .on('mouseout', (d) => {
         select('.menu').remove();
@@ -1185,7 +1185,7 @@ class AttributeTable {
       .data(this.colData.map((d, i) => {
         return {
           'name': d.name, 'data': d.data, 'ind': i, 'type': d.type,
-          'ids': d.ids, 'stats': d.stats, 'varName': d.name, 'category': d.category, 'vector': d.vector
+          'ids': d.ids, 'stats': d.stats, 'varName': d.name, 'category': d.category, 'vector': d.vector, 'range':d.range
         };
       }), (d: any) => {
         return d.varName;
@@ -1551,7 +1551,8 @@ class AttributeTable {
             'stats': d.stats,
             'varName': d.name,
             'category': d.category,
-            'vector': d.vector
+            'vector': d.vector,
+            'range':d.range
           };
         });
       }, (d: any) => {
@@ -1568,7 +1569,7 @@ class AttributeTable {
     selectAll('.cell')
       .on('mouseover', (cellData) => {
         this.highlightRow(cellData);
-        this.addTooltip('cell', cellData);
+        this.ttip.addTooltip('cell', cellData);
       })
       .on('mouseout', (d) => {
         this.clearHighlight();
@@ -2336,7 +2337,7 @@ class AttributeTable {
         }
       }
       )
-      .on('mouseenter', (d) => this.addTooltip('header', d))
+      .on('mouseenter', (d) => this.ttip.addTooltip('header', d))
       .on('mouseleave', (d) => {
         select('#tooltipMenu').select('.menu').remove();
       });
@@ -2519,116 +2520,6 @@ class AttributeTable {
     // select('#tooltipMenu').html(''); //select('.menu').remove();
   }
 
-  private addTooltip(type, data = null) {
-
-    // console.log('adding tooltip');
-    const container = document.getElementById('app');
-    const coordinates = mouse(container);
-
-    let content;
-    if (type === 'cell') {
-      if (data.type === 'categorical') {
-
-        content = data.name + ' : ';
-        const categories = data.data.filter(function (value, index, self) {
-          return self.indexOf(value) === index;
-        });
-        categories.map((category) => {
-          const count = data.data.reduce(function (accumulator, currentValue) {
-            return currentValue === category ? accumulator + 1 : accumulator;
-          }, 0);
-          content = content.concat((categories.length > 1 ? count : '') + category + '  ');
-
-        });
-
-      } else if (data.type === 'adjMatrix') {
-        const incomingEdge = data.data[0] && data.name === data.data[0].endNode.title;
-
-        if (data.data[0]) {
-          const edge = data.data[0].edge.info;
-          content = data.data[0].startNode.title + ' ' + edge.type + ' ' + data.data[0].endNode.title;
-        } else {
-          content = 'no edge';
-        }
-
-
-
-      } else if (data.type === 'int') {
-        content = data.name + ' : ' + data.data.sort((a, b) => { return (a - b); }); //display sorted values
-      } else if (data.type === 'string') {
-        content = data.name + ' : ' + data.data[0].toString().toLowerCase();
-      } else if (data.type === 'dataDensity') {
-        content = data.name + ' : ' + (data.data[0].value ? data.data[0].value : data.data);
-      } else if (data.type === 'idtype') {
-        content = data.name + ' : ' + data.data;
-      }
-
-    } else if (type === 'header') {
-      content = (data.type === 'categorical' ? (data.name + '(' + data.category + ') ') : data.name);
-    };
-
-    let menuWidth = 10; //dummy value. to be updated;
-    const menuHeight = 30;
-
-
-    select('#tooltipMenu')
-      .select('svg').remove();
-
-    const menu = select('#tooltipMenu')
-      .append('svg')
-      .attr('class', 'menu')
-      .attr('height', menuHeight)
-      .attr('opacity', 0)
-      .append('g');
-
-
-    menu.append('rect')
-      .attr('fill', '#f7f7f7')
-      .attr('height', menuHeight)
-      .attr('opacity', 1);
-
-    menu
-      .append('text')
-      .attr('x', 10)
-      .attr('y', 20)
-      .text(() => content)
-      .classed('tooltipTitle', true);
-
-    const textNode = <SVGTSpanElement>menu.select('text').node();
-
-    menuWidth = textNode.getComputedTextLength() + 20;
-
-    select('#tooltipMenu').select('.menu')
-      .attr('transform', 'translate(' + (coordinates[0] - menuWidth - 20) + ',' + (coordinates[1] - menuHeight / 2) + ')');
-
-    select('#tooltipMenu')
-      .attr('width', menuWidth);
-
-    select('#tooltipMenu')
-      .select('rect')
-      .attr('width', menuWidth);
-
-    select('#tooltipMenu')
-      .select('svg')
-      .attr('width', menuWidth);
-
-    menu.append('line')
-      .attr('x1', 0)
-      .attr('x2', menuWidth)
-      .attr('y1', menuHeight * 0.3)
-      .attr('y2', menuHeight * 0.3)
-      .attr('y1', 0)
-      .attr('y2', 0)
-      .attr('stroke-width', '5px')
-      .attr('stroke', '#e86c37');
-
-    select('.menu')
-      .transition()
-      .delay(500)
-      .attr('opacity', 1);
-
-
-  }
   /**
    *
    * This function renders the content of Categorical Cells in the Table View.
@@ -2789,6 +2680,8 @@ class AttributeTable {
       return c;
     }).length;
 
+    const colorScale = scaleLinear<number, number>().domain([0,1]).range([0,1]);
+
     element.selectAll('rect').remove(); //Hack. don't know why the height of the rects isn' being updated.
 
     if (numValidValues < 1) {
@@ -2839,7 +2732,7 @@ class AttributeTable {
       .attr('width', rowHeight)
       .attr('height', rowHeight)
       .attr('fill', '#6994a9')
-      // .style('opacity',.5);
+      .style('opacity',colorScale(numValues/cellData.data.length));
     // .attr('y', 0)
     // .attr('fill', (d) => {
     //   return incomingEdge ? '#4c6999'  : '#4c8899';
@@ -2885,7 +2778,7 @@ class AttributeTable {
     // const colWidth = this.colWidths[cellData.type];
     const rowHeight = this.rowHeight;
 
-
+    element.selectAll('.cross_out').remove();
     // //append data to checkbox for easy export
     // //only add checkboxes for the dataDensity col;
     // element.selectAll('.checkbox')
@@ -2972,7 +2865,7 @@ class AttributeTable {
           select('.nodes')
           .selectAll('.title')
           .style('opacity',function() {
-            return hiddenEdges && hiddenEdges.attr('visibility') !== 'visible' ? .4 : 1;
+            return hiddenEdges.size()>0 && hiddenEdges.attr('visibility') !== 'visible' ? .4 : 1;
           });
 
           const eoi = selectAll('.edge').filter((e: any) => {

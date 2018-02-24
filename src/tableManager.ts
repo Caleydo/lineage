@@ -222,9 +222,7 @@ export default class TableManager {
                 arrayVector.idValues = nodes.map((e)=> {return e.uuid;});
 
                 arrayVector.desc.value.range = [min([max(arrayVector.dataValues),0]), max(arrayVector.dataValues)];
-                console.log('range for age is ', arrayVector.desc.value.range)
-                
-
+              
                 console.log(arrayVector);
 
                 //if it's not already in there:

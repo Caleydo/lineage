@@ -1,13 +1,9 @@
 import * as events from 'phovea_core/src/event';
-import { AppConstants, ChangeTypes } from './app_constants';
 import { select, selectAll } from 'd3-selection';
 import { keys } from 'd3-collection';
 
 import { Config } from './config';
 
-import {
-  DB_CHANGED_EVENT
-} from './headers';
 
 import {
   scaleLinear,
@@ -28,13 +24,6 @@ import {
   json
 } from 'd3-request';
 
-import * as _ from 'underscore';
-
-import IFamilyInfo from './tableManager';
-
-import { FAMILY_INFO_UPDATED, TABLE_VIS_ROWS_CHANGED_EVENT } from './tableManager';
-
-export const SUBGRAPH_CHANGED_EVENT = 'subgraph_changed';
 
 /**
  * Creates the menu
@@ -79,14 +68,16 @@ public addMenu(data, actions = null) {
       .append('svg')
       .attr('class', 'menu')
       .attr('height', menuHeight)
-      .attr('transform', 'translate(' + (coordinates[0] + 10) + ',' + (coordinates[1] - menuHeight / 2) + ')')
+      .attr('transform', 'translate(' + (coordinates[0]) + ',' + (coordinates[1] - menuHeight / 2) + ')')
       .append('g')
+      .attr('id','menuGroup')
       .attr('transform', 'translate(10,0)');
 
-    select('.menu')
-      .select('g')
+      select('#treeMenu')
+      .select('#menuGroup')
       .append('g')
-      .classed('tooltipTriangle', true).append('rect');
+      .attr('class','tooltipTriangle')
+      .append('rect');
 
     let menuItems = menu.selectAll('text').data(actions);
 

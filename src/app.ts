@@ -168,6 +168,9 @@ export class App {
     select('body').on('click', () => {
     //   console.log('clearing all...');
       select('#treeMenu').select('.menu').remove();
+      select('.nodes')
+      .selectAll('.title')
+      .style('opacity',1);
     //   selectAll('.highlightedNode').classed('highlightedNode', false);
     //   selectAll('.edges').classed('selected', false);
     //   selectAll('.parentEdges').classed('selected', false);

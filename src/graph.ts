@@ -151,30 +151,43 @@ class Graph {
 
       events.on(REPLACE_EDGE_EVENT,(evt,info)=> {
 
+
+
         //replace parent of selected target as source
         const source = this.graph.nodes.filter((node)=>{return node.uuid === info.source;})[0];
         const target = this.graph.nodes.filter((node)=>{return node.uuid === info.target;})[0];
 
-        const oldParent = target.parent;
-        //remove target from list of old parent's children
-        const oldChild = oldParent.children.indexOf(target);
-        console.log('oldChild',oldChild)
-        oldParent.children.splice(oldChild,1);
+        console.log('source is ', source.title)
+        console.log('target is ', target.title)
 
+        const oldParent = target.parent;
+        
+        if (oldParent) {
+          //remove target from list of old parent's children
+          const oldChild = oldParent.children.indexOf(target);
+          console.log('oldChild',oldChild)
+          oldParent.children.splice(oldChild,1);
+
+          //make old edge hidden
+        //Do not add links that already exists in the tree
+        const oldEdge = this.graph.links.filter((ll) => {
+          return (ll.source.uuid === oldParent.uuid && ll.target.uuid === target.uuid)
+            || (ll.target.uuid === oldParent.uuid && ll.source.uuid === target.uuid); //if we don't care about direction
+        })[0];
+        console.log('oldEdge',oldEdge)
+          
+        oldEdge.visible = false;
+        oldEdge.visited = true;
+
+        } else {
+          source.parent = undefined;
+        }
+        
         //Set new Parent and child;
         target.parent =  source;
         source.children.push(target);
 
-        //make old edge hidden
-       //Do not add links that already exists in the tree
-       const oldEdge = this.graph.links.filter((ll) => {
-        return (ll.source.uuid === oldParent.uuid && ll.target.uuid === target.uuid)
-          || (ll.target.uuid === oldParent.uuid && ll.source.uuid === target.uuid); //if we don't care about direction
-      })[0];
-      console.log('oldEdge',oldEdge)
         
-      oldEdge.visible = false;
-      oldEdge.visited = true;
         //make new edge visible
 
        
@@ -187,7 +200,7 @@ class Graph {
         newEdge.visible = true;
         newEdge.visited = true;
 
-        console.log(oldParent,target,source,oldEdge,newEdge)
+        // console.log(oldParent,target,source,oldEdge,newEdge)
 
         this.graph.nodes.map((n)=> n.visited = false);
         this.layoutEntireTree();
@@ -1251,11 +1264,15 @@ class Graph {
       .attr('marker-end', 'url(#edgeCircleMarker)')
       .attr('marker-start', 'url(#edgeCircleMarker)')
       .on('click',(d:any)=> {
-        console.log(d);
+        
         const actions = [{
-          'icon': 'edge', 'string': 'Add This Edge to Graph', 'callback': () => {
-            events.fire(REPLACE_EDGE_EVENT, {'source':d.source.uuid, 'target': d.target.uuid })
-          }}];
+          'icon': 'edge', 'string': 'Add Edge from ' + d.source.title  +  ' to ' + d.target.title , 'callback': () => {
+            events.fire(REPLACE_EDGE_EVENT, {'source':d.source.uuid, 'target': d.target.uuid });
+          }},
+          {
+            'icon': 'edge', 'string': 'Add Edge from ' + d.target.title  +  ' to ' + d.source.title , 'callback': () => {
+              events.fire(REPLACE_EDGE_EVENT, {'source':d.target.uuid, 'target': d.source.uuid });
+            }}];
         this.menuObject.addMenu(d,actions);
         })
       .on('mouseover',function (d) {
@@ -1843,32 +1860,34 @@ class Graph {
           this.clearHighlights();
         }
       })
-      .on('click', (d: any, i) => {
-        if (event.defaultPrevented) { return; } // dragged
 
-        const wasSelected = selectAll('.highlightBar').filter((e: any) => {
-          return e.yy === d.yy || e.y === Math.round(d.yy);
-        }).classed('selected');
+      //CLICK CALLBACK FOR HIGHLIGHT BARS. DO NOT DELETE. 
+      // .on('click', (d: any, i) => {
+      //   if (event.defaultPrevented) { return; } // dragged
+
+      //   const wasSelected = selectAll('.highlightBar').filter((e: any) => {
+      //     return e.yy === d.yy || e.y === Math.round(d.yy);
+      //   }).classed('selected');
 
 
-        //'Unselect all other background bars if ctrl was not pressed
-        if (!event.metaKey) {
-          selectAll('.slopeLine').classed('clickedSlope', false);
-          selectAll('.highlightBar').classed('selected', false);
-        }
+      //   //'Unselect all other background bars if ctrl was not pressed
+      //   if (!event.metaKey) {
+      //     selectAll('.slopeLine').classed('clickedSlope', false);
+      //     selectAll('.highlightBar').classed('selected', false);
+      //   }
 
-        selectAll('.slopeLine').filter((e: any) => {
-          return e.yy === d.yy || e.yy === Math.round(d.yy);
-        }).classed('clickedSlope', function () {
-          return (!wasSelected);
-        });
+      //   selectAll('.slopeLine').filter((e: any) => {
+      //     return e.yy === d.yy || e.yy === Math.round(d.yy);
+      //   }).classed('clickedSlope', function () {
+      //     return (!wasSelected);
+      //   });
 
-        selectAll('.highlightBar').filter((e: any) => {
-          return e.yy === d.yy || e.yy === Math.round(d.yy);
-        }).classed('selected', function () {
-          return (!wasSelected);
-        });
-      });
+      //   selectAll('.highlightBar').filter((e: any) => {
+      //     return e.yy === d.yy || e.yy === Math.round(d.yy);
+      //   }).classed('selected', function () {
+      //     return (!wasSelected);
+      //   });
+      // });
 
     // selectAll('.bars')
     //   .selectAll('.backgroundBar')
@@ -1916,7 +1935,7 @@ class Graph {
     //   i = hiddenEdges.indexOf(d.target);
     //   console.log(hiddenEdges,i)
     // }
-
+     
     let source = d.source;
     let target = d.target;
 
@@ -1942,15 +1961,42 @@ class Graph {
       },
       {
         x: nx,
-        y: target.yy
+        y: target.yy 
       },
       {
         x: target.xx,
         y: target.yy
       }];
     } else {
-      nx = -this.xScale.invert(Math.abs(target.yy - source.yy) * 5);
+
+      // //find all hidden edges that end or start here
+      // const allEdges = this.graph.links.filter((l)=> {return !l.visible &&
+      //   (l.target.uuid === source.uuid || l.source.uuid === source.uuid || l.source.uuid === target.uuid || l.source.uuid === target.uuid);})
+      //   .sort((a,b)=> {return Math.abs(a.target.yy - a.source.yy) >  Math.abs(b.target.yy - b.source.yy);});
+
+      nx = -this.xScale.invert(Math.pow(Math.abs(target.yy - source.yy),1)*5);
+      // nx = -this.xScale.invert((allEdges.indexOf(d)+1)*10);
       // nx = -this.xScale.invert((i+1)*(i+1));
+      
+      //Straight Lines
+      // linedata = [{
+      //   x: 0,
+      //   y: source.yy
+      // },
+      // {
+      //   x: nx,
+      //   y: source.yy + this.yScale.invert(10)
+      // },
+      // {
+      //   x: nx,
+      //   y: target.yy - this.yScale.invert(10)
+      // },
+      // {
+      //   x: 0,
+      //   y: target.yy
+      // }];
+
+      //Curves
       linedata = [{
         x: 0,
         y: source.yy
@@ -1963,6 +2009,8 @@ class Graph {
         x: 0,
         y: target.yy
       }];
+
+
       // linedata = [{
       //   x: source.xx,
       //   y: source.yy

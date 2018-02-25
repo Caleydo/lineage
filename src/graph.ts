@@ -1145,8 +1145,10 @@ class Graph {
 
     link.exit().remove();
 
+    
 
-    let linkEndMarkers = this.svg.select('.visibleLinks')
+
+    let linkEndMarkers = this.svg.select('.nodes')
       .selectAll('.endMarker')
       .data(graph.links.filter((l) => { return l.source.visible && !l.source.aggregated && !l.target.aggregated && l.target.visible && l.visible; }), (d) => {
         const st = this.createID(d.source.title);
@@ -1176,6 +1178,8 @@ class Graph {
       .enter()
       .append('path')
       .attr('class', 'edge');
+
+  
 
     link.exit().remove();
     // link = linksEnter.merge(link);
@@ -1219,6 +1223,18 @@ class Graph {
 
         events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': self.selectedDB, 'rootID': child.uuid, 'replace': false, 'remove': remove });
       });
+
+      //set initial position to parent
+      linkEndMarkersEnter
+      .attr('x', (d: any, i) => {
+        const parent = [d.source, d.target].reduce((acc, cValue) => { return cValue.yy < acc.yy ? cValue : acc; });
+        return this.xScale(parent.xx);
+      })
+      .attr('y', (d: any, i) => {
+        const parent = [d.source, d.target].reduce((acc, cValue) => { return cValue.yy < acc.yy ? cValue : acc; });
+        return this.yScale(parent.yy);
+      })
+
 
 
     linkEndMarkers
@@ -1326,6 +1342,15 @@ class Graph {
 
 
     node.exit().remove();
+
+    //place new nodes @ parent's location; 
+    nodesEnter
+    .attr('x', (d) => {
+      return d.parent? xScale(d.parent.xx) + this.radius : xScale(d.xx) + this.radius;
+    })
+    .attr('y', (d) => {
+      return d.parent ? yScale(d.parent.yy) : yScale(d.yy);
+    });
 
     node = nodesEnter.merge(node);
 

@@ -160,27 +160,28 @@ class Graph {
         console.log('source is ', source.title)
         console.log('target is ', target.title)
 
-        const oldParent = target.parent;
-        
-        if (oldParent) {
+        const oldParent = target.parent ? target.parent : source.parent;
+        const child = target.parent? target : source;
+          
           //remove target from list of old parent's children
-          const oldChild = oldParent.children.indexOf(target);
+          const oldChild = oldParent.children.indexOf(child);
           console.log('oldChild',oldChild)
           oldParent.children.splice(oldChild,1);
 
           //make old edge hidden
         //Do not add links that already exists in the tree
         const oldEdge = this.graph.links.filter((ll) => {
-          return (ll.source.uuid === oldParent.uuid && ll.target.uuid === target.uuid)
-            || (ll.target.uuid === oldParent.uuid && ll.source.uuid === target.uuid); //if we don't care about direction
+          return (ll.source.uuid === oldParent.uuid && ll.target.uuid === child.uuid)
+            || (ll.target.uuid === oldParent.uuid && ll.source.uuid === child.uuid); //if we don't care about direction
         })[0];
-        console.log('oldEdge',oldEdge)
+        console.log('oldEdge',oldEdge);
           
         oldEdge.visible = false;
         oldEdge.visited = true;
 
-        } else {
+        if (!target.parent ) {
           source.parent = undefined;
+          this.graph.root = [source];
         }
         
         //Set new Parent and child;
@@ -1057,6 +1058,7 @@ class Graph {
           return n.visited === false;
         }).reduce((a, b) => this.nodeNeighbors[a.uuid].degree > this.nodeNeighbors[b.uuid].degree ? a : b);
 
+      root.xx = 0;
       this.layoutTree(root);
     }
   }
@@ -1066,6 +1068,7 @@ class Graph {
   }
 
   layoutTreeHelper(node) {
+    // console.log('visiting', node.title)
     // if (!node.visited) {
         node.visited = true;
       
@@ -1266,12 +1269,12 @@ class Graph {
       .on('click',(d:any)=> {
         
         const actions = [{
-          'icon': 'edge', 'string': 'Add Edge from ' + d.source.title  +  ' to ' + d.target.title , 'callback': () => {
-            events.fire(REPLACE_EDGE_EVENT, {'source':d.source.uuid, 'target': d.target.uuid });
+          'icon': 'edge', 'string': 'Add Edge from ' + d.target.title  +  ' to ' + d.source.title , 'callback': () => {
+            events.fire(REPLACE_EDGE_EVENT, {'source':d.target.uuid, 'target': d.source.uuid });
           }},
           {
-            'icon': 'edge', 'string': 'Add Edge from ' + d.target.title  +  ' to ' + d.source.title , 'callback': () => {
-              events.fire(REPLACE_EDGE_EVENT, {'source':d.target.uuid, 'target': d.source.uuid });
+            'icon': 'edge', 'string': 'Add Edge from ' + d.source.title  +  ' to ' + d.target.title , 'callback': () => {
+              events.fire(REPLACE_EDGE_EVENT, {'source':d.source.uuid, 'target': d.target.uuid });
             }}];
         this.menuObject.addMenu(d,actions);
         })

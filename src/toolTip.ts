@@ -104,14 +104,16 @@ class ToolTip {
             content = '<tspan x="10" dy="0em"> SOURCE: ' + data.source.title
             + '</tspan> <tspan x="10" dy="1.5em"> TARGET: ' + data.target.title + '</tspan>'
             + '</tspan> <tspan x="10" dy="1.5em"> EDGE TYPE: ' + data.edge.type;
-            
             if (data.edge.data) {
                 Object.keys(data.edge.data).map((key,i)=> {
                     content = content.concat(' <tspan x="20" dy="1.5em">' + key + ':' +  data.edge.data[key] + '</tspan>');
                 });
             }
-            
+        } else if (type === 'node') {
+            content = data.title;
         }
+
+        console.log(content)
 
         let menuWidth = 100; //dummy value. to be updated;
         let menuHeight = 30;

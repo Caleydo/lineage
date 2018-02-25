@@ -109,7 +109,7 @@ class Graph {
 
   private nodeNeighbors;
 
-  private pathway={start:undefined,end:undefined};
+  private pathway = { start: undefined, end: undefined };
 
   private treeEdges = [];
 
@@ -149,96 +149,96 @@ class Graph {
     select('#graph')
       .on('click', () => { select('.menu').remove(); });
 
-      events.on(REPLACE_EDGE_EVENT,(evt,info)=> {
+    events.on(REPLACE_EDGE_EVENT, (evt, info) => {
 
 
 
-        //replace parent of selected target as source
-        const source = this.graph.nodes.filter((node)=>{return node.uuid === info.source;})[0];
-        const target = this.graph.nodes.filter((node)=>{return node.uuid === info.target;})[0];
+      //replace parent of selected target as source
+      const source = this.graph.nodes.filter((node) => { return node.uuid === info.source; })[0];
+      const target = this.graph.nodes.filter((node) => { return node.uuid === info.target; })[0];
 
-        console.log('source is ', source.title)
-        console.log('target is ', target.title)
+      console.log('source is ', source.title)
+      console.log('target is ', target.title)
 
-        const oldParent = target.parent ? target.parent : source.parent;
-        const child = target.parent? target : source;
-          
-          //remove target from list of old parent's children
-          const oldChild = oldParent.children.indexOf(child);
-          console.log('oldChild',oldChild)
-          oldParent.children.splice(oldChild,1);
+      const oldParent = target.parent ? target.parent : source.parent;
+      const child = target.parent ? target : source;
 
-          //make old edge hidden
-        //Do not add links that already exists in the tree
-        const oldEdge = this.graph.links.filter((ll) => {
-          return (ll.source.uuid === oldParent.uuid && ll.target.uuid === child.uuid)
-            || (ll.target.uuid === oldParent.uuid && ll.source.uuid === child.uuid); //if we don't care about direction
-        })[0];
-        console.log('oldEdge',oldEdge);
-          
-        oldEdge.visible = false;
-        oldEdge.visited = true;
+      //remove target from list of old parent's children
+      const oldChild = oldParent.children.indexOf(child);
+      console.log('oldChild', oldChild)
+      oldParent.children.splice(oldChild, 1);
 
-        if (!target.parent ) {
-          source.parent = undefined;
-          this.graph.root = [source];
-        }
-        
-        //Set new Parent and child;
-        target.parent =  source;
-        source.children.push(target);
+      //make old edge hidden
+      //Do not add links that already exists in the tree
+      const oldEdge = this.graph.links.filter((ll) => {
+        return (ll.source.uuid === oldParent.uuid && ll.target.uuid === child.uuid)
+          || (ll.target.uuid === oldParent.uuid && ll.source.uuid === child.uuid); //if we don't care about direction
+      })[0];
+      console.log('oldEdge', oldEdge);
 
-        
-        //make new edge visible
+      oldEdge.visible = false;
+      oldEdge.visited = true;
 
-       
-        const newEdge = this.graph.links.filter((ll) => {
-          return (ll.source.uuid === source.uuid && ll.target.uuid === target.uuid)
-            || (ll.target.uuid === source.uuid && ll.source.uuid === target.uuid); //if we don't care about direction
-        })[0];
-        console.log('newEdge',newEdge)
+      if (!target.parent) {
+        source.parent = undefined;
+        this.graph.root = [source];
+      }
 
-        newEdge.visible = true;
-        newEdge.visited = true;
-
-        // console.log(oldParent,target,source,oldEdge,newEdge)
-
-        this.graph.nodes.map((n)=> n.visited = false);
-        this.layoutEntireTree();
-        this.exportYValues();
-        this.drawTree();
-
-      })
-
-      events.on(PATHWAY_SELECTED, (evt, info) => {
-
-        if (info.clear || info.start) {
-          this.graph.nodes.map((n)=> {n.pathway = false; n.moved = false;});
-          selectAll('.edge.visible').classed('pathway',false);
-          //clear pathway info
-          this.pathway.start = undefined; 
-          this.pathway.end = undefined;;
-        }
+      //Set new Parent and child;
+      target.parent = source;
+      source.children.push(target);
 
 
-        let sNode = this.graph.nodes.filter((n)=> n.uuid === info.uuid)[0];
-        let node = sNode;
+      //make new edge visible
 
-        if (info.start) {
-          this.pathway.start = sNode;
-        } else if (info.end) {
-          this.pathway.end = sNode;
-        }
-        
-        if (info.clear === undefined) {
-          this.calculatePathway();
-        }
 
-        this.layoutEntireTree();
-        this.exportYValues();
-        this.drawTree();
-        
-      });
+      const newEdge = this.graph.links.filter((ll) => {
+        return (ll.source.uuid === source.uuid && ll.target.uuid === target.uuid)
+          || (ll.target.uuid === source.uuid && ll.source.uuid === target.uuid); //if we don't care about direction
+      })[0];
+      console.log('newEdge', newEdge)
+
+      newEdge.visible = true;
+      newEdge.visited = true;
+
+      // console.log(oldParent,target,source,oldEdge,newEdge)
+
+      this.graph.nodes.map((n) => n.visited = false);
+      this.layoutEntireTree();
+      this.exportYValues();
+      this.drawTree();
+
+    })
+
+    events.on(PATHWAY_SELECTED, (evt, info) => {
+
+      if (info.clear || info.start) {
+        this.graph.nodes.map((n) => { n.pathway = false; n.moved = false; });
+        selectAll('.edge.visible').classed('pathway', false);
+        //clear pathway info
+        this.pathway.start = undefined;
+        this.pathway.end = undefined;;
+      }
+
+
+      let sNode = this.graph.nodes.filter((n) => n.uuid === info.uuid)[0];
+      let node = sNode;
+
+      if (info.start) {
+        this.pathway.start = sNode;
+      } else if (info.end) {
+        this.pathway.end = sNode;
+      }
+
+      if (info.clear === undefined) {
+        this.calculatePathway();
+      }
+
+      this.layoutEntireTree();
+      this.exportYValues();
+      this.drawTree();
+
+    });
 
 
     events.on(DB_CHANGED_EVENT, (evt, info) => {
@@ -250,7 +250,7 @@ class Graph {
     events.on(AGGREGATE_CHILDREN, (evt, info) => {
       const root = this.graph.nodes.filter((n) => { return n.uuid === info.uuid; })[0];
       this.setAggregation(root, info.aggregate);
-      this.graph.nodes.map((n)=> n.visited = false);
+      this.graph.nodes.map((n) => n.visited = false);
       this.layoutEntireTree();
       this.exportYValues();
       this.drawTree();
@@ -444,19 +444,19 @@ class Graph {
   }
 
   private clearPathway(node) {
-      if (node.parent) { 
-        const filteredPathways = selectAll('.pathway').filter((e:any)=> {
-          if (node.parent) {
-            const edge1 = (e.source.uuid === node.uuid && e.target.uuid === node.parent.uuid);
-            const edge2 = (e.source.uuid === node.parent.uuid && e.target.uuid === node.uuid);
-            return (edge1 || edge2);
-          } else {
-            return false;
-          }
-        });
-    
-        filteredPathways
-          .classed('pathway',false);
+    if (node.parent) {
+      const filteredPathways = selectAll('.pathway').filter((e: any) => {
+        if (node.parent) {
+          const edge1 = (e.source.uuid === node.uuid && e.target.uuid === node.parent.uuid);
+          const edge2 = (e.source.uuid === node.parent.uuid && e.target.uuid === node.uuid);
+          return (edge1 || edge2);
+        } else {
+          return false;
+        }
+      });
+
+      filteredPathways
+        .classed('pathway', false);
 
       node.parent.pathway = undefined;
       this.clearPathway(node.parent);
@@ -465,37 +465,39 @@ class Graph {
   }
 
   private calculatePathway() {
-      const nodes = this.pathway.start ? (this.pathway.end ? [this.pathway.end] : [this.pathway.start]) : [];
-      let quit = false;
-      nodes.map((node)=> {
-        node.pathway = true;
-        while (node.parent && !quit) {
-          //if node is already tagged as pathway, you have found a shorter path than going all the way to the root;
-          if (node.parent.pathway) {
-            console.log('found', node.parent.title);
+    const nodes = this.pathway.start ? (this.pathway.end ? [this.pathway.end] : [this.pathway.start]) : [];
+    let quit = false;
+    nodes.map((node) => {
+      node.pathway = true;
+      while (node.parent && !quit) {
+        //if node is already tagged as pathway, you have found a shorter path than going all the way to the root;
+        if (node.parent.pathway) {
+          console.log('found', node.parent.title);
 
-            selectAll('.edge.visible').filter((e:any)=> {
-              return (e.source.uuid === node.uuid && e.target.uuid === node.parent.uuid)
-              || (e.source.uuid === node.parent.uuid && e.target.uuid === node.uuid);})
-              .classed('pathway',true);
-             
-              quit = true;
-              this.clearPathway(node.parent);
+          selectAll('.edge.visible').filter((e: any) => {
+            return (e.source.uuid === node.uuid && e.target.uuid === node.parent.uuid)
+              || (e.source.uuid === node.parent.uuid && e.target.uuid === node.uuid);
+          })
+            .classed('pathway', true);
 
-          } else {
-            //find edge;
-            
-            selectAll('.edge.visible').filter((e:any)=> {
-              return (e.source.uuid === node.uuid && e.target.uuid === node.parent.uuid)
-              || (e.source.uuid === node.parent.uuid && e.target.uuid === node.uuid);})
-              .classed('pathway',true);
-            //set new node, will stop @ the root
-            node = node.parent;
-            node.pathway = true;
-          }
+          quit = true;
+          this.clearPathway(node.parent);
+
+        } else {
+          //find edge;
+
+          selectAll('.edge.visible').filter((e: any) => {
+            return (e.source.uuid === node.uuid && e.target.uuid === node.parent.uuid)
+              || (e.source.uuid === node.parent.uuid && e.target.uuid === node.uuid);
+          })
+            .classed('pathway', true);
+          //set new node, will stop @ the root
+          node = node.parent;
+          node.pathway = true;
         }
-      });
-     
+      }
+    });
+
 
     // if (this.pathway.end) {
     //   let sNode = this.pathway.end;
@@ -786,7 +788,7 @@ class Graph {
       .selectAll('label')
       .html(function (d: any) {
         const count = labels[d.name] ? labels[d.name] : 0;
-        return '<tspan class="icon">' + Config.icons[d.name] + '</tspan> ' + d.name + ' [' + count + '] ' ; //+  Config.icons.menu;
+        return '<tspan class="icon">' + Config.icons[d.name] + '</tspan> ' + d.name + ' [' + count + '] '; //+  Config.icons.menu;
       });
   }
 
@@ -836,8 +838,8 @@ class Graph {
     this.calculatePathway();
     // this.graph.nodes.map((n) => { n.visited = (n.pathway && n.moved) ? true : false; });
 
-    const pathwayNodes = this.graph.nodes.filter((n)=> n.pathway && n.moved);
-    this.ypos = pathwayNodes.length >0 ? +max(pathwayNodes,(n:any)=> n.yy) : -1;
+    const pathwayNodes = this.graph.nodes.filter((n) => n.pathway && n.moved);
+    this.ypos = pathwayNodes.length > 0 ? +max(pathwayNodes, (n: any) => n.yy) : -1;
 
     // console.log(this.ypos)
 
@@ -1019,15 +1021,15 @@ class Graph {
   aggregateHelper(root, node, aggregate, queue) {
     const level = (node.level + 1).toString();
     node.children.map((c) => {
-            if (root.summary[level]) {
-              if (root.summary[level].indexOf(c.label)<0) {
-                root.summary[level].push(c.label);
-              }
-            } else {
-              root.summary[level] =[c.label];
-            }
+      if (root.summary[level]) {
+        if (root.summary[level].indexOf(c.label) < 0) {
+          root.summary[level].push(c.label);
+        }
+      } else {
+        root.summary[level] = [c.label];
+      }
     });
-    
+
     node.children.map((c) => {
       c.aggregated = aggregate;
       c.level = node.level + 1;
@@ -1070,52 +1072,54 @@ class Graph {
   layoutTreeHelper(node) {
     // console.log('visiting', node.title)
     // if (!node.visited) {
-        node.visited = true;
-      
-      // if (!node.moved) {
-        if (node.aggregated) {
-          //find offset
-          const levels = Object.keys(node.aggregateRoot.summary).map(Number)
-          .filter((l)=> {return l<= node.level;});
+    node.visited = true;
 
-          const hops = levels.reduce((accumulator, level) => {
-          const cValue = level < node.level ? node.aggregateRoot.summary[level.toString()].length
+    // if (!node.moved) {
+    if (node.aggregated) {
+      //find offset
+      const levels = Object.keys(node.aggregateRoot.summary).map(Number)
+        .filter((l) => { return l <= node.level; });
+
+      const hops = levels.reduce((accumulator, level) => {
+        const cValue = level < node.level ? node.aggregateRoot.summary[level.toString()].length
           : node.aggregateRoot.summary[level.toString()].indexOf(node.label);
-          return accumulator + cValue;},1);
-          node.yy = node.aggregateRoot.yy + hops;
-          this.ypos = max([this.ypos, node.yy]);
-        } else {
-          this.ypos = this.ypos + 1;
-          node.yy = this.ypos;
-        }
+        return accumulator + cValue;
+      }, 1);
+      node.yy = node.aggregateRoot.yy + hops;
+      this.ypos = max([this.ypos, node.yy]);
+    } else {
+      this.ypos = this.ypos + 1;
+      node.yy = this.ypos;
+    }
     // }
     // }
 
     //prioritize children that are part of a pathway
     node.children
-    // .sort((a,b)=> {return a.pathway ? -1 :(b.pathway ? 1 : 0);})
-    .map((c, i) => {
-      let hops;
-      if (c.aggregated) {
-        const levels = Object.keys(c.aggregateRoot.summary).map(Number)
-        .filter((l)=> {return l<= c.level;});
-  
-        hops = levels.reduce((accumulator, level) => {
-          const cValue = level < c.level ? c.aggregateRoot.summary[level.toString()].length
-          : c.aggregateRoot.summary[level.toString()].indexOf(c.label);
-          return accumulator + cValue;},1);
+      // .sort((a,b)=> {return a.pathway ? -1 :(b.pathway ? 1 : 0);})
+      .map((c, i) => {
+        let hops;
+        if (c.aggregated) {
+          const levels = Object.keys(c.aggregateRoot.summary).map(Number)
+            .filter((l) => { return l <= c.level; });
 
-      }
+          hops = levels.reduce((accumulator, level) => {
+            const cValue = level < c.level ? c.aggregateRoot.summary[level.toString()].length
+              : c.aggregateRoot.summary[level.toString()].indexOf(c.label);
+            return accumulator + cValue;
+          }, 1);
 
-        let maxX = +max(this.graph.nodes.filter((n: any) => (n.visited && c.aggregateRoot && n.yy === c.aggregateRoot.yy+ hops)), (n: any) => n.xx);
+        }
+
+        let maxX = +max(this.graph.nodes.filter((n: any) => (n.visited && c.aggregateRoot && n.yy === c.aggregateRoot.yy + hops)), (n: any) => n.xx);
 
         if (!maxX && c.aggregateRoot) {
           maxX = 0;
         }
         c.xx = c.aggregated ? maxX + 1 : node.xx + 1;
 
-      this.layoutTreeHelper(c);
-    });
+        this.layoutTreeHelper(c);
+      });
 
   }
 
@@ -1266,26 +1270,27 @@ class Graph {
       .attr('visibility', 'hidden')
       .attr('marker-end', 'url(#edgeCircleMarker)')
       .attr('marker-start', 'url(#edgeCircleMarker)')
-      .on('click',(d:any)=> {
-        
+      .on('click', (d: any) => {
+
         const actions = [{
-          'icon': 'edge', 'string': 'Add Edge from ' + d.target.title  +  ' to ' + d.source.title , 'callback': () => {
-            events.fire(REPLACE_EDGE_EVENT, {'source':d.target.uuid, 'target': d.source.uuid });
-          }},
-          {
-            'icon': 'edge', 'string': 'Add Edge from ' + d.source.title  +  ' to ' + d.target.title , 'callback': () => {
-              events.fire(REPLACE_EDGE_EVENT, {'source':d.source.uuid, 'target': d.target.uuid });
-            }}];
-        this.menuObject.addMenu(d,actions);
-        })
-      .on('mouseover',function (d) {
+          'icon': 'edge', 'string': 'Add Edge from ' + d.target.title + ' to ' + d.source.title, 'callback': () => {
+            events.fire(REPLACE_EDGE_EVENT, { 'source': d.target.uuid, 'target': d.source.uuid });
+          }
+        },
+        {
+          'icon': 'edge', 'string': 'Add Edge from ' + d.source.title + ' to ' + d.target.title, 'callback': () => {
+            events.fire(REPLACE_EDGE_EVENT, { 'source': d.source.uuid, 'target': d.target.uuid });
+          }
+        }];
+        this.menuObject.addMenu(d, actions);
+      })
+      .on('mouseover', function (d) {
         select('#treeMenu').select('.menu').remove();
         select(this).classed('highlightEdge', true);
-        return self.ttip.addTooltip('edge',d);
+        return self.ttip.addTooltip('edge', d);
       })
-      .on('mouseout',function (d) {
+      .on('mouseout', function (d) {
         select(this).classed('highlightEdge', false);
-        console.log(select('#tooltipMenu').size(), select('#tooltipMenu').select('svg').size())
         select('#tooltipMenu').select('svg').remove();
       });
 
@@ -1301,31 +1306,32 @@ class Graph {
         return this.elbow(d, this.lineFunction, d.visible);
       });
 
-      const aggregateRoots = graph.nodes.filter((n)=>n.summary && n.children.length>0 && n.children[0].aggregated);
-      const aggregateIcons = [];
+    const aggregateRoots = graph.nodes.filter((n) => n.summary && n.children.length > 0 && n.children[0].aggregated);
+    const aggregateIcons = [];
 
-      aggregateRoots.map((r)=> {
-        const levels = Object.keys(r.summary);
-        levels.map((l)=> {
-          r.summary[l].map(((n)=> {
-            const xx =r.xx+ +l*.5;
+    aggregateRoots.map((r) => {
+      const levels = Object.keys(r.summary);
+      levels.map((l) => {
+        r.summary[l].map(((n) => {
+          const xx = r.xx + +l * .5;
 
-              //find offset
-              const lev = Object.keys(r.summary).map(Number)
-              .filter((ll)=> {return ll<= +l;});
+          //find offset
+          const lev = Object.keys(r.summary).map(Number)
+            .filter((ll) => { return ll <= +l; });
 
-              const hops = lev.reduce((accumulator, level) => {
-              const cValue = level < +l ? r.summary[level.toString()].length
+          const hops = lev.reduce((accumulator, level) => {
+            const cValue = level < +l ? r.summary[level.toString()].length
               : r.summary[level.toString()].indexOf(n);
-              return accumulator + cValue;},1);
+            return accumulator + cValue;
+          }, 1);
 
-            const yy =r.yy+ hops; // + r.summary[l].indexOf(n)+1 ;
-            aggregateIcons.push({uuid:r.uuid+'_'+l+'_'+n,label:n,visible:true,aggregated:false,title:'',xx,yy});
-          })
+          const yy = r.yy + hops; // + r.summary[l].indexOf(n)+1 ;
+          aggregateIcons.push({ uuid: r.uuid + '_' + l + '_' + n, label: n, visible: true, aggregated: false, title: '', xx, yy });
+        })
 
-          );
-        });
+        );
       });
+    });
 
     let node = this.svg.select('.nodes')
       .selectAll('.title')
@@ -1348,10 +1354,21 @@ class Graph {
       .html((d) => {
         return d.aggregated ? '<tspan class="icon">' + Config.icons.aggregateIcon + '</tspan>' : '.<tspan class="icon">' + Config.icons[d.label] + '</tspan> ' + d.title;
       });
-      // Config.icons.aggregateIcon
-      // Config.icons[d.label]
+    // Config.icons.aggregateIcon
+    // Config.icons[d.label]
 
-      node.classed('aggregated',(n)=> n.aggregated);
+    node
+    .on('mouseover',(d:any)=> {
+      if (d.aggregated) {
+        self.ttip.addTooltip('node', d);
+      }
+    })
+    .on('mouseout',(d:any)=> {
+      if (d.aggregated) {
+        select('#tooltipMenu').select('svg').remove();
+      }
+    });
+    node.classed('aggregated', (n) => n.aggregated);
 
 
     node.append('title')
@@ -1363,36 +1380,30 @@ class Graph {
     node
       .transition('t')
       .duration(1000)
-      // .attr('cx', (d) => {
-      //   return xScale(d.x);
-      // })
-      // .attr('cy', (d) => {
-      //   return yScale(d.y);
-      // });
       .attr('x', (d) => {
-        const xpos = d.aggregated ? Math.floor((d.xx-1)/3)* this.xScale.invert(6) + d.aggregateRoot.xx + 1 + d.level*0.5 : undefined;
-        return d.aggregated ? xScale(xpos): xScale(d.xx) + this.radius;
+        const xpos = d.aggregated ? Math.floor((d.xx - 1) / 3) * this.xScale.invert(6) + d.aggregateRoot.xx + 1 + d.level * 0.5 : undefined;
+        return d.aggregated ? xScale(xpos) : xScale(d.xx) + this.radius;
       })
       .attr('y', (d) => {
-        const ypos = d.yy +.5 - (1/3*((d.xx-1)%3+1)*this.yScale.invert(18));
-        return d.aggregated ? yScale(ypos) :yScale(d.yy);
+        const ypos = d.yy + .5 - (1 / 3 * ((d.xx - 1) % 3 + 1) * this.yScale.invert(18));
+        return d.aggregated ? yScale(ypos) : yScale(d.yy);
       })
-      .on('end', (d,i)=> {
+      .on('end', (d, i) => {
 
-              // console.log(i,select('.nodes').selectAll('text').size())
-              if (i>=select('.nodes').selectAll('text').size()-1) {
-                const nodeGroupWidth = document.getElementById('nodeGroup').getBoundingClientRect().width;
-                    console.log('here')
-                      //set width of svg to size of node group + margin.left
-                      select('#graph')
-                      .transition('t')
-                      .duration(500)
-                      .attr('width',nodeGroupWidth + this.margin.left + 50);
-                
-                      select('#hiddenLinks')
-                      .attr('transform', 'translate(' + (nodeGroupWidth + 50 - Config.glyphSize) + ' ,0)');
-              }
-             
+        // console.log(i,select('.nodes').selectAll('text').size())
+        if (i >= select('.nodes').selectAll('text').size() - 1) {
+          const nodeGroupWidth = document.getElementById('nodeGroup').getBoundingClientRect().width;
+          console.log('here')
+          //set width of svg to size of node group + margin.left
+          select('#graph')
+            .transition('t')
+            .duration(500)
+            .attr('width', nodeGroupWidth + this.margin.left + 50);
+
+          select('#hiddenLinks')
+            .attr('transform', 'translate(' + (nodeGroupWidth + 50 - Config.glyphSize) + ' ,0)');
+        }
+
       });
 
     this.addHightlightBars();
@@ -1400,8 +1411,8 @@ class Graph {
     select('#graph')
       .attr('height', document.getElementById('genealogyTree').getBoundingClientRect().height + this.margin.top * 2);
 
-    
-      
+
+
 
 
 
@@ -1479,7 +1490,7 @@ class Graph {
       })
       .on('mouseover', (d) => {
         const selectedText = selectAll('.title').select('text').filter((l: any) => { return l.title === d.title; });
-        selectedText.html((dd: any) => { return '<tspan class="icon">'+ Config.icons[dd.label] + '</tspan> ' + dd.title; });
+        selectedText.html((dd: any) => { return '<tspan class="icon">' + Config.icons[dd.label] + '</tspan> ' + dd.title; });
         this.highlightRows(d);
       })
       .on('mouseout', (d) => {
@@ -1721,7 +1732,7 @@ class Graph {
 
     //   const className = 'starRect_' + this.createID(d.data.title);
     //   console.log(this)
-      
+
     //   select('.'+className).attr('opacity',.2);
 
     // }
@@ -1749,93 +1760,90 @@ class Graph {
             return dd.source.title === d.title || dd.target.title === d.title;
           });
 
-          // element.attr('clip-path', 'undefined');
-          // element.attr('mask', 'undefined');
+          //for non aggregate rows only
+          if (!d.aggregated) {
+            const currentText = select('.nodes').selectAll('.title').filter((t: any) => { return t.title === d.title; });
 
-          const currentText = select('.nodes').selectAll('.title').filter((t: any) => { return t.title === d.title; });
+            selectAll('tspan.menu').remove();
 
-          selectAll('tspan.menu').remove();
+            currentText.append('tspan')
+              .attr('class', 'icon menu')
+              .text('  ' + (remove ? Config.icons.settingsCollapse : Config.icons.settingsExpand));
 
-          // if (currentText.select('tspan').size() <1) {
-          currentText.append('tspan')
-            .attr('class','icon menu')
-            .text('  ' + (remove ? Config.icons.settingsCollapse : Config.icons.settingsExpand));
-          // // }
-
-          currentText.selectAll('tspan')
-            // .on('mouseover', () => { console.log('hovering'); })
-            // .on('mouseout',()=> {selectAll('tspan').remove();})
-            .on('click', () => {
-              const remove = d.children.length > 0;
-              const removeAdjMatrix = this.tableManager.colOrder.indexOf(d.title) > -1;
-              const removeAttr = this.tableManager.colOrder.indexOf('age') > -1;
-              let actions = [{
-                'icon': remove ? 'RemoveChildren' : 'AddChildren', 'string': remove ? 'Remove All Children' : 'Add All Neighbors', 'callback': () => {
-                  events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': remove });
-                }
-              },
-              // {
-              //   'icon': removeAttr ? 'RemoveChildren' : 'AddChildren', 'string': removeAttr ? 'Remove Attribute' : 'Add Attribute', 'callback': () => {
-              //     events.fire(ATTR_COL_ADDED, { 'db': this.selectedDB, 'name': 'age', 'type':'int', 'remove': removeAttr });
-              //     events.fire(ATTR_COL_ADDED, { 'db': this.selectedDB, 'name': 'gender', 'type':'categorical', 'remove': removeAttr });
-              //     events.fire(ATTR_COL_ADDED, { 'db': this.selectedDB, 'name': 'battle_type', 'type':'string', 'remove': removeAttr });
-              //   }
-              // },
-              {
-                'icon': 'RemoveNode', 'string': 'Remove Node  (leaves children)', 'callback': () => {
-                  events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': true, 'includeChildren': false });
-                }
-              },
-              {
-                'icon': 'MakeRoot', 'string': 'Make Root', 'callback': () => {
-                  // console.log(d);
-                  events.fire(ROOT_CHANGED_EVENT, { 'root': d });
-                }
-              },
-              {
-                'icon': 'Add2Matrix', 'string': removeAdjMatrix ? 'Remove from Table' : 'Add to Table', 'callback': () => {
-                  events.fire(ADJ_MATRIX_CHANGED, { 'db': this.selectedDB, 'name': d.title, 'uuid': d.uuid, 'remove': removeAdjMatrix });
-                }
-              }];
-
-              if (!d.pathway) {
-                actions = actions.concat(
-                  [ {
-                  'icon': 'setPathway', 'string': 'Set as Pathway Start', 'callback': () => {
-                    events.fire(PATHWAY_SELECTED, { 'start':true, 'uuid': d.uuid });
+            currentText.selectAll('tspan')
+              .on('click', () => {
+                const remove = d.children.length > 0;
+                const removeAdjMatrix = this.tableManager.colOrder.indexOf(d.title) > -1;
+                const removeAttr = this.tableManager.colOrder.indexOf('age') > -1;
+                let actions = [{
+                  'icon': remove ? 'RemoveChildren' : 'AddChildren', 'string': remove ? 'Remove All Children' : 'Add All Neighbors', 'callback': () => {
+                    events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': remove });
                   }
-                }]);
-              }
-              if (this.pathway.start && !d.pathway) {
-                actions = actions.concat(
-                  [{
-                  'icon': 'setPathway', 'string': 'Set as Pathway End', 'callback': () => {
-                    events.fire(PATHWAY_SELECTED, { 'end':true, 'uuid': d.uuid });
+                },
+                // {
+                //   'icon': removeAttr ? 'RemoveChildren' : 'AddChildren', 'string': removeAttr ? 'Remove Attribute' : 'Add Attribute', 'callback': () => {
+                //     events.fire(ATTR_COL_ADDED, { 'db': this.selectedDB, 'name': 'age', 'type':'int', 'remove': removeAttr });
+                //     events.fire(ATTR_COL_ADDED, { 'db': this.selectedDB, 'name': 'gender', 'type':'categorical', 'remove': removeAttr });
+                //     events.fire(ATTR_COL_ADDED, { 'db': this.selectedDB, 'name': 'battle_type', 'type':'string', 'remove': removeAttr });
+                //   }
+                // },
+                {
+                  'icon': 'RemoveNode', 'string': 'Remove Node  (leaves children)', 'callback': () => {
+                    events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': true, 'includeChildren': false });
                   }
-                }]);
-              }
-              if (d.pathway) {
-                actions = actions.concat(
-                  [{
-                    'icon': 'setPathway', 'string': 'Clear Pathway', 'callback': () => {
-                      events.fire(PATHWAY_SELECTED, { 'clear':true});
-                    }
-                  }]
-                );
-              }
-              if (d.children.length > 0) {
-                const aggregate = d.children[0] && !d.children[0].aggregated;
-                actions = actions.concat(
-                  [{
-                    'icon': 'Aggregate', 'string': aggregate ? 'Aggregate Children' : 'Expand Children', 'callback': () => {
-                      events.fire(AGGREGATE_CHILDREN, { 'uuid': d.uuid, 'aggregate': aggregate });
-                    }
-                  }]
-                );
-              }
-              
-              this.menuObject.addMenu(d, actions);
-            });
+                },
+                {
+                  'icon': 'MakeRoot', 'string': 'Make Root', 'callback': () => {
+                    // console.log(d);
+                    events.fire(ROOT_CHANGED_EVENT, { 'root': d });
+                  }
+                },
+                {
+                  'icon': 'Add2Matrix', 'string': removeAdjMatrix ? 'Remove from Table' : 'Add to Table', 'callback': () => {
+                    events.fire(ADJ_MATRIX_CHANGED, { 'db': this.selectedDB, 'name': d.title, 'uuid': d.uuid, 'remove': removeAdjMatrix });
+                  }
+                }];
+
+                if (!d.pathway) {
+                  actions = actions.concat(
+                    [{
+                      'icon': 'setPathway', 'string': 'Set as Pathway Start', 'callback': () => {
+                        events.fire(PATHWAY_SELECTED, { 'start': true, 'uuid': d.uuid });
+                      }
+                    }]);
+                }
+                if (this.pathway.start && !d.pathway) {
+                  actions = actions.concat(
+                    [{
+                      'icon': 'setPathway', 'string': 'Set as Pathway End', 'callback': () => {
+                        events.fire(PATHWAY_SELECTED, { 'end': true, 'uuid': d.uuid });
+                      }
+                    }]);
+                }
+                if (d.pathway) {
+                  actions = actions.concat(
+                    [{
+                      'icon': 'setPathway', 'string': 'Clear Pathway', 'callback': () => {
+                        events.fire(PATHWAY_SELECTED, { 'clear': true });
+                      }
+                    }]
+                  );
+                }
+                if (d.children.length > 0) {
+                  const aggregate = d.children[0] && !d.children[0].aggregated;
+                  actions = actions.concat(
+                    [{
+                      'icon': 'Aggregate', 'string': aggregate ? 'Aggregate Children' : 'Expand Children', 'callback': () => {
+                        events.fire(AGGREGATE_CHILDREN, { 'uuid': d.uuid, 'aggregate': aggregate });
+                      }
+                    }]
+                  );
+                }
+
+                this.menuObject.addMenu(d, actions);
+              });
+          }
+
           this.highlightRows(e);
         }
       })
@@ -1864,33 +1872,33 @@ class Graph {
         }
       })
 
-      //CLICK CALLBACK FOR HIGHLIGHT BARS. DO NOT DELETE. 
-      // .on('click', (d: any, i) => {
-      //   if (event.defaultPrevented) { return; } // dragged
+    //CLICK CALLBACK FOR HIGHLIGHT BARS. DO NOT DELETE. 
+    // .on('click', (d: any, i) => {
+    //   if (event.defaultPrevented) { return; } // dragged
 
-      //   const wasSelected = selectAll('.highlightBar').filter((e: any) => {
-      //     return e.yy === d.yy || e.y === Math.round(d.yy);
-      //   }).classed('selected');
+    //   const wasSelected = selectAll('.highlightBar').filter((e: any) => {
+    //     return e.yy === d.yy || e.y === Math.round(d.yy);
+    //   }).classed('selected');
 
 
-      //   //'Unselect all other background bars if ctrl was not pressed
-      //   if (!event.metaKey) {
-      //     selectAll('.slopeLine').classed('clickedSlope', false);
-      //     selectAll('.highlightBar').classed('selected', false);
-      //   }
+    //   //'Unselect all other background bars if ctrl was not pressed
+    //   if (!event.metaKey) {
+    //     selectAll('.slopeLine').classed('clickedSlope', false);
+    //     selectAll('.highlightBar').classed('selected', false);
+    //   }
 
-      //   selectAll('.slopeLine').filter((e: any) => {
-      //     return e.yy === d.yy || e.yy === Math.round(d.yy);
-      //   }).classed('clickedSlope', function () {
-      //     return (!wasSelected);
-      //   });
+    //   selectAll('.slopeLine').filter((e: any) => {
+    //     return e.yy === d.yy || e.yy === Math.round(d.yy);
+    //   }).classed('clickedSlope', function () {
+    //     return (!wasSelected);
+    //   });
 
-      //   selectAll('.highlightBar').filter((e: any) => {
-      //     return e.yy === d.yy || e.yy === Math.round(d.yy);
-      //   }).classed('selected', function () {
-      //     return (!wasSelected);
-      //   });
-      // });
+    //   selectAll('.highlightBar').filter((e: any) => {
+    //     return e.yy === d.yy || e.yy === Math.round(d.yy);
+    //   }).classed('selected', function () {
+    //     return (!wasSelected);
+    //   });
+    // });
 
     // selectAll('.bars')
     //   .selectAll('.backgroundBar')
@@ -1906,7 +1914,7 @@ class Graph {
       let returnValue = false;
       //Highlight the current row in the graph and table
 
-       if (e.y === Math.round(d.y) || e.yy === Math.round(d.y) || e.y === Math.round(d.yy) || e.yy === Math.round(d.yy) ) {
+      if (e.y === Math.round(d.y) || e.yy === Math.round(d.y) || e.y === Math.round(d.yy) || e.yy === Math.round(d.yy)) {
         returnValue = true;
       }
       return returnValue;
@@ -1915,14 +1923,14 @@ class Graph {
     //Set opacity of corresponding highlightBar
     selectAll('.highlightBar').filter(selected).attr('opacity', .2);
 
-    
-      const className = 'starRect_' + this.createID(d.data.title);
-      select('.'+className).attr('opacity',.2);
+
+    const className = 'starRect_' + this.createID(d.data.title);
+    select('.' + className).attr('opacity', .2);
   }
 
   private clearHighlights() {
     selectAll('.highlightBar').attr('opacity', 0);
-    selectAll('.starRect').attr('opacity',0);
+    selectAll('.starRect').attr('opacity', 0);
   }
 
 
@@ -1938,7 +1946,7 @@ class Graph {
     //   i = hiddenEdges.indexOf(d.target);
     //   console.log(hiddenEdges,i)
     // }
-     
+
     let source = d.source;
     let target = d.target;
 
@@ -1964,7 +1972,7 @@ class Graph {
       },
       {
         x: nx,
-        y: target.yy 
+        y: target.yy
       },
       {
         x: target.xx,
@@ -1977,10 +1985,10 @@ class Graph {
       //   (l.target.uuid === source.uuid || l.source.uuid === source.uuid || l.source.uuid === target.uuid || l.source.uuid === target.uuid);})
       //   .sort((a,b)=> {return Math.abs(a.target.yy - a.source.yy) >  Math.abs(b.target.yy - b.source.yy);});
 
-      nx = -this.xScale.invert(Math.pow(Math.abs(target.yy - source.yy),1)*5);
+      nx = -this.xScale.invert(Math.pow(Math.abs(target.yy - source.yy), 1) * 5);
       // nx = -this.xScale.invert((allEdges.indexOf(d)+1)*10);
       // nx = -this.xScale.invert((i+1)*(i+1));
-      
+
       //Straight Lines
       // linedata = [{
       //   x: 0,

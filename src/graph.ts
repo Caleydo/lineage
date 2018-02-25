@@ -1097,7 +1097,7 @@ class Graph {
     // }
 
     //sort Children alphabetically
-    node.children.sort((a,b)=> {return a<b;});
+    node.children.sort((a,b)=> { return a.title < b.title ? -1 : 1;});
     //prioritize children that are part of a pathway
     node.children
       // .sort((a,b)=> {return a.pathway ? -1 :(b.pathway ? 1 : 0);})

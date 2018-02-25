@@ -5,9 +5,9 @@ body, html {
 	width: 100%;
 }
 
-.icon{
-  font-family: font-awesome;
-}
+// .icon, .endMarker{
+//   font-family: font-awesome;
+// }
 .title.aggregated tspan{
   fill:#7b94a9;
   font-size:5px;
@@ -40,6 +40,14 @@ td {
   cursor:pointer;
   text-anchor: start;
   
+}
+
+.endMarker{
+  font-family: FontAwesome;
+  font-size: 18px;
+  alignment-baseline:middle;
+  fill:#bcb9b9;
+  cursor:default;
 }
 
 
@@ -102,6 +110,8 @@ td {
 .cell .label{
   pointer-events: none;
 }
+
+
 
 .edge.hiddenEdge.highlightEdge{
   stroke: rgb(232, 108, 55);

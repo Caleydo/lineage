@@ -66,8 +66,11 @@ export class Config {
       settingsExpand:'\uf105',
       settingsCollapse:'\uf107',
 
+      arrowRight:'\uf0da',
+      arrowDown:'\uf0d7',
+
       menu:'\uf141',
-      // settingsCollapse:'\uf013',
+      settings:'\uf013',
 
       aggregateIcon:'\uf04d',
 

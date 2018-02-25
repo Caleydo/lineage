@@ -113,8 +113,6 @@ class ToolTip {
             content = data.title;
         }
 
-        console.log(content)
-
         let menuWidth = 100; //dummy value. to be updated;
         let menuHeight = 30;
 

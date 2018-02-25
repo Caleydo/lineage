@@ -1140,7 +1140,24 @@ class Graph {
       .attr('class', 'edge');
 
     link.exit().remove();
-    // link = linksEnter.merge(link);
+
+
+    let linkEndMarkers = this.svg.select('.visibleLinks')
+      .selectAll('.endMarker')
+      .data(graph.links.filter((l) => { return l.source.visible && !l.source.aggregated && !l.target.aggregated && l.target.visible && l.visible; }), (d) => {
+        const st = this.createID(d.source.title);
+        const tt = this.createID(d.target.title);
+        return st + '_' + tt + '_endMarker';
+      });
+
+    const linkEndMarkersEnter = linkEndMarkers
+      .enter()
+      .append('text')
+      .attr('class', 'endMarker');
+
+    linkEndMarkers.exit().remove();
+
+    linkEndMarkers = linkEndMarkers.merge(linkEndMarkersEnter);
 
 
     link = this.svg.select('.hiddenLinks')
@@ -1181,80 +1198,38 @@ class Graph {
     this.xScale = xScale;
     this.yScale = yScale;
 
-    // let linkClips = this.svg.select('defs')
-    //   .selectAll('clipPath')
-    //   .data(graph.links.filter((l) => { return l.source.visible && l.target.visible; }), (d) => {
-    //     const st = this.createID(d.source.title);
-    //     const tt = this.createID(d.target.title);
-    //     return st + '_' + tt;
-    //   });
+    const self = this;
+
+    linkEndMarkers
+      .text((d) => {
+        const child = [d.source, d.target].reduce((acc, cValue) => { return cValue.yy > acc.yy ? cValue : acc; });
+        // const parent = [d.source,d.target].reduce((acc, cValue) => {return cValue.yy < acc.yy ?  cValue : acc;});
+        return child.children.length > 0 ? Config.icons.arrowDown : Config.icons.arrowRight;
+      })
+      .on('click', function (d) {
+        const child = [d.source, d.target].reduce((acc, cValue) => { return cValue.yy > acc.yy ? cValue : acc; });
+        const remove = child.children.length > 0;
+        select(this).text((d: any) => {
+          return remove ? Config.icons.arrowDown : Config.icons.arrowRight;
+        });
+
+        events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': self.selectedDB, 'rootID': child.uuid, 'replace': false, 'remove': remove });
+      });
 
 
-    // const linkClipsEnter = linkClips.enter()
-    //   .append('clipPath')
-    //   .attr('id', (d) => {
-    //     const st = this.createID(d.source.title);
-    //     const tt = this.createID(d.target.title);
-    //     return st + '_' + tt;
-    //   });
-
-    // linkClipsEnter
-    //   .append('circle')
-    //   .attr('id', 'sourceCircle');
-
-    // linkClipsEnter
-    //   .append('circle')
-    //   .attr('id', 'targetCircle');
-
-    // linkClips.exit().remove();
-
-    // linkClips = linkClips.merge(linkClipsEnter);
-
-    // linkClips.select('#sourceCircle')
-    //   // .attr('cx', (d) => { return xScale(d.source.xx); })
-    //   .attr('cx', (d) => { return xScale.range()[1]; })
-    //   .attr('cy', (d) => { return yScale(d.source.yy); })
-    //   .attr('r', this.radius * 0.9);
+    linkEndMarkers
+      .transition('t')
+      .duration(1000)
+      .attr('x', (d: any, i) => {
+        const child = [d.source, d.target].reduce((acc, cValue) => { return cValue.yy > acc.yy ? cValue : acc; });
+        return child.children.length > 0 ? this.xScale(child.xx) - 5 : this.xScale(child.xx) - 2;
+      })
+      .attr('y', (d: any, i) => {
+        const child = [d.source, d.target].reduce((acc, cValue) => { return cValue.yy > acc.yy ? cValue : acc; });
+        return this.yScale(child.yy) + 1;
+      })
 
 
-    // linkClips.select('#targetCircle')
-    //   // .attr('cx', (d) => { return xScale(d.target.xx); })
-    //   .attr('cx', (d) => { return xScale.range()[1]; })
-    //   .attr('cy', (d) => { return yScale(d.target.yy); })
-    //   .attr('r', this.radius * 0.9);
-
-
-    // this.svg.select('defs')
-    //   .selectAll('mask').remove();
-
-    // let linkMasks = this.svg.select('defs')
-    //   .selectAll('mask')
-    //   .data(graph.links.filter((l) => { return l.source.visible && l.target.visible && !l.visible; }), (d) => {
-    //     return d.index;
-    //   });
-
-    // const linkMasksEnter = linkMasks.enter()
-    //   .append('mask')
-    //   .attr('id', (d) => {
-    //     const st = this.createID(d.source.title);
-    //     const tt = this.createID(d.target.title);
-    //     return 'm_' + st + '_' + tt;
-    //   });
-
-    // linkMasksEnter
-    //   .append('circle')
-    //   .attr('id', 'sourceCircleMask')
-    //   .attr('r', this.radius * 2)
-    //   .attr('fill', 'url(#radialGrad)');
-
-    // linkMasksEnter
-    //   .append('circle')
-    //   .attr('id', 'targetCircleMask')
-    //   .attr('r', this.radius * 2)
-    //   .attr('fill', 'url(#radialGrad)');
-
-    // linkMasks.exit().remove();
-    // linkMasks = linkMasks.merge(linkMasksEnter);
 
     selectAll('.edge')
       .classed('visible', (d: any) => {
@@ -1265,7 +1240,7 @@ class Graph {
       })
       .on('click', ((d: any) => console.log(d, d.visible, d.source.title, d.target.title)));
 
-    const self = this;
+
     selectAll('.hiddenEdge')
       .attr('visibility', 'hidden')
       .attr('marker-end', 'url(#edgeCircleMarker)')
@@ -1358,16 +1333,16 @@ class Graph {
     // Config.icons[d.label]
 
     node
-    .on('mouseover',(d:any)=> {
-      if (d.aggregated) {
-        self.ttip.addTooltip('node', d);
-      }
-    })
-    .on('mouseout',(d:any)=> {
-      if (d.aggregated) {
-        select('#tooltipMenu').select('svg').remove();
-      }
-    });
+      .on('mouseover', (d: any) => {
+        if (d.aggregated) {
+          self.ttip.addTooltip('node', d);
+        }
+      })
+      .on('mouseout', (d: any) => {
+        if (d.aggregated) {
+          select('#tooltipMenu').select('svg').remove();
+        }
+      });
     node.classed('aggregated', (n) => n.aggregated);
 
 
@@ -1768,41 +1743,42 @@ class Graph {
 
             currentText.append('tspan')
               .attr('class', 'icon menu')
-              .text('  ' + (remove ? Config.icons.settingsCollapse : Config.icons.settingsExpand));
+              .text('  ' + Config.icons.settings);
 
             currentText.selectAll('tspan')
               .on('click', () => {
                 const remove = d.children.length > 0;
                 const removeAdjMatrix = this.tableManager.colOrder.indexOf(d.title) > -1;
                 const removeAttr = this.tableManager.colOrder.indexOf('age') > -1;
-                let actions = [{
-                  'icon': remove ? 'RemoveChildren' : 'AddChildren', 'string': remove ? 'Remove All Children' : 'Add All Neighbors', 'callback': () => {
-                    events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': remove });
-                  }
-                },
-                // {
-                //   'icon': removeAttr ? 'RemoveChildren' : 'AddChildren', 'string': removeAttr ? 'Remove Attribute' : 'Add Attribute', 'callback': () => {
-                //     events.fire(ATTR_COL_ADDED, { 'db': this.selectedDB, 'name': 'age', 'type':'int', 'remove': removeAttr });
-                //     events.fire(ATTR_COL_ADDED, { 'db': this.selectedDB, 'name': 'gender', 'type':'categorical', 'remove': removeAttr });
-                //     events.fire(ATTR_COL_ADDED, { 'db': this.selectedDB, 'name': 'battle_type', 'type':'string', 'remove': removeAttr });
-                //   }
-                // },
-                {
-                  'icon': 'RemoveNode', 'string': 'Remove Node  (leaves children)', 'callback': () => {
-                    events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': true, 'includeChildren': false });
-                  }
-                },
-                {
-                  'icon': 'MakeRoot', 'string': 'Make Root', 'callback': () => {
-                    // console.log(d);
-                    events.fire(ROOT_CHANGED_EVENT, { 'root': d });
-                  }
-                },
-                {
-                  'icon': 'Add2Matrix', 'string': removeAdjMatrix ? 'Remove from Table' : 'Add to Table', 'callback': () => {
-                    events.fire(ADJ_MATRIX_CHANGED, { 'db': this.selectedDB, 'name': d.title, 'uuid': d.uuid, 'remove': removeAdjMatrix });
-                  }
-                }];
+                let actions = [
+                  //   {
+                  //   'icon': remove ? 'RemoveChildren' : 'AddChildren', 'string': remove ? 'Remove All Children' : 'Add All Neighbors', 'callback': () => {
+                  //     events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': remove });
+                  //   }
+                  // },
+                  // {
+                  //   'icon': removeAttr ? 'RemoveChildren' : 'AddChildren', 'string': removeAttr ? 'Remove Attribute' : 'Add Attribute', 'callback': () => {
+                  //     events.fire(ATTR_COL_ADDED, { 'db': this.selectedDB, 'name': 'age', 'type':'int', 'remove': removeAttr });
+                  //     events.fire(ATTR_COL_ADDED, { 'db': this.selectedDB, 'name': 'gender', 'type':'categorical', 'remove': removeAttr });
+                  //     events.fire(ATTR_COL_ADDED, { 'db': this.selectedDB, 'name': 'battle_type', 'type':'string', 'remove': removeAttr });
+                  //   }
+                  // },
+                  {
+                    'icon': 'RemoveNode', 'string': 'Remove Node  (leaves children)', 'callback': () => {
+                      events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': true, 'includeChildren': false });
+                    }
+                  },
+                  {
+                    'icon': 'MakeRoot', 'string': 'Make Root', 'callback': () => {
+                      // console.log(d);
+                      events.fire(ROOT_CHANGED_EVENT, { 'root': d });
+                    }
+                  },
+                  {
+                    'icon': 'Add2Matrix', 'string': removeAdjMatrix ? 'Remove from Table' : 'Add to Table', 'callback': () => {
+                      events.fire(ADJ_MATRIX_CHANGED, { 'db': this.selectedDB, 'name': d.title, 'uuid': d.uuid, 'remove': removeAdjMatrix });
+                    }
+                  }];
 
                 if (!d.pathway) {
                   actions = actions.concat(

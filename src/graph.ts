@@ -1052,7 +1052,9 @@ class Graph {
       return n.visited === false;
     }).length > 0) {
 
-      const roots = this.graph.nodes.filter((n) => { return n.parent === undefined; });
+      // const roots = this.graph.nodes.filter((n) => { return n.parent === undefined; });
+      // const roots = this.graph.nodes.filter((n) => { return n.parent === undefined; });
+      const roots = this.graph.nodes.filter((n) => { return this.graph.root.indexOf(n.uuid) > -1; });
 
       //Start with preferential root, then pick node with highest degree if none was supplied.
       const root = (roots && roots.filter((r) => { return !r.visited; }).length > 0) ? roots.filter((r) => { return !r.visited; })[0] :
@@ -1327,7 +1329,8 @@ class Graph {
 
     node
       .html((d) => {
-        return d.aggregated ? '<tspan class="icon">' + Config.icons.aggregateIcon + '</tspan>' : '.<tspan class="icon">' + Config.icons[d.label] + '</tspan> ' + d.title;
+        return d.aggregated ? '<tspan class="icon">' + Config.icons.aggregateIcon + '</tspan>'
+        : '.<tspan class="icon">' + Config.icons[d.label] + '</tspan> ' + '<tspan class="titleContent">' + d.title + '</tspan>';
       });
     // Config.icons.aggregateIcon
     // Config.icons[d.label]
@@ -1745,7 +1748,11 @@ class Graph {
               .attr('class', 'icon menu')
               .text('  ' + Config.icons.settings);
 
-            currentText.selectAll('tspan')
+            currentText.selectAll('.icon.menu')
+              // .on('mousoever',this.highlightRow)
+              .on('mouseover', (d) => {
+                this.highlightRows(d);
+              })
               .on('click', () => {
                 const remove = d.children.length > 0;
                 const removeAdjMatrix = this.tableManager.colOrder.indexOf(d.title) > -1;
@@ -1845,6 +1852,7 @@ class Graph {
           //   return 'url(#m_' + st + '_' + tt + ')';
           // });
           this.clearHighlights();
+          // selectAll('tspan.menu').remove();
         }
       })
 
@@ -1899,9 +1907,11 @@ class Graph {
     //Set opacity of corresponding highlightBar
     selectAll('.highlightBar').filter(selected).attr('opacity', .2);
 
-
-    const className = 'starRect_' + this.createID(d.data.title);
-    select('.' + className).attr('opacity', .2);
+    if (d.data) {
+      const className = 'starRect_' + this.createID(d.data.title);
+      select('.' + className).attr('opacity', .2);
+    }
+    
   }
 
   private clearHighlights() {

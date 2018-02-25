@@ -39,8 +39,28 @@ td {
   fill:  #555;
   cursor:pointer;
   text-anchor: start;
+  alignment-baseline:middle;
   
 }
+
+.title .titleContent{
+  pointer-events:none;
+  alignment-baseline:central;
+}
+
+.title .icon{
+  pointer-events:none;
+  alignment-baseline:central;
+}
+
+.title .menu{
+  pointer-events:all
+}
+
+.title.aggregated{
+  pointer-events:all;
+}
+
 
 .endMarker{
   font-family: FontAwesome;
@@ -159,13 +179,12 @@ td {
   font-size:13px
 }
 
-.title tspan{
+.title .icon{
   alignment-baseline:central;
   // text-anchor: middle;
   fill:#7a7877;
   font-weight: bold;
   font-size:15px;
-  pointer-events: all;
 }
 
 .treeLink{

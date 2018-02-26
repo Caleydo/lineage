@@ -149,7 +149,7 @@ class Graph {
     select('#graph')
       .on('click', () => { select('.menu').remove(); });
 
-    
+
 
     events.on(REPLACE_EDGE_EVENT, (evt, info) => {
 
@@ -171,7 +171,7 @@ class Graph {
 
       //remove target from list of old parent's children
       const oldChild = oldParent.children.indexOf(child);
-      console.log('oldChild', oldChild)
+      console.log('oldChild', oldChild);
       oldParent.children.splice(oldChild, 1);
 
       //make old edge hidden
@@ -202,7 +202,7 @@ class Graph {
         return (ll.source.uuid === source.uuid && ll.target.uuid === target.uuid)
           || (ll.target.uuid === source.uuid && ll.source.uuid === target.uuid); //if we don't care about direction
       })[0];
-      console.log('newEdge', newEdge)
+      console.log('newEdge', newEdge);
 
       newEdge.visible = true;
       newEdge.visited = true;
@@ -214,7 +214,7 @@ class Graph {
       this.exportYValues();
       this.drawTree();
 
-    })
+    });
 
     events.on(PATHWAY_SELECTED, (evt, info) => {
 
@@ -227,8 +227,8 @@ class Graph {
       }
 
 
-      let sNode = this.graph.nodes.filter((n) => n.uuid === info.uuid)[0];
-      let node = sNode;
+      const sNode = this.graph.nodes.filter((n) => n.uuid === info.uuid)[0];
+      const node = sNode;
 
       if (info.start) {
         this.pathway.start = sNode;
@@ -434,9 +434,9 @@ class Graph {
       .attr('id', 'nodeGroup');
 
       this.svg.append('g')
-      .attr('class', 'endMarkers')
+      .attr('class', 'endMarkers');
 
-    
+
 
     this.simulation = forceSimulation()
       .force('link', forceLink().id(function (d: any) { return d.index; }))
@@ -617,7 +617,7 @@ class Graph {
         if (error) {
           throw error;
         }
-        console.log('data return is ', graph)
+        console.log('data return is ', graph);
 
         //Replace graph or merge with incoming subgraph
         if (replace || !this.graph) {
@@ -1028,7 +1028,7 @@ class Graph {
       const node = queue.splice(0, 1)[0];;
       this.aggregateHelper(root, node, aggregate, queue);
     }
-    console.log(root)
+    console.log(root);
   }
 
   aggregateHelper(root, node, aggregate, queue) {
@@ -1068,7 +1068,7 @@ class Graph {
       // const roots = this.graph.nodes.filter((n) => { return n.parent === undefined; });
       // const roots = this.graph.nodes.filter((n) => { return n.parent === undefined; });
 
-      
+
       const roots = this.graph.nodes.filter((n) => { return this.graph.root.indexOf(n.uuid) > -1; });
       // console.log('roots are ', roots);
       //Start with preferential root, then pick node with highest degree if none was supplied.
@@ -1161,7 +1161,7 @@ class Graph {
 
     link.exit().remove();
 
-    
+
 
 
     let linkEndMarkers = this.svg.select('.endMarkers')
@@ -1195,7 +1195,7 @@ class Graph {
       .append('path')
       .attr('class', 'edge');
 
-  
+
 
     link.exit().remove();
     // link = linksEnter.merge(link);
@@ -1250,7 +1250,7 @@ class Graph {
         // const child = [d.source, d.target].reduce((acc, cValue) => { return cValue.yy > acc.yy ? cValue : acc; });
         const parent = [d.source, d.target].reduce((acc, cValue) => { return cValue.yy < acc.yy ? cValue : acc; });
         return this.yScale(parent.yy);
-      })
+      });
 
 
 
@@ -1264,7 +1264,7 @@ class Graph {
       .attr('y', (d: any, i) => {
         const child = [d.source, d.target].reduce((acc, cValue) => { return cValue.yy > acc.yy ? cValue : acc; });
         return this.yScale(child.yy) + 1;
-      })
+      });
 
 
 
@@ -1296,7 +1296,7 @@ class Graph {
           }
         }];
 
-        console.log(parentNode.title,childNode.title,areDescendantes)
+        console.log(parentNode.title,childNode.title,areDescendantes);
         if (!areDescendantes) {
           actions = actions.concat({
             'icon': 'edge', 'string': 'Add ' + childNode.title + ' ---> ' + parentNode.title + ' edge', 'callback': () => {
@@ -1369,7 +1369,7 @@ class Graph {
 
     node.exit().remove();
 
-    //place new nodes @ parent's location; 
+    //place new nodes @ parent's location;
     nodesEnter
     // .attr('opacity',0)
     .attr('x', (d) => {
@@ -1427,7 +1427,7 @@ class Graph {
         // console.log(i,select('.nodes').selectAll('text').size())
         if (i >= select('.nodes').selectAll('text').size() - 1) {
           const nodeGroupWidth = document.getElementById('nodeGroup').getBoundingClientRect().width;
-          console.log('here')
+          console.log('here');
           //set width of svg to size of node group + margin.left
           select('#graph')
             .transition('t')
@@ -1915,9 +1915,9 @@ class Graph {
           this.clearHighlights();
           // selectAll('tspan.menu').remove();
         }
-      })
+      });
 
-    //CLICK CALLBACK FOR HIGHLIGHT BARS. DO NOT DELETE. 
+    //CLICK CALLBACK FOR HIGHLIGHT BARS. DO NOT DELETE.
     // .on('click', (d: any, i) => {
     //   if (event.defaultPrevented) { return; } // dragged
 
@@ -1972,7 +1972,7 @@ class Graph {
       const className = 'starRect_' + this.createID(d.data.title);
       select('.' + className).attr('opacity', .2);
     }
-    
+
   }
 
   private clearHighlights() {

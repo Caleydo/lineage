@@ -187,8 +187,8 @@ class SetSelector {
         const coordinates = mouse(container);
 
         select('#nodeFilter').select('.dropdown-menu')
-        .style('transform','translate(' + (coordinates[0] - 10) + 'px,35px)')
-        
+        .style('transform','translate(' + (coordinates[0] - 10) + 'px,35px)');
+
         select('#nodeFilter').select('.open').style('visibility','visible');
 
         // const url = 'api/data_api/properties/' + this.selectedDB;
@@ -211,8 +211,8 @@ class SetSelector {
           const menuItemsEnter = menuItems.enter()
             .append('li')
             .append('a')
-            .attr('class', 'dropdown-item demoAttr')
-            
+            .attr('class', 'dropdown-item demoAttr');
+
 
           menuItems.exit().remove();
 
@@ -226,7 +226,7 @@ class SetSelector {
             const removeAttr = this.tableManager.colOrder.indexOf(d) > -1;
               events.fire(ATTR_COL_ADDED, { 'db': this.selectedDB, 'name': d, 'remove': removeAttr });
           });
-            
+
 
 
         // });
@@ -388,7 +388,7 @@ class SetSelector {
     this.selectedDB = db;
     const self = this;
 
-    let url = 'api/data_api/labels/' + db;
+    const url = 'api/data_api/labels/' + db;
 
     json(url, (error, graphData: any) => {
 
@@ -438,24 +438,22 @@ class SetSelector {
       });
 
       const url2 = 'api/data_api/properties/' + this.selectedDB;
-      
+
               json(url2, (error, resultObj: any) => {
                 if (error) {
                   throw error;
                 }
-                
+
                 resultObj.properties.map((prop) => {
                     if (this.labelProperties[prop.label]) {
                       this.labelProperties[prop.label].push(prop.property);
                     } else {
                       this.labelProperties[prop.label]=[prop.property];
                     }
-                    
+
                 });
-          
+
               });
-
-
 
     });
 

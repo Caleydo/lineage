@@ -279,7 +279,7 @@ class AttributeTable {
 
 
       });
-      
+
 
     // const list = dropdownMenu.append('li').attr('class', 'dropdown');
 
@@ -929,7 +929,7 @@ class AttributeTable {
       const type = vector.desc.value.type;
       const name = vector.desc.name;
 
-      const firstNonAdjMatrix = index <orderedCols.length-1 && type === VALUE_TYPE_ADJMATRIX && orderedCols[index+1].desc.value.type !== VALUE_TYPE_ADJMATRIX; 
+      const firstNonAdjMatrix = index <orderedCols.length-1 && type === VALUE_TYPE_ADJMATRIX && orderedCols[index+1].desc.value.type !== VALUE_TYPE_ADJMATRIX;
       let maxOffset = firstNonAdjMatrix ? max(this.colOffsets)+30 :  max(this.colOffsets);
       if (type === VALUE_TYPE_CATEGORICAL) {
 
@@ -977,8 +977,7 @@ class AttributeTable {
         } else {
           this.colOffsets.push(maxOffset + 2 + this.colWidths[type]);
         }
-      }
-      else {
+      } else {
         // const maxOffset = max(this.colOffsets);
         if (this.customColWidths[name]) {
           this.colOffsets.push(maxOffset + this.buffer + this.customColWidths[name]);
@@ -1520,7 +1519,7 @@ class AttributeTable {
     selectAll('.rowLine')
       .attr('x1', ()=> {
         const firstTableCol=[];
-        const colVector = this.tableManager.colOrder.filter((colName)=> { 
+        const colVector = this.tableManager.colOrder.filter((colName)=> {
           for (const vector of this.allCols) {
             if (vector.desc.name === colName && vector.desc.value.type !== VALUE_TYPE_ADJMATRIX ) {
               firstTableCol.push(vector);
@@ -1924,9 +1923,9 @@ class AttributeTable {
         })
         .on('click', ((d) => { this.addMenu(d); }));
     };
-    
 
-    
+
+
 
     // icon
     //   .text('\uf0de')

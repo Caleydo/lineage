@@ -206,7 +206,7 @@ export default class TableManager {
         events.fire(COL_ORDER_CHANGED_EVENT);
       } else {
 
-        
+
      const url = 'api/data_api/property/' + info.db + '/' + info.name ;
 
               json(url, (error, resultObj: any) => {
@@ -221,15 +221,15 @@ export default class TableManager {
                 const type = typeof dataValues[0]  === 'number' ? VALUE_TYPE_INT : VALUE_TYPE_STRING;
                   //Add fake vector here:
                  const arrayVector = arrayVec.create(type);
-        
+
                 arrayVector.desc.name = info.name;
 
-                
+
                 arrayVector.dataValues = dataValues;
                 arrayVector.idValues = nodes.map((e)=> {return e.uuid;});
 
                 arrayVector.desc.value.range = [min([max(arrayVector.dataValues),0]), max(arrayVector.dataValues)];
-              
+
                 // console.log(arrayVector);
 
                 //if it's not already in there:

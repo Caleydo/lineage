@@ -149,6 +149,8 @@ class Graph {
     select('#graph')
       .on('click', () => { select('.menu').remove(); });
 
+    
+
     events.on(REPLACE_EDGE_EVENT, (evt, info) => {
 
 
@@ -426,6 +428,11 @@ class Graph {
     this.svg.append('g')
       .attr('class', 'nodes')
       .attr('id', 'nodeGroup');
+
+      this.svg.append('g')
+      .attr('class', 'endMarkers')
+
+    
 
     this.simulation = forceSimulation()
       .force('link', forceLink().id(function (d: any) { return d.index; }))
@@ -1148,7 +1155,7 @@ class Graph {
     
 
 
-    let linkEndMarkers = this.svg.select('.nodes')
+    let linkEndMarkers = this.svg.select('.endMarkers')
       .selectAll('.endMarker')
       .data(graph.links.filter((l) => { return l.source.visible && !l.source.aggregated && !l.target.aggregated && l.target.visible && l.visible; }), (d) => {
         const st = this.createID(d.source.title);
@@ -1227,10 +1234,11 @@ class Graph {
       //set initial position to parent
       linkEndMarkersEnter
       .attr('x', (d: any, i) => {
-        const parent = [d.source, d.target].reduce((acc, cValue) => { return cValue.yy < acc.yy ? cValue : acc; });
-        return this.xScale(parent.xx);
+        const child = [d.source, d.target].reduce((acc, cValue) => { return cValue.yy > acc.yy ? cValue : acc; });
+        return this.xScale(child.xx);
       })
       .attr('y', (d: any, i) => {
+        // const child = [d.source, d.target].reduce((acc, cValue) => { return cValue.yy > acc.yy ? cValue : acc; });
         const parent = [d.source, d.target].reduce((acc, cValue) => { return cValue.yy < acc.yy ? cValue : acc; });
         return this.yScale(parent.yy);
       })
@@ -1345,11 +1353,13 @@ class Graph {
 
     //place new nodes @ parent's location; 
     nodesEnter
+    // .attr('opacity',0)
     .attr('x', (d) => {
-      return d.parent? xScale(d.parent.xx) + this.radius : xScale(d.xx) + this.radius;
+      return xScale(d.xx) + this.radius;
     })
     .attr('y', (d) => {
       return d.parent ? yScale(d.parent.yy) : yScale(d.yy);
+      // return yScale(d.yy)-200;
     });
 
     node = nodesEnter.merge(node);
@@ -1385,6 +1395,7 @@ class Graph {
     node
       .transition('t')
       .duration(1000)
+      // .attr('opacity',1)
       .attr('x', (d) => {
         const xpos = d.aggregated ? Math.floor((d.xx - 1) / 3) * this.xScale.invert(6) + d.aggregateRoot.xx + 1 + d.level * 0.5 : undefined;
         return d.aggregated ? xScale(xpos) : xScale(d.xx) + this.radius;

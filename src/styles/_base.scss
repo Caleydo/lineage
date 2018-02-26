@@ -32,6 +32,13 @@ td {
   fill:none;
 }
 
+.open{
+  position:absolute;
+}
+
+.dropdown-item.demoAttr{
+  cursor:default;
+}
 .title{
   // text-decoration: underline;
   font-size:14px;

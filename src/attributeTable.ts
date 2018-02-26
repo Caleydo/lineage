@@ -279,6 +279,7 @@ class AttributeTable {
 
 
       });
+      
 
     const list = dropdownMenu.append('li').attr('class', 'dropdown');
 
@@ -587,7 +588,9 @@ class AttributeTable {
     const graphView = await this.tableManager.graphTable;
     const attributeView = await this.tableManager.tableTable;
 
-    const allCols = this.tableManager.adjMatrixCols.concat(graphView.cols()).concat(attributeView.cols());
+    const allCols = this.tableManager.adjMatrixCols; //.concat(graphView.cols()).concat(attributeView.cols());
+
+
 
     //update tableManager colOrder;
     // this.tableManager.colOrder = this.tableManager.colOrder.length < 1 ?
@@ -2367,7 +2370,6 @@ class AttributeTable {
    */
 
   private async renderIntHeaderHist(element, headerData) {
-    console.log(headerData);
     //Check for custom column width value, if none, use default
     const colWidth = this.customColWidths[headerData.name] || this.colWidths.int;
 
@@ -2951,7 +2953,6 @@ class AttributeTable {
       .domain([0, 1])
       .range([rowHeight * 0.3, rowHeight * 0.7]);
 
-      console.log(cellData.vector.desc.value.range)
     this.xScale
       .domain(cellData.vector.desc.value.range)
       .range([colWidth * 0.1, colWidth * 0.9])

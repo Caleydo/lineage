@@ -206,19 +206,29 @@ export default class TableManager {
         events.fire(COL_ORDER_CHANGED_EVENT);
       } else {
 
-        //Add fake vector here:
-        const arrayVector = arrayVec.create(info.type);
-
-        arrayVector.desc.name = info.name;
-
-       const url = 'api/data_api/property/' + info.db + '/' + info.name ;
+        
+     const url = 'api/data_api/property/' + info.db + '/' + info.name ;
 
               json(url, (error, resultObj: any) => {
                 if (error) {
                   throw error;
                 }
+
                 const nodes = resultObj.results;
-                arrayVector.dataValues = nodes.map((e)=> {return e.value;});
+                const dataValues = nodes.map((e)=> {return isNaN(+e.value) ? e.value : +e.value ;});;
+
+                //infer type here:
+                const type = typeof dataValues[0]  === 'number' ? VALUE_TYPE_INT : VALUE_TYPE_STRING;
+
+                console.log(info.name, dataValues,type)
+              
+                  //Add fake vector here:
+                 const arrayVector = arrayVec.create(type);
+        
+                arrayVector.desc.name = info.name;
+
+                
+                arrayVector.dataValues = dataValues;
                 arrayVector.idValues = nodes.map((e)=> {return e.uuid;});
 
                 arrayVector.desc.value.range = [min([max(arrayVector.dataValues),0]), max(arrayVector.dataValues)];
@@ -227,11 +237,13 @@ export default class TableManager {
 
                 //if it's not already in there:
                 if (this.adjMatrixCols.filter((a:any )=> {return a.desc.name === arrayVector.desc.name; }).length<1) {
+                  console.log('adding to tableMatrixCols', arrayVector.desc.name)
                   this.adjMatrixCols =this.adjMatrixCols.concat(arrayVector); //store array of vectors
                 }
 
                 //if it's not already in there:
                 if (this.colOrder.filter((a:any )=> {return a === arrayVector.desc.name; }).length<1) {
+                  console.log('adding to colOrder', arrayVector.desc.name)
                   this.colOrder = [arrayVector.desc.name].concat(this.colOrder); // store array of names
                 }
 
@@ -303,7 +315,7 @@ export default class TableManager {
       this.defaultCols = ['KindredID', 'RelativeID', 'sex', 'deceased', 'suicide', 'Age','LabID','bipolar spectrum illness','anxiety-non-trauma','alcohol','PD','psychosis','depression','cause_death']; //set of default cols to read in, minimizes load time for large files;
 
     } else {
-      this.defaultCols = ['name'];
+      this.defaultCols = [];
     };
 
     this.colOrder = this.defaultCols;

@@ -101,9 +101,11 @@ class ToolTip {
             content = (data.type === 'categorical' ? (data.name + '(' + data.category + ') ') : data.name);
         } else if (type === 'edge') {
 
-            content = '<tspan x="10" dy="0em"> SOURCE: ' + data.source.title
-            + '</tspan> <tspan x="10" dy="1.5em"> TARGET: ' + data.target.title + '</tspan>'
-            + '</tspan> <tspan x="10" dy="1.5em"> EDGE TYPE: ' + data.edge.type;
+            // content = '<tspan x="10" dy="0em"> SOURCE: ' + data.source.title
+            // + '</tspan> <tspan x="10" dy="1.5em"> TARGET: ' + data.target.title + '</tspan>'
+            // + '</tspan> <tspan x="10" dy="1.5em"> EDGE TYPE: ' + data.edge.type;
+
+            content = '<tspan x="10" dy="0em">' + data.source.title  + ' --' + data.edge.type + '-- ' + data.target.title + '</tspan>'
             if (data.edge.data) {
                 Object.keys(data.edge.data).map((key,i)=> {
                     content = content.concat(' <tspan x="20" dy="1.5em">' + key + ':' +  data.edge.data[key] + '</tspan>');
@@ -147,10 +149,6 @@ class ToolTip {
         // menuWidth = textNode.getComputedTextLength() + 20;
         menuWidth = document.getElementById('textGroup').getBoundingClientRect().width+20;
         menuHeight = document.getElementById('textGroup').getBoundingClientRect().height+10;
-
-        console.log(menuWidth, menuHeight)
-
-        // menuWidth = 100;
 
         select('#tooltipMenu').select('.menu')
             .attr('transform', 'translate(' + (coordinates[0] - menuWidth - 20) + ',' + (coordinates[1] - menuHeight / 2) + ')');

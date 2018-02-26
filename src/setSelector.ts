@@ -21,7 +21,8 @@ import {
 } from 'd3-array';
 
 import {
-  event
+  event,
+  mouse
 } from 'd3-selection';
 
 import {
@@ -32,7 +33,7 @@ import * as _ from 'underscore';
 
 import IFamilyInfo from './tableManager';
 
-import { FAMILY_INFO_UPDATED, TABLE_VIS_ROWS_CHANGED_EVENT, ADJ_MATRIX_CHANGED } from './tableManager';
+import { FAMILY_INFO_UPDATED, TABLE_VIS_ROWS_CHANGED_EVENT, ADJ_MATRIX_CHANGED, ATTR_COL_ADDED } from './tableManager';
 
 export const SUBGRAPH_CHANGED_EVENT = 'subgraph_changed';
 export const FILTER_CHANGED_EVENT = 'filter_changed_event';
@@ -50,6 +51,8 @@ class SetSelector {
 
   private selectedDB;
 
+  private labelProperties={};
+
   private headerInfo = [
     { 'header': 'Name', 'dataAttr': 'title' },
     { 'header': 'Degree', 'dataAttr': 'degree' }];
@@ -60,8 +63,25 @@ class SetSelector {
 
     //add nodeFilter div to header
     select('#caleydoHeader')
-    .append('div')
-    .attr('id','nodeFilter');
+      .append('div')
+      .attr('id', 'nodeFilter');
+
+    //add dropdown menu for table attributes
+
+    const dropdownMenu = select('#nodeFilter')
+      .append('div')
+      .append('g')
+      .attr('class', 'open')
+      .style('visibility','hidden');
+
+    const menuList = dropdownMenu.append('ul').attr('class', 'dropdown-menu');
+
+    menuList.append('tspan').attr('class', 'dropdown-header')
+      .style('font-size', '16px')
+      .html('Attributes');
+
+    menuList.append('li').attr('class', 'divider').attr('role', 'separator');
+
   }
 
   /**
@@ -112,7 +132,7 @@ class SetSelector {
     //add nodeAttribute filter
     select('#nodeFilter').selectAll('.panel').remove(); //total hack.
 
-    
+
     //creat an accordion div and a table for each label
     const p = select('#nodeFilter')
       .selectAll('.panel-default')
@@ -149,28 +169,84 @@ class SetSelector {
       .attr('class', 'panel-body')
       .attr('id', 'filterPanel');
 
-    const cboxes = 
-    select('#filterPanel')
-      .selectAll('.checkbox')
-      .data(labels)
-      .enter()
-      .append('div');
+    const cboxes =
+      select('#filterPanel')
+        .selectAll('.checkbox')
+        .data(labels)
+        .enter()
+        .append('div');
 
     const label = cboxes
       .attr('class', 'checkbox')
       .append('label')
-      .on('click',function (d:any){
-        console.log('fired event')
-        events.fire(FILTER_CHANGED_EVENT,{'label':d.name, 'exclude':!select(this).classed('exclude')});
-        select(this).classed('exclude',!select(this).classed('exclude'));
+      .on('click', (d: any) => {
+
+        event.stopPropagation();
+
+        const container = document.getElementById('app');
+        const coordinates = mouse(container);
+
+        select('#nodeFilter').select('.dropdown-menu')
+        .style('transform','translate(' + (coordinates[0] - 10) + 'px,35px)')
+        
+        select('#nodeFilter').select('.open').style('visibility','visible');
+
+        // const url = 'api/data_api/properties/' + this.selectedDB;
+
+        // json(url, (error, resultObj: any) => {
+        //   if (error) {
+        //     throw error;
+        //   }
+
+        //   const attr = [];
+        //   resultObj.properties.map((prop) => {
+        //     if (prop.label === d.name) {
+        //       attr.push(prop.property);
+        //     }
+        //   });
+
+          let menuItems = select('#nodeFilter').select('.dropdown-menu').selectAll('.demoAttr')
+            .data(this.labelProperties[d.name]);
+
+          const menuItemsEnter = menuItems.enter()
+            .append('li')
+            .append('a')
+            .attr('class', 'dropdown-item demoAttr')
+            
+
+          menuItems.exit().remove();
+
+          menuItems = menuItems.merge(menuItemsEnter);
+
+          menuItems
+          .html((d: any) => { return d; })
+          .classed('active', (d) => {
+            return this.tableManager.colOrder.includes(d); })
+          .on('click',(d)=> {
+            const removeAttr = this.tableManager.colOrder.indexOf(d) > -1;
+              events.fire(ATTR_COL_ADDED, { 'db': this.selectedDB, 'name': d, 'remove': removeAttr });
+          });
+            
+
+
+        // });
+
+
+
+
+
+        // events.fire(ATTR_COL_ADDED, { 'db': this.selectedDB, 'name': 'age', 'type':'int', 'remove': removeAttr });
+
+        // events.fire(FILTER_CHANGED_EVENT, { 'label': d.name, 'exclude': !select(this).classed('exclude') });
+        // select(this).classed('exclude', !select(this).classed('exclude'));
       });
 
     label
       .html(function (d: any) {
-        return select(this).html() + '<tspan class="icon">' + Config.icons[d.name] + '</tspan> ' + d.name + ' [0] ' ; //+  Config.icons.menu;
+        return select(this).html() + '<tspan class="icon">' + Config.icons[d.name] + '</tspan> ' + d.name + ' [0] '; //+  Config.icons.menu;
       });
-      
-      select('#col1').select('#accordion').selectAll('.panel').remove(); //total hack.
+
+    select('#col1').select('#accordion').selectAll('.panel').remove(); //total hack.
 
 
     //creat an accordion div and a table for each label
@@ -230,19 +306,19 @@ class SetSelector {
     panels = panels.merge(panelsEnter);
 
     select('#col1')
-    .selectAll('a')
-      .text((d: any) => { return d.name +  ' (' + d.size + ')'; });
-
-      select('#nodeFilter')
       .selectAll('a')
-        .text((d: any) => { return d;});
+      .html((d: any) => { return '<tspan class="icon">' + Config.icons[d.name] + '</tspan> ' + d.name + ' (' + d.size + ')'; });
 
-      select('#col1')
+    // select('#nodeFilter')
+    //   .selectAll('a')
+    //   .text((d: any) => { return d; });
+
+    select('#col1')
       .select('#accordion').selectAll('.panel-body')
-      .attr('id', (d:any) => { return d.name + '_body'; });
+      .attr('id', (d: any) => { return d.name + '_body'; });
 
     // Populate Headers
-    labels.map((d:any) => { this.updateTableHeader('#' + d.name + '_body'); });
+    labels.map((d: any) => { this.updateTableHeader('#' + d.name + '_body'); });
 
 
   }
@@ -309,12 +385,10 @@ class SetSelector {
    */
   public buildTables(db) {
 
-
     this.selectedDB = db;
     const self = this;
 
-
-    const url = 'api/data_api/labels/' + db;
+    let url = 'api/data_api/labels/' + db;
 
     json(url, (error, graphData: any) => {
 
@@ -323,17 +397,17 @@ class SetSelector {
       const data = graphData.labels;
 
       const datalistItems = [];
-      const labels = data.map((d) => { return {name:d.name, size:d.nodes.length};});
+      const labels = data.map((d) => { return { name: d.name, size: d.nodes.length }; });
       this.build(labels);
 
       // this.updateFilterPanel(labels);
 
-      select('#searchBoxInput').on('input', function(e) {
-        const input =select('#searchBoxInput');
-        if(input.property('value').length < 3) {
-            input.attr('list', '');
+      select('#searchBoxInput').on('input', function (e) {
+        const input = select('#searchBoxInput');
+        if (input.property('value').length < 3) {
+          input.attr('list', '');
         } else {
-            input.attr('list', 'allNodes');
+          input.attr('list', 'allNodes');
         }
       });
 
@@ -360,12 +434,30 @@ class SetSelector {
 
 
       data.map((d) => {
-        this.populateTableRows('#' + d.name + '_body', d.nodes.slice(0,50), this.headerInfo.length);
+        this.populateTableRows('#' + d.name + '_body', d.nodes.slice(0, 50), this.headerInfo.length);
       });
 
 
 
     });
+
+    const url2 = 'api/data_api/properties/' + this.selectedDB;
+
+        json(url2, (error, resultObj: any) => {
+          if (error) {
+            throw error;
+          }
+          
+          resultObj.properties.map((prop) => {
+              if (this.labelProperties[prop.label]) {
+                this.labelProperties[prop.label].push(prop.property);
+              } else {
+                this.labelProperties[prop.label]=[prop.property];
+              }
+              
+          });
+    
+        });
 
   }
 
@@ -389,35 +481,42 @@ class SetSelector {
 
     rows.on('click', (d: any) => {
       const removeAdjMatrix = this.tableManager.colOrder.indexOf(d.title) > -1;
-      console.log(d);
-      const actions = [{ 'icon': 'AddSubGraph', 'string': 'Add Node + Neighbors to Tree', 'callback': ()=> {
-        events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.id,'replace': false }); //default values for include root and children is true;
-      } },
-      { 'icon': 'AddChildren', 'string': 'Add Neighbors to Tree', 'callback': ()=> {
-        events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.id, 'includeRoot':false, 'replace': false });
-      } }
-      ,
-      { 'icon': 'AddNode', 'string': 'Add Node to Tree', 'callback': ()=> {
-        events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.id,'includeChildren':false, 'replace': false });
-      } },
+      const actions = [{
+        'icon': 'AddSubGraph', 'string': 'Add Node + Neighbors to Tree', 'callback': () => {
+          events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.id, 'replace': false }); //default values for include root and children is true;
+        }
+      },
+      {
+        'icon': 'AddChildren', 'string': 'Add Neighbors to Tree', 'callback': () => {
+          events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.id, 'includeRoot': false, 'replace': false });
+        }
+      }
+        ,
+      {
+        'icon': 'AddNode', 'string': 'Add Node to Tree', 'callback': () => {
+          events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.id, 'includeChildren': false, 'replace': false });
+        }
+      },
       {
         'icon': 'Add2Matrix', 'string': removeAdjMatrix ? 'Remove from Table' : 'Add to Table', 'callback': () => {
           events.fire(ADJ_MATRIX_CHANGED, { 'db': this.selectedDB, 'name': d.title, 'uuid': d.id, 'remove': removeAdjMatrix });
         }
       }
-    ];
+      ];
 
-      this.menuObject.addMenu(d,actions);
+      this.menuObject.addMenu(d, actions);
     })
-    .on('mouseover',function (d:any) {select(this).select('td').html(() => {
-      return '<span class="title">' + d.title + '</span>';
-    });
-  })
-    .on('mouseout',function (d:any) {select(this).select('td').html(() => {
-      const cellString = d.title.length >14 ? d.title.slice(0,12) + '...' :  d.title.slice(0,12);
-      return '<span class="title">' + cellString + '</span>';
-    });
-  });
+      .on('mouseover', function (d: any) {
+        select(this).select('td').html(() => {
+          return '<span class="title">' + d.title + '</span>';
+        });
+      })
+      .on('mouseout', function (d: any) {
+        select(this).select('td').html(() => {
+          const cellString = d.title.length > 14 ? d.title.slice(0, 12) + '...' : d.title.slice(0, 12);
+          return '<span class="title">' + cellString + '</span>';
+        });
+      });
 
     //
     // create a cell in each row for each column
@@ -443,7 +542,7 @@ class SetSelector {
         const width = (i < 2 ? 10 : (90 / numCols));
         return width + '%';
       });
-      // .style('text-align', 'center');
+    // .style('text-align', 'center');
 
     cells
       .filter((c: any) => {
@@ -452,7 +551,7 @@ class SetSelector {
       // cells
       .html((d: any) => {
         // console.log(d);
-        const cellString = d.value.length >14 ? d.value.slice(0,12) + '...' :  d.value.slice(0,12);
+        const cellString = d.value.length > 14 ? d.value.slice(0, 12) + '...' : d.value.slice(0, 12);
         return '<span class="title">' + cellString + '</span>';
       });
 

@@ -219,9 +219,6 @@ export default class TableManager {
 
                 //infer type here:
                 const type = typeof dataValues[0]  === 'number' ? VALUE_TYPE_INT : VALUE_TYPE_STRING;
-
-                console.log(info.name, dataValues,type)
-              
                   //Add fake vector here:
                  const arrayVector = arrayVec.create(type);
         
@@ -233,17 +230,15 @@ export default class TableManager {
 
                 arrayVector.desc.value.range = [min([max(arrayVector.dataValues),0]), max(arrayVector.dataValues)];
               
-                console.log(arrayVector);
+                // console.log(arrayVector);
 
                 //if it's not already in there:
                 if (this.adjMatrixCols.filter((a:any )=> {return a.desc.name === arrayVector.desc.name; }).length<1) {
-                  console.log('adding to tableMatrixCols', arrayVector.desc.name)
                   this.adjMatrixCols =this.adjMatrixCols.concat(arrayVector); //store array of vectors
                 }
 
                 //if it's not already in there:
                 if (this.colOrder.filter((a:any )=> {return a === arrayVector.desc.name; }).length<1) {
-                  console.log('adding to colOrder', arrayVector.desc.name)
                   this.colOrder = [arrayVector.desc.name].concat(this.colOrder); // store array of names
                 }
 

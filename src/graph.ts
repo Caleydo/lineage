@@ -153,14 +153,18 @@ class Graph {
 
     events.on(REPLACE_EDGE_EVENT, (evt, info) => {
 
-
-
       //replace parent of selected target as source
       const source = this.graph.nodes.filter((node) => { return node.uuid === info.source; })[0];
       const target = this.graph.nodes.filter((node) => { return node.uuid === info.target; })[0];
 
-      console.log('source is ', source.title)
-      console.log('target is ', target.title)
+      const childNode = [source, target].reduce((acc, cValue) => { return cValue.yy > acc.yy ? cValue : acc; });
+      const parentNode = [source, target].reduce((acc, cValue) => { return cValue.yy < acc.yy ? cValue : acc; });
+
+      console.log('child is ', childNode.title);
+      console.log('parent is ', parentNode.title);
+
+      console.log('source is ', source.title);
+      console.log('target is ', target.title);
 
       const oldParent = target.parent ? target.parent : source.parent;
       const child = target.parent ? target : source;
@@ -605,6 +609,8 @@ class Graph {
       } else {
         url = root ? 'api/data_api/graph/' + db + '/' + rootURI + '/' + includeRoot.toString() : 'api/data_api/graph/' + db;
       }
+
+      // url = url + '?treeNodes=' + (this.graph ? this.graph.nodes.map((n)=> {return n.uuid;}) : '');
 
       console.log('url is ', url);
       json(url, (error, graph: any) => {
@@ -1061,14 +1067,17 @@ class Graph {
 
       // const roots = this.graph.nodes.filter((n) => { return n.parent === undefined; });
       // const roots = this.graph.nodes.filter((n) => { return n.parent === undefined; });
-      const roots = this.graph.nodes.filter((n) => { return this.graph.root.indexOf(n.uuid) > -1; });
 
+      
+      const roots = this.graph.nodes.filter((n) => { return this.graph.root.indexOf(n.uuid) > -1; });
+      // console.log('roots are ', roots);
       //Start with preferential root, then pick node with highest degree if none was supplied.
       const root = (roots && roots.filter((r) => { return !r.visited; }).length > 0) ? roots.filter((r) => { return !r.visited; })[0] :
         this.graph.nodes.filter((n) => {
           return n.visited === false;
         }).reduce((a, b) => this.nodeNeighbors[a.uuid].degree > this.nodeNeighbors[b.uuid].degree ? a : b);
 
+      // console.log('visiting root', root.title)
       root.xx = 0;
       this.layoutTree(root);
     }
@@ -1275,16 +1284,25 @@ class Graph {
       .attr('marker-start', 'url(#edgeCircleMarker)')
       .on('click', (d: any) => {
 
-        const actions = [{
-          'icon': 'edge', 'string': 'Add Edge from ' + d.target.title + ' to ' + d.source.title, 'callback': () => {
-            events.fire(REPLACE_EDGE_EVENT, { 'source': d.target.uuid, 'target': d.source.uuid });
-          }
-        },
-        {
-          'icon': 'edge', 'string': 'Add Edge from ' + d.source.title + ' to ' + d.target.title, 'callback': () => {
-            events.fire(REPLACE_EDGE_EVENT, { 'source': d.source.uuid, 'target': d.target.uuid });
+        //check if they are direct descendants.
+        const childNode = [d.source, d.target].reduce((acc, cValue) => { return cValue.yy > acc.yy ? cValue : acc; });
+        const parentNode = [d.source, d.target].reduce((acc, cValue) => { return cValue.yy < acc.yy ? cValue : acc; });
+
+        const areDescendantes = this.areDescendants(parentNode,childNode);
+
+        let actions = [{
+          'icon': 'edge', 'string': 'Add ' + parentNode.title + ' ---> ' + childNode.title +  ' edge' , 'callback': () => {
+            events.fire(REPLACE_EDGE_EVENT, { 'source': parentNode.uuid, 'target': childNode.uuid });
           }
         }];
+
+        console.log(parentNode.title,childNode.title,areDescendantes)
+        if (!areDescendantes) {
+          actions = actions.concat({
+            'icon': 'edge', 'string': 'Add ' + childNode.title + ' ---> ' + parentNode.title + ' edge', 'callback': () => {
+              events.fire(REPLACE_EDGE_EVENT, { 'source': childNode.uuid, 'target': parentNode.uuid });
+            }});
+        }
         this.menuObject.addMenu(d, actions);
       })
       .on('mouseover', function (d) {
@@ -1432,6 +1450,23 @@ class Graph {
 
 
 
+  }
+
+  areDescendants(parent,child) {
+    let value = false;
+    if (parent.children.length<1) {
+      return false;
+    }
+
+    if (parent.children.filter((c)=> {return c.uuid === child.uuid;}).length>0) {
+      return true;
+    } else {
+
+      parent.children.map((c)=> {
+        value = false || this.areDescendants(c,child);
+      });
+      return value;
+    }
   }
 
   drawGraph() {

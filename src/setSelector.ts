@@ -437,27 +437,27 @@ class SetSelector {
         this.populateTableRows('#' + d.name + '_body', d.nodes.slice(0, 50), this.headerInfo.length);
       });
 
+      const url2 = 'api/data_api/properties/' + this.selectedDB;
+      
+              json(url2, (error, resultObj: any) => {
+                if (error) {
+                  throw error;
+                }
+                
+                resultObj.properties.map((prop) => {
+                    if (this.labelProperties[prop.label]) {
+                      this.labelProperties[prop.label].push(prop.property);
+                    } else {
+                      this.labelProperties[prop.label]=[prop.property];
+                    }
+                    
+                });
+          
+              });
+
 
 
     });
-
-    const url2 = 'api/data_api/properties/' + this.selectedDB;
-
-        json(url2, (error, resultObj: any) => {
-          if (error) {
-            throw error;
-          }
-          
-          resultObj.properties.map((prop) => {
-              if (this.labelProperties[prop.label]) {
-                this.labelProperties[prop.label].push(prop.property);
-              } else {
-                this.labelProperties[prop.label]=[prop.property];
-              }
-              
-          });
-    
-        });
 
   }
 

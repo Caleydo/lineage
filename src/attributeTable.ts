@@ -176,8 +176,8 @@ class AttributeTable {
     //   .append('a').attr('class', 'navbar-brand')
     //   .html('Attribute Table');
 
-    const dropdownMenu = select('.navbar-collapse')
-      .append('ul').attr('class', 'nav navbar-nav navbar-left').attr('id', 'attributeMenu');
+    // const dropdownMenu = select('.navbar-collapse')
+    //   .append('ul').attr('class', 'nav navbar-nav navbar-left').attr('id', 'attributeMenu');
 
     select('.navbar-collapse')
       .append('ul').attr('class', 'nav navbar-nav').attr('id', 'Export')
@@ -227,12 +227,12 @@ class AttributeTable {
       .html('Sort by Tree')
       .on('click', (d) => {
 
-        const maxWidth = max(this.colOffsets) + 50;
-        this.$node.select('#headers')
-          .attr('width', maxWidth);
+        // const maxWidth = max(this.colOffsets) + 50;
+        // this.$node.select('#headers')
+        //   .attr('width', maxWidth);
 
-        this.$node.select('.tableSVG')
-          .attr('width', maxWidth);
+        // this.$node.select('.tableSVG')
+        //   .attr('width', maxWidth);
 
         const animated = (this.sortAttribute.state !== sortedState.Unsorted) ? (d) => d.transition(this.t2) : (d) => d;
 
@@ -241,32 +241,32 @@ class AttributeTable {
         selectAll('.sortIcon')
           .classed('sortSelected', false);
 
-        animated(select('#col2'))
-          .style('width', (550 + Config.collapseSlopeChartWidth) + 'px');
+        // animated(select('#col2'))
+        //   .style('width', (550 + Config.collapseSlopeChartWidth) + 'px');
 
         animated(select('#columns').selectAll('.cell'))
           .attr('transform', (cell: any) => {
             return ('translate(0, ' + this.y(this.rowOrder[cell.ind]) + ' )');
           });
 
-        //translate tableGroup to make room for the slope lines.
-        animated(select('#tableGroup'))
-          // .transition(t2)
-          .attr('transform', () => {
-            return ('translate(0,0)');
-          });
+        // //translate tableGroup to make room for the slope lines.
+        // animated(select('#tableGroup'))
+        //   // .transition(t2)
+        //   .attr('transform', () => {
+        //     return ('translate(0,0)');
+        //   });
 
-        animated(select('#headerGroup'))
-          // .transition(t2)
-          .attr('transform', () => {
-            return ('translate(0,80)');
-          });
+        // animated(select('#headerGroup'))
+        //   // .transition(t2)
+        //   .attr('transform', () => {
+        //     return ('translate(0,80)');
+        //   });
 
-        animated(select('#colSummaries'))
-          // .transition(t2)
-          .attr('transform', () => {
-            return ('translate(0 ,15)');
-          });
+        // animated(select('#colSummaries'))
+        //   // .transition(t2)
+        //   .attr('transform', () => {
+        //     return ('translate(0 ,15)');
+        //   });
 
         animated(select('#tableGroup').selectAll('.highlightBar'))
           // .transition(t2)
@@ -274,75 +274,75 @@ class AttributeTable {
             return this.y(this.rowOrder[d.i]);
           });
 
-        this.updateSlopeLines(true, false); //animate = true, expanded = false;
+        // this.updateSlopeLines(true, false); //animate = true, expanded = false;
 
 
 
       });
       
 
-    const list = dropdownMenu.append('li').attr('class', 'dropdown');
+    // const list = dropdownMenu.append('li').attr('class', 'dropdown');
 
-    list
-      .append('a')
-      .attr('class', 'dropdown-toggle')
-      .attr('data-toggle', 'dropdown')
-      .attr('role', 'button')
-      .html('Table Attributes')
-      .append('span')
-      .attr('class', 'caret');
+    // list
+    //   .append('a')
+    //   .attr('class', 'dropdown-toggle')
+    //   .attr('data-toggle', 'dropdown')
+    //   .attr('role', 'button')
+    //   .html('Table Attributes')
+    //   .append('span')
+    //   .attr('class', 'caret');
 
-    const menu = list.append('ul').attr('class', 'dropdown-menu');
+    // const menu = list.append('ul').attr('class', 'dropdown-menu');
 
-    menu.append('h4').attr('class', 'dropdown-header')
-      .style('font-size', '16px')
-      .html('Demographic Attributes');
+    // menu.append('h4').attr('class', 'dropdown-header')
+    //   .style('font-size', '16px')
+    //   .html('Demographic Attributes');
 
-    let colNames = this.tableManager.getDemographicColumns().map((col) => {
-      return col.desc.name;
-    });
+    // let colNames = this.tableManager.getDemographicColumns().map((col) => {
+    //   return col.desc.name;
+    // });
 
-    let menuItems = menu.selectAll('.demoAttr')
-      .data(colNames);
-    menuItems = menuItems.enter()
-      .append('li')
-      .append('a')
-      .attr('class', 'dropdown-item demoAttr')
-      .classed('active', (d) => { return this.tableManager.colOrder.includes(d); })
-      .html((d: any) => { return d; })
-      .merge(menuItems);
+    // let menuItems = menu.selectAll('.demoAttr')
+    //   .data(colNames);
+    // menuItems = menuItems.enter()
+    //   .append('li')
+    //   .append('a')
+    //   .attr('class', 'dropdown-item demoAttr')
+    //   .classed('active', (d) => { return this.tableManager.colOrder.includes(d); })
+    //   .html((d: any) => { return d; })
+    //   .merge(menuItems);
 
-    menu.append('li').attr('class', 'divider').attr('role', 'separator');
-    menu.append('h4').attr('class', 'dropdown-header').style('font-size', '16px')
-      .html('Clinical Attributes');
-    colNames = this.tableManager.getAttrColumns().map((col) => {
-      return col.desc.name;
-    });
+    // menu.append('li').attr('class', 'divider').attr('role', 'separator');
+    // menu.append('h4').attr('class', 'dropdown-header').style('font-size', '16px')
+    //   .html('Clinical Attributes');
+    // colNames = this.tableManager.getAttrColumns().map((col) => {
+    //   return col.desc.name;
+    // });
 
-    menuItems = menu.selectAll('.clinicalAttr').data(colNames);
-    menuItems = menuItems.enter()
-      .append('li')
-      .append('a')
-      .attr('class', 'dropdown-item clinicalAttr')
-      .classed('active', (d) => { return this.tableManager.colOrder.includes(d); })
-      .html((d: any) => { return d; })
-      .merge(menuItems);
+    // menuItems = menu.selectAll('.clinicalAttr').data(colNames);
+    // menuItems = menuItems.enter()
+    //   .append('li')
+    //   .append('a')
+    //   .attr('class', 'dropdown-item clinicalAttr')
+    //   .classed('active', (d) => { return this.tableManager.colOrder.includes(d); })
+    //   .html((d: any) => { return d; })
+    //   .merge(menuItems);
 
-    const self = this;
-    selectAll('.dropdown-item').on('mousedown', function (d) {
-      event.preventDefault();
-      //Check if is selected, if so remove from table.
-      if (self.tableManager.colOrder.includes(d)) {
-        self.tableManager.colOrder.splice(self.tableManager.colOrder.indexOf(d), 1);
-        select(this).classed('active', false);
-      } else {
-        const lastIndex = self.tableManager.colOrder.length;
-        self.tableManager.colOrder.splice(lastIndex, 0, d);
-        select(this).classed('active', true);
-      }
-      events.fire(COL_ORDER_CHANGED_EVENT);
+    // const self = this;
+    // selectAll('.dropdown-item').on('mousedown', function (d) {
+    //   event.preventDefault();
+    //   //Check if is selected, if so remove from table.
+    //   if (self.tableManager.colOrder.includes(d)) {
+    //     self.tableManager.colOrder.splice(self.tableManager.colOrder.indexOf(d), 1);
+    //     select(this).classed('active', false);
+    //   } else {
+    //     const lastIndex = self.tableManager.colOrder.length;
+    //     self.tableManager.colOrder.splice(lastIndex, 0, d);
+    //     select(this).classed('active', true);
+    //   }
+    //   events.fire(COL_ORDER_CHANGED_EVENT);
 
-    });
+    // });
 
     const tableDiv = this.$node.append('div')
       .attr('id', 'tableDiv');
@@ -1570,9 +1570,11 @@ class AttributeTable {
       .on('click', this.clickHighlight);
 
     selectAll('.cell')
-      .on('mouseover', (cellData) => {
+      .on('mouseover', (cellData:any) => {
         this.highlightRow(cellData);
-        this.ttip.addTooltip('cell', cellData);
+        if (cellData.type !== 'dataDensity') {
+          this.ttip.addTooltip('cell', cellData);
+        };
       })
       .on('mouseout', (d) => {
         this.clearHighlight();
@@ -1620,15 +1622,15 @@ class AttributeTable {
       this.sortRows(this.sortAttribute.data, this.sortAttribute.state, false);
     }
 
-    this.updateSlopeLines(false, this.sortAttribute.state !== sortedState.Unsorted);
+    // this.updateSlopeLines(false, this.sortAttribute.state !== sortedState.Unsorted);
 
-    //recalculate size of svgs:
-    const maxWidth = max(this.colOffsets) + 50 + (this.sortAttribute.state === sortedState.Unsorted ? 0 : Config.slopeChartWidth);
-    this.$node.select('#headers')
-      .attr('width', maxWidth);
+    // //recalculate size of svgs:
+    // const maxWidth = max(this.colOffsets) + 50 + (this.sortAttribute.state === sortedState.Unsorted ? 0 : Config.slopeChartWidth);
+    // this.$node.select('#headers')
+    //   .attr('width', maxWidth);
 
-    this.$node.select('.tableSVG')
-      .attr('width', maxWidth);
+    // this.$node.select('.tableSVG')
+    //   .attr('width', maxWidth);
 
 
   }
@@ -1794,8 +1796,8 @@ class AttributeTable {
 
     // let cellSelection = select('#columns').selectAll('.cell');
 
-    animated(select('#col2'))
-      .style('width', (550 + Config.slopeChartWidth) + 'px');
+    // animated(select('#col2'))
+    //   .style('width', (550 + Config.slopeChartWidth) + 'px');
 
 
     animated(select('#columns').selectAll('.cell'))
@@ -1806,25 +1808,25 @@ class AttributeTable {
 
     d.ind = sortedIndexes.indexOf(d.ind);
 
-    //translate tableGroup to make room for the slope lines.
-    animated(select('#tableGroup'))
-      // .transition(t2)
-      .attr('transform', (cell: any) => {
-        return ('translate(0,0)');
-      });
+    // //translate tableGroup to make room for the slope lines.
+    // animated(select('#tableGroup'))
+    //   // .transition(t2)
+    //   .attr('transform', (cell: any) => {
+    //     return ('translate(0,0)');
+    //   });
 
 
-    animated(select('#headerGroup'))
-      // .transition(t2)
-      .attr('transform', (cell: any) => {
-        return ('translate(0,80)');
-      });
+    // animated(select('#headerGroup'))
+    //   // .transition(t2)
+    //   .attr('transform', (cell: any) => {
+    //     return ('translate(0,80)');
+    //   });
 
-    animated(select('#colSummaries'))
-      //  .transition(t2)
-      .attr('transform', (cell: any) => {
-        return ('translate(0,15)');
-      });
+    // animated(select('#colSummaries'))
+    //   //  .transition(t2)
+    //   .attr('transform', (cell: any) => {
+    //     return ('translate(0,15)');
+    //   });
 
 
     //Not needed since the slopeLines are updated within this.updateSlopeLines;
@@ -1887,7 +1889,7 @@ class AttributeTable {
 
     icon
       .text('\uf0de')
-      .attr('y', cellData.type === VALUE_TYPE_ADJMATRIX ? this.rowHeight * 1.8 + 23 : this.rowHeight * 1.8 + 24)
+      .attr('y', cellData.type === VALUE_TYPE_ADJMATRIX ? this.rowHeight * 1.8 + 13 : this.rowHeight * 1.8 + 14)
       .attr('x', (d) => {
         return cellData.type === VALUE_TYPE_ADJMATRIX ? colWidth / 2 : colWidth / 2 - 5;
       });

@@ -1104,7 +1104,7 @@ class Graph {
     // }
 
     //sort Children alphabetically
-    node.children.sort((a,b)=> { return a.title < b.title ? -1 : 1;});
+    node.children.sort((a,b)=> { return a.title < b.title ? -1 : (a.title === b.title ? (a.uuid < b.uuid ? -1 : 1) : 1);});
     //prioritize children that are part of a pathway
     node.children
       // .sort((a,b)=> {return a.pathway ? -1 :(b.pathway ? 1 : 0);})
@@ -1778,7 +1778,7 @@ class Graph {
 
           //for non aggregate rows only
           if (!d.aggregated) {
-            const currentText = select('.nodes').selectAll('.title').filter((t: any) => { return t.title === d.title; });
+            const currentText = select('.nodes').selectAll('.title').filter((t: any) => { return t.uuid === d.uuid; });
 
             selectAll('tspan.menu').remove();
 
@@ -1796,18 +1796,6 @@ class Graph {
                 const removeAdjMatrix = this.tableManager.colOrder.indexOf(d.title) > -1;
                 const removeAttr = this.tableManager.colOrder.indexOf('age') > -1;
                 let actions = [
-                  //   {
-                  //   'icon': remove ? 'RemoveChildren' : 'AddChildren', 'string': remove ? 'Remove All Children' : 'Add All Neighbors', 'callback': () => {
-                  //     events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': remove });
-                  //   }
-                  // },
-                  // {
-                  //   'icon': removeAttr ? 'RemoveChildren' : 'AddChildren', 'string': removeAttr ? 'Remove Attribute' : 'Add Attribute', 'callback': () => {
-                  //     events.fire(ATTR_COL_ADDED, { 'db': this.selectedDB, 'name': 'age', 'type':'int', 'remove': removeAttr });
-                  //     events.fire(ATTR_COL_ADDED, { 'db': this.selectedDB, 'name': 'gender', 'type':'categorical', 'remove': removeAttr });
-                  //     events.fire(ATTR_COL_ADDED, { 'db': this.selectedDB, 'name': 'battle_type', 'type':'string', 'remove': removeAttr });
-                  //   }
-                  // },
                   {
                     'icon': 'RemoveNode', 'string': 'Remove Node  (leaves children)', 'callback': () => {
                       events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': true, 'includeChildren': false });

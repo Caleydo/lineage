@@ -77,7 +77,7 @@ import {
 } from './config';
 
 import * as menu from './menu';
-import * as tooltip from './tooltip';
+import * as tooltip from './toolTip';
 
 import * as arrayVec from './ArrayVector';
 

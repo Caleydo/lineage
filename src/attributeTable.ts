@@ -16,7 +16,7 @@ import { easeLinear } from 'd3-ease';
 import { curveBasis, curveLinear } from 'd3-shape';
 
 
-import * as tooltip from './tooltip';
+import * as tooltip from './toolTip';
 
 import Histogram from './Histogram';
 

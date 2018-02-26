@@ -208,15 +208,15 @@ export default class TableManager {
 
 
      const url = 'api/data_api/property/' + info.db + '/' + info.name ;
+     console.log('url is ', url); 
 
               json(url, (error, resultObj: any) => {
                 if (error) {
                   throw error;
                 }
-
                 const nodes = resultObj.results;
                 const dataValues = nodes.map((e)=> {return isNaN(+e.value) ? e.value : +e.value ;});;
-
+                console.log(dataValues)
                 //infer type here:
                 const type = typeof dataValues[0]  === 'number' ? VALUE_TYPE_INT : VALUE_TYPE_STRING;
                   //Add fake vector here:

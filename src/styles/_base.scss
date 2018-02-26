@@ -32,6 +32,11 @@ td {
   fill:none;
 }
 
+.giphy-embed{
+  pointer-events:none;
+  opacity:.4;
+  position: absolute;
+}
 .open{
   position:absolute;
 }

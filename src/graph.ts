@@ -798,10 +798,10 @@ class Graph {
 
     //Update numbers in Filter Panel
     const filterLabels = select('#filterPanel')
-      .selectAll('label')
+      .selectAll('.dropdownMenu')
       .html(function (d: any) {
         const count = labels[d.name] ? labels[d.name] : 0;
-        return '<tspan class="icon">' + Config.icons[d.name] + '</tspan> ' + d.name + ' [' + count + '] '; //+  Config.icons.menu;
+        return '<tspan class="icon">' + Config.icons[d.name] + '</tspan> ' + d.name + ' [' + count + ']' ; //+  Config.icons.menu;
       });
   }
 
@@ -1982,7 +1982,7 @@ class Graph {
 
 
   private createID(title) {
-    return title.replace(/ /g, '_').replace(/\./g, '').replace(/\:/g, '').replace(/\(/g, '').replace(/\)/g, '').replace(/\'/g, '');
+    return title.replace(/ /g, '_').replace(/\./g, '').replace(/\:/g, '').replace(/\(/g, '').replace(/\)/g, '').replace(/\'/g, '').replace(/\&/g, '');
   }
 
   private elbow(d, lineFunction, curves) {

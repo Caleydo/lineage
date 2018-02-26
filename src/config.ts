@@ -66,6 +66,8 @@ export class Config {
       settingsExpand:'\uf105',
       settingsCollapse:'\uf107',
 
+      filter:'\uf0b0',
+
       arrowRight:'\uf0da',
       arrowDown:'\uf0d7',
 

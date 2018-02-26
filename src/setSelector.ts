@@ -179,6 +179,23 @@ class SetSelector {
     const label = cboxes
       .attr('class', 'checkbox')
       .append('label')
+      
+
+    label
+      .html(function (d: any) {
+        return select(this).html() + '<g class="dropdownMenu"><tspan class="icon">' + Config.icons[d.name] + '</tspan> ' + d.name + ' [0]</g> ' +  '<tspan class="filter icon">' + Config.icons.filter + '</tspan> '; //+  Config.icons.menu;
+      });
+
+      label.select('.filter')
+      .on('click',function (d:any) {
+        const parentElement = select('#filterPanel').selectAll('label').filter((l:any)=> {
+          return l.name === d.name;});
+        console.log(parentElement.size())
+        events.fire(FILTER_CHANGED_EVENT, { 'label': d.name, 'exclude': !parentElement.classed('exclude') });
+        parentElement.classed('exclude', !parentElement.classed('exclude'));
+      });
+
+      label.select('.dropdownMenu')
       .on('click', (d: any) => {
 
         event.stopPropagation();
@@ -190,20 +207,6 @@ class SetSelector {
         .style('transform','translate(' + (coordinates[0] - 10) + 'px,35px)');
 
         select('#nodeFilter').select('.open').style('visibility','visible');
-
-        // const url = 'api/data_api/properties/' + this.selectedDB;
-
-        // json(url, (error, resultObj: any) => {
-        //   if (error) {
-        //     throw error;
-        //   }
-
-        //   const attr = [];
-        //   resultObj.properties.map((prop) => {
-        //     if (prop.label === d.name) {
-        //       attr.push(prop.property);
-        //     }
-        //   });
 
           let menuItems = select('#nodeFilter').select('.dropdown-menu').selectAll('.demoAttr')
             .data(this.labelProperties[d.name]);
@@ -227,24 +230,8 @@ class SetSelector {
               events.fire(ATTR_COL_ADDED, { 'db': this.selectedDB, 'name': d, 'remove': removeAttr });
           });
 
-
-
-        // });
-
-
-
-
-
-        // events.fire(ATTR_COL_ADDED, { 'db': this.selectedDB, 'name': 'age', 'type':'int', 'remove': removeAttr });
-
-        // events.fire(FILTER_CHANGED_EVENT, { 'label': d.name, 'exclude': !select(this).classed('exclude') });
-        // select(this).classed('exclude', !select(this).classed('exclude'));
       });
 
-    label
-      .html(function (d: any) {
-        return select(this).html() + '<tspan class="icon">' + Config.icons[d.name] + '</tspan> ' + d.name + ' [0] '; //+  Config.icons.menu;
-      });
 
     select('#col1').select('#accordion').selectAll('.panel').remove(); //total hack.
 

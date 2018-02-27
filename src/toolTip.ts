@@ -92,7 +92,8 @@ class ToolTip {
             } else if (data.type === 'string') {
                 content = data.name + ' : ' + data.data[0].toString().toLowerCase();
             } else if (data.type === 'dataDensity') {
-                content = data.name + ' : ' + (data.data[0].value ? data.data[0].value : data.data);
+                const totalValues = data.data.reduce((acc,cValue)=> {return acc+cValue.value;},0);
+                content = data.name + ' : ' + (data.data[0].value ? totalValues : data.data);
             } else if (data.type === 'idtype') {
                 content = data.name + ' : ' + data.data;
             }

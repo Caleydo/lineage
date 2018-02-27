@@ -379,7 +379,7 @@ class SetSelector {
 
     json(url, (error, graphData: any) => {
 
-      console.log(url);
+      console.log(url, graphData);
 
       const data = graphData.labels;
 

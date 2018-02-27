@@ -251,9 +251,15 @@ class Graph {
 
 
     events.on(DB_CHANGED_EVENT, (evt, info) => {
+
+      //clear data
+      this.graph = undefined;
+
+      //clear display
       this.svg.select('.visibleLinks').html('');
       this.svg.select('.hiddenLinks').html('');
       this.svg.select('.nodes').html('');
+      this.svg.select('.endMarkers').html('');
     });
 
     events.on(AGGREGATE_CHILDREN, (evt, info) => {
@@ -1180,20 +1186,11 @@ class Graph {
 
     link.exit().remove();
 
-
-
-
     let linkEndMarkers = this.svg.select('.endMarkers')
       .selectAll('.endMarker')
-      .data(graph.links.filter((l) => { 
-        const child = [l.source, l.target].reduce((acc, cValue) => { return cValue.yy > acc.yy ? cValue : acc; });
-        const parent = [l.source,l.target].reduce((acc, cValue) => {return cValue.yy < acc.yy ?  cValue : acc;});
-
-        return (!(child.children.length<1 && child.graphDegree<=child.degree)) && child.visible && !child.aggregated && !parent.aggregated && parent.visible && l.visible; }), (d) => {
-        const st = this.createID(d.source.title);
-        const tt = this.createID(d.target.title);
-        return st + '_' + tt + '_endMarker';
-      });
+      .data(graph.nodes.filter((n)=> {
+        return (!(n.children.length<1 && n.graphDegree<=n.degree)) && n.visible && !n.aggregated && n.visible;
+      }),(d) => {return this.createID(d.title)+ '_endMarker';});
 
     const linkEndMarkersEnter = linkEndMarkers
       .enter()
@@ -1249,30 +1246,24 @@ class Graph {
 
     linkEndMarkers
       .text((d) => {
-        const child = [d.source, d.target].reduce((acc, cValue) => { return cValue.yy > acc.yy ? cValue : acc; });
-        // const parent = [d.source,d.target].reduce((acc, cValue) => {return cValue.yy < acc.yy ?  cValue : acc;});
-        return child.children.length > 0 ? Config.icons.arrowDown : Config.icons.arrowRight;
+        return d.children.length > 0 ? Config.icons.arrowDown : Config.icons.arrowRight;
       })
       .on('click', function (d) {
-        const child = [d.source, d.target].reduce((acc, cValue) => { return cValue.yy > acc.yy ? cValue : acc; });
-        const remove = child.children.length > 0;
+        const remove = d.children.length > 0;
         select(this).text((d: any) => {
           return remove ? Config.icons.arrowDown : Config.icons.arrowRight;
         });
 
-        events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': self.selectedDB, 'rootID': child.uuid, 'replace': false, 'remove': remove });
+        events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': self.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': remove });
       });
 
       //set initial position to parent
       linkEndMarkersEnter
       .attr('x', (d: any, i) => {
-        const child = [d.source, d.target].reduce((acc, cValue) => { return cValue.yy > acc.yy ? cValue : acc; });
-        return this.xScale(child.xx);
+        return this.xScale(d.xx);
       })
       .attr('y', (d: any, i) => {
-        // const child = [d.source, d.target].reduce((acc, cValue) => { return cValue.yy > acc.yy ? cValue : acc; });
-        const parent = [d.source, d.target].reduce((acc, cValue) => { return cValue.yy < acc.yy ? cValue : acc; });
-        return this.yScale(parent.yy);
+        return d.parent ? this.yScale(d.parent.yy) : this.yScale(d.yy);
       });
 
 
@@ -1281,12 +1272,10 @@ class Graph {
       .transition('t')
       .duration(1000)
       .attr('x', (d: any, i) => {
-        const child = [d.source, d.target].reduce((acc, cValue) => { return cValue.yy > acc.yy ? cValue : acc; });
-        return child.children.length > 0 ? this.xScale(child.xx) - 5 : this.xScale(child.xx) - 2;
+        return d.children.length > 0 ? this.xScale(d.xx) - 5 : this.xScale(d.xx) - 2;
       })
       .attr('y', (d: any, i) => {
-        const child = [d.source, d.target].reduce((acc, cValue) => { return cValue.yy > acc.yy ? cValue : acc; });
-        return this.yScale(child.yy) + 1;
+        return this.yScale(d.yy) + 1;
       });
 
 
@@ -1997,7 +1986,7 @@ class Graph {
 
 
   private createID(title) {
-    return title.replace(/ /g, '_').replace(/\./g, '').replace(/\:/g, '').replace(/\(/g, '').replace(/\)/g, '').replace(/\'/g, '').replace(/\&/g, '');
+    return title.replace(/ /g, '_').replace(/\./g, '').replace(/\:/g, '').replace(/\(/g, '').replace(/\)/g, '').replace(/\'/g, '').replace(/\&/g, '').replace(/\//g, '').replace(/\,/g, '');
   }
 
   private elbow(d, lineFunction, curves) {

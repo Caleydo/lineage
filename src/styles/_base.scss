@@ -32,6 +32,14 @@ td {
   fill:none;
 }
 
+.cell .frame, .cell .dataDens.aggregated{
+  fill:#6994a9;
+}
+
+.cell .dataDens{
+ fill:#343434;
+}
+
 .giphy-embed{
   pointer-events:none;
   opacity:.4;

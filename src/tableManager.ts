@@ -101,6 +101,10 @@ export const ATTR_COL_ADDED = 'attr_col_added';
 export const AGGREGATE_CHILDREN = 'aggregate_children';
 export const PATHWAY_SELECTED = 'pathway_selected';
 
+import {
+  DB_CHANGED_EVENT
+} from './headers';
+
 
 // export const PRIMARY_COLOR = '#335b8e';
 // export const PRIMARY_COLOR_2 = '#b5b867';
@@ -214,14 +218,15 @@ export default class TableManager {
                 if (error) {
                   throw error;
                 }
+
                 const nodes = resultObj.results;
                 const dataValues = nodes.map((e)=> {return isNaN(+e.value) ? e.value : +e.value ;});;
-                console.log(dataValues)
                 //infer type here:
                 const type = typeof dataValues[0]  === 'number' ? VALUE_TYPE_INT : VALUE_TYPE_STRING;
                   //Add fake vector here:
                  const arrayVector = arrayVec.create(type);
 
+                 console.log(dataValues);
                 arrayVector.desc.name = info.name;
 
 
@@ -249,6 +254,14 @@ export default class TableManager {
       }
 
     });
+
+    events.on(DB_CHANGED_EVENT, ()=> {
+            //clear selected attributes;
+            this.colOrder = [];
+            this.adjMatrixCols=[];
+            this.yValues={};
+            events.fire(TABLE_VIS_ROWS_CHANGED_EVENT)
+    })
 
     events.on(ADJ_MATRIX_CHANGED, (evt,info)=> {
 

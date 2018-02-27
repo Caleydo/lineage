@@ -155,6 +155,7 @@ class AttributeTable {
 
 
   public async update() {
+    
     await this.initData();
     this.render();
   }
@@ -996,9 +997,9 @@ class AttributeTable {
   //function that removes spaces and periods to be used as ids and selectors. Also includes categories for categorical data.
   private deriveID(d) {
     const id = (d.type === 'categorical' ?
-      (d.name.replace(/ /g, '_').replace(/\./g, '').replace(/\:/g, '').replace(/\(/g, '').replace(/\)/g, '').replace(/\'/g, '').replace(/\&/g, '') + '_'
+      (d.name.replace(/ /g, '_').replace(/\./g, '').replace(/\:/g, '').replace(/\(/g, '').replace(/\)/g, '').replace(/\'/g, '').replace(/\&/g, '').replace(/\&/g, '').replace(/\//g, '').replace(/\,/g, '') + '_'
         + d.category.replace(/ /g, '_').replace(/\(/g, '').replace(/\)/g, '')) :
-      (d.name.replace(/ /g, '_').replace(/\./g, '').replace(/\:/g, '').replace(/\(/g, '').replace(/\)/g, '').replace(/\'/g, '').replace(/\&/g, '')));
+      (d.name.replace(/ /g, '_').replace(/\./g, '').replace(/\:/g, '').replace(/\(/g, '').replace(/\)/g, '').replace(/\'/g, '').replace(/\&/g, '').replace(/\&/g, '').replace(/\//g, '').replace(/\,/g, '')));
 
     return id;
   }
@@ -1397,7 +1398,7 @@ class AttributeTable {
       // .attr('fill', 'transparent')
       .on('mouseover', this.highlightRow)
       .on('mouseout', this.clearHighlight)
-      .on('click', this.clickHighlight);
+      // .on('click', this.clickHighlight);
 
     // //create slope Lines
     // // //Bind data to the cells
@@ -1571,7 +1572,8 @@ class AttributeTable {
     selectAll('.cell')
       .on('mouseover', (cellData:any) => {
         this.highlightRow(cellData);
-        if (cellData.type !== 'dataDensity') {
+        //only add tooltip if not dataDensity type or if value in cell is >99
+        if (cellData.type !== 'dataDensity' || cellData.data.reduce((acc,cValue)=> {return acc+cValue.value;},0)>99) {
           this.ttip.addTooltip('cell', cellData);
         };
       })
@@ -2734,7 +2736,6 @@ class AttributeTable {
       .select('.frame')
       .attr('width', rowHeight)
       .attr('height', rowHeight)
-      .attr('fill', '#6994a9')
       .style('opacity',colorScale(numValues/cellData.data.length));
     // .attr('y', 0)
     // .attr('fill', (d) => {
@@ -2782,20 +2783,9 @@ class AttributeTable {
     const rowHeight = this.rowHeight;
 
     element.selectAll('.cross_out').remove();
-    // //append data to checkbox for easy export
-    // //only add checkboxes for the dataDensity col;
-    // element.selectAll('.checkbox')
-    //   .data([cellData].filter((c) => { return c.type === 'dataDensity'; }))
-    //   .enter()
-    //   .append('rect')
-    //   .classed('checkbox', true)
-    //   .on('click', function () {
-    //     event.stopPropagation();
-    //     //toggle visibility of both checkbox icon and checkbox color;
-    //     element.select('.checkboxIcon').classed('checked', !select(this).classed('checked'));
-    //     select(this).classed('checked', !select(this).classed('checked'));
-    //   });
-
+    
+    const numValues = cellData.data.filter((v) => { return v.value !== undefined; }).length;
+    const totalValues = cellData.data.reduce((acc,cValue)=> {return acc+cValue.value;},0);
 
     if (element.selectAll('.dataDens').size() === 0 && cellData.data[0].value > 0) {
       element
@@ -2804,17 +2794,9 @@ class AttributeTable {
 
       element.append('text')
         .classed('label', true);
-
-      // if (cellData.type === 'dataDensity') {
-      //   element.append('text').text('\uf00c')
-      //     .classed('checkboxIcon', true)
-      //     .attr('x', 11)
-      //     .attr('y', 12);
-      // }
-
     }
 
-    if (cellData.data[0].value < 1) {
+    if (totalValues < 1) {
 
       //Remove any existing dataDens elements
       element
@@ -2846,13 +2828,14 @@ class AttributeTable {
     // console.log(cellData.data[0].value, colorScale.domain());
     element
       .select('.dataDens')
+      .classed('aggregated',numValues>1)
       .attr('width', colWidth)
       .attr('height', rowHeight)
       .attr('x', 0)
       // .attr('x', (cellData.type === 'dataDensity' ? (this.colWidths.dataDensity + this.buffer) : 0))
       .attr('y', 0)
-      .attr('opacity', (d, i) => { return colorScale(cellData.data[0].value); })
-      .attr('fill', '#343434')
+      .attr('opacity', (d, i) => { return colorScale(totalValues); })
+      // .attr('fill', '#343434')
       .on('click', (d) => {
         event.stopPropagation();
         selectAll('.hiddenEdge')
@@ -2900,7 +2883,7 @@ class AttributeTable {
       .attr('x', colWidth / 2)
       .attr('y', rowHeight * 0.8)
       .text(() => {
-        return cellData.data[0].value;
+        return totalValues > 999 ? (Math.floor(totalValues/1000) + 'k') : (totalValues > 99 ? (Math.floor(totalValues/100) + 'h') : totalValues ); 
       })
       .attr('text-anchor', 'middle')
       .attr('fill', '#4e4e4e');
@@ -3256,6 +3239,7 @@ class AttributeTable {
       self.update();
     });
 
+ 
   }
 
 }

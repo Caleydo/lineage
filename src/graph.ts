@@ -160,11 +160,11 @@ class Graph {
       const childNode = [source, target].reduce((acc, cValue) => { return cValue.yy > acc.yy ? cValue : acc; });
       const parentNode = [source, target].reduce((acc, cValue) => { return cValue.yy < acc.yy ? cValue : acc; });
 
-      console.log('child is ', childNode.title);
-      console.log('parent is ', parentNode.title);
+      // console.log('child is ', childNode.title);
+      // console.log('parent is ', parentNode.title);
 
-      console.log('source is ', source.title);
-      console.log('target is ', target.title);
+      // console.log('source is ', source.title);
+      // console.log('target is ', target.title);
 
       const oldParent = target.parent ? target.parent : source.parent;
       const child = target.parent ? target : source;
@@ -1185,7 +1185,11 @@ class Graph {
 
     let linkEndMarkers = this.svg.select('.endMarkers')
       .selectAll('.endMarker')
-      .data(graph.links.filter((l) => { return l.source.visible && !l.source.aggregated && !l.target.aggregated && l.target.visible && l.visible; }), (d) => {
+      .data(graph.links.filter((l) => { 
+        const child = [l.source, l.target].reduce((acc, cValue) => { return cValue.yy > acc.yy ? cValue : acc; });
+        const parent = [l.source,l.target].reduce((acc, cValue) => {return cValue.yy < acc.yy ?  cValue : acc;});
+
+        return (!(child.children.length<1 && child.graphDegree<=child.degree)) && child.visible && !child.aggregated && !parent.aggregated && parent.visible && l.visible; }), (d) => {
         const st = this.createID(d.source.title);
         const tt = this.createID(d.target.title);
         return st + '_' + tt + '_endMarker';
@@ -1463,26 +1467,18 @@ class Graph {
 
     select('#graph')
       .attr('height', document.getElementById('genealogyTree').getBoundingClientRect().height + this.margin.top * 2);
-
-
-
-
-
-
   }
 
-  areDescendants(parent,child) {
-    let value = false;
+  areDescendants(parent,child,value=false) {
     if (parent.children.length<1) {
-      return false;
+      return value || false;
     }
 
     if (parent.children.filter((c)=> {return c.uuid === child.uuid;}).length>0) {
       return true;
     } else {
-
       parent.children.map((c)=> {
-        value = false || this.areDescendants(c,child);
+        value = value || this.areDescendants(c,child,value);
       });
       return value;
     }

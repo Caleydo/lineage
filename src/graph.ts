@@ -211,8 +211,10 @@ class Graph {
 
       this.graph.nodes.map((n) => n.visited = false);
       this.layoutEntireTree();
+      this.updateEdgeInfo();
       this.exportYValues();
       this.drawTree();
+      
 
     });
 
@@ -241,6 +243,7 @@ class Graph {
       }
 
       this.layoutEntireTree();
+      this.updateEdgeInfo();
       this.exportYValues();
       this.drawTree();
 
@@ -258,6 +261,7 @@ class Graph {
       this.setAggregation(root, info.aggregate);
       this.graph.nodes.map((n) => n.visited = false);
       this.layoutEntireTree();
+      this.updateEdgeInfo();
       this.exportYValues();
       this.drawTree();
     });
@@ -580,8 +584,9 @@ class Graph {
     if (remove) {
       const rootNode = this.graph.nodes.filter((n) => { return n.uuid.toString() === root.toString(); });
 
-      //recursive function to remove all nodes down this branch;
+      //recursive function to remove all nodes and edges down this branch;
       this.removeBranch(rootNode[0], !includeChildren);
+
       const roots = this.graph.nodes.filter((n) => { return this.graph.root.indexOf(n.uuid) > -1; });
 
       this.updateFilterPanel();
@@ -721,49 +726,15 @@ class Graph {
 
 
 
-        this.interGenerationScale.range([.75, .25]).domain([2, this.graph.nodes.length]);
-
-        //create dictionary of nodes with
-        //1) set of adjacent nodes in the graph
-        this.nodeNeighbors = {};
-        this.graph.nodes.map((n, i) => {
-          this.nodeNeighbors[n.uuid] = {
-            'title': n.title,
-            'neighbors': new Set(),
-            'hiddenNeighbors': new Set(),
-            'degree': 0,
-            'hidden': 0,
-            'visible': 0
-          };
-        });
-
-        //Populate dictionary
-        //Find all edges that start or end on that node
-        this.graph.links.map((l) => {
-
-          const targetNode = l.target;
-          const sourceNode = l.source;
-
-          const targetDictEntry = this.nodeNeighbors[targetNode.uuid];
-          const sourceDictEntry = this.nodeNeighbors[sourceNode.uuid];
-
-          targetDictEntry.neighbors.add(sourceNode);
-          targetDictEntry.degree = targetDictEntry.neighbors.size;
-
-          sourceDictEntry.neighbors.add(targetNode);
-          sourceDictEntry.degree = sourceDictEntry.neighbors.size;
-        });
+        // this.interGenerationScale.range([.75, .25]).domain([2, this.graph.nodes.length]);
 
         const roots = this.graph.nodes.filter((n) => { return this.graph.root.indexOf(n.uuid) > -1; });
 
-        this.graph.nodes.map((n) => {
-          n.degree = this.nodeNeighbors[n.uuid].degree;
-        });
+        
 
         this.updateFilterPanel();
 
         this.extractTree(roots.length > 0 ? roots : undefined, this.graph, false);
-
 
         this.exportYValues();
 
@@ -812,6 +783,8 @@ class Graph {
 
     let setNewRoot = true;
 
+    this.updateEdgeInfo();
+
     // if (roots === undefined) {
     //   console.log('undefined root');
     //   roots = graph.nodes.filter((n)=> {return n.uuid = graph.root;});
@@ -840,9 +813,6 @@ class Graph {
 
     //set default values for unvisited links;
     graph.links.map((l, i) => {
-      // if (!(l.visited && !replace)) {
-      //   console.log('setting to false', l.source.title, ' ', l.target.title);
-      // }
       l.visible = (l.visited && !replace) ? l.visible : false;
       l.visited = (l.visited && !replace) ? l.visited : false;
       l.index = i;
@@ -895,6 +865,48 @@ class Graph {
       this.layoutTree(root);
     }
 
+    this.updateEdgeInfo();
+
+    events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);
+  }
+
+  updateEdgeInfo() {
+    console.log('updating edge info')
+        
+    //create dictionary of nodes with
+        //1) set of adjacent nodes in the graph
+        this.nodeNeighbors = {};
+        this.graph.nodes.map((n, i) => {
+          this.nodeNeighbors[n.uuid] = {
+            'title': n.title,
+            'neighbors': new Set(),
+            'hiddenNeighbors': new Set(),
+            'degree': 0,
+            'hidden': 0,
+            'visible': 0
+          };
+        });
+          //Populate dictionary
+        //Find all edges that start or end on that node
+        this.graph.links.map((l) => {
+          
+                    const targetNode = l.target;
+                    const sourceNode = l.source;
+         
+                    const targetDictEntry = this.nodeNeighbors[targetNode.uuid];
+                    const sourceDictEntry = this.nodeNeighbors[sourceNode.uuid];
+          
+                    targetDictEntry.neighbors.add(sourceNode);
+                    targetDictEntry.degree = targetDictEntry.neighbors.size;
+          
+                    sourceDictEntry.neighbors.add(targetNode);
+                    sourceDictEntry.degree = sourceDictEntry.neighbors.size;
+                  });
+          
+                  this.graph.nodes.map((n) => {
+                    n.degree = this.nodeNeighbors[n.uuid].degree;
+        });
+
     //clear hiddenEdge Info;
     this.graph.nodes.map((n) => {
       this.nodeNeighbors[n.uuid].hiddenNeighbors = new Set();
@@ -928,7 +940,18 @@ class Graph {
 
     vec = {
       type: 'dataDensity',
-      title: 'All Edges',
+      title: 'Graph Edges',
+      data: this.graph.nodes.map((n, i) => { return { 'value': n.graphDegree, 'uuid': n.uuid }; }),
+      ids: this.graph.nodes.map((n) => { return n.uuid; })
+    };
+
+
+    this.addArrayVec(vec);
+    
+
+    vec = {
+      type: 'dataDensity',
+      title: 'Tree Edges',
       data: this.graph.nodes.map((n, i) => { return { 'value': this.nodeNeighbors[n.uuid].degree, 'uuid': n.uuid }; }),
       ids: this.graph.nodes.map((n) => { return n.uuid; })
     };
@@ -944,10 +967,6 @@ class Graph {
 
 
     this.addArrayVec(vec);
-
-    events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);
-
-
   }
 
   addArrayVec(vec) {

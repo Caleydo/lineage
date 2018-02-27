@@ -2856,9 +2856,6 @@ class AttributeTable {
       .on('click', (d) => {
         event.stopPropagation();
         selectAll('.hiddenEdge')
-          .filter((e: any) => {
-            return (e.source.uuid !== cellData.data[0].uuid && e.target.uuid !== cellData.data[0].uuid);
-          })
           .attr('visibility', 'hidden');
 
           const hiddenEdges = selectAll('.hiddenEdge').filter((e: any) => {
@@ -2867,11 +2864,9 @@ class AttributeTable {
 
           select('.nodes')
           .selectAll('.title')
-          .style('opacity',function() {
-            return hiddenEdges.size()>0 && hiddenEdges.attr('visibility') !== 'visible' ? .4 : 1;
-          });
+          .style('opacity',.4);
 
-          const eoi = selectAll('.edge').filter((e: any) => {
+          const eoi = selectAll('.hiddenEdge').filter((e: any) => {
             return (e.source.uuid === cellData.data[0].uuid || e.target.uuid === cellData.data[0].uuid);
           });
 
@@ -2886,9 +2881,7 @@ class AttributeTable {
           });
 
           hiddenEdges
-            .attr('visibility', function (l) {
-              return select(this).attr('visibility') === 'visible' ? 'hidden' : 'visible';
-            });
+            .attr('visibility', 'visible');
         // console.log(cellData)
       });
 

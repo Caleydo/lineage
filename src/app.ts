@@ -173,6 +173,7 @@ export class App {
 
 
       select('.open').style('visibility','hidden');
+      selectAll('.hiddenEdge').attr('visibility', 'hidden');
     //   selectAll('.highlightedNode').classed('highlightedNode', false);
     //   selectAll('.edges').classed('selected', false);
     //   selectAll('.parentEdges').classed('selected', false);

@@ -176,9 +176,9 @@ class Graph {
 
       //make old edge hidden
       //Do not add links that already exists in the tree
-      const oldEdge = this.graph.links.filter((ll) => {
-        return (ll.source.uuid === oldParent.uuid && ll.target.uuid === child.uuid)
-          || (ll.target.uuid === oldParent.uuid && ll.source.uuid === child.uuid); //if we don't care about direction
+      const oldEdge = this.graph.links.filter((ll) => { 
+        return (ll.source.uuid === oldParent.uuid && ll.target.uuid === child.uuid && ll.edge.data.uuid !== info.uuid)
+          || (ll.target.uuid === oldParent.uuid && ll.source.uuid === child.uuid && ll.edge.data.uuid !== info.uuid);
       })[0];
       console.log('oldEdge', oldEdge);
 
@@ -198,10 +198,7 @@ class Graph {
       //make new edge visible
 
 
-      const newEdge = this.graph.links.filter((ll) => {
-        return (ll.source.uuid === source.uuid && ll.target.uuid === target.uuid)
-          || (ll.target.uuid === source.uuid && ll.source.uuid === target.uuid); //if we don't care about direction
-      })[0];
+      const newEdge = this.graph.links.filter((ll) => { return ll.edge.data.uuid === info.uuid;})[0];
       console.log('newEdge', newEdge);
 
       newEdge.visible = true;
@@ -628,7 +625,7 @@ class Graph {
         if (error) {
           throw error;
         }
-        console.log('data return is ', graph);
+        console.log('data return is ', graph.links);
 
         //Replace graph or merge with incoming subgraph
         if (replace || !this.graph) {
@@ -640,13 +637,13 @@ class Graph {
             const targetNode = graph.nodes.filter((n) => { return n.uuid.toString() === link.target.uuid.toString(); })[0];
             link.source = sourceNode;
             link.target = targetNode;
-
             if (link.source && link.target) {
               const existingLink = newLinks.filter((l) => {
-                return (l.source.uuid === link.source.uuid || l.source.uuid === link.target.uuid) &&
-                  (l.target.uuid === link.source.uuid || l.target.uuid === link.target.uuid);
+                return l.edge.data.uuid === link.edge.data.uuid;
+                // return (l.source.uuid === link.source.uuid || l.source.uuid === link.target.uuid) &&
+                //   (l.target.uuid === link.source.uuid || l.target.uuid === link.target.uuid);
               });
-
+              // console.log(link,existingLink)
               //check for existing node
               if (existingLink.length < 1) {
                 newLinks.push(link);
@@ -655,6 +652,7 @@ class Graph {
             }
           });
           graph.links = newLinks;
+          console.log(graph.links)
           this.graph = graph;
         } else {
 
@@ -821,7 +819,7 @@ class Graph {
     graph.links.map((l, i) => {
       l.visible = (l.visited && !replace) ? l.visible : false;
       l.visited = (l.visited && !replace) ? l.visited : false;
-      l.index = i;
+      // l.index = i;
     });
 
     this.calculatePathway();
@@ -885,11 +883,8 @@ class Graph {
         this.graph.nodes.map((n, i) => {
           this.nodeNeighbors[n.uuid] = {
             'title': n.title,
-            'neighbors': new Set(),
-            'hiddenNeighbors': new Set(),
             'degree': 0,
-            'hidden': 0,
-            'visible': 0
+            'hidden': 0
           };
         });
           //Populate dictionary
@@ -901,46 +896,21 @@ class Graph {
          
                     const targetDictEntry = this.nodeNeighbors[targetNode.uuid];
                     const sourceDictEntry = this.nodeNeighbors[sourceNode.uuid];
-          
-                    targetDictEntry.neighbors.add(sourceNode);
-                    targetDictEntry.degree = targetDictEntry.neighbors.size;
-          
-                    sourceDictEntry.neighbors.add(targetNode);
-                    sourceDictEntry.degree = sourceDictEntry.neighbors.size;
+
+                    targetDictEntry.degree = targetDictEntry.degree +1;
+                    sourceDictEntry.degree = sourceDictEntry.degree + 1;
+
+                    if (l.visible === false) {
+                      targetDictEntry.hidden = targetDictEntry.hidden + 1;
+                      sourceDictEntry.hidden = sourceDictEntry.hidden + 1;
+                    }
+
+
                   });
           
                   this.graph.nodes.map((n) => {
                     n.degree = this.nodeNeighbors[n.uuid].degree;
-        });
-
-    //clear hiddenEdge Info;
-    this.graph.nodes.map((n) => {
-      this.nodeNeighbors[n.uuid].hiddenNeighbors = new Set();
-      this.nodeNeighbors[n.uuid].hidden = 0;
-    });
-
-    //Update hidden Edges info
-    this.graph.links.map((l) => {
-
-      const targetNode = l.target;
-      const sourceNode = l.source;
-
-      const targetDictEntry = this.nodeNeighbors[targetNode.uuid];
-      const sourceDictEntry = this.nodeNeighbors[sourceNode.uuid];
-
-      if (l.visible === false) {
-        // console.log('hidden', l.visible, l.source.title, '  ', l.target.title);
-        targetDictEntry.hiddenNeighbors.add(sourceNode);
-        targetDictEntry.hidden = targetDictEntry.hiddenNeighbors.size;
-
-        sourceDictEntry.hiddenNeighbors.add(targetNode);
-        sourceDictEntry.hidden = sourceDictEntry.hiddenNeighbors.size;
-
-        targetDictEntry.visible = targetDictEntry.degree - targetDictEntry.hidden;
-        sourceDictEntry.visible = sourceDictEntry.degree - sourceDictEntry.hidden;
-
-      }
-    });
+                  });
 
     let vec;
 
@@ -1011,8 +981,10 @@ class Graph {
     });
 
     edges.map((e) => {
+      
       const target = e.target;
       const source = e.source;
+
 
       if (!target.visited) {
         e.visible = e.visited ? e.visible : true;
@@ -1036,7 +1008,6 @@ class Graph {
         }
       }
       e.visited = true;
-
     });
 
   }
@@ -1173,11 +1144,8 @@ class Graph {
 
     let link = this.svg.select('.visibleLinks')
       .selectAll('.edge')
-      .data(graph.links.filter((l) => { return l.source.visible && !l.source.aggregated && !l.target.aggregated && l.target.visible && l.visible; }), (d) => {
-        const st = this.createID(d.source.title);
-        const tt = this.createID(d.target.title);
-        return st + '_' + tt;
-      });
+      .data(graph.links.filter((l) => { return l.source.visible && !l.source.aggregated && !l.target.aggregated && l.target.visible && l.visible; }),
+      (d) => {return d.edge.data.uuid;});
 
     let linksEnter = link
       .enter()
@@ -1204,11 +1172,8 @@ class Graph {
 
     link = this.svg.select('.hiddenLinks')
       .selectAll('.edge')
-      .data(graph.links.filter((l) => { return l.source.visible && l.target.visible && !l.visible; }), (d) => {
-        const st = this.createID(d.source.title);
-        const tt = this.createID(d.target.title);
-        return st + '_' + tt;
-      });
+      .data(graph.links.filter((l) => { return l.source.visible && l.target.visible && !l.visible; }), 
+      (d) => {return d.edge.data.uuid;});
 
     linksEnter = link
       .enter()
@@ -1304,7 +1269,7 @@ class Graph {
 
         let actions = [{
           'icon': 'edge', 'string': 'Add ' + parentNode.title + ' ---> ' + childNode.title +  ' edge' , 'callback': () => {
-            events.fire(REPLACE_EDGE_EVENT, { 'source': parentNode.uuid, 'target': childNode.uuid });
+            events.fire(REPLACE_EDGE_EVENT, { 'source': parentNode.uuid, 'target': childNode.uuid, 'uuid':d.edge.data.uuid });
           }
         }];
 
@@ -1312,7 +1277,7 @@ class Graph {
         if (!areDescendantes) {
           actions = actions.concat({
             'icon': 'edge', 'string': 'Add ' + childNode.title + ' ---> ' + parentNode.title + ' edge', 'callback': () => {
-              events.fire(REPLACE_EDGE_EVENT, { 'source': childNode.uuid, 'target': parentNode.uuid });
+              events.fire(REPLACE_EDGE_EVENT, { 'source': childNode.uuid, 'target': parentNode.uuid, 'uuid':d.edge.data.uuid });
             }});
         }
         this.menuObject.addMenu(d, actions);

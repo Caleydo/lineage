@@ -51,6 +51,9 @@ class SetSelector {
 
   private selectedDB;
 
+  //class attribute to be able to sort from header
+  private rows={};
+
   private labelProperties={};
 
   private headerInfo = [
@@ -305,12 +308,12 @@ class SetSelector {
       .attr('id', (d: any) => { return d.name + '_body'; });
 
     // Populate Headers
-    labels.map((d: any) => { this.updateTableHeader('#' + d.name + '_body'); });
+    labels.map((d: any) => { this.updateTableHeader('#' + d.name + '_body',d.name); });
 
 
   }
 
-  private updateTableHeader(parentID) {
+  private updateTableHeader(parentID,name) {
 
     const tableHeaders = this.headerInfo;
 
@@ -328,37 +331,39 @@ class SetSelector {
 
     headers = headerEnter.merge(headers);
 
+    let self = this;
     headers
       .style('width', (d: any, i) => {
         const width = (i < 2 ? 10 : (90 / (tableHeaders.length - 2)));
         return width + '%';
-      });
-    //       .on('click', function (d) {
-    //         const isAscending = select(this).classed('des');
-    //         if (isAscending) {
-    //           self.rows.sort(function (a, b) {
-    //             if (b[d.dataAttr] > a[d.dataAttr]) {
-    //               return -1;
-    //             } else {
-    //               return 1;
-    //             }
-    //           });
-    //           selectAll('th').classed('des', false);
-    //           selectAll('th').classed('aes', false);
-    //           select(this).attr('class', 'aes');
-    //         } else {
-    //           self.rows.sort(function (a, b) {
-    //             if (b[d.dataAttr] < a[d.dataAttr]) {
-    //               return -1;
-    //             } else {
-    //               return 1;
-    //             }
-    //           });
-    //           selectAll('th').classed('des', false);
-    //           selectAll('th').classed('aes', false);
-    //           select(this).attr('class', 'des');
-    //         }
-    //       });
+      })
+          .on('click', function (d) {
+            console.log(d);
+            const isAscending = select(this).classed('des');
+            if (isAscending) {
+               self.rows[name].sort(function (a, b) {
+                if (b[d.dataAttr] > a[d.dataAttr]) {
+                  return -1;
+                } else {
+                  return 1;
+                }
+              });
+              selectAll('th').classed('des', false);
+              selectAll('th').classed('aes', false);
+              select(this).attr('class', 'aes');
+            } else {
+              self.rows[name].sort(function (a, b) {
+                if (b[d.dataAttr] < a[d.dataAttr]) {
+                  return -1;
+                } else {
+                  return 1;
+                }
+              });
+              selectAll('th').classed('des', false);
+              selectAll('th').classed('aes', false);
+              select(this).attr('class', 'des');
+            }
+          });
 
     headers
       .text(function (column) {
@@ -421,7 +426,7 @@ class SetSelector {
 
 
       data.map((d) => {
-        this.populateTableRows('#' + d.name + '_body', d.nodes.slice(0, 50), this.headerInfo.length);
+        this.populateTableRows('#' + d.name + '_body', d.nodes, this.headerInfo.length,d.name);
       });
 
       const url2 = 'api/data_api/properties/' + this.selectedDB;
@@ -446,10 +451,15 @@ class SetSelector {
 
   }
 
-  private populateTableRows(tableDiv, rowData, numCols) {
+  private populateTableRows(tableDiv, rowData, numCols,name) {
 
     //sort data alphabetically;
     // console.log(rowData.sort((a,b)=> {return a.title < b.title; }));
+
+    
+    //sort alphabetically
+    rowData.sort((a,b)=> {return a.title<b.title ? -1 : 1;});
+
     const tableSelector = select(tableDiv).select('#tableBody');
     // create a row for each object in the data
     let rows = tableSelector.select('tbody').selectAll('tr')
@@ -463,7 +473,7 @@ class SetSelector {
     rows.exit().remove();
     rows = rowsEnter.merge(rows);
 
-
+    this.rows[name] =  rows;
     rows.on('click', (d: any) => {
       const removeAdjMatrix = this.tableManager.colOrder.indexOf(d.title) > -1;
       const actions = [{

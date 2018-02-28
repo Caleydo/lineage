@@ -73,7 +73,6 @@ class ToolTip {
             } else if (data.type === 'adjMatrix') {
 
                 const validEdges = data.data.filter((d) => !(d === undefined));
-                console.log(validEdges.length, data.data.length);
                 if (validEdges.length === 1) {
                     const incomingEdge = validEdges[0] && data.name === validEdges[0].endNode.title;
                     const edge = validEdges[0].edge.info;
@@ -109,7 +108,8 @@ class ToolTip {
             content = '<tspan x="10" dy="0em">' + data.source.title  + ' --' + data.edge.type + '-- ' + data.target.title + '</tspan>';
             if (data.edge.data) {
                 Object.keys(data.edge.data).map((key,i)=> {
-                    content = content.concat(' <tspan x="20" dy="1.5em">' + key + ':' +  data.edge.data[key] + '</tspan>');
+
+                    content = key === 'uuid' ? content : content.concat(' <tspan x="20" dy="1.5em">' + key + ':' +  data.edge.data[key] + '</tspan>');
                 });
             }
         } else if (type === 'node') {

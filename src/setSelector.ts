@@ -406,35 +406,35 @@ class SetSelector {
           queue.push({vec:arrayVector,id});
         });
 
-        while (queue.length>0) {
+        // while (queue.length>0) {
 
-        const nextVec =queue.splice(0, 1)[0];
+        // const nextVec =queue.splice(0, 1)[0];
 
-         const url = 'api/data_api/edges/' + this.selectedDB + '/' + nextVec.id;
+        //  const url = 'api/data_api/edges/' + this.selectedDB + '/' + nextVec.id;
 
-        //  console.log('edge url is ', url);
-                json(url, (error, edges: any) => {
-                  if (error) {
-                    throw error;
-                  }
+        // //  console.log('edge url is ', url);
+        //         json(url, (error, edges: any) => {
+        //           if (error) {
+        //             throw error;
+        //           }
 
-                  const arrayVector = nextVec.vec;
+        //           const arrayVector = nextVec.vec;
 
-                  arrayVector.dataValues = edges.nodes.map((e)=> {return e;});
-                  arrayVector.idValues = edges.nodes.map((e)=> {return e.uuid;});
+        //           arrayVector.dataValues = edges.nodes.map((e)=> {return e;});
+        //           arrayVector.idValues = edges.nodes.map((e)=> {return e.uuid;});
 
-                  //if it's not already in there:
-                  if (this.tableManager.adjMatrixCols.filter((a:any )=> {return a.desc.name === arrayVector.desc.name; }).length<1) {
-                    this.tableManager.adjMatrixCols =this.tableManager.adjMatrixCols.concat(arrayVector); //store array of vectors
-                  }
+        //           //if it's not already in there:
+        //           if (this.tableManager.adjMatrixCols.filter((a:any )=> {return a.desc.name === arrayVector.desc.name; }).length<1) {
+        //             this.tableManager.adjMatrixCols =this.tableManager.adjMatrixCols.concat(arrayVector); //store array of vectors
+        //           }
 
-                  //if it's not already in there:
-                  if (this.tableManager.colOrder.filter((a:any )=> {return a === arrayVector.desc.name; }).length<1) {
-                    this.tableManager.colOrder = [arrayVector.desc.name].concat(this.tableManager.colOrder); // store array of names
-                  }
+        //           //if it's not already in there:
+        //           if (this.tableManager.colOrder.filter((a:any )=> {return a === arrayVector.desc.name; }).length<1) {
+        //             this.tableManager.colOrder = [arrayVector.desc.name].concat(this.tableManager.colOrder); // store array of names
+        //           }
 
-                });
-        }
+        //         });
+        // }
 
 
 

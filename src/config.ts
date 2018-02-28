@@ -66,6 +66,9 @@ export class Config {
       settingsExpand:'\uf105',
       settingsCollapse:'\uf107',
 
+      sortDesc:'\uf161',
+      sortAsc:'\uf160',
+
       filter:'\uf0b0',
 
       arrowRight:'\uf0da',

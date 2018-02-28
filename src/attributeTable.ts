@@ -598,11 +598,12 @@ class AttributeTable {
     // this.tableManager.colOrder = this.tableManager.colOrder.length < 1 ?
     // this.tableManager.adjMatrixCols.map((c)=> {return c.desc.name;}).concat(this.tableManager.defaultCols) : this.tableManager.colOrder;
 
-    const colOrder = this.tableManager.colOrder.sort((a,b)=> {
-      const arrayVec = this.tableManager.adjMatrixCols.filter((vector)=> { return vector.desc.name === a;})[0];
-      // console.log(a); return 1;
-      return arrayVec.desc.value.type === VALUE_TYPE_ADJMATRIX ? -1 : 1;
-    });;
+    const colOrder = this.tableManager.colOrder
+    // .sort((a,b)=> {
+    //   const arrayVec = this.tableManager.adjMatrixCols.filter((vector)=> { return vector.desc.name === a;})[0];
+    //   // console.log(a); return 1;
+    //   return arrayVec.desc.value.type === VALUE_TYPE_ADJMATRIX ? -1 : 1;
+    // });;
     const orderedCols = [];
 
     this.allCols = allCols;
@@ -1625,7 +1626,14 @@ class AttributeTable {
 
     // If a sortAttribute has been set, sort by that attribute
     if (this.sortAttribute.state !== sortedState.Unsorted) {
-      this.sortRows(this.sortAttribute.data, this.sortAttribute.state, false);
+
+      //check to see if the col still exists
+      const sortOn = this.sortAttribute.data;
+      if (this.colData.find((c)=> {return c.name === sortOn.name;})) {
+        this.sortRows(this.sortAttribute.data, this.sortAttribute.state, false);
+      };
+
+      
     }
 
     // this.updateSlopeLines(false, this.sortAttribute.state !== sortedState.Unsorted);
@@ -1712,6 +1720,7 @@ class AttributeTable {
    */
   private sortRows(d: any, sortOrder: sortedState, animate: boolean) {
 
+    
     const maxWidth = max(this.colOffsets) + 50 + Config.slopeChartWidth;
     this.$node.select('#headers')
       .attr('width', maxWidth);
@@ -1871,42 +1880,44 @@ class AttributeTable {
     //Check for custom column width value, if none, use default
     const colWidth = this.customColWidths[cellData.name] || this.colWidths[cellData.type];
 
-    let icon = element.selectAll('.descending')
+    let icon = element.selectAll('.sortIcon')
       .data([cellData]);
 
-
-    let iconEnter = icon.enter()
+    const iconEnter = icon.enter()
       .append('text')
       .classed('sortIcon', true)
       .classed('icon', true)
       .classed('descending', true);
 
+    icon.exit().remove();
+
     icon = iconEnter.merge(icon);
 
     icon
-      .text('\uf0dd')
+      // .text('\uf0dd')
+      .text(Config.icons.sortDesc)
       .attr('y', this.rowHeight * 1.8 + 24)
       .attr('x', (d) => {
         return  cellData.type === VALUE_TYPE_ADJMATRIX ? colWidth / 2 : colWidth / 2 - 5;
       });
 
-    icon = element.selectAll('.ascending')
-      .data([cellData]);
+    // icon = element.selectAll('.ascending')
+    //   .data([cellData]);
 
-    iconEnter = icon.enter()
-      .append('text')
-      .classed('sortIcon', true)
-      .classed('icon', true)
-      .classed('ascending', true);
+    // iconEnter = icon.enter()
+    //   .append('text')
+    //   .classed('sortIcon', true)
+    //   .classed('icon', true)
+    //   .classed('ascending', true);
 
-      icon = iconEnter.merge(icon);
+    //   icon = iconEnter.merge(icon);
 
-    icon
-      .text('\uf0de')
-      .attr('y', cellData.type === VALUE_TYPE_ADJMATRIX ? this.rowHeight * 1.8 + 13 : this.rowHeight * 1.8 + 14)
-      .attr('x', (d) => {
-        return cellData.type === VALUE_TYPE_ADJMATRIX ? colWidth / 2 : colWidth / 2 - 5;
-      });
+    // icon
+    //   .text('\uf0de')
+    //   .attr('y', cellData.type === VALUE_TYPE_ADJMATRIX ? this.rowHeight * 1.8 + 13 : this.rowHeight * 1.8 + 14)
+    //   .attr('x', (d) => {
+    //     return cellData.type === VALUE_TYPE_ADJMATRIX ? colWidth / 2 : colWidth / 2 - 5;
+    //   });
 
       icon = element.selectAll('.deleteIcon')
       .data([cellData]);
@@ -1953,13 +1964,23 @@ class AttributeTable {
 
     selectAll('.sortIcon')
       .on('click', function (d) {
-
         // Set 'sortAttribute'
-        if (select(this).classed('ascending')) {
-          self.sortAttribute.state = sortedState.Ascending;
-        } else {
-          self.sortAttribute.state = sortedState.Descending;
+        const selected = (select(this).classed('sortSelected'));
+        let descending = select(this).classed('descending');
+        
+
+        console.log(selected,descending)
+
+        //Only change the direction if it's a second click on the same icon
+        if (selected) {
+          const icon = descending ? Config.icons.sortAsc : Config.icons.sortDesc;
+          select(this).text(icon);
+          select(this).classed('descending',!select(this).classed('descending'));
+          descending = select(this).classed('descending');
         }
+
+        self.sortAttribute.state = descending ? sortedState.Descending : sortedState.Ascending;
+        
         self.sortAttribute.data = d;
 
         selectAll('.sortIcon')
@@ -1970,13 +1991,14 @@ class AttributeTable {
 
         self.sortRows(d, self.sortAttribute.state, true);
 
-        self.updateSlopeLines(true, true);
+        // self.updateSlopeLines(true, true);
 
       });
 
     selectAll('.deleteIcon')
       .on('click', (d: any) => {
         this.tableManager.colOrder.splice(this.tableManager.colOrder.indexOf(d.name), 1);
+
         // this.tableManager.removeStar(d.name);
 
         //Update menu

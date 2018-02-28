@@ -917,7 +917,7 @@ class Graph {
     vec = {
       type: 'dataDensity',
       title: 'Graph Edges',
-      data: this.graph.nodes.map((n, i) => { return { 'value': n.graphDegree, 'uuid': n.uuid }; }),
+      data: this.graph.nodes.map((n, i) => { return { 'value': n.graphDegree, 'uuid': n.uuid, 'aggregated':n.aggregated }; }),
       ids: this.graph.nodes.map((n) => { return n.uuid; })
     };
 
@@ -928,7 +928,7 @@ class Graph {
     vec = {
       type: 'dataDensity',
       title: 'Tree Edges',
-      data: this.graph.nodes.map((n, i) => { return { 'value': this.nodeNeighbors[n.uuid].degree, 'uuid': n.uuid }; }),
+      data: this.graph.nodes.map((n, i) => { return { 'value': this.nodeNeighbors[n.uuid].degree, 'uuid': n.uuid, 'aggregated':n.aggregated }; }),
       ids: this.graph.nodes.map((n) => { return n.uuid; })
     };
 
@@ -937,7 +937,7 @@ class Graph {
     vec = {
       type: 'dataDensity',
       title: 'Hidden Edges',
-      data: this.graph.nodes.map((n, i) => { return { 'value': this.nodeNeighbors[n.uuid].hidden, 'uuid': n.uuid }; }),
+      data: this.graph.nodes.map((n, i) => { return { 'value': this.nodeNeighbors[n.uuid].hidden, 'uuid': n.uuid, 'aggregated':n.aggregated }; }),
       ids: this.graph.nodes.map((n) => { return n.uuid; })
     };
 

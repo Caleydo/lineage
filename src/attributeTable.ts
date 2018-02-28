@@ -2823,12 +2823,16 @@ class AttributeTable {
       return;
     }
 
+    if (numValues>1){
+      console.log(cellData)
+    }
+
     const colorScale = scaleLinear<number, number>().domain(cellData.vector.desc.value.range).range([.3, .8]);
 
     // console.log(cellData.data[0].value, colorScale.domain());
     element
       .select('.dataDens')
-      .classed('aggregated',numValues>1)
+      .classed('aggregated',(numValues>0 && cellData.data[0].aggregated))
       .attr('width', colWidth)
       .attr('height', rowHeight)
       .attr('x', 0)

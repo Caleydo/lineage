@@ -40,6 +40,8 @@ td {
  fill:#343434;
 }
 
+
+
 .giphy-embed{
   pointer-events:none;
   opacity:.4;
@@ -52,6 +54,11 @@ td {
 .dropdown-item.demoAttr{
   cursor:default;
 }
+
+.aggregateLabel{
+  font-size:10px;
+}
+
 .title{
   // text-decoration: underline;
   font-size:14px;
@@ -66,6 +73,7 @@ td {
 .title .titleContent{
   pointer-events:none;
   alignment-baseline:central;
+  text-anchor:middle;
 }
 
 .title .icon{

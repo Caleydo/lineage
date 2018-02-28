@@ -1024,7 +1024,6 @@ class Graph {
       const node = queue.splice(0, 1)[0];;
       this.aggregateHelper(root, node, aggregate, queue);
     }
-    console.log(root);
   }
 
   aggregateHelper(root, node, aggregate, queue) {
@@ -1311,7 +1310,7 @@ class Graph {
       const levels = Object.keys(r.summary);
       levels.map((l) => {
         r.summary[l].map(((n) => {
-          const xx = r.xx + +l * .5;
+          const xx = r.xx + +l * .6;
 
           //find offset
           const lev = Object.keys(r.summary).map(Number)
@@ -1324,7 +1323,7 @@ class Graph {
           }, 1);
 
           const yy = r.yy + hops; // + r.summary[l].indexOf(n)+1 ;
-          aggregateIcons.push({ uuid: r.uuid + '_' + l + '_' + n, label: n, visible: true, aggregated: false, title: '', xx, yy });
+          aggregateIcons.push({ uuid: r.uuid + '_' + l + '_' + n, label: n, visible: true, aggregated: false, aggregateLabel:true, title: '', xx, yy });
         })
 
         );
@@ -1333,7 +1332,7 @@ class Graph {
 
     let node = this.svg.select('.nodes')
       .selectAll('.title')
-      .data(aggregateIcons.concat(graph.nodes.filter((n) => { return n.visible; })), (d) => {
+      .data(graph.nodes.filter((n) => { return n.visible; }).concat(aggregateIcons), (d) => {
         return d.uuid;
       });
 
@@ -1362,10 +1361,12 @@ class Graph {
     node
       .html((d) => {
         return d.aggregated ? '<tspan class="icon">' + Config.icons.aggregateIcon + '</tspan>'
-        : '.<tspan class="icon">' + Config.icons[d.label] + '</tspan> ' + '<tspan class="titleContent">' + d.title + '</tspan>';
+        : (d.aggregateLabel?  '<tspan class="aggregateLabel titleContent">' + d.label +  '</tspan> <tspan class="icon">' + Config.icons[d.label] + '</tspan> ' + '<tspan class="titleContent">' + d.title + '</tspan>'
+        : '.<tspan class="icon">' + Config.icons[d.label] + '</tspan> ' + '<tspan class="titleContent">' + d.title + '</tspan>');
       });
-    // Config.icons.aggregateIcon
-    // Config.icons[d.label]
+    
+    selectAll('.aggregateLabel')
+    .attr('visibility','hidden');
 
     node
       .on('mouseover', (d: any) => {
@@ -1392,7 +1393,7 @@ class Graph {
       .duration(1000)
       // .attr('opacity',1)
       .attr('x', (d) => {
-        const xpos = d.aggregated ? Math.floor((d.xx - 1) / 3) * this.xScale.invert(6) + d.aggregateRoot.xx + 1 + d.level * 0.5 : undefined;
+        const xpos = d.aggregated ? Math.floor((d.xx - 1) / 3) * this.xScale.invert(6) + d.aggregateRoot.xx + 1 + d.level * 0.6 : undefined;
         return d.aggregated ? xScale(xpos) : xScale(d.xx) + this.radius;
       })
       .attr('y', (d) => {
@@ -1934,6 +1935,7 @@ class Graph {
       return returnValue;
     }
 
+    selectAll('.title').select('.aggregateLabel').filter((bar:any)=> {return bar.yy === d.yy;}).attr('visibility','visible');
     //Set opacity of corresponding highlightBar
     selectAll('.highlightBar').filter(selected).attr('opacity', .2);
 
@@ -1945,6 +1947,7 @@ class Graph {
   }
 
   private clearHighlights() {
+    selectAll('.aggregateLabel').attr('visibility','hidden');
     selectAll('.highlightBar').attr('opacity', 0);
     selectAll('.starRect').attr('opacity', 0);
   }

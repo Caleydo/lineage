@@ -1721,7 +1721,6 @@ class AttributeTable {
     const toSort = this.colData.find((c) => {
       return c.name === d.name;
     }).data;
-
     // temporary array holds objects with position and sort-value
     const mapped = toSort.map(function (el, i) {
       if (d.type === VALUE_TYPE_REAL || d.type === VALUE_TYPE_INT) {
@@ -1737,7 +1736,15 @@ class AttributeTable {
             return e === d.category;
           }).length / el.length)
         };
-      } else if (d.type === 'idtype') {
+      }  else if (d.type === VALUE_TYPE_ADJMATRIX) {
+        // console.log(el)
+        const numValidValues = el.reduce((a, v) => {
+          return v ? a + 1 : a;
+        }, 0);
+        return {
+          index: i, value: numValidValues/el.length
+        };
+      }else if (d.type === 'idtype') {
         const equalValues = el.reduce(function (a, b) {
           return (a === b) ? a : NaN;
         }); //check for array that has all equal values in an aggregate (such as KindredId);
@@ -1746,14 +1753,14 @@ class AttributeTable {
 
     });
 
-    const equalValues = mapped.reduce(function (a, b) {
-      return (a.value === b.value) ? a : NaN;
-    }); //check for array that has all equal values in an aggregate (such as KindredId);
+    // const equalValues = mapped.reduce(function (a, b) {
+    //   return (a.value === b.value) ? a : NaN;
+    // }); //check for array that has all equal values in an aggregate (such as KindredId);
 
-    //All values are the same, no sorting needed;
-    if (!isNaN(equalValues.value)) {
-      return;
-    }
+    // //All values are the same, no sorting needed;
+    // if (!isNaN(equalValues.value)) {
+    //   return;
+    // }
 
     // select('#revertTreeOrder')
     //   // .transition(t2.transition().duration(500).ease(easeLinear))
@@ -1762,24 +1769,25 @@ class AttributeTable {
     // sorting the mapped array containing the reduced values
     if (sortOrder === sortedState.Ascending) {
       mapped.sort(function (a, b) {
+        if (b.value === undefined || a.value < b.value) { return -1; }
+        if (a.value === undefined || a.value > b.value) { return 1; }
         if (a.value === b.value) {
           if (a.index === b.index) { return 0; }
           if (a.index < b.index) { return -1; }
           if (a.index > b.index) { return 1; }
         }
-        if (b.value === undefined || a.value < b.value) { return -1; }
-        if (a.value === undefined || a.value > b.value) { return 1; }
-
       });
     } else {
       mapped.sort(function (a, b) {
+        if (b.value === undefined || a.value > b.value) { return -1; }
+        if (a.value === undefined || a.value < b.value) { return 1; }
         if (a.value === b.value) {
           if (a.index === b.index) { return 0; }
           if (a.index < b.index) { return -1; }
           if (a.index > b.index) { return 1; }
         }
         if (a.value < b.value) { return 1; }
-        if (a.value === undefined || b.value === undefined || a.value > b.value) { return -1; }
+        
       });
     }
 
@@ -2681,7 +2689,6 @@ class AttributeTable {
     }, 0);
 
     const numValues = cellData.data.filter((c) => {
-      // return (c === cellData.category);
       return c;
     }).length;
 
@@ -2821,10 +2828,6 @@ class AttributeTable {
         .attr('opacity', .6);
 
       return;
-    }
-
-    if (numValues>1){
-      console.log(cellData)
     }
 
     const colorScale = scaleLinear<number, number>().domain(cellData.vector.desc.value.range).range([.3, .8]);

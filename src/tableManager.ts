@@ -100,6 +100,7 @@ export const ADJ_MATRIX_CHANGED = 'adjacency_matrix_changed';
 export const ATTR_COL_ADDED = 'attr_col_added';
 export const AGGREGATE_CHILDREN = 'aggregate_children';
 export const PATHWAY_SELECTED = 'pathway_selected';
+export const TREE_PRESERVING_SORTING = 'tree_preserving_sorting';
 
 import {
   DB_CHANGED_EVENT
@@ -201,57 +202,6 @@ export default class TableManager {
   }
 
   constructor() {
-
-
-    events.on(ATTR_COL_ADDED, (evt,info)=> {
-
-      if (info.remove) {
-        this.colOrder.splice(this.colOrder.indexOf(info.name), 1);
-        events.fire(COL_ORDER_CHANGED_EVENT);
-      } else {
-
-
-     const url = 'api/data_api/property/' + info.db + '/' + info.name ;
-     console.log('url is ', url);
-
-              json(url, (error, resultObj: any) => {
-                if (error) {
-                  throw error;
-                }
-
-                const nodes = resultObj.results;
-                const dataValues = nodes.map((e)=> {return isNaN(+e.value) ? e.value : +e.value ;});;
-                //infer type here:
-                const type = typeof dataValues[0]  === 'number' ? VALUE_TYPE_INT : VALUE_TYPE_STRING;
-                  //Add fake vector here:
-                 const arrayVector = arrayVec.create(type);
-                arrayVector.desc.name = info.name;
-
-
-                arrayVector.dataValues = dataValues;
-                arrayVector.idValues = nodes.map((e)=> {return e.uuid;});
-
-                arrayVector.desc.value.range = [min([max(arrayVector.dataValues),0]), max(arrayVector.dataValues)];
-
-                // console.log(arrayVector);
-
-                //if it's not already in there:
-                if (this.adjMatrixCols.filter((a:any )=> {return a.desc.name === arrayVector.desc.name; }).length<1) {
-                  this.adjMatrixCols =this.adjMatrixCols.concat(arrayVector); //store array of vectors
-                }
-
-                //if it's not already in there:
-                if (this.colOrder.filter((a:any )=> {return a === arrayVector.desc.name; }).length<1) {
-                  this.colOrder = [arrayVector.desc.name].concat(this.colOrder); // store array of names
-                }
-
-                events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);
-
-              });
-
-      }
-
-    });
 
     events.on(DB_CHANGED_EVENT, ()=> {
             //clear selected attributes;

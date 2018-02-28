@@ -8,7 +8,7 @@ import {
   SUBGRAPH_CHANGED_EVENT, FILTER_CHANGED_EVENT
 } from './setSelector';
 
-import { TABLE_VIS_ROWS_CHANGED_EVENT, ADJ_MATRIX_CHANGED, AGGREGATE_CHILDREN, ATTR_COL_ADDED, PATHWAY_SELECTED } from './tableManager';
+import { TABLE_VIS_ROWS_CHANGED_EVENT, COL_ORDER_CHANGED_EVENT, ADJ_MATRIX_CHANGED, AGGREGATE_CHILDREN, ATTR_COL_ADDED, PATHWAY_SELECTED, TREE_PRESERVING_SORTING } from './tableManager';
 
 import { VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL, VALUE_TYPE_STRING } from 'phovea_core/src/datatype';
 
@@ -23,7 +23,8 @@ import {
   event
 } from 'd3-selection';
 import {
-  json
+  json,
+  request
 } from 'd3-request';
 import {
   transition
@@ -83,6 +84,13 @@ import * as arrayVec from './ArrayVector';
 
 export const ROOT_CHANGED_EVENT = 'root_changed';
 export const REPLACE_EDGE_EVENT = 'replace_edge_event';
+
+
+enum sortedState {
+  Ascending,
+  Descending,
+  Unsorted
+}
 
 /** Class implementing the map view. */
 class Graph {
@@ -215,6 +223,60 @@ class Graph {
 
     });
 
+    events.on(ATTR_COL_ADDED, (evt,info)=> {
+      
+            if (info.remove) {
+              this.tableManager.colOrder.splice(this.tableManager.colOrder.indexOf(info.name), 1);
+              events.fire(COL_ORDER_CHANGED_EVENT);
+            } else {
+
+           const url = 'api/data_api/property/' + info.db + '/' + info.name ;
+           console.log('url is ', url);
+      
+           const postContent = JSON.stringify({'treeNodes':this.graph ? this.graph.nodes.map((n)=> {return n.uuid;}):['']});
+           
+      
+                  json(url)
+                  .header('Content-Type', 'application/json')
+                  .post(postContent,(error, resultObj: any) => {
+                      if (error) {
+                        throw error;
+                      }
+      
+                      const nodes = resultObj.results;
+                      const dataValues = nodes.map((e)=> {return isNaN(+e.value) ? e.value : +e.value ;});;
+                      //infer type here:
+                      const type = typeof dataValues[0]  === 'number' ? VALUE_TYPE_INT : VALUE_TYPE_STRING;
+                        //Add fake vector here:
+                       const arrayVector = arrayVec.create(type);
+                      arrayVector.desc.name = info.name;
+      
+      
+                      arrayVector.dataValues = dataValues;
+                      arrayVector.idValues = nodes.map((e)=> {return e.uuid;});
+      
+                      arrayVector.desc.value.range = [min([max(arrayVector.dataValues),0]), max(arrayVector.dataValues)];
+      
+                      // console.log(arrayVector);
+      
+                      //if it's not already in there:
+                      if (this.tableManager.adjMatrixCols.filter((a:any )=> {return a.desc.name === arrayVector.desc.name; }).length<1) {
+                        this.tableManager.adjMatrixCols =this.tableManager.adjMatrixCols.concat(arrayVector); //store array of vectors
+                      }
+      
+                      //if it's not already in there:
+                      if (this.tableManager.colOrder.filter((a:any )=> {return a === arrayVector.desc.name; }).length<1) {
+                        this.tableManager.colOrder = [arrayVector.desc.name].concat(this.tableManager.colOrder); // store array of names
+                      }
+      
+                      events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);
+      
+                    });
+      
+            }
+      
+          });
+
     events.on(PATHWAY_SELECTED, (evt, info) => {
 
       if (info.clear || info.start) {
@@ -245,6 +307,15 @@ class Graph {
       this.drawTree();
 
     });
+
+    events.on(TREE_PRESERVING_SORTING,(evt,info)=> {
+      console.log('tree preserving aggregation fired')
+      this.graph.nodes.map((n) => n.visited = false);
+      this.layoutEntireTree(info);
+      this.updateEdgeInfo();
+      this.exportYValues();
+      this.drawTree();
+    })
 
 
     events.on(DB_CHANGED_EVENT, (evt, info) => {
@@ -621,7 +692,12 @@ class Graph {
       // url = url + '?treeNodes=' + (this.graph ? this.graph.nodes.map((n)=> {return n.uuid;}) : '');
 
       console.log('url is ', url);
-      json(url, (error, graph: any) => {
+
+      const postContent = JSON.stringify({'treeNodes':this.graph ? this.graph.nodes.map((n)=> {return n.uuid;}):['']});
+
+      json(url)
+      .header('Content-Type', 'application/json')
+      .post(postContent, (error, graph: any) => {
         if (error) {
           throw error;
         }
@@ -1044,7 +1120,7 @@ class Graph {
   }
 
 
-  layoutEntireTree() {
+  layoutEntireTree(sortAttribute = undefined) {
 
     // this.graph.nodes.map((n) => { n.visited = (n.pathway && n.moved) ? true : false; });
 
@@ -1071,15 +1147,15 @@ class Graph {
 
       // console.log('visiting root', root.title)
       root.xx = 0;
-      this.layoutTree(root);
+      this.layoutTree(root,sortAttribute);
     }
   }
 
-  layoutTree(root) {
-    this.layoutTreeHelper(root);
+  layoutTree(root,sortAttribute = undefined) {
+    this.layoutTreeHelper(root,sortAttribute);
   }
 
-  layoutTreeHelper(node) {
+  layoutTreeHelper(node,sortAttribute = undefined) {
     // console.log('visiting', node.title)
     // if (!node.visited) {
     node.visited = true;
@@ -1104,8 +1180,44 @@ class Graph {
     // }
     // }
 
-    //sort Children alphabetically
-    node.children.sort((a,b)=> { return a.title < b.title ? -1 : (a.title === b.title ? (a.uuid < b.uuid ? -1 : 1) : 1);});
+    //sort Children by chosen attribute
+    if (sortAttribute) {
+      const data = sortAttribute.data;
+      const ids = sortAttribute.ids;
+      const sortOrder = sortAttribute.sortOrder;
+
+      node.children.sort((a,b)=> { 
+        const aloc = ids.findIndex((id)=> {return id.find((i)=> {return i === a.uuid;});});
+        const bloc = ids.findIndex((id)=> {return id.find((i)=> {return i === b.uuid;});});
+
+        a.value = data[aloc]; 
+        b.value = data[bloc]; 
+
+        if (sortOrder === sortedState.Ascending) {
+            if (b.value === undefined || a.value < b.value) { console.log( ' 1 '); return -1; }
+            if (a.value === undefined || a.value > b.value) { console.log( ' 2 ');return 1; }
+            if (a.value === b.value) {
+              if (a.index === b.index) {console.log( ' 3 '); return 0; }
+              if (a.title < b.title) { console.log( ' 4 ');return -1; }
+              if (a.title > b.title) { console.log( ' 5 ');return 1; }
+            }
+        } else {
+            if (b.value === undefined || a.value > b.value) { console.log( ' 6 ');return -1; }
+            if (a.value === undefined || a.value < b.value) { console.log( ' 7 ');return 1; }
+            if (a.value === b.value) {
+              if (a.title === b.title) { console.log( ' 8 ');return 0; }
+              if (a.title < b.title) { console.log( ' 9 ');return -1; }
+              if (a.title > b.title) { console.log( ' 10 ');return 1; }
+            }
+            if (a.value < b.value) { console.log( ' 11 ');return 1; }
+        }
+        
+      });
+    } else {
+      //default sorting is alphabetical
+      node.children.sort((a,b)=> { return a.title < b.title ? -1 : (a.title === b.title ? (a.uuid < b.uuid ? -1 : 1) : 1);});
+    }
+    
     //prioritize children that are part of a pathway
     node.children
       // .sort((a,b)=> {return a.pathway ? -1 :(b.pathway ? 1 : 0);})

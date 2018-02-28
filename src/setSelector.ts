@@ -476,7 +476,7 @@ class SetSelector {
 
 
       data.map((d) => {
-        this.populateTableRows('#' + d.name + '_body', d.nodes, this.headerInfo.length,d.name);
+        this.populateTableRows('#' + d.name + '_body', d.nodes.splice(0,50), this.headerInfo.length,d.name);
       });
 
       const url2 = 'api/data_api/properties/' + this.selectedDB;

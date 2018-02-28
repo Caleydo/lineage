@@ -34,7 +34,8 @@ import {
   POI_SELECTED,
   UPDATE_TABLE_EVENT,
   VIEW_CHANGED_EVENT,
-  TABLE_VIS_ROWS_CHANGED_EVENT
+  TABLE_VIS_ROWS_CHANGED_EVENT,
+  TREE_PRESERVING_SORTING
 } from './tableManager';
 import { isUndefined } from 'util';
 
@@ -1624,17 +1625,17 @@ class AttributeTable {
     });
 
 
-    // If a sortAttribute has been set, sort by that attribute
-    if (this.sortAttribute.state !== sortedState.Unsorted) {
+    // // If a sortAttribute has been set, sort by that attribute
+    // if (this.sortAttribute.state !== sortedState.Unsorted) {
 
-      //check to see if the col still exists
-      const sortOn = this.sortAttribute.data;
-      if (this.colData.find((c)=> {return c.name === sortOn.name;})) {
-        this.sortRows(this.sortAttribute.data, this.sortAttribute.state, false);
-      };
+    //   //check to see if the col still exists
+    //   const sortOn = this.sortAttribute.data;
+    //   if (this.colData.find((c)=> {return c.name === sortOn.name;})) {
+    //     this.sortRows(this.sortAttribute.data, this.sortAttribute.state, false);
+    //   };
 
       
-    }
+    // }
 
     // this.updateSlopeLines(false, this.sortAttribute.state !== sortedState.Unsorted);
 
@@ -1963,16 +1964,15 @@ class AttributeTable {
     const self = this;
 
     selectAll('.sortIcon')
-      .on('click', function (d) {
+      .on('click', function (d:any) {
         // Set 'sortAttribute'
         const selected = (select(this).classed('sortSelected'));
         let descending = select(this).classed('descending');
-        
-
-        console.log(selected,descending)
 
         //Only change the direction if it's a second click on the same icon
         if (selected) {
+          console.log('changing direction')
+          
           const icon = descending ? Config.icons.sortAsc : Config.icons.sortDesc;
           select(this).text(icon);
           select(this).classed('descending',!select(this).classed('descending'));
@@ -1983,13 +1983,19 @@ class AttributeTable {
         
         self.sortAttribute.data = d;
 
+        
         selectAll('.sortIcon')
           .classed('sortSelected', false);
 
         select(this)
           .classed('sortSelected', true);
 
-        self.sortRows(d, self.sortAttribute.state, true);
+          // console.log(d);
+        events.fire(TREE_PRESERVING_SORTING,{sortOrder:self.sortAttribute.state,data:d.data,ids:d.ids});
+        
+
+        //global sorting
+        // self.sortRows(d, self.sortAttribute.state, true);
 
         // self.updateSlopeLines(true, true);
 

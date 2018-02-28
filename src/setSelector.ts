@@ -183,8 +183,8 @@ class SetSelector {
 
     const label = cboxes
       .attr('class', 'checkbox')
-      .append('label')
-      
+      .append('label');
+
 
     label
       .html(function (d: any) {
@@ -195,7 +195,6 @@ class SetSelector {
       .on('click',function (d:any) {
         const parentElement = select('#filterPanel').selectAll('label').filter((l:any)=> {
           return l.name === d.name;});
-        console.log(parentElement.size())
         events.fire(FILTER_CHANGED_EVENT, { 'label': d.name, 'exclude': !parentElement.classed('exclude') });
         parentElement.classed('exclude', !parentElement.classed('exclude'));
       });
@@ -333,7 +332,7 @@ class SetSelector {
 
     headers = headerEnter.merge(headers);
 
-    let self = this;
+    const self = this;
     headers
       .style('width', (d: any, i) => {
         const width = (i < 2 ? 10 : (90 / (tableHeaders.length - 2)));
@@ -393,20 +392,11 @@ class SetSelector {
       let allNodes = [];
       const labels = data.map((d) => { allNodes = allNodes.concat(d.nodes); return { name: d.name, size: d.nodes.length }; });
 
-      
-      //Add highly connected nodes to the adj Matrix: 
 
-      //append  col from adj matrix;
-      
-        //Add fake vector here:
-
-        //pick 5 most connected nodes;
-
-        
+      //Add highly connected nodes to the adj Matrix:
         allNodes.sort((a,b)=> {return a.degree>b.degree ? -1 : 1; });
-      
+
         const connectedNodes = allNodes.slice(0,7);
-        console.log(connectedNodes)
 
         const queue = [];
         connectedNodes.map((cNode)=> {
@@ -414,14 +404,14 @@ class SetSelector {
           arrayVector.desc.name = cNode.title;
           const id = encodeURIComponent(cNode.id);
           queue.push({vec:arrayVector,id});
-        })
+        });
 
         while (queue.length>0) {
 
-        let nextVec =queue.splice(0, 1)[0];
+        const nextVec =queue.splice(0, 1)[0];
 
          const url = 'api/data_api/edges/' + this.selectedDB + '/' + nextVec.id;
-  
+
         //  console.log('edge url is ', url);
                 json(url, (error, edges: any) => {
                   if (error) {
@@ -429,24 +419,24 @@ class SetSelector {
                   }
 
                   const arrayVector = nextVec.vec;
-  
+
                   arrayVector.dataValues = edges.nodes.map((e)=> {return e;});
                   arrayVector.idValues = edges.nodes.map((e)=> {return e.uuid;});
-  
+
                   //if it's not already in there:
                   if (this.tableManager.adjMatrixCols.filter((a:any )=> {return a.desc.name === arrayVector.desc.name; }).length<1) {
                     this.tableManager.adjMatrixCols =this.tableManager.adjMatrixCols.concat(arrayVector); //store array of vectors
                   }
-  
+
                   //if it's not already in there:
                   if (this.tableManager.colOrder.filter((a:any )=> {return a === arrayVector.desc.name; }).length<1) {
                     this.tableManager.colOrder = [arrayVector.desc.name].concat(this.tableManager.colOrder); // store array of names
                   }
-  
+
                 });
         }
-        
-        
+
+
 
 
 
@@ -516,7 +506,7 @@ class SetSelector {
     //sort data alphabetically;
     // console.log(rowData.sort((a,b)=> {return a.title < b.title; }));
 
-    
+
     //sort alphabetically
     rowData.sort((a,b)=> {return a.title<b.title ? -1 : 1;});
 

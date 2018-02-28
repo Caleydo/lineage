@@ -212,7 +212,7 @@ export default class TableManager {
 
 
      const url = 'api/data_api/property/' + info.db + '/' + info.name ;
-     console.log('url is ', url); 
+     console.log('url is ', url);
 
               json(url, (error, resultObj: any) => {
                 if (error) {
@@ -225,8 +225,6 @@ export default class TableManager {
                 const type = typeof dataValues[0]  === 'number' ? VALUE_TYPE_INT : VALUE_TYPE_STRING;
                   //Add fake vector here:
                  const arrayVector = arrayVec.create(type);
-
-                 console.log(dataValues);
                 arrayVector.desc.name = info.name;
 
 
@@ -259,9 +257,9 @@ export default class TableManager {
             //clear selected attributes;
             this.colOrder = [];
             this.adjMatrixCols=[];
-            this.yValues={};
-            events.fire(TABLE_VIS_ROWS_CHANGED_EVENT)
-    })
+            this.yValues= {};
+            events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);
+    });
 
     events.on(ADJ_MATRIX_CHANGED, (evt,info)=> {
 

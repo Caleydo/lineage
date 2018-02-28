@@ -176,7 +176,7 @@ class Graph {
 
       //make old edge hidden
       //Do not add links that already exists in the tree
-      const oldEdge = this.graph.links.filter((ll) => { 
+      const oldEdge = this.graph.links.filter((ll) => {
         return (ll.source.uuid === oldParent.uuid && ll.target.uuid === child.uuid && ll.edge.data.uuid !== info.uuid)
           || (ll.target.uuid === oldParent.uuid && ll.source.uuid === child.uuid && ll.edge.data.uuid !== info.uuid);
       })[0];
@@ -211,7 +211,7 @@ class Graph {
       this.updateEdgeInfo();
       this.exportYValues();
       this.drawTree();
-      
+
 
     });
 
@@ -651,7 +651,7 @@ class Graph {
           graph.links = newLinks;
           console.log('filtered links',graph.links);
 
-          
+
           this.graph = graph;
         } else {
 
@@ -733,7 +733,7 @@ class Graph {
 
         const roots = this.graph.nodes.filter((n) => { return this.graph.root.indexOf(n.uuid) > -1; });
 
-        
+
 
         this.updateFilterPanel();
 
@@ -873,7 +873,7 @@ class Graph {
     events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);
   }
 
-  updateEdgeInfo() {        
+  updateEdgeInfo() {
     //create dictionary of nodes with
         //1) set of adjacent nodes in the graph
         this.nodeNeighbors = {};
@@ -887,10 +887,10 @@ class Graph {
           //Populate dictionary
         //Find all edges that start or end on that node
         this.graph.links.map((l) => {
-          
+
                     const targetNode = l.target;
                     const sourceNode = l.source;
-         
+
                     const targetDictEntry = this.nodeNeighbors[targetNode.uuid];
                     const sourceDictEntry = this.nodeNeighbors[sourceNode.uuid];
 
@@ -904,7 +904,7 @@ class Graph {
 
 
                   });
-          
+
                   this.graph.nodes.map((n) => {
                     n.degree = this.nodeNeighbors[n.uuid].degree;
                   });
@@ -920,7 +920,7 @@ class Graph {
 
 
     this.addArrayVec(vec);
-    
+
 
     vec = {
       type: 'dataDensity',
@@ -978,7 +978,7 @@ class Graph {
     });
 
     edges.map((e) => {
-      
+
       const target = e.target;
       const source = e.source;
 
@@ -1168,7 +1168,7 @@ class Graph {
 
     link = this.svg.select('.hiddenLinks')
       .selectAll('.edge')
-      .data(graph.links.filter((l) => { return l.source.visible && l.target.visible && !l.visible; }), 
+      .data(graph.links.filter((l) => { return l.source.visible && l.target.visible && !l.visible; }),
       (d) => {return d.edge.data.uuid;});
 
     linksEnter = link
@@ -1361,7 +1361,7 @@ class Graph {
         : (d.aggregateLabel?  '<tspan class="aggregateLabel titleContent">' + d.label +  '</tspan> <tspan class="icon">' + Config.icons[d.label] + '</tspan> ' + '<tspan class="titleContent">' + d.title + '</tspan>'
         : '.<tspan class="icon">' + Config.icons[d.label] + '</tspan> ' + '<tspan class="titleContent">' + d.title + '</tspan>');
       });
-    
+
     selectAll('.aggregateLabel')
     .attr('visibility','hidden');
 

@@ -155,7 +155,7 @@ class AttributeTable {
 
 
   public async update() {
-    
+
     await this.initData();
     this.render();
   }
@@ -589,6 +589,7 @@ class AttributeTable {
     const graphView = await this.tableManager.graphTable;
     const attributeView = await this.tableManager.tableTable;
 
+    //put adjMatriCols first
     const allCols = this.tableManager.adjMatrixCols; //.concat(graphView.cols()).concat(attributeView.cols());
 
 
@@ -597,7 +598,11 @@ class AttributeTable {
     // this.tableManager.colOrder = this.tableManager.colOrder.length < 1 ?
     // this.tableManager.adjMatrixCols.map((c)=> {return c.desc.name;}).concat(this.tableManager.defaultCols) : this.tableManager.colOrder;
 
-    const colOrder = this.tableManager.colOrder;
+    const colOrder = this.tableManager.colOrder.sort((a,b)=> {
+      const arrayVec = this.tableManager.adjMatrixCols.filter((vector)=> { return vector.desc.name === a;})[0];
+      // console.log(a); return 1;
+      return arrayVec.desc.value.type === VALUE_TYPE_ADJMATRIX ? -1 : 1;
+    });;
     const orderedCols = [];
 
     this.allCols = allCols;
@@ -1008,8 +1013,6 @@ class AttributeTable {
   //renders the DOM elements
   private render() {
 
-    console.log(this.colData)
-
     // const t = transition('t').ease(easeLinear);
     // let t= this.tableManager.t;
     const self = this;
@@ -1399,7 +1402,7 @@ class AttributeTable {
       .attr('opacity', 0)
       // .attr('fill', 'transparent')
       .on('mouseover', this.highlightRow)
-      .on('mouseout', this.clearHighlight)
+      .on('mouseout', this.clearHighlight);
       // .on('click', this.clickHighlight);
 
     // //create slope Lines
@@ -1789,7 +1792,7 @@ class AttributeTable {
           if (a.index > b.index) { return 1; }
         }
         if (a.value < b.value) { return 1; }
-        
+
       });
     }
 
@@ -2792,7 +2795,7 @@ class AttributeTable {
     const rowHeight = this.rowHeight;
 
     element.selectAll('.cross_out').remove();
-    
+
     const numValues = cellData.data.filter((v) => { return v.value !== undefined; }).length;
     const totalValues = cellData.data.reduce((acc,cValue)=> {return acc+cValue.value;},0);
 
@@ -2892,7 +2895,7 @@ class AttributeTable {
       .attr('x', colWidth / 2)
       .attr('y', rowHeight * 0.8)
       .text(() => {
-        return totalValues > 999 ? (Math.floor(totalValues/1000) + 'k') : (totalValues > 99 ? (Math.floor(totalValues/100) + 'h') : totalValues ); 
+        return totalValues > 999 ? (Math.floor(totalValues/1000) + 'k') : (totalValues > 99 ? (Math.floor(totalValues/100) + 'h') : totalValues );
       })
       .attr('text-anchor', 'middle')
       .attr('fill', '#4e4e4e');
@@ -3248,7 +3251,7 @@ class AttributeTable {
       self.update();
     });
 
- 
+
   }
 
 }

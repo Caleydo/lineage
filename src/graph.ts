@@ -84,6 +84,7 @@ import * as arrayVec from './ArrayVector';
 
 export const ROOT_CHANGED_EVENT = 'root_changed';
 export const REPLACE_EDGE_EVENT = 'replace_edge_event';
+export const EXPAND_CHILDREN = 'expand_children';
 
 
 enum sortedState {
@@ -157,7 +158,30 @@ class Graph {
     select('#graph')
       .on('click', () => { select('.menu').remove(); });
 
+      events.on(EXPAND_CHILDREN,(evt,info)=> {
 
+        const url = 'api/data_api/getNodes/' + this.selectedDB;
+        console.log('url is ', url);
+
+
+   
+        const postContent = JSON.stringify({'rootNode':'','rootNodes':info.children.map((n)=> {return n.uuid;}),'treeNodes':this.graph.nodes.map((n)=> {return n.uuid;})});
+        
+   
+               json(url)
+               .header('Content-Type', 'application/json')
+               .post(postContent,(error, graph: any) => {
+                   if (error) {
+                     throw error;
+                   }
+
+                   console.log(graph)
+                  this.mergeGraph(graph,false,true);
+                  this.postMergeUpdate();
+
+            });
+
+      });
 
     events.on(REPLACE_EDGE_EVENT, (evt, info) => {
 
@@ -725,104 +749,14 @@ class Graph {
             }
           });
           graph.links = newLinks;
-          console.log('filtered links',graph.links);
 
 
           this.graph = graph;
         } else {
-
-          const rootNode = graph.nodes.filter((n) => { return n.uuid.toString() === graph.root.toString(); });
-          const existingNodes = []; //nodes in the current subgraph that already exist in the tree
-
-          graph.nodes.forEach((node) => {
-            const eNode = this.graph.nodes.filter((n) => { return n.uuid === node.uuid; });
-            if (eNode.length < 1) {
-              this.graph.nodes = this.graph.nodes.concat(node);
-            } else {
-              existingNodes.push(eNode[0]);
-            }
-          });
-
-          //Keep track of which children node are already in the tree, but don't include new ones in the tree
-          if (includeRoot && !includeChildren) {
-            graph.targetNodes.forEach((node) => {
-              const eNode = this.graph.nodes.filter((n) => { return n.uuid === node.uuid; });
-              if (eNode.length > 1) {
-                existingNodes.push(eNode[0]);
-              }
-            });
-          }
-
-          //only add root to array of roots if it does not already exist in the graph;
-          if (this.graph.nodes.filter((n) => { return n.uuid.toString() === graph.root.toString(); }).length < 1) {
-            this.graph.root = this.graph.root.concat(graph.root);
-          };
-
-
-          //update indexes
-          graph.links.forEach((link) => {
-            const sourceNode = this.graph.nodes.filter((n) => { return n.uuid.toString() === link.source.uuid.toString(); })[0];
-            const targetNode = this.graph.nodes.filter((n) => { return n.uuid.toString() === link.target.uuid.toString(); })[0];
-
-            link.source = sourceNode;
-            link.target = targetNode;
-
-            if (link.source && link.target) { //both nodes exist in this tree
-              //Set link visibility to hidden if the node already exists
-              if (existingNodes.indexOf(sourceNode) > -1 && existingNodes.indexOf(targetNode) > -1) {
-                link.visible = false;
-                link.visited = true;
-                // console.log('setting link to hidden ', 's', sourceNode.title, 't', targetNode.title);
-              } else { //set the visibility to true if the link is directly with the root
-
-                if (rootNode[0]) {
-                  if (!(includeRoot && !includeChildren) && (sourceNode.uuid === rootNode[0].uuid || targetNode.uuid === rootNode[0].uuid)) {
-                    link.visible = true;
-                    link.visited = true;
-                  } else
-                    if (!(includeRoot && !includeChildren) || (includeRoot && !includeChildren && targetNode.parent)) {
-                      link.visible = false;
-                      link.visited = true;
-                    }
-                }
-              }
-
-
-              //Do not add links that already exists in the tree
-              const findLink = this.graph.links.filter((ll) => {
-                return (ll.source.uuid === sourceNode.uuid && ll.target.uuid === targetNode.uuid)
-                  || (ll.target.uuid === sourceNode.uuid && ll.source.uuid === targetNode.uuid); //if we don't care about direction
-              });
-
-              if (findLink.length < 1) {
-                this.graph.links = this.graph.links.concat([link]);
-              };
-
-            }
-
-          });
+          this.mergeGraph(graph,includeRoot,includeChildren);
         }
 
-
-
-        // this.interGenerationScale.range([.75, .25]).domain([2, this.graph.nodes.length]);
-
-        const roots = this.graph.nodes.filter((n) => { return this.graph.root.indexOf(n.uuid) > -1; });
-
-
-
-        this.updateFilterPanel();
-
-        this.extractTree(roots.length > 0 ? roots : undefined, this.graph, false);
-
-        this.exportYValues();
-
-        if (this.layout === 'tree') {
-          this.drawTree();
-        } else {
-          this.drawGraph();
-        };
-
+        this.postMergeUpdate();
 
         resolvePromise();
       });
@@ -830,6 +764,97 @@ class Graph {
 
     return p;
   };
+
+
+  postMergeUpdate() {
+    const roots = this.graph.nodes.filter((n) => { return this.graph.root.indexOf(n.uuid) > -1; });
+    this.updateFilterPanel();
+
+    this.extractTree(roots.length > 0 ? roots : undefined, this.graph, false);
+
+    this.exportYValues();
+
+    if (this.layout === 'tree') {
+      this.drawTree();
+    } else {
+      this.drawGraph();
+    };
+
+  };
+
+
+  mergeGraph(graph,includeRoot,includeChildren) {
+    const rootNode = graph.nodes.filter((n) => { return n.uuid.toString() === graph.root.toString(); });
+    const existingNodes = []; //nodes in the current subgraph that already exist in the tree
+
+    graph.nodes.forEach((node) => {
+      const eNode = this.graph.nodes.filter((n) => { return n.uuid === node.uuid; });
+      if (eNode.length < 1) {
+        this.graph.nodes = this.graph.nodes.concat(node);
+      } else {
+        existingNodes.push(eNode[0]);
+      }
+    });
+
+    //Keep track of which children node are already in the tree, but don't include new ones in the tree
+    if (includeRoot && !includeChildren) {
+      graph.targetNodes.forEach((node) => {
+        const eNode = this.graph.nodes.filter((n) => { return n.uuid === node.uuid; });
+        if (eNode.length > 1) {
+          existingNodes.push(eNode[0]);
+        }
+      });
+    }
+
+    //only add root to array of roots if it does not already exist in the graph;
+    if (this.graph.nodes.filter((n) => { return n.uuid.toString() === graph.root.toString(); }).length < 1) {
+      this.graph.root = this.graph.root.concat(graph.root);
+    };
+
+
+    //update indexes
+    graph.links.forEach((link) => {
+      const sourceNode = this.graph.nodes.filter((n) => { return n.uuid.toString() === link.source.uuid.toString(); })[0];
+      const targetNode = this.graph.nodes.filter((n) => { return n.uuid.toString() === link.target.uuid.toString(); })[0];
+
+      link.source = sourceNode;
+      link.target = targetNode;
+
+      if (link.source && link.target) { //both nodes exist in this tree
+        //Set link visibility to hidden if the node already exists
+        if (existingNodes.indexOf(sourceNode) > -1 && existingNodes.indexOf(targetNode) > -1) {
+          link.visible = false;
+          link.visited = true;
+          // console.log('setting link to hidden ', 's', sourceNode.title, 't', targetNode.title);
+        } else { //set the visibility to true if the link is directly with the root
+
+          if (rootNode[0]) {
+            if (!(includeRoot && !includeChildren) && (sourceNode.uuid === rootNode[0].uuid || targetNode.uuid === rootNode[0].uuid)) {
+              link.visible = true;
+              link.visited = true;
+            } else
+              if (!(includeRoot && !includeChildren) || (includeRoot && !includeChildren && targetNode.parent)) {
+                link.visible = false;
+                link.visited = true;
+              }
+          }
+        }
+
+
+        //Do not add links that already exists in the tree
+        const findLink = this.graph.links.filter((ll) => {
+          return (ll.source.uuid === sourceNode.uuid && ll.target.uuid === targetNode.uuid)
+            || (ll.target.uuid === sourceNode.uuid && ll.source.uuid === targetNode.uuid); //if we don't care about direction
+        });
+
+        if (findLink.length < 1) {
+          this.graph.links = this.graph.links.concat([link]);
+        };
+
+      }
+
+    });
+  }
 
 
   updateFilterPanel() {
@@ -1502,7 +1527,7 @@ class Graph {
       .duration(1000)
       // .attr('opacity',1)
       .attr('x', (d) => {
-        const xpos = d.aggregated ? Math.floor((d.xx - 1) / 3) * this.xScale.invert(6) + d.aggregateRoot.xx + 1 + d.level * 0.6 : undefined;
+        const xpos = d.aggregated ? Math.floor((d.xx - 1) / 3) * this.xScale.invert(6) + d.aggregateRoot.xx + 1 + d.level * 0.5 : undefined;
         return d.aggregated ? xScale(xpos) : xScale(d.xx) + this.radius;
       })
       .attr('y', (d) => {
@@ -1956,11 +1981,19 @@ class Graph {
                   const aggregate = d.children[0] && !d.children[0].aggregated;
                   actions = actions.concat(
                     [{
-                      'icon': 'Aggregate', 'string': aggregate ? 'Aggregate Children' : 'Expand Children', 'callback': () => {
+                      'icon': 'Aggregate', 'string': aggregate ? 'Aggregate Children' : 'Un-Aggregate Children', 'callback': () => {
                         events.fire(AGGREGATE_CHILDREN, { 'uuid': d.uuid, 'aggregate': aggregate });
                       }
                     }]
                   );
+                  if (aggregate) {
+                    actions = actions.concat(
+                      [{
+                      'icon': 'Aggregate', 'string': 'Expand all Children', 'callback': () => {
+                        events.fire(EXPAND_CHILDREN, { 'children':d.children });
+                      }
+                    }]);
+                  }
                 }
 
                 this.menuObject.addMenu(d, actions);

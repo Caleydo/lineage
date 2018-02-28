@@ -389,22 +389,21 @@ class SetSelector {
       const data = graphData.labels;
 
       const datalistItems = [];
-      let allNodes = [];
-      const labels = data.map((d) => { allNodes = allNodes.concat(d.nodes); return { name: d.name, size: d.nodes.length }; });
+      const labels = data.map((d) => {return { name: d.name, size: d.nodes.length }; });
 
 
       //Add highly connected nodes to the adj Matrix:
-        allNodes.sort((a,b)=> {return a.degree>b.degree ? -1 : 1; });
+        // allNodes.sort((a,b)=> {return a.degree>b.degree ? -1 : 1; });
 
-        const connectedNodes = allNodes.slice(0,7);
+        // const connectedNodes = allNodes.slice(0,7);
 
-        const queue = [];
-        connectedNodes.map((cNode)=> {
-          const arrayVector = arrayVec.create(undefined);
-          arrayVector.desc.name = cNode.title;
-          const id = encodeURIComponent(cNode.id);
-          queue.push({vec:arrayVector,id});
-        });
+        // const queue = [];
+        // connectedNodes.map((cNode)=> {
+        //   const arrayVector = arrayVec.create(undefined);
+        //   arrayVector.desc.name = cNode.title;
+        //   const id = encodeURIComponent(cNode.id);
+        //   queue.push({vec:arrayVector,id});
+        // });
 
         // while (queue.length>0) {
 

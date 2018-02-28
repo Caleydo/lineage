@@ -1008,6 +1008,8 @@ class AttributeTable {
   //renders the DOM elements
   private render() {
 
+    console.log(this.colData)
+
     // const t = transition('t').ease(easeLinear);
     // let t= this.tableManager.t;
     const self = this;

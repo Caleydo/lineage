@@ -166,10 +166,18 @@ export class App {
 
     // //Set listener on document so that clicking anywhere removes the menus
     select('body').on('click', () => {
+
+      //remove any menus
       select('#treeMenu').select('.menu').remove();
+
+      //set all nodes back to opacity 1
       select('.nodes')
       .selectAll('.title')
       .style('opacity',1);
+
+      //remove any tooltips
+      select('#tooltipMenu')
+      .select('svg').remove();
 
 
       select('.open').style('visibility','hidden');

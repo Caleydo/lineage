@@ -625,7 +625,7 @@ class Graph {
         if (error) {
           throw error;
         }
-        console.log('data return is ', graph.links);
+        console.log('data return is ', graph);
 
         //Replace graph or merge with incoming subgraph
         if (replace || !this.graph) {
@@ -640,10 +640,7 @@ class Graph {
             if (link.source && link.target) {
               const existingLink = newLinks.filter((l) => {
                 return l.edge.data.uuid === link.edge.data.uuid;
-                // return (l.source.uuid === link.source.uuid || l.source.uuid === link.target.uuid) &&
-                //   (l.target.uuid === link.source.uuid || l.target.uuid === link.target.uuid);
               });
-              // console.log(link,existingLink)
               //check for existing node
               if (existingLink.length < 1) {
                 newLinks.push(link);
@@ -652,7 +649,9 @@ class Graph {
             }
           });
           graph.links = newLinks;
-          console.log(graph.links)
+          console.log('filtered links',graph.links);
+
+          
           this.graph = graph;
         } else {
 
@@ -874,9 +873,7 @@ class Graph {
     events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);
   }
 
-  updateEdgeInfo() {
-    console.log('updating edge info')
-        
+  updateEdgeInfo() {        
     //create dictionary of nodes with
         //1) set of adjacent nodes in the graph
         this.nodeNeighbors = {};

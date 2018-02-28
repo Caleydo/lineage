@@ -3,6 +3,8 @@ import { AppConstants, ChangeTypes } from './app_constants';
 import { select, selectAll } from 'd3-selection';
 import { keys } from 'd3-collection';
 
+import * as arrayVec from './ArrayVector';
+
 import { Config } from './config';
 
 import * as menu from './menu';
@@ -338,7 +340,6 @@ class SetSelector {
         return width + '%';
       })
           .on('click', function (d) {
-            console.log(d);
             const isAscending = select(this).classed('des');
             if (isAscending) {
                self.rows[name].sort(function (a, b) {
@@ -389,7 +390,66 @@ class SetSelector {
       const data = graphData.labels;
 
       const datalistItems = [];
-      const labels = data.map((d) => { return { name: d.name, size: d.nodes.length }; });
+      let allNodes = [];
+      const labels = data.map((d) => { allNodes = allNodes.concat(d.nodes); return { name: d.name, size: d.nodes.length }; });
+
+      
+      //Add highly connected nodes to the adj Matrix: 
+
+      //append  col from adj matrix;
+      
+        //Add fake vector here:
+
+        //pick 5 most connected nodes;
+
+        
+        allNodes.sort((a,b)=> {return a.degree>b.degree ? -1 : 1; });
+      
+        const connectedNodes = allNodes.slice(0,7);
+        console.log(connectedNodes)
+
+        const queue = [];
+        connectedNodes.map((cNode)=> {
+          const arrayVector = arrayVec.create(undefined);
+          arrayVector.desc.name = cNode.title;
+          const id = encodeURIComponent(cNode.id);
+          queue.push({vec:arrayVector,id});
+        })
+
+        while (queue.length>0) {
+
+        let nextVec =queue.splice(0, 1)[0];
+
+         const url = 'api/data_api/edges/' + this.selectedDB + '/' + nextVec.id;
+  
+        //  console.log('edge url is ', url);
+                json(url, (error, edges: any) => {
+                  if (error) {
+                    throw error;
+                  }
+
+                  const arrayVector = nextVec.vec;
+  
+                  arrayVector.dataValues = edges.nodes.map((e)=> {return e;});
+                  arrayVector.idValues = edges.nodes.map((e)=> {return e.uuid;});
+  
+                  //if it's not already in there:
+                  if (this.tableManager.adjMatrixCols.filter((a:any )=> {return a.desc.name === arrayVector.desc.name; }).length<1) {
+                    this.tableManager.adjMatrixCols =this.tableManager.adjMatrixCols.concat(arrayVector); //store array of vectors
+                  }
+  
+                  //if it's not already in there:
+                  if (this.tableManager.colOrder.filter((a:any )=> {return a === arrayVector.desc.name; }).length<1) {
+                    this.tableManager.colOrder = [arrayVector.desc.name].concat(this.tableManager.colOrder); // store array of names
+                  }
+  
+                });
+        }
+        
+        
+
+
+
       this.build(labels);
 
       // this.updateFilterPanel(labels);

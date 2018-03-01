@@ -1122,6 +1122,7 @@ class Graph {
       const node = queue.splice(0, 1)[0];;
       this.aggregateHelper(root, node, aggregate, queue);
     }
+    console.log(this.graph.nodes); //.filter((n)=> !n.aggregated));
   }
 
   aggregateHelper(root, node, aggregate, queue) {
@@ -1135,13 +1136,42 @@ class Graph {
         root.summary[level] = [c.label];
       }
     });
-
+    
+    if (node.children.length>0) {
+      root.summary[level].map((nlabel)=> {
+      
+        let parent; 
+        
+        if (+level === 1) {
+          parent = root;
+        } else {
+          //find parent aggregate node
+          const allParents = this.graph.nodes.filter((n)=> {return n.root === root && n.level === +level-1;});
+          console.log(parent,allParents)
+          //get last element as parent (so that DFS positioning works)
+          console.log(parent,allParents)
+          parent = allParents[-1];
+        }
+        //iterate through and create fake nodes for each level
+        const aggregateNode = {root, parent, level:+level, children:[], uuid: root.uuid + '_' + level + '_' + nlabel, label: nlabel, visible: true, aggregated: false, aggregateLabel:true, title:''};
+  
+        //add node to children array of parent
+        parent.children.push(aggregateNode);
+        //add nodes to array of nodes in this graph
+        this.graph.nodes.push(aggregateNode);
+        
+      })
+    }
     node.children.map((c) => {
-      c.aggregated = aggregate;
+      c.aggregated = c.aggregateLabel? false : aggregate;
       c.level = node.level + 1;
-      c.aggregateRoot = aggregate ? root : undefined;
+      c.aggregateRoot = aggregate ? root : undefined; 
+      
+      const parent = this.graph.nodes.filter((n)=> {return (n.label === c.label && n.level === c.level && c.aggregateRoot === n.root);})[0];
+      c.aggParent = parent; 
       queue.push(c);
     });
+
   }
 
 
@@ -1187,16 +1217,18 @@ class Graph {
 
     // if (!node.moved) {
     if (node.aggregated) {
-      //find offset
-      const levels = Object.keys(node.aggregateRoot.summary).map(Number)
-        .filter((l) => { return l <= node.level; });
+      // //find offset
+      // const levels = Object.keys(node.aggregateRoot.summary).map(Number)
+      //   .filter((l) => { return l <= node.level; });
 
-      const hops = levels.reduce((accumulator, level) => {
-        const cValue = level < node.level ? node.aggregateRoot.summary[level.toString()].length
-          : node.aggregateRoot.summary[level.toString()].indexOf(node.label);
-        return accumulator + cValue;
-      }, 1);
-      node.yy = node.aggregateRoot.yy + hops;
+      // const hops = levels.reduce((accumulator, level) => {
+      //   const cValue = level < node.level ? node.aggregateRoot.summary[level.toString()].length
+      //     : node.aggregateRoot.summary[level.toString()].indexOf(node.label);
+      //   return accumulator + cValue;
+      // }, 1);
+      // node.yy = node.aggregateRoot.yy + hops;
+     
+      node.yy = node.aggParent.yy;
       this.ypos = max([this.ypos, node.yy]);
     } else {
       this.ypos = this.ypos + 1;
@@ -1247,29 +1279,30 @@ class Graph {
     node.children
       // .sort((a,b)=> {return a.pathway ? -1 :(b.pathway ? 1 : 0);})
       .map((c, i) => {
-        let hops;
-        if (c.aggregated) {
-          const levels = Object.keys(c.aggregateRoot.summary).map(Number)
-            .filter((l) => { return l <= c.level; });
+        // let hops;
+        // if (c.aggregated) {
+        //   const levels = Object.keys(c.aggregateRoot.summary).map(Number)
+        //     .filter((l) => { return l <= c.level; });
 
-          hops = levels.reduce((accumulator, level) => {
-            const cValue = level < c.level ? c.aggregateRoot.summary[level.toString()].length
-              : c.aggregateRoot.summary[level.toString()].indexOf(c.label);
-            return accumulator + cValue;
-          }, 1);
+        //   hops = levels.reduce((accumulator, level) => {
+        //     const cValue = level < c.level ? c.aggregateRoot.summary[level.toString()].length
+        //       : c.aggregateRoot.summary[level.toString()].indexOf(c.label);
+        //     return accumulator + cValue;
+        //   }, 1);
 
-        }
+        // }
 
-        let maxX = +max(this.graph.nodes.filter((n: any) => (n.visited && c.aggregateRoot && n.yy === c.aggregateRoot.yy + hops)), (n: any) => n.xx);
+        // let maxX = +max(this.graph.nodes.filter((n: any) => (n.visited && c.aggregateRoot && n.yy === c.aggregateRoot.yy + hops)), (n: any) => n.xx);
 
+        let maxX = +max(this.graph.nodes.filter((n: any) => (n.visited && c.aggregated && n.yy === c.aggParent.yy)), (n: any) => n.xx);
         if (!maxX && c.aggregateRoot) {
-          maxX = 0;
+          console.log('here?')
+          maxX = 10;
         }
-        c.xx = c.aggregated ? maxX + 1 : node.xx + 1;
+        c.xx = c.aggregated ? maxX + 1 : node.xx + .8;
 
         this.layoutTreeHelper(c);
       });
-
   }
 
   drawTree() {
@@ -1290,7 +1323,7 @@ class Graph {
     let linkEndMarkers = this.svg.select('.endMarkers')
       .selectAll('.endMarker')
       .data(graph.nodes.filter((n)=> {
-        return (!(n.children.length<1 && n.graphDegree<=n.degree)) && n.visible && !n.aggregated && n.visible;
+        return (!(n.children.length<1 && n.graphDegree<=n.degree)) && n.visible && !n.aggregated && n.visible &&!n.aggregateLabel;
       }),(d) => {return this.createID(d.title)+ '_endMarker';});
 
     const linkEndMarkersEnter = linkEndMarkers
@@ -1466,9 +1499,11 @@ class Graph {
 
     let node = this.svg.select('.nodes')
       .selectAll('.title')
-      .data(graph.nodes.filter((n) => { return n.visible; }).concat(aggregateIcons), (d) => {
+      .data(graph.nodes.filter((n) => { return n.visible; }), (d) => {
         return d.uuid;
       });
+
+      // .concat(aggregateIcons)
 
 
     const nodesEnter = node.enter()
@@ -1490,14 +1525,120 @@ class Graph {
       // return yScale(d.yy)-200;
     });
 
+    
+    nodesEnter
+    .append('tspan')
+    .text('-')
+    .attr('visibility','hidden');
+
+    nodesEnter
+    .append('tspan')
+    .attr('class','icon');
+
+    nodesEnter
+    .append('tspan')
+    .attr('class','icon expand');
+
+    nodesEnter
+    .append('tspan')
+    .attr('class','titleContent');
+
+    nodesEnter
+    .append('tspan')
+    .attr('class','aggregateLabel titleContent');
+
+    // nodesEnter.append('title');
+
     node = nodesEnter.merge(node);
 
-    node
-      .html((d) => {
-        return d.aggregated ? '<tspan class="icon">' + Config.icons.aggregateIcon + '</tspan>'
-        : (d.aggregateLabel?  '<tspan class="aggregateLabel titleContent">' + d.label +  '</tspan> <tspan class="icon">' + Config.icons[d.label] + '</tspan> ' + '<tspan class="titleContent">' + d.title + '</tspan>'
-        : '.<tspan class="icon">' + Config.icons[d.label] + '</tspan> ' + '<tspan class="titleContent">' + d.title + '</tspan>');
+    // node.select('title')
+    // .text(function (d) {
+    //   return d.title;
+    // });
+
+    const aggregateLabels = node.filter((d)=> d.aggregateLabel);
+    const aggregatedNodes = node.filter((d)=> d.aggregated);
+    const regularNodes = node.filter((d)=> !(d.aggregateLabel || d.aggregated)); 
+
+    aggregatedNodes
+    .select('.icon')
+    .text(Config.icons.aggregateIcon);
+
+    aggregatedNodes
+    .select('.titleContent')
+    .text('');
+
+    aggregateLabels
+    .select('.titleContent')
+    .text((d)=> d.label);
+
+    aggregateLabels
+    .select('.expand')
+    .text((d)=> Config.icons[d.label] + ' ' + Config.icons.arrowRight);
+
+    aggregateLabels
+    .select('.titleContent')
+    .text((d)=> d.title);
+
+    regularNodes
+    .select('.icon')
+    .text((d)=> Config.icons[d.label]);
+
+    regularNodes
+    .select('.titleContent')
+    .text((d)=> ' ' + d.title);
+
+
+    // node
+    //   .html((d) => {
+    //     return d.aggregated ? '<tspan class="icon">' + Config.icons.aggregateIcon + '</tspan>'
+    //     : (d.aggregateLabel?  '<tspan class="aggregateLabel titleContent">' + d.label +  '</tspan> <tspan class="icon expand">' + Config.icons[d.label] + '  ' + Config.icons.arrowRight + '</tspan> ' + '<tspan class="titleContent">' + d.title + '</tspan>'
+    //     : '.<tspan class="icon">' + Config.icons[d.label] + '</tspan> ' + '<tspan class="titleContent">' + d.title + '</tspan>');
+    //   });
+
+
+      
+      
+
+
+
+    //   .html((d) => {
+    //     return d.aggregated ? '<tspan class="icon">' + Config.icons.aggregateIcon + '</tspan>'
+
+    //     : (d.aggregateLabel?  '<tspan class="aggregateLabel titleContent">' + d.label +  
+    //     '</tspan> <tspan class="icon expand">' + Config.icons[d.label] + '  ' + Config.icons.arrowRight +
+    //      '</tspan> ' + '<tspan class="titleContent">' + d.title + '</tspan>'
+
+    //     : '.<tspan class="icon">' + Config.icons[d.label] + '</tspan> ' + '<tspan class="titleContent">' + d.title + '</tspan>');
+    //   });
+    // console.log(node.selectAll('.expand').size());
+
+    node.selectAll('.expand')
+    .on('click',(d)=> {
+      //remove this aggregate node from parent level
+      console.log(d);
+      const aggNode = this.graph.nodes.find((n)=> n.uuid === d.uuid);
+      const aggIndex = this.graph.nodes.indexOf(aggNode);
+      //remove child reference from parent;
+      aggNode.parent.children.splice(aggNode.parent.children.indexOf(aggNode),1);
+      //remove aggNode from graph nodes;
+      this.graph.nodes.splice(aggIndex,1);
+      
+      const aggregatedNodes = this.graph.nodes.filter((n)=> {
+        return (n.label === d.label && n.level === d.level && d.root === n.aggregateRoot);});
+      aggregatedNodes.map((c)=> {
+         c.aggregated = false;;
+         c.level = undefined;
+         c.aggregateRoot =undefined;
       });
+
+      this.graph.nodes.map((n) => n.visited = false);
+      this.layoutEntireTree();
+      this.updateEdgeInfo();
+      this.exportYValues();
+      this.drawTree();
+     
+    })
 
     selectAll('.aggregateLabel')
     .attr('visibility','hidden');
@@ -1514,12 +1655,6 @@ class Graph {
         }
       });
     node.classed('aggregated', (n) => n.aggregated);
-
-
-    node.append('title')
-      .text(function (d) {
-        return d.title;
-      });
 
 
     node
@@ -1539,7 +1674,6 @@ class Graph {
         // console.log(i,select('.nodes').selectAll('text').size())
         if (i >= select('.nodes').selectAll('text').size() - 1) {
           const nodeGroupWidth = document.getElementById('nodeGroup').getBoundingClientRect().width;
-          console.log('here');
           //set width of svg to size of node group + margin.left
           select('#graph')
             .transition('t')

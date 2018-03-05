@@ -158,30 +158,30 @@ class Graph {
     select('#graph')
       .on('click', () => { select('.menu').remove(); });
 
-      events.on(EXPAND_CHILDREN,(evt,info)=> {
+    events.on(EXPAND_CHILDREN, (evt, info) => {
 
-        const url = 'api/data_api/getNodes/' + this.selectedDB;
-        console.log('url is ', url);
+      const url = 'api/data_api/getNodes/' + this.selectedDB;
+      console.log('url is ', url);
 
 
-   
-        const postContent = JSON.stringify({'rootNode':'','rootNodes':info.children.map((n)=> {return n.uuid;}),'treeNodes':this.graph.nodes.map((n)=> {return n.uuid;})});
-        
-   
-               json(url)
-               .header('Content-Type', 'application/json')
-               .post(postContent,(error, graph: any) => {
-                   if (error) {
-                     throw error;
-                   }
 
-                   console.log(graph)
-                  this.mergeGraph(graph,false,true);
-                  this.postMergeUpdate();
+      const postContent = JSON.stringify({ 'rootNode': '', 'rootNodes': info.children.map((n) => { return n.uuid; }), 'treeNodes': this.graph.nodes.map((n) => { return n.uuid; }) });
 
-            });
 
-      });
+      json(url)
+        .header('Content-Type', 'application/json')
+        .post(postContent, (error, graph: any) => {
+          if (error) {
+            throw error;
+          }
+
+          console.log(graph)
+          this.mergeGraph(graph, false, true);
+          this.postMergeUpdate();
+
+        });
+
+    });
 
     events.on(REPLACE_EDGE_EVENT, (evt, info) => {
 
@@ -230,7 +230,7 @@ class Graph {
       //make new edge visible
 
 
-      const newEdge = this.graph.links.filter((ll) => { return ll.edge.data.uuid === info.uuid;})[0];
+      const newEdge = this.graph.links.filter((ll) => { return ll.edge.data.uuid === info.uuid; })[0];
       console.log('newEdge', newEdge);
 
       newEdge.visible = true;
@@ -247,59 +247,59 @@ class Graph {
 
     });
 
-    events.on(ATTR_COL_ADDED, (evt,info)=> {
-      
-            if (info.remove) {
-              this.tableManager.colOrder.splice(this.tableManager.colOrder.indexOf(info.name), 1);
-              events.fire(COL_ORDER_CHANGED_EVENT);
-            } else {
+    events.on(ATTR_COL_ADDED, (evt, info) => {
 
-           const url = 'api/data_api/property/' + info.db + '/' + info.name ;
-           console.log('url is ', url);
-      
-           const postContent = JSON.stringify({'treeNodes':this.graph ? this.graph.nodes.map((n)=> {return n.uuid;}):['']});
-           
-      
-                  json(url)
-                  .header('Content-Type', 'application/json')
-                  .post(postContent,(error, resultObj: any) => {
-                      if (error) {
-                        throw error;
-                      }
-      
-                      const nodes = resultObj.results;
-                      const dataValues = nodes.map((e)=> {return isNaN(+e.value) ? e.value : +e.value ;});;
-                      //infer type here:
-                      const type = typeof dataValues[0]  === 'number' ? VALUE_TYPE_INT : VALUE_TYPE_STRING;
-                        //Add fake vector here:
-                       const arrayVector = arrayVec.create(type);
-                      arrayVector.desc.name = info.name;
-      
-      
-                      arrayVector.dataValues = dataValues;
-                      arrayVector.idValues = nodes.map((e)=> {return e.uuid;});
-      
-                      arrayVector.desc.value.range = [min([max(arrayVector.dataValues),0]), max(arrayVector.dataValues)];
-      
-                      // console.log(arrayVector);
-      
-                      //if it's not already in there:
-                      if (this.tableManager.adjMatrixCols.filter((a:any )=> {return a.desc.name === arrayVector.desc.name; }).length<1) {
-                        this.tableManager.adjMatrixCols =this.tableManager.adjMatrixCols.concat(arrayVector); //store array of vectors
-                      }
-      
-                      //if it's not already in there:
-                      if (this.tableManager.colOrder.filter((a:any )=> {return a === arrayVector.desc.name; }).length<1) {
-                        this.tableManager.colOrder = [arrayVector.desc.name].concat(this.tableManager.colOrder); // store array of names
-                      }
-      
-                      events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);
-      
-                    });
-      
+      if (info.remove) {
+        this.tableManager.colOrder.splice(this.tableManager.colOrder.indexOf(info.name), 1);
+        events.fire(COL_ORDER_CHANGED_EVENT);
+      } else {
+
+        const url = 'api/data_api/property/' + info.db + '/' + info.name;
+        console.log('url is ', url);
+
+        const postContent = JSON.stringify({ 'treeNodes': this.graph ? this.graph.nodes.map((n) => { return n.uuid; }) : [''] });
+
+
+        json(url)
+          .header('Content-Type', 'application/json')
+          .post(postContent, (error, resultObj: any) => {
+            if (error) {
+              throw error;
             }
-      
+
+            const nodes = resultObj.results;
+            const dataValues = nodes.map((e) => { return isNaN(+e.value) ? e.value : +e.value; });;
+            //infer type here:
+            const type = typeof dataValues[0] === 'number' ? VALUE_TYPE_INT : VALUE_TYPE_STRING;
+            //Add fake vector here:
+            const arrayVector = arrayVec.create(type);
+            arrayVector.desc.name = info.name;
+
+
+            arrayVector.dataValues = dataValues;
+            arrayVector.idValues = nodes.map((e) => { return e.uuid; });
+
+            arrayVector.desc.value.range = [min([max(arrayVector.dataValues), 0]), max(arrayVector.dataValues)];
+
+            // console.log(arrayVector);
+
+            //if it's not already in there:
+            if (this.tableManager.adjMatrixCols.filter((a: any) => { return a.desc.name === arrayVector.desc.name; }).length < 1) {
+              this.tableManager.adjMatrixCols = this.tableManager.adjMatrixCols.concat(arrayVector); //store array of vectors
+            }
+
+            //if it's not already in there:
+            if (this.tableManager.colOrder.filter((a: any) => { return a === arrayVector.desc.name; }).length < 1) {
+              this.tableManager.colOrder = [arrayVector.desc.name].concat(this.tableManager.colOrder); // store array of names
+            }
+
+            events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);
+
           });
+
+      }
+
+    });
 
     events.on(PATHWAY_SELECTED, (evt, info) => {
 
@@ -332,7 +332,7 @@ class Graph {
 
     });
 
-    events.on(TREE_PRESERVING_SORTING,(evt,info)=> {
+    events.on(TREE_PRESERVING_SORTING, (evt, info) => {
       console.log('tree preserving aggregation fired')
       this.graph.nodes.map((n) => n.visited = false);
       this.layoutEntireTree(info);
@@ -357,6 +357,17 @@ class Graph {
     events.on(AGGREGATE_CHILDREN, (evt, info) => {
       const root = this.graph.nodes.filter((n) => { return n.uuid === info.uuid; })[0];
       this.setAggregation(root, info.aggregate);
+      if (!info.aggregate) {
+        // remove aggregateNodes
+        const aggNode = this.graph.nodes.find((n) => n.uuid === info.uuid);
+        const aggIndex = this.graph.nodes.indexOf(aggNode);
+        //remove child reference from parent;
+        aggNode.parent.children.splice(aggNode.parent.children.indexOf(aggNode), 1);
+        //remove aggNode from graph nodes;
+        this.graph.nodes.splice(aggIndex, 1);
+      }
+
+
       this.graph.nodes.map((n) => n.visited = false);
       this.layoutEntireTree();
       this.updateEdgeInfo();
@@ -535,7 +546,7 @@ class Graph {
       .attr('class', 'nodes')
       .attr('id', 'nodeGroup');
 
-      this.svg.append('g')
+    this.svg.append('g')
       .attr('class', 'endMarkers');
 
 
@@ -717,49 +728,49 @@ class Graph {
 
       console.log('url is ', url);
 
-      const postContent = JSON.stringify({'treeNodes':this.graph ? this.graph.nodes.map((n)=> {return n.uuid;}):['']});
+      const postContent = JSON.stringify({ 'treeNodes': this.graph ? this.graph.nodes.map((n) => { return n.uuid; }) : [''] });
 
       json(url)
-      .header('Content-Type', 'application/json')
-      .post(postContent, (error, graph: any) => {
-        if (error) {
-          throw error;
-        }
-        console.log('data return is ', graph);
+        .header('Content-Type', 'application/json')
+        .post(postContent, (error, graph: any) => {
+          if (error) {
+            throw error;
+          }
+          console.log('data return is ', graph);
 
-        //Replace graph or merge with incoming subgraph
-        if (replace || !this.graph) {
+          //Replace graph or merge with incoming subgraph
+          if (replace || !this.graph) {
 
-          const newLinks = [];
-          //update indexes to contain refs of the actual nodes;
-          graph.links.forEach((link) => {
-            const sourceNode = graph.nodes.filter((n) => { return n.uuid.toString() === link.source.uuid.toString(); })[0];
-            const targetNode = graph.nodes.filter((n) => { return n.uuid.toString() === link.target.uuid.toString(); })[0];
-            link.source = sourceNode;
-            link.target = targetNode;
-            if (link.source && link.target) {
-              const existingLink = newLinks.filter((l) => {
-                return l.edge.data.uuid === link.edge.data.uuid;
-              });
-              //check for existing node
-              if (existingLink.length < 1) {
-                newLinks.push(link);
+            const newLinks = [];
+            //update indexes to contain refs of the actual nodes;
+            graph.links.forEach((link) => {
+              const sourceNode = graph.nodes.filter((n) => { return n.uuid.toString() === link.source.uuid.toString(); })[0];
+              const targetNode = graph.nodes.filter((n) => { return n.uuid.toString() === link.target.uuid.toString(); })[0];
+              link.source = sourceNode;
+              link.target = targetNode;
+              if (link.source && link.target) {
+                const existingLink = newLinks.filter((l) => {
+                  return l.edge.data.uuid === link.edge.data.uuid;
+                });
+                //check for existing node
+                if (existingLink.length < 1) {
+                  newLinks.push(link);
+                }
+                ;
               }
-              ;
-            }
-          });
-          graph.links = newLinks;
+            });
+            graph.links = newLinks;
 
 
-          this.graph = graph;
-        } else {
-          this.mergeGraph(graph,includeRoot,includeChildren);
-        }
+            this.graph = graph;
+          } else {
+            this.mergeGraph(graph, includeRoot, includeChildren);
+          }
 
-        this.postMergeUpdate();
+          this.postMergeUpdate();
 
-        resolvePromise();
-      });
+          resolvePromise();
+        });
     }
 
     return p;
@@ -783,7 +794,7 @@ class Graph {
   };
 
 
-  mergeGraph(graph,includeRoot,includeChildren) {
+  mergeGraph(graph, includeRoot, includeChildren) {
     const rootNode = graph.nodes.filter((n) => { return n.uuid.toString() === graph.root.toString(); });
     const existingNodes = []; //nodes in the current subgraph that already exist in the tree
 
@@ -876,7 +887,7 @@ class Graph {
       .selectAll('.dropdownMenu')
       .html(function (d: any) {
         const count = labels[d.name] ? labels[d.name] : 0;
-        return '<tspan class="icon">' + Config.icons[d.name] + '</tspan> ' + d.name + ' [' + count + ']' ; //+  Config.icons.menu;
+        return '<tspan class="icon">' + Config.icons[d.name] + '</tspan> ' + d.name + ' [' + count + ']'; //+  Config.icons.menu;
       });
   }
 
@@ -976,46 +987,46 @@ class Graph {
 
   updateEdgeInfo() {
     //create dictionary of nodes with
-        //1) set of adjacent nodes in the graph
-        this.nodeNeighbors = {};
-        this.graph.nodes.map((n, i) => {
-          this.nodeNeighbors[n.uuid] = {
-            'title': n.title,
-            'degree': 0,
-            'hidden': 0
-          };
-        });
-          //Populate dictionary
-        //Find all edges that start or end on that node
-        this.graph.links.map((l) => {
+    //1) set of adjacent nodes in the graph
+    this.nodeNeighbors = {};
+    this.graph.nodes.map((n, i) => {
+      this.nodeNeighbors[n.uuid] = {
+        'title': n.title,
+        'degree': 0,
+        'hidden': 0
+      };
+    });
+    //Populate dictionary
+    //Find all edges that start or end on that node
+    this.graph.links.map((l) => {
 
-                    const targetNode = l.target;
-                    const sourceNode = l.source;
+      const targetNode = l.target;
+      const sourceNode = l.source;
 
-                    const targetDictEntry = this.nodeNeighbors[targetNode.uuid];
-                    const sourceDictEntry = this.nodeNeighbors[sourceNode.uuid];
+      const targetDictEntry = this.nodeNeighbors[targetNode.uuid];
+      const sourceDictEntry = this.nodeNeighbors[sourceNode.uuid];
 
-                    targetDictEntry.degree = targetDictEntry.degree +1;
-                    sourceDictEntry.degree = sourceDictEntry.degree + 1;
+      targetDictEntry.degree = targetDictEntry.degree + 1;
+      sourceDictEntry.degree = sourceDictEntry.degree + 1;
 
-                    if (l.visible === false) {
-                      targetDictEntry.hidden = targetDictEntry.hidden + 1;
-                      sourceDictEntry.hidden = sourceDictEntry.hidden + 1;
-                    }
+      if (l.visible === false) {
+        targetDictEntry.hidden = targetDictEntry.hidden + 1;
+        sourceDictEntry.hidden = sourceDictEntry.hidden + 1;
+      }
 
 
-                  });
+    });
 
-                  this.graph.nodes.map((n) => {
-                    n.degree = this.nodeNeighbors[n.uuid].degree;
-                  });
+    this.graph.nodes.map((n) => {
+      n.degree = this.nodeNeighbors[n.uuid].degree;
+    });
 
     let vec;
 
     vec = {
       type: 'dataDensity',
       title: 'Graph Edges',
-      data: this.graph.nodes.map((n, i) => { return { 'value': n.graphDegree, 'uuid': n.uuid, 'aggregated':n.aggregated }; }),
+      data: this.graph.nodes.map((n, i) => { return { 'value': n.graphDegree, 'uuid': n.uuid, 'aggregated': n.aggregated }; }),
       ids: this.graph.nodes.map((n) => { return n.uuid; })
     };
 
@@ -1026,7 +1037,7 @@ class Graph {
     vec = {
       type: 'dataDensity',
       title: 'Tree Edges',
-      data: this.graph.nodes.map((n, i) => { return { 'value': this.nodeNeighbors[n.uuid].degree, 'uuid': n.uuid, 'aggregated':n.aggregated }; }),
+      data: this.graph.nodes.map((n, i) => { return { 'value': this.nodeNeighbors[n.uuid].degree, 'uuid': n.uuid, 'aggregated': n.aggregated }; }),
       ids: this.graph.nodes.map((n) => { return n.uuid; })
     };
 
@@ -1035,7 +1046,7 @@ class Graph {
     vec = {
       type: 'dataDensity',
       title: 'Hidden Edges',
-      data: this.graph.nodes.map((n, i) => { return { 'value': this.nodeNeighbors[n.uuid].hidden, 'uuid': n.uuid, 'aggregated':n.aggregated }; }),
+      data: this.graph.nodes.map((n, i) => { return { 'value': this.nodeNeighbors[n.uuid].hidden, 'uuid': n.uuid, 'aggregated': n.aggregated }; }),
       ids: this.graph.nodes.map((n) => { return n.uuid; })
     };
 
@@ -1120,9 +1131,9 @@ class Graph {
     // //BFS of the tree
     while (queue.length > 0) {
       const node = queue.splice(0, 1)[0];;
+      console.log('calling aggregate helper on ', node.title)
       this.aggregateHelper(root, node, aggregate, queue);
     }
-    console.log(this.graph.nodes); //.filter((n)=> !n.aggregated));
   }
 
   aggregateHelper(root, node, aggregate, queue) {
@@ -1136,40 +1147,41 @@ class Graph {
         root.summary[level] = [c.label];
       }
     });
-    
-    if (node.children.length>0) {
-      root.summary[level].map((nlabel)=> {
-      
-        let parent; 
-        
+
+    if (node.children.length > 0) {
+      root.summary[level].map((nlabel) => {
+
+        let parent;
+
         if (+level === 1) {
           parent = root;
         } else {
+          // console.log(this.graph.nodes.filter((n) => n.aggregateLabel))
           //find parent aggregate node
-          const allParents = this.graph.nodes.filter((n)=> {return n.root === root && n.level === +level-1;});
-          console.log(parent,allParents)
+          const allParents = this.graph.nodes.filter((n) => { return n.root === root && n.level === +level - 1; });
           //get last element as parent (so that DFS positioning works)
-          console.log(parent,allParents)
-          parent = allParents[-1];
+          parent = allParents[allParents.length - 1];
         }
         //iterate through and create fake nodes for each level
-        const aggregateNode = {root, parent, level:+level, children:[], uuid: root.uuid + '_' + level + '_' + nlabel, label: nlabel, visible: true, aggregated: false, aggregateLabel:true, title:''};
-  
+        const aggregateNode = { root, parent, level: +level, children: [], uuid: root.uuid + '_' + level + '_' + nlabel, label: nlabel, visible: true, aggregated: false, aggregateLabel: true, title: '' };
+
         //add node to children array of parent
         parent.children.push(aggregateNode);
         //add nodes to array of nodes in this graph
         this.graph.nodes.push(aggregateNode);
-        
+        // console.log('created ', aggregateNode ,'  for ' , node.title, level, nlabel);
+
       })
     }
     node.children.map((c) => {
-      c.aggregated = c.aggregateLabel? false : aggregate;
+      c.aggregated = c.aggregateLabel ? false : aggregate;
       c.level = node.level + 1;
-      c.aggregateRoot = aggregate ? root : undefined; 
-      
-      const parent = this.graph.nodes.filter((n)=> {return (n.label === c.label && n.level === c.level && c.aggregateRoot === n.root);})[0];
-      c.aggParent = parent; 
-      queue.push(c);
+      c.aggregateRoot = aggregate ? root : undefined;
+      const parent = this.graph.nodes.filter((n) => { return (n.label === c.label && n.level === c.level && c.aggregateRoot === n.root); })[0];
+      c.aggParent = parent;
+       if (!c.aggregateLabel) {
+         queue.push(c);
+       };
     });
 
   }
@@ -1202,16 +1214,16 @@ class Graph {
 
       // console.log('visiting root', root.title)
       root.xx = 0;
-      this.layoutTree(root,sortAttribute);
+      this.layoutTree(root, sortAttribute);
     }
   }
 
-  layoutTree(root,sortAttribute = undefined) {
-    this.layoutTreeHelper(root,sortAttribute);
+  layoutTree(root, sortAttribute = undefined) {
+    this.layoutTreeHelper(root, sortAttribute);
   }
 
-  layoutTreeHelper(node,sortAttribute = undefined) {
-    // console.log('visiting', node.title)
+  layoutTreeHelper(node, sortAttribute = undefined) {
+    // console.log('visiting', node.title, node.aggregateLabel, node.label)
     // if (!node.visited) {
     node.visited = true;
 
@@ -1227,7 +1239,7 @@ class Graph {
       //   return accumulator + cValue;
       // }, 1);
       // node.yy = node.aggregateRoot.yy + hops;
-     
+
       node.yy = node.aggParent.yy;
       this.ypos = max([this.ypos, node.yy]);
     } else {
@@ -1243,38 +1255,38 @@ class Graph {
       const ids = sortAttribute.ids;
       const sortOrder = sortAttribute.sortOrder;
 
-      node.children.sort((a,b)=> { 
-        const aloc = ids.findIndex((id)=> {return id.find((i)=> {return i === a.uuid;});});
-        const bloc = ids.findIndex((id)=> {return id.find((i)=> {return i === b.uuid;});});
+      node.children.sort((a, b) => {
+        const aloc = ids.findIndex((id) => { return id.find((i) => { return i === a.uuid; }); });
+        const bloc = ids.findIndex((id) => { return id.find((i) => { return i === b.uuid; }); });
 
-        a.value = data[aloc]; 
-        b.value = data[bloc]; 
+        a.value = data[aloc];
+        b.value = data[bloc];
 
         if (sortOrder === sortedState.Ascending) {
-            if (b.value === undefined || a.value < b.value) { console.log( ' 1 '); return -1; }
-            if (a.value === undefined || a.value > b.value) { console.log( ' 2 ');return 1; }
-            if (a.value === b.value) {
-              if (a.index === b.index) {console.log( ' 3 '); return 0; }
-              if (a.title < b.title) { console.log( ' 4 ');return -1; }
-              if (a.title > b.title) { console.log( ' 5 ');return 1; }
-            }
+          if (b.value === undefined || a.value < b.value) { console.log(' 1 '); return -1; }
+          if (a.value === undefined || a.value > b.value) { console.log(' 2 '); return 1; }
+          if (a.value === b.value) {
+            if (a.index === b.index) { console.log(' 3 '); return 0; }
+            if (a.title < b.title) { console.log(' 4 '); return -1; }
+            if (a.title > b.title) { console.log(' 5 '); return 1; }
+          }
         } else {
-            if (b.value === undefined || a.value > b.value) { console.log( ' 6 ');return -1; }
-            if (a.value === undefined || a.value < b.value) { console.log( ' 7 ');return 1; }
-            if (a.value === b.value) {
-              if (a.title === b.title) { console.log( ' 8 ');return 0; }
-              if (a.title < b.title) { console.log( ' 9 ');return -1; }
-              if (a.title > b.title) { console.log( ' 10 ');return 1; }
-            }
-            if (a.value < b.value) { console.log( ' 11 ');return 1; }
+          if (b.value === undefined || a.value > b.value) { console.log(' 6 '); return -1; }
+          if (a.value === undefined || a.value < b.value) { console.log(' 7 '); return 1; }
+          if (a.value === b.value) {
+            if (a.title === b.title) { console.log(' 8 '); return 0; }
+            if (a.title < b.title) { console.log(' 9 '); return -1; }
+            if (a.title > b.title) { console.log(' 10 '); return 1; }
+          }
+          if (a.value < b.value) { console.log(' 11 '); return 1; }
         }
-        
+
       });
     } else {
       //default sorting is alphabetical
-      node.children.sort((a,b)=> { return a.title < b.title ? -1 : (a.title === b.title ? (a.uuid < b.uuid ? -1 : 1) : 1);});
+      node.children.sort((a, b) => { return a.title < b.title ? -1 : (a.title === b.title ? (a.uuid < b.uuid ? -1 : 1) : 1); });
     }
-    
+
     //prioritize children that are part of a pathway
     node.children
       // .sort((a,b)=> {return a.pathway ? -1 :(b.pathway ? 1 : 0);})
@@ -1296,7 +1308,6 @@ class Graph {
 
         let maxX = +max(this.graph.nodes.filter((n: any) => (n.visited && c.aggregated && n.yy === c.aggParent.yy)), (n: any) => n.xx);
         if (!maxX && c.aggregateRoot) {
-          console.log('here?')
           maxX = 10;
         }
         c.xx = c.aggregated ? maxX + 1 : node.xx + .8;
@@ -1311,7 +1322,7 @@ class Graph {
     let link = this.svg.select('.visibleLinks')
       .selectAll('.edge')
       .data(graph.links.filter((l) => { return l.source.visible && !l.source.aggregated && !l.target.aggregated && l.target.visible && l.visible; }),
-      (d) => {return d.edge.data.uuid;});
+      (d) => { return d.edge.data.uuid; });
 
     let linksEnter = link
       .enter()
@@ -1322,9 +1333,9 @@ class Graph {
 
     let linkEndMarkers = this.svg.select('.endMarkers')
       .selectAll('.endMarker')
-      .data(graph.nodes.filter((n)=> {
-        return (!(n.children.length<1 && n.graphDegree<=n.degree)) && n.visible && !n.aggregated && n.visible &&!n.aggregateLabel;
-      }),(d) => {return this.createID(d.title)+ '_endMarker';});
+      .data(graph.nodes.filter((n) => {
+        return (!(n.children.length < 1 && n.graphDegree <= n.degree)) && n.visible && !n.aggregated && n.visible && !n.aggregateLabel;
+      }), (d) => { return this.createID(d.title) + '_endMarker'; });
 
     const linkEndMarkersEnter = linkEndMarkers
       .enter()
@@ -1339,7 +1350,7 @@ class Graph {
     link = this.svg.select('.hiddenLinks')
       .selectAll('.edge')
       .data(graph.links.filter((l) => { return l.source.visible && l.target.visible && !l.visible; }),
-      (d) => {return d.edge.data.uuid;});
+      (d) => { return d.edge.data.uuid; });
 
     linksEnter = link
       .enter()
@@ -1388,8 +1399,8 @@ class Graph {
         events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': self.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': remove });
       });
 
-      //set initial position to parent
-      linkEndMarkersEnter
+    //set initial position to parent
+    linkEndMarkersEnter
       .attr('x', (d: any, i) => {
         return this.xScale(d.xx);
       })
@@ -1431,20 +1442,21 @@ class Graph {
         const childNode = [d.source, d.target].reduce((acc, cValue) => { return cValue.yy > acc.yy ? cValue : acc; });
         const parentNode = [d.source, d.target].reduce((acc, cValue) => { return cValue.yy < acc.yy ? cValue : acc; });
 
-        const areDescendantes = this.areDescendants(parentNode,childNode);
+        const areDescendantes = this.areDescendants(parentNode, childNode);
 
         let actions = [{
-          'icon': 'edge', 'string': 'Add ' + parentNode.title + ' ---> ' + childNode.title +  ' edge' , 'callback': () => {
-            events.fire(REPLACE_EDGE_EVENT, { 'source': parentNode.uuid, 'target': childNode.uuid, 'uuid':d.edge.data.uuid });
+          'icon': 'edge', 'string': 'Add ' + parentNode.title + ' ---> ' + childNode.title + ' edge', 'callback': () => {
+            events.fire(REPLACE_EDGE_EVENT, { 'source': parentNode.uuid, 'target': childNode.uuid, 'uuid': d.edge.data.uuid });
           }
         }];
 
-        console.log(parentNode.title,childNode.title,areDescendantes);
+        console.log(parentNode.title, childNode.title, areDescendantes);
         if (!areDescendantes) {
           actions = actions.concat({
             'icon': 'edge', 'string': 'Add ' + childNode.title + ' ---> ' + parentNode.title + ' edge', 'callback': () => {
-              events.fire(REPLACE_EDGE_EVENT, { 'source': childNode.uuid, 'target': parentNode.uuid, 'uuid':d.edge.data.uuid });
-            }});
+              events.fire(REPLACE_EDGE_EVENT, { 'source': childNode.uuid, 'target': parentNode.uuid, 'uuid': d.edge.data.uuid });
+            }
+          });
         }
         this.menuObject.addMenu(d, actions);
       })
@@ -1490,7 +1502,7 @@ class Graph {
           }, 1);
 
           const yy = r.yy + hops; // + r.summary[l].indexOf(n)+1 ;
-          aggregateIcons.push({ uuid: r.uuid + '_' + l + '_' + n, label: n, visible: true, aggregated: false, aggregateLabel:true, title: '', xx, yy });
+          aggregateIcons.push({ uuid: r.uuid + '_' + l + '_' + n, label: n, visible: true, aggregated: false, aggregateLabel: true, title: '', xx, yy });
         })
 
         );
@@ -1503,7 +1515,7 @@ class Graph {
         return d.uuid;
       });
 
-      // .concat(aggregateIcons)
+    // .concat(aggregateIcons)
 
 
     const nodesEnter = node.enter()
@@ -1516,36 +1528,36 @@ class Graph {
 
     //place new nodes @ parent's location;
     nodesEnter
-    // .attr('opacity',0)
-    .attr('x', (d) => {
-      return xScale(d.xx) + this.radius;
-    })
-    .attr('y', (d) => {
-      return d.parent ? yScale(d.parent.yy) : yScale(d.yy);
-      // return yScale(d.yy)-200;
-    });
+      // .attr('opacity',0)
+      .attr('x', (d) => {
+        return xScale(d.xx) + this.radius;
+      })
+      .attr('y', (d) => {
+        return d.parent ? yScale(d.parent.yy) : yScale(d.yy);
+        // return yScale(d.yy)-200;
+      });
 
-    
-    nodesEnter
-    .append('tspan')
-    .text('-')
-    .attr('visibility','hidden');
 
     nodesEnter
-    .append('tspan')
-    .attr('class','icon');
+      .append('tspan')
+      .text('-')
+      .attr('visibility', 'hidden');
 
     nodesEnter
-    .append('tspan')
-    .attr('class','icon expand');
+      .append('tspan')
+      .attr('class', 'icon');
 
     nodesEnter
-    .append('tspan')
-    .attr('class','titleContent');
+      .append('tspan')
+      .attr('class', 'icon expand');
 
     nodesEnter
-    .append('tspan')
-    .attr('class','aggregateLabel titleContent');
+      .append('tspan')
+      .attr('class', 'titleContent');
+
+    nodesEnter
+      .append('tspan')
+      .attr('class', 'aggregateLabel titleContent');
 
     // nodesEnter.append('title');
 
@@ -1556,37 +1568,37 @@ class Graph {
     //   return d.title;
     // });
 
-    const aggregateLabels = node.filter((d)=> d.aggregateLabel);
-    const aggregatedNodes = node.filter((d)=> d.aggregated);
-    const regularNodes = node.filter((d)=> !(d.aggregateLabel || d.aggregated)); 
+    const aggregateLabels = node.filter((d) => d.aggregateLabel);
+    const aggregatedNodes = node.filter((d) => d.aggregated);
+    const regularNodes = node.filter((d) => !(d.aggregateLabel || d.aggregated));
 
     aggregatedNodes
-    .select('.icon')
-    .text(Config.icons.aggregateIcon);
+      .select('.icon')
+      .text(Config.icons.aggregateIcon);
 
     aggregatedNodes
-    .select('.titleContent')
-    .text('');
+      .select('.titleContent')
+      .text('');
 
     aggregateLabels
-    .select('.titleContent')
-    .text((d)=> d.label);
+      .select('.titleContent')
+      .text((d) => d.label);
 
     aggregateLabels
-    .select('.expand')
-    .text((d)=> Config.icons[d.label] + ' ' + Config.icons.arrowRight);
+      .select('.expand')
+      .text((d) => Config.icons[d.label] + ' ' + Config.icons.arrowRight);
 
     aggregateLabels
-    .select('.titleContent')
-    .text((d)=> d.title);
+      .select('.titleContent')
+      .text((d) => d.title);
 
     regularNodes
-    .select('.icon')
-    .text((d)=> Config.icons[d.label]);
+      .select('.icon')
+      .text((d) => Config.icons[d.label]);
 
     regularNodes
-    .select('.titleContent')
-    .text((d)=> ' ' + d.title);
+      .select('.titleContent')
+      .text((d) => ' ' + d.title);
 
 
     // node
@@ -1597,8 +1609,8 @@ class Graph {
     //   });
 
 
-      
-      
+
+
 
 
 
@@ -1614,34 +1626,40 @@ class Graph {
     // console.log(node.selectAll('.expand').size());
 
     node.selectAll('.expand')
-    .on('click',(d)=> {
-      //remove this aggregate node from parent level
-      console.log(d);
-      const aggNode = this.graph.nodes.find((n)=> n.uuid === d.uuid);
-      const aggIndex = this.graph.nodes.indexOf(aggNode);
-      //remove child reference from parent;
-      aggNode.parent.children.splice(aggNode.parent.children.indexOf(aggNode),1);
-      //remove aggNode from graph nodes;
-      this.graph.nodes.splice(aggIndex,1);
-      
-      const aggregatedNodes = this.graph.nodes.filter((n)=> {
-        return (n.label === d.label && n.level === d.level && d.root === n.aggregateRoot);});
-      aggregatedNodes.map((c)=> {
-         c.aggregated = false;;
-         c.level = undefined;
-         c.aggregateRoot =undefined;
-      });
+      .on('click', (d) => {
+        //remove this aggregate node from parent level
+        const aggNode = this.graph.nodes.find((n) => n.uuid === d.uuid);
+        const aggIndex = this.graph.nodes.indexOf(aggNode);
+        //remove child reference from parent;
+        aggNode.parent.children.splice(aggNode.parent.children.indexOf(aggNode), 1);
+        //remove aggNode from graph nodes;
+        this.graph.nodes.splice(aggIndex, 1);
 
-      this.graph.nodes.map((n) => n.visited = false);
-      this.layoutEntireTree();
-      this.updateEdgeInfo();
-      this.exportYValues();
-      this.drawTree();
-     
-    })
+        const aggregatedNodes = this.graph.nodes.filter((n) => {
+          return (n.label === d.label && n.level === d.level && d.root === n.aggregateRoot);
+        });
+        // //if this aggNode has children, reasign them to the first child.
+        // aggNode.children.map((c)=> {
+        //   c.aggParent = aggregatedNodes[0];
+        //   aggregatedNodes[0].childen.push(c);
+        // });
+         
+        aggregatedNodes.map((c) => {
+          c.aggregated = false;;
+          c.level = undefined;
+          c.aggregateRoot = undefined;
+        });
+
+        this.graph.nodes.map((n) => n.visited = false);
+        this.layoutEntireTree();
+        this.updateEdgeInfo();
+        this.exportYValues();
+        this.drawTree();
+
+      })
 
     selectAll('.aggregateLabel')
-    .attr('visibility','hidden');
+      .attr('visibility', 'hidden');
 
     node
       .on('mouseover', (d: any) => {
@@ -1692,16 +1710,16 @@ class Graph {
       .attr('height', document.getElementById('genealogyTree').getBoundingClientRect().height + this.margin.top * 2);
   }
 
-  areDescendants(parent,child,value=false) {
-    if (parent.children.length<1) {
+  areDescendants(parent, child, value = false) {
+    if (parent.children.length < 1) {
       return value || false;
     }
 
-    if (parent.children.filter((c)=> {return c.uuid === child.uuid;}).length>0) {
+    if (parent.children.filter((c) => { return c.uuid === child.uuid; }).length > 0) {
       return true;
     } else {
-      parent.children.map((c)=> {
-        value = value || this.areDescendants(c,child,value);
+      parent.children.map((c) => {
+        value = value || this.areDescendants(c, child, value);
       });
       return value;
     }
@@ -2112,7 +2130,7 @@ class Graph {
                   );
                 }
                 if (d.children.length > 0) {
-                  const aggregate = d.children[0] && !d.children[0].aggregated;
+                  const aggregate = d.children[0] && d.children.find((c) => !c.aggregateLabel);
                   actions = actions.concat(
                     [{
                       'icon': 'Aggregate', 'string': aggregate ? 'Aggregate Children' : 'Un-Aggregate Children', 'callback': () => {
@@ -2123,10 +2141,10 @@ class Graph {
                   if (aggregate) {
                     actions = actions.concat(
                       [{
-                      'icon': 'Aggregate', 'string': 'Expand all Children', 'callback': () => {
-                        events.fire(EXPAND_CHILDREN, { 'children':d.children });
-                      }
-                    }]);
+                        'icon': 'Aggregate', 'string': 'Expand all Children', 'callback': () => {
+                          events.fire(EXPAND_CHILDREN, { 'children': d.children });
+                        }
+                      }]);
                   }
                 }
 
@@ -2211,7 +2229,7 @@ class Graph {
       return returnValue;
     }
 
-    selectAll('.title').select('.aggregateLabel').filter((bar:any)=> {return bar.yy === d.yy;}).attr('visibility','visible');
+    selectAll('.title').select('.aggregateLabel').filter((bar: any) => { return bar.yy === d.yy; }).attr('visibility', 'visible');
     //Set opacity of corresponding highlightBar
     selectAll('.highlightBar').filter(selected).attr('opacity', .2);
 
@@ -2223,7 +2241,7 @@ class Graph {
   }
 
   private clearHighlights() {
-    selectAll('.aggregateLabel').attr('visibility','hidden');
+    selectAll('.aggregateLabel').attr('visibility', 'hidden');
     selectAll('.highlightBar').attr('opacity', 0);
     selectAll('.starRect').attr('opacity', 0);
   }

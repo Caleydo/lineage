@@ -2004,7 +2004,8 @@ class AttributeTable {
     selectAll('.deleteIcon')
       .on('click', (d: any) => {
         this.tableManager.colOrder.splice(this.tableManager.colOrder.indexOf(d.name), 1);
-
+        const adjMatrixCol = this.tableManager.adjMatrixCols.find((a:any )=> {return a.desc.name === d.name; });
+        this.tableManager.adjMatrixCols.splice(this.tableManager.adjMatrixCols.indexOf(adjMatrixCol),1);
         // this.tableManager.removeStar(d.name);
 
         //Update menu

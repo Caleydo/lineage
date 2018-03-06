@@ -217,6 +217,10 @@ export default class TableManager {
 
       if (info.remove) {
         this.colOrder.splice(this.colOrder.indexOf(info.name), 1);
+
+        const adjMatrixCol = this.adjMatrixCols.find((a:any )=> {return a.desc.name === info.name; });
+        this.adjMatrixCols.splice(this.adjMatrixCols.indexOf(adjMatrixCol),1);
+
         events.fire(COL_ORDER_CHANGED_EVENT);
       } else {
 

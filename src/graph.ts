@@ -248,9 +248,16 @@ class Graph {
     });
 
     events.on(ATTR_COL_ADDED, (evt, info) => {
-
+      console.log(info)
       if (info.remove) {
         this.tableManager.colOrder.splice(this.tableManager.colOrder.indexOf(info.name), 1);
+
+        const adjMatrixCol = this.tableManager.adjMatrixCols.find((a:any )=> {return a.desc.name === info.name; });
+
+        console.log(adjMatrixCol)
+        this.tableManager.adjMatrixCols.splice(this.tableManager.adjMatrixCols.indexOf(adjMatrixCol),1);
+
+
         events.fire(COL_ORDER_CHANGED_EVENT);
       } else {
 
@@ -285,6 +292,7 @@ class Graph {
 
             //if it's not already in there:
             if (this.tableManager.adjMatrixCols.filter((a: any) => { return a.desc.name === arrayVector.desc.name; }).length < 1) {
+              console.log( 'here',arrayVector.dataValues)
               this.tableManager.adjMatrixCols = this.tableManager.adjMatrixCols.concat(arrayVector); //store array of vectors
             }
 

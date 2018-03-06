@@ -1888,37 +1888,18 @@ class AttributeTable {
       .append('text')
       .classed('sortIcon', true)
       .classed('icon', true)
-      .classed('descending', true);
+      .classed('descending', true)
+      .text(Config.icons.sortDesc);
 
     icon.exit().remove();
 
     icon = iconEnter.merge(icon);
 
     icon
-      // .text('\uf0dd')
-      .text(Config.icons.sortDesc)
       .attr('y', this.rowHeight * 1.8 + 24)
       .attr('x', (d) => {
         return  cellData.type === VALUE_TYPE_ADJMATRIX ? colWidth / 2 : colWidth / 2 - 5;
       });
-
-    // icon = element.selectAll('.ascending')
-    //   .data([cellData]);
-
-    // iconEnter = icon.enter()
-    //   .append('text')
-    //   .classed('sortIcon', true)
-    //   .classed('icon', true)
-    //   .classed('ascending', true);
-
-    //   icon = iconEnter.merge(icon);
-
-    // icon
-    //   .text('\uf0de')
-    //   .attr('y', cellData.type === VALUE_TYPE_ADJMATRIX ? this.rowHeight * 1.8 + 13 : this.rowHeight * 1.8 + 14)
-    //   .attr('x', (d) => {
-    //     return cellData.type === VALUE_TYPE_ADJMATRIX ? colWidth / 2 : colWidth / 2 - 5;
-    //   });
 
       icon = element.selectAll('.deleteIcon')
       .data([cellData]);
@@ -1963,20 +1944,24 @@ class AttributeTable {
 
     const self = this;
 
-    selectAll('.sortIcon')
+    element.select('.sortIcon')
       .on('click', function (d:any) {
+        console.log(d);
         // Set 'sortAttribute'
         const selected = (select(this).classed('sortSelected'));
         let descending = select(this).classed('descending');
-
+        console.log(selected,descending,select(this).text())
         //Only change the direction if it's a second click on the same icon
         if (selected) {
-          console.log('changing direction')
           
           const icon = descending ? Config.icons.sortAsc : Config.icons.sortDesc;
-          select(this).text(icon);
+          
           select(this).classed('descending',!select(this).classed('descending'));
           descending = select(this).classed('descending');
+
+          select(this).text(icon);
+          console.log('changing direction',select(this).text())
+          
         }
 
         self.sortAttribute.state = descending ? sortedState.Descending : sortedState.Ascending;

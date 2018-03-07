@@ -82,6 +82,11 @@ td {
   text-anchor:end;
 }
 
+.title.aggregateTitle, .aggregateLabel{
+  alignment-baseline:central;
+  text-anchor:end;
+}
+
 .title .icon{
   pointer-events:none;
   alignment-baseline:central;

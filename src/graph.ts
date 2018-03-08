@@ -252,8 +252,8 @@ class Graph {
       if (info.remove) {
         this.tableManager.colOrder.splice(this.tableManager.colOrder.indexOf(info.name), 1);
 
-        const adjMatrixCol = this.tableManager.adjMatrixCols.find((a:any )=> {return a.desc.name === info.name; });
-        this.tableManager.adjMatrixCols.splice(this.tableManager.adjMatrixCols.indexOf(adjMatrixCol),1);
+        const adjMatrixCol = this.tableManager.adjMatrixCols.find((a: any) => { return a.desc.name === info.name; });
+        this.tableManager.adjMatrixCols.splice(this.tableManager.adjMatrixCols.indexOf(adjMatrixCol), 1);
 
 
         events.fire(COL_ORDER_CHANGED_EVENT);
@@ -290,7 +290,7 @@ class Graph {
 
             //if it's not already in there:
             if (this.tableManager.adjMatrixCols.filter((a: any) => { return a.desc.name === arrayVector.desc.name; }).length < 1) {
-              console.log( 'here',arrayVector.dataValues)
+              console.log('here', arrayVector.dataValues)
               this.tableManager.adjMatrixCols = this.tableManager.adjMatrixCols.concat(arrayVector); //store array of vectors
             }
 
@@ -369,7 +369,7 @@ class Graph {
         const aggNode = this.graph.nodes.find((n) => n.uuid === info.uuid);
         const aggIndex = this.graph.nodes.indexOf(aggNode);
 
-        console.log(aggNode,aggIndex)
+        console.log(aggNode, aggIndex)
         //remove child reference from parent;
         aggNode.parent.children.splice(aggNode.parent.children.indexOf(aggNode), 1);
         //remove aggNode from graph nodes;
@@ -991,8 +991,8 @@ class Graph {
       // this.layoutTree(root);
     }
 
-      this.graph.nodes.map((n)=>n.visited = false);
-      this.layoutEntireTree();
+    this.graph.nodes.map((n) => n.visited = false);
+    this.layoutEntireTree();
 
 
 
@@ -1164,10 +1164,10 @@ class Graph {
         root.summary[level] = [c[aggregateBy]];
       }
     });
-   
+
     if (node.children.length > 0) {
       root.summary[level].map((nlabel) => {
-        
+
 
         let parent;
 
@@ -1179,27 +1179,27 @@ class Graph {
           const allParents = this.graph.nodes.filter((n) => { return n.root === root && n.level === +level - 1; });
           //get last element as parent (so that DFS positioning works)
           //last element is relative. if we assume alphabetical sorting, then... 
-          allParents.sort((a,b)=> {
-            const aTitle = a.aggregateLabel || a.semiAggregated? a[aggregateBy] : a.title;
-            const bTitle = b.aggregateLabel || a.semiAggregated? b[aggregateBy] : b.title;
+          allParents.sort((a, b) => {
+            const aTitle = a.aggregateLabel || a.semiAggregated ? a[aggregateBy] : a.title;
+            const bTitle = b.aggregateLabel || a.semiAggregated ? b[aggregateBy] : b.title;
             return aTitle < bTitle ? 1 : - 1;
           });
-          
+
           parent = allParents[0];
-          console.log(parent,allParents)
+          console.log(parent, allParents)
         }
         //iterate through and create fake nodes for each level
-        const aggregateNode = { root, parent, level: +level, children: [], uuid: root.uuid + '_' + level + '_' + nlabel, label: nlabel, visible: true, aggregated: false, aggregateLabel: true, title: '' };
+        const aggregateNode = { root, parent, level: +level, children: [], uuid: root.uuid + '_' + level + '_' + nlabel, label: nlabel, visible: true, aggregated: false, aggregateRoot: root, aggregateLabel: true, title: '' };
 
         //add node to children array of parent (if it's not already there)
-        
-        if (!(parent.children.find((cc)=> cc.uuid === aggregateNode.uuid))) {
+
+        if (!(parent.children.find((cc) => cc.uuid === aggregateNode.uuid))) {
           console.log('setting child of ', parent.title, parent.label, ' to ', aggregateNode.label)
           parent.children.push(aggregateNode);
           //add nodes to array of nodes in this graph
           this.graph.nodes.push(aggregateNode);
         }
-       
+
 
       })
     }
@@ -1208,11 +1208,15 @@ class Graph {
       c.level = node.level + 1;
       c.aggregateRoot = aggregate ? root : undefined;
       const parent = this.graph.nodes.filter((n) => { return (n[aggregateBy] === c[aggregateBy] && n.level === c.level && c.aggregateRoot === n.root); })[0];
+
       c.aggParent = parent;
-       if (!c.aggregateLabel) {
-         queue.push(c);
-       };
+      if (!c.aggregateLabel) {
+        queue.push(c);
+      };
     });
+
+    //remove all links to children;
+    // node.children = node.children.filter((n) => !n.aggregated);
 
   }
 
@@ -1254,7 +1258,7 @@ class Graph {
   }
 
   layoutTreeHelper(node, sortAttribute = undefined) {
-    
+
     if (node.visited) {
       return;
     }
@@ -1262,13 +1266,13 @@ class Graph {
 
     // if (!node.moved) {
     if (node.aggregated) {
-      node.yy = node.aggParent.yy;
-      this.ypos = max([this.ypos, node.yy]);
+      // node.yy = node.aggParent.yy;
+      // this.ypos = max([this.ypos, node.aggParent.yy]);
     } else {
       this.ypos = this.ypos + 1;
       node.yy = this.ypos;
     }
-    console.log('visiting ', node.title, node.label,node.yy)
+    console.log('visiting ', node.title, node.label, node.yy)
     // }
     // }
 
@@ -1295,7 +1299,7 @@ class Graph {
           }
         } else {
           if (b.value === undefined || a.value > b.value) { return -1; }
-          if (a.value === undefined || a.value < b.value) {  return 1; }
+          if (a.value === undefined || a.value < b.value) { return 1; }
           if (a.value === b.value) {
             if (a.title === b.title) { return 0; }
             if (a.title < b.title) { return -1; }
@@ -1308,21 +1312,23 @@ class Graph {
     } else {
       //default sorting is alphabetical
       node.children.sort((a, b) => {
-        if (a.aggregateLabel  || a.semiAggregated) {
-          if (b.aggregateLabel  || b.semiAggregated) {
-            const aTitle = a.aggregateLabel || a.semiAggregated? a.label : a.title;
-            const bTitle = b.aggregateLabel || b.semiAggregated? b.label : b.title;
+        if (a.aggregateLabel || a.semiAggregated) {
+          if (b.aggregateLabel || b.semiAggregated) {
+            const aTitle = a.label;
+            const bTitle = b.label;
 
-            return aTitle < bTitle ? -1 : (aTitle === bTitle ? (a.uuid < b.uuid ? -1 : 1) : 1);
+            return aTitle < bTitle ? -1 : (aTitle === bTitle ? (a.title < b.title ? -1 : 1) : 1);
 
           } else {
-            return -1;
+            return - 1;
           }
+        } else if (b.aggregateLabel || b.semiAggregated) {
+          return 1;
         } else {
           return a.title < b.title ? -1 : (a.title === b.title ? (a.uuid < b.uuid ? -1 : 1) : 1);
         }
       });
-      console.log(node.children);   
+      console.log(node.children);
     }
 
 
@@ -1330,9 +1336,9 @@ class Graph {
     node.children
       // .sort((a,b)=> {return a.pathway ? -1 :(b.pathway ? 1 : 0);})
       .map((c, i) => {
-        const lastNode = this.graph.nodes.filter((n: any) => (c.aggParent && n.visited && n.aggregated && n.yy === c.aggParent.yy));
+        const lastNode = this.graph.nodes.filter((n: any) => (c.aggParent && n.visited && n.aggregated && n.aggParent === c.aggParent));
         let maxX = +max(lastNode, (n: any) => n.xx);
-        if (lastNode.length <1 && c.aggregateRoot) {
+        if (lastNode.length < 1 && c.aggregateRoot) {
           maxX = 0;
         }
         c.originalX = node.originalX + 1;
@@ -1341,8 +1347,12 @@ class Graph {
       });
   }
 
-  drawTree() {
+  //default animations to true
+  drawTree(animate = true) {
     const graph = this.graph;
+
+    const animated = animate ? (d) => d.transition('t').duration(1000) : (d) => d;
+
 
     let link = this.svg.select('.visibleLinks')
       .selectAll('.edge')
@@ -1435,9 +1445,9 @@ class Graph {
 
 
 
-    linkEndMarkers
-      .transition('t')
-      .duration(1000)
+    animated(linkEndMarkers)
+      // .transition('t')
+      // .duration(1000)
       .attr('x', (d: any, i) => {
         return d.children.length > 0 ? this.xScale(d.xx) - 5 : this.xScale(d.xx) - 2;
       })
@@ -1500,9 +1510,9 @@ class Graph {
       .attr('marker-end', 'url(#circleMarker)')
       .attr('marker-start', 'url(#circleMarker)');
 
-    selectAll('.edge')
-      .transition('t')
-      .duration(1000)
+    animated(selectAll('.edge'))
+      // .transition('t')
+      // .duration(1000)
       .attr('d', (d: any, i) => {
         return this.elbow(d, this.lineFunction, d.visible);
       });
@@ -1526,8 +1536,8 @@ class Graph {
             return accumulator + cValue;
           }, 1);
 
-          const yy = r.yy + hops; // + r.summary[l].indexOf(n)+1 ;
-          aggregateIcons.push({ uuid: r.uuid + '_' + l + '_' + n, label: n, visible: true, aggregated: false, aggregateLabel: true, title: '', xx, yy });
+          const yy = r.yy + hops; // + r.summary[l].indexOf(n)+1 ;          
+          aggregateIcons.push({ aggregateRoot: r, uuid: r.uuid + '_' + l + '_' + n, label: n, visible: true, aggregated: false, aggregateLabel: true, title: '', xx, yy });
         })
 
         );
@@ -1584,13 +1594,13 @@ class Graph {
       .append('tspan')
       .attr('class', 'titleContent');
 
-    
+
 
     // nodesEnter.append('title');
 
     node = nodesEnter.merge(node);
 
-    node.classed('aggregateTitle',(n)=> n.aggregateLabel);
+    node.classed('aggregateTitle', (n) => n.aggregateLabel);
 
     // node.select('title')
     // .text(function (d) {
@@ -1611,11 +1621,11 @@ class Graph {
 
     aggregateLabels
       .select('.aggregateLabel')
-      .text((d) => d.label + '    ' );
+      .text((d) => d.label + '    ');
 
     aggregateLabels
       .select('.expand')
-      .text((d) =>  Config.icons.arrowRight + '  ' + Config.icons[d.label]);
+      .text((d) => Config.icons.arrowRight + '  ' + Config.icons[d.label]);
 
     aggregateLabels
       .select('.titleContent')
@@ -1632,31 +1642,39 @@ class Graph {
     node.selectAll('.expand')
       .on('click', (d) => {
         //remove this aggregate node from parent level
-        const aggNode = this.graph.nodes.find((n) => n.uuid === d.uuid);
+        const aggNode = this.graph.nodes.find((n) => n.uuid === d.uuid && d.aggregateLabel);
         const aggIndex = this.graph.nodes.indexOf(aggNode);
         //remove child reference from parent;
         aggNode.parent.children.splice(aggNode.parent.children.indexOf(aggNode), 1);
-       
+
         //remove aggNode from graph nodes;
         this.graph.nodes.splice(aggIndex, 1);
 
         const aggregatedNodes = this.graph.nodes.filter((n) => {
-          return (n.label === d.label && n.level === d.level && d.root === n.aggregateRoot);
+          return (n.label === d.label && n.level === d.level && d.root === n.aggregateRoot && !n.aggregateLabel);
         });
 
-         //add in unaggregated nodes as children of parent:
-         console.log(aggNode.parent.children, aggregatedNodes);
-         aggNode.parent.children = aggNode.parent.children.concat(aggregatedNodes);
+        //add in unaggregated nodes as children of parent:
+        console.log(aggNode.parent.children, aggregatedNodes);
+        aggNode.parent.children = aggNode.parent.children.concat(aggregatedNodes);
 
-         console.log('setting child of ', aggNode.parent.title, aggNode.parent.label, ' to ', aggNode.parent.children)
+        console.log('setting child of ', aggNode.parent.title, aggNode.parent.label, ' to ', aggNode.parent.children)
 
         // //if this aggNode has children, reasign them to the first child.
         // aggNode.children.map((c)=> {
         //   c.aggParent = aggregatedNodes[0];
         //   aggregatedNodes[0].childen.push(c);
         // });
-         
+
         aggregatedNodes.map((c) => {
+
+          //  remove child from array of parent;
+          const childIndex = c.parent.children.indexOf(c);
+          if (childIndex > -1 && c.aggregated) {
+            c.parent.children.splice(childIndex, 1);
+          };
+          // console.log(childIndex,c.title,c.parent.title,c.parent.children)
+
           c.aggregated = false;;
           c.level = undefined;
           c.aggregateRoot = undefined;
@@ -1688,15 +1706,14 @@ class Graph {
     node.classed('aggregated', (n) => n.aggregated);
 
 
-    node
-      .transition('t')
-      .duration(1000)
+    animated(node)
+      // .transition('t')
+      // .duration(1000)
       // .attr('opacity',1)
       .attr('x', (d) => {
-        const xpos = d.aggregated ? Math.floor((d.xx - 1) / 3) * this.xScale.invert(6) + d.aggregateRoot.xx +  d.level + + this.xScale.invert(20) : undefined;
-        const labelXpos =  d.aggregateLabel ? d.aggregateRoot.xx + d.level + this.xScale.invert(20): undefined;
-
-        return d.aggregated ? xScale(xpos) + this.radius : (d.aggregateLabel ?  xScale(labelXpos) : xScale(d.xx) + this.radius);
+        const xpos = d.aggregated ? Math.floor((d.xx - 1) / 3) * this.xScale.invert(6) + d.aggregateRoot.xx + d.level + + this.xScale.invert(20) : undefined;
+        const labelXpos = d.aggregateLabel ? d.aggregateRoot.xx + d.level + this.xScale.invert(20) : undefined;
+        return d.aggregated ? xScale(xpos) + this.radius : (d.aggregateLabel ? xScale(labelXpos) : xScale(d.xx) + this.radius);
       })
       .attr('y', (d) => {
         const ypos = d.yy + .5 - (1 / 3 * ((d.xx - 1) % 3 + 1) * this.yScale.invert(18));
@@ -2378,6 +2395,11 @@ class Graph {
    *
    */
   private exportYValues() {
+
+    //set yy values for aggregateNodes as a function of the aggregateParent
+    this.graph.nodes.map((n) => {
+      n.yy = n.aggregated ? n.aggParent.yy : n.yy;
+    });
 
     //Create hashmap of personID to y value;
     const dict = {};

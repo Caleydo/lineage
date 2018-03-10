@@ -79,12 +79,12 @@ td {
 .title .titleContent{
   pointer-events:none;
   alignment-baseline:central;
-  text-anchor:end;
+  // text-anchor:end;
 }
 
 .title.aggregateTitle, .aggregateLabel{
   alignment-baseline:central;
-  text-anchor:end;
+  // text-anchor:end;
 }
 
 .title .icon{
@@ -101,12 +101,18 @@ td {
 }
 
 
-.endMarker{
+.endMarker, .levelGroup{
   font-family: FontAwesome;
   font-size: 18px;
   alignment-baseline:middle;
   fill:#bcb9b9;
   cursor:default;
+}
+
+.levelBracket{
+  fill:none;
+  stroke-width: 2px;
+  stroke:#bcb9b9;
 }
 
 

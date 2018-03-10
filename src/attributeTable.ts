@@ -1932,21 +1932,10 @@ class AttributeTable {
         .on('click', ((d) => { this.addMenu(d); }));
     };
 
-
-
-
-    // icon
-    //   .text('\uf0de')
-    //   .attr('y', this.rowHeight * 1.8 + 30)
-    //   .attr('x', (d) => {
-    //     return colWidth / 2 + 5;
-    //   });
-
     const self = this;
 
     element.select('.sortIcon')
       .on('click', function (d:any) {
-        console.log(d);
         // Set 'sortAttribute'
         const selected = (select(this).classed('sortSelected'));
         let descending = select(this).classed('descending');

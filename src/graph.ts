@@ -1369,7 +1369,7 @@ class Graph {
     let linkEndMarkers = this.svg.select('.endMarkers')
       .selectAll('.endMarker')
       .data(graph.nodes.filter((n) => {
-        return (!(n.children.length < 1 && n.graphDegree <= n.degree)) && n.visible && !n.aggregated && n.visible && !n.aggregateLabel;
+        return (!(n.children.length < 1 && n.graphDegree <= n.degree)) && n.visible && !n.aggregated && !n.semiAggregated && n.visible && !n.aggregateLabel;
       }), (d) => { return this.createID(d.title) + '_endMarker'; });
 
     const linkEndMarkersEnter = linkEndMarkers
@@ -1685,7 +1685,7 @@ class Graph {
         this.layoutEntireTree();
         this.updateEdgeInfo();
         this.exportYValues();
-        this.drawTree();
+        this.drawTree(false);
 
       })
 
@@ -1706,9 +1706,9 @@ class Graph {
     node.classed('aggregated', (n) => n.aggregated);
 
 
-    animated(node)
-      // .transition('t')
-      // .duration(1000)
+    node
+      .transition('t')
+      .duration(animate ? 1000 : 0)
       // .attr('opacity',1)
       .attr('x', (d) => {
         const xpos = d.aggregated ? Math.floor((d.xx - 1) / 3) * this.xScale.invert(6) + d.aggregateRoot.xx + d.level + + this.xScale.invert(20) : undefined;

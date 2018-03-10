@@ -1205,6 +1205,11 @@ class Graph {
         // console.log('adding ', aggSummary.label, ' to ', parent.title, parent.label);
         parent.children.push(aggSummary);
         this.graph.nodes.push(aggSummary);
+
+         //create edge between aggSummary and its parent;
+         const edge = {source:aggSummary.parent,target:aggSummary,visible:true,visited:true,edge:{data:{uuid:aggSummary.uuid}}};
+         this.graph.links.push(edge);
+
       } else {
         aggSummary = existingSummary;
       }
@@ -1563,10 +1568,20 @@ class Graph {
         return this.yScale(d.yy) + 1;
       });
 
-      animated(levelBrackets)
-      .attr('transform',(d)=> { return 'translate (' + (d.children.length > 0 ? this.xScale(d.xx) - 5 : this.xScale(d.xx) - 2) + ',' + (this.yScale(d.yy) + 1)  + ')';});
+      // animated(levelBrackets)
+      // .attr('transform',(d)=> { return 'translate (' + this.xScale(d.xx) + ',' + this.yScale(d.yy)  + ')';});
 
 
+      animated(levelBrackets.select('.levelBracketMenu'))
+      .attr('x', (d: any, i) => {
+        return this.xScale(d.xx)+this.xScale.invert(10);
+      })
+      .attr('y', (d: any, i) => {
+        const aggLabelChildren = d.children.filter((n) => n.aggregateLabel);
+        const minYY = min(aggLabelChildren, (c: any) => c.yy);
+        console.log(d,aggLabelChildren,minYY);
+        return this.yScale(minYY);
+      });
 
     selectAll('.edge')
       .classed('visible', (d: any) => {
@@ -2406,24 +2421,25 @@ class Graph {
    
     console.log(d.label, start, end);
 
-    let linedata, nx;
+    let linedata, nx, sx;
     if (curves) {
       nx = this.xScale.invert(20);
+      sx = this.xScale.invert(10);
       linedata = [{
-        x: nx,
-        y: -.5
+        x: d.xx + nx,
+        y: start -.5
       },
       {
-        x: this.xScale.invert(10),
-        y: 0
+        x: d.xx + sx ,
+        y: start
       },
       {
-        x: this.xScale.invert(10),
-        y: end-start
+        x: d.xx + sx,
+        y: end
       },
       {
-        x: nx,
-        y: end-start
+        x: d.xx + nx,
+        y: end
       }];
     } else {
 
@@ -2557,7 +2573,7 @@ class Graph {
         minYY = min(aggLabelChildren, (c: any) => c.yy);
         diffYY = +maxYY - +minYY;
       }
-      n.yy = n.aggregated ? n.aggParent.yy : (n.aggSummary ? minYY : n.yy);
+      n.yy = n.aggregated ? n.aggParent.yy : (n.aggSummary ? minYY + diffYY/2 : n.yy);
     });
   }
   /**

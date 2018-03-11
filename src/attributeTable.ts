@@ -2843,7 +2843,9 @@ class AttributeTable {
     const numValues = cellData.data.filter((v) => { return v.value !== undefined; }).length;
     const totalValues = cellData.data.reduce((acc,cValue)=> {return acc+cValue.value;},0);
 
-    if (element.selectAll('.dataDens').size() === 0 && cellData.data[0].value > 0) {
+    // console.assert(!(cellData.name === 'Hidden Edges'),numValues,totalValues,cellData)
+
+    if (element.selectAll('.dataDens').size() === 0 && totalValues > 0) {
       element
         .append('rect')
         .classed('dataDens', true);
@@ -2894,11 +2896,15 @@ class AttributeTable {
       // .attr('fill', '#343434')
       .on('click', (d) => {
         event.stopPropagation();
+
+        console.log(d);
         selectAll('.hiddenEdge')
           .attr('visibility', 'hidden');
 
+          const uuids = cellData.data.map((d)=>d.uuid);
+
           const hiddenEdges = selectAll('.hiddenEdge').filter((e: any) => {
-            return (e.source.uuid === cellData.data[0].uuid || e.target.uuid === cellData.data[0].uuid);
+            return (uuids.find((u)=> u === e.source.uuid) || uuids.find((u)=> u === e.target.uuid));
           });
 
           select('.nodes')
@@ -2906,7 +2912,7 @@ class AttributeTable {
           .style('opacity',.4);
 
           const eoi = selectAll('.hiddenEdge').filter((e: any) => {
-            return (e.source.uuid === cellData.data[0].uuid || e.target.uuid === cellData.data[0].uuid);
+            return (uuids.find((u)=> u === e.source.uuid) || uuids.find((u)=> u === e.target.uuid));
           });
 
           //only highlight connected nodes

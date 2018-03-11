@@ -147,7 +147,7 @@ class Graph {
     }).y((d: any) => {
       return this.yScale(d.y);
     })
-    .curve(curveBasis);
+    // .curve(curveBasis);
 
 
   /**
@@ -785,7 +785,8 @@ class Graph {
     this.updateFilterPanel();
 
     if (partial) {
-      this.extractPartialTree(undefined,this.graph,false);
+      // this.extractPartialTree(undefined,this.graph,false);
+      this.extractTree(roots.length > 0 ? roots : undefined, this.graph, false);
     } else {
       this.extractTree(roots.length > 0 ? roots : undefined, this.graph, false);
     }
@@ -1063,11 +1064,19 @@ class Graph {
       };
     });
     //Populate dictionary
+
+   
+
     //Find all edges that start or end on that node
     this.graph.links.map((l) => {
 
       const targetNode = l.target;
       const sourceNode = l.source;
+
+       //  Set all edges that connect aggregated or semiAggregated nodes to hidden
+      if (targetNode.aggregated || targetNode.semiAggregated || sourceNode.aggregated || sourceNode.semiAggregated) {
+        l.visible = false;
+      }
 
       const targetDictEntry = this.nodeNeighbors[targetNode.uuid];
       const sourceDictEntry = this.nodeNeighbors[sourceNode.uuid];
@@ -1478,7 +1487,6 @@ class Graph {
 
         ////Only visit semi-aggregated nodes if they are the children of aggLabels
         if (c.semiAggregated && !node.aggregateLabel) {
-          console.log('skipping ' , c.label,c.title)
         } else {
           this.layoutTreeHelper(c);
         }
@@ -1566,11 +1574,11 @@ class Graph {
         return d.children.length > 0 ? Config.icons.arrowDown : Config.icons.arrowRight;
       });
 
-    // levelBrackets
-    //   .select('.levelBracket')
-    //   .attr('d', (d: any, i) => {
-    //     return this.bracket(d);
-    //   });
+    levelBrackets
+      .select('.levelBracket')
+      .attr('d', (d: any, i) => {
+        return this.bracket(d);
+      });
 
 
     link = this.svg.select('.hiddenLinks')
@@ -1827,7 +1835,8 @@ class Graph {
 
     aggregateLabels
       .select('.expand')
-      .text((d) => d.children.length > 0 ? Config.icons.arrowDown : Config.icons.arrowRight + '  ' + Config.icons[d.label]);
+      .text((d) => d.children.length > 0 ? Config.icons.arrowDown  : Config.icons.arrowRight + '  ' + Config.icons[d.label]);
+      // + '  ' + Config.icons[d.label] + ' ' + d.label
 
     aggregateLabels
       .select('.titleContent')
@@ -2483,6 +2492,10 @@ class Graph {
 
   private bracket(d, lineFunction = this.lineFunction) {
 
+    // const aggLabelChildren = d.children.filter((n) => n.aggregateLabel);
+    // const start = min(aggLabelChildren, (c: any) => +c.yy);
+    // const end = max(aggLabelChildren, (c: any) => +c.yy) + 1;
+
     const start = min(d.children.filter((c) => !c.aggSummary), (c: any) => {
       const childrenY = min(c.children, (cc: any) => +cc.yy);
       return min([+c.yy, childrenY]);
@@ -2491,7 +2504,17 @@ class Graph {
     const end = max(d.children.filter((c) => !c.aggSummary), (c: any) => {
       const childrenY = max(c.children, (cc: any) => +cc.yy);
       return max([+c.yy, childrenY]);
-    });
+    })+.5;
+
+
+    // .attr('x', (d: any, i) => {
+    //   return this.xScale(d.xx) + this.xScale.invert(10);
+    // })
+    // .attr('y', (d: any, i) => {
+    //   const aggLabelChildren = d.children.filter((n) => n.aggregateLabel);
+    //   const minYY = min(aggLabelChildren, (c: any) => c.yy);
+    //   return this.yScale(minYY);
+    // });
 
     // console.log(d.label, start, end);
 
@@ -2500,11 +2523,11 @@ class Graph {
     sx = this.xScale.invert(10);
     linedata = [{
       x: d.xx + nx,
-      y: start - .5
+      y: start
     },
     {
       x: d.xx + sx,
-      y: start
+      y: start+.5
     },
     {
       x: d.xx + sx,
@@ -2514,6 +2537,20 @@ class Graph {
       x: d.xx + nx,
       y: end
     }];
+
+    // linedata = [];
+    // let j = start;
+    // while (j <=end) {
+    //   linedata.push({
+    //     x:d.xx + nx,
+    //     y: j
+    //   });
+    //   linedata.push({
+    //     x:d.xx,
+    //     y: j
+    //   });
+    //   j = j+1;
+    // };
 
 
     // console.log(linedata)

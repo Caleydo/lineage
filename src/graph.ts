@@ -175,9 +175,10 @@ class Graph {
             throw error;
           }
 
-          console.log(graph)
           this.mergeGraph(graph, false, true);
-          this.postMergeUpdate();
+          //find root nodes
+          const rootNode = this.graph.nodes.find((n) => n.uuid === graph.root);
+          this.postMergeUpdate(rootNode, true);
 
         });
 
@@ -758,11 +759,18 @@ class Graph {
 
 
             this.graph = graph;
+            this.postMergeUpdate();
           } else {
             this.mergeGraph(graph, includeRoot, includeChildren);
+
+            //find root node
+            const rootNode = this.graph.nodes.find((n) => n.uuid === graph.root[0]);
+
+            this.postMergeUpdate(rootNode, true);
+
           }
 
-          this.postMergeUpdate();
+
 
           resolvePromise();
         });
@@ -772,13 +780,24 @@ class Graph {
   };
 
 
-  postMergeUpdate() {
+  postMergeUpdate(root = undefined, partial = false) {
     const roots = this.graph.nodes.filter((n) => { return this.graph.root.indexOf(n.uuid) > -1; });
     this.updateFilterPanel();
 
-    this.extractTree(roots.length > 0 ? roots : undefined, this.graph, false);
+    if (partial) {
+      this.extractPartialTree(undefined,this.graph,false);
+    } else {
+      this.extractTree(roots.length > 0 ? roots : undefined, this.graph, false);
+    }
+
+    this.graph.nodes.map((n) => n.visited = false);
+
+    //These two steps are inside extractTree and extractPartial Tree
+    // this.layoutEntireTree();
+    // this.updateEdgeInfo();
 
     this.exportYValues();
+    events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);
 
     if (this.layout === 'tree') {
       this.drawTree();
@@ -790,6 +809,8 @@ class Graph {
 
 
   mergeGraph(graph, includeRoot, includeChildren) {
+
+    
     const rootNode = graph.nodes.filter((n) => { return n.uuid.toString() === graph.root.toString(); });
     const existingNodes = []; //nodes in the current subgraph that already exist in the tree
 
@@ -860,6 +881,7 @@ class Graph {
       }
 
     });
+
   }
 
 
@@ -895,20 +917,11 @@ class Graph {
 
     this.updateEdgeInfo();
 
-    // if (roots === undefined) {
-    //   console.log('undefined root');
-    //   roots = graph.nodes.filter((n)=> {return n.uuid = graph.root;});
-    // }
-
-    //replace graph root with current root;
-    // this.graph.root = roots;
-
     //Filter out all nodes to be excluded
     const excluded = this.exclude;
 
     //set default values for unvisited nodes;
     graph.nodes.map((n, i) => {
-      n.index = i;
       n.visible = excluded.indexOf(n.label) > -1 ? false : true;
       n.visited = excluded.indexOf(n.label) > -1 ? true : false;
       n.children = [];
@@ -918,10 +931,6 @@ class Graph {
       n.originalX = undefined;
     });
 
-
-
-    // console.log(graph.nodes.map(n=>n.title))
-
     //set default values for unvisited links;
     graph.links.map((l, i) => {
       l.visible = (l.visited && !replace) ? l.visible : false;
@@ -929,7 +938,7 @@ class Graph {
       // l.index = i;
     });
 
-    this.calculatePathway();
+    // this.calculatePathway();
     // this.graph.nodes.map((n) => { n.visited = (n.pathway && n.moved) ? true : false; });
 
     const pathwayNodes = this.graph.nodes.filter((n) => n.pathway && n.moved);
@@ -979,13 +988,68 @@ class Graph {
 
     this.graph.nodes.map((n) => n.visited = false);
     this.layoutEntireTree();
-
-
-
     this.updateEdgeInfo();
 
-    events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);
   }
+
+
+  extractPartialTree(roots = undefined, graph = this.graph, replace = true) {
+  
+        this.updateEdgeInfo();
+
+        //Filter out all nodes to be excluded
+        const excluded = this.exclude;
+    
+        //set default values for unvisited nodes;
+        graph.nodes.filter((n)=> !n.yy).map((n, i) => {
+          n.visible = excluded.indexOf(n.label) > -1 ? false : true;
+          n.visited = excluded.indexOf(n.label) > -1 ? true : false;
+          n.children = [];
+          n.parent = undefined;
+          n.yy = undefined;
+          n.xx = undefined;
+          n.originalX = undefined;
+        });
+    
+        //set default values for unvisited links;
+        graph.links.map((l, i) => {
+          l.visible = (l.visited && !replace) ? l.visible : false;
+          l.visited = (l.visited && !replace) ? l.visited : false;
+          // l.index = i;
+        });
+    
+        
+        const startNode = this.graph.nodes.find((n)=> n.uuid === graph.root[0]);
+        startNode.visited = false;
+        roots = [startNode];
+
+        while (graph.nodes.filter((n) => {
+          return n.visited === false;
+        }).length > 0) {
+    
+          
+          //Start with preferential root, then pick node with highest degree if none was supplied.
+          const root = (roots && roots.filter((r) => { return !r.visited; }).length > 0) ? roots.filter((r) => { return !r.visited; })[0] :
+            this.graph.nodes.filter((n) => {
+              return n.visited === false;
+            }).reduce((a, b) => this.nodeNeighbors[a.uuid].degree > this.nodeNeighbors[b.uuid].degree ? a : b);
+    
+          const queue = [root];
+    
+          // //BFS of the tree
+          while (queue.length > 0) {
+            const node = queue.splice(0, 1)[0];;
+            this.extractTreeHelper(node, queue);
+          }
+
+        }
+    
+        this.graph.nodes.map((n) => n.visited = false);
+        this.layoutEntireTree();
+        this.updateEdgeInfo();
+    
+      }
+
 
   updateEdgeInfo() {
     //create dictionary of nodes with
@@ -1020,7 +1084,6 @@ class Graph {
     });
 
     this.graph.nodes.map((n) => {
-      // console.log(n)
       n.degree = this.nodeNeighbors[n.uuid].degree;
     });
 
@@ -1097,7 +1160,6 @@ class Graph {
 
   // recursive helper function to extract tree from graph
   extractTreeHelper(node, queue, evalFcn = undefined, depth = undefined) {
-
     // if (!node.visited) {
     node.visited = true;
     const edges = this.graph.links.filter((l) => {
@@ -1140,7 +1202,6 @@ class Graph {
   setAggregation(root, aggregate) {
 
     root.summary = {};
-    root.hops = {};
     root.level = 0;
     const queue = [root];
     // //BFS of the tree
@@ -1151,8 +1212,10 @@ class Graph {
 
     if (!aggregate) {
       //remove relevant edges and aggregateLabel and aggSummary nodes;
-      this.graph.nodes = this.graph.nodes.filter((n)=> !((n.aggregateRoot === root && n.aggregateLabel) || (n.aggregateRoot === root && n.aggSummary)));
-      this.graph.links = this.graph.links.filter((l)=> {return !(l.target.aggSummary);});
+      this.graph.nodes = this.graph.nodes.filter((n) => !((n.aggregateRoot === root && n.aggregateLabel) || (n.aggregateRoot === root && n.aggSummary)));
+      this.graph.links = this.graph.links.filter((l) => { return !(l.target.aggSummary); });
+
+      console.log(this.graph.nodes);
     }
   }
 
@@ -1184,9 +1247,6 @@ class Graph {
           return n.aggregateRoot === root && n.aggSummary && n.level === +level - 1;
         });
       }
-
-
-
 
       if (node.children.length > 0) {
 
@@ -1241,11 +1301,13 @@ class Graph {
 
     } else {
       node.aggregated = false;
+      node.semiAggregated = false;
 
-      node.children = node.children.filter((n)=> !(n.aggSummary));
+      node.children = node.children.filter((n) => !(n.aggSummary) && !(n.aggregateLabel));
 
       node.children.map((c) => {
-        c.aggregated = c.aggregateLabel || c.aggSummary ? false : aggregate;
+        c.aggregated = false;
+        c.semiAggregated = false;
         c.level = undefined;
         // c.aggregateRoot = undefined;
         c.aggParent = undefined;
@@ -1280,7 +1342,6 @@ class Graph {
 
 
       const roots = this.graph.nodes.filter((n) => { return this.graph.root.indexOf(n.uuid) > -1; });
-      // console.log('roots are ', roots);
       //Start with preferential root, then pick node with highest degree if none was supplied.
       const root = (roots && roots.filter((r) => { return !r.visited; }).length > 0) ? roots.filter((r) => { return !r.visited; })[0] :
         this.graph.nodes.filter((n) => {
@@ -1300,16 +1361,14 @@ class Graph {
   }
 
   layoutTree(root, sortAttribute = undefined) {
-    root.hierarchy =0;
+    root.hierarchy = 0;
     this.layoutTreeHelper(root, sortAttribute);
   }
 
   layoutTreeHelper(node, sortAttribute = undefined) {
-      // console.log(node.title,node.label,node.hierarchy)
     if (node.visited) {
       return;
     }
-
 
     node.visited = true;
 
@@ -1407,23 +1466,19 @@ class Graph {
             c.xx = c.originalX;
           }
           if (c.aggSummary || (!node.aggSummary && !node.aggregateLabel)) {
-            c.hierarchy = node.hierarchy+1;
+            c.hierarchy = node.hierarchy + 1;
           } else {
             c.hierarchy = node.hierarchy;
           };
-
-
-        
-          console.log(c.title,c.label,c.hierarchy)
         };
-        
+
 
 
 
 
         ////Only visit semi-aggregated nodes if they are the children of aggLabels
         if (c.semiAggregated && !node.aggregateLabel) {
-          // console.log('skipping ' , c.label)
+          console.log('skipping ' , c.label,c.title)
         } else {
           this.layoutTreeHelper(c);
         }
@@ -1511,11 +1566,11 @@ class Graph {
         return d.children.length > 0 ? Config.icons.arrowDown : Config.icons.arrowRight;
       });
 
-    levelBrackets
-      .select('.levelBracket')
-      .attr('d', (d: any, i) => {
-        return this.bracket(d);
-      });
+    // levelBrackets
+    //   .select('.levelBracket')
+    //   .attr('d', (d: any, i) => {
+    //     return this.bracket(d);
+    //   });
 
 
     link = this.svg.select('.hiddenLinks')
@@ -1802,8 +1857,6 @@ class Graph {
 
           aggregatedNodes.map((c) => {
             c.aggregated = false;;
-            // c.level = undefined;
-            // c.aggregateRoot = undefined;
             c.semiAggregated = true;
           });
 

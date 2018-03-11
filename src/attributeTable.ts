@@ -23,6 +23,7 @@ import Histogram from './Histogram';
 import { VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL, VALUE_TYPE_STRING } from 'phovea_core/src/datatype';
 
 export const VALUE_TYPE_ADJMATRIX = 'adjMatrix';
+export const VALUE_TYPE_LEVEL = 'level';
 
 import { line } from 'd3-shape';
 
@@ -92,7 +93,8 @@ class AttributeTable {
     real: this.rowHeight * 4,
     string: this.rowHeight * 5,
     id: this.rowHeight * 4.5,
-    dataDensity: this.rowHeight
+    dataDensity: this.rowHeight,
+    level:this.rowHeight * 4
   };
 
   //Used to store col widths if user resizes a col;
@@ -676,33 +678,6 @@ class AttributeTable {
     this.y.range([0, this.height * .7]).domain([0, maxRow]);
     this.rowOrder = allRows; //will be used to set the y position of each cell/row;
 
-    // // console.log('rowOrder', this.y(this.rowOrder[0]), this.y(this.rowOrder[1]), this.y(this.rowOrder[2]));
-    // //set up first column with #People per row.
-    // const col: any = {};
-    // col.data = [];
-    // col.name = ['# People'];
-    // col.type = 'dataDensity';
-    // col.stats = [];
-    // col.isSorted = false;
-
-    // //Creating a scale for the rects in the personID col in the table.
-    // let maxAggregates = 1;
-    // for (const key of allRows) {
-    //   //FIXME Don't know why we're getting duplicates here.
-    //   const value = Array.from(new Set(y2personDict[key])).length;
-    //   col.data.push(value);
-    //   maxAggregates = max([maxAggregates, y2personDict[key].length]);
-    // }
-    // this.idScale.domain([1, maxAggregates]);
-
-
-    // col.ids = allRows.map((row) => {
-    //   return y2personDict[row].map((d) => { return d.split('_')[0]; }); //only first part is the id
-    // });
-
-    // this.firstCol = [col];
-
-    // console.log(col)
     const colDataAccum = [];
 
     let allPromises = [];
@@ -793,7 +768,7 @@ class AttributeTable {
 
         }
 
-      } else if (type === VALUE_TYPE_INT || type === VALUE_TYPE_REAL || type === 'dataDensity') { //quant
+      } else if (type === VALUE_TYPE_INT || type === VALUE_TYPE_REAL || type === 'dataDensity' || type === VALUE_TYPE_LEVEL) { //quant
 
         const col: any = {};
         col.isSorted = false;
@@ -1580,7 +1555,7 @@ class AttributeTable {
       .on('mouseover', (cellData:any) => {
         this.highlightRow(cellData);
         //only add tooltip if not dataDensity type or if value in cell is >99
-        if (cellData.type !== 'dataDensity' || cellData.data.reduce((acc,cValue)=> {return acc+cValue.value;},0)>99) {
+        if (cellData.type !== 'dataDensity' || cellData.type !== VALUE_TYPE_LEVEL || cellData.data.reduce((acc,cValue)=> {return acc+cValue.value;},0)>99) {
           this.ttip.addTooltip('cell', cellData);
         };
       })
@@ -1616,12 +1591,12 @@ class AttributeTable {
       } else if (cell.name === 'KindredID') {
         self.renderFamilyIDCell(select(this), cell);
       } else if (cell.type === 'id' || cell.type === 'idtype') {
-
         self.renderIdCell(select(this), cell);
       } else if (cell.type === 'dataDensity') {
         self.renderDataDensCell(select(this), cell);
+      } else if (cell.type === VALUE_TYPE_LEVEL) {
+        self.renderLevelCell(select(this), cell);
       }
-
     });
 
 
@@ -2781,6 +2756,72 @@ class AttributeTable {
     // }
     // );
   }
+
+  /**
+   *
+   * This function renders the content of Categorical Cells in the Table View.
+   *
+   * @param element d3 selection of the current cell element.
+   * @param cellData the data bound to the cell element being passed in.
+   */
+  private renderLevelCell(element, cellData) {
+    
+        //Check for custom column width value, if none, use default
+        const colWidth = this.customColWidths[cellData.name] || this.colWidths[cellData.type];
+    
+        // const colWidth = this.colWidths[cellData.type];
+        const rowHeight = this.rowHeight;
+    
+        element.selectAll('.cross_out').remove();
+    
+        const numValues = cellData.data.filter((v) => { return v.value !== undefined; }).length;
+        const totalValues = cellData.data.reduce((acc,cValue)=> {return acc+cValue.value;},0);
+    
+        if (element.selectAll('.level').size() === 0 && cellData.data[0].value > 0) {
+          element
+            .append('line')
+            .classed('level', true);
+        }
+    
+        if (numValues < 1) {
+
+          console.log(cellData)
+    
+          //Remove any existing dataDens elements
+          element
+            .select('.level').remove();
+  
+    
+          if (element.selectAll('.cross_out').size() === 0) {
+            element
+              .append('line')
+              .attr('class', 'cross_out');
+          }
+    
+          element.select('.cross_out')
+            .attr('x1', colWidth * 0.3)
+            .attr('y1', rowHeight / 2)
+            .attr('x2', colWidth * 0.6)
+            .attr('y2', rowHeight / 2)
+            .attr('stroke-width', 2)
+            .attr('stroke', '#9e9d9b')
+            .attr('opacity', .6);
+    
+          return;
+        }
+    
+        const xScale = scaleLinear<number, number>().domain(cellData.vector.desc.value.range).range([0,colWidth]);
+    
+        // console.log(cellData.data[0].value, colorScale.domain());
+        element
+          .select('.level')
+          .classed('aggregated',(numValues>0 && cellData.data[0].aggregated))
+          .attr('x1', xScale(max(cellData.data,(c:any)=> +c.value)))
+          .attr('x2', xScale(max(cellData.data,(c:any)=> +c.value)))
+          .attr('y1', rowHeight)
+          .attr('y2', 0-(rowHeight*.6));
+    
+      }
 
   /**
    *

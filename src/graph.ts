@@ -12,7 +12,7 @@ import { TABLE_VIS_ROWS_CHANGED_EVENT, COL_ORDER_CHANGED_EVENT, ADJ_MATRIX_CHANG
 
 import { VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL, VALUE_TYPE_STRING } from 'phovea_core/src/datatype';
 
-import { VALUE_TYPE_ADJMATRIX } from './attributeTable';
+import { VALUE_TYPE_ADJMATRIX, VALUE_TYPE_LEVEL } from './attributeTable';
 
 
 import {
@@ -1020,6 +1020,7 @@ class Graph {
     });
 
     this.graph.nodes.map((n) => {
+      // console.log(n)
       n.degree = this.nodeNeighbors[n.uuid].degree;
     });
 
@@ -1054,6 +1055,18 @@ class Graph {
 
 
     this.addArrayVec(vec);
+
+
+    vec = {
+      type: VALUE_TYPE_LEVEL,
+      title: 'Hierarchy Level',
+      data: this.graph.nodes.map((n, i) => { return { 'value': n.hierarchy, 'uuid': n.uuid, 'aggregated': n.aggregated }; }),
+      ids: this.graph.nodes.map((n) => { return n.uuid; })
+    };
+
+
+    this.addArrayVec(vec);
+
   }
 
   addArrayVec(vec) {
@@ -1287,11 +1300,12 @@ class Graph {
   }
 
   layoutTree(root, sortAttribute = undefined) {
+    root.hierarchy =0;
     this.layoutTreeHelper(root, sortAttribute);
   }
 
   layoutTreeHelper(node, sortAttribute = undefined) {
-
+      // console.log(node.title,node.label,node.hierarchy)
     if (node.visited) {
       return;
     }
@@ -1302,8 +1316,7 @@ class Graph {
     //yValues for aggregated and level Summaries (aggSummary) are done in exportYValues
     if (!node.aggregated && !node.aggSummary) {
       //check if first child of aggregatedLabel
-      if (node.semiAggregated === true && node.aggParent.children.indexOf(node) === 0) {
-        console.log('here', node.semiAggregated, node.aggParent.children.indexOf(node))
+      if (node.semiAggregated === true && node.aggParent && node.aggParent.children.indexOf(node) === 0) {
         node.yy = this.ypos;
       } else {
         this.ypos = this.ypos + 1;
@@ -1312,7 +1325,7 @@ class Graph {
 
 
     }
-    console.log('visiting ', node.title, node.label, node.aggSummary, node.children, node.yy);
+    // console.log('visiting ', node.title, node.label, node.aggSummary, node.children, node.yy);
 
     //sort Children by chosen attribute
     if (sortAttribute) {
@@ -1393,8 +1406,17 @@ class Graph {
           } else {
             c.xx = c.originalX;
           }
-          // console.log('setting xx of ', c.title,c.label , ' to  ', c.xx)
+          if (c.aggSummary || (!node.aggSummary && !node.aggregateLabel)) {
+            c.hierarchy = node.hierarchy+1;
+          } else {
+            c.hierarchy = node.hierarchy;
+          };
+
+
+        
+          console.log(c.title,c.label,c.hierarchy)
         };
+        
 
 
 
@@ -1451,10 +1473,6 @@ class Graph {
       .data(graph.nodes.filter((n) => {
         return (n.aggSummary === true);
       }), (d) => { return this.createID(d.label) + '_levelBracket'; });
-
-      console.log(graph.nodes.filter((n) => {
-        return (n.aggSummary === true);
-      })); 
 
     const levelBracketsEnter = levelBrackets
       .enter()

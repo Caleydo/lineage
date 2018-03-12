@@ -1192,7 +1192,6 @@ class Graph {
 
   //function that iterates down branch and sets aggregate flag to true/false
   setAggregation(root, aggregate) {
-    console.log('setting aggregation for ' , root ,  ' to ', aggregate)
     
     //clear all previous aggregation nodes first
     if (aggregate) {
@@ -1206,7 +1205,7 @@ class Graph {
 
     // //BFS of the tree
     while (queue.length > 0) {
-      const node = queue.splice(0, 1)[0];;
+      const node = queue.splice(0, 1)[0];
       this.aggregateHelper(root, node, aggregate, queue);
     }
 
@@ -1216,8 +1215,6 @@ class Graph {
   }
 
   aggregateHelper(root, node, aggregate, queue) {
-
-    console.log('aggregate help on ', node.title, node.label, node.children)
     const aggregateBy = 'label';
 
     if (aggregate) {
@@ -1301,8 +1298,6 @@ class Graph {
         });
       }
       node.children.map((c) => {
-
-        console.log('visit ', c.title, c.nodeType)
         //default new level modes to aggregated layout
         c.layout = c.nodeType === nodeType.single ?
         (c.mode === mode.level ? c.layout : layout.aggregated): layout.expanded; //preserve existing layout
@@ -1320,8 +1315,7 @@ class Graph {
         });
 
         c.aggParent = parent;
-        if (c.nodeType === nodeType.single) {
-          console.log ('pushing ', c.title)
+        if (c.nodeType === nodeType.single && !c.summary) {
           queue.push(c);
         };
       });
@@ -1848,13 +1842,16 @@ class Graph {
     const aggregateLabels = node.filter((d) => d.nodeType === nodeType.aggregateLabel);
     const aggregatedNodes = node.filter((d) => d.layout === layout.aggregated);
     const semiAggregatedNodes = node.filter((d) => d.nodeType === nodeType.single && d.layout === layout.expanded && d.mode === mode.level);
-    const regularNodes = node.filter((d) => !(d.nodeType === nodeType.aggregateLabel || d.layout === layout.aggregated));
+    const regularNodes = node.filter((d) => d.nodeType === nodeType.single && d.layout === layout.expanded);
 
-    console.log(semiAggregatedNodes.size())
 
     aggregatedNodes
       .select('.type')
       .text(Config.icons.aggregateIcon);
+
+      aggregatedNodes
+      .select('.expand')
+      .text(' ' );
 
     aggregatedNodes
       .select('.titleContent')
@@ -1894,8 +1891,11 @@ class Graph {
     node.selectAll('.expand')
       .on('click', (d) => {
 
-        if (d.mode === mode.level && d.layout === layout.expanded){
+        if (d.mode === mode.level && d.layout === layout.expanded) {
           const remove = d.children.length > 0;
+
+          d.summary = {};
+          d.aggMode = mode.tree;
           // select(this).text((d: any) => {
           //   return remove ? Config.icons.arrowDown : Config.icons.arrowRight;
           // });

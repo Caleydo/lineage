@@ -1030,11 +1030,11 @@ class Graph {
       const targetNode = l.target;
       const sourceNode = l.source;
 
-      //set visibility back to original
+      // set visibility back to original
       l.visible = l.inTree === undefined ? l.visible : l.inTree ;
 
-       //  Set all edges that connect level-mode nodes to hidden
-      if (targetNode.mode === mode.level|| sourceNode.mode === mode.level) {
+        // Set all edges that connect level-mode non levelSummary nodes to hidden
+      if ((targetNode.mode === mode.level && targetNode.nodeType !== nodeType.levelSummary)|| (sourceNode.mode === mode.level && sourceNode.nodeType !== nodeType.levelSummary)) {
         l.inTree = l.visible; //save original edge visibility information
         l.visible = false;
       }
@@ -1519,8 +1519,7 @@ class Graph {
       .selectAll('.edge')
       .data(graph.links.filter((l) => {
         return l.source.visible && l.target.visible && //both nodes are visible
-        l.source.mode === mode.tree && l.target.mode === mode.tree //both nodes are in tree mode
-        && l.visible; //the edge is tagged as visible
+        l.visible; //the edge is tagged as visible
       }),
       (d) => { return d.edge.data.uuid; });
 
@@ -2566,7 +2565,7 @@ class Graph {
     },
     {
       x: d.xx + nx,
-      y: end
+      y: end+.5
     }];
 
     // linedata = [];

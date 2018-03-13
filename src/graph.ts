@@ -370,7 +370,7 @@ class Graph {
 
     events.on(AGGREGATE_CHILDREN, (evt, info) => {
       const root = this.graph.nodes.filter((n) => { return n.uuid === info.uuid; })[0];
-      this.setAggregation(root, info.aggregate);
+      this.setAggregation(root, info.aggregate,true);
 
       this.graph.nodes.map((n) => n.visited = false);
       this.layoutTree();
@@ -1198,7 +1198,7 @@ class Graph {
   }
 
   //function that iterates down branch and sets aggregate flag to true/false
-  setAggregation(root, aggregate) {
+  setAggregation(root, aggregate,force=false) { //forcing aggregation overrides child values.
 
     //clear all previous aggregation nodes first
     if (aggregate) {
@@ -1213,7 +1213,7 @@ class Graph {
     // //BFS of the tree
     while (queue.length > 0) {
       const node = queue.splice(0, 1)[0];
-      this.aggregateHelper(root, node, aggregate, queue);
+      this.aggregateHelper(root, node, aggregate, queue,force);
     }
 
     if (!aggregate) {
@@ -1221,7 +1221,7 @@ class Graph {
     }
   }
 
-  aggregateHelper(root, node, aggregate, queue) {
+  aggregateHelper(root, node, aggregate, queue,force=false) {
     const aggregateBy = 'label';
 
     if (aggregate) {
@@ -1336,7 +1336,7 @@ class Graph {
         });
 
         c.aggParent = parent;
-        if (c.nodeType === nodeType.single && c.aggMode === undefined) {
+        if (c.nodeType === nodeType.single && (c.aggMode === undefined || force)) {
           queue.push(c);
         };
       });
@@ -1871,8 +1871,6 @@ class Graph {
           return;
         }
 
-        console.log('2',d);
-
         //put aggregates into expanded level nodes
         const aggNode = this.graph.nodes.find((n) => n.uuid === d.uuid && d.nodeType === nodeType.aggregateLabel);
 
@@ -1886,7 +1884,10 @@ class Graph {
 
           aggregatedNodes.map((c) => {
             c.layout = layout.expanded;
+            //reveal any hidden children;
+            this.hideBranch(c,false);
           });
+          events.fire(FILTER_CHANGED_EVENT,{});
 
         } else {
 
@@ -1899,10 +1900,11 @@ class Graph {
 
           aggregatedNodes.map((c) => {
             c.layout = layout.aggregated;
+            this.hideBranch(c,true);
           });
-
-
+          events.fire(FILTER_CHANGED_EVENT,{});
         }
+        
 
 
         this.graph.nodes.map((n) => n.visited = false);
@@ -2519,7 +2521,6 @@ class Graph {
     const selectedItem = selectAll(selector).filter((m:any)=> m.uuid === d.uuid);
     const hide = d.children.filter((c) => c.visible && c.layout === layout.expanded).length > 0;
 
-    console.log('hide',hide)
     selectedItem.text((d: any) => {
       return hide ? Config.icons.arrowDown : Config.icons.arrowRight;
     });
@@ -2713,7 +2714,7 @@ class Graph {
         const childrenY = min(c.children, (cc: any) => +cc.yy);
         return min([+c.yy, childrenY]);
       });
-  
+
       const end = max(n.children.filter((c) => c.nodeType !== nodeType.levelSummary), (c: any) => {
         const childrenY = max(c.children, (cc: any) => +cc.yy);
         return max([+c.yy, childrenY]);

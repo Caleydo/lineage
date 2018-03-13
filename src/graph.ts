@@ -250,7 +250,7 @@ class Graph {
       // console.log(oldParent,target,source,oldEdge,newEdge)
 
       this.graph.nodes.map((n) => n.visited = false);
-      this.layoutEntireTree();
+      this.layoutTree();
       this.updateEdgeInfo();
       this.exportYValues();
       this.drawTree();
@@ -340,7 +340,7 @@ class Graph {
         this.calculatePathway();
       }
 
-      this.layoutEntireTree();
+      this.layoutTree();
       this.updateEdgeInfo();
       this.exportYValues();
       this.drawTree();
@@ -350,7 +350,7 @@ class Graph {
     events.on(TREE_PRESERVING_SORTING, (evt, info) => {
       console.log('tree preserving aggregation fired')
       this.graph.nodes.map((n) => n.visited = false);
-      this.layoutEntireTree(info);
+      this.layoutTree(info);
       this.updateEdgeInfo();
       this.exportYValues();
       this.drawTree();
@@ -374,7 +374,7 @@ class Graph {
       this.setAggregation(root, info.aggregate);
 
       this.graph.nodes.map((n) => n.visited = false);
-      this.layoutEntireTree();
+      this.layoutTree();
       this.updateEdgeInfo();
       this.exportYValues();
       this.drawTree();
@@ -382,9 +382,9 @@ class Graph {
 
     events.on(FILTER_CHANGED_EVENT, (evt, info) => {
       //see if value is already in exclude;
-      if (info.exclude) {
+      if (info.exclude === true) {
         this.exclude = this.exclude.concat(info.label);
-      } else {
+      } else if (info.exclude === false) {
         const ind = this.exclude.indexOf(info.label);
         this.exclude.splice(ind, 1);
       }
@@ -641,10 +641,11 @@ class Graph {
     // }
   }
 
-  public removeBranch(rootNode, rootOnly = false) {
+  //Function that remove either a single node (root) or the entire sub-tree (including children)
+  public removeBranch(rootNode, includeChildren = true) {
 
     let toRemoveArray, childArray;
-    if (rootOnly) {
+    if (!includeChildren) {
       toRemoveArray = [rootNode];
       childArray = rootNode.children;
     } else {
@@ -653,7 +654,7 @@ class Graph {
     // remove all links to children
     toRemoveArray.forEach((node) => {
       //Only use recursive mode if removing children
-      if (!rootOnly) {
+      if (includeChildren) {
         this.removeBranch(node);
       } else {
         //remove 'visited status' of hidden edges between children
@@ -681,6 +682,20 @@ class Graph {
     }
   }
 
+  //Recursive Function that hides a sub-tree
+  public hideBranch(rootNode,hide = true) {
+    const childArray = rootNode.children;
+
+    //leaf nodes
+    if (childArray.length<1) {
+      rootNode.visible=!hide;
+    }
+    childArray.map((c)=> {
+      c.visible = !hide;
+      c.children.map((cc)=> this.hideBranch(cc,hide));
+    });
+  }
+
   /**
    * Function that loads up the graph
    */
@@ -699,8 +714,12 @@ class Graph {
       const rootNode = this.graph.nodes.filter((n) => n.uuid === root);
 
       //recursive function to remove all nodes and edges down this branch;
-      this.removeBranch(rootNode[0], !includeChildren);
+      this.removeBranch(rootNode[0], includeChildren);
 
+      //also remove root
+      if (includeChildren) {
+        this.removeBranch(rootNode[0], !includeChildren);
+      };
 
       const roots = this.graph.nodes.filter((n) => { return this.graph.root.indexOf(n.uuid) > -1; });
 
@@ -766,7 +785,7 @@ class Graph {
 
 
             this.graph = graph;
-            
+
           } else {
             this.mergeGraph(graph, includeRoot, includeChildren);
 
@@ -787,18 +806,11 @@ class Graph {
 
 
   postMergeUpdate() {
-    
+
     //Update the filter panel numbers
     this.updateFilterPanel();
 
     this.extractTree();
-
-    // this.graph.nodes.map((n) => n.visited = false);
-
-    //These two steps are inside extractTree and extractPartial Tree
-    // this.layoutEntireTree();
-    // this.updateEdgeInfo();
-
     this.exportYValues();
     events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);
 
@@ -813,7 +825,7 @@ class Graph {
 
   mergeGraph(graph, includeRoot, includeChildren) {
 
-    
+
     const rootNode = graph.nodes.filter((n) => { return n.uuid.toString() === graph.root.toString(); });
     const existingNodes = []; //nodes in the current subgraph that already exist in the tree
 
@@ -919,10 +931,8 @@ class Graph {
     //remove all levelMode Nodes
     this.clearLevelModeNodes();
 
-
     //create an array with all root nodes in the graph
     roots = roots ? roots : this.graph.nodes.filter((n) => { return graph.root.indexOf(n.uuid) > -1; });
-    
     let setNewRoot = true;
 
     this.updateEdgeInfo();
@@ -933,8 +943,8 @@ class Graph {
     //set default values for unvisited nodes;
     // .filter((n)=> !n.visited)
     graph.nodes.map((n, i) => {
-      n.visible = excluded.indexOf(n.label) > -1 ? false : true; //used to hide filtered nodes
-      n.visited = excluded.indexOf(n.label) > -1 ? true : false; //used to avoid re-visiting nodes
+      n.visible = excluded.indexOf(n.label) > -1 ? false : (n.visible  === false ? n.visible : true); //used to hide filtered and collapsed nodes
+      n.visited = excluded.indexOf(n.label) > -1 ? true : false; //excluded nodes are not part of the tree structure
       n.children = [];
       n.parent = undefined;
       n.yy = undefined;
@@ -948,7 +958,7 @@ class Graph {
     //set default values for unvisited links;
     graph.links.map((l, i) => {
       //set visibility back to original
-      l.visible = l.inTree === undefined ? (l.visited && !replace) ? l.visible : false : l.inTree ;
+      l.visible = l.inTree === undefined ? (l.visited && !replace) ? l.visible : false : l.inTree;
       l.visited = (l.visited && !replace) ? l.visited : false; //link has been visited
     });
 
@@ -972,7 +982,7 @@ class Graph {
 
 
       // If graph.root is empty, add the node with the highest degree.
-      if (roots.length <1 && setNewRoot) {
+      if (roots.length < 1 && setNewRoot) {
         setNewRoot = false;
         this.graph.root = [root.uuid];
       };
@@ -991,11 +1001,11 @@ class Graph {
     }
 
     // //Re-aggregate any aggregated portions of the tree;
-    const aggRoots = this.graph.nodes.filter((n)=>n.summary);
-    aggRoots.map((aggRoot)=> this.setAggregation(aggRoot,aggRoot.aggMode === mode.level));
+    const aggRoots = this.graph.nodes.filter((n) => n.summary);
+    aggRoots.map((aggRoot) => this.setAggregation(aggRoot, aggRoot.aggMode === mode.level));
 
     this.graph.nodes.map((n) => n.visited = false);
-    this.layoutEntireTree();
+    this.layoutTree();
     this.updateEdgeInfo();
 
   }
@@ -1014,7 +1024,7 @@ class Graph {
     });
     //Populate dictionary
 
-   
+
 
     //Find all edges that start or end on that node
     this.graph.links.map((l) => {
@@ -1023,25 +1033,25 @@ class Graph {
       const sourceNode = l.source;
 
       // set visibility back to original
-      l.visible = l.inTree === undefined ? l.visible : l.inTree ;
+      l.visible = l.inTree === undefined ? l.visible : l.inTree;
 
-        // Set all edges that connect level-mode non levelSummary nodes to hidden
+      // Set all edges that connect level-mode non levelSummary nodes to hidden
       if ((targetNode.mode === mode.level && targetNode.nodeType !== nodeType.levelSummary)
-      || (sourceNode.mode === mode.level && sourceNode.nodeType !== nodeType.levelSummary)) {
+        || (sourceNode.mode === mode.level && sourceNode.nodeType !== nodeType.levelSummary)) {
         l.inTree = l.visible; //save original edge visibility information
         l.visible = false;
 
         //check for the exception where the edge connects parent in level mode and child in tree mode;
-        const parent = [targetNode,sourceNode].find((n)=> n.xx === min([targetNode,sourceNode],(n)=>n.xx));
-        const child =[targetNode,sourceNode].find((n)=> n.xx === max([targetNode,sourceNode],(n)=>n.xx));
-        if (parent.children && child.mode === mode.tree && parent.children.filter((c)=> c.uuid === child.uuid).length>0) {
+        const parent = [targetNode, sourceNode].find((n) => n.xx === min([targetNode, sourceNode], (n) => n.xx));
+        const child = [targetNode, sourceNode].find((n) => n.xx === max([targetNode, sourceNode], (n) => n.xx));
+        if (parent.children && child.mode === mode.tree && parent.children.filter((c) => c.uuid === child.uuid).length > 0) {
           l.visible = true;
         }
 
-         //check for the exception where the edge connects parent in level mode and child in levelSummary Mode;
-         if (parent.children && child.nodeType === nodeType.levelSummary && parent.children.filter((c)=> c.uuid === child.uuid).length>0) {
-           l.visible = true;
-         }
+        //check for the exception where the edge connects parent in level mode and child in levelSummary Mode;
+        if (parent.children && child.nodeType === nodeType.levelSummary && parent.children.filter((c) => c.uuid === child.uuid).length > 0) {
+          l.visible = true;
+        }
       }
 
 
@@ -1147,10 +1157,10 @@ class Graph {
       const target = e.target;
       const source = e.source;
 
-        if (!target.visited) {
-        
+      if (!target.visited) {
+
         e.visible = e.visited ? e.visible : true;
-  
+
         //only visit edge if there are no previous constraints on this edge visibility
         if (e.visible) {
           target.visited = true;
@@ -1177,24 +1187,24 @@ class Graph {
   clearLevelModeNodes(root = undefined) {
 
     //returns true for any node that is aggregateLabel or level Summary within that aggregated branch
-    const toRemove = (n)=> {
+    const toRemove = (n) => {
       if (!root) { //remove all level mode nodes
-        return (n.nodeType === nodeType.aggregateLabel  || n.nodeType === nodeType.levelSummary );
+        return (n.nodeType === nodeType.aggregateLabel || n.nodeType === nodeType.levelSummary);
       } else { //only remove level mode nodes for this subtree
-        return ((n.nodeType === nodeType.aggregateLabel &&  n.aggregateRoot === root) ||
-        (n.nodeType === nodeType.levelSummary && n.aggregateRoot === root));
+        return ((n.nodeType === nodeType.aggregateLabel && n.aggregateRoot === root) ||
+          (n.nodeType === nodeType.levelSummary && n.aggregateRoot === root));
       };
     };
 
     //remove relevant edges and aggregateLabel and aggSummary nodes;
-    this.graph.nodes = this.graph.nodes.filter((n)=>!toRemove(n));
+    this.graph.nodes = this.graph.nodes.filter((n) => !toRemove(n));
     this.graph.links = this.graph.links.filter((l) => !toRemove(l.target));
 
   }
 
   //function that iterates down branch and sets aggregate flag to true/false
   setAggregation(root, aggregate) {
-    
+
     //clear all previous aggregation nodes first
     if (aggregate) {
       this.clearLevelModeNodes(root);
@@ -1202,7 +1212,7 @@ class Graph {
 
     root.summary = {};
     root.aggMode = aggregate ? mode.level : mode.tree;
-    root.level = root.level !==undefined ? root.level : 0;
+    root.level = root.level !== undefined ? root.level : 0;
     const queue = [root];
 
     // //BFS of the tree
@@ -1223,7 +1233,7 @@ class Graph {
 
       //Create a dictionary of all aggregate types per level;
       const level = (node.level + 1).toString();
-      node.children.map((c) => {
+      node.children.filter((n)=>n.visible).map((c) => {
         if (root.summary[level]) {
           if (root.summary[level].indexOf(c[aggregateBy]) < 0) {
             root.summary[level].push(c[aggregateBy]);
@@ -1245,7 +1255,7 @@ class Graph {
         parent = root;
       };
 
-      if (node.children.length > 0) {
+      if (node.children.filter((n)=>n.visible).length > 0) {
 
         //create a levelSummary node for this level.
         let levelSummary = {
@@ -1256,12 +1266,12 @@ class Graph {
           uuid: root.uuid + '_' + level + '_levelSummary',
           visible: true,
           aggregateRoot: root,
-          nodeType:nodeType.levelSummary,
+          nodeType: nodeType.levelSummary,
           title: ''
         };
 
         const existingSummary = parent.children.find((cc) =>
-        cc.level === levelSummary.level && cc[aggregateBy] === levelSummary[aggregateBy]);
+          cc.level === levelSummary.level && cc[aggregateBy] === levelSummary[aggregateBy]);
 
         //look for existing aggregate 
         if (!existingSummary) {
@@ -1287,12 +1297,13 @@ class Graph {
             label: nlabel,
             visible: true,
             aggregateRoot: root,
-            nodeType:nodeType.aggregateLabel,
-            title: '' };
+            nodeType: nodeType.aggregateLabel,
+            title: ''
+          };
 
           //add node to children array of parent (if it's not already there)
           if (!(levelSummary.children.find((cc) =>
-          cc.level === aggregateNode.level && cc[aggregateBy] === aggregateNode[aggregateBy]))) {
+            cc.level === aggregateNode.level && cc[aggregateBy] === aggregateNode[aggregateBy]))) {
             levelSummary.children.push(aggregateNode);
             //add nodes to array of nodes in this graph
             this.graph.nodes.push(aggregateNode);
@@ -1306,27 +1317,27 @@ class Graph {
               n.mode === mode.level &&
               n.layout === layout.expanded);
           });
-          
+
           aggregateNode.children = aggregatedNodes;
 
         });
       }
 
-      node.children.map((c) => {
+      node.children.filter((n)=>n.visible).map((c) => {
         //default new level modes to aggregated layout
         c.layout = c.nodeType === nodeType.single ?
-        (c.mode === mode.level ? c.layout : layout.aggregated): layout.expanded; //preserve existing layout
+          (c.mode === mode.level ? c.layout : layout.aggregated) : layout.expanded; //preserve existing layout
         c.mode = mode.level;
         c.level = node.level + 1;
         c.aggregateRoot = root;
-        
+
         //Find aggregateLabel that is the parent of that single node
         const parent = this.graph.nodes.find((n) => {
           return (n[aggregateBy] === c[aggregateBy] && //same label
             n.level === c.level && //same level
             c.aggregateRoot === n.aggregateRoot && //same branch
-             n.nodeType === nodeType.aggregateLabel //aggregateLabel for that row
-            );
+            n.nodeType === nodeType.aggregateLabel //aggregateLabel for that row
+          );
         });
 
         c.aggParent = parent;
@@ -1338,13 +1349,13 @@ class Graph {
     } else {
 
       //don't change the mode of the root, only the children
-        node.layout = node === root ? node.layout : layout.expanded;
-        node.mode = node === root ? node.mode :  mode.tree;
+      node.layout = node === root ? node.layout : layout.expanded;
+      node.mode = node === root ? node.mode : mode.tree;
 
       //remove any level mode nodes from the parent
       node.children = node.children.filter((n) => n.nodeType === nodeType.single);
 
-      node.children.map((c) => {
+      node.children.filter((n)=>n.visible).map((c) => {
         c.level = undefined;
         c.aggParent = undefined;
         c.aggregateRoot = undefined;
@@ -1358,7 +1369,7 @@ class Graph {
   }
 
 
-  layoutEntireTree(sortAttribute = undefined) {
+  layoutTree(sortAttribute = undefined) {
 
     // this.graph.nodes.map((n) => { n.visited = (n.pathway && n.moved) ? true : false; });
 
@@ -1371,10 +1382,6 @@ class Graph {
       return n.visited === false;
     }).length > 0) {
 
-      // const roots = this.graph.nodes.filter((n) => { return n.parent === undefined; });
-      // const roots = this.graph.nodes.filter((n) => { return n.parent === undefined; });
-
-
       const roots = this.graph.nodes.filter((n) => { return this.graph.root.indexOf(n.uuid) > -1; });
       //Start with preferential root, then pick node with highest degree if none was supplied.
       const root = (roots && roots.filter((r) => { return !r.visited; }).length > 0) ? roots.filter((r) => { return !r.visited; })[0] :
@@ -1386,39 +1393,27 @@ class Graph {
           return this.nodeNeighbors[a.uuid] && this.nodeNeighbors[a.uuid].degree > this.nodeNeighbors[b.uuid].degree ? a : b;
         });
 
-      // console.log('visiting root', root.title)
       root.xx = 0;
-      // root.originalX = 0;
-      this.layoutTree(root, sortAttribute);
+      root.hierarchy = 0;
+      this.layoutTreeHelper(root, sortAttribute);
     }
   }
 
-  layoutTree(root, sortAttribute = undefined) {
-    root.hierarchy = 0;
-    this.layoutTreeHelper(root, sortAttribute);
-  }
-
   layoutTreeHelper(node, sortAttribute = undefined) {
-
-    // console.log('visiting', node.title, node.label)
     if (node.visited) {
       return;
     }
 
     node.visited = true;
 
+    if (node.visible === false){
+      return;
+    }
+
     //yValues for aggregated and level Summaries (aggSummary) are done in exportYValues
     if (node.layout !== layout.aggregated && node.nodeType !== nodeType.levelSummary) {
-      
-      // //check if first child of aggregatedLabel
-      // if (node.mode === mode.level && node.layout === layout.expanded && node.aggParent && node.aggParent.children.indexOf(node) === 0) {
-      //   node.yy = this.ypos;
-      // } else {
-        this.ypos = this.ypos + 1;
-        node.yy = this.ypos;
-      // }
-
-
+      this.ypos = this.ypos + 1;
+      node.yy = this.ypos;
     }
 
     //sort Children by chosen attribute
@@ -1457,23 +1452,8 @@ class Graph {
     } else {
       //default sorting is alphabetical
       node.children.sort((a, b) => {
-        // if (a.aggregateLabel || a.semiAggregated) {
-        //   if (b.aggregateLabel || b.semiAggregated) {
-        //     const aTitle = a.label;
-        //     const bTitle = b.label;
-
-        //     return aTitle < bTitle ? -1 : (aTitle === bTitle ? (a.title < b.title ? -1 : 1) : 1);
-
-        //   } else {
-        //     return - 1;
-        //   }
-        // } else if (b.aggregateLabel || b.semiAggregated) {
-        //   return 1;
-        // } else {
-          return a.title < b.title ? -1 : (a.title === b.title ? (a.uuid < b.uuid ? -1 : 1) : 1);
-        // }
+        return a.title < b.title ? -1 : (a.title === b.title ? (a.uuid < b.uuid ? -1 : 1) : 1);
       });
-      // console.log(node.title, node.label, node.children);
     }
 
 
@@ -1482,41 +1462,28 @@ class Graph {
       // .sort((a,b)=> {return a.pathway ? -1 :(b.pathway ? 1 : 0);})
       .map((c, i) => {
         const lastNode = this.graph.nodes.filter((n: any) =>
-        c.aggParent && n.visited && n.layout === layout.aggregated && n.aggParent === c.aggParent);
+          c.aggParent && n.visited && n.layout === layout.aggregated && n.aggParent === c.aggParent);
         let maxX = +max(lastNode, (n: any) => n.xx);
 
         if (lastNode.length < 1 && c.aggregateRoot) {
           maxX = 0;
         }
-        // c.originalX = node.originalX + 1;
 
         ////Only visit semi-aggregated nodes if they are the children of aggLabels
         if (c.mode === mode.level && c.nodeType === nodeType.single && c.layout === layout.expanded && node.nodeType !== nodeType.aggregateLabel) {
           // console.log('skipping ', node.title, node.label)
         } else {
           if (c.layout === layout.aggregated) {
-            c.xx = maxX + 1;
+            c.xx = maxX + 1; //incremental x  for aggregates. proper placement is done in node.attr('x')
           } else if (c.nodeType === nodeType.levelSummary) {
-            // c.xx = c.originalX - .5;
-            c.xx = node.xx +.7;
+            c.xx = node.xx + .7; //place level Summaries .7 units ahead of the parent (70% of the way between parent and child)
           } else if (node.nodeType === nodeType.levelSummary) {
-            // c.xx = c.originalX - .5;
-            c.xx = node.xx +.3;
+            c.xx = node.xx + .3; //place aggregateNodes .3 units ahead of the level Summaries
           } else if (c.layout === layout.expanded && c.nodeType === nodeType.single && c.mode === mode.level) {
-            // c.xx = c.originalX - 1;
-            c.xx = node.xx + .5;
-            // console.log('setting ', c.title, c.label, c.xx , 'parent: ', node.title, node.label, node.xx)
-          } else if (c.mode === mode.tree && node.mode === mode.level) {
-            c.xx = node.xx +1;
-            // console.log('setting ', c.title, c.label, c.xx , 'parent: ', node.title, node.label, node.xx)
+            c.xx = node.xx + .5; //place expanded aggregates (still in level mode) .5 unit ahead of the aggregate group label
           } else {
-            c.xx = node.xx +1;
-            // console.log('setting ', c.title, c.label, c.xx , 'parent: ', node.title, node.label, node.xx)
-            // c.xx = c.originalX;
+            c.xx = node.xx + 1; //place tree nodes always one unit ahead of their parent 
           }
-          if (c.layout === layout.expanded) {
-            console.log('setting ', c.title, c.label, c.xx , 'parent: ', node.title, node.label, node.xx)
-          };
 
           if (c.nodeType === nodeType.levelSummary || (node.nodeType === nodeType.single)) {
             c.hierarchy = node.hierarchy + 1;
@@ -1525,12 +1492,8 @@ class Graph {
           };
         };
 
-
-
-
-
         ////Only visit semi-aggregated nodes if they are the children of aggLabels
-        if (c.mode === mode.level && c.nodeType === nodeType.single  && c.layout === layout.expanded && node.nodeType !== nodeType.aggregateLabel) {
+        if (c.mode === mode.level && c.nodeType === nodeType.single && c.layout === layout.expanded && node.nodeType !== nodeType.aggregateLabel) {
         } else {
           this.layoutTreeHelper(c);
         }
@@ -1549,7 +1512,7 @@ class Graph {
       .selectAll('.edge')
       .data(graph.links.filter((l) => {
         return l.source.visible && l.target.visible && //both nodes are visible
-        l.visible; //the edge is tagged as visible
+          l.visible; //the edge is tagged as visible
       }),
       (d) => { return d.edge.data.uuid; });
 
@@ -1563,7 +1526,8 @@ class Graph {
     let linkEndMarkers = this.svg.select('.endMarkers')
       .selectAll('.endMarker')
       .data(graph.nodes.filter((n) => {
-        return (!(n.children.length < 1 && n.graphDegree <= n.degree)) && n.visible && n.mode === mode.tree && n.nodeType === nodeType.single;}), (d) => { return this.createID(d.title) + '_endMarker'; });
+        return (!(n.children.length < 1 && n.graphDegree <= n.degree)) && n.visible && n.mode === mode.tree && n.nodeType === nodeType.single;
+      }), (d) => { return this.createID(d.title) + '_endMarker'; });
 
     const linkEndMarkersEnter = linkEndMarkers
       .enter()
@@ -1587,15 +1551,6 @@ class Graph {
       .enter()
       .append('g')
       .attr('class', 'levelGroup');
-
-    // levelBracketsEnter
-    // .attr('x', (d: any, i) => {
-    //   return this.xScale(d.xx);
-    // })
-    // .attr('y', (d: any, i) => {
-    //   return d.parent ? this.yScale(d.parent.yy) : this.yScale(d.yy);
-    // });
-
 
 
     levelBracketsEnter
@@ -1658,15 +1613,10 @@ class Graph {
 
     linkEndMarkers
       .text((d) => {
-        return d.children.length > 0 ? Config.icons.arrowDown : Config.icons.arrowRight;
+        return d.children.filter((c) => c.visible).length > 0 ? Config.icons.arrowDown : Config.icons.arrowRight;
       })
-      .on('click', function (d) {
-        const remove = d.children.length > 0;
-        select(this).text((d: any) => {
-          return remove ? Config.icons.arrowDown : Config.icons.arrowRight;
-        });
-
-        events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': self.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': remove });
+      .on('click', (d) => {
+        this.toggleExpand(d,'.endMarker');
       });
 
     //set initial position to parent
@@ -1679,18 +1629,18 @@ class Graph {
       });
 
 
-      animated(levelBrackets.select('.levelBracket'))
+    animated(levelBrackets.select('.levelBracket'))
       .attr('d', (d: any, i) => {
         return this.bracket(d);
       });
 
 
-    animated(linkEndMarkers)
-      // .transition('t')
-      // .duration(1000)
+    linkEndMarkers
       .attr('x', (d: any, i) => {
-        return d.children.length > 0 ? this.xScale(d.xx) - 5 : this.xScale(d.xx) - 2;
-      })
+        return d.children.filter((n)=>n.visible).length > 0 ? this.xScale(d.xx) - 5 : this.xScale(d.xx) - 2;
+      });
+
+      animated(linkEndMarkers)
       .attr('y', (d: any, i) => {
         return this.yScale(d.yy) + 1;
       });
@@ -1699,7 +1649,7 @@ class Graph {
     // .attr('transform',(d)=> { return 'translate (' + this.xScale(d.xx) + ',' + this.yScale(d.yy)  + ')';});
 
 
-    animated(levelBrackets.select('.levelBracketMenu'))
+    levelBrackets.select('.levelBracketMenu')
       .attr('x', (d: any, i) => {
         return this.xScale(d.xx) + this.xScale.invert(10);
       })
@@ -1789,14 +1739,15 @@ class Graph {
 
           const yy = r.yy + hops;
           aggregateIcons.push({
-              aggregateRoot: r,
-              uuid: r.uuid + '_' + l + '_' + n,
-              label: n,
-              visible: true,
-              nodeType:nodeType.aggregateLabel,
-              title: '',
-              xx,
-              yy });
+            aggregateRoot: r,
+            uuid: r.uuid + '_' + l + '_' + n,
+            label: n,
+            visible: true,
+            nodeType: nodeType.aggregateLabel,
+            title: '',
+            xx,
+            yy
+          });
         })
 
         );
@@ -1873,9 +1824,9 @@ class Graph {
       .select('.type')
       .text(Config.icons.aggregateIcon);
 
-      aggregatedNodes
+    aggregatedNodes
       .select('.expand')
-      .text(' ' );
+      .text(' ');
 
     aggregatedNodes
       .select('.titleContent')
@@ -1887,12 +1838,12 @@ class Graph {
 
     aggregateLabels
       .select('.expand')
-      .text((d) => d.children.length > 0 ? Config.icons.arrowDown + ' ': Config.icons.arrowRight + '  ' + Config.icons[d.label]);
-      // + '  ' + Config.icons[d.label] + ' ' + d.label
+      .text((d) => d.children.length > 0 ? Config.icons.arrowDown + ' ' : Config.icons.arrowRight + '  ' + Config.icons[d.label]);
+    // + '  ' + Config.icons[d.label] + ' ' + d.label
 
-      aggregateLabels
+    aggregateLabels
       .select('.titleContent')
-      .text((d) => d.children.length > 0 ?  d.label + 's' : '  ' );
+      .text((d) => d.children.length > 0 ? d.label + 's' : '  ');
 
 
     // aggregateLabels
@@ -1902,9 +1853,9 @@ class Graph {
     semiAggregatedNodes
       .select('.expand')
       .text((d) => {
-        const remove = d.children.length > 0;
-          return remove ? Config.icons.arrowDown +  ' ' : Config.icons.arrowRight +  ' ';
-        });
+        const remove = d.children.filter((c)=>c.visible).length > 0;
+        return remove ? Config.icons.arrowDown + ' ' : Config.icons.arrowRight + ' ';
+      });
 
     regularNodes
       .select('.type')
@@ -1918,16 +1869,17 @@ class Graph {
     node.selectAll('.expand')
       .on('click', (d) => {
 
+        //grow tree from this node;
         if (d.mode === mode.level && d.layout === layout.expanded) {
-          const remove = d.children.length > 0;
-
+          console.log('a')
           d.summary = {};
-          d.aggMode = mode.tree;
-  
-          events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': self.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': remove });
+          d.aggMode = d.aggMode !== undefined? d.aggMode : mode.tree;
+
+          this.toggleExpand(d,'.expand');
           return;
         }
 
+        //put aggregates into expanded level nodes
         const aggNode = this.graph.nodes.find((n) => n.uuid === d.uuid && d.nodeType === nodeType.aggregateLabel);
 
         if (aggNode.children.length < 1) {
@@ -1944,6 +1896,7 @@ class Graph {
 
         } else {
 
+          //re-aggregate expanded level nodes
           const aggregatedNodes = this.graph.nodes.filter((n) => {
             return (n.label === d.label && n.level === d.level && d.aggregateRoot === n.aggregateRoot && n.layout === layout.expanded);
           });
@@ -1959,7 +1912,7 @@ class Graph {
 
 
         this.graph.nodes.map((n) => n.visited = false);
-        this.layoutEntireTree();
+        this.layoutTree();
         this.updateEdgeInfo();
         this.exportYValues();
         this.drawTree(false);
@@ -1988,12 +1941,12 @@ class Graph {
       // .attr('opacity',1)
       .attr('x', (d) => {
         // console.log(d.title,d.label,d.xx)
-        const xpos = d.layout === layout.aggregated ? Math.floor((d.xx - 1) / 3) * this.xScale.invert(6) + d.aggParent.xx  + this.xScale.invert(30) : undefined;
+        const xpos = d.layout === layout.aggregated ? Math.floor((d.xx - 1) / 3) * this.xScale.invert(6) + d.aggParent.xx + this.xScale.invert(30) : undefined;
         // const labelXpos = d.nodeType === nodeType.aggregateLabel ? d.aggregateRoot.xx + d.level : undefined;
 
         // return d.layout === layout.aggregated ? xScale(xpos) + this.radius : (d.nodeType === nodeType.aggregateLabel ? xScale(labelXpos) : (d.mode === mode.level && d.layout === layout.expanded ? xScale(d.xx - 1) + this.radius : xScale(d.xx) + this.radius));
         // 
-        return d.layout === layout.aggregated ? xScale(xpos) + this.radius : (d.mode === mode.level ? xScale(d.xx)  : xScale(d.xx) + this.radius);
+        return d.layout === layout.aggregated ? xScale(xpos) + this.radius : (d.mode === mode.level ? xScale(d.xx) : xScale(d.xx) + this.radius);
       })
       .attr('y', (d) => {
         const ypos = d.yy + .5 - (1 / 3 * ((d.xx - 1) % 3 + 1) * this.yScale.invert(18));
@@ -2374,7 +2327,7 @@ class Graph {
         const d = e.data;
 
         if (d) {
-          const remove = d.children.length > 0;
+          // const remove = d.children.length > 0;
           const element = selectAll('.hiddenEdge').filter((dd: any) => {
             return dd.source.title === d.title || dd.target.title === d.title;
           });
@@ -2395,13 +2348,18 @@ class Graph {
                 this.highlightRows(d);
               })
               .on('click', () => {
-                const remove = d.children.length > 0;
+                const remove = d.children.filter((c)=>c.visible).length > 0;
                 const removeAdjMatrix = this.tableManager.colOrder.indexOf(d.title) > -1;
                 const removeAttr = this.tableManager.colOrder.indexOf('age') > -1;
                 let actions = [
                   {
-                    'icon': 'RemoveNode', 'string': 'Remove Node  (leaves children)', 'callback': () => {
+                    'icon': 'RemoveNode', 'string': 'Remove Node ', 'callback': () => {
                       events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': true, 'includeChildren': false });
+                    }
+                  },
+                  {
+                    'icon': 'RemoveNode', 'string': 'Remove Sub-tree', 'callback': () => {
+                      events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': true, 'includeChildren': true });
                     }
                   },
                   {
@@ -2562,21 +2520,50 @@ class Graph {
     return title.replace(/ /g, '_').replace(/\./g, '').replace(/\:/g, '').replace(/\(/g, '').replace(/\)/g, '').replace(/\'/g, '').replace(/\&/g, '').replace(/\//g, '').replace(/\,/g, '');
   }
 
+
+  private toggleExpand(d,selector) {
+
+    console.log(d);
+    const selectedItem = selectAll(selector).filter((m:any)=> m.uuid === d.uuid);
+    const hide = d.children.filter((c) => c.visible).length > 0;
+
+    selectedItem.text((d: any) => {
+      return hide ? Config.icons.arrowDown : Config.icons.arrowRight;
+    });
+
+    if (hide) {
+      //hide all children;
+      console.log('1')
+      this.hideBranch(d,true);
+      // console.table(d.children.map((n)=> {return {'title':n.title,'label':n.label,'visible':n.visible};}));
+      events.fire(FILTER_CHANGED_EVENT,{});
+    } else {
+      //check if node already has hidden children in the graph
+      if (d.children.filter((c) => c.visible === false).length > 0) {
+        console.log('2');
+        // console.table(d.children.map((n)=> {return {'title':n.title,'label':n.label,'visible':n.visible,'mode':n.mode,'layout':n.layout};}));
+        this.hideBranch(d,false);
+         events.fire(FILTER_CHANGED_EVENT,{});
+      } else {
+        console.log('3')
+        events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': hide });
+      }
+
+    }
+  }
+
+
   private bracket(d, lineFunction = this.lineFunction) {
 
-    // const start = min(d.children.filter((c) => c.nodeType !== nodeType.levelSummary), (c: any) => {
-    //   const childrenY = min(c.children, (cc: any) => +cc.yy);
-    //   return min([+c.yy, childrenY]);
-    // });
+    const start = min(d.children.filter((c) => c.nodeType !== nodeType.levelSummary), (c: any) => {
+      const childrenY = min(c.children, (cc: any) => +cc.yy);
+      return min([+c.yy, childrenY]);
+    });
 
-    // const end = max(d.children.filter((c) => c.nodeType !== nodeType.levelSummary), (c: any) => {
-    //   const childrenY = max(c.children, (cc: any) => +cc.yy);
-    //   return max([+c.yy, childrenY]);
-    // })+.5;
-
-    const maxYY = max(d.children.filter((c) => c.nodeType !== nodeType.levelSummary), (c: any) => +c.yy);
-    const minYY = min(d.children.filter((c) => c.nodeType !== nodeType.levelSummary), (c: any) => +c.yy);
-    const diffYY = +maxYY - +minYY;
+    const end = max(d.children.filter((c) => c.nodeType !== nodeType.levelSummary), (c: any) => {
+      const childrenY = max(c.children, (cc: any) => +cc.yy);
+      return max([+c.yy, childrenY]);
+    });
 
 
     let linedata, nx, sx;
@@ -2585,19 +2572,19 @@ class Graph {
 
     linedata = [{
       x: d.xx + nx,
-      y: minYY -.3
+      y: start - .3
     },
     {
       x: d.xx + sx,
-      y: minYY
+      y: start
     },
     {
       x: d.xx + sx,
-      y: minYY + diffYY
+      y: end
     },
     {
       x: d.xx + nx,
-      y: minYY + diffYY +.3
+      y: end+ .3
     }];
 
     // linedata = [];

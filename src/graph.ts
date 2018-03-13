@@ -1904,7 +1904,7 @@ class Graph {
           });
           events.fire(FILTER_CHANGED_EVENT,{});
         }
-        
+
 
 
         this.graph.nodes.map((n) => n.visited = false);

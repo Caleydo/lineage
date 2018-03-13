@@ -348,13 +348,12 @@ class Graph {
     });
 
     events.on(TREE_PRESERVING_SORTING, (evt, info) => {
-      console.log('tree preserving aggregation fired')
       this.graph.nodes.map((n) => n.visited = false);
       this.layoutTree(info);
       this.updateEdgeInfo();
       this.exportYValues();
       this.drawTree();
-    })
+    });
 
 
     events.on(DB_CHANGED_EVENT, (evt, info) => {
@@ -1273,7 +1272,7 @@ class Graph {
         const existingSummary = parent.children.find((cc) =>
           cc.level === levelSummary.level && cc[aggregateBy] === levelSummary[aggregateBy]);
 
-        //look for existing aggregate 
+        //look for existing aggregate
         if (!existingSummary) {
           parent.children.push(levelSummary);
           this.graph.nodes.push(levelSummary);
@@ -1309,7 +1308,7 @@ class Graph {
             this.graph.nodes.push(aggregateNode);
           }
 
-          //restablish connection between aggregateNodes and their semi-aggregated children if there are any 
+          //restablish connection between aggregateNodes and their semi-aggregated children if there are any
           const aggregatedNodes = this.graph.nodes.filter((n) => {
             return (n[aggregateBy] === nlabel &&
               n.level === aggregateNode.level &&
@@ -1388,8 +1387,6 @@ class Graph {
         this.graph.nodes.filter((n) => {
           return n.visited === false;
         }).reduce((a, b) => {
-          if (this.nodeNeighbors[a.uuid] === undefined || this.nodeNeighbors[b.uuid] === undefined) {
-          };
           return this.nodeNeighbors[a.uuid] && this.nodeNeighbors[a.uuid].degree > this.nodeNeighbors[b.uuid].degree ? a : b;
         });
 
@@ -1406,7 +1403,7 @@ class Graph {
 
     node.visited = true;
 
-    if (node.visible === false){
+    if (node.visible === false) {
       return;
     }
 
@@ -1482,7 +1479,7 @@ class Graph {
           } else if (c.layout === layout.expanded && c.nodeType === nodeType.single && c.mode === mode.level) {
             c.xx = node.xx + .5; //place expanded aggregates (still in level mode) .5 unit ahead of the aggregate group label
           } else {
-            c.xx = node.xx + 1; //place tree nodes always one unit ahead of their parent 
+            c.xx = node.xx + 1; //place tree nodes always one unit ahead of their parent
           }
 
           if (c.nodeType === nodeType.levelSummary || (node.nodeType === nodeType.single)) {
@@ -1494,6 +1491,7 @@ class Graph {
 
         ////Only visit semi-aggregated nodes if they are the children of aggLabels
         if (c.mode === mode.level && c.nodeType === nodeType.single && c.layout === layout.expanded && node.nodeType !== nodeType.aggregateLabel) {
+          //do nothing
         } else {
           this.layoutTreeHelper(c);
         }
@@ -1561,7 +1559,7 @@ class Graph {
 
     levelBracketsEnter
       .append('text')
-      .attr('class', 'levelBracketMenu')
+      .attr('class', 'levelBracketMenu');
 
 
 
@@ -1871,7 +1869,6 @@ class Graph {
 
         //grow tree from this node;
         if (d.mode === mode.level && d.layout === layout.expanded) {
-          console.log('a')
           d.summary = {};
           d.aggMode = d.aggMode !== undefined? d.aggMode : mode.tree;
 
@@ -1917,7 +1914,7 @@ class Graph {
         this.exportYValues();
         this.drawTree(false);
 
-      })
+      });
 
     selectAll('.aggregateLabel')
       .attr('visibility', 'hidden');
@@ -1945,7 +1942,7 @@ class Graph {
         // const labelXpos = d.nodeType === nodeType.aggregateLabel ? d.aggregateRoot.xx + d.level : undefined;
 
         // return d.layout === layout.aggregated ? xScale(xpos) + this.radius : (d.nodeType === nodeType.aggregateLabel ? xScale(labelXpos) : (d.mode === mode.level && d.layout === layout.expanded ? xScale(d.xx - 1) + this.radius : xScale(d.xx) + this.radius));
-        // 
+        //
         return d.layout === layout.aggregated ? xScale(xpos) + this.radius : (d.mode === mode.level ? xScale(d.xx) : xScale(d.xx) + this.radius);
       })
       .attr('y', (d) => {
@@ -2533,19 +2530,14 @@ class Graph {
 
     if (hide) {
       //hide all children;
-      console.log('1')
       this.hideBranch(d,true);
-      // console.table(d.children.map((n)=> {return {'title':n.title,'label':n.label,'visible':n.visible};}));
       events.fire(FILTER_CHANGED_EVENT,{});
     } else {
       //check if node already has hidden children in the graph
       if (d.children.filter((c) => c.visible === false).length > 0) {
-        console.log('2');
-        // console.table(d.children.map((n)=> {return {'title':n.title,'label':n.label,'visible':n.visible,'mode':n.mode,'layout':n.layout};}));
         this.hideBranch(d,false);
          events.fire(FILTER_CHANGED_EVENT,{});
       } else {
-        console.log('3')
         events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': hide });
       }
 

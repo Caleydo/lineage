@@ -601,7 +601,7 @@ class AttributeTable {
     // this.tableManager.colOrder = this.tableManager.colOrder.length < 1 ?
     // this.tableManager.adjMatrixCols.map((c)=> {return c.desc.name;}).concat(this.tableManager.defaultCols) : this.tableManager.colOrder;
 
-    const colOrder = this.tableManager.colOrder
+    const colOrder = this.tableManager.colOrder;
     // .sort((a,b)=> {
     //   const arrayVec = this.tableManager.adjMatrixCols.filter((vector)=> { return vector.desc.name === a;})[0];
     //   // console.log(a); return 1;
@@ -1609,7 +1609,7 @@ class AttributeTable {
     //     this.sortRows(this.sortAttribute.data, this.sortAttribute.state, false);
     //   };
 
-      
+
     // }
 
     // this.updateSlopeLines(false, this.sortAttribute.state !== sortedState.Unsorted);
@@ -1696,7 +1696,7 @@ class AttributeTable {
    */
   private sortRows(d: any, sortOrder: sortedState, animate: boolean) {
 
-    
+
     const maxWidth = max(this.colOffsets) + 50 + Config.slopeChartWidth;
     this.$node.select('#headers')
       .attr('width', maxWidth);
@@ -1914,25 +1914,25 @@ class AttributeTable {
         // Set 'sortAttribute'
         const selected = (select(this).classed('sortSelected'));
         let descending = select(this).classed('descending');
-        console.log(selected,descending,select(this).text())
+        console.log(selected,descending,select(this).text());
         //Only change the direction if it's a second click on the same icon
         if (selected) {
-          
+
           const icon = descending ? Config.icons.sortAsc : Config.icons.sortDesc;
-          
+
           select(this).classed('descending',!select(this).classed('descending'));
           descending = select(this).classed('descending');
 
           select(this).text(icon);
-          console.log('changing direction',select(this).text())
-          
+          console.log('changing direction',select(this).text());
+
         }
 
         self.sortAttribute.state = descending ? sortedState.Descending : sortedState.Ascending;
-        
+
         self.sortAttribute.data = d;
 
-        
+
         selectAll('.sortIcon')
           .classed('sortSelected', false);
 
@@ -1941,7 +1941,7 @@ class AttributeTable {
 
           // console.log(d);
         events.fire(TREE_PRESERVING_SORTING,{sortOrder:self.sortAttribute.state,data:d.data,ids:d.ids});
-        
+
 
         //global sorting
         // self.sortRows(d, self.sortAttribute.state, true);
@@ -2765,39 +2765,39 @@ class AttributeTable {
    * @param cellData the data bound to the cell element being passed in.
    */
   private renderLevelCell(element, cellData) {
-    
+
         //Check for custom column width value, if none, use default
         const colWidth = this.customColWidths[cellData.name] || this.colWidths[cellData.type];
-    
+
         // const colWidth = this.colWidths[cellData.type];
         const rowHeight = this.rowHeight;
-    
+
         element.selectAll('.cross_out').remove();
-    
+
         const numValues = cellData.data.filter((v) => { return v.value !== undefined; }).length;
         const totalValues = cellData.data.reduce((acc,cValue)=> {return acc+cValue.value;},0);
-    
+
         if (element.selectAll('.level').size() === 0 && cellData.data[0].value > 0) {
           element
             .append('line')
             .classed('level', true);
         }
-    
+
         if (numValues < 1) {
 
-          console.log(cellData)
-    
+          console.log(cellData);
+
           //Remove any existing dataDens elements
           element
             .select('.level').remove();
-  
-    
+
+
           if (element.selectAll('.cross_out').size() === 0) {
             element
               .append('line')
               .attr('class', 'cross_out');
           }
-    
+
           element.select('.cross_out')
             .attr('x1', colWidth * 0.3)
             .attr('y1', rowHeight / 2)
@@ -2806,12 +2806,12 @@ class AttributeTable {
             .attr('stroke-width', 2)
             .attr('stroke', '#9e9d9b')
             .attr('opacity', .6);
-    
+
           return;
         }
-    
+
         const xScale = scaleLinear<number, number>().domain(cellData.vector.desc.value.range).range([0,colWidth]);
-    
+
         // console.log(cellData.data[0].value, colorScale.domain());
         element
           .select('.level')
@@ -2820,7 +2820,7 @@ class AttributeTable {
           .attr('x2', xScale(max(cellData.data,(c:any)=> +c.value)))
           .attr('y1', rowHeight)
           .attr('y2', 0-(rowHeight*.6));
-    
+
       }
 
   /**
@@ -2903,9 +2903,9 @@ class AttributeTable {
 
           const uuids = cellData.data.map((d)=>d.uuid);
 
-          const hiddenEdges = selectAll('.hiddenEdge').filter((e: any) => {
-            return (uuids.find((u)=> u === e.source.uuid) || uuids.find((u)=> u === e.target.uuid));
-          });
+          // const hiddenEdges = selectAll('.hiddenEdge').filter((e: any) => {
+          //   return (uuids.find((u)=> u === e.source.uuid) || uuids.find((u)=> u === e.target.uuid));
+          // });
 
           select('.nodes')
           .selectAll('.title')
@@ -2925,7 +2925,7 @@ class AttributeTable {
             .style('opacity',1);
           });
 
-          hiddenEdges
+          eoi
             .attr('visibility', 'visible');
         // console.log(cellData)
       });

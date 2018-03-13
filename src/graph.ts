@@ -683,16 +683,12 @@ class Graph {
 
   //Recursive Function that hides a sub-tree
   public hideBranch(rootNode,hide = true) {
-    const childArray = rootNode.children;
+    rootNode.children.map((c)=>this.hideBranchHelper(c,hide));
+  }
 
-    //leaf nodes
-    if (childArray.length<1) {
-      rootNode.visible=!hide;
-    }
-    childArray.map((c)=> {
-      c.visible = !hide;
-      c.children.map((cc)=> this.hideBranch(cc,hide));
-    });
+  public hideBranchHelper(node,hide) {
+        node.visible = !hide;
+        node.children.map((c)=> this.hideBranchHelper(c,hide));
   }
 
   /**
@@ -1836,8 +1832,7 @@ class Graph {
 
     aggregateLabels
       .select('.expand')
-      .text((d) => d.children.length > 0 ? Config.icons.arrowDown + ' ' : Config.icons.arrowRight + '  ' + Config.icons[d.label]);
-    // + '  ' + Config.icons[d.label] + ' ' + d.label
+      .text((d) => d.children.filter((c)=>c.visible).length > 0 ? Config.icons.arrowDown + ' ' : Config.icons.arrowRight + '  ' + Config.icons[d.label]);
 
     aggregateLabels
       .select('.titleContent')
@@ -1851,7 +1846,7 @@ class Graph {
     semiAggregatedNodes
       .select('.expand')
       .text((d) => {
-        const remove = d.children.filter((c)=>c.visible).length > 0;
+        const remove = d.children.filter((c)=>c.visible && c.layout === layout.expanded).length > 0;
         return remove ? Config.icons.arrowDown + ' ' : Config.icons.arrowRight + ' ';
       });
 
@@ -1875,6 +1870,8 @@ class Graph {
           this.toggleExpand(d,'.expand');
           return;
         }
+
+        console.log('2',d);
 
         //put aggregates into expanded level nodes
         const aggNode = this.graph.nodes.find((n) => n.uuid === d.uuid && d.nodeType === nodeType.aggregateLabel);
@@ -2519,11 +2516,10 @@ class Graph {
 
 
   private toggleExpand(d,selector) {
-
-    console.log(d);
     const selectedItem = selectAll(selector).filter((m:any)=> m.uuid === d.uuid);
-    const hide = d.children.filter((c) => c.visible).length > 0;
+    const hide = d.children.filter((c) => c.visible && c.layout === layout.expanded).length > 0;
 
+    console.log('hide',hide)
     selectedItem.text((d: any) => {
       return hide ? Config.icons.arrowDown : Config.icons.arrowRight;
     });
@@ -2712,14 +2708,18 @@ class Graph {
     //set yy values for aggregateNodes as a function of the aggregateParent
     this.graph.nodes.map((n) => {
       // console.log(!n.aggParent, n);
-      let minYY, diffYY;
-      if (n.nodeType === nodeType.levelSummary) {
-        const aggLabelChildren = n.children.filter((n) => n.nodeType === nodeType.aggregateLabel);
-        const maxYY = max(aggLabelChildren, (c: any) => c.yy);
-        minYY = min(aggLabelChildren, (c: any) => c.yy);
-        diffYY = +maxYY - +minYY;
-      }
-      n.yy = n.layout === layout.aggregated ? n.aggParent.yy : (n.nodeType === nodeType.levelSummary ? minYY + diffYY / 2 : n.yy);
+
+      const start = min(n.children.filter((c) => c.nodeType !== nodeType.levelSummary), (c: any) => {
+        const childrenY = min(c.children, (cc: any) => +cc.yy);
+        return min([+c.yy, childrenY]);
+      });
+  
+      const end = max(n.children.filter((c) => c.nodeType !== nodeType.levelSummary), (c: any) => {
+        const childrenY = max(c.children, (cc: any) => +cc.yy);
+        return max([+c.yy, childrenY]);
+      });
+
+      n.yy = n.layout === layout.aggregated ? n.aggParent.yy : (n.nodeType === nodeType.levelSummary ? start + (end-start)/ 2 : n.yy);
     });
   }
   /**

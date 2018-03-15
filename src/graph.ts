@@ -230,7 +230,7 @@ class Graph {
 
       if (!target.parent) {
         source.parent = undefined;
-        this.graph.root = [source];
+        // this.graph.root = [source];
       }
 
       //Set new Parent and child;
@@ -434,7 +434,37 @@ class Graph {
     });
 
     events.on(ROOT_CHANGED_EVENT, (evt, info) => {
-      this.extractTree([info.root]);
+
+      //clear all other aggregate flags; 
+      this.graph.nodes.filter((n) => n.summary = undefined);
+      
+       //layout is already expanded. 
+       this.graph.root =[info.root.uuid];
+      //change root to tree mode
+      const root = info.root;
+
+      const rootAggMode = root.aggMode;
+
+      root.summary = {};
+      root.aggMode = mode.tree;
+      root.mode = mode.tree;
+      root.level = 0;
+
+      this.extractTree(undefined,undefined,undefined,true); //force un-aggregation'
+
+      //if root was an aggregateRoot, reset it. 
+      if (rootAggMode !== undefined) {
+        root.summary = {};
+        root.aggMode = rootAggMode;
+        this.extractTree(undefined,undefined,undefined,true); //force re-aggregation'
+      }
+      
+
+      // //layout is already expanded. 
+      // this.graph.root =[info.root.uuid];
+     
+
+      
       this.exportYValues();
       this.drawTree();
     });
@@ -925,7 +955,7 @@ class Graph {
   //Function that extracts tree from Graph
   //takes in tgree parameters:
   // roots, which graph to extract, and whether to replace any existing tree.
-  extractTree(roots = undefined, graph = this.graph, replace = false) {
+  extractTree(roots = undefined, graph = this.graph, replace = false,forceAggregation=false) {
 
     //remove all levelMode Nodes
     this.clearLevelModeNodes();
@@ -996,7 +1026,7 @@ class Graph {
       });
 
       const queue = [root];
-
+      console.log('root is ', root);
       // //BFS of the tree
       while (queue.length > 0) {
         const node = queue.splice(0, 1)[0];;
@@ -1005,10 +1035,11 @@ class Graph {
     }
 
     // //Re-aggregate any aggregated portions of the tree;
-    const aggRoots = this.graph.nodes.filter((n) => n.summary);
-    aggRoots.map((aggRoot) => this.setAggregation(aggRoot, aggRoot.aggMode === mode.level));
-
+    const aggRoots = this.graph.nodes.filter((n) => n.summary !== undefined);
     console.log(aggRoots)
+    aggRoots.map((aggRoot) => this.setAggregation(aggRoot, aggRoot.aggMode === mode.level),forceAggregation);
+
+
 
     this.graph.nodes.map((n) => n.visited = false);
     this.layoutTree();
@@ -1266,6 +1297,7 @@ class Graph {
 
       if (node.children.filter((n)=>n.visible).length > 0) {
 
+        // console.log('creating level node for ', node.title, node.label)
         //create a levelSummary node for this level.
         let levelSummary = {
           parent,
@@ -1284,6 +1316,7 @@ class Graph {
 
         //look for existing aggregate
         if (!existingSummary) {
+          console.log(parent,levelSummary)
           parent.children.push(levelSummary);
           this.graph.nodes.push(levelSummary);
 
@@ -1292,8 +1325,11 @@ class Graph {
           this.graph.links.push(edge);
 
         } else {
+          console.log('found summary', parent,levelSummary)
           levelSummary = existingSummary;
         }
+
+        
 
         root.summary[level].map((nlabel) => {
 
@@ -1330,7 +1366,7 @@ class Graph {
 
     
           aggregateNode.children = aggregatedNodes;
-          // console.log('aggChildren are', aggregatedNodes)
+          // console.log('aggChildren of ', aggregateNode.title, aggregateNode.label, ' are ', aggregatedNodes)
 
         });
       }
@@ -1399,10 +1435,10 @@ class Graph {
         this.graph.nodes.filter((n) => {
           return n.visited === false;
         }).reduce((a, b) => {
+          console.log(a.label,a.title, this.nodeNeighbors[a.uuid])
           return this.nodeNeighbors[a.uuid] && this.nodeNeighbors[a.uuid].degree > this.nodeNeighbors[b.uuid].degree ? a : b;
         });
 
-        console.log('root is ', root);
       root.xx = 0;
       root.hierarchy = 0;
       root.mode = mode.tree;
@@ -1419,6 +1455,7 @@ class Graph {
     if (node.visited) {
       return;
     }
+    
     
 
     node.visited = true;
@@ -1512,6 +1549,7 @@ class Graph {
           };
         };
 
+        // console.log('visiting ', c.title,c.label, c.xx, 'parent',node.title,node.label,node.xx)
         ////Only visit semi-aggregated nodes if they are the children of aggLabels
         if (c.mode === mode.level && c.nodeType === nodeType.single && c.layout === layout.expanded && node.nodeType !== nodeType.aggregateLabel) {
           //do nothing
@@ -1840,6 +1878,9 @@ class Graph {
     const semiAggregatedNodes = node.filter((d) => d.nodeType === nodeType.single && d.layout === layout.expanded && d.mode === mode.level);
     const regularNodes = node.filter((d) => d.nodeType === nodeType.single && d.layout === layout.expanded);
 
+    regularNodes
+    .select('.expand')
+    .text(' ');
 
     aggregatedNodes
       .select('.type')

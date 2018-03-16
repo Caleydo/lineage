@@ -261,24 +261,22 @@ class SetSelector {
   }
 
   private updateSetSelector(labels) {
-
-    console.log(labels)
     select('#col1').select('#accordion').selectAll('.panel').remove(); //total hack.
-    
-    
+
+
         //creat an accordion div and a table for each label
         let panels = select('#col1').select('#accordion')
           .selectAll('.panel-default')
           .data(labels);
-    
+
         panels.exit().remove();
-    
+
         const panelsEnter = panels.enter();
-    
+
         const panelDefault = panelsEnter
           .append('div')
           .attr('class', 'panel panel-default');
-    
+
         panelDefault
           .append('div')
           .attr('class', 'panel-heading')
@@ -288,8 +286,8 @@ class SetSelector {
           .attr('data-toggle', 'collapse')
           .attr('data-parent', '#accordion')
           .attr('href', (d, i) => { return '#collapse_' + i; });
-    
-    
+
+
         const pDefault = panelDefault
           .append('div')
           .attr('id', (d, i) => { return 'collapse_' + i; })
@@ -298,42 +296,42 @@ class SetSelector {
           .append('div')
           // .attr('id',(d)=> {return d + '_body';})
           .attr('class', 'panel-body');
-    
-    
+
+
         // pDefault
         //   .append('div')
         //   .attr('id', 'tableHead')
         //   .append('table')
         //   .attr('class', 'table')
         //   .append('thead').append('tr');
-    
+
         // pDefault.append('tbody')
         //   .style('background', 'rgb(155, 173, 185)');
-    
-    
+
+
         const tbody = pDefault
           .append('div')
           .attr('id', 'tableBody')
           .append('table')
           .attr('class', 'table');
-    
+
         tbody.append('tbody');
-    
-    
+
+
         panels = panels.merge(panelsEnter);
-    
+
         select('#col1')
           .selectAll('a')
           .html((d: any) => { return '<tspan class="icon">' + Config.icons[d.name] + '</tspan> ' + d.name + ' (' + d.size + ')'; });
-    
+
         // select('#nodeFilter')
         //   .selectAll('a')
         //   .text((d: any) => { return d; });
-    
+
         select('#col1')
           .select('#accordion').selectAll('.panel-body')
           .attr('id', (d: any) => { return d.name + '_body'; });
-    
+
         // Populate Headers
         // labels.map((d: any) => { this.updateTableHeader('#' + d.name + '_body',d.name); });
   }
@@ -473,14 +471,14 @@ class SetSelector {
           clearTimeout(timer);
         } else {
           clearTimeout(timer);
-          timer = setTimeout(()=>{    
+          timer = setTimeout(()=> {
 
           const url = 'api/data_api/filter/' + this.selectedDB;
           console.log('url is ', url);
-  
+
           const postContent = JSON.stringify({ 'searchString':input.property('value')});
-    
-    
+
+
           json(url)
             .header('Content-Type', 'application/json')
             .post(postContent, (error, graph: any) => {
@@ -491,22 +489,22 @@ class SetSelector {
 
               const data = graph.labels;
               const labels = data.map((d) => {return { name: d.name, size: d.nodes.length }; });
-              
+
 
               this.updateSetSelector(labels);
               data.map((d) => {
                 this.populateTableRows('#' + d.name + '_body', d.nodes.splice(0,50), this.headerInfo.length,d.name);
               });
-              
 
-              
-    
+
+
+
             });
 
           },500);
         }
 
-        
+
       });
 
       data.map((d) => {
@@ -654,11 +652,11 @@ class SetSelector {
       // document.getElementById('genealogyTree').getBoundingClientRect().height
 
       // select('#'+ name + '_body').style('height',document.getElementById(name + '_table').getBoundingClientRect().height+ 'px');
-  
+
 
   }
 
-  
+
 }
 
 

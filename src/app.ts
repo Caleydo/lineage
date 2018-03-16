@@ -37,6 +37,7 @@ export class App {
 
     // this.$node.select('#col1').append('div').attr('id', 'data_selection');
     this.$node.select('#col1').append('div').attr('id', 'searchBar').attr('class','panel panel-default');
+    this.$node.select('#col1').append('div').attr('id', 'toolBar').attr('class','panel panel-default');
       this.$node.select('#col1').append('div').attr('id', 'accordion').attr('class','panel-group');
 
       // this.$node.select('#col2').append('div').attr('id', 'nodeFilter').attr('class','panel-group');

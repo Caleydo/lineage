@@ -305,7 +305,7 @@ class Graph {
 
             //if it's not already in there:
             if (this.tableManager.colOrder.filter((a: any) => { return a === arrayVector.desc.name; }).length < 1) {
-              this.tableManager.colOrder = [arrayVector.desc.name].concat(this.tableManager.colOrder); // store array of names
+              this.tableManager.colOrder = this.tableManager.colOrder.concat([arrayVector.desc.name]); // store array of names
             }
 
             events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);
@@ -1036,7 +1036,7 @@ class Graph {
 
     // //Re-aggregate any aggregated portions of the tree;
     const aggRoots = this.graph.nodes.filter((n) => n.summary !== undefined);
-    console.log(aggRoots)
+    // console.log(aggRoots)
     aggRoots.map((aggRoot) => this.setAggregation(aggRoot, aggRoot.aggMode === mode.level),forceAggregation);
 
 
@@ -1241,7 +1241,6 @@ class Graph {
   //function that iterates down branch and sets aggregate flag to true/false
   setAggregation(root, aggregate,force=false) { //forcing aggregation overrides child values.
 
-
     //clear all previous aggregation nodes first
     if (aggregate) {
       this.clearLevelModeNodes(root);
@@ -1417,7 +1416,7 @@ class Graph {
 
 
   layoutTree(sortAttribute = undefined) {
-
+    
     // this.graph.nodes.map((n) => { n.visited = (n.pathway && n.moved) ? true : false; });
 
     // const pathwayNodes = this.graph.nodes.filter((n)=> n.pathway && n.moved);
@@ -1476,12 +1475,23 @@ class Graph {
       const ids = sortAttribute.ids;
       const sortOrder = sortAttribute.sortOrder;
 
+      console.log(data)
+
       node.children.sort((a, b) => {
         const aloc = ids.findIndex((id) => { return id.find((i) => { return i === a.uuid; }); });
         const bloc = ids.findIndex((id) => { return id.find((i) => { return i === b.uuid; }); });
 
         a.value = data[aloc];
         b.value = data[bloc];
+
+        if (typeof a.value === 'number') {
+          a.value = +a.value;
+        }
+        if (typeof b.value === 'number') {
+          b.value = +b.value;
+        }
+
+        // console.log(a.value,b.value);
 
         if (sortOrder === sortedState.Ascending) {
           if (b.value === undefined || a.value < b.value) { return -1; }
@@ -1491,6 +1501,9 @@ class Graph {
             if (a.title < b.title) { return -1; }
             if (a.title > b.title) { return 1; }
           }
+          if (a.value > b.value) { return 1; }
+          if (a.value < b.value) { return -1; }
+
         } else {
           if (b.value === undefined || a.value > b.value) { return -1; }
           if (a.value === undefined || a.value < b.value) { return 1; }
@@ -1500,9 +1513,11 @@ class Graph {
             if (a.title > b.title) { return 1; }
           }
           if (a.value < b.value) { return 1; }
+          if (a.value > b.value) { return -1; }
         }
 
       });
+      console.log(node.children);
     } else {
       //default sorting is alphabetical
       node.children.sort((a, b) => {
@@ -1526,7 +1541,7 @@ class Graph {
 
         ////Only visit semi-aggregated nodes if they are the children of aggLabels
         if (c.mode === mode.level && c.nodeType === nodeType.single && c.layout === layout.expanded && node.nodeType !== nodeType.aggregateLabel) {
-          console.log('skipping ', c.title, c.label);
+          // console.log('skipping ', c.title, c.label);
         } else {
             // console.log('visiting', c.title,c.label)
           

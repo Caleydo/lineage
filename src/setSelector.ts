@@ -131,8 +131,30 @@ class SetSelector {
       .attr('id', 'searchBoxInput')
       .attr('placeholder', 'Search for node name');
 
-    const dataList = panelHeading.append('datalist')
-      .attr('id', 'allNodes');
+      //Add set Selector toolbar
+      const toolBar = select('#col1')
+      .select('#toolBar')
+      .selectAll('.panel-heading')
+      .data([0]) // ensure there is only one toolbar
+      .enter()
+      .append('div')
+      .attr('class', 'panel-heading');
+
+      const tools = ['AddNode', 'AddSubGraph', 'AddChildren', 'Add2Matrix'];
+
+
+      toolBar.selectAll('button')
+      .data(tools)
+      .enter()
+      .append('button')
+      .attr('class','btn btn-default')
+      .text((d)=>Config.icons[d]);
+
+      // <button class="btn btn-default" type="submit">Button</button>
+
+
+    // const dataList = panelHeading.append('datalist')
+    //   .attr('id', 'allNodes');
 
     //add nodeAttribute filter
     select('#nodeFilter').selectAll('.panel').remove(); //total hack.
@@ -233,85 +255,87 @@ class SetSelector {
             const removeAttr = this.tableManager.colOrder.indexOf(d) > -1;
               events.fire(ATTR_COL_ADDED, { 'db': this.selectedDB, 'name': d, 'remove': removeAttr });
           });
-
       });
+      this.updateSetSelector(labels);
 
+  }
 
+  private updateSetSelector(labels) {
+
+    console.log(labels)
     select('#col1').select('#accordion').selectAll('.panel').remove(); //total hack.
-
-
-    //creat an accordion div and a table for each label
-    let panels = select('#col1').select('#accordion')
-      .selectAll('.panel-default')
-      .data(labels);
-
-    panels.exit().remove();
-
-    const panelsEnter = panels.enter();
-
-    const panelDefault = panelsEnter
-      .append('div')
-      .attr('class', 'panel panel-default');
-
-    panelDefault
-      .append('div')
-      .attr('class', 'panel-heading')
-      .append('h4')
-      .attr('class', 'panel-title')
-      .append('a')
-      .attr('data-toggle', 'collapse')
-      .attr('data-parent', '#accordion')
-      .attr('href', (d, i) => { return '#collapse_' + i; });
-
-
-    const pDefault = panelDefault
-      .append('div')
-      .attr('id', (d, i) => { return 'collapse_' + i; })
-      .attr('class', 'panel-collapse collapse ')
-      .classed('in', (d, i) => { return i < 1; })
-      .append('div')
-      // .attr('id',(d)=> {return d + '_body';})
-      .attr('class', 'panel-body');
-
-
-    pDefault
-      .append('div')
-      .attr('id', 'tableHead')
-      .append('table')
-      .attr('class', 'table')
-      .append('thead').append('tr');
-
-    pDefault.append('tbody')
-      .style('background', 'rgb(155, 173, 185)');
-
-
-    const tbody = pDefault
-      .append('div')
-      .attr('id', 'tableBody')
-      .append('table')
-      .attr('class', 'table');
-
-    tbody.append('tbody');
-
-
-    panels = panels.merge(panelsEnter);
-
-    select('#col1')
-      .selectAll('a')
-      .html((d: any) => { return '<tspan class="icon">' + Config.icons[d.name] + '</tspan> ' + d.name + ' (' + d.size + ')'; });
-
-    // select('#nodeFilter')
-    //   .selectAll('a')
-    //   .text((d: any) => { return d; });
-
-    select('#col1')
-      .select('#accordion').selectAll('.panel-body')
-      .attr('id', (d: any) => { return d.name + '_body'; });
-
-    // Populate Headers
-    labels.map((d: any) => { this.updateTableHeader('#' + d.name + '_body',d.name); });
-
-
+    
+    
+        //creat an accordion div and a table for each label
+        let panels = select('#col1').select('#accordion')
+          .selectAll('.panel-default')
+          .data(labels);
+    
+        panels.exit().remove();
+    
+        const panelsEnter = panels.enter();
+    
+        const panelDefault = panelsEnter
+          .append('div')
+          .attr('class', 'panel panel-default');
+    
+        panelDefault
+          .append('div')
+          .attr('class', 'panel-heading')
+          .append('h4')
+          .attr('class', 'panel-title')
+          .append('a')
+          .attr('data-toggle', 'collapse')
+          .attr('data-parent', '#accordion')
+          .attr('href', (d, i) => { return '#collapse_' + i; });
+    
+    
+        const pDefault = panelDefault
+          .append('div')
+          .attr('id', (d, i) => { return 'collapse_' + i; })
+          .attr('class', 'panel-collapse collapse ')
+          .classed('in', (d, i) => { return i < 1; })
+          .append('div')
+          // .attr('id',(d)=> {return d + '_body';})
+          .attr('class', 'panel-body');
+    
+    
+        // pDefault
+        //   .append('div')
+        //   .attr('id', 'tableHead')
+        //   .append('table')
+        //   .attr('class', 'table')
+        //   .append('thead').append('tr');
+    
+        // pDefault.append('tbody')
+        //   .style('background', 'rgb(155, 173, 185)');
+    
+    
+        const tbody = pDefault
+          .append('div')
+          .attr('id', 'tableBody')
+          .append('table')
+          .attr('class', 'table');
+    
+        tbody.append('tbody');
+    
+    
+        panels = panels.merge(panelsEnter);
+    
+        select('#col1')
+          .selectAll('a')
+          .html((d: any) => { return '<tspan class="icon">' + Config.icons[d.name] + '</tspan> ' + d.name + ' (' + d.size + ')'; });
+    
+        // select('#nodeFilter')
+        //   .selectAll('a')
+        //   .text((d: any) => { return d; });
+    
+        select('#col1')
+          .select('#accordion').selectAll('.panel-body')
+          .attr('id', (d: any) => { return d.name + '_body'; });
+    
+        // Populate Headers
+        // labels.map((d: any) => { this.updateTableHeader('#' + d.name + '_body',d.name); });
   }
 
   private updateTableHeader(parentID,name) {
@@ -442,37 +466,48 @@ class SetSelector {
       this.build(labels);
 
       // this.updateFilterPanel(labels);
-
-      select('#searchBoxInput').on('input', function (e) {
+      let timer;
+      select('#searchBoxInput').on('input', (e)=> {
         const input = select('#searchBoxInput');
-        if (input.property('value').length < 3) {
-          input.attr('list', '');
+        if (input.property('value').length < 1) {
+          clearTimeout(timer);
         } else {
-          input.attr('list', 'allNodes');
+          clearTimeout(timer);
+          timer = setTimeout(()=>{    
+
+          const url = 'api/data_api/filter/' + this.selectedDB;
+          console.log('url is ', url);
+  
+          const postContent = JSON.stringify({ 'searchString':input.property('value')});
+    
+    
+          json(url)
+            .header('Content-Type', 'application/json')
+            .post(postContent, (error, graph: any) => {
+              if (error) {
+                throw error;
+              }
+              console.log(graph);
+
+              const data = graph.labels;
+              const labels = data.map((d) => {return { name: d.name, size: d.nodes.length }; });
+              
+
+              this.updateSetSelector(labels);
+              data.map((d) => {
+                this.populateTableRows('#' + d.name + '_body', d.nodes.splice(0,50), this.headerInfo.length,d.name);
+              });
+              
+
+              
+    
+            });
+
+          },500);
         }
+
+        
       });
-
-      data.map((key) => {
-        key.nodes.map((el) => {
-          datalistItems.push({ uuid: el.uuid, title: el.title, type: key.name });
-        });
-      });
-
-      //Populate datalist for input form
-      let listItems = select('datalist').selectAll('option')
-        .data(datalistItems);
-
-      const listItemsEnter = listItems.enter()
-        .append('option');
-
-      listItems.exit().remove();
-
-      listItems = listItems.merge(listItemsEnter);
-
-      listItems
-        .attr('value', (d: any) => { return d.uuid; })
-        .text((d: any) => { return d.title + ' (' + d.type + ')'; });
-
 
       data.map((d) => {
         this.populateTableRows('#' + d.name + '_body', d.nodes.splice(0,50), this.headerInfo.length,d.name);
@@ -510,6 +545,12 @@ class SetSelector {
     rowData.sort((a,b)=> {return a.title<b.title ? -1 : 1;});
 
     const tableSelector = select(tableDiv).select('#tableBody');
+
+
+    tableSelector.select('.table')
+    .attr('id',name + '_table');
+
+
     // create a row for each object in the data
     let rows = tableSelector.select('tbody').selectAll('tr')
       .data(rowData);
@@ -605,13 +646,19 @@ class SetSelector {
         return c.type === 'degree';
       })
       .html((d: any) => {
-        return '<span class="badge degree">' + d.value + '</span>';
+        return '<span class="degree">' + d.value + '</span> <span class="addNode">' + Config.icons.AddNode + '</span>';
       })
       .style('text-align', 'center');
 
+      //adjust height of table body
+      // document.getElementById('genealogyTree').getBoundingClientRect().height
+
+      // select('#'+ name + '_body').style('height',document.getElementById(name + '_table').getBoundingClientRect().height+ 'px');
+  
 
   }
 
+  
 }
 
 

@@ -5,6 +5,28 @@ body, html {
 	width: 100%;
 }
 
+.panel{
+  margin-bottom: 5px !important; 
+}
+
+.btn{
+  font-family: FontAwesome;
+  margin-right:15px;
+}
+
+
+#toolBar .panel-heading{
+  background-color: #d7d7d7;
+}
+.panel-heading{
+  padding:5px 10px !important;
+}
+
+#col1 .panel-body{
+  // height: calc(100vh - 600px) !important;
+  overflow-y:scroll;
+}
+
 // .icon, .endMarker{
 //   font-family: font-awesome;
 // }
@@ -16,6 +38,17 @@ body, html {
 td {
   vertical-align: middle;
 } 
+
+td .title{
+ pointer-events: none;
+}
+
+td .addNode{
+  font-family:FontAwesome;
+  cursor:pointer;
+  float:right;
+  margin-right:10px;
+}
 
 .badge.degree, table .title {
   border-radius:10px !important;
@@ -253,6 +286,7 @@ td {
   display: none; 
 }
 
+
 h1 {
   font-size: 150%;
 }
@@ -262,7 +296,7 @@ p {
 }
 
 .paddingBlock {
-	padding: 20px 0 0 10px ;
+	padding: 0px 0 0 10px ;
 }
 
 .eqWrap {
@@ -371,7 +405,7 @@ ul.nav.navbar-nav{
 }
 
 #tableBody{
-  height: calc(100vh - 310px);
+  // height: calc(100vh - 310px);
 }
 
 #data_selection{

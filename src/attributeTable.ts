@@ -1056,7 +1056,7 @@ class AttributeTable {
         } else if ((d.category) || d.type === 'dataDensity') {
           return d.name;
         } else {
-          return d.name.slice(0, 8);
+          return d.name.slice(0, 9);
         };
 
       })
@@ -1343,6 +1343,8 @@ class AttributeTable {
         self.renderStringHeader(select(this), cell);
       } else if (cell.type === 'id' || cell.type === 'idtype') {
         self.renderIDHeader(select(this), cell);
+      } else if (cell.type === 'dataDensity') {
+        self.renderStringHeader(select(this),cell);
       }
     });
 
@@ -1914,7 +1916,7 @@ class AttributeTable {
         // Set 'sortAttribute'
         const selected = (select(this).classed('sortSelected'));
         let descending = select(this).classed('descending');
-        console.log(selected,descending,select(this).text());
+        // console.log(selected,descending,select(this).text());
         //Only change the direction if it's a second click on the same icon
         if (selected) {
 
@@ -1924,7 +1926,6 @@ class AttributeTable {
           descending = select(this).classed('descending');
 
           select(this).text(icon);
-          console.log('changing direction',select(this).text());
 
         }
 
@@ -1939,8 +1940,16 @@ class AttributeTable {
         select(this)
           .classed('sortSelected', true);
 
-          // console.log(d);
-        events.fire(TREE_PRESERVING_SORTING,{sortOrder:self.sortAttribute.state,data:d.data,ids:d.ids});
+          let data;
+          // console.log(d,d.data)
+          //check to see if data values are arrays of values or array of objects:
+          if (d.type === 'dataDensity') {
+            data = d.data.map((dd)=>dd.map((ddd)=>ddd.value));
+          } else {
+            data = d.data;
+          }
+
+        events.fire(TREE_PRESERVING_SORTING,{sortOrder:self.sortAttribute.state,data,ids:d.ids});
 
 
         //global sorting

@@ -74,6 +74,10 @@ import {
 } from 'd3-force';
 
 import {
+  queue
+} from 'd3-queue';
+
+import {
   Config
 } from './config';
 
@@ -468,9 +472,91 @@ class Graph {
       this.drawTree();
     });
 
-    events.on(SUBGRAPH_CHANGED_EVENT, (evt, info) => {
-      this.loadGraph(info.db, info.rootID, info.replace, info.remove, info.includeRoot, info.includeChildren);;
+    events.on(SUBGRAPH_CHANGED_EVENT, async (evt, info) => {
+      await this.loadGraph(info.db, info.rootID, info.replace, info.remove, info.includeRoot, info.includeChildren);;
+      console.profile('profileTest');
+      const fileQueue = queue();
+      // Add highly connected nodes to the adj Matrix:
+      const allNodes = this.graph.nodes.slice(0).sort((a, b) => { return a.degree > b.degree ? -1 : 1; });
+
+      const connectedNodes = allNodes.slice(0, 5);
+      const allVecs = [];
+      // const queue = [];
+      connectedNodes.map((cNode,i) => {
+        const arrayVector = arrayVec.create(undefined);
+        arrayVector.desc.name = cNode.title;
+        const id = encodeURIComponent(cNode.uuid);
+        allVecs.push({vec:arrayVector,id});
+
+        const url = 'api/data_api/edges/' + this.selectedDB + '/' + id;
+
+        const postContent = JSON.stringify({ 'treeNodes': this.graph ? this.graph.nodes.map((n) => { return n.uuid; }) : [''] });
+
+        function jsonCall(url, callback) {
+          setTimeout(function() {
+             json(url)
+                .header('Content-Type', 'application/json')
+                .post(postContent, (error, graph: any) => {
+                  callback(null,graph);
+                });
+          }, 0);
+        }
+
+        fileQueue.defer(jsonCall,url);
+      });
+
+      fileQueue.awaitAll((error, attributes)=> {
+        if (error) {
+          throw error;
+        }
+        console.profileEnd();
+
+        
+        attributes.forEach( (edges)=> {
+          const nextVec = allVecs.splice(0, 1)[0];
+          const arrayVector = nextVec.vec;
+
+          arrayVector.dataValues = edges.nodes.map((e) => { return e; });
+          arrayVector.idValues = edges.nodes.map((e) => { return e.uuid; });
+
+          // console.table(arrayVector.dataValues.map((e)=>{return {'start':e.startNode.title,'end':e.endNode.title}}));
+
+          // this.tableManager.colOrder.splice(this.tableManager.colOrder.indexOf(arrayVector.desc.name), 1);
+
+          // const adjMatrixCol = this.tableManager.adjMatrixCols.find((a:any )=> {return a.desc.name === info.name; });
+          // this.tableManager.adjMatrixCols.splice(this.tableManager.adjMatrixCols.indexOf(adjMatrixCol),1);
+
+          //if it's not already in there:
+          if (this.tableManager.adjMatrixCols.filter((a: any) => { return a.desc.name === arrayVector.desc.name; }).length < 1) {
+            this.tableManager.adjMatrixCols = this.tableManager.adjMatrixCols.concat(arrayVector); //store array of vectors
+          } else { //replace with new data;
+             const adjMatrixCol = this.tableManager.adjMatrixCols.find((a:any )=> {return a.desc.name === info.name; });
+            this.tableManager.adjMatrixCols.splice(this.tableManager.adjMatrixCols.indexOf(adjMatrixCol),1);
+            this.tableManager.adjMatrixCols = this.tableManager.adjMatrixCols.concat(arrayVector); //store array of vectors
+          }
+
+          //if it's not already in there:
+          if (this.tableManager.colOrder.filter((a: any) => { return a === arrayVector.desc.name; }).length < 1) {
+            this.tableManager.colOrder = [arrayVector.desc.name].concat(this.tableManager.colOrder); // store array of names
+          }
+
+        });
+
+        //clear out any attributes that aren't in the top 5
+        // Add highly connected nodes to the adj Matrix:
+         const allNodes = this.graph.nodes.slice(0).sort((a, b) => { return a.degree > b.degree ? -1 : 1; });
+         const connectedNodes = allNodes.slice(0, 5);
+
+
+        
+        events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);
+
+
+      });
+
+
     });
+
 
 
     this.tableManager = tmanager;
@@ -1012,7 +1098,8 @@ class Graph {
       const root = (roots && roots.filter((r) => { return !r.visited; }).length > 0) ? roots.filter((r) => { return !r.visited; })[0] :
         this.graph.nodes.filter((n) => {
           return n.visited === false;
-        }).reduce((a, b) => this.nodeNeighbors[a.uuid].degree > this.nodeNeighbors[b.uuid].degree ? a : b);
+        }).reduce((a, b) => a.title > b.title ? a : b);
+        // .reduce((a, b) => this.nodeNeighbors[a.uuid].degree > this.nodeNeighbors[b.uuid].degree ? a : b);
 
 
       // If graph.root is empty, add the node with the highest degree.
@@ -1098,7 +1185,7 @@ class Graph {
       targetDictEntry.degree = targetDictEntry.degree + 1;
       sourceDictEntry.degree = sourceDictEntry.degree + 1;
 
-      if (l.visible === false) {
+      if (l.visible === false && l.target.visible && l.source.visible) {
         targetDictEntry.hidden = targetDictEntry.hidden + 1;
         sourceDictEntry.hidden = sourceDictEntry.hidden + 1;
       }

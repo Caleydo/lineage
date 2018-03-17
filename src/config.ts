@@ -43,6 +43,9 @@ export class Config {
       Region:'\uf1d1',
       Status:'\uf091',
 
+      Search:'\uf002',
+      Query:'\uf1e0',
+
       ConferencePaper:'\uf0f6',
       Inproceedings:'\uf0f6',
       Proceedings:'\uf0f6',

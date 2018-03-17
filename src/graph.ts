@@ -89,6 +89,7 @@ import * as arrayVec from './ArrayVector';
 export const ROOT_CHANGED_EVENT = 'root_changed';
 export const REPLACE_EDGE_EVENT = 'replace_edge_event';
 export const EXPAND_CHILDREN = 'expand_children';
+export const GATHER_CHILDREN_EVENT = 'gather_children_event';
 
 
 enum sortedState {
@@ -159,6 +160,9 @@ class Graph {
 
   private ttip = tooltip.create();
 
+  //flag to determine whether code should auto-populate the adj matrix
+  private autoAdjMatrix = {'value':true,'count':7};
+
   private interGenerationScale = scaleLinear();
 
   private lineFunction = line<any>()
@@ -204,52 +208,33 @@ class Graph {
 
     });
 
+    events.on(GATHER_CHILDREN_EVENT,(evt,info)=> {
+
+      //iterate through all links in this graph;
+      this.graph.links.map((l)=> {
+        if ((l.source.uuid === info.uuid || l.target.uuid === info.uuid) && !l.visible) {
+          const source = l.source.uuid === info.uuid ? l.source : l.target;
+          const target = l.source.uuid === info.uuid ? l.target : l.source;
+          console.log(this.isAncestor(source,target));
+          if (!this.isAncestor(source,target)) {
+            //only replace edges in the same or greater level
+            this.replaceEdge({source:source.uuid,target:target.uuid,uuid:l.edge.data.uuid});
+          }
+          
+        }
+      });
+
+      this.graph.nodes.map((n) => n.visited = false);
+      this.layoutTree();
+      this.updateEdgeInfo();
+      this.exportYValues();
+      this.drawTree();
+
+    });
+
     events.on(REPLACE_EDGE_EVENT, (evt, info) => {
 
-      //replace parent of selected target as source
-      const source = this.graph.nodes.filter((node) => { return node.uuid === info.source; })[0];
-      const target = this.graph.nodes.filter((node) => { return node.uuid === info.target; })[0];
-
-      const childNode = [source, target].reduce((acc, cValue) => { return cValue.yy > acc.yy ? cValue : acc; });
-      const parentNode = [source, target].reduce((acc, cValue) => { return cValue.yy < acc.yy ? cValue : acc; });
-
-      const oldParent = target.parent ? target.parent : source.parent;
-      const child = target.parent ? target : source;
-
-      //remove target from list of old parent's children
-      const oldChild = oldParent.children.indexOf(child);
-      // console.log('oldChild', oldChild);
-      oldParent.children.splice(oldChild, 1);
-
-      //make old edge hidden
-      //Do not add links that already exists in the tree
-      const oldEdge = this.graph.links.filter((ll) => {
-        return (ll.source.uuid === oldParent.uuid && ll.target.uuid === child.uuid && ll.edge.data.uuid !== info.uuid)
-          || (ll.target.uuid === oldParent.uuid && ll.source.uuid === child.uuid && ll.edge.data.uuid !== info.uuid);
-      })[0];
-      // console.log('oldEdge', oldEdge);
-
-      oldEdge.visible = false;
-      oldEdge.visited = true;
-
-      if (!target.parent) {
-        source.parent = undefined;
-        // this.graph.root = [source];
-      }
-
-      //Set new Parent and child;
-      target.parent = source;
-      source.children.push(target);
-
-
-      //make new edge visible
-
-
-      const newEdge = this.graph.links.filter((ll) => { return ll.edge.data.uuid === info.uuid; })[0];
-      // console.log('newEdge', newEdge);
-
-      newEdge.visible = true;
-      newEdge.visited = true;
+      this.replaceEdge(info);
 
       // console.log(oldParent,target,source,oldEdge,newEdge)
 
@@ -474,87 +459,94 @@ class Graph {
 
     events.on(SUBGRAPH_CHANGED_EVENT, async (evt, info) => {
       await this.loadGraph(info.db, info.rootID, info.replace, info.remove, info.includeRoot, info.includeChildren);;
-      console.profile('profileTest');
-      const fileQueue = queue();
-      // Add highly connected nodes to the adj Matrix:
-      const allNodes = this.graph.nodes.slice(0).sort((a, b) => { return a.degree > b.degree ? -1 : 1; });
+      
+      if (this.autoAdjMatrix.value) {
 
-      const connectedNodes = allNodes.slice(0, 5);
-      const allVecs = [];
-      // const queue = [];
-      connectedNodes.map((cNode,i) => {
-        const arrayVector = arrayVec.create(undefined);
-        arrayVector.desc.name = cNode.title;
-        const id = encodeURIComponent(cNode.uuid);
-        allVecs.push({vec:arrayVector,id});
-
-        const url = 'api/data_api/edges/' + this.selectedDB + '/' + id;
-
-        const postContent = JSON.stringify({ 'treeNodes': this.graph ? this.graph.nodes.map((n) => { return n.uuid; }) : [''] });
-
-        function jsonCall(url, callback) {
-          setTimeout(function() {
-             json(url)
-                .header('Content-Type', 'application/json')
-                .post(postContent, (error, graph: any) => {
-                  callback(null,graph);
-                });
-          }, 0);
-        }
-
-        fileQueue.defer(jsonCall,url);
-      });
-
-      fileQueue.awaitAll((error, attributes)=> {
-        if (error) {
-          throw error;
-        }
-        console.profileEnd();
-
-        
-        attributes.forEach( (edges)=> {
-          const nextVec = allVecs.splice(0, 1)[0];
-          const arrayVector = nextVec.vec;
-
-          arrayVector.dataValues = edges.nodes.map((e) => { return e; });
-          arrayVector.idValues = edges.nodes.map((e) => { return e.uuid; });
-
-          // console.table(arrayVector.dataValues.map((e)=>{return {'start':e.startNode.title,'end':e.endNode.title}}));
-
-          // this.tableManager.colOrder.splice(this.tableManager.colOrder.indexOf(arrayVector.desc.name), 1);
-
-          // const adjMatrixCol = this.tableManager.adjMatrixCols.find((a:any )=> {return a.desc.name === info.name; });
-          // this.tableManager.adjMatrixCols.splice(this.tableManager.adjMatrixCols.indexOf(adjMatrixCol),1);
-
-          //if it's not already in there:
-          if (this.tableManager.adjMatrixCols.filter((a: any) => { return a.desc.name === arrayVector.desc.name; }).length < 1) {
-            this.tableManager.adjMatrixCols = this.tableManager.adjMatrixCols.concat(arrayVector); //store array of vectors
-          } else { //replace with new data;
-             const adjMatrixCol = this.tableManager.adjMatrixCols.find((a:any )=> {return a.desc.name === info.name; });
-            this.tableManager.adjMatrixCols.splice(this.tableManager.adjMatrixCols.indexOf(adjMatrixCol),1);
-            this.tableManager.adjMatrixCols = this.tableManager.adjMatrixCols.concat(arrayVector); //store array of vectors
+        console.profile('profileTest');
+        const fileQueue = queue();
+        // Add highly connected nodes to the adj Matrix:
+        const allNodes = this.graph.nodes.filter((n)=>n.visible).slice(0).sort((a, b) => { return a.degree > b.degree ? -1 : 1; });
+  
+        const connectedNodes = allNodes.slice(0, this.autoAdjMatrix.count);
+        const allVecs = [];
+        // const queue = [];
+        connectedNodes.map((cNode,i) => {
+          const arrayVector = arrayVec.create(undefined);
+          arrayVector.desc.name = cNode.title;
+          const id = encodeURIComponent(cNode.uuid);
+          allVecs.push({vec:arrayVector,id});
+  
+          const url = 'api/data_api/edges/' + this.selectedDB + '/' + id;
+  
+          const postContent = JSON.stringify({ 'treeNodes': this.graph ? this.graph.nodes.map((n) => { return n.uuid; }) : [''] });
+  
+          function jsonCall(url, callback) {
+            setTimeout(function() {
+               json(url)
+                  .header('Content-Type', 'application/json')
+                  .post(postContent, (error, graph: any) => {
+                    callback(null,graph);
+                  });
+            }, 0);
           }
-
-          //if it's not already in there:
-          if (this.tableManager.colOrder.filter((a: any) => { return a === arrayVector.desc.name; }).length < 1) {
-            this.tableManager.colOrder = [arrayVector.desc.name].concat(this.tableManager.colOrder); // store array of names
+  
+          fileQueue.defer(jsonCall,url);
+        });
+  
+        fileQueue.awaitAll((error, attributes)=> {
+          if (error) {
+            throw error;
           }
-
+          console.profileEnd();
+  
+          
+          this.tableManager.adjMatrixCols = this.tableManager.adjMatrixCols.filter((c)=> c.desc.value.type !== VALUE_TYPE_ADJMATRIX);
+          this.tableManager.colOrder = this.tableManager.colOrder.filter((c)=>this.tableManager.adjMatrixCols.find((cc)=> cc.desc.name === c));
+          
+          attributes.forEach( (edges)=> {
+            const nextVec = allVecs.splice(0, 1)[0];
+            const arrayVector = nextVec.vec;
+  
+            arrayVector.dataValues = edges.nodes.map((e) => { return e; });
+            arrayVector.idValues = edges.nodes.map((e) => { return e.uuid; });
+  
+            // console.table(arrayVector.dataValues.map((e)=>{return {'start':e.startNode.title,'end':e.endNode.title}}));
+  
+            // this.tableManager.colOrder.splice(this.tableManager.colOrder.indexOf(arrayVector.desc.name), 1);
+  
+            // const adjMatrixCol = this.tableManager.adjMatrixCols.find((a:any )=> {return a.desc.name === info.name; });
+            // this.tableManager.adjMatrixCols.splice(this.tableManager.adjMatrixCols.indexOf(adjMatrixCol),1);
+  
+            //if it's not already in there:
+            if (this.tableManager.adjMatrixCols.filter((a: any) => { return a.desc.name === arrayVector.desc.name; }).length < 1) {
+              this.tableManager.adjMatrixCols = this.tableManager.adjMatrixCols.concat(arrayVector); //store array of vectors
+            } else { //replace with new data;
+               const adjMatrixCol = this.tableManager.adjMatrixCols.find((a:any )=> {return a.desc.name === info.name; });
+              this.tableManager.adjMatrixCols.splice(this.tableManager.adjMatrixCols.indexOf(adjMatrixCol),1);
+              this.tableManager.adjMatrixCols = this.tableManager.adjMatrixCols.concat(arrayVector); //store array of vectors
+            }
+  
+            //if it's not already in there:
+            if (this.tableManager.colOrder.filter((a: any) => { return a === arrayVector.desc.name; }).length < 1) {
+              this.tableManager.colOrder = [arrayVector.desc.name].concat(this.tableManager.colOrder); // store array of names
+            }
+  
+          });
+  
+          //clear out any attributes that aren't in the top 5
+          // Add highly connected nodes to the adj Matrix:
+           const allNodes = this.graph.nodes.slice(0).sort((a, b) => { return a.degree > b.degree ? -1 : 1; });
+           const connectedNodes = allNodes.slice(0, 5);
+  
+  
+          
+          events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);
+  
+  
         });
 
-        //clear out any attributes that aren't in the top 5
-        // Add highly connected nodes to the adj Matrix:
-         const allNodes = this.graph.nodes.slice(0).sort((a, b) => { return a.degree > b.degree ? -1 : 1; });
-         const connectedNodes = allNodes.slice(0, 5);
-
-
-        
-        events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);
-
-
-      });
-
-
+      }
+     
     });
 
 
@@ -687,6 +679,65 @@ class Graph {
     //   .force('center', forceCenter(forceWidth / 2, this.forceDirectedHeight / 2))
     //   .force('collision', forceCollide().radius(20));
 
+  }
+
+  private isAncestor(source,target) {
+    if (target.level>=source.level || source.parent === undefined) {
+      return false;
+    }
+
+    if (source.parent === target) {
+      return true;
+    }
+
+    return this.isAncestor(source.parent,target);
+  }
+  private replaceEdge(edge){
+    //replace parent of selected target as source
+    const source = this.graph.nodes.filter((node) => { return node.uuid === edge.source; })[0];
+    const target = this.graph.nodes.filter((node) => { return node.uuid === edge.target; })[0];
+
+    const childNode = [source, target].reduce((acc, cValue) => { return cValue.yy > acc.yy ? cValue : acc; });
+    const parentNode = [source, target].reduce((acc, cValue) => { return cValue.yy < acc.yy ? cValue : acc; });
+
+    console.log(childNode,parentNode,edge)
+    const oldParent = target.parent ? target.parent : source.parent;
+    const child = target.parent ? target : source;
+
+    //remove target from list of old parent's children
+    const oldChild = oldParent.children.indexOf(child);
+    // console.log('oldChild', oldChild);
+    oldParent.children.splice(oldChild, 1);
+
+    //make old edge hidden
+    //Do not add links that already exists in the tree
+    const oldEdge = this.graph.links.filter((ll) => {
+      return (ll.source.uuid === oldParent.uuid && ll.target.uuid === child.uuid && ll.edge.data.uuid !== edge.uuid)
+        || (ll.target.uuid === oldParent.uuid && ll.source.uuid === child.uuid && ll.edge.data.uuid !== edge.uuid);
+    })[0];
+    // console.log('oldEdge', oldEdge);
+
+    oldEdge.visible = false;
+    oldEdge.visited = true;
+
+    if (!target.parent) {
+      source.parent = undefined;
+      this.graph.root = [source];
+    }
+
+    //Set new Parent and child;
+    target.parent = source;
+    source.children.push(target);
+
+
+    //make new edge visible
+
+
+    const newEdge = this.graph.links.filter((ll) => { return ll.edge.data.uuid === edge.uuid; })[0];
+    // console.log('newEdge', newEdge);
+
+    newEdge.visible = true;
+    newEdge.visited = true;
   }
 
   private clearPathway(node) {
@@ -1534,7 +1585,7 @@ class Graph {
   }
 
   layoutTreeHelper(node, sortAttribute = undefined) {
-
+    // console.log('visiting', node.title, node.visited)
     if (node.visited) {
       return;
     }
@@ -1599,7 +1650,7 @@ class Graph {
         }
 
       });
-      console.log(node.children);
+      // console.log(node.children);
     } else {
       //default sorting is alphabetical
       node.children.sort((a, b) => {
@@ -1651,7 +1702,7 @@ class Graph {
         if (c.mode === mode.level && c.nodeType === nodeType.single && c.layout === layout.expanded && node.nodeType !== nodeType.aggregateLabel) {
           //do nothing
         } else {
-          this.layoutTreeHelper(c);
+          this.layoutTreeHelper(c,sortAttribute);
         }
 
       });
@@ -2521,6 +2572,16 @@ class Graph {
                   {
                     'icon': 'RemoveNode', 'string': 'Remove Sub-tree', 'callback': () => {
                       events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': true, 'includeChildren': true });
+                    }
+                  },
+                  {
+                    'icon': 'RemoveNode', 'string': 'Gather Children without duplication', 'callback': () => {
+                      events.fire(GATHER_CHILDREN_EVENT, {uuid:d.uuid});
+                    }
+                  },
+                  {
+                    'icon': 'RemoveNode', 'string': 'Gather Children with duplication', 'callback': () => {
+                      events.fire(GATHER_CHILDREN_EVENT, {uuid:d.uuid});
                     }
                   },
                   {

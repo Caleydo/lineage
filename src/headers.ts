@@ -77,9 +77,6 @@ class HeaderMenus {
     layoutMenu.append('option')
     .attr('value','force')
     .text('Force Directed Layout');
-
-
-
   }
 }
 

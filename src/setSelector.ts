@@ -114,22 +114,53 @@ class SetSelector {
    */
   private build(labels) {
 
-    //add search box
+    // //add query box
+    // const queryHeading = select('#col1')
+    //   .select('#queryInput')
+    //   .selectAll('.panel-heading')
+    //   .data([0]) // ensure there is only one search box
+    //   .enter()
+    //   .append('div')
+    //   .attr('class', 'panel-heading')
+
+    // queryHeading.append('input')
+    //   .attr('class', 'form-control')
+    //   .attr('id', 'queryInputForm')
+    //   .attr('placeholder', 'Enter Cypher Search Query');
+
+  //     //add query box
+  //  select('#col1')
+  //   .select('#subGraphInput')
+  //   .selectAll('.panel-heading')
+  //   .data([0]) // ensure there is only one search box
+  //   .enter()
+  //   .append('div')
+  //   .attr('class', 'panel-heading')
+  //   .append('input')
+  //   .attr('class', 'form-control')
+  //   .attr('id', 'subGraphInputForm')
+  //   .attr('placeholder', 'Enter Cypher Graph Query');
+
+    //add query box
     const panelHeading = select('#col1')
       .select('#searchBar')
       .selectAll('.panel-heading')
       .data([0]) // ensure there is only one search box
       .enter()
       .append('div')
-      .attr('class', 'panel-heading');
+      .attr('class', 'panel-heading')
 
-    panelHeading.append('input')
-      .attr('list', '')
-      .attr('name', 'allNode')
-      .attr('type', 'text')
+    panelHeading
+      .append('input')
+      // .style('width','80%')
       .attr('class', 'form-control')
       .attr('id', 'searchBoxInput')
-      .attr('placeholder', 'Search for node name');
+      .attr('placeholder', 'Search for node name')
+
+      // panelHeading
+      // .append('text')
+      // .text(Config.icons.Search)
+      // .style('font-family','FontAwesome')
 
     //Add set Selector toolbar
     const toolBar = select('#col1')
@@ -449,16 +480,50 @@ class SetSelector {
                 data.map((d) => {
                   this.populateTableRows('#' + d.name + '_body', d.nodes.splice(0, 50), this.headerInfo.length, d.name);
                 });
+              });
+
+          }, 500);
+        }
+      });
+
+      select('#queryInputForm').on('keypress', (e) => {
+        console.log(event,event.key === 'Enter')
+        if (event.key === 'Enter') {
+          const input = select('#queryInputForm');
+        if (input.property('value').length < 1) {
+          clearTimeout(timer);
+        } else {
+          clearTimeout(timer);
+          timer = setTimeout(() => {
+
+            const url = 'api/data_api/query/' + this.selectedDB;
+
+            const postContent = JSON.stringify({ 'searchString': input.property('value') });
 
 
+            json(url)
+              .header('Content-Type', 'application/json')
+              .post(postContent, (error, graph: any) => {
+                if (error) {
+                  throw error;
+                }
+                console.log(graph);
+
+                const data = graph.labels;
+                const labels = data.map((d) => { return { name: d.name, size: d.nodes.length }; });
 
 
+                this.updateSetSelector(labels);
+                data.map((d) => {
+                  this.populateTableRows('#' + d.name + '_body', d.nodes.splice(0, 50), this.headerInfo.length, d.name);
+                });
               });
 
           }, 500);
         }
 
-
+        }
+        
       });
 
       data.map((d) => {

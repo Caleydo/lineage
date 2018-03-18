@@ -32,7 +32,9 @@ export class Config {
       Character:'\uf007',
       House:'\uf1d0',
 
+      smallCircle:'\uf111',
       Person:'\uf007',
+      // Person:'\e802',
       Battle:'\uf05b',
       Culture:'\uf1ce',
       Dead:'\uf235',
@@ -50,10 +52,10 @@ export class Config {
       Inproceedings:'\uf0f6',
       Proceedings:'\uf0f6',
       Journal:'\uf02d',
-      CHI:'\uf0f6',
+      CHI:'\uf0c0',
       _Set_Node:'\uf0f6',
       Author:'\uf007',
-      TVCG:'\uf0f6',
+      TVCG:'\uf200',
       Article:'\uf0f6',
       Publication:'\uf0f6',
 

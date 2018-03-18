@@ -35,7 +35,7 @@ import * as _ from 'underscore';
 
 import IFamilyInfo from './tableManager';
 
-import { FAMILY_INFO_UPDATED, TABLE_VIS_ROWS_CHANGED_EVENT, ADJ_MATRIX_CHANGED, ATTR_COL_ADDED } from './tableManager';
+import { FAMILY_INFO_UPDATED, TABLE_VIS_ROWS_CHANGED_EVENT, GRAPH_ADJ_MATRIX_CHANGED, ADJ_MATRIX_CHANGED, ATTR_COL_ADDED } from './tableManager';
 
 export const SUBGRAPH_CHANGED_EVENT = 'subgraph_changed';
 export const FILTER_CHANGED_EVENT = 'filter_changed_event';
@@ -148,14 +148,14 @@ class SetSelector {
       .data([0]) // ensure there is only one search box
       .enter()
       .append('div')
-      .attr('class', 'panel-heading')
+      .attr('class', 'panel-heading');
 
     panelHeading
       .append('input')
       // .style('width','80%')
       .attr('class', 'form-control')
       .attr('id', 'searchBoxInput')
-      .attr('placeholder', 'Search for node name')
+      .attr('placeholder', 'Search for node name');
 
       // panelHeading
       // .append('text')
@@ -478,7 +478,7 @@ class SetSelector {
 
                 this.updateSetSelector(labels);
                 data.map((d) => {
-                  this.populateTableRows('#' + d.name + '_body', d.nodes.splice(0, 50), this.headerInfo.length, d.name);
+                  this.populateTableRows('#' + d.name + '_body', d.nodes, this.headerInfo.length, d.name);
                 });
               });
 
@@ -487,7 +487,6 @@ class SetSelector {
       });
 
       select('#queryInputForm').on('keypress', (e) => {
-        console.log(event,event.key === 'Enter')
         if (event.key === 'Enter') {
           const input = select('#queryInputForm');
         if (input.property('value').length < 1) {
@@ -510,12 +509,12 @@ class SetSelector {
                 console.log(graph);
 
                 const data = graph.labels;
-                const labels = data.map((d) => { return { name: d.name, size: d.nodes.length }; });
-
+                const labels = data.map((d) => { return {name: d.name, size: d.nodes.length }; });
+                console.log(data);
 
                 this.updateSetSelector(labels);
                 data.map((d) => {
-                  this.populateTableRows('#' + d.name + '_body', d.nodes.splice(0, 50), this.headerInfo.length, d.name);
+                  this.populateTableRows('#' + d.name + '_body', d.nodes, this.headerInfo.length, d.name);
                 });
               });
 
@@ -523,11 +522,11 @@ class SetSelector {
         }
 
         }
-        
+
       });
 
       data.map((d) => {
-        this.populateTableRows('#' + d.name + '_body', d.nodes.splice(0, 50), this.headerInfo.length, d.name);
+        this.populateTableRows('#' + d.name + '_body', d.nodes, this.headerInfo.length, d.name);
       });
 
       const url2 = 'api/data_api/properties/' + this.selectedDB;
@@ -601,7 +600,8 @@ class SetSelector {
       },
       {
         'icon': 'Add2Matrix', 'string': removeAdjMatrix ? 'Remove from Table' : 'Add to Table', 'callback': () => {
-          events.fire(ADJ_MATRIX_CHANGED, { 'db': this.selectedDB, 'name': d.title, 'uuid': d.id, 'remove': removeAdjMatrix });
+          console.log(d);
+          events.fire(GRAPH_ADJ_MATRIX_CHANGED, { 'db': this.selectedDB, 'name': d.title, 'id': d.id, 'removeAdjMatrix': removeAdjMatrix });
         }
       }
       ];

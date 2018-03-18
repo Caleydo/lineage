@@ -97,6 +97,7 @@ export const COL_ORDER_CHANGED_EVENT = 'col_ordering_changed';
 export const FAMILY_SELECTED_EVENT = 'family_selected_event';
 export const UPDATE_TABLE_EVENT = 'update_table';
 export const ADJ_MATRIX_CHANGED = 'adjacency_matrix_changed';
+export const GRAPH_ADJ_MATRIX_CHANGED = 'graph_adj_matrix_changed';
 export const ATTR_COL_ADDED = 'attr_col_added';
 export const AGGREGATE_CHILDREN = 'aggregate_children';
 export const PATHWAY_SELECTED = 'pathway_selected';
@@ -235,8 +236,12 @@ export default class TableManager {
 
        const url = 'api/data_api/edges/' + info.db + '/' + id;
 
-      //  console.log('edge url is ', url);
-              json(url, (error, edges: any) => {
+       const postContent = JSON.stringify({ 'treeNodes': info.nodes});
+
+       console.log('edge url is ', url);
+              json(url)
+              .header('Content-Type', 'application/json')
+              .post(postContent, (error, edges: any) => {
                 if (error) {
                   throw error;
                 }

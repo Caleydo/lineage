@@ -238,7 +238,7 @@ class Graph {
               const aggNode = this.graph.nodes.find((n)=> {
                 return n.label === target.label && n.nodeType === nodeType.aggregateLabel && n.aggregateRoot.uuid === source.uuid && n.level === source.level+1;
               });
-              target.layout = aggNode.children.length > 0 ? layout.expanded : layout.aggregated;
+              target.layout = aggNode && aggNode.children.length > 0 ? layout.expanded : layout.aggregated;
             } else {
               target.layout = layout.expanded;
             }
@@ -1438,7 +1438,7 @@ class Graph {
   //function that iterates down branch and sets aggregate flag to true/false
   setAggregation(root, aggregate, force = false) { //forcing aggregation overrides child values.
 
-    console.log('setting aggregation from ', root.title, root.label, ' as ', aggregate, ' with force ', force)
+    // console.log('setting aggregation from ', root.title, root.label, ' as ', aggregate, ' with force ', force)
     //clear all previous aggregation nodes first
       this.clearLevelModeNodes(root,force);
 
@@ -2120,7 +2120,9 @@ class Graph {
 
     aggregateLabels
       .select('.expand')
-      .text((d) => d.children.filter((c) => c.visible).length > 0 ? Config.icons.arrowDown + ' ' : Config.icons.arrowRight + '  ' + Config.icons[d.label]);;
+      .text((d) => {
+        return d.children.filter((c) => c.visible).length > 0 ? Config.icons.arrowDown + ' ' : Config.icons.arrowRight + '  ' + Config.icons[d.label]
+      });;
 
     aggregateLabels
       .select('.titleContent')
@@ -2137,7 +2139,7 @@ class Graph {
         if (d.children.length < 1 && d.graphDegree === d.degree) {
           return Config.icons.smallCircle + ' ';
         } else {
-          const remove = d.children.filter((c) => c.visible && c.layout === layout.expanded).length > 0;
+          const remove = d.children.filter((c) => c.visible && c.nodeType === nodeType.levelSummary).length > 0;
           return remove ? Config.icons.arrowDown + ' ' : Config.icons.arrowRight + ' ';
         }
       })
@@ -2675,6 +2677,12 @@ class Graph {
                   {
                     'icon': 'Add2Matrix', 'string': removeAdjMatrix ? 'Remove from Table' : 'Add to Table', 'callback': () => {
                       events.fire(ADJ_MATRIX_CHANGED, { 'db': this.selectedDB, 'name': d.title, 'uuid': d.uuid, 'remove': removeAdjMatrix, 'nodes': this.graph.nodes.map((n) => n.uuid) });
+                    },
+                    
+                  },
+                  {
+                    'icon': 'Aggregate', 'string': 'Aggregate Children', 'callback': () => {
+                      events.fire(AGGREGATE_CHILDREN, { 'uuid': d.uuid, 'aggregate': true });
                     }
                   }];
                 //Only have option to gather neighbors if this node has hidden children;
@@ -2719,14 +2727,16 @@ class Graph {
                   );
                 }
                 if (d.children.length > 0) {
+                  const unaggregate = (d.children.find((c) => c.nodeType === nodeType.levelSummary));
+                  if (unaggregate) {
+                    actions = actions.concat(
+                      [{
+                        'icon': 'Aggregate', 'string': 'Un-Aggregate Children', 'callback': () => {
+                          events.fire(AGGREGATE_CHILDREN, { 'uuid': d.uuid, 'aggregate': false });
+                        }
+                      }]);
+                  }
                   const aggregate = !(d.children.find((c) => c.nodeType === nodeType.levelSummary));
-                  actions = actions.concat(
-                    [{
-                      'icon': 'Aggregate', 'string': aggregate ? 'Aggregate Children' : 'Un-Aggregate Children', 'callback': () => {
-                        events.fire(AGGREGATE_CHILDREN, { 'uuid': d.uuid, 'aggregate': aggregate });
-                      }
-                    }]
-                  );
                   if (aggregate) {
                     actions = actions.concat(
                       [{

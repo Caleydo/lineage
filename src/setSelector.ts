@@ -114,19 +114,19 @@ class SetSelector {
    */
   private build(labels) {
 
-    // //add query box
-    // const queryHeading = select('#col1')
-    //   .select('#queryInput')
-    //   .selectAll('.panel-heading')
-    //   .data([0]) // ensure there is only one search box
-    //   .enter()
-    //   .append('div')
-    //   .attr('class', 'panel-heading')
+    //add query box
+    const queryHeading = select('#col1')
+      .select('#queryInput')
+      .selectAll('.panel-heading')
+      .data([0]) // ensure there is only one search box
+      .enter()
+      .append('div')
+      .attr('class', 'panel-heading')
 
-    // queryHeading.append('input')
-    //   .attr('class', 'form-control')
-    //   .attr('id', 'queryInputForm')
-    //   .attr('placeholder', 'Enter Cypher Search Query');
+    queryHeading.append('input')
+      .attr('class', 'form-control')
+      .attr('id', 'queryInputForm')
+      .attr('placeholder', 'Enter Cypher Search Query');
 
   //     //add query box
   //  select('#col1')

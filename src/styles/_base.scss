@@ -34,6 +34,23 @@ body, html {
   padding:5px 10px !important;
 }
 
+
+.addIcon{
+  text-anchor: start;;
+  font-size:10px;
+  fill:#6c6c6c;
+  cursor:pointer;
+}
+
+.addIcon tspan{
+    font-family: FontAwesome;
+    font-size: 11px;
+    alignment-baseline:middle;
+    fill:#bcb9b9;
+    
+}
+
+
 #col1 .panel-body{
   // height: calc(100vh - 600px) !important;
   overflow-y:scroll;
@@ -157,7 +174,7 @@ td .addNode{
   font-size: 18px;
   alignment-baseline:middle;
   fill:#bcb9b9;
-  cursor:default;
+  cursor:pointer;
 }
 
 .levelBracket{
@@ -221,7 +238,7 @@ td .addNode{
   stroke-width: 1px;
 }
 
-.visible{
+.visible, .addIconLine{
   stroke: #999;
   stroke-opacity: 0.6;
   fill:none;

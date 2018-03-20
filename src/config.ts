@@ -48,6 +48,9 @@ export class Config {
       Search:'\uf002',
       Query:'\uf1e0',
 
+      Plus:'\uf067',
+      Menu:'\uf141',
+
       ConferencePaper:'\uf0f6',
       Inproceedings:'\uf0f6',
       Proceedings:'\uf0f6',

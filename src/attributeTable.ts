@@ -1557,7 +1557,7 @@ class AttributeTable {
       .on('mouseover', (cellData:any) => {
         this.highlightRow(cellData);
         //only add tooltip if not dataDensity type or if value in cell is >99
-        if (cellData.type !== 'dataDensity' || cellData.type !== VALUE_TYPE_LEVEL || cellData.data.reduce((acc,cValue)=> {return acc+cValue.value;},0)>99) {
+        if ((cellData.type !== 'dataDensity' && cellData.type !== VALUE_TYPE_LEVEL) || cellData.data.reduce((acc,cValue)=> {return cValue.value ? acc+cValue.value : acc;},0)>99) {
           this.ttip.addTooltip('cell', cellData);
         };
       })
@@ -2850,9 +2850,9 @@ class AttributeTable {
     element.selectAll('.cross_out').remove();
 
     const numValues = cellData.data.filter((v) => { return v.value !== undefined; }).length;
-    const totalValues = cellData.data.reduce((acc,cValue)=> {return acc+cValue.value;},0);
+    const totalValues = cellData.data.reduce((acc,cValue)=> {return cValue.value ? acc+cValue.value : acc;},0);
 
-    // console.assert(!(cellData.name === 'Hidden Edges'),numValues,totalValues,cellData)
+    // console.assert(!(cellData.name === 'Graph Edges'),numValues,totalValues,cellData);
 
     if (element.selectAll('.dataDens').size() === 0 && totalValues > 0) {
       element

@@ -27,10 +27,13 @@ export class Config {
       Compound:'\uf1e0', //\uf1d5
       Pathway:'\uf18b',
       Movie:'\uf008',
-      Actor:'\uf007',
+      Actor:'\uf183',
       Episode:'\uf008',
       Character:'\uf007',
       House:'\uf1d0',
+      Director:'\uf0a1',
+
+      User:'\uf007',
 
       smallCircle:'\uf111',
       Person:'\uf007',
@@ -61,6 +64,8 @@ export class Config {
       TVCG:'\uf200',
       Article:'\uf0f6',
       Publication:'\uf0f6',
+
+
 
       AddSubGraph:'\uf20e',
       AddNode:'\uf055',

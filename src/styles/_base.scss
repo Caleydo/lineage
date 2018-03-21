@@ -26,6 +26,10 @@ body, html {
   margin-right:15px;
 }
 
+.quant{
+  fill:white;
+}
+
 
 #toolBar .panel-heading{
   background-color: #d7d7d7;
@@ -508,9 +512,19 @@ ul.nav.navbar-nav{
   stroke-dasharray: 0px;
 }
 
-#treeDiv{
-  margin-top:195px;
+.list-group-item{
+  padding:8px 10px !important;
 }
+
+.list-group-item.active{
+  background-color: #6894a9;
+  border-color:#6894a9;
+}
+
+// #treeDiv{
+//   margin-top:195px;
+// }
+
 #graphHeaders, #tableDiv1{
   height:195px;
   margin-bottom: 0px;

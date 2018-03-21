@@ -194,7 +194,7 @@ class Graph {
       const url = 'api/data_api/getNodes/' + this.selectedDB;
       console.log('url is ', url);
 
-
+      console.log(info.children);
 
       const postContent = JSON.stringify({ 'rootNode': '', 'rootNodes': info.children.map((n) => { return n.uuid; }), 'treeNodes': this.graph.nodes.map((n) => { return n.uuid; }) });
 
@@ -205,6 +205,7 @@ class Graph {
           if (error) {
             throw error;
           }
+          console.log('data is ', graph);
 
           this.mergeGraph(graph, false, true);
           //find root nodes
@@ -233,7 +234,7 @@ class Graph {
             };
 
             //recursively set target node and it's children to match parent's mode/layout;
-            this.setModeLayout(source, target,source.level);
+            this.setModeLayout(source, target, source.level);
           }
 
         }
@@ -297,6 +298,7 @@ class Graph {
             arrayVector.idValues = nodes.map((e) => { return e.uuid; });
 
             arrayVector.desc.value.range = [min([max(arrayVector.dataValues), 0]), max(arrayVector.dataValues)];
+            // arrayVector.desc.value.label = nodes[0].label;
 
             // console.log(arrayVector);
 
@@ -339,7 +341,7 @@ class Graph {
       }
 
       if (info.clear === undefined) {
-        this.calculatePathway();
+        this.pathwayBFS();
       }
 
       this.layoutTree();
@@ -526,6 +528,9 @@ class Graph {
             arrayVector.dataValues = edges.nodes.map((e) => { return e; });
             arrayVector.idValues = edges.nodes.map((e) => { return e.uuid; });
 
+            // arrayVector.desc.value.label = edges.nodes[0].label;
+
+
             //if it's not already in there:
             if (this.tableManager.adjMatrixCols.filter((a: any) => { return a.desc.name === arrayVector.desc.name; }).length < 1) {
               this.tableManager.adjMatrixCols = this.tableManager.adjMatrixCols.concat(arrayVector); //store array of vectors
@@ -572,11 +577,25 @@ class Graph {
     const graphDiv = select(selector).append('div')
       .attr('id', 'graphDiv');
 
+      graphDiv
+      .append('div')
+      .style('height','185px')
+      .style('margin-left','10px')
+      .style('margin-top','10px')
+      .append('div')
+      .attr('class','list-group')
+      .attr('id','pathViewer')
+      .append('a')
+      .attr('href','#')
+      .attr('class','list-group-item active')
+      .text('Shortest Path List');
+
     this.svg = select('#graphDiv')
       .append('svg')
       .attr('width', this.width)
       .attr('height', this.height)
       .attr('id', 'graph')
+      // .style('margin-top',195)
       .append('g')
       .attr('id', 'genealogyTree')
       .attr('transform', 'translate(' + this.margin.left + ',' + (Config.glyphSize + this.margin.top) + ')');
@@ -692,7 +711,7 @@ class Graph {
   }
 
 
-  private setModeLayout(source, target,level) {
+  private setModeLayout(source, target, level) {
 
     //clear any aggModes in target nodes
     target.aggMode = undefined;
@@ -708,14 +727,14 @@ class Graph {
       target.layout = layout.expanded;
     }
 
-    target.children.map((c)=> {
-      const link = this.graph.links.find((l)=> {
+    target.children.map((c) => {
+      const link = this.graph.links.find((l) => {
         return (l.source.uuid === target.uuid && l.target.uuid === c.uuid) || (l.source.uuid === c.uuid && l.target.uuid === target.uuid)
       });
       if (link) {
         this.replaceEdge({ source: target.uuid, target: c.uuid, uuid: link.edge.data.uuid });
       }
-      this.setModeLayout(source,c,level+1);
+      this.setModeLayout(source, c, level + 1);
     });
   }
 
@@ -765,6 +784,8 @@ class Graph {
         || (ll.target.uuid === oldParent.uuid && ll.source.uuid === child.uuid && ll.edge.data.uuid !== edge.uuid);
     });
 
+    console.log(oldEdge);
+
     oldEdge.visible = false;
     oldEdge.visited = true;
 
@@ -794,73 +815,167 @@ class Graph {
   }
 
   private clearPathway(node) {
-    if (node.parent) {
-      const filteredPathways = selectAll('.pathway').filter((e: any) => {
-        if (node.parent) {
-          const edge1 = (e.source.uuid === node.uuid && e.target.uuid === node.parent.uuid);
-          const edge2 = (e.source.uuid === node.parent.uuid && e.target.uuid === node.uuid);
-          return (edge1 || edge2);
-        } else {
-          return false;
-        }
-      });
 
-      filteredPathways
-        .classed('pathway', false);
+    this.graph.nodes.map((n) => {
+      n.pathway = false;
+      n.paths = [];
+      n.visited = false;
+    });
 
-      node.parent.pathway = undefined;
-      this.clearPathway(node.parent);
-    }
+    selectAll('.pathway')
+      .classed('pathway', false);
 
   }
 
-  private calculatePathway() {
-    const nodes = this.pathway.start ? (this.pathway.end ? [this.pathway.end] : [this.pathway.start]) : [];
-    let quit = false;
-    nodes.map((node) => {
-      node.pathway = true;
-      while (node.parent && !quit) {
-        //if node is already tagged as pathway, you have found a shorter path than going all the way to the root;
-        if (node.parent.pathway) {
-          console.log('found', node.parent.title);
+  private pathwayBFS() {
 
-          selectAll('.edge.visible').filter((e: any) => {
-            return (e.source.uuid === node.uuid && e.target.uuid === node.parent.uuid)
-              || (e.source.uuid === node.parent.uuid && e.target.uuid === node.uuid);
-          })
-            .classed('pathway', true);
-
-          quit = true;
-          this.clearPathway(node.parent);
-
-        } else {
-          //find edge;
-
-          selectAll('.edge.visible').filter((e: any) => {
-            return (e.source.uuid === node.uuid && e.target.uuid === node.parent.uuid)
-              || (e.source.uuid === node.parent.uuid && e.target.uuid === node.uuid);
-          })
-            .classed('pathway', true);
-          //set new node, will stop @ the root
-          node = node.parent;
-          node.pathway = true;
+    const start = this.pathway.start;
+    const end = this.pathway.end ? this.pathway.end : this.graph.nodes.find((f) => this.graph.root.find((ff) => ff === f.uuid));
+    
+    let stopLevel = 100;
+  
+    const  pathwayBFSHelper = (node, targetUUID, queue,level,parent) => {
+    
+        // console.log('visiting ', node.title, node.path)
+        if (node.uuid === end.uuid) {
+          stopLevel = level; //update the max length of shortest paths to consider;
         }
-      }
+
+        if (parent) {
+          if (!node.visited) {
+            node.path = parent.path.concat([parent.title]);
+          } else {
+            node.path = [node.path].concat([parent.path.concat([parent.title])]);
+          }
+        }
+        
+        node.visited = true;
+
+        const children = [];
+    
+        this.graph.links.map((l) => {
+          if (l.target.uuid === node.uuid || l.source.uuid === node.uuid) {
+            const target = l.source.uuid === node.uuid ? l.target : l.source;
+            const source = l.source.uuid === node.uuid ? l.source : l.target;
+            children.push(target);
+          }
+        });
+        
+        //don't revisit the node that you just came from
+        children.filter((cc)=> !parent || cc.uuid !== parent.uuid).map((c) => {
+            if (level < stopLevel) {
+              queue.push({node:c,level:level+1,parent:node});
+            }
+        });
+      };
+
+    this.graph.nodes.map((n) => {
+      n.pathway = false;
+      n.path = [];
+      n.visited = false;
     });
 
 
-    // if (this.pathway.end) {
-    //   let sNode = this.pathway.end;
-    //   let y = 0;
-    //   while (sNode.parent && sNode.pathway) {
-    //     sNode.moved = true;
-    //     sNode.yy = y;
-    //     y = y+1;
+    start.pathway = true;
+    const queue = [{node:start,level:0,parent:undefined}];
 
-    //     sNode = sNode.parent;
-    //   }
-    // }
+    // //BFS of the tree
+    while (queue.length > 0) {
+      const item = queue.splice(0, 1)[0];;
+      pathwayBFSHelper(item.node, end.uuid, queue,item.level,item.parent);
+    }
+
+
+    //list the shortest paths in the pathViewer group
+    let listItems = select('#pathViewer').selectAll('.listItems')
+    .data(end.path);
+
+    const listItemsEnter = listItems.enter()
+    .append('a')
+    .attr('href','#')
+    .attr('class','list-group-item')
+    .classed('listItems',true)
+
+    listItems.exit().remove();
+
+    listItems = listItems.merge(listItemsEnter);
+
+    listItems.text((d:any)=> {return d.concat([end.title]).reduce((acc,cValue)=> acc + ' -- ' + cValue, '');});
+
+      // //start at the end node and work your way back to the start node, marking pathway true as you go along; 
+      // let trace = true;
+      // let cNode = end;
+
+      // while (trace === true) {
+      //   cNode.pathway = true;
+      //   cNode = cNode.pathParent;
+      //   trace = cNode === undefined ? false : true;
+      // }
+
+    selectAll('.edge.hidden')
+      .attr('visibility', 'hidden');
+
+    this.graph.nodes.map((node) => {
+      if (node.pathway && node.pathParent) {
+        selectAll('.edge').filter((e: any) => {
+          return (e.source.uuid === node.uuid && e.target.uuid === node.pathParent.uuid)
+            || (e.source.uuid === node.pathParent.uuid && e.target.uuid === node.uuid);
+        })
+          .classed('pathway', true)
+          .attr('visibility', 'visible');
+      };
+    })
   }
+
+
+
+  // private calculatePathway() {
+  //   const nodes = this.pathway.start ? (this.pathway.end ? [this.pathway.end] : [this.pathway.start]) : [];
+  //   let quit = false;
+  //   nodes.map((node) => {
+  //     node.pathway = true;
+  //     while (node.parent && !quit) {
+  //       //if node is already tagged as pathway, you have found a shorter path than going all the way to the root;
+  //       if (node.parent.pathway) {
+  //         console.log('found', node.parent.title);
+
+  //         selectAll('.edge.visible').filter((e: any) => {
+  //           return (e.source.uuid === node.uuid && e.target.uuid === node.parent.uuid)
+  //             || (e.source.uuid === node.parent.uuid && e.target.uuid === node.uuid);
+  //         })
+  //           .classed('pathway', true);
+
+  //         quit = true;
+  //         this.clearPathway(node.parent);
+
+  //       } else {
+  //         //find edge;
+
+  //         selectAll('.edge.visible').filter((e: any) => {
+  //           return (e.source.uuid === node.uuid && e.target.uuid === node.parent.uuid)
+  //             || (e.source.uuid === node.parent.uuid && e.target.uuid === node.uuid);
+  //         })
+  //           .classed('pathway', true);
+  //         //set new node, will stop @ the root
+  //         node = node.parent;
+  //         node.pathway = true;
+  //       }
+  //     }
+  //   });
+
+
+  // if (this.pathway.end) {
+  //   let sNode = this.pathway.end;
+  //   let y = 0;
+  //   while (sNode.parent && sNode.pathway) {
+  //     sNode.moved = true;
+  //     sNode.yy = y;
+  //     y = y+1;
+
+  //     sNode = sNode.parent;
+  //   }
+  // }
+  // }
 
   //Function that remove either a single node (root) or the entire sub-tree (including children)
   public removeBranch(rootNode, includeChildren = true) {
@@ -909,6 +1024,7 @@ class Graph {
   }
 
   public hideBranchHelper(node, hide) {
+    // console.log('hiding ', node.title, node.label);
     node.visible = !hide;
     node.hidden = hide;
     node.children.map((c) => this.hideBranchHelper(c, hide));
@@ -1154,8 +1270,8 @@ class Graph {
 
 
     if (this.graph.nodes && this.graph.nodes[0].children) {
-      
-      const rootNode = this.graph.nodes.find((n)=>this.graph.root.find((f)=> f ===  n.uuid));
+
+      const rootNode = this.graph.nodes.find((n) => this.graph.root.find((f) => f === n.uuid));
       //remove all levelMode Nodes
       this.clearLevelModeNodes(rootNode, forceAggregation);
     }
@@ -1250,7 +1366,7 @@ class Graph {
     //Populate dictionary
 
     //Find all edges that start or end on that node (only looks at edges between visible nodes)
-    this.graph.links.filter((l)=> l.target.nodeType === nodeType.single && l.source.nodeType === nodeType.single && !l.target.hidden && !l.source.hidden).map((l) => {
+    this.graph.links.filter((l) => l.target.nodeType === nodeType.single && l.source.nodeType === nodeType.single && !l.target.hidden && !l.source.hidden).map((l) => {
 
       const targetNode = l.target;
       const sourceNode = l.source;
@@ -1269,7 +1385,7 @@ class Graph {
         const child = [targetNode, sourceNode].find((n) => n.xx === max([targetNode, sourceNode], (n) => n.xx));
 
         if (!parent) {
-          console.log('we have a problem... ', targetNode,sourceNode);
+          console.log('we have a problem... ', targetNode, sourceNode);
         }
 
         if (parent.children && child.mode === mode.tree && parent.children.filter((c) => c.uuid === child.uuid).length > 0) {
@@ -1384,7 +1500,7 @@ class Graph {
 
       //visited a node if it hasn't been pinned, or if it has, if the source is the pinned parent;
       if (!target.visited && (!target.pinned || source.uuid === target.parent.uuid)) {
-        
+
 
         e.visible = e.visited ? e.visible : true;
         //only visit edge if there are no previous constraints on this edge visibility
@@ -1412,7 +1528,7 @@ class Graph {
     };
 
     if (!root) {
-      console.log('here...');
+      console.trace('shouldnt be here');
       //remove relevant edges and aggregateLabel and aggSummary nodes;
       this.graph.links = this.graph.links.filter((l) => !toRemove(l.target) && !toRemove(l.source));
       this.graph.nodes = this.graph.nodes.filter((n) => !toRemove(n));
@@ -1425,14 +1541,14 @@ class Graph {
       //remove all aggregateLabel labels (all children of level summary nodes)
       levelSummaryNodes.map((levelSummaryNode) => {
         levelSummaryNode.children.filter((c) => c.nodeType === nodeType.aggregateLabel).map((aggregateLabelNode) => {
-          console.log('clearing ', aggregateLabelNode.uuid);  this.graph.nodes = this.graph.nodes.filter((n) => n.uuid !== aggregateLabelNode.uuid)
+          console.log('clearing ', aggregateLabelNode.uuid); this.graph.nodes = this.graph.nodes.filter((n) => n.uuid !== aggregateLabelNode.uuid)
         });
       });
 
       //recursively call CLMN on levelSummaryNode children;
       levelSummaryNodes.map((levelSummaryNode) => {
         if (levelSummaryNode.children.find((c) => c.nodeType === nodeType.levelSummary)) {
-          console.log('calling CLM on ', levelSummaryNode.label); this.clearLevelModeNodes(levelSummaryNode,force);
+          console.log('calling CLM on ', levelSummaryNode.label); this.clearLevelModeNodes(levelSummaryNode, force);
         };
       });
 
@@ -1444,7 +1560,7 @@ class Graph {
 
       //remove any levelModeNodes from the child array of the parent;
       root.children = root.children.filter((c) => !toRemove(c));
-      root.children.map((c) => { c.summary = force ? undefined : c.summary; c.aggMode = force ? undefined : c.aggMode; this.clearLevelModeNodes(c,force); });
+      root.children.map((c) => { c.summary = force ? undefined : c.summary; c.aggMode = force ? undefined : c.aggMode; this.clearLevelModeNodes(c, force); });
     }
   }
 
@@ -1600,7 +1716,7 @@ class Graph {
 
           c.aggParent = parent;
 
-       
+
           if (c.nodeType === nodeType.single && (c.aggMode === undefined || force === true)) {
             queue.push(c);
           };
@@ -1620,7 +1736,7 @@ class Graph {
       node.children.filter((n) => n.visible).map((c) => {
         //set edges between parent and child to visible again 
 
-        const link = this.graph.links.find((l)=>(l.source.uuid === c.uuid && l.target.uuid === node.uuid ) || (l.target.uuid === c.uuid && l.source.uuid === node.uuid ));
+        const link = this.graph.links.find((l) => (l.source.uuid === c.uuid && l.target.uuid === node.uuid) || (l.target.uuid === c.uuid && l.source.uuid === node.uuid));
         link.visible = true;
 
         c.level = undefined;
@@ -2053,50 +2169,51 @@ class Graph {
     });
 
     let addIcons = this.svg.select('.nodes')
-    .selectAll('.addIconGroup')
-    .data(this.addIcons, (d) => {
-      return d.uuid;
-    });
+      .selectAll('.addIconGroup')
+      .data(this.addIcons, (d) => {
+        return d.uuid;
+      });
 
-  const addIconsEnter = addIcons.enter()
-  .append('g')
-  .attr('class','addIconGroup');
+    const addIconsEnter = addIcons.enter()
+      .append('g')
+      .attr('class', 'addIconGroup');
 
-  addIconsEnter
-    .append('line')
-    .attr('class', 'addIconLine');
+    addIconsEnter
+      .append('line')
+      .attr('class', 'addIconLine');
 
-  addIconsEnter
-    .append('text')
-    .attr('class', 'addIcon')
-    .attr('alignment-baseline', 'middle');
+    addIconsEnter
+      .append('text')
+      .attr('class', 'addIcon')
+      .attr('alignment-baseline', 'middle');
 
     addIcons.exit().remove();
 
     addIcons = addIcons.merge(addIconsEnter);
 
-    addIcons.on('click',(d)=>events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': false}));
+    addIcons.on('click', (d) => events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': false }));
 
     addIcons
-    .select('.addIcon')
-    .html((d)=> {
-      return '<tspan>' + Config.icons.AddNode + '</tspan> ' + (d.graphDegree - d.degree);});
+      .select('.addIcon')
+      .html((d) => {
+        return '<tspan>' + Config.icons.AddNode + '</tspan> ' + (d.graphDegree - d.degree);
+      });
 
     addIcons
-    .select('.addIcon')
-    .attr('x', (d) => {
-      return xScale(d.xx)-5;
-    })
-    .attr('y', (d) => {
-      return yScale(d.children.reduce((acc, cValue) => { return cValue.yy > acc.yy ? cValue : acc;}).yy+.5);
-    });
+      .select('.addIcon')
+      .attr('x', (d) => {
+        return xScale(d.xx) - 5;
+      })
+      .attr('y', (d) => {
+        return yScale(d.children.reduce((acc, cValue) => { return cValue.yy > acc.yy ? cValue : acc; }).yy + .5);
+      });
 
     addIcons
-    .select('.addIconLine')
-    .attr('x1',(d)=> {return xScale(d.xx);})
-    .attr('x2',(d)=> {return xScale(d.xx);})
-    .attr('y1',(d)=> {return yScale(d.children.reduce((acc, cValue) => { return cValue.yy > acc.yy ? cValue : acc;}).yy+.3);})
-    .attr('y2',(d)=> {return yScale(d.children.reduce((acc, cValue) => { return cValue.yy > acc.yy ? cValue : acc;}).yy);})
+      .select('.addIconLine')
+      .attr('x1', (d) => { return xScale(d.xx); })
+      .attr('x2', (d) => { return xScale(d.xx); })
+      .attr('y1', (d) => { return yScale(d.children.reduce((acc, cValue) => { return cValue.yy > acc.yy ? cValue : acc; }).yy + .3); })
+      .attr('y2', (d) => { return yScale(d.children.reduce((acc, cValue) => { return cValue.yy > acc.yy ? cValue : acc; }).yy); })
 
 
     let node = this.svg.select('.nodes')
@@ -2261,6 +2378,8 @@ class Graph {
           aggregatedNodes.map((c) => {
             c.layout = layout.expanded;
             //reveal any hidden children;
+            this.hideBranch(c, false);
+
           });
 
           console.log('expanding ', aggregatedNodes)
@@ -2279,9 +2398,10 @@ class Graph {
 
           aggregatedNodes.map((c) => {
             c.layout = layout.aggregated;
+            //hide all children of the aggregated children;
+            this.hideBranch(c, true);
           });
 
-          // this.hideBranch(aggNode,true);
 
           console.log('aggregating ', aggregatedNodes)
           events.fire(FILTER_CHANGED_EVENT, {});
@@ -2324,7 +2444,7 @@ class Graph {
       })
       .on('end', (d, i) => {
 
-        console.log('resizing...')
+        // console.log('resizing...')
         // console.log(i,select('.nodes').selectAll('text').size())
         if (i >= select('.nodes').selectAll('.title').size() - 1) {
           const nodeGroupWidth = document.getElementById('nodeGroup').getBoundingClientRect().width;
@@ -2928,7 +3048,7 @@ class Graph {
 
 
   private createID(title) {
-    return title.replace(/ /g, '_').replace(/\./g, '').replace(/\?/g, '').replace(/\:/g, '').replace(/\(/g, '').replace(/\)/g, '').replace(/\'/g, '').replace(/\&/g, '').replace(/\//g, '').replace(/\,/g, '');
+    return title.replace(/ /g, '_').replace(/\./g, '').replace(/\?/g, '').replace(/\:/g, '').replace(/\(/g, '').replace(/\)/g, '').replace(/\'/g, '').replace(/\&/g, '').replace(/\!/g, '').replace(/\//g, '').replace(/\,/g, '');
   }
 
 

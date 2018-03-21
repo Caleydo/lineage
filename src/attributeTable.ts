@@ -19,6 +19,7 @@ import { curveBasis, curveLinear } from 'd3-shape';
 import * as tooltip from './toolTip';
 
 import Histogram from './Histogram';
+import BoxPlot from './BoxPlot';
 
 import { VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL, VALUE_TYPE_STRING } from 'phovea_core/src/datatype';
 
@@ -102,7 +103,7 @@ class AttributeTable {
 
 
   //store histogram objects for tableHeaders
-  private histograms: Histogram[] = [];
+  private histograms: BoxPlot[] = [];
 
   private lineFunction = line<any>()
     .x((d: any) => {
@@ -701,6 +702,7 @@ class AttributeTable {
 
       const type = vector.desc.value.type;
       const name = vector.desc.name;
+      const label = vector.desc.value.label;
 
       // console.log('data',data,'type',type,'name',name)
 
@@ -742,6 +744,7 @@ class AttributeTable {
           });
 
           col.name = name;
+          col.label = label;
           col.category = cat;
           col.allCategories = allCategories;
 
@@ -782,6 +785,7 @@ class AttributeTable {
 
         const stats = finishedPromises[5 * index + 3];
         col.name = name;
+        col.label = label;
         col.data = allRows.map((row) => {
           const colData = [];
           const people = y2personDict[row];
@@ -828,6 +832,7 @@ class AttributeTable {
         // console.log(peopleIDs);
 
         col.name = name;
+        col.label = label;
 
         // console.log('allRows',allRows);
         col.data = allRows.map((row) => {
@@ -860,6 +865,7 @@ class AttributeTable {
         });
 
         col.name = name;
+        col.label = label;
 
 
         col.data = allRows.map((row) => {
@@ -979,9 +985,9 @@ class AttributeTable {
   //function that removes spaces and periods to be used as ids and selectors. Also includes categories for categorical data.
   private deriveID(d) {
     const id = (d.type === 'categorical' ?
-      (d.name.replace(/ /g, '_').replace(/\./g, '').replace(/\:/g, '').replace(/\(/g, '').replace(/\)/g, '').replace(/\'/g, '').replace(/\&/g, '').replace(/\&/g, '').replace(/\?/g, '').replace(/\//g, '').replace(/\,/g, '') + '_'
+      (d.name.replace(/ /g, '_').replace(/\./g, '').replace(/\:/g, '').replace(/\(/g, '').replace(/\)/g, '').replace(/\'/g, '').replace(/\&/g, '').replace(/\&/g, '').replace(/\?/g, '').replace(/\!/g, '').replace(/\//g, '').replace(/\,/g, '') + '_'
         + d.category.replace(/ /g, '_').replace(/\(/g, '').replace(/\)/g, '')) :
-      (d.name.replace(/ /g, '_').replace(/\./g, '').replace(/\:/g, '').replace(/\(/g, '').replace(/\)/g, '').replace(/\'/g, '').replace(/\&/g, '').replace(/\&/g, '').replace(/\?/g, '').replace(/\//g, '').replace(/\,/g, '')));
+      (d.name.replace(/ /g, '_').replace(/\./g, '').replace(/\:/g, '').replace(/\(/g, '').replace(/\)/g, '').replace(/\'/g, '').replace(/\&/g, '').replace(/\&/g, '').replace(/\?/g, '').replace(/\!/g, '').replace(/\//g, '').replace(/\,/g, '')));
 
     return id;
   }
@@ -1000,6 +1006,7 @@ class AttributeTable {
     //Bind data to the col headers
     let headers = select('#tableHeaders').selectAll('.header')
       .data(this.colData.map((d: any, i) => {
+        // console.log('colData', d);
         return {
           'name': d.name, 'data': d, 'ind': i, 'type': d.type,
           'max': d.max, 'min': d.min, 'mean': d.mean, 'allCategories': d.allCategories, 'category': d.category, 'isSorted': d.isSorted
@@ -1052,7 +1059,7 @@ class AttributeTable {
       .select('.headerTitle')
       .text((d: any) => {
         if (d.category && d.category.toLowerCase() !== 'true' && d.category.toLowerCase() !== 'y') {
-          return d.name + ' (' + d.category + ')';
+          return Config.icons[d.label] +  ' ' + d.name + ' (' + d.category + ')';
         } else if ((d.category) || d.type === 'dataDensity') {
           return d.name;
         } else {
@@ -2398,7 +2405,7 @@ class AttributeTable {
     const dataVec = headerData.vector;
 
     if (!attributeHistogram && !dataVec.desc.arrayVec) {
-      attributeHistogram = new Histogram(element);
+      attributeHistogram = new BoxPlot(element);
       this.histograms.push(attributeHistogram);
     };
 
@@ -2985,9 +2992,11 @@ class AttributeTable {
    * @param element d3 selection of the current cell element.
    * @param cellData the data bound to the cell element being passed in.
    */
-  private renderIntCell(element, cellData) {
+  private async renderIntCell(element, cellData) {
 
     // console.log(cellData.data);
+
+    const dataVec = cellData.vector;
 
     // console.log(cellData)
     //Check for custom column width value, if none, use default
@@ -3001,17 +3010,22 @@ class AttributeTable {
       .domain([0, 1])
       .range([rowHeight * 0.3, rowHeight * 0.7]);
 
+      const minV = +min(dataVec.dataValues);
+      const maxV = +max(dataVec.dataValues);
+    
     this.xScale
-      .domain(cellData.vector.desc.value.range)
+    .domain([minV,maxV])
+      // .domain(cellData.vector.desc.value.range)
       .range([colWidth * 0.1, colWidth * 0.9])
       .clamp(true);
 
     //No of non-undefined elements in this array
     const numValues = cellData.data.filter((v) => { return v !== undefined; }).length;
+
+    
+
     // console.log(numValues);
     if (numValues === 0) {
-
-
       // console.log(cellData.name, cellData.data);
       //Add a faint cross out to indicate no data here;
       if (element.selectAll('.cross_out').size() === 0) {
@@ -3100,6 +3114,31 @@ class AttributeTable {
         }
         ;
       });
+
+      //render aggregate cells differently;
+    if (numValues>1) {
+      //Check if histogram already exists
+       let attributeHistogram = this.histograms.filter((hist) => { return hist.attrName === cellData.name; })[0];
+   
+       
+       if (!attributeHistogram) {
+         attributeHistogram = new BoxPlot(element);
+         this.histograms.push(attributeHistogram);
+       };
+   
+       // const graphView = await this.tableManager.graphTable;
+       // const attributeView = await this.tableManager.tableTable;
+       // const allCols = graphView.cols().concat(attributeView.cols());
+       // const dataVec = allCols.filter((col)=> {return col.desc.name === headerData.name;})[0];
+   
+       //For now, only render histograms for phovea table vectors
+       // if (!dataVec.desc.arrayVec) {
+         await attributeHistogram.init(cellData.name, dataVec, dataVec.desc.value.type, colWidth, rowHeight);
+       // }
+
+     // return;
+   }
+   
   }
 
   /**

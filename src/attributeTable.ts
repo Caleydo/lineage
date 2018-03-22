@@ -2913,7 +2913,7 @@ class AttributeTable {
       .on('click', (d) => {
         event.stopPropagation();
 
-        console.log(d);
+        // console.log(d);
         selectAll('.hiddenEdge')
           .attr('visibility', 'hidden');
 
@@ -2943,7 +2943,6 @@ class AttributeTable {
 
           eoi
             .attr('visibility', 'visible');
-        // console.log(cellData)
       });
 
     // element
@@ -3012,7 +3011,7 @@ class AttributeTable {
 
       const minV = +min(dataVec.dataValues);
       const maxV = +max(dataVec.dataValues);
-    
+
     this.xScale
     .domain([minV,maxV])
       // .domain(cellData.vector.desc.value.range)
@@ -3022,7 +3021,7 @@ class AttributeTable {
     //No of non-undefined elements in this array
     const numValues = cellData.data.filter((v) => { return v !== undefined; }).length;
 
-    
+
 
     // console.log(numValues);
     if (numValues === 0) {
@@ -3119,18 +3118,18 @@ class AttributeTable {
     if (numValues>1) {
       //Check if histogram already exists
        let attributeHistogram = this.histograms.filter((hist) => { return hist.attrName === cellData.name; })[0];
-   
-       
+
+
        if (!attributeHistogram) {
          attributeHistogram = new BoxPlot(element);
          this.histograms.push(attributeHistogram);
        };
-   
+
        // const graphView = await this.tableManager.graphTable;
        // const attributeView = await this.tableManager.tableTable;
        // const allCols = graphView.cols().concat(attributeView.cols());
        // const dataVec = allCols.filter((col)=> {return col.desc.name === headerData.name;})[0];
-   
+
        //For now, only render histograms for phovea table vectors
        // if (!dataVec.desc.arrayVec) {
          await attributeHistogram.init(cellData.name, dataVec, dataVec.desc.value.type, colWidth, rowHeight);
@@ -3138,7 +3137,7 @@ class AttributeTable {
 
      // return;
    }
-   
+
   }
 
   /**

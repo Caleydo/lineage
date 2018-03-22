@@ -182,6 +182,23 @@ export class App {
       select('#tooltipMenu')
       .select('svg').remove();
 
+      //clear all pathways
+      selectAll('.edge')
+      .classed('pathway', false)
+      .classed('fadeEdge',false);
+
+      select('#nodeGroup').selectAll('.title')
+      .classed('fadeNode',false);
+
+      select('#nodeGroup').selectAll('.addIcon')
+      .classed('fadeNode', false);
+
+      selectAll('.edge').classed('selectedPathway', false);
+
+      select('#nodeGroup').selectAll('.title')
+      .classed('pathwayEndpoint', false);
+
+      selectAll('.selectedPathItem').classed('selectedPathItem', false);
 
       select('.open').style('visibility','hidden');
       selectAll('.hiddenEdge').attr('visibility', 'hidden');

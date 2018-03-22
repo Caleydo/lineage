@@ -121,7 +121,7 @@ class SetSelector {
       .data([0]) // ensure there is only one search box
       .enter()
       .append('div')
-      .attr('class', 'panel-heading')
+      .attr('class', 'panel-heading');
 
     queryHeading.append('input')
       .attr('class', 'form-control')

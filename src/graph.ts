@@ -187,7 +187,7 @@ class Graph {
     events.on(GRAPH_ADJ_MATRIX_CHANGED, (evt, info) => {
       console.log(info);
       events.fire(ADJ_MATRIX_CHANGED, { 'db': info.db, 'name': info.name, 'uuid': info.id, 'remove': info.removeAdjMatrix, 'nodes': this.graph.nodes.map((n) => n.uuid) });
-    })
+    });
 
     events.on(EXPAND_CHILDREN, (evt, info) => {
 
@@ -323,8 +323,8 @@ class Graph {
     events.on(PATHWAY_SELECTED, (evt, info) => {
 
       if (info.clear || info.start) {
-        this.graph.nodes.map((n) => { n.pathway = false; n.moved = false; });
-        selectAll('.edge.visible').classed('pathway', false);
+        // this.graph.nodes.map((n) => { n.pathway = false; n.moved = false; });
+        // selectAll('.edge.visible').classed('pathway', false);
         //clear pathway info
         this.pathway.start = undefined;
         this.pathway.end = undefined;;
@@ -332,7 +332,7 @@ class Graph {
 
 
       const sNode = this.graph.nodes.filter((n) => n.uuid === info.uuid)[0];
-      const node = sNode;
+      // const node = sNode;
 
       if (info.start) {
         this.pathway.start = sNode;
@@ -467,7 +467,7 @@ class Graph {
       // //if root was an aggregateRoot, reset it.
       // if (rootAggMode !== undefined) {
       //   root.summary = {};
-      //   root.aggMode = rootAggMode; 
+      //   root.aggMode = rootAggMode;
       // };
 
       this.extractTree(undefined, undefined, undefined, true); //force re-aggregation'
@@ -577,17 +577,18 @@ class Graph {
     const graphDiv = select(selector).append('div')
       .attr('id', 'graphDiv');
 
-      graphDiv
+    graphDiv
       .append('div')
-      .style('height','185px')
-      .style('margin-left','10px')
-      .style('margin-top','10px')
+      .style('height', '185px')
+      .style('margin-left', '10px')
+      .style('margin-top', '10px')
+      .style('overflow-y', 'scroll')
       .append('div')
-      .attr('class','list-group')
-      .attr('id','pathViewer')
+      .attr('class', 'list-group')
+      .attr('id', 'pathViewer')
       .append('a')
-      .attr('href','#')
-      .attr('class','list-group-item active')
+      .attr('href', '#')
+      .attr('class', 'list-group-item active')
       .text('Shortest Path List');
 
     this.svg = select('#graphDiv')
@@ -729,7 +730,7 @@ class Graph {
 
     target.children.map((c) => {
       const link = this.graph.links.find((l) => {
-        return (l.source.uuid === target.uuid && l.target.uuid === c.uuid) || (l.source.uuid === c.uuid && l.target.uuid === target.uuid)
+        return (l.source.uuid === target.uuid && l.target.uuid === c.uuid) || (l.source.uuid === c.uuid && l.target.uuid === target.uuid);
       });
       if (link) {
         this.replaceEdge({ source: target.uuid, target: c.uuid, uuid: link.edge.data.uuid });
@@ -831,43 +832,40 @@ class Graph {
 
     const start = this.pathway.start;
     const end = this.pathway.end ? this.pathway.end : this.graph.nodes.find((f) => this.graph.root.find((ff) => ff === f.uuid));
-    
+
     let stopLevel = 100;
-  
-    const  pathwayBFSHelper = (node, targetUUID, queue,level,parent) => {
-    
-        // console.log('visiting ', node.title, node.path)
-        if (node.uuid === end.uuid) {
-          stopLevel = level; //update the max length of shortest paths to consider;
-        }
 
-        if (parent) {
-          if (!node.visited) {
-            node.path = parent.path.concat([parent.title]);
-          } else {
-            node.path = [node.path].concat([parent.path.concat([parent.title])]);
-          }
-        }
-        
-        node.visited = true;
+    const pathwayBFSHelper = (node, targetUUID, queue, level, parent) => {
 
-        const children = [];
-    
-        this.graph.links.map((l) => {
-          if (l.target.uuid === node.uuid || l.source.uuid === node.uuid) {
-            const target = l.source.uuid === node.uuid ? l.target : l.source;
-            const source = l.source.uuid === node.uuid ? l.source : l.target;
-            children.push(target);
-          }
-        });
-        
-        //don't revisit the node that you just came from
-        children.filter((cc)=> !parent || cc.uuid !== parent.uuid).map((c) => {
-            if (level < stopLevel) {
-              queue.push({node:c,level:level+1,parent:node});
-            }
-        });
-      };
+      // console.log('visiting ', node.title, node.path)
+      if (node.uuid === end.uuid) {
+        // console.log('found a path at level ', level)
+        stopLevel = level; //update the max length of shortest paths to consider;
+      }
+
+      if (parent) {
+        parent.path.map((p) => node.path.push(p.concat([node])));
+      }
+
+      node.visited = true;
+
+      const children = [];
+
+      this.graph.links.map((l) => {
+        if (l.target.uuid === node.uuid || l.source.uuid === node.uuid) {
+          const target = l.source.uuid === node.uuid ? l.target : l.source;
+          const source = l.source.uuid === node.uuid ? l.source : l.target;
+          children.push(target);
+        }
+      });
+
+      //don't revisit the node that you just came from
+      children.filter((cc) => !parent || cc.uuid !== parent.uuid).map((c) => {
+        if (level <= stopLevel) {
+          queue.push({ node: c, level: level + 1, parent: node });
+        }
+      });
+    };
 
     this.graph.nodes.map((n) => {
       n.pathway = false;
@@ -875,56 +873,200 @@ class Graph {
       n.visited = false;
     });
 
-
-    start.pathway = true;
-    const queue = [{node:start,level:0,parent:undefined}];
+    start.path = [[start]];
+    const queue = [{ node: start, level: 0, parent: undefined }];
 
     // //BFS of the tree
     while (queue.length > 0) {
       const item = queue.splice(0, 1)[0];;
-      pathwayBFSHelper(item.node, end.uuid, queue,item.level,item.parent);
+      if (item.level <= stopLevel) { //avoid iterating through the entire tree
+        pathwayBFSHelper(item.node, end.uuid, queue, item.level, item.parent);
+      }
     }
+
+
+    //filter out paths longer than the shortest path and duplicates
+    const pathIDs = [];
+    const uniquePaths = [];
+    end.path.map((p) => {
+      if (!pathIDs.find((up) => up === p.reduce((acc, cValue) => acc + cValue.uuid, ''))) {
+        pathIDs.push(p.reduce((acc, cValue) => acc + cValue.uuid, ''));
+        uniquePaths.push(p);
+      };
+    });
+
+    end.path = uniquePaths.filter((p) => p.length === stopLevel + 1);
+
+    select('#pathViewer').select('.list-group-item.active')
+      .html(end.path.length + ' Shortest path(s) from <tspan class="pathIcon"> ' + Config.icons[start.label] + '</tspan> ' + start.title + ' to ' + '<tspan class="pathIcon"> ' + Config.icons[end.label] + '</tspan> ' + end.title);
 
 
     //list the shortest paths in the pathViewer group
     let listItems = select('#pathViewer').selectAll('.listItems')
-    .data(end.path);
+      .data(end.path);
+
+    //highlight the start and end node;
+
+    select('#nodeGroup').selectAll('.title')
+      .classed('pathwayEndpoint', false);
+
+    select('#nodeGroup').selectAll('.title')
+      .filter((d: any) => { return d.uuid === start.uuid || d.uuid === end.uuid; })
+      .classed('pathwayEndpoint', true);
+
+    selectAll('.edge').classed('selectedPathway', false);
 
     const listItemsEnter = listItems.enter()
-    .append('a')
-    .attr('href','#')
-    .attr('class','list-group-item')
-    .classed('listItems',true)
+      .append('a')
+      .attr('href', '#')
+      .attr('class', 'list-group-item')
+      .classed('listItems', true);
 
     listItems.exit().remove();
 
     listItems = listItems.merge(listItemsEnter);
 
-    listItems.text((d:any)=> {return d.concat([end.title]).reduce((acc,cValue)=> acc + ' -- ' + cValue, '');});
+    listItems.html((d: any) => {
+      let sArray = d.slice(1, d.length - 1);
 
-      // //start at the end node and work your way back to the start node, marking pathway true as you go along; 
-      // let trace = true;
-      // let cNode = end;
+      sArray = sArray.length < 1 ? '' : (sArray.length < 2 ? ' &#8212 <tspan class="pathIcon">' + Config.icons[sArray[0].label] + '</tspan> ' + sArray[0].title : sArray.reduce((acc, cValue) => { return acc + ' &#8212 <tspan class="pathIcon">' + Config.icons[cValue.label] + '</tspan> ' + cValue.title; }, ''));
 
-      // while (trace === true) {
-      //   cNode.pathway = true;
-      //   cNode = cNode.pathParent;
-      //   trace = cNode === undefined ? false : true;
-      // }
+      return '<tspan class="pathIcon"> ' + Config.icons[d[0].label] + '</tspan> ' + sArray + ' &#8212 <tspan class="pathIcon"> ' + Config.icons[d[d.length - 1].label] + '</tspan>  <tspan class="linearize">' + Config.icons.Linearize + ' </tspan>';
+    });
 
-    selectAll('.edge.hidden')
+    listItems.on('click',(d:any)=> { event.stopPropagation();
+
+      listItems.classed('selectedPathItem', false);
+      listItems.filter((l: any) =>
+      l.reduce((acc, cValue) => acc + cValue.uuid, '') === d.reduce((acc, cValue) => acc + cValue.uuid, '')).classed('selectedPathItem', true);
+
+      this.highlightPathway(d);});
+
+    listItems.on('mouseout', (d: any) => {
+      selectAll('.edge').classed('pathway', false).classed('fadeEdge',false);
+      select('#nodeGroup').selectAll('.title').classed('fadeNode',false);
+      select('#nodeGroup').selectAll('.addIcon')
+      .classed('fadeNode', false);
+      selectAll('.edge.hiddenEdge')
+        .attr('visibility', 'hidden');
+    });
+
+    listItems.on('mouseover', (d: any) => {
+
+      selectAll('.edge.hiddenEdge')
       .attr('visibility', 'hidden');
 
-    this.graph.nodes.map((node) => {
-      if (node.pathway && node.pathParent) {
+      selectAll('.edge')
+      .classed('fadeEdge', true);
+
+      select('#nodeGroup').selectAll('.title')
+      .classed('fadeNode',true);
+
+      select('#nodeGroup').selectAll('.addIcon')
+      .classed('fadeNode', true);
+      // filter()
+
+      d.map((p, i) => {
+        //work in pairs
+        if (i === d.length - 1) {
+          return;
+        }
+
+
+        const startNode = p;
+        const endNode = d[i + 1];
+
+        select('#nodeGroup').selectAll('.title')
+        .filter((d:any)=>d.uuid === startNode.uuid || d.uuid === endNode.uuid)
+        .classed('fadeNode',false);
+
         selectAll('.edge').filter((e: any) => {
-          return (e.source.uuid === node.uuid && e.target.uuid === node.pathParent.uuid)
-            || (e.source.uuid === node.pathParent.uuid && e.target.uuid === node.uuid);
+          return (e.source.uuid === startNode.uuid && e.target.uuid === endNode.uuid)
+            || (e.source.uuid === endNode.uuid && e.target.uuid === startNode.uuid);
         })
+          .classed('fadeEdge',false)
           .classed('pathway', true)
           .attr('visibility', 'visible');
+      });
+    });
+
+    listItems.select('.linearize').on('click', ((d: any) => {
+
+      // // event.stopPropagation();
+
+      // listItems.classed('selectedPathItem', false);
+      // listItems.filter((l: any) => l.reduce((acc, cValue) => acc + cValue.uuid, '') === d.reduce((acc, cValue) => acc + cValue.uuid, '')).classed('selectedPathItem', true);
+
+      this.graph.nodes.map((n) => n.pathway = false);
+
+      d.map((p, i) => {
+        //work in pairs
+        if (i === d.length - 1) {
+          return;
+        }
+
+        const startNode = p;
+        const endNode = d[i + 1];
+
+        startNode.pathway = true;
+        endNode.pathway = true;
+
+        const l = this.graph.links.find((l) => (l.source.uuid === startNode.uuid && l.target.uuid === endNode.uuid)
+          || (l.source.uuid === endNode.uuid && l.target.uuid === startNode.uuid));
+
+        const source = l.source.uuid === p.uuid ? l.target : l.source;
+        const target = l.source.uuid === p.uuid ? l.source : l.target;
+
+        if (l.visible === false) {
+          this.replaceEdge({ source: source.uuid, target: target.uuid, uuid: l.edge.data.uuid });
+        };
+
+      });
+
+      this.layoutTree();
+      this.updateEdgeInfo();
+      this.exportYValues();
+      this.drawTree();
+      this.highlightPathway(d);
+    }));
+
+  }
+
+  private highlightPathway(nodeArray) {
+
+    selectAll('.edge').classed('selectedPathway', false);
+
+    nodeArray.map((p, i) => {
+      //work in pairs
+      if (i === nodeArray.length - 1) {
+        return;
+      }
+
+      const startNode = p;
+      const endNode = nodeArray[i + 1];
+
+      startNode.pathway = true;
+      endNode.pathway = true;
+
+      const l = this.graph.links.find((l) => (l.source.uuid === startNode.uuid && l.target.uuid === endNode.uuid)
+        || (l.source.uuid === endNode.uuid && l.target.uuid === startNode.uuid));
+
+      const source = l.source.uuid === p.uuid ? l.target : l.source;
+      const target = l.source.uuid === p.uuid ? l.source : l.target;
+
+      if (l.visible === false) {
+        this.replaceEdge({ source: source.uuid, target: target.uuid, uuid: l.edge.data.uuid });
       };
-    })
+
+      selectAll('.edge').filter((e: any) => {
+        return (e.source.uuid === startNode.uuid && e.target.uuid === endNode.uuid)
+          || (e.source.uuid === endNode.uuid && e.target.uuid === startNode.uuid);
+      })
+        .classed('selectedPathway', true);
+
+    });
+
+
   }
 
 
@@ -1266,10 +1408,7 @@ class Graph {
   //takes in tgree parameters:
   // roots, which graph to extract, and whether to replace any existing tree.
   extractTree(roots = undefined, graph = this.graph, replace = false, forceAggregation = false) {
-
-
-
-    if (this.graph.nodes && this.graph.nodes[0].children) {
+    if (this.graph.nodes[0] && this.graph.nodes[0].children) {
 
       const rootNode = this.graph.nodes.find((n) => this.graph.root.find((f) => f === n.uuid));
       //remove all levelMode Nodes
@@ -1333,7 +1472,7 @@ class Graph {
 
       const queue = [root];
 
-      console.log('extract root is ', root.title)
+      console.log('extract root is ', root.title);
 
       // //BFS of the tree
       while (queue.length > 0) {
@@ -1528,7 +1667,6 @@ class Graph {
     };
 
     if (!root) {
-      console.trace('shouldnt be here');
       //remove relevant edges and aggregateLabel and aggSummary nodes;
       this.graph.links = this.graph.links.filter((l) => !toRemove(l.target) && !toRemove(l.source));
       this.graph.nodes = this.graph.nodes.filter((n) => !toRemove(n));
@@ -1541,7 +1679,7 @@ class Graph {
       //remove all aggregateLabel labels (all children of level summary nodes)
       levelSummaryNodes.map((levelSummaryNode) => {
         levelSummaryNode.children.filter((c) => c.nodeType === nodeType.aggregateLabel).map((aggregateLabelNode) => {
-          console.log('clearing ', aggregateLabelNode.uuid); this.graph.nodes = this.graph.nodes.filter((n) => n.uuid !== aggregateLabelNode.uuid)
+          console.log('clearing ', aggregateLabelNode.uuid); this.graph.nodes = this.graph.nodes.filter((n) => n.uuid !== aggregateLabelNode.uuid);
         });
       });
 
@@ -1655,10 +1793,10 @@ class Graph {
             if (c.mode === mode.level && !force) {
               c.layout = c.layout; //preserve aggregated/expanded state of level mode nodes;
             } else {
-              c.layout = layout.aggregated;// for new nodes, default to aggregated state. 
+              c.layout = layout.aggregated;// for new nodes, default to aggregated state.
             }
           } else {
-            c.layout = undefined; // layout for levelSummary and aggregateLabels don't matter; 
+            c.layout = undefined; // layout for levelSummary and aggregateLabels don't matter;
           }
 
           //set all nodes to level mode (since aggregation is true here)
@@ -1734,7 +1872,7 @@ class Graph {
       // node.children = node.children.filter((n) => n.nodeType === nodeType.single);
 
       node.children.filter((n) => n.visible).map((c) => {
-        //set edges between parent and child to visible again 
+        //set edges between parent and child to visible again
 
         const link = this.graph.links.find((l) => (l.source.uuid === c.uuid && l.target.uuid === node.uuid) || (l.target.uuid === c.uuid && l.source.uuid === node.uuid));
         link.visible = true;
@@ -1763,7 +1901,7 @@ class Graph {
     // this.ypos = pathwayNodes.length >0 ? +max(pathwayNodes,(n:any)=> n.yy) : -1;
     this.ypos = -1;
 
-    // //if no roots is provided, start with the one with the highest degree: 
+    // //if no roots is provided, start with the one with the highest degree:
     // this.graph.root = this.graph.root ? this.graph.root : this.graph.nodes.reduce((a, b) => {
     //   return a.degree > b.degree ? a.uuid : b.uuid;
     // });
@@ -1788,7 +1926,7 @@ class Graph {
       root.mode = mode.tree;
       root.layout = layout.expanded;
 
-      console.log('layout root is ', root.title)
+      console.log('layout root is ', root.title);
 
       this.layoutTreeHelper(root, sortAttribute);
     }
@@ -1873,7 +2011,7 @@ class Graph {
 
     //prioritize children that are part of a pathway
     node.children
-      // .sort((a,b)=> {return a.pathway ? -1 :(b.pathway ? 1 : 0);})
+      .sort((a, b) => { return a.pathway ? -1 : (b.pathway ? 1 : 0); })
       .map((c, i) => {
         const lastNode = this.graph.nodes.filter((n: any) =>
           c.aggParent && n.visited && n.layout === layout.aggregated && n.aggParent === c.aggParent);
@@ -2213,7 +2351,7 @@ class Graph {
       .attr('x1', (d) => { return xScale(d.xx); })
       .attr('x2', (d) => { return xScale(d.xx); })
       .attr('y1', (d) => { return yScale(d.children.reduce((acc, cValue) => { return cValue.yy > acc.yy ? cValue : acc; }).yy + .3); })
-      .attr('y2', (d) => { return yScale(d.children.reduce((acc, cValue) => { return cValue.yy > acc.yy ? cValue : acc; }).yy); })
+      .attr('y2', (d) => { return yScale(d.children.reduce((acc, cValue) => { return cValue.yy > acc.yy ? cValue : acc; }).yy); });
 
 
     let node = this.svg.select('.nodes')
@@ -2308,7 +2446,7 @@ class Graph {
 
     aggregateLabels
       .select('.expand')
-      .text(this.expandIcon)
+      .text(this.expandIcon);
     //   (d) => {
     //   return d.children.filter((c) => c.visible).length > 0 ? Config.icons.arrowDown + ' ' : Config.icons.arrowRight + '  ' + Config.icons[d.label]
     // });;
@@ -2339,7 +2477,7 @@ class Graph {
         if (d.children.length < 1 && d.graphDegree === d.degree) {
           return 'white';
         }
-      })
+      });
 
     regularNodes
       .select('.type')
@@ -2382,7 +2520,7 @@ class Graph {
 
           });
 
-          console.log('expanding ', aggregatedNodes)
+          console.log('expanding ', aggregatedNodes);
 
           // this.hideBranch(aggNode,false);
           events.fire(FILTER_CHANGED_EVENT, {});
@@ -2403,7 +2541,7 @@ class Graph {
           });
 
 
-          console.log('aggregating ', aggregatedNodes)
+          console.log('aggregating ', aggregatedNodes);
           events.fire(FILTER_CHANGED_EVENT, {});
         }
 
@@ -2623,7 +2761,7 @@ class Graph {
     // this.simulation.alphaTarget(0);
   }
 
-  //function that determines the icon for expansion that should be shown 
+  //function that determines the icon for expansion that should be shown
   private expandIcon(node) {
     if (node.children.length < 1 && node.graphDegree === node.degree) {
       return Config.icons.smallCircle + ' ';
@@ -2634,7 +2772,7 @@ class Graph {
 
   }
 
-  //function that determines if the icon is arrowRight, arrowDown, or noArrow 
+  //function that determines if the icon is arrowRight, arrowDown, or noArrow
   private whichExpandIcon(node) {
     if (node.children.length < 1 && node.graphDegree === node.degree) {
       return 'noArrow';
@@ -2962,20 +3100,6 @@ class Graph {
             return dd.source.title === d.title || dd.target.title === d.title;
           });
 
-          // element.attr('clip-path', (dd: any) => {
-          //   const st = this.createID(dd.source.title);
-          //   const tt = this.createID(dd.target.title);
-          //   return 'url(#' + st + '_' + tt + ')';
-          // });
-
-          // element.attr('mask', (dd: any) => {
-          //   const st = this.createID(this.graph.nodes[dd.source].title);
-          //   const tt = this.createID(this.graph.nodes[dd.target].title);
-          // const st = this.createID(dd.source.title);
-          // const tt = this.createID(dd.target.title);
-
-          //   return 'url(#m_' + st + '_' + tt + ')';
-          // });
           this.clearHighlights();
           // selectAll('tspan.menu').remove();
         }
@@ -3038,12 +3162,34 @@ class Graph {
       select('.' + className).attr('opacity', .2);
     }
 
+    // console.log(d);
+    const eoi = selectAll('.hiddenEdge').filter((e: any) => {
+      return (d.id === e.source.uuid || d.id === e.target.uuid);
+    });
+
+    // console.log('eoi size', eoi.size())
+
+          //only highlight connected nodes
+          eoi.each((element:any) => {
+            select('.nodes')
+            .selectAll('.title')
+            .filter((t: any) => {
+              return (t.uuid === element.source.uuid || t.uuid === element.target.uuid);
+            })
+            .style('opacity',1);
+          });
+
+          eoi
+            .attr('visibility', 'visible');
+
+
   }
 
   private clearHighlights() {
     // selectAll('.aggregateLabel').attr('visibility', 'hidden');
     selectAll('.highlightBar').attr('opacity', 0);
     selectAll('.starRect').attr('opacity', 0);
+    selectAll('.hiddenEdge').attr('visibility', 'hidden');
   }
 
 

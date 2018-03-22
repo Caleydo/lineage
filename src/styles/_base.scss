@@ -26,6 +26,10 @@ body, html {
   margin-right:15px;
 }
 
+.pathIcon{
+  font-family:FontAwesome;
+}
+
 .quant{
   fill:white;
 }
@@ -262,6 +266,7 @@ td .addNode{
 }
 
 .hiddenEdge{
+  // visibility:hidden;
   stroke: #e0dfdf;
   // stroke: url(#mainGradient);
   stroke-width: 2;
@@ -506,19 +511,59 @@ ul.nav.navbar-nav{
     background-color: #d9d9d9 !important;
 }
 
+.linearize{
+  float:right;
+  font-family: FontAwesome;
+}
+
+.fadeEdge{
+  opacity:.2;
+  stroke: rgb(134, 134, 134) !important;
+}
+
+.fadeNode{
+  opacity:.2 !important;
+}
+
 .pathway{
-  stroke: #d69502;
-  stroke-width: 3px;
+  stroke: #ffc800; //#d69502;
+  stroke-width: 2px;
   stroke-dasharray: 0px;
+  opacity:.8;
+  visibility: visible !important;
+}
+
+.selectedPathItem{
+  stroke: #ff8d00; //#d69502;
+  border-color:#ff8d0059 !important;
+  border-width: 3px;
+  stroke-dasharray: 0px;
+  visibility: visible !important;
+  // opacity:.8;
+}
+
+.selectedPathway{
+  stroke: #ff8d00; //#d69502;
+  background-color:#ff8d0059 !important;
+  stroke-width: 2px;
+  stroke-dasharray: 0px;
+  visibility: visible !important;
+  // opacity:.8;
+}
+
+.pathwayEndpoint, .pathwayEndpoint .icon.type{
+  stroke-width:1px;
+  stroke:black; 
+  fill:black !important;
 }
 
 .list-group-item{
-  padding:8px 10px !important;
+  padding:5px 10px !important;
 }
 
-.list-group-item.active{
-  background-color: #6894a9;
-  border-color:#6894a9;
+.list-group-item.active, .list-group-item.active:hover {
+  background-color: #8d8e8e;
+  border-color:#8d8e8e;
 }
 
 // #treeDiv{

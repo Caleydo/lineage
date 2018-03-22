@@ -51,6 +51,8 @@ export class Config {
       Search:'\uf002',
       Query:'\uf1e0',
 
+      Linearize:'\uf03a',
+
       Plus:'\uf067',
       Menu:'\uf141',
 

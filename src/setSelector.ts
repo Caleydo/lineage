@@ -79,6 +79,18 @@ class SetSelector {
       .attr('class', 'open')
       .style('visibility', 'hidden');
 
+      const pathViewer = select('#pathViewerDiv')
+      .append('g')
+      .attr('id', 'pathViewer')
+      // .style('transform', 'translate(300px,0px)')
+      .style('visibility', 'hidden')
+      .attr('class', 'list-group')
+      .append('a')
+      .attr('href', '#')
+      .attr('class', 'list-group-item active')
+      .text('Shortest Path List');
+
+
     const menuList = dropdownMenu.append('ul').attr('class', 'dropdown-menu');
 
     menuList.append('tspan').attr('class', 'dropdown-header')

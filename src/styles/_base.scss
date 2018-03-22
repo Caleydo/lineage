@@ -117,8 +117,13 @@ td .addNode{
   opacity:.4;
   position: absolute;
 }
-.open{
+.open, #pathViewer{
   position:absolute;
+}
+
+#pathViewer{
+  height:calc(100vh - 100px);
+  overflow-y: scroll;
 }
 
 .dropdown-item.demoAttr{
@@ -360,6 +365,12 @@ p {
 #col1{
   width:250px;
   transition: all 400ms ease;
+}
+
+#pathViewer{
+  width:250px;
+  height:calc(100vh - 100px);
+  background-color: #ffffffc2;
 }
 
 #col1-expanded{

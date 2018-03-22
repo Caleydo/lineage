@@ -349,6 +349,9 @@ class Graph {
       this.exportYValues();
       this.drawTree();
 
+      select('#pathViewer')
+      .style('visibility','visible');
+
     });
 
     events.on(TREE_PRESERVING_SORTING, (evt, info) => {
@@ -574,29 +577,55 @@ class Graph {
     // select(selector).append('div')
     //   .attr('id', 'graphHeaders');
 
+    //create pathViewer div
+    // const pathViewer = select(selector)
+    //   .append('div')
+    //   .append('g')
+    //   .attr('id', 'pathViewer')
+    //   .style('visibility', 'visible')
+    //   .attr('class', 'list-group')
+    //   .append('a')
+    //   .attr('href', '#')
+    //   .attr('class', 'list-group-item active')
+    //   .text('Shortest Path List');
+
+
+    //     .append('div')
+    // .style('height', '185px')
+    // .style('margin-left', '10px')
+    // .style('margin-top', '10px')
+    // .style('overflow-y', 'scroll')
+    // .append('div')
+    // .attr('class', 'list-group')
+    // .attr('id', 'pathViewer')
+    // .append('a')
+    // .attr('href', '#')
+    // .attr('class', 'list-group-item active')
+    // .text('Shortest Path List');
+
     const graphDiv = select(selector).append('div')
       .attr('id', 'graphDiv');
 
-    graphDiv
-      .append('div')
-      .style('height', '185px')
-      .style('margin-left', '10px')
-      .style('margin-top', '10px')
-      .style('overflow-y', 'scroll')
-      .append('div')
-      .attr('class', 'list-group')
-      .attr('id', 'pathViewer')
-      .append('a')
-      .attr('href', '#')
-      .attr('class', 'list-group-item active')
-      .text('Shortest Path List');
+    // graphDiv
+    // .append('div')
+    // .style('height', '185px')
+    // .style('margin-left', '10px')
+    // .style('margin-top', '10px')
+    // .style('overflow-y', 'scroll')
+    // .append('div')
+    // .attr('class', 'list-group')
+    // .attr('id', 'pathViewer')
+    // .append('a')
+    // .attr('href', '#')
+    // .attr('class', 'list-group-item active')
+    // .text('Shortest Path List');
 
     this.svg = select('#graphDiv')
       .append('svg')
       .attr('width', this.width)
       .attr('height', this.height)
       .attr('id', 'graph')
-      // .style('margin-top',195)
+      .style('margin-top', 195)
       .append('g')
       .attr('id', 'genealogyTree')
       .attr('transform', 'translate(' + this.margin.left + ',' + (Config.glyphSize + this.margin.top) + ')');
@@ -934,19 +963,21 @@ class Graph {
       return '<tspan class="pathIcon"> ' + Config.icons[d[0].label] + '</tspan> ' + sArray + ' &#8212 <tspan class="pathIcon"> ' + Config.icons[d[d.length - 1].label] + '</tspan>  <tspan class="linearize">' + Config.icons.Linearize + ' </tspan>';
     });
 
-    listItems.on('click',(d:any)=> { event.stopPropagation();
+    listItems.on('click', (d: any) => {
+      event.stopPropagation();
 
       listItems.classed('selectedPathItem', false);
       listItems.filter((l: any) =>
-      l.reduce((acc, cValue) => acc + cValue.uuid, '') === d.reduce((acc, cValue) => acc + cValue.uuid, '')).classed('selectedPathItem', true);
+        l.reduce((acc, cValue) => acc + cValue.uuid, '') === d.reduce((acc, cValue) => acc + cValue.uuid, '')).classed('selectedPathItem', true);
 
-      this.highlightPathway(d);});
+      this.highlightPathway(d);
+    });
 
     listItems.on('mouseout', (d: any) => {
-      selectAll('.edge').classed('pathway', false).classed('fadeEdge',false);
-      select('#nodeGroup').selectAll('.title').classed('fadeNode',false);
+      selectAll('.edge').classed('pathway', false).classed('fadeEdge', false);
+      select('#nodeGroup').selectAll('.title').classed('fadeNode', false);
       select('#nodeGroup').selectAll('.addIcon')
-      .classed('fadeNode', false);
+        .classed('fadeNode', false);
       selectAll('.edge.hiddenEdge')
         .attr('visibility', 'hidden');
     });
@@ -954,16 +985,16 @@ class Graph {
     listItems.on('mouseover', (d: any) => {
 
       selectAll('.edge.hiddenEdge')
-      .attr('visibility', 'hidden');
+        .attr('visibility', 'hidden');
 
       selectAll('.edge')
-      .classed('fadeEdge', true);
+        .classed('fadeEdge', true);
 
       select('#nodeGroup').selectAll('.title')
-      .classed('fadeNode',true);
+        .classed('fadeNode', true);
 
       select('#nodeGroup').selectAll('.addIcon')
-      .classed('fadeNode', true);
+        .classed('fadeNode', true);
       // filter()
 
       d.map((p, i) => {
@@ -977,14 +1008,14 @@ class Graph {
         const endNode = d[i + 1];
 
         select('#nodeGroup').selectAll('.title')
-        .filter((d:any)=>d.uuid === startNode.uuid || d.uuid === endNode.uuid)
-        .classed('fadeNode',false);
+          .filter((d: any) => d.uuid === startNode.uuid || d.uuid === endNode.uuid)
+          .classed('fadeNode', false);
 
         selectAll('.edge').filter((e: any) => {
           return (e.source.uuid === startNode.uuid && e.target.uuid === endNode.uuid)
             || (e.source.uuid === endNode.uuid && e.target.uuid === startNode.uuid);
         })
-          .classed('fadeEdge',false)
+          .classed('fadeEdge', false)
           .classed('pathway', true)
           .attr('visibility', 'visible');
       });
@@ -1415,16 +1446,6 @@ class Graph {
       this.clearLevelModeNodes(rootNode, forceAggregation);
     }
 
-    //if none of the roots are in the graph, pick node with the largest degree as the root;
-    if (!this.graph.nodes.find((n) => this.graph.root.find((r) => r === n.uuid))) {
-      this.updateEdgeInfo(); //calculates the degree of each node in the tree
-      graph.root = [this.graph.nodes.reduce((a, b) => a.degree > b.degree ? a : b, []).uuid]; //picks the largest one as the root.
-    }
-
-    //create an array with all root nodes in the graph
-    roots = roots ? roots : graph.nodes.filter((n) => { return graph.root.find((r) => r === n.uuid); });
-
-
     //Filter out all nodes to be excluded
     const excluded = this.exclude;
 
@@ -1439,6 +1460,18 @@ class Graph {
       n.mode = n.mode !== undefined ? n.mode : mode.tree; //preserve original 'mode' if there was one
       n.nodeType = nodeType.single;
     });
+
+    //if none of the roots are in the graph, pick node with the largest degree as the root;
+    if (!this.graph.nodes.find((n) => this.graph.root.find((r) => r === n.uuid))) {
+      this.updateEdgeInfo(); //calculates the degree of each node in the tree
+      graph.root = [this.graph.nodes.reduce((a, b) => a.degree > b.degree ? a : b, []).uuid]; //picks the largest one as the root.
+      console.log('derived root is ', this.graph.nodes.reduce((a, b) => a.degree > b.degree ? a : b, []));
+    }
+
+    //create an array with all root nodes in the graph
+    roots = roots ? roots : graph.nodes.filter((n) => { return graph.root.find((r) => r === n.uuid); });
+
+
 
 
 
@@ -1503,15 +1536,11 @@ class Graph {
       };
     });
     //Populate dictionary
-
     //Find all edges that start or end on that node (only looks at edges between visible nodes)
-    this.graph.links.filter((l) => l.target.nodeType === nodeType.single && l.source.nodeType === nodeType.single && !l.target.hidden && !l.source.hidden).map((l) => {
+    this.graph.links.filter((l) => l.target.nodeType === nodeType.single && l.source.nodeType === nodeType.single && !l.target.hidden && !l.source.hidden).map((l, i) => {
 
       const targetNode = l.target;
       const sourceNode = l.source;
-
-      // set visibility back to original
-      // l.visible = l.inTree === undefined ? l.visible : l.inTree;
 
       // Set all edges that connect level-mode to non levelSummary nodes to hidden
       if ((targetNode.mode === mode.level && targetNode.nodeType !== nodeType.levelSummary)
@@ -1548,7 +1577,6 @@ class Graph {
         targetDictEntry.hidden = targetDictEntry.hidden + 1;
         sourceDictEntry.hidden = sourceDictEntry.hidden + 1;
       }
-
 
     });
 
@@ -1938,15 +1966,11 @@ class Graph {
       return;
     }
 
-
-
     node.visited = true;
 
     if (node.visible === false) {
       return;
     }
-
-
 
     //yValues for aggregated and level Summaries (aggSummary) are done in exportYValues
     if (node.layout !== layout.aggregated && node.nodeType !== nodeType.levelSummary) {
@@ -1976,6 +2000,15 @@ class Graph {
 
         // console.log(a.value,b.value);
 
+        //prioritize children that are part of a pathway
+        if (a.pathway === true) {
+          return -1;
+        };
+
+        if (b.pathway === true) {
+          return 1;
+        };
+
         if (sortOrder === sortedState.Ascending) {
           if (b.value === undefined || a.value < b.value) { return -1; }
           if (a.value === undefined || a.value > b.value) { return 1; }
@@ -2004,6 +2037,15 @@ class Graph {
     } else {
       //default sorting is alphabetical
       node.children.sort((a, b) => {
+        //prioritize children that are part of a pathway
+        if (a.pathway === true) {
+          return -1;
+        };
+
+        if (b.pathway === true) {
+          return 1;
+        };
+
         return a.title < b.title ? -1 : (a.title === b.title ? (a.uuid < b.uuid ? -1 : 1) : 1);
       });
     }
@@ -2011,7 +2053,7 @@ class Graph {
 
     //prioritize children that are part of a pathway
     node.children
-      .sort((a, b) => { return a.pathway ? -1 : (b.pathway ? 1 : 0); })
+      // .sort((a, b) => { return a.pathway ? -1 : (b.pathway ? 1 : 0); })
       .map((c, i) => {
         const lastNode = this.graph.nodes.filter((n: any) =>
           c.aggParent && n.visited && n.layout === layout.aggregated && n.aggParent === c.aggParent);
@@ -3169,18 +3211,18 @@ class Graph {
 
     // console.log('eoi size', eoi.size())
 
-          //only highlight connected nodes
-          eoi.each((element:any) => {
-            select('.nodes')
-            .selectAll('.title')
-            .filter((t: any) => {
-              return (t.uuid === element.source.uuid || t.uuid === element.target.uuid);
-            })
-            .style('opacity',1);
-          });
+    //only highlight connected nodes
+    eoi.each((element: any) => {
+      select('.nodes')
+        .selectAll('.title')
+        .filter((t: any) => {
+          return (t.uuid === element.source.uuid || t.uuid === element.target.uuid);
+        })
+        .style('opacity', 1);
+    });
 
-          eoi
-            .attr('visibility', 'visible');
+    eoi
+      .attr('visibility', 'visible');
 
 
   }

@@ -96,38 +96,38 @@ export default class BoxPlot {
       console.log(this.boxQuartiles(dataVec.dataValues.sort((a,b)=> a> b ? 1: -1)));
 
         const currentHist = this.node;
-      
+
           if (currentHist.select('.elementGroup').size() === 0) {
-      
+
             const element = currentHist.append('g')
               .classed('elementGroup',true);
-      
+
             element.append('text').classed('maxValue', true);
-      
+
             //Axis Group
             element.append('g')
               .attr('class', 'axis axis--x')
               .classed('hist_xscale', true)
-              .attr('id','histAxis')
+              .attr('id','histAxis');
               // .attr('transform', 'translate(0,' + this.height/3 + ')');
-      
+
            element.append('g')
               .attr('class','barContainer');
-      
+
           }
-      
+
           this.node.select('#histAxis')
           .call(axisTop(xScale)
           .tickSize(5)
           .tickValues(this.boxQuartiles(dataVec.dataValues.sort((a,b)=> a> b ? 1: -1)))
           .tickFormat(format('.0f')));
 
-          this.node.select('#histAxis').selectAll("text")
+          this.node.select('#histAxis').selectAll('text')
           // .attr('dy', '0em')
           // .attr('dx','.2em')
           .attr('transform', 'rotate(90)');
-      
-      
+
+
            //Position tick labels to be 'inside' the axis bounds. avoid overlap
           this.node.select('.hist_xscale').selectAll('.tick').each(function (cell) {
             const xtranslate = +select(this).attr('transform').split('translate(')[1].split(',')[0];
@@ -137,32 +137,32 @@ export default class BoxPlot {
             //   select(this).select('text').style('text-anchor', 'end');
             // }
           });
-      
+
           // const totalLabel = (data[data.length - 1]).acc + (data[data.length - 1]).v;
           // this.node.select('.maxValue')
           //   .text('Total:' + total)
-      
+
           //   .attr('x', this.width / 2)
           //   .attr('y', -this.height * 0.08)
           //   .attr('text-anchor', 'middle');
-      
+
           // let bars = currentHist
           //   .select('.barContainer')
           //   .selectAll('.numBar')
           //   .data(data);
-      
-      
+
+
           // const barsEnter = bars
           //   .enter()
           //   .append('rect')
           //   .classed('numBar', true)
           //   .classed('bar', true)
           //   .attr('fill','#5f6262');
-      
+
           // bars = barsEnter.merge(bars);
-      
+
           // bars.exit().remove();
-      
+
           // bars
           //   .attr('width', binWidth * 0.8)
           //   .attr('height', (d) => {
@@ -472,7 +472,7 @@ export default class BoxPlot {
    */
   private async renderNumHistogram(dataVec) {
 
-    console.log('here')
+    console.log('here');
     const histData = await dataVec.hist(10);
     const range = [0, this.width];
 

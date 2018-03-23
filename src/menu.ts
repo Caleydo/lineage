@@ -51,37 +51,37 @@ class Menu {
     return Promise.resolve(this);
   }
 
-  private clearMenus(){
+  private clearMenus() {
     //remove any menus
     select('#treeMenu').select('.menu').remove();
-    
+
           //set all nodes back to opacity 1
           select('.nodes')
           .selectAll('.title')
           .style('opacity',1);
-    
+
           //remove any tooltips
           select('#tooltipMenu')
           .select('svg').remove();
-    
+
           //clear all pathways
           selectAll('.edge')
           .classed('pathway', false)
           .classed('fadeEdge',false);
-    
+
           select('#nodeGroup').selectAll('.title')
           .classed('fadeNode',false);
-    
+
           select('#nodeGroup').selectAll('.addIcon')
           .classed('fadeNode', false);
-    
+
           selectAll('.edge').classed('selectedPathway', false);
-    
+
           select('#nodeGroup').selectAll('.title')
           .classed('pathwayEndpoint', false);
-    
+
           selectAll('.selectedPathItem').classed('selectedPathItem', false);
-    
+
           select('.open').style('visibility','hidden');
           selectAll('.hiddenEdge').attr('visibility', 'hidden');
 

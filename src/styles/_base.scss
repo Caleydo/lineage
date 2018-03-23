@@ -125,7 +125,7 @@ td .addNode{
   cursor:default;
 }
 
-.title .icon.expand{
+.title .icon.expand, .title .icon.aggIcon {
   pointer-events: all;
 }
 
@@ -190,7 +190,7 @@ td .addNode{
 }
 
 .aggIcon{
-  font-size: 12px;
+  font-size: 10px !important;
 }
 
 .arrowIcon{
@@ -324,7 +324,7 @@ td .addNode{
   alignment-baseline:central;
   // text-anchor: middle;
   fill:#7a7877;
-  font-weight: bold;
+  // font-weight: bold;
   font-size:15px;
 }
 

@@ -186,7 +186,7 @@ class Graph {
 
     events.on(GRAPH_ADJ_MATRIX_CHANGED, (evt, info) => {
       console.log(info);
-      events.fire(ADJ_MATRIX_CHANGED, { 'db': info.db, 'name': info.name, 'uuid': info.id, 'remove': info.removeAdjMatrix, 'nodes': this.graph.nodes.map((n) => n.uuid) });
+      events.fire(ADJ_MATRIX_CHANGED, { 'db': info.db, 'name': info.name, 'uuid': info.id, 'remove': info.removeAdjMatrix, 'nodes': this.graph.nodes.filter((n)=>n.visible && n.nodeType === nodeType.single).map((n) => n.uuid) });
     });
 
     events.on(EXPAND_CHILDREN, (evt, info) => {
@@ -1519,7 +1519,7 @@ class Graph {
 
       const queue = [root];
 
-      console.log('extract root is ', root.title);
+      // console.log('extract root is ', root.title);
 
       // //BFS of the tree
       while (queue.length > 0) {
@@ -1968,7 +1968,7 @@ class Graph {
       root.mode = mode.tree;
       root.layout = layout.expanded;
 
-      console.log('layout root is ', root.title);
+      // console.log('layout root is ', root.title);
 
       this.layoutTreeHelper(root, sortAttribute);
     }
@@ -2244,16 +2244,16 @@ class Graph {
           return Config.icons.AggregateIcon;
         };
         return '';
-      })
-      .style('fill', (d) => (d.children.find((c) => c.nodeType === nodeType.levelSummary) ? '#7b94a9' : '#bcb9b9'))
-      .on('click', (d) => {
-        const unaggregate = (d.children.find((c) => c.nodeType === nodeType.levelSummary));
-        if (unaggregate) {
-          events.fire(AGGREGATE_CHILDREN, { 'uuid': d.uuid, 'aggregate': false });
-        } else {
-          events.fire(AGGREGATE_CHILDREN, { 'uuid': d.uuid, 'aggregate': true });
-        }
       });
+      // .style('fill', (d) => (d.children.find((c) => c.nodeType === nodeType.levelSummary) ? '#7b94a9' : '#bcb9b9'))
+      // .on('click', (d) => {
+      //   const unaggregate = (d.children.find((c) => c.nodeType === nodeType.levelSummary));
+      //   if (unaggregate) {
+      //     events.fire(AGGREGATE_CHILDREN, { 'uuid': d.uuid, 'aggregate': false });
+      //   } else {
+      //     events.fire(AGGREGATE_CHILDREN, { 'uuid': d.uuid, 'aggregate': true });
+      //   }
+      // });
 
 
 
@@ -2430,6 +2430,9 @@ class Graph {
         return xScale(d.xx) - 5;
       })
       .attr('y', (d) => {
+        if (d.children.find((c)=>c.nodeType === nodeType.levelSummary)) {
+          return yScale(d.children.find((c)=>c.nodeType === nodeType.levelSummary).yy + .5);
+        }
         return yScale(d.children.reduce((acc, cValue) => { return cValue.yy > acc.yy ? cValue : acc; }).yy + .5);
       });
 
@@ -2437,8 +2440,17 @@ class Graph {
       .select('.addIconLine')
       .attr('x1', (d) => { return xScale(d.xx); })
       .attr('x2', (d) => { return xScale(d.xx); })
-      .attr('y1', (d) => { return yScale(d.children.reduce((acc, cValue) => { return cValue.yy > acc.yy ? cValue : acc; }).yy + .3); })
-      .attr('y2', (d) => { return yScale(d.children.reduce((acc, cValue) => { return cValue.yy > acc.yy ? cValue : acc; }).yy); });
+      .attr('y1', (d) => {
+        if (d.children.find((c)=>c.nodeType === nodeType.levelSummary)) {
+          return yScale(d.children.find((c)=>c.nodeType === nodeType.levelSummary).yy + .3);
+        }
+        return yScale(d.children.reduce((acc, cValue) => { return cValue.yy > acc.yy ? cValue : acc; }).yy + .3);})
+      .attr('y2', (d) => {
+        if (d.children.find((c)=>c.nodeType === nodeType.levelSummary)) {
+          return yScale(d.children.find((c)=>c.nodeType === nodeType.levelSummary).yy);
+        }
+        return yScale(d.children.reduce((acc, cValue) => { return cValue.yy > acc.yy ? cValue : acc; }).yy);
+      });
 
 
     let node = this.svg.select('.nodes')
@@ -2482,6 +2494,10 @@ class Graph {
 
     nodesEnter
       .append('tspan')
+      .attr('class', 'icon aggIcon');
+
+    nodesEnter
+      .append('tspan')
       .attr('class', 'icon type');
 
     nodesEnter
@@ -2515,6 +2531,11 @@ class Graph {
       .select('.expand')
       .text(' ');
 
+      regularNodes
+      .select('.aggIcon')
+      .text(' ');
+
+
     aggregatedNodes
       .select('.type')
       .text(Config.icons.aggregateIcon);
@@ -2522,6 +2543,8 @@ class Graph {
     aggregatedNodes
       .select('.expand')
       .text(' ');
+
+
 
     aggregatedNodes
       .select('.titleContent')
@@ -2543,9 +2566,45 @@ class Graph {
       .text((d) => this.whichExpandIcon(d) === 'arrowDown' ? d.label + 's' : '  ');
 
 
+      aggregateLabels
+      .select('.aggIcon')
+      .text(' ');
+      // .on('click', (d:any) => {
+      //   const unaggregate = (d.children.find((c) => c.nodeType === nodeType.levelSummary));
+      //   console.log(d,unaggregate);
+      //   if (unaggregate) {
+      //     events.fire(AGGREGATE_CHILDREN, { 'uuid': d.uuid, 'aggregate': false });
+      //   } else {
+      //     events.fire(AGGREGATE_CHILDREN, { 'uuid': d.uuid, 'aggregate': true });
+      //   }
+      // });
+
+
+      selectAll('.aggIcon')
+      .style('fill', (d:any) => (d.children.find((c) => c.nodeType === nodeType.levelSummary) ? '#7b94a9' : '#bcb9b9'))
+      .on('click', (d:any) => {
+        const unaggregate = (d.children.find((c) => c.nodeType === nodeType.levelSummary));
+        console.log(d,unaggregate);
+        if (unaggregate) {
+          events.fire(AGGREGATE_CHILDREN, { 'uuid': d.uuid, 'aggregate': false });
+        } else {
+          events.fire(AGGREGATE_CHILDREN, { 'uuid': d.uuid, 'aggregate': true });
+        }
+      });
+
+
     // aggregateLabels
     //   .select('.titleContent')
     //   .text((d) => d.title);
+
+    semiAggregatedNodes
+    .select('.aggIcon')
+    .text((d: any) => {
+      if (this.whichExpandIcon(d) === 'arrowDown') {
+        return Config.icons.AggregateIcon + ' ' ;
+      };
+      return '  ';
+    });
 
     semiAggregatedNodes
       .select('.expand')
@@ -3515,7 +3574,7 @@ class Graph {
     //Create hashmap of personID to y value;
     const dict = {};
 
-    this.graph.nodes.filter((n) => n.visible).forEach((node) => {
+    this.graph.nodes.filter((n) => n.visible && n.nodeType === nodeType.single).forEach((node) => {
       if ((node.uuid) in dict) {
         dict[node.uuid].push(Math.round(node.yy));
       } else {

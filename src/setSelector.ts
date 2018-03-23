@@ -290,20 +290,20 @@ class SetSelector {
             events.fire(ATTR_COL_ADDED, { 'db': this.selectedDB, 'name': d, 'remove': removeAttr });
           });
       });
- 
+
           //creat an accordion div and a table for each label
           let panels = select('#col1').select('#pathViewerAccordion')
             .selectAll('.panel-default')
             .data([{name:'Shortest Path'}]);
-      
+
           panels.exit().remove();
-      
+
           const panelsEnter = panels.enter();
-      
+
           const panelDefault = panelsEnter
             .append('div')
             .attr('class', 'panel panel-default');
-      
+
           panelDefault
             .append('div')
             .attr('class', 'panel-heading')
@@ -313,8 +313,8 @@ class SetSelector {
             .attr('data-toggle', 'collapse')
             .attr('data-parent', '#pathViewerAccordion')
             .attr('href', (d, i) => { return '#sp_' + i; });
-      
-      
+
+
           const pDefault = panelDefault
             .append('div')
             .attr('id', (d, i) => { return 'sp_' + i; })
@@ -322,23 +322,23 @@ class SetSelector {
             .classed('in', (d, i) => { return i < 1; })
             .append('div')
             .attr('class', 'panel-body');
-      
+
 
           const tbody = pDefault
             .append('div')
             .attr('id', 'tableBody')
             .append('table')
             .attr('class', 'table');
-      
+
           tbody.append('tbody');
-      
-      
+
+
           panels = panels.merge(panelsEnter);
-      
+
           select('#pathViewerAccordion')
             .selectAll('a')
             .text((d: any) => d.name);
-      
+
         select('#pathViewerAccordion').selectAll('.panel-body')
             .attr('id', (d: any) => { return d.name + '_body'; });
 

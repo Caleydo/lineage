@@ -186,7 +186,7 @@ class Graph {
 
     events.on(GRAPH_ADJ_MATRIX_CHANGED, (evt, info) => {
       console.log(info);
-      events.fire(ADJ_MATRIX_CHANGED, { 'db': info.db, 'name': info.name, 'uuid': info.id, 'remove': info.removeAdjMatrix, 'nodes': this.graph.nodes.filter((n)=>n.visible && n.nodeType === nodeType.single).map((n) => n.uuid) });
+      events.fire(ADJ_MATRIX_CHANGED, { 'db': info.db, 'name': info.name, 'uuid': info.id, 'remove': info.removeAdjMatrix, 'nodes': this.graph.nodes.filter((n) => n.visible && n.nodeType === nodeType.single).map((n) => n.uuid) });
     });
 
     events.on(EXPAND_CHILDREN, (evt, info) => {
@@ -1998,23 +1998,14 @@ class Graph {
       const ids = sortAttribute.ids;
       const sortOrder = sortAttribute.sortOrder;
 
+      // console.log(ids, data);
+
+      // console.table(data.map((d,i)=> {return {id:ids[i],data:d};}))
+      // console.table(node.children.map((c,i)=> {return {id:c.uuid,title:c.title};}))
+
       node.children.sort((a, b) => {
-        const aloc = ids.findIndex((id) => { return id.find((i) => { return i === a.uuid; }); });
-        const bloc = ids.findIndex((id) => { return id.find((i) => { return i === b.uuid; }); });
 
-        a.value = data[aloc];
-        b.value = data[bloc];
-
-        if (typeof a.value === 'number') {
-          a.value = +a.value;
-        }
-        if (typeof b.value === 'number') {
-          b.value = +b.value;
-        }
-
-        // console.log(a.value,b.value);
-
-        //prioritize children that are part of a pathway
+        //prioritize children that are part of a pathway or are level Summary Nodes
         if (this.pathway.start && a.pathway === true) {
           return -1;
         };
@@ -2022,6 +2013,69 @@ class Graph {
         if (this.pathway.start && b.pathway === true) {
           return 1;
         };
+
+        if (a.nodeType === nodeType.levelSummary) {
+          return -1;
+        }
+
+        if (b.nodeType === nodeType.levelSummary) {
+          return 1;
+        }
+
+        const aloc = ids.findIndex((id) => { return id.find((i) => { return i === a.uuid; }); });
+        const bloc = ids.findIndex((id) => { return id.find((i) => { return i === b.uuid; }); });
+
+        let aValues, bValues;
+
+        if (aloc > -1) { //this is a single node
+          aValues = data[aloc].filter((v) => v !== undefined);
+        } else { //this is an aggregateLabel Node
+          if (a.nodeType === nodeType.aggregateLabel) {
+            const aIDs = this.graph.nodes.filter((n) => {
+              return (n.visible &&
+                n.label === a.label &&
+                n.level === a.level &&
+                a.aggregateRoot === n.aggregateRoot &&
+                n.mode === mode.level &&
+                n.layout === layout.aggregated);
+            }).map((n) => n.uuid);
+
+            if (aIDs.length > 0) {
+              const aloc = ids.findIndex((id) => { return id.find((i) => { return i === aIDs[0]; }); });
+              aValues = data[aloc].filter((v) => v !== undefined);
+            }
+          }
+        }
+        a.value = aValues.reduce((acc, cValue) => acc + cValue, 0);
+
+        if (bloc > -1) {//this is a single Node
+          bValues = data[bloc].filter((v) => v !== undefined);
+        } else {//this is an aggregateLabel Node
+          if (b.nodeType === nodeType.aggregateLabel) {
+            const bIDs = this.graph.nodes.filter((n) => {
+              return (n.visible &&
+                n.label === b.label &&
+                n.level === b.level &&
+                b.aggregateRoot === n.aggregateRoot &&
+                n.mode === mode.level &&
+                n.layout === layout.aggregated);
+            }).map((n) => n.uuid);
+
+            if (bIDs.length > 0) {
+              const bloc = ids.findIndex((id) => { return id.find((i) => { return i === bIDs[0]; }); });
+              bValues = data[bloc].filter((v) => v !== undefined);
+            }
+          }
+        }
+
+        b.value = bValues.reduce((acc, cValue) => acc + cValue, 0) ;
+
+        if (typeof a.value === 'number') {
+          a.value = +a.value;
+        }
+        if (typeof b.value === 'number') {
+          b.value = +b.value;
+        }
 
         if (sortOrder === sortedState.Ascending) {
           if (b.value === undefined || a.value < b.value) { return -1; }
@@ -2047,7 +2101,6 @@ class Graph {
         }
 
       });
-      // console.log(node.children);
     } else {
       //default sorting is alphabetical
       node.children.sort((a, b) => {
@@ -2065,10 +2118,13 @@ class Graph {
     }
 
 
+
     //prioritize children that are part of a pathway
     node.children
+
       // .sort((a, b) => { return a.pathway ? -1 : (b.pathway ? 1 : 0); })
       .map((c, i) => {
+        // console.log('visiting ', c.title);
         const lastNode = this.graph.nodes.filter((n: any) =>
           c.aggParent && n.visited && n.layout === layout.aggregated && n.aggParent === c.aggParent);
         let maxX = +max(lastNode, (n: any) => n.xx);
@@ -2245,15 +2301,15 @@ class Graph {
         };
         return '';
       });
-      // .style('fill', (d) => (d.children.find((c) => c.nodeType === nodeType.levelSummary) ? '#7b94a9' : '#bcb9b9'))
-      // .on('click', (d) => {
-      //   const unaggregate = (d.children.find((c) => c.nodeType === nodeType.levelSummary));
-      //   if (unaggregate) {
-      //     events.fire(AGGREGATE_CHILDREN, { 'uuid': d.uuid, 'aggregate': false });
-      //   } else {
-      //     events.fire(AGGREGATE_CHILDREN, { 'uuid': d.uuid, 'aggregate': true });
-      //   }
-      // });
+    // .style('fill', (d) => (d.children.find((c) => c.nodeType === nodeType.levelSummary) ? '#7b94a9' : '#bcb9b9'))
+    // .on('click', (d) => {
+    //   const unaggregate = (d.children.find((c) => c.nodeType === nodeType.levelSummary));
+    //   if (unaggregate) {
+    //     events.fire(AGGREGATE_CHILDREN, { 'uuid': d.uuid, 'aggregate': false });
+    //   } else {
+    //     events.fire(AGGREGATE_CHILDREN, { 'uuid': d.uuid, 'aggregate': true });
+    //   }
+    // });
 
 
 
@@ -2430,8 +2486,8 @@ class Graph {
         return xScale(d.xx) - 5;
       })
       .attr('y', (d) => {
-        if (d.children.find((c)=>c.nodeType === nodeType.levelSummary)) {
-          return yScale(d.children.find((c)=>c.nodeType === nodeType.levelSummary).yy + .5);
+        if (d.children.find((c) => c.nodeType === nodeType.levelSummary)) {
+          return yScale(d.children.find((c) => c.nodeType === nodeType.levelSummary).yy + .5);
         }
         return yScale(d.children.reduce((acc, cValue) => { return cValue.yy > acc.yy ? cValue : acc; }).yy + .5);
       });
@@ -2441,13 +2497,14 @@ class Graph {
       .attr('x1', (d) => { return xScale(d.xx); })
       .attr('x2', (d) => { return xScale(d.xx); })
       .attr('y1', (d) => {
-        if (d.children.find((c)=>c.nodeType === nodeType.levelSummary)) {
-          return yScale(d.children.find((c)=>c.nodeType === nodeType.levelSummary).yy + .3);
+        if (d.children.find((c) => c.nodeType === nodeType.levelSummary)) {
+          return yScale(d.children.find((c) => c.nodeType === nodeType.levelSummary).yy + .3);
         }
-        return yScale(d.children.reduce((acc, cValue) => { return cValue.yy > acc.yy ? cValue : acc; }).yy + .3);})
+        return yScale(d.children.reduce((acc, cValue) => { return cValue.yy > acc.yy ? cValue : acc; }).yy + .3);
+      })
       .attr('y2', (d) => {
-        if (d.children.find((c)=>c.nodeType === nodeType.levelSummary)) {
-          return yScale(d.children.find((c)=>c.nodeType === nodeType.levelSummary).yy);
+        if (d.children.find((c) => c.nodeType === nodeType.levelSummary)) {
+          return yScale(d.children.find((c) => c.nodeType === nodeType.levelSummary).yy);
         }
         return yScale(d.children.reduce((acc, cValue) => { return cValue.yy > acc.yy ? cValue : acc; }).yy);
       });
@@ -2531,7 +2588,7 @@ class Graph {
       .select('.expand')
       .text(' ');
 
-      regularNodes
+    regularNodes
       .select('.aggIcon')
       .text(' ');
 
@@ -2566,25 +2623,25 @@ class Graph {
       .text((d) => this.whichExpandIcon(d) === 'arrowDown' ? d.label + 's' : '  ');
 
 
-      aggregateLabels
+    aggregateLabels
       .select('.aggIcon')
       .text(' ');
-      // .on('click', (d:any) => {
-      //   const unaggregate = (d.children.find((c) => c.nodeType === nodeType.levelSummary));
-      //   console.log(d,unaggregate);
-      //   if (unaggregate) {
-      //     events.fire(AGGREGATE_CHILDREN, { 'uuid': d.uuid, 'aggregate': false });
-      //   } else {
-      //     events.fire(AGGREGATE_CHILDREN, { 'uuid': d.uuid, 'aggregate': true });
-      //   }
-      // });
+    // .on('click', (d:any) => {
+    //   const unaggregate = (d.children.find((c) => c.nodeType === nodeType.levelSummary));
+    //   console.log(d,unaggregate);
+    //   if (unaggregate) {
+    //     events.fire(AGGREGATE_CHILDREN, { 'uuid': d.uuid, 'aggregate': false });
+    //   } else {
+    //     events.fire(AGGREGATE_CHILDREN, { 'uuid': d.uuid, 'aggregate': true });
+    //   }
+    // });
 
 
-      selectAll('.aggIcon')
-      .style('fill', (d:any) => (d.children.find((c) => c.nodeType === nodeType.levelSummary) ? '#7b94a9' : '#bcb9b9'))
-      .on('click', (d:any) => {
-        const unaggregate = (d.children.find((c) => c.nodeType === nodeType.levelSummary));
-        console.log(d,unaggregate);
+    selectAll('.aggIcon')
+      .style('fill', (d: any) => (d.children.find((c) => c.nodeType === nodeType.levelSummary) ? '#7b94a9' : '#bcb9b9'))
+      .on('click', (d: any) => {
+        const unaggregate = d.children.find((c) => c.nodeType === nodeType.levelSummary);
+        // console.log(d,unaggregate);
         if (unaggregate) {
           events.fire(AGGREGATE_CHILDREN, { 'uuid': d.uuid, 'aggregate': false });
         } else {
@@ -2598,13 +2655,13 @@ class Graph {
     //   .text((d) => d.title);
 
     semiAggregatedNodes
-    .select('.aggIcon')
-    .text((d: any) => {
-      if (this.whichExpandIcon(d) === 'arrowDown') {
-        return Config.icons.AggregateIcon + ' ' ;
-      };
-      return '  ';
-    });
+      .select('.aggIcon')
+      .text((d: any) => {
+        if (this.whichExpandIcon(d) === 'arrowDown') {
+          return Config.icons.AggregateIcon + ' ';
+        };
+        return '  ';
+      });
 
     semiAggregatedNodes
       .select('.expand')

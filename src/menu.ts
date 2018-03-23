@@ -24,6 +24,10 @@ import {
   json
 } from 'd3-request';
 
+import {
+  PATHWAY_SELECTED
+} from './tableManager';
+
 
 /**
  * Creates the menu
@@ -80,6 +84,8 @@ class Menu {
     
           select('.open').style('visibility','hidden');
           selectAll('.hiddenEdge').attr('visibility', 'hidden');
+
+          events.fire(PATHWAY_SELECTED, { 'clear': true });
  }
 
 public addMenu(data, actions = null) {

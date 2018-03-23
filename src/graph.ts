@@ -322,12 +322,18 @@ class Graph {
 
     events.on(PATHWAY_SELECTED, (evt, info) => {
 
+      console.log('here', info);
+
       if (info.clear || info.start) {
         // this.graph.nodes.map((n) => { n.pathway = false; n.moved = false; });
         // selectAll('.edge.visible').classed('pathway', false);
         //clear pathway info
         this.pathway.start = undefined;
         this.pathway.end = undefined;;
+      }
+
+      if (info.clear) {
+        return;
       }
 
 
@@ -350,7 +356,7 @@ class Graph {
       this.drawTree();
 
       select('#pathViewer')
-      .style('visibility','visible');
+        .style('visibility', 'visible');
 
     });
 
@@ -785,14 +791,16 @@ class Graph {
     const source = this.graph.nodes.find((node) => { return node.uuid === edge.source; });
     const target = this.graph.nodes.find((node) => { return node.uuid === edge.target; });
 
-    const childNode = [source, target].reduce((acc, cValue) => { return cValue.yy > acc.yy ? cValue : acc; });
-    const parentNode = [source, target].reduce((acc, cValue) => { return cValue.yy < acc.yy ? cValue : acc; });
+    // const childNode = [source, target].reduce((acc, cValue) => { return cValue.yy > acc.yy ? cValue : acc; });
+    // const parentNode = [source, target].reduce((acc, cValue) => { return cValue.yy < acc.yy ? cValue : acc; });
 
-    const oldParent = target.parent ? target.parent : source.parent;
-    const child = target.parent ? target : source;
+    const oldParent = target.parent; //target.parent ? target.parent : source.parent;
+    const child = target; //target.parent ? target : source;
+
+    console.log(oldParent, child);
 
     //replacing edge with itself;
-    if (oldParent === parentNode) {
+    if (oldParent === source) {
       const currentEdge = this.graph.links.find((ll) => { return ll.edge.data.uuid === edge.uuid; });
 
       currentEdge.visible = true;
@@ -801,30 +809,36 @@ class Graph {
       return;
     }
 
-    //remove target from list of old parent's children
-    const oldChild = oldParent.children.indexOf(child);
-    oldParent.children.splice(oldChild, 1);
-
-    // console.log('removing ', child.title , ' from ', oldParent.title);
+    //target is not the root of a tree;
+    if (oldParent) {
 
 
-    //make old edge hidden
-    const oldEdge = this.graph.links.find((ll) => {
-      return (ll.source.uuid === oldParent.uuid && ll.target.uuid === child.uuid && ll.edge.data.uuid !== edge.uuid)
-        || (ll.target.uuid === oldParent.uuid && ll.source.uuid === child.uuid && ll.edge.data.uuid !== edge.uuid);
-    });
+      //remove target from list of old parent's children
+      const oldChild = oldParent.children.indexOf(child);
+      oldParent.children.splice(oldChild, 1);
 
-    console.log(oldEdge);
+      // console.log('removing ', child.title , ' from ', oldParent.title);
 
-    oldEdge.visible = false;
-    oldEdge.visited = true;
+
+      //make old edge hidden
+      const oldEdge = this.graph.links.find((ll) => {
+        return (ll.source.uuid === oldParent.uuid && ll.target.uuid === child.uuid && ll.edge.data.uuid !== edge.uuid)
+          || (ll.target.uuid === oldParent.uuid && ll.source.uuid === child.uuid && ll.edge.data.uuid !== edge.uuid);
+      });
+
+      // console.log(oldEdge);
+
+      oldEdge.visible = false;
+      oldEdge.visited = true;
+
+    }
 
     // console.log('removing ', oldEdge.source.title , ' -> ', oldEdge.target.title , ' edge');
 
-    if (!target.parent) {
-      source.parent = undefined;
-      this.graph.root = [source];
-    }
+    // if (!target.parent) {
+    //   source.parent = undefined;
+    //   this.graph.root = [source];
+    // }
 
     //Set new Parent and child;
     target.parent = source;
@@ -926,34 +940,34 @@ class Graph {
 
     end.path = uniquePaths.filter((p) => p.length === stopLevel + 1);
 
-    select('#pathViewer').select('.list-group-item.active')
-      .html(end.path.length + ' Shortest path(s) from <tspan class="pathIcon"> ' + Config.icons[start.label] + '</tspan> ' + start.title + ' to ' + '<tspan class="pathIcon"> ' + Config.icons[end.label] + '</tspan> ' + end.title);
+    select('#pathViewerAccordion').select('a')
+      .html('[' + end.path.length + '] ' + ' <tspan class="pathIcon"> ' + Config.icons[start.label] + '</tspan> ' + start.title + ' to ' + '<tspan class="pathIcon"> ' + Config.icons[end.label] + '</tspan> ' + end.title);
 
 
-    //list the shortest paths in the pathViewer group
-    let listItems = select('#pathViewer').selectAll('.listItems')
+    const tableSelector = select('#pathViewerAccordion').select('#tableBody');
+
+    // create a row for each object in the data
+    let rows = tableSelector.select('tbody').selectAll('tr')
       .data(end.path);
 
-    //highlight the start and end node;
 
-    select('#nodeGroup').selectAll('.title')
-      .classed('pathwayEndpoint', false);
+    const rowsEnter = rows
+      .enter()
+      .append('tr');
 
-    select('#nodeGroup').selectAll('.title')
-      .filter((d: any) => { return d.uuid === start.uuid || d.uuid === end.uuid; })
-      .classed('pathwayEndpoint', true);
+    rows.exit().remove();
+    rows = rowsEnter.merge(rows);
 
-    selectAll('.edge').classed('selectedPathway', false);
+    // create a cell in each row for each column
+    let listItems = rows.selectAll('td')
+      .data((d: any) => [d]);
 
-    const listItemsEnter = listItems.enter()
-      .append('a')
-      .attr('href', '#')
-      .attr('class', 'list-group-item')
-      .classed('listItems', true);
+    const listItemsEnter = listItems
+      .enter()
+      .append('td');
 
     listItems.exit().remove();
-
-    listItems = listItems.merge(listItemsEnter);
+    listItems = listItemsEnter.merge(listItems);
 
     listItems.html((d: any) => {
       let sArray = d.slice(1, d.length - 1);
@@ -2001,11 +2015,11 @@ class Graph {
         // console.log(a.value,b.value);
 
         //prioritize children that are part of a pathway
-        if (a.pathway === true) {
+        if (this.pathway.start && a.pathway === true) {
           return -1;
         };
 
-        if (b.pathway === true) {
+        if (this.pathway.start && b.pathway === true) {
           return 1;
         };
 
@@ -2038,11 +2052,11 @@ class Graph {
       //default sorting is alphabetical
       node.children.sort((a, b) => {
         //prioritize children that are part of a pathway
-        if (a.pathway === true) {
+        if (this.pathway.start && a.pathway === true) {
           return -1;
         };
 
-        if (b.pathway === true) {
+        if (this.pathway.start && b.pathway === true) {
           return 1;
         };
 
@@ -2130,7 +2144,11 @@ class Graph {
     const linkEndMarkersEnter = linkEndMarkers
       .enter()
       .append('text')
+      // .attr('alignment-baseline', 'middle')
       .attr('class', 'endMarker');
+
+    linkEndMarkersEnter.append('tspan').classed('arrowIcon', true);
+    linkEndMarkersEnter.append('tspan').classed('aggIcon', true);
 
     linkEndMarkers.exit().remove();
 
@@ -2210,13 +2228,38 @@ class Graph {
     const self = this;
 
     linkEndMarkers
-      .text(this.expandIcon)
+      .select('.arrowIcon')
+      .text((d: any) => {
+        return this.expandIcon(d);
+      })
       .on('click', (d) => {
         this.toggleExpand(d, '.endMarker');
       });
 
+
+    linkEndMarkers
+      .select('.aggIcon')
+      .text((d: any) => {
+        if (this.whichExpandIcon(d) === 'arrowDown') {
+          return Config.icons.AggregateIcon;
+        };
+        return '';
+      })
+      .style('fill', (d) => (d.children.find((c) => c.nodeType === nodeType.levelSummary) ? '#7b94a9' : '#bcb9b9'))
+      .on('click', (d) => {
+        const unaggregate = (d.children.find((c) => c.nodeType === nodeType.levelSummary));
+        if (unaggregate) {
+          events.fire(AGGREGATE_CHILDREN, { 'uuid': d.uuid, 'aggregate': false });
+        } else {
+          events.fire(AGGREGATE_CHILDREN, { 'uuid': d.uuid, 'aggregate': true });
+        }
+      });
+
+
+
     //set initial position to parent
     linkEndMarkersEnter
+      // .attr('transform', (d)=> 'translate (' +  this.xScale(d.xx)+ ','+ (d.parent ? this.yScale(d.parent.yy) : this.yScale(d.yy))  +')');
       .attr('x', (d: any, i) => {
         return this.xScale(d.xx);
       })
@@ -2232,11 +2275,13 @@ class Graph {
 
 
     linkEndMarkers
+      // .attr('transform', (d)=> 'translate (' +  (this.whichExpandIcon(d) === 'arrowDown' ? this.xScale(d.xx)+5: this.xScale(d.xx) +3) + ','+ this.yScale(d.yy)  +')');
+
       .attr('x', (d: any, i) => {
         return this.whichExpandIcon(d) === 'arrowDown' ? this.xScale(d.xx) - 5 : this.xScale(d.xx) - 2;
       })
       .attr('y', (d: any, i) => {
-        return this.yScale(d.yy) + 1;
+        return this.yScale(d.yy) - 1;
       });
 
     // animated(levelBrackets)
@@ -2616,7 +2661,7 @@ class Graph {
 
         // return d.layout === layout.aggregated ? xScale(xpos) + this.radius : (d.nodeType === nodeType.aggregateLabel ? xScale(labelXpos) : (d.mode === mode.level && d.layout === layout.expanded ? xScale(d.xx - 1) + this.radius : xScale(d.xx) + this.radius));
         //
-        return d.layout === layout.aggregated ? xScale(xpos) + this.radius : (d.mode === mode.level ? xScale(d.xx) : xScale(d.xx) + this.radius);
+        return d.layout === layout.aggregated ? xScale(xpos) + this.radius * 1.5 : (d.mode === mode.level ? xScale(d.xx) : xScale(d.xx) + this.radius * 1.5);
       })
       .attr('y', (d) => {
         const ypos = d.yy + .5 - (1 / 3 * ((d.xx - 1) % 3 + 1) * this.yScale.invert(18));
@@ -3061,24 +3106,25 @@ class Graph {
                     },
 
                   },
-                  {
-                    'icon': 'Aggregate', 'string': 'Aggregate Children', 'callback': () => {
-                      events.fire(AGGREGATE_CHILDREN, { 'uuid': d.uuid, 'aggregate': true });
-                    }
-                  }];
+                  // {
+                  //   'icon': 'Aggregate', 'string': 'Aggregate Children', 'callback': () => {
+                  //     events.fire(AGGREGATE_CHILDREN, { 'uuid': d.uuid, 'aggregate': true });
+                  //   }
+                  // }
+                ];
                 //Only have option to gather neighbors if this node has hidden children;
                 if (this.nodeNeighbors[d.uuid].hidden > 0) {
                   actions = actions.concat([
                     {
-                      'icon': 'RemoveNode', 'string': 'Gather Children without duplication', 'callback': () => {
+                      'icon': 'RemoveNode', 'string': 'Gather Children', 'callback': () => {
                         events.fire(GATHER_CHILDREN_EVENT, { uuid: d.uuid });
                       }
                     },
-                    {
-                      'icon': 'RemoveNode', 'string': 'Gather Children with duplication', 'callback': () => {
-                        events.fire(GATHER_CHILDREN_EVENT, { uuid: d.uuid });
-                      }
-                    }
+                    // {
+                    //   'icon': 'RemoveNode', 'string': 'Gather Children with duplication', 'callback': () => {
+                    //     events.fire(GATHER_CHILDREN_EVENT, { uuid: d.uuid });
+                    //   }
+                    // }
                   ]);
                 }
 
@@ -3108,15 +3154,15 @@ class Graph {
                   );
                 }
                 if (d.children.length > 0) {
-                  const unaggregate = (d.children.find((c) => c.nodeType === nodeType.levelSummary));
-                  if (unaggregate) {
-                    actions = actions.concat(
-                      [{
-                        'icon': 'Aggregate', 'string': 'Un-Aggregate Children', 'callback': () => {
-                          events.fire(AGGREGATE_CHILDREN, { 'uuid': d.uuid, 'aggregate': false });
-                        }
-                      }]);
-                  }
+                  // const unaggregate = (d.children.find((c) => c.nodeType === nodeType.levelSummary));
+                  // if (unaggregate) {
+                  //   actions = actions.concat(
+                  //     [{
+                  //       'icon': 'Aggregate', 'string': 'Un-Aggregate Children', 'callback': () => {
+                  //         events.fire(AGGREGATE_CHILDREN, { 'uuid': d.uuid, 'aggregate': false });
+                  //       }
+                  //     }]);
+                  // }
                   const aggregate = !(d.children.find((c) => c.nodeType === nodeType.levelSummary));
                   if (aggregate) {
                     actions = actions.concat(

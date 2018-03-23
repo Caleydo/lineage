@@ -51,6 +51,9 @@ export class Config {
       Search:'\uf002',
       Query:'\uf1e0',
 
+      // AggregateIcon:'\uf009',
+      AggregateIcon:'\uf04d', 
+
       Linearize:'\uf03a',
 
       Plus:'\uf067',

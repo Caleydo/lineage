@@ -117,13 +117,8 @@ td .addNode{
   opacity:.4;
   position: absolute;
 }
-.open, #pathViewer{
+.open{
   position:absolute;
-}
-
-#pathViewer{
-  height:calc(100vh - 100px);
-  overflow-y: scroll;
 }
 
 .dropdown-item.demoAttr{
@@ -184,11 +179,24 @@ td .addNode{
 
 .endMarker, .levelGroup{
   font-family: FontAwesome;
-  font-size: 18px;
-  alignment-baseline:middle;
+  alignment-baseline:central;
   fill:#bcb9b9;
   cursor:pointer;
+  text-anchor:start
 }
+
+.endMarker tspan{
+  alignment-baseline:central;
+}
+
+.aggIcon{
+  font-size: 12px;
+}
+
+.arrowIcon{
+  font-size: 18px;
+}
+
 
 .levelBracket{
   fill:none;
@@ -522,9 +530,18 @@ ul.nav.navbar-nav{
     background-color: #d9d9d9 !important;
 }
 
+#pathViewerAccordion td{
+  cursor:default;
+}
+
+// #pathViewerAccordion #tableBody td{
+//   border-width:4px;
+// }
+
 .linearize{
   float:right;
   font-family: FontAwesome;
+  cursor:pointer;
 }
 
 .fadeEdge{
@@ -547,7 +564,7 @@ ul.nav.navbar-nav{
 .selectedPathItem{
   stroke: #ff8d00; //#d69502;
   border-color:#ff8d0059 !important;
-  border-width: 3px;
+  border-width: 4px !important;
   stroke-dasharray: 0px;
   visibility: visible !important;
   // opacity:.8;

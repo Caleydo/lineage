@@ -79,17 +79,6 @@ class SetSelector {
       .attr('class', 'open')
       .style('visibility', 'hidden');
 
-      const pathViewer = select('#pathViewerDiv')
-      .append('g')
-      .attr('id', 'pathViewer')
-      // .style('transform', 'translate(300px,0px)')
-      .style('visibility', 'hidden')
-      .attr('class', 'list-group')
-      .append('a')
-      .attr('href', '#')
-      .attr('class', 'list-group-item active')
-      .text('Shortest Path List');
-
 
     const menuList = dropdownMenu.append('ul').attr('class', 'dropdown-menu');
 
@@ -301,6 +290,60 @@ class SetSelector {
             events.fire(ATTR_COL_ADDED, { 'db': this.selectedDB, 'name': d, 'remove': removeAttr });
           });
       });
+ 
+          //creat an accordion div and a table for each label
+          let panels = select('#col1').select('#pathViewerAccordion')
+            .selectAll('.panel-default')
+            .data([{name:'Shortest Path'}]);
+      
+          panels.exit().remove();
+      
+          const panelsEnter = panels.enter();
+      
+          const panelDefault = panelsEnter
+            .append('div')
+            .attr('class', 'panel panel-default');
+      
+          panelDefault
+            .append('div')
+            .attr('class', 'panel-heading')
+            .append('h4')
+            .attr('class', 'panel-title')
+            .append('a')
+            .attr('data-toggle', 'collapse')
+            .attr('data-parent', '#pathViewerAccordion')
+            .attr('href', (d, i) => { return '#sp_' + i; });
+      
+      
+          const pDefault = panelDefault
+            .append('div')
+            .attr('id', (d, i) => { return 'sp_' + i; })
+            .attr('class', 'panel-collapse collapse ')
+            .classed('in', (d, i) => { return i < 1; })
+            .append('div')
+            .attr('class', 'panel-body');
+      
+
+          const tbody = pDefault
+            .append('div')
+            .attr('id', 'tableBody')
+            .append('table')
+            .attr('class', 'table');
+      
+          tbody.append('tbody');
+      
+      
+          panels = panels.merge(panelsEnter);
+      
+          select('#pathViewerAccordion')
+            .selectAll('a')
+            .text((d: any) => d.name);
+      
+        select('#pathViewerAccordion').selectAll('.panel-body')
+            .attr('id', (d: any) => { return d.name + '_body'; });
+
+
+
     this.updateSetSelector(labels);
 
   }
@@ -365,7 +408,7 @@ class SetSelector {
 
     panels = panels.merge(panelsEnter);
 
-    select('#col1')
+    select('#accordion')
       .selectAll('a')
       .html((d: any) => { return '<tspan class="icon">' + Config.icons[d.name] + '</tspan> ' + d.name + ' (' + d.size + ')'; });
 

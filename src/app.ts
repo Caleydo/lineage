@@ -102,7 +102,7 @@ export class App {
    */
   private async build() {
 
-    const defaultDB = 'got';
+    const defaultDB = 'coauth';
 
     const tableManager = TableManager.create();
 

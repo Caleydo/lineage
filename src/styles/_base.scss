@@ -190,6 +190,7 @@ td .addNode{
 .title .icon{
   pointer-events:none;
   alignment-baseline:central;
+  
 }
 
 .title .menu{
@@ -347,13 +348,11 @@ td .addNode{
   font-size:13px
 }
 
-.title .icon{
-  alignment-baseline:central;
-  // text-anchor: middle;
+.title .icon, .headerTitle .icon{
   fill:#7a7877;
-  // font-weight: bold;
   font-size:15px;
 }
+
 
 .treeLink{
   fill:none;

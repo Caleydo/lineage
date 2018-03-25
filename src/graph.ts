@@ -531,7 +531,7 @@ class Graph {
           const arrayVector = arrayVec.create(undefined);
           arrayVector.desc.name = cNode.title;
           const id = encodeURIComponent(cNode.uuid);
-          allVecs.push({ vec: arrayVector, id, type: 'adjMatrixCol' });
+          allVecs.push({ vec: arrayVector, id, type: 'adjMatrixCol',label:cNode.label});
 
           const url = 'api/data_api/edges/' + this.selectedDB + '/' + id;
 
@@ -561,10 +561,9 @@ class Graph {
         };
 
         tableAttributes.map((attr, i) => {
-          // const id = encodeURIComponent(attr.uuid);
-          allVecs.push({ vec: {}, type: 'attributeCol', name: attr });
+        
+          allVecs.push({ vec: {}, type: 'attributeCol', name: attr});
 
-          // const url = 'api/data_api/edges/' + this.selectedDB + '/' + id;
           const url = 'api/data_api/property/' + this.selectedDB + '/' + attr;
 
           const postContent = JSON.stringify({ 'treeNodes': this.graph ? this.graph.nodes.map((n) => { return n.uuid; }) : [''] });
@@ -598,9 +597,10 @@ class Graph {
             if (colType === 'adjMatrixCol') {
               arrayVector.dataValues = data.nodes.map((e) => { return e; });
               arrayVector.idValues = data.nodes.map((e) => { return e.uuid; });
+              arrayVector.desc.value.label = [nextVec.label];
             } else {
-              console.log(data);
               const nodes = data.results;
+
               const dataValues = nodes.map((e) => { return isNaN(+e.value) ? e.value : +e.value; });;
               //infer type here:
               const type = typeof dataValues[0] === 'number' ? VALUE_TYPE_INT : VALUE_TYPE_STRING;
@@ -614,6 +614,17 @@ class Graph {
               arrayVector.idValues = nodes.map((e) => { return e.uuid; });
 
               arrayVector.desc.value.range = [min(arrayVector.dataValues), max(arrayVector.dataValues)];
+
+              //create array of unique labels for this columns
+              const allLabels=[];
+              nodes.map((n)=> {
+                n.label.map((label)=> {
+                  if(!allLabels.find((l)=> l === n.label === label)) {
+                    allLabels.push(label);
+                }
+                });
+              });
+              arrayVector.desc.value.label = allLabels;
             }
 
             //if it's not already in there:

@@ -1010,7 +1010,7 @@ class AttributeTable {
     //Bind data to the col headers
     let headers = select('#tableHeaders').selectAll('.header')
       .data(this.colData.map((d: any, i) => {
-        // console.log('colData', d);
+        console.log('colData', d);
         return {
           'name': d.name, 'data': d, 'ind': i, 'type': d.type,
           'max': d.max, 'min': d.min, 'mean': d.mean, 'allCategories': d.allCategories, 'category': d.category, 'isSorted': d.isSorted
@@ -1037,8 +1037,16 @@ class AttributeTable {
         this.update();
       }));
 
-    headerEnter.append('text')
+   headerEnter.append('text')
       .classed('headerTitle', true);
+
+    headerEnter
+      .append('text')
+      .attr('class','icon');
+
+      // text
+      // .append('tspan')
+      // .attr('class','headerTitleSpan');
 
 
     headers = headerEnter.merge(headers);
@@ -1059,13 +1067,28 @@ class AttributeTable {
         return d.type === VALUE_TYPE_CATEGORICAL || d.type === VALUE_TYPE_ADJMATRIX || d.type === 'dataDensity' ? 'translate(' + offset + ',0) rotate(-40)' : 'translate(' + offset + ',0)';
       });
 
+      headers
+      .select('.icon')
+      .text((d: any) => {
+        return d.data.label ? Config.icons[d.data.label[0]] : '';
+      })
+      .attr('transform', (d, i) => {
+        const offset = ((this.customColWidths[d.name] || this.colWidths[d.type]) / 2);
+        return d.type === VALUE_TYPE_CATEGORICAL || d.type === VALUE_TYPE_ADJMATRIX || d.type === 'dataDensity' ? 'translate(' + offset + ',0) rotate(40)' : 'translate(' + offset + ',-10)';
+      })
+      .attr('text-anchor', (d) => {
+        return d.type === VALUE_TYPE_CATEGORICAL || d.type === VALUE_TYPE_ADJMATRIX || d.type === 'dataDensity' ? 'start' : 'middle';
+        // return (d.type === VALUE_TYPE_CATEGORICAL || d.type === 'dataDensity' || d.name.length>10) ? 'start' : 'middle';
+      });
+
+
     headers
       .select('.headerTitle')
       .text((d: any) => {
         if (d.category && d.category.toLowerCase() !== 'true' && d.category.toLowerCase() !== 'y') {
-          return Config.icons[d.label] + ' ' + d.name + ' (' + d.category + ')';
+          return d.name + ' (' + d.category + ')';
         } else if ((d.category) || d.type === 'dataDensity') {
-          return d.name.slice(0, 15);
+          return '   ' + d.name.slice(0, 15);
         } else {
           return d.name.slice(0, 9);
         };
@@ -1073,7 +1096,7 @@ class AttributeTable {
       })
       .attr('transform', (d, i) => {
         const offset = ((this.customColWidths[d.name] || this.colWidths[d.type]) / 2);
-        return d.type === VALUE_TYPE_CATEGORICAL || d.type === VALUE_TYPE_ADJMATRIX || d.type === 'dataDensity' ? 'translate(' + offset + ',0)' : 'translate(' + offset + ',0)';
+        return d.type === VALUE_TYPE_CATEGORICAL || d.type === VALUE_TYPE_ADJMATRIX || d.type === 'dataDensity' ? 'translate(' + (offset + 13) + ',-4)' : 'translate(' + offset + ',0)';
       })
       .attr('text-anchor', (d) => {
         return d.type === VALUE_TYPE_CATEGORICAL || d.type === VALUE_TYPE_ADJMATRIX || d.type === 'dataDensity' ? 'start' : 'middle';

@@ -17,8 +17,22 @@ body, html {
 	width: 100%;
 }
 
+#graphHeaders{
+  padding:20px;
+}
+
 .panel{
   margin-bottom: 5px !important; 
+}
+
+.cell .frame.empty{
+  fill:#efeeed    // stroke-width: 2px;
+  // stroke:black;
+}
+
+.panel-group{
+  margin-bottom:0px !important; 
+  margin-top:10px;
 }
 
 .btn{
@@ -60,7 +74,7 @@ body, html {
 
 
 #col1 .panel-body{
-  // height: calc(100vh - 600px) !important;
+  height: 200px; //calc(100vh - 600px) !important;
   overflow-y:scroll;
 }
 
@@ -260,12 +274,15 @@ td .addNode{
 }
 
 .visible, .addIconLine{
-  stroke: #999;
-  stroke-opacity: 0.6;
+  stroke: #bcb9b9;
+  stroke-opacity: 1;
   fill:none;
-  stroke-dasharray: 2px;
-  // stroke-width: 4px;
+  stroke-width: 1px;
 }
+
+//  .addIconLine{
+//   stroke-dasharray: 2px;
+// }
 
 .cell .label{
   pointer-events: none;
@@ -595,11 +612,11 @@ ul.nav.navbar-nav{
 }
 
 // #treeDiv{
-//   margin-top:195px;
+//   width:500px;
 // }
 
 #graphHeaders, #tableDiv1{
-  height:195px;
+  height:150px;
   margin-bottom: 0px;
 }
 

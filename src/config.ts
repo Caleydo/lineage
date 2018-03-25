@@ -23,12 +23,14 @@ export class Config {
     };
 
   public static defaultAttrs = {
-    got:['name', 'year','gender','sequence','book_death'],
+    got:['name', 'year','gender','sequence','book_death_chapter'],
     path:['name','degree', 'pathways'],
     coauth:['name','tvcg_publications','chi_publications','year','cited','type']
   };
 
   public static icons = {
+
+      All:'\uf141',
       Gene:'\uf074',
       Compound:'\uf1e0', //\uf1d5
       Pathway:'\uf18b',

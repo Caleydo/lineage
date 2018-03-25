@@ -619,7 +619,7 @@ class Graph {
               const allLabels=[];
               nodes.map((n)=> {
                 n.label.map((label)=> {
-                  if(!allLabels.find((l)=> l === n.label === label)) {
+                  if(!allLabels.find((l)=> l === label)) {
                     allLabels.push(label);
                 }
                 });

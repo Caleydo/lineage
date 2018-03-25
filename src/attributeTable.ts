@@ -1010,7 +1010,6 @@ class AttributeTable {
     //Bind data to the col headers
     let headers = select('#tableHeaders').selectAll('.header')
       .data(this.colData.map((d: any, i) => {
-        console.log('colData', d);
         return {
           'name': d.name, 'data': d, 'ind': i, 'type': d.type,
           'max': d.max, 'min': d.min, 'mean': d.mean, 'allCategories': d.allCategories, 'category': d.category, 'isSorted': d.isSorted
@@ -1064,17 +1063,18 @@ class AttributeTable {
       .attr('id', (d) => { return this.deriveID(d) + '_header'; })
       .attr('transform', (d, i) => {
         const offset = this.colOffsets[i];
-        return d.type === VALUE_TYPE_CATEGORICAL || d.type === VALUE_TYPE_ADJMATRIX || d.type === 'dataDensity' ? 'translate(' + offset + ',0) rotate(-40)' : 'translate(' + offset + ',0)';
+        return d.type === VALUE_TYPE_CATEGORICAL || d.type === VALUE_TYPE_ADJMATRIX || d.type === 'dataDensity' ? 'translate(' + offset + ',5) rotate(-40)' : 'translate(' + offset + ',0)';
       });
 
       headers
       .select('.icon')
       .text((d: any) => {
-        return d.data.label ? Config.icons[d.data.label[0]] : '';
+        const labels = d.data.label ? d.data.label.length > 5 ? ['All'] : d.data.label : undefined;
+        return d.data.label ? labels.reduce((acc,cValue)=> acc + ' ' + Config.icons[cValue],'') : '';
       })
       .attr('transform', (d, i) => {
         const offset = ((this.customColWidths[d.name] || this.colWidths[d.type]) / 2);
-        return d.type === VALUE_TYPE_CATEGORICAL || d.type === VALUE_TYPE_ADJMATRIX || d.type === 'dataDensity' ? 'translate(' + offset + ',0) rotate(40)' : 'translate(' + offset + ',-10)';
+        return d.type === VALUE_TYPE_CATEGORICAL || d.type === VALUE_TYPE_ADJMATRIX || d.type === 'dataDensity' ? 'translate(' + offset + ',0) rotate(40)' : 'translate(' + offset + ',0)';
       })
       .attr('text-anchor', (d) => {
         return d.type === VALUE_TYPE_CATEGORICAL || d.type === VALUE_TYPE_ADJMATRIX || d.type === 'dataDensity' ? 'start' : 'middle';
@@ -1096,7 +1096,7 @@ class AttributeTable {
       })
       .attr('transform', (d, i) => {
         const offset = ((this.customColWidths[d.name] || this.colWidths[d.type]) / 2);
-        return d.type === VALUE_TYPE_CATEGORICAL || d.type === VALUE_TYPE_ADJMATRIX || d.type === 'dataDensity' ? 'translate(' + (offset + 13) + ',-4)' : 'translate(' + offset + ',0)';
+        return d.type === VALUE_TYPE_CATEGORICAL || d.type === VALUE_TYPE_ADJMATRIX || d.type === 'dataDensity' ? 'translate(' + (offset + 13) + ',-4)' : 'translate(' + offset + ',-15)';
       })
       .attr('text-anchor', (d) => {
         return d.type === VALUE_TYPE_CATEGORICAL || d.type === VALUE_TYPE_ADJMATRIX || d.type === 'dataDensity' ? 'start' : 'middle';

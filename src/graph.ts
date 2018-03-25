@@ -1213,12 +1213,12 @@ class Graph {
   }
 
   //Recursive Function that hides a sub-tree
-  public hideBranch(node, hide = true) {    
+  public hideBranch(node, hide = true) {
     node.children.map((child) => {
        //only hide children if they are directly under them.
        if (child.mode === mode.tree || (child.mode === mode.level && child.aggregateRoot === node)) {
         this.hideBranchHelper(child, hide);
-      } 
+      }
       // else {
       //   console.log('not hiding', node,child);
       // }
@@ -1552,7 +1552,6 @@ class Graph {
 
     // //Re-aggregate any aggregated portions of the tree;
     const aggRoots = this.graph.nodes.filter((n) => n.summary !== undefined);
-    console.log('aggRoots are', aggRoots, forceAggregation)
     aggRoots.map((aggRoot) => this.setAggregation(aggRoot, aggRoot.aggMode === mode.level), forceAggregation);
 
     this.layoutTree();
@@ -2109,9 +2108,9 @@ class Graph {
             }
           }
         }
-        if (!bValues) {
-          console.trace('bValues are undefined for, ', a, b);
-        }
+        // if (!bValues) {
+        //   console.trace('bValues are undefined for, ', a, b);
+        // }
         b.value = bValues.reduce((acc, cValue) => acc + cValue, 0);
 
         if (typeof a.value === 'number') {
@@ -3430,7 +3429,7 @@ class Graph {
       } else {
         return false;
       }
-      
+
     });
 
     // console.log('eoi size', eoi.size())

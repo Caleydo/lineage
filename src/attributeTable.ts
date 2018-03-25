@@ -921,7 +921,7 @@ class AttributeTable {
       const firstAdjMatrix = index > 0 && index < orderedCols.length - 1  && type !== VALUE_TYPE_ADJMATRIX && orderedCols[index +1 ].desc.value.type === VALUE_TYPE_ADJMATRIX;
       const firstNonAdjMatrix = index < orderedCols.length - 1 && type === VALUE_TYPE_ADJMATRIX && orderedCols[index + 1].desc.value.type !== VALUE_TYPE_ADJMATRIX;
 
-  
+
       let maxOffset = firstNonAdjMatrix || firstAdjMatrix ? max(this.colOffsets) + 20 : max(this.colOffsets);
 
       if (type === VALUE_TYPE_CATEGORICAL) {
@@ -1355,7 +1355,7 @@ class AttributeTable {
       } else if (cell.type === 'id' || cell.type === 'idtype') {
         self.renderIDHeader(select(this), cell);
       } else if (cell.type === 'dataDensity') {
-        self.renderStringHeader(select(this), cell);
+        self.renderIntHeaderHist(select(this), cell);
       } else if (cell.type === VALUE_TYPE_LEVEL) {
         self.renderIntHeaderHist(select(this), cell);
       }
@@ -2387,7 +2387,7 @@ class AttributeTable {
 
   private async renderIntHeaderHist(element, headerData) {
     //Check for custom column width value, if none, use default
-    const colWidth = this.customColWidths[headerData.name] || this.colWidths.int;
+    const colWidth = this.customColWidths[headerData.name] || this.colWidths[headerData.type];
 
     const height = this.headerHeight;
 
@@ -3034,6 +3034,7 @@ class AttributeTable {
 
     element
       .select('.quant')
+      .classed('white',numValues <1)
       .attr('width', (d) => {
         return colWidth;
       })
@@ -3052,8 +3053,7 @@ class AttributeTable {
       element
         .select('.level').remove();
 
-    element
-        .select('.quant').remove();
+
 
 
       if (element.selectAll('.cross_out').size() === 0) {
@@ -3078,7 +3078,7 @@ class AttributeTable {
 
     const xScale = scaleLinear<number, number>().domain(cellData.vector.desc.value.range).range([5, colWidth-5]);
 
-    console.log(cellData,cellData.data,numValues);
+    // console.log(cellData,cellData.data,numValues);
     element
       .select('.level')
       .classed('aggregated', (numValues > 0 && cellData.data.find((d)=>d && d.aggregated)))

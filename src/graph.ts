@@ -298,7 +298,7 @@ class Graph {
             arrayVector.idValues = nodes.map((e) => { return e.uuid; });
 
             arrayVector.desc.value.range = [min(arrayVector.dataValues), max(arrayVector.dataValues)];
-            console.log('range for ', arrayVector.desc.name, ' is ', arrayVector.desc.value.range);
+            // console.log('range for ', arrayVector.desc.name, ' is ', arrayVector.desc.value.range);
             // arrayVector.desc.value.label = nodes[0].label;
 
             // console.log(arrayVector);
@@ -329,7 +329,7 @@ class Graph {
 
               if (arrayVecA.desc.value.type === VALUE_TYPE_ADJMATRIX) {
                 if (arrayVecB.desc.value.type === VALUE_TYPE_ADJMATRIX) {
-                  return arrayVecA.dataValues.length > arrayVecB.dataValues.length ? -1 : (arrayVecB.dataValues.length > arrayVecA.dataValues.length ? 1 : 0);                  
+                  return arrayVecA.dataValues.length > arrayVecB.dataValues.length ? -1 : (arrayVecB.dataValues.length > arrayVecA.dataValues.length ? 1 : 0);
                 }
                 return -1;
               }
@@ -519,7 +519,7 @@ class Graph {
 
       if (this.autoAdjMatrix.value) {
 
-        console.profile('profileTest');
+        // console.profile('profileTest');
         const fileQueue = queue();
         // Add highly connected nodes to the adj Matrix:
         const allNodes = this.graph.nodes.filter((n) => n.visible).slice(0).sort((a, b) => { return a.degree > b.degree ? -1 : 1; });
@@ -531,9 +531,41 @@ class Graph {
           const arrayVector = arrayVec.create(undefined);
           arrayVector.desc.name = cNode.title;
           const id = encodeURIComponent(cNode.uuid);
-          allVecs.push({ vec: arrayVector, id });
+          allVecs.push({ vec: arrayVector, id, type: 'adjMatrixCol' });
 
           const url = 'api/data_api/edges/' + this.selectedDB + '/' + id;
+
+          const postContent = JSON.stringify({ 'treeNodes': this.graph ? this.graph.nodes.map((n) => { return n.uuid; }) : [''] });
+
+          function jsonCall(url, callback) {
+            setTimeout(function () {
+              json(url)
+                .header('Content-Type', 'application/json')
+                .post(postContent, (error, graph: any) => {
+                  callback(null, graph);
+                });
+            }, 0);
+          }
+
+          fileQueue.defer(jsonCall, url);
+        });
+
+        let tableAttributes;
+        if (!this.tableManager.adjMatrixCols.find((c) => c.desc.value.type !== VALUE_TYPE_ADJMATRIX && c.desc.value.type !== 'dataDensity')) {
+          //start with default attributes
+          tableAttributes = Config.defaultAttrs[this.selectedDB];
+        } else { //use existing attributes
+          tableAttributes = this.tableManager.adjMatrixCols
+            .filter((c) => c.desc.value.type !== VALUE_TYPE_ADJMATRIX && c.desc.value.type !== 'dataDensity')
+            .map((c) => c.desc.name);
+        };
+
+        tableAttributes.map((attr, i) => {
+          // const id = encodeURIComponent(attr.uuid);
+          allVecs.push({ vec: {}, type: 'attributeCol', name: attr });
+
+          // const url = 'api/data_api/edges/' + this.selectedDB + '/' + id;
+          const url = 'api/data_api/property/' + this.selectedDB + '/' + attr;
 
           const postContent = JSON.stringify({ 'treeNodes': this.graph ? this.graph.nodes.map((n) => { return n.uuid; }) : [''] });
 
@@ -555,19 +587,34 @@ class Graph {
             throw error;
           }
 
-
-          this.tableManager.adjMatrixCols = this.tableManager.adjMatrixCols.filter((c) => c.desc.value.type !== VALUE_TYPE_ADJMATRIX);
+          this.tableManager.adjMatrixCols = this.tableManager.adjMatrixCols.filter((c) => c.desc.value.type === 'dataDensity');
           this.tableManager.colOrder = this.tableManager.colOrder.filter((c) => this.tableManager.adjMatrixCols.find((cc) => cc.desc.name === c));
 
-          attributes.forEach((edges) => {
+          attributes.forEach((data) => {
             const nextVec = allVecs.splice(0, 1)[0];
-            const arrayVector = nextVec.vec;
+            let arrayVector = nextVec.vec;
+            const colType = nextVec.type;
 
-            arrayVector.dataValues = edges.nodes.map((e) => { return e; });
-            arrayVector.idValues = edges.nodes.map((e) => { return e.uuid; });
+            if (colType === 'adjMatrixCol') {
+              arrayVector.dataValues = data.nodes.map((e) => { return e; });
+              arrayVector.idValues = data.nodes.map((e) => { return e.uuid; });
+            } else {
+              console.log(data);
+              const nodes = data.results;
+              const dataValues = nodes.map((e) => { return isNaN(+e.value) ? e.value : +e.value; });;
+              //infer type here:
+              const type = typeof dataValues[0] === 'number' ? VALUE_TYPE_INT : VALUE_TYPE_STRING;
 
-            // arrayVector.desc.value.label = edges.nodes[0].label;
+              // //Add fake vector here:
+              arrayVector = arrayVec.create(type);
+              arrayVector.desc.name = nextVec.name;
 
+
+              arrayVector.dataValues = dataValues;
+              arrayVector.idValues = nodes.map((e) => { return e.uuid; });
+
+              arrayVector.desc.value.range = [min(arrayVector.dataValues), max(arrayVector.dataValues)];
+            }
 
             //if it's not already in there:
             if (this.tableManager.adjMatrixCols.filter((a: any) => { return a.desc.name === arrayVector.desc.name; }).length < 1) {
@@ -600,11 +647,11 @@ class Graph {
               return 1;
             }
 
-              if (arrayVecA.desc.value.type === VALUE_TYPE_ADJMATRIX) {
-                if (arrayVecB.desc.value.type === VALUE_TYPE_ADJMATRIX) {
-                  return arrayVecA.dataValues.length > arrayVecB.dataValues.length ? -1 : (arrayVecB.dataValues.length > arrayVecA.dataValues.length ? 1 : 0);
-                }
-              
+            if (arrayVecA.desc.value.type === VALUE_TYPE_ADJMATRIX) {
+              if (arrayVecB.desc.value.type === VALUE_TYPE_ADJMATRIX) {
+                return arrayVecA.dataValues.length > arrayVecB.dataValues.length ? -1 : (arrayVecB.dataValues.length > arrayVecA.dataValues.length ? 1 : 0);
+              }
+
               return -1;
             }
 
@@ -621,8 +668,7 @@ class Graph {
           const connectedNodes = allNodes.slice(0, 5);
 
 
-
-          console.profileEnd();
+          // console.profileEnd();
           events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);
 
 
@@ -3204,12 +3250,12 @@ class Graph {
       });
 
 
-      const nodeGroupWidth = document.getElementById('nodeGroup').getBoundingClientRect().width;
-      //set width of svg to size of node group + margin.left
-      select('#graph')
-        .transition('t')
-        .duration(500)
-        .attr('width', nodeGroupWidth + this.margin.left + 50);
+    const nodeGroupWidth = document.getElementById('nodeGroup').getBoundingClientRect().width;
+    //set width of svg to size of node group + margin.left
+    select('#graph')
+      .transition('t')
+      .duration(500)
+      .attr('width', nodeGroupWidth + this.margin.left + 50);
 
     allBars
       .select('.backgroundBar')
@@ -3218,7 +3264,7 @@ class Graph {
       //   return (max([range[0], range[1]]) - min([range[0], range[1]]) + this.margin.right + this.padding.right);
       // })
       .attr('height', Config.glyphSize * 2);
-      
+
 
     allBars
       .select('.highlightBar')

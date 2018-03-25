@@ -1213,18 +1213,25 @@ class Graph {
   }
 
   //Recursive Function that hides a sub-tree
-  public hideBranch(rootNode, hide = true) {
-    // console.log('starting hide @ ', rootNode.title, hide)
-    rootNode.children.map((c) => this.hideBranchHelper(c, hide));
+  public hideBranch(node, hide = true) {    
+    node.children.map((child) => {
+       //only hide children if they are directly under them.
+       if (child.mode === mode.tree || (child.mode === mode.level && child.aggregateRoot === node)) {
+        this.hideBranchHelper(child, hide);
+      } 
+      // else {
+      //   console.log('not hiding', node,child);
+      // }
+    });
   }
 
   public hideBranchHelper(node, hide) {
-    console.log('hiding ', node.title, hide);
+    // console.log('hiding ', node.title, hide);
     node.visible = !hide;
     node.hidden = hide;
     node.children.map((child) => {
       //only hide children if they are directly under them.
-      if (child.mode === mode.tree || (child.mode === mode.level && !node.children.find((c) => c.uuid === child.aggParent.parent.uuid))) {
+      if (child.mode === mode.tree || (child.mode === mode.level && child.aggregateRoot === node)) {
         this.hideBranchHelper(child, hide);
       }
     }
@@ -2367,7 +2374,7 @@ class Graph {
       });
 
 
-    linkEndMarkers
+    animated(linkEndMarkers)
       // .attr('transform', (d)=> 'translate (' +  (this.whichExpandIcon(d) === 'arrowDown' ? this.xScale(d.xx)+5: this.xScale(d.xx) +3) + ','+ this.yScale(d.yy)  +')');
 
       .attr('x', (d: any, i) => {
@@ -2613,7 +2620,6 @@ class Graph {
 
     const aggregateLabels = node.filter((d) => d.nodeType === nodeType.aggregateLabel);
     const aggregatedNodes = node.filter((d) => d.layout === layout.aggregated);
-    // const semiAggregatedNodes = node.filter((d) => d.nodeType === nodeType.single && d.layout === layout.expanded && d.mode === mode.level);
 
     const semiAggregatedNodes = node.filter((n) => {
       return n.visible && n.mode === mode.level && n.layout === layout.expanded && n.nodeType === nodeType.single;
@@ -2637,6 +2643,11 @@ class Graph {
     aggregatedNodes
       .select('.expand')
       .text(' ');
+
+      aggregatedNodes
+      .select('.aggIcon')
+      .text('');
+
 
 
 
@@ -3003,7 +3014,7 @@ class Graph {
 
   //function that determines the icon for expansion that should be shown
   private expandIcon(node) {
-    if ((node.children.length < 1 && node.graphDegree === node.degree) || (node.mode === mode.level && node.layout === layout.expanded && !node.children.find((n) => n.layout === layout.expanded) && node.graphDegree === node.degree)) {
+    if ((node.children.length < 1 && node.graphDegree === node.degree) || (node.mode === mode.level && node.layout === layout.expanded && !node.children.find((n) => n.nodeType === nodeType.levelSummary || n.layout === layout.expanded) && node.graphDegree === node.degree)) {
       return Config.icons.smallCircle + ' ';
     } else {
       return node.children.filter((c) => (c.visible && c.nodeType === nodeType.levelSummary) || (c.visible && c.layout === layout.expanded && ((c.mode === mode.tree) || ((c.mode === mode.level && c.aggParent === node))))).length > 0 ? Config.icons.arrowDown + ' ' :
@@ -3014,7 +3025,7 @@ class Graph {
 
   //function that determines if the icon is arrowRight, arrowDown, or noArrow
   private whichExpandIcon(node) {
-    if ((node.children.length < 1 && node.graphDegree === node.degree) || (node.mode === mode.level && node.layout === layout.expanded && !node.children.find((n) => n.layout === layout.expanded) && node.graphDegree === node.degree)) {
+    if ((node.children.length < 1 && node.graphDegree === node.degree) || (node.mode === mode.level && node.layout === layout.expanded && !node.children.find((n) => n.nodeType === nodeType.levelSummary || n.layout === layout.expanded) && node.graphDegree === node.degree)) {
       return 'noArrow';
     } else {
       return node.children.filter((c) => (c.visible && c.nodeType === nodeType.levelSummary) || (c.visible && c.layout === layout.expanded && ((c.mode === mode.tree) || ((c.mode === mode.level && c.aggParent === node))))).length > 0 ? 'arrowDown' : 'arrowRight';

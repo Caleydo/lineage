@@ -245,7 +245,6 @@ export default class TableManager {
                 if (error) {
                   throw error;
                 }
-                console.log(edges);
                 arrayVector.dataValues = edges.nodes.map((e)=> {return e;});
                 arrayVector.idValues = edges.nodes.map((e)=> {return e.uuid;});
 
@@ -256,7 +255,7 @@ export default class TableManager {
 
                 //if it's not already in there:
                 if (this.colOrder.filter((a:any )=> {return a === arrayVector.desc.name; }).length<1) {
-                  this.colOrder = [arrayVector.desc.name].concat(this.colOrder); // store array of names
+                  this.colOrder = this.colOrder.concat([arrayVector.desc.name]); // store array of names
                 }
 
                 events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);

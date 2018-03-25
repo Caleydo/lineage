@@ -918,8 +918,12 @@ class AttributeTable {
       const type = vector.desc.value.type;
       const name = vector.desc.name;
 
+      const firstAdjMatrix = index > 0 && index < orderedCols.length - 1  && type !== VALUE_TYPE_ADJMATRIX && orderedCols[index +1 ].desc.value.type === VALUE_TYPE_ADJMATRIX;
       const firstNonAdjMatrix = index < orderedCols.length - 1 && type === VALUE_TYPE_ADJMATRIX && orderedCols[index + 1].desc.value.type !== VALUE_TYPE_ADJMATRIX;
-      let maxOffset = firstNonAdjMatrix ? max(this.colOffsets) + 30 : max(this.colOffsets);
+
+  
+      let maxOffset = firstNonAdjMatrix || firstAdjMatrix ? max(this.colOffsets) + 20 : max(this.colOffsets);
+
       if (type === VALUE_TYPE_CATEGORICAL) {
 
         //Build col offsets array ;
@@ -952,7 +956,7 @@ class AttributeTable {
         }
 
         for (const cat of categories) {
-          maxOffset = firstNonAdjMatrix ? max(this.colOffsets) + 30 : max(this.colOffsets);
+          maxOffset = firstNonAdjMatrix || firstAdjMatrix? max(this.colOffsets) + 20 : max(this.colOffsets);
           if (this.customColWidths[name]) {
             this.colOffsets.push(maxOffset + this.buffer * 2 + this.customColWidths[name]);
           } else {
@@ -967,14 +971,14 @@ class AttributeTable {
           this.colOffsets.push(maxOffset + 2 + this.colWidths[type]);
         }
       } else {
+        const buffer = firstAdjMatrix ? 2 : this.buffer;
         // const maxOffset = max(this.colOffsets);
         if (this.customColWidths[name]) {
-          this.colOffsets.push(maxOffset + this.buffer + this.customColWidths[name]);
+          this.colOffsets.push(maxOffset + buffer + this.customColWidths[name]);
         } else {
-          this.colOffsets.push(maxOffset + this.buffer + this.colWidths[type]);
+          this.colOffsets.push(maxOffset + buffer + this.colWidths[type]);
         }
       }
-
 
     });
   };
@@ -3048,6 +3052,9 @@ class AttributeTable {
       element
         .select('.level').remove();
 
+    element
+        .select('.quant').remove();
+
 
       if (element.selectAll('.cross_out').size() === 0) {
         element
@@ -3069,16 +3076,16 @@ class AttributeTable {
 
 
 
-    const xScale = scaleLinear<number, number>().domain(cellData.vector.desc.value.range).range([0, colWidth]);
+    const xScale = scaleLinear<number, number>().domain(cellData.vector.desc.value.range).range([5, colWidth-5]);
 
-    // console.log(cellData.data[0].value, colorScale.domain());
+    console.log(cellData,cellData.data,numValues);
     element
       .select('.level')
       .classed('aggregated', (numValues > 0 && cellData.data.find((d)=>d && d.aggregated)))
       .attr('x1', xScale(max(cellData.data, (c: any) => +c)))
       .attr('x2', xScale(max(cellData.data, (c: any) => +c)))
-      .attr('y1', rowHeight)
-      .attr('y2', 0);
+      .attr('y1', 0)
+      .attr('y2', rowHeight);
 
   }
 

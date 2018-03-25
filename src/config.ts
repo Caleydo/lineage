@@ -16,7 +16,7 @@ export class Config {
   public static svgHeight = 600;
   public static margin = {
         axisTop: 80,
-        top: 10,
+        top: 5,
         right: 10,
         bottom: 60,
         left: 40
@@ -69,6 +69,15 @@ export class Config {
       TVCG:'\uf200',
       Article:'\uf0f6',
       Publication:'\uf0f6',
+
+      Review:'\uf002',
+      City:'\uf0f7',
+      Neighborhood:'\uf278',
+      Host:'\uf0f4',
+      Country:'\uf11d',
+      State:'\uf279',
+      Listing:'\uf274',
+      Amenity:'\uf0f5',
 
 
 

@@ -561,7 +561,7 @@ class Graph {
         };
 
         tableAttributes.map((attr, i) => {
-        
+
           allVecs.push({ vec: {}, type: 'attributeCol', name: attr});
 
           const url = 'api/data_api/property/' + this.selectedDB + '/' + attr;
@@ -1578,7 +1578,7 @@ class Graph {
     this.labels = labels;
 
     //Update numbers in Filter Panel
-    const filterLabels = select('#filterPanel')
+    const filterLabels = select('#nodeFilter')
       .selectAll('.dropdownMenu')
       .html(function (d: any) {
         const count = labels[d.name] ? labels[d.name] : 0;

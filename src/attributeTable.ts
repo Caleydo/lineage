@@ -184,106 +184,106 @@ class AttributeTable {
     // const dropdownMenu = select('.navbar-collapse')
     //   .append('ul').attr('class', 'nav navbar-nav navbar-left').attr('id', 'attributeMenu');
 
-    select('.navbar-collapse')
-      .append('ul').attr('class', 'nav navbar-nav').attr('id', 'Export')
-      .append('li')
-      .append('a')
-      .attr('class', 'btn-link')
-      .attr('id', 'exportIDs')
-      .attr('role', 'button')
-      .html('Export')
-      .on('click', async () => {
+    // select('.navbar-collapse')
+    //   .append('ul').attr('class', 'nav navbar-nav').attr('id', 'Export')
+    //   .append('li')
+    //   .append('a')
+    //   .attr('class', 'btn-link')
+    //   .attr('id', 'exportIDs')
+    //   .attr('role', 'button')
+    //   .html('Export')
+    //   .on('click', async () => {
 
-        let csvContent = 'data:text/csv;charset=utf-8,';
+    //     let csvContent = 'data:text/csv;charset=utf-8,';
 
-        csvContent += 'RelativeID,LabID\r\n'; // add carriage return
+    //     csvContent += 'RelativeID,LabID\r\n'; // add carriage return
 
-        let labIDVector = await this.tableManager.getAttributeVector('LabID', false);
-        if (!labIDVector) {
-          labIDVector = await this.tableManager.getAttributeVector('labid', false);
-        }
-        const labIDData = await labIDVector.data();
-        const personIDs = await labIDVector.names();
+    //     let labIDVector = await this.tableManager.getAttributeVector('LabID', false);
+    //     if (!labIDVector) {
+    //       labIDVector = await this.tableManager.getAttributeVector('labid', false);
+    //     }
+    //     const labIDData = await labIDVector.data();
+    //     const personIDs = await labIDVector.names();
 
-        //Export csv file with selected ids.
-        selectAll('.checkbox').filter('.checked').each((element: any, ind) => {
+    //     //Export csv file with selected ids.
+    //     selectAll('.checkbox').filter('.checked').each((element: any, ind) => {
 
-          element.id.map((personID) => {
-            const personInd = personIDs.indexOf(personID);
-            csvContent += personID + ',' + labIDData[personInd] + '\r\n'; // add carriage return
-          });
-        });
+    //       element.id.map((personID) => {
+    //         const personInd = personIDs.indexOf(personID);
+    //         csvContent += personID + ',' + labIDData[personInd] + '\r\n'; // add carriage return
+    //       });
+    //     });
 
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement('a');
-        link.setAttribute('href', encodedUri);
-        link.setAttribute('download', 'lineage_export.csv');
-        document.body.appendChild(link); // Required for FF
+    //     const encodedUri = encodeURI(csvContent);
+    //     const link = document.createElement('a');
+    //     link.setAttribute('href', encodedUri);
+    //     link.setAttribute('download', 'lineage_export.csv');
+    //     document.body.appendChild(link); // Required for FF
 
-        link.click();
-      });
+    //     link.click();
+    //   });
 
-    select('.navbar-collapse')
-      .append('ul').attr('class', 'nav navbar-nav navbar-left').attr('id', 'Sort by Tree')
-      .append('li')
-      .append('a')
-      .attr('class', 'btn-link')
-      .attr('role', 'button')
-      .html('Sort by Tree')
-      .on('click', (d) => {
+    // select('.navbar-collapse')
+    //   .append('ul').attr('class', 'nav navbar-nav navbar-left').attr('id', 'Sort by Tree')
+    //   .append('li')
+    //   .append('a')
+    //   .attr('class', 'btn-link')
+    //   .attr('role', 'button')
+    //   .html('Sort by Tree')
+    //   .on('click', (d) => {
 
-        // const maxWidth = max(this.colOffsets) + 50;
-        // this.$node.select('#headers')
-        //   .attr('width', maxWidth);
+    //     // const maxWidth = max(this.colOffsets) + 50;
+    //     // this.$node.select('#headers')
+    //     //   .attr('width', maxWidth);
 
-        // this.$node.select('.tableSVG')
-        //   .attr('width', maxWidth);
+    //     // this.$node.select('.tableSVG')
+    //     //   .attr('width', maxWidth);
 
-        const animated = (this.sortAttribute.state !== sortedState.Unsorted) ? (d) => d.transition(this.t2) : (d) => d;
+    //     const animated = (this.sortAttribute.state !== sortedState.Unsorted) ? (d) => d.transition(this.t2) : (d) => d;
 
-        this.sortAttribute.state = sortedState.Unsorted;
+    //     this.sortAttribute.state = sortedState.Unsorted;
 
-        selectAll('.sortIcon')
-          .classed('sortSelected', false);
+    //     selectAll('.sortIcon')
+    //       .classed('sortSelected', false);
 
-        // animated(select('#col2'))
-        //   .style('width', (550 + Config.collapseSlopeChartWidth) + 'px');
+    //     // animated(select('#col2'))
+    //     //   .style('width', (550 + Config.collapseSlopeChartWidth) + 'px');
 
-        animated(select('#columns').selectAll('.cell'))
-          .attr('transform', (cell: any) => {
-            return ('translate(0, ' + this.y(this.rowOrder[cell.ind]) + ' )');
-          });
+    //     animated(select('#columns').selectAll('.cell'))
+    //       .attr('transform', (cell: any) => {
+    //         return ('translate(0, ' + this.y(this.rowOrder[cell.ind]) + ' )');
+    //       });
 
-        // //translate tableGroup to make room for the slope lines.
-        // animated(select('#tableGroup'))
-        //   // .transition(t2)
-        //   .attr('transform', () => {
-        //     return ('translate(0,0)');
-        //   });
+    //     // //translate tableGroup to make room for the slope lines.
+    //     // animated(select('#tableGroup'))
+    //     //   // .transition(t2)
+    //     //   .attr('transform', () => {
+    //     //     return ('translate(0,0)');
+    //     //   });
 
-        // animated(select('#headerGroup'))
-        //   // .transition(t2)
-        //   .attr('transform', () => {
-        //     return ('translate(0,80)');
-        //   });
+    //     // animated(select('#headerGroup'))
+    //     //   // .transition(t2)
+    //     //   .attr('transform', () => {
+    //     //     return ('translate(0,80)');
+    //     //   });
 
-        // animated(select('#colSummaries'))
-        //   // .transition(t2)
-        //   .attr('transform', () => {
-        //     return ('translate(0 ,15)');
-        //   });
+    //     // animated(select('#colSummaries'))
+    //     //   // .transition(t2)
+    //     //   .attr('transform', () => {
+    //     //     return ('translate(0 ,15)');
+    //     //   });
 
-        animated(select('#tableGroup').selectAll('.highlightBar'))
-          // .transition(t2)
-          .attr('y', (d: any) => {
-            return this.y(this.rowOrder[d.i]);
-          });
+    //     animated(select('#tableGroup').selectAll('.highlightBar'))
+    //       // .transition(t2)
+    //       .attr('y', (d: any) => {
+    //         return this.y(this.rowOrder[d.i]);
+    //       });
 
-        // this.updateSlopeLines(true, false); //animate = true, expanded = false;
+    //     // this.updateSlopeLines(true, false); //animate = true, expanded = false;
 
 
 
-      });
+    //   });
 
 
     // const list = dropdownMenu.append('li').attr('class', 'dropdown');
@@ -407,7 +407,7 @@ class AttributeTable {
 
     //Column Summaries
     this.$node.select('#headerGroup').append('g')
-      .attr('transform', 'translate(0, 15)')
+      .attr('transform', 'translate(0, 5)')
       .attr('id', 'colSummaries');
 
     //Columns (except for the first)
@@ -487,11 +487,11 @@ class AttributeTable {
         //     return ('translate(0,0)');
         //   });
 
-        select('#colSummaries')
-          // .transition(t2)
-          .attr('transform', () => {
-            return ('translate(0 ,15)');
-          });
+        // select('#colSummaries')
+        //   // .transition(t2)
+        //   .attr('transform', () => {
+        //     return ('translate(0 ,5)');
+        //   });
 
 
         selectAll('.slopeLine')
@@ -985,9 +985,9 @@ class AttributeTable {
   //function that removes spaces and periods to be used as ids and selectors. Also includes categories for categorical data.
   private deriveID(d) {
     const id = (d.type === 'categorical' ?
-      (d.name.replace(/ /g, '_').replace(/\./g, '').replace(/\:/g, '').replace(/\(/g, '').replace(/\)/g, '').replace(/\'/g, '').replace(/\&/g, '').replace(/\&/g, '').replace(/\?/g, '').replace(/\!/g, '').replace(/\//g, '').replace(/\,/g, '') + '_'
+      (d.name.replace(/ /g, '_').replace(/\./g, '').replace(/\:/g, '').replace(/\(/g, '').replace(/\)/g, '').replace(/\'/g, '').replace(/\&/g, '').replace(/\&/g, '').replace(/\?/g, '').replace(/\!/g, '').replace(/\@/g, '').replace(/\//g, '').replace(/\,/g, '') + '_'
         + d.category.replace(/ /g, '_').replace(/\(/g, '').replace(/\)/g, '')) :
-      (d.name.replace(/ /g, '_').replace(/\./g, '').replace(/\:/g, '').replace(/\(/g, '').replace(/\)/g, '').replace(/\'/g, '').replace(/\&/g, '').replace(/\&/g, '').replace(/\?/g, '').replace(/\!/g, '').replace(/\//g, '').replace(/\,/g, '')));
+      (d.name.replace(/ /g, '_').replace(/\./g, '').replace(/\:/g, '').replace(/\(/g, '').replace(/\)/g, '').replace(/\'/g, '').replace(/\&/g, '').replace(/\&/g, '').replace(/\?/g, '').replace(/\!/g, '').replace(/\@/g, '').replace(/\//g, '').replace(/\,/g, '')));
 
     return id;
   }
@@ -1061,7 +1061,7 @@ class AttributeTable {
         if (d.category && d.category.toLowerCase() !== 'true' && d.category.toLowerCase() !== 'y') {
           return Config.icons[d.label] +  ' ' + d.name + ' (' + d.category + ')';
         } else if ((d.category) || d.type === 'dataDensity') {
-          return d.name;
+          return d.name.slice(0, 15);
         } else {
           return d.name.slice(0, 9);
         };
@@ -1880,9 +1880,9 @@ class AttributeTable {
     icon = iconEnter.merge(icon);
 
     icon
-      .attr('y', this.rowHeight * 1.8 + 24)
+      .attr('y', this.rowHeight * 1.8 + 17)
       .attr('x', (d) => {
-        return  cellData.type === VALUE_TYPE_ADJMATRIX ? colWidth / 2 : colWidth / 2 - 5;
+        return  cellData.type === VALUE_TYPE_ADJMATRIX ? colWidth / 2 : colWidth / 2;
       });
 
       icon = element.selectAll('.deleteIcon')
@@ -1895,9 +1895,9 @@ class AttributeTable {
       .text(' \uf057');
 
     element.select('.deleteIcon')
-      .attr('y', this.rowHeight * 2 + 40)
+      .attr('y', this.rowHeight * 2 + 30)
       .attr('x', (d) => {
-        return cellData.type === VALUE_TYPE_ADJMATRIX ? colWidth/2 : colWidth / 2 - 8;
+        return cellData.type === VALUE_TYPE_ADJMATRIX ? colWidth/2 : colWidth / 2 ;
       });
 
 
@@ -2714,7 +2714,7 @@ class AttributeTable {
 
         element.selectAll('.cross_out').remove();
 
-      return;
+      // return;
     }
 
     if (element.selectAll('.categorical').size() === 0) {
@@ -2742,7 +2742,8 @@ class AttributeTable {
       .select('.frame')
       .attr('width', rowHeight)
       .attr('height', rowHeight)
-      .style('opacity',colorScale(numValues/cellData.data.length));
+      .style('opacity',(numValues > 0 ? colorScale(numValues/cellData.data.length) :1))
+      .classed('empty',numValues === 0);
     // .attr('y', 0)
     // .attr('fill', (d) => {
     //   return incomingEdge ? '#4c6999'  : '#4c8899';
@@ -2762,10 +2763,10 @@ class AttributeTable {
       .classed('aggregate', () => {
         return cellData.data.length > 1;
       })
-      .attr('fill', (d) => {
-        return incomingEdge ? '#4c5c7d' : '#c7a95e';
-        // return '#dfdfdf';
-      });
+      // .attr('fill', (d) => {
+      //   return incomingEdge ? '#4c5c7d' : '#c7a95e';
+      //   // return '#dfdfdf';
+      // });
 
     // .attr('fill', () => {
     //   return '#767a7a';
@@ -2928,8 +2929,18 @@ class AttributeTable {
           .style('opacity',.4);
 
           const eoi = selectAll('.hiddenEdge').filter((e: any) => {
-            return (uuids.find((u)=> u === e.source.uuid) || uuids.find((u)=> u === e.target.uuid));
+            let parent, child;
+            if (e.source.children.find((c)=>c.uuid === e.target.uuid)) {
+               parent = e.source;
+               child = e.target;
+           } else if (e.target.children.find((c)=>c.uuid === e.source.uuid)) {
+             child = e.source;
+             parent = e.target;
+           };
+      
+            return (parent === undefined && d.id === e.source.uuid || d.id === e.target.uuid);
           });
+
 
           //only highlight connected nodes
           eoi.each((element:any) => {

@@ -609,6 +609,11 @@ class Graph {
     // .attr('class', 'list-group-item active')
     // .text('Shortest Path List');
 
+    select(selector).append('div')
+      .attr('id', 'graphHeaders');
+
+
+
     const graphDiv = select(selector).append('div')
       .attr('id', 'graphDiv');
 
@@ -631,7 +636,7 @@ class Graph {
       .attr('width', this.width)
       .attr('height', this.height)
       .attr('id', 'graph')
-      .style('margin-top', 195)
+      // .style('margin-top', 195)
       .append('g')
       .attr('id', 'genealogyTree')
       .attr('transform', 'translate(' + this.margin.left + ',' + (Config.glyphSize + this.margin.top) + ')');
@@ -797,7 +802,7 @@ class Graph {
     const oldParent = target.parent; //target.parent ? target.parent : source.parent;
     const child = target; //target.parent ? target : source;
 
-    console.log(oldParent, child);
+    // console.log(oldParent, child);
 
     //replacing edge with itself;
     if (oldParent === source) {
@@ -830,6 +835,7 @@ class Graph {
 
       oldEdge.visible = false;
       oldEdge.visited = true;
+      oldEdge.extracted = false;
 
     }
 
@@ -854,6 +860,7 @@ class Graph {
 
     newEdge.visible = true;
     newEdge.visited = true;
+    newEdge.extracted = true;
 
     // console.log('adding ', newEdge.source.title , ' -> ', newEdge.target.title , ' edge' , newEdge.visible);
   }
@@ -1207,14 +1214,21 @@ class Graph {
 
   //Recursive Function that hides a sub-tree
   public hideBranch(rootNode, hide = true) {
+    // console.log('starting hide @ ', rootNode.title, hide)
     rootNode.children.map((c) => this.hideBranchHelper(c, hide));
   }
 
   public hideBranchHelper(node, hide) {
-    // console.log('hiding ', node.title, node.label);
+    console.log('hiding ', node.title, hide);
     node.visible = !hide;
     node.hidden = hide;
-    node.children.map((c) => this.hideBranchHelper(c, hide));
+    node.children.map((child) => {
+      //only hide children if they are directly under them.
+      if (child.mode === mode.tree || (child.mode === mode.level && !node.children.find((c) => c.uuid === child.aggParent.parent.uuid))) {
+        this.hideBranchHelper(child, hide);
+      }
+    }
+    );
   }
 
   /**
@@ -1473,6 +1487,7 @@ class Graph {
       n.layout = n.layout !== undefined ? n.layout : layout.expanded; //preserve original layout if there was one
       n.mode = n.mode !== undefined ? n.mode : mode.tree; //preserve original 'mode' if there was one
       n.nodeType = nodeType.single;
+      n.title = n.title ? n.title : n.uuid;
     });
 
     //if none of the roots are in the graph, pick node with the largest degree as the root;
@@ -1530,6 +1545,7 @@ class Graph {
 
     // //Re-aggregate any aggregated portions of the tree;
     const aggRoots = this.graph.nodes.filter((n) => n.summary !== undefined);
+    console.log('aggRoots are', aggRoots, forceAggregation)
     aggRoots.map((aggRoot) => this.setAggregation(aggRoot, aggRoot.aggMode === mode.level), forceAggregation);
 
     this.layoutTree();
@@ -1556,6 +1572,20 @@ class Graph {
       const targetNode = l.target;
       const sourceNode = l.source;
 
+      // const parent = [targetNode, sourceNode].find((n) => n.xx === min([targetNode, sourceNode], (n) => n.xx));
+      // const child = [targetNode, sourceNode].find((n) => n.xx === max([targetNode, sourceNode], (n) => n.xx));
+
+      let parent, child;
+      if (sourceNode.children.find((c) => c.uuid === targetNode.uuid)) {
+        parent = sourceNode;
+        child = targetNode;
+      } else if (targetNode.children.find((c) => c.uuid === sourceNode.uuid)) {
+        child = sourceNode;
+        parent = targetNode;
+      };
+
+
+
       // Set all edges that connect level-mode to non levelSummary nodes to hidden
       if ((targetNode.mode === mode.level && targetNode.nodeType !== nodeType.levelSummary)
         || (sourceNode.mode === mode.level && sourceNode.nodeType !== nodeType.levelSummary)) {
@@ -1563,19 +1593,12 @@ class Graph {
         l.visible = false;
 
         //check for the exception where the edge connects parent in level mode and child in tree mode;
-        const parent = [targetNode, sourceNode].find((n) => n.xx === min([targetNode, sourceNode], (n) => n.xx));
-        const child = [targetNode, sourceNode].find((n) => n.xx === max([targetNode, sourceNode], (n) => n.xx));
-
-        if (!parent) {
-          console.log('we have a problem... ', targetNode, sourceNode);
-        }
-
-        if (parent.children && child.mode === mode.tree && parent.children.filter((c) => c.uuid === child.uuid).length > 0) {
+        if (parent && child.mode === mode.tree) {
           l.visible = true;
         }
 
         //check for the exception where the edge connects parent in level mode and child in levelSummary Mode;
-        if (parent.children && child.nodeType === nodeType.levelSummary && parent.children.find((c) => c.uuid === child.uuid)) {
+        if (parent && child.nodeType === nodeType.levelSummary) {
           l.visible = true;
         }
       }
@@ -1587,9 +1610,12 @@ class Graph {
       targetDictEntry.degree = targetDictEntry.degree + 1;
       sourceDictEntry.degree = sourceDictEntry.degree + 1;
 
-      if (l.visible === false && l.target.visible && l.source.visible) {
-        targetDictEntry.hidden = targetDictEntry.hidden + 1;
-        sourceDictEntry.hidden = sourceDictEntry.hidden + 1;
+      //edge between parent and child are not considered 'hidden';
+      if (l.visible === false && l.extracted && l.target.visible && l.source.visible) {
+        if (parent === undefined || (child.mode === mode.level && !parent.children.find((c) => c.uuid === child.aggParent.parent.uuid))) {
+          targetDictEntry.hidden = targetDictEntry.hidden + 1;
+          sourceDictEntry.hidden = sourceDictEntry.hidden + 1;
+        }
       }
 
     });
@@ -1696,6 +1722,7 @@ class Graph {
       }
 
       e.visited = true;
+      e.extracted = true;
     });
 
   }
@@ -1721,7 +1748,7 @@ class Graph {
       //remove all aggregateLabel labels (all children of level summary nodes)
       levelSummaryNodes.map((levelSummaryNode) => {
         levelSummaryNode.children.filter((c) => c.nodeType === nodeType.aggregateLabel).map((aggregateLabelNode) => {
-          console.log('clearing ', aggregateLabelNode.uuid); this.graph.nodes = this.graph.nodes.filter((n) => n.uuid !== aggregateLabelNode.uuid);
+          this.graph.nodes = this.graph.nodes.filter((n) => n.uuid !== aggregateLabelNode.uuid);
         });
       });
 
@@ -1909,6 +1936,7 @@ class Graph {
       node.layout = node === root || (node.mode === mode.level && !force) ? node.layout : layout.expanded;
       node.mode = node === root || (node.mode === mode.level && !force) ? node.mode : mode.tree;
 
+      // console.log(node.nodeType, node.title, node === root, node.mode,node.layout, force)
 
       //remove any level mode nodes from the parent
       // node.children = node.children.filter((n) => n.nodeType === nodeType.single);
@@ -1921,6 +1949,7 @@ class Graph {
 
         c.level = undefined;
         c.aggParent = undefined;
+        // console.trace('setting aggParent to undefined for ', c);
         c.aggregateRoot = undefined;
         if (c.nodeType === nodeType.single) {
           queue.push(c);
@@ -2015,11 +2044,11 @@ class Graph {
         };
 
         if (a.nodeType === nodeType.levelSummary) {
-          return -1;
+          return 1;
         }
 
         if (b.nodeType === nodeType.levelSummary) {
-          return 1;
+          return -1;
         }
 
         const aloc = ids.findIndex((id) => { return id.find((i) => { return i === a.uuid; }); });
@@ -2043,9 +2072,13 @@ class Graph {
             if (aIDs.length > 0) {
               const aloc = ids.findIndex((id) => { return id.find((i) => { return i === aIDs[0]; }); });
               aValues = data[aloc].filter((v) => v !== undefined);
+            } else {
+              aValues = [];
             }
           }
         }
+        // console.log(a,aValues);
+
         a.value = aValues.reduce((acc, cValue) => acc + cValue, 0);
 
         if (bloc > -1) {//this is a single Node
@@ -2064,11 +2097,15 @@ class Graph {
             if (bIDs.length > 0) {
               const bloc = ids.findIndex((id) => { return id.find((i) => { return i === bIDs[0]; }); });
               bValues = data[bloc].filter((v) => v !== undefined);
+            } else {
+              bValues = [];
             }
           }
         }
-
-        b.value = bValues.reduce((acc, cValue) => acc + cValue, 0) ;
+        if (!bValues) {
+          console.trace('bValues are undefined for, ', a, b);
+        }
+        b.value = bValues.reduce((acc, cValue) => acc + cValue, 0);
 
         if (typeof a.value === 'number') {
           a.value = +a.value;
@@ -2195,7 +2232,7 @@ class Graph {
       .selectAll('.endMarker')
       .data(graph.nodes.filter((n) => {
         return (!(n.children.length < 1 && n.graphDegree <= n.degree)) && n.visible && n.mode === mode.tree && n.nodeType === nodeType.single;
-      }), (d) => { return this.createID(d.title) + '_endMarker'; });
+      }), (d) => { return this.createID(d) + '_endMarker'; });
 
     const linkEndMarkersEnter = linkEndMarkers
       .enter()
@@ -2337,7 +2374,7 @@ class Graph {
         return this.whichExpandIcon(d) === 'arrowDown' ? this.xScale(d.xx) - 5 : this.xScale(d.xx) - 2;
       })
       .attr('y', (d: any, i) => {
-        return this.yScale(d.yy) - 1;
+        return this.yScale(d.yy);
       });
 
     // animated(levelBrackets)
@@ -2667,17 +2704,17 @@ class Graph {
       .select('.expand')
       .text(this.expandIcon)
       .style('font-size', (d) => {
-        if (d.children.length < 1 && d.graphDegree === d.degree) {
+        if (this.whichExpandIcon(d) === 'noArrow') {
           return '8px';
         }
       })
       .style('stroke-width', (d) => {
-        if (d.children.length < 1 && d.graphDegree === d.degree) {
+        if (this.whichExpandIcon(d) === 'noArrow') {
           return '2px';
         }
       })
       .style('stroke', (d) => {
-        if (d.children.length < 1 && d.graphDegree === d.degree) {
+        if (this.whichExpandIcon(d) === 'noArrow') {
           return 'white';
         }
       });
@@ -2688,7 +2725,7 @@ class Graph {
 
     regularNodes
       .select('.titleContent')
-      .text((d) => ' ' + d.title);
+      .text((d) => ' ' + d.title.slice(0, 100));
 
     node.on('click', (d) => console.log(d));
 
@@ -2966,7 +3003,7 @@ class Graph {
 
   //function that determines the icon for expansion that should be shown
   private expandIcon(node) {
-    if (node.children.length < 1 && node.graphDegree === node.degree) {
+    if ((node.children.length < 1 && node.graphDegree === node.degree) || (node.mode === mode.level && node.layout === layout.expanded && !node.children.find((n) => n.layout === layout.expanded) && node.graphDegree === node.degree)) {
       return Config.icons.smallCircle + ' ';
     } else {
       return node.children.filter((c) => (c.visible && c.nodeType === nodeType.levelSummary) || (c.visible && c.layout === layout.expanded && ((c.mode === mode.tree) || ((c.mode === mode.level && c.aggParent === node))))).length > 0 ? Config.icons.arrowDown + ' ' :
@@ -2977,7 +3014,7 @@ class Graph {
 
   //function that determines if the icon is arrowRight, arrowDown, or noArrow
   private whichExpandIcon(node) {
-    if (node.children.length < 1 && node.graphDegree === node.degree) {
+    if ((node.children.length < 1 && node.graphDegree === node.degree) || (node.mode === mode.level && node.layout === layout.expanded && !node.children.find((n) => n.layout === layout.expanded) && node.graphDegree === node.degree)) {
       return 'noArrow';
     } else {
       return node.children.filter((c) => (c.visible && c.nodeType === nodeType.levelSummary) || (c.visible && c.layout === layout.expanded && ((c.mode === mode.tree) || ((c.mode === mode.level && c.aggParent === node))))).length > 0 ? 'arrowDown' : 'arrowRight';
@@ -3362,13 +3399,27 @@ class Graph {
     selectAll('.highlightBar').filter(selected).attr('opacity', .2);
 
     if (d.data) {
-      const className = 'starRect_' + this.createID(d.data.title);
+      const className = 'starRect_' + this.createID(d.data);
       select('.' + className).attr('opacity', .2);
     }
 
     // console.log(d);
     const eoi = selectAll('.hiddenEdge').filter((e: any) => {
-      return (d.id === e.source.uuid || d.id === e.target.uuid);
+      let parent, child;
+      if (e.source.children.find((c) => c.uuid === e.target.uuid)) {
+        parent = e.source;
+        child = e.target;
+      } else if (e.target.children.find((c) => c.uuid === e.source.uuid)) {
+        child = e.source;
+        parent = e.target;
+      };
+
+      if (parent === undefined || (child.mode === mode.level && !parent.children.find((c) => c.uuid === child.aggParent.parent.uuid))) {
+        return (d.id === e.source.uuid || d.id === e.target.uuid);
+      } else {
+        return false;
+      }
+      
     });
 
     // console.log('eoi size', eoi.size())
@@ -3397,8 +3448,9 @@ class Graph {
   }
 
 
-  private createID(title) {
-    return title.replace(/ /g, '_').replace(/\./g, '').replace(/\?/g, '').replace(/\:/g, '').replace(/\(/g, '').replace(/\)/g, '').replace(/\'/g, '').replace(/\&/g, '').replace(/\!/g, '').replace(/\//g, '').replace(/\,/g, '');
+  private createID(d) {
+    const title = d.title ? d.title : d.uuid;
+    return title.replace(/ /g, '_').replace(/\./g, '').replace(/\@/g, '').replace(/\?/g, '').replace(/\:/g, '').replace(/\(/g, '').replace(/\)/g, '').replace(/\'/g, '').replace(/\&/g, '').replace(/\!/g, '').replace(/\//g, '').replace(/\,/g, '');
   }
 
 
@@ -3609,6 +3661,9 @@ class Graph {
         return max([+c.yy, childrenY]);
       });
 
+      if (n.layout === layout.aggregated && !n.aggParent) {
+        console.log(n);
+      };
       n.yy = n.layout === layout.aggregated ? n.aggParent.yy : (n.nodeType === nodeType.levelSummary ? start + (end - start) / 2 : n.yy);
 
       //check for need to add '+' icon to fetch remaining children in server

@@ -68,8 +68,12 @@ class SetSelector {
 
     //add nodeFilter div to header
     select('#caleydoHeader')
+    .select('.navbar-collapse')
       .append('div')
-      .attr('id', 'nodeFilter');
+      .attr('id', 'nodeFilter')
+      .style('display','inline-flex')
+      .style('margin-top','8px')
+      .attr('width','1120px');
 
     //add dropdown menu for table attributes
 
@@ -115,19 +119,19 @@ class SetSelector {
    */
   private build(labels) {
 
-    //add query box
-    const queryHeading = select('#col1')
-      .select('#queryInput')
-      .selectAll('.panel-heading')
-      .data([0]) // ensure there is only one search box
-      .enter()
-      .append('div')
-      .attr('class', 'panel-heading');
+    // //add query box
+    // const queryHeading = select('#col1')
+    //   .select('#queryInput')
+    //   .selectAll('.panel-heading')
+    //   .data([0]) // ensure there is only one search box
+    //   .enter()
+    //   .append('div')
+    //   .attr('class', 'panel-heading');
 
-    queryHeading.append('input')
-      .attr('class', 'form-control')
-      .attr('id', 'queryInputForm')
-      .attr('placeholder', 'Enter Cypher Search Query');
+    // queryHeading.append('input')
+    //   .attr('class', 'form-control')
+    //   .attr('id', 'queryInputForm')
+    //   .attr('placeholder', 'Enter Cypher Search Query');
 
   //     //add query box
   //  select('#col1')
@@ -163,24 +167,25 @@ class SetSelector {
       // .text(Config.icons.Search)
       // .style('font-family','FontAwesome')
 
-    //Add set Selector toolbar
-    const toolBar = select('#col1')
-      .select('#toolBar')
-      .selectAll('.panel-heading')
-      .data([0]) // ensure there is only one toolbar
-      .enter()
-      .append('div')
-      .attr('class', 'panel-heading');
+    // // //Add set Selector toolbar
+    // // const toolBar = select('#col1')
+    // //   .select('#toolBar')
+    // //   .selectAll('.panel-heading')
+    // //   .data([0]) // ensure there is only one toolbar
+    // //   .enter()
+    // //   .append('div')
+    // //   .attr('class', 'panel-heading');
 
-    const tools = ['AddNode', 'AddSubGraph', 'AddChildren', 'Add2Matrix'];
+    // // const tools = ['AddNode', 'AddSubGraph', 'AddChildren', 'Add2Matrix'];
+    // const tools=[];
 
 
-    toolBar.selectAll('button')
-      .data(tools)
-      .enter()
-      .append('button')
-      .attr('class', 'btn btn-default')
-      .text((d) => Config.icons[d]);
+    // toolBar.selectAll('button')
+    //   .data(tools)
+    //   .enter()
+    //   .append('button')
+    //   .attr('class', 'btn btn-default')
+    //   .text((d) => Config.icons[d]);
 
     // <button class="btn btn-default" type="submit">Button</button>
 
@@ -189,25 +194,26 @@ class SetSelector {
     //   .attr('id', 'allNodes');
 
     //add nodeAttribute filter
-    select('#nodeFilter').selectAll('.panel').remove(); //total hack.
+    
+    // select('#nodeFilter').selectAll('.panel').remove(); //total hack.
 
 
-    //creat an accordion div and a table for each label
-    const p = select('#nodeFilter')
-      .selectAll('.panel-default')
-      .data(['Exclude Node Types']);
+    // //creat an accordion div and a table for each label
+    // const p = select('#nodeFilter')
+    //   .selectAll('.panel-default')
+    //   .data(['Exclude Node Types']);
 
 
 
-    p.exit().remove();
+    // p.exit().remove();
 
-    const pEnter = p.enter();
+    // const pEnter = p.enter();
 
-    const pDefault1 = pEnter
-      .append('div')
-      .attr('class', 'panel panel-default');
+    // const pDefault1 = pEnter
+    //   .append('div')
+    //   .attr('class', 'panel panel-default');
 
-    //Filter Panel Heading
+    // // Filter Panel Heading
     // pDefault1
     //   .append('div')
     //   .attr('class', 'panel-heading')
@@ -219,33 +225,44 @@ class SetSelector {
     //   .attr('href', (d, i) => { return '#ncollapse_' + i; });
 
 
-    const pDefault2 = pDefault1
-      .append('div')
-      .attr('id', (d, i) => { return 'ncollapse_' + i; })
-      .attr('class', 'panel-collapse collapse')
-      .classed('in', (d, i) => { return i < 1; })
-      .append('div')
-      .attr('class', 'panel-body')
-      .attr('id', 'filterPanel');
+    // const pDefault2 = pDefault1
+    //   .append('div')
+    //   .attr('id', (d, i) => { return 'ncollapse_' + i; })
+    //   .attr('class', 'panel-collapse collapse')
+    //   .classed('in', (d, i) => { return i < 1; })
+    //   .append('div')
+    //   .attr('class', 'panel-body')
+    //   .attr('id', 'filterPanel');
 
-    const cboxes =
-      select('#filterPanel')
-        .selectAll('.checkbox')
-        .data(labels)
-        .enter()
-        .append('div');
+    // console.log(select('#nodeFilter').size(), labels)
+    // console.log(selectAll('.checkbox').size())
+   
+    // const cboxes =
 
-    const label = cboxes
-      .attr('class', 'checkbox')
-      .append('label');
+    let cboxes = select('#nodeFilter')
+    .selectAll('.checkboxDiv')
+    .data(labels);
 
+    const cBoxesEnter = cboxes
+    .enter()
+    .append('div')
+    .attr('class','checkboxDiv');
 
-    label
+    cBoxesEnter
+    .append('g')
+    .attr('class','checkbox')
+    .append('label');
+
+    cboxes.exit().remove();
+
+    cboxes = cboxes.merge(cBoxesEnter);
+
+    cboxes.select('label')
       .html(function (d: any) {
-        return select(this).html() + '<g class="dropdownMenu"><tspan class="icon">' + Config.icons[d.name] + '</tspan> ' + d.name + ' [0]</g> ' + '<tspan class="filter icon">' + Config.icons.filter + '</tspan> '; //+  Config.icons.menu;
+        return '<g class="dropdownMenu"><tspan class="icon">' + Config.icons[d.name] + '</tspan> ' + d.name + ' [0]</g> ' + '<tspan class="filter icon">' + Config.icons.filter + '</tspan> '; //+  Config.icons.menu;
       });
 
-    label.select('.filter')
+    cboxes.select('label').select('.filter')
       .on('click', function (d: any) {
         const parentElement = select('#filterPanel').selectAll('label').filter((l: any) => {
           return l.name === d.name;
@@ -254,7 +271,7 @@ class SetSelector {
         parentElement.classed('exclude', !parentElement.classed('exclude'));
       });
 
-    label.select('.dropdownMenu')
+    cboxes.select('label').select('.dropdownMenu')
       .on('click', (d: any) => {
 
         event.stopPropagation();
@@ -263,12 +280,12 @@ class SetSelector {
         const coordinates = mouse(container);
 
         select('#nodeFilter').select('.dropdown-menu')
-          .style('transform', 'translate(' + (coordinates[0] - 10) + 'px,35px)');
+          .style('transform', 'translate(' + (coordinates[0] - 430) + 'px,35px)');
 
         select('#nodeFilter').select('.open').style('visibility', 'visible');
 
         let menuItems = select('#nodeFilter').select('.dropdown-menu').selectAll('.demoAttr')
-          .data(this.labelProperties[d.name]);
+          .data(this.labelProperties[d.name].sort((a,b)=> a<b ? -1: 1));
 
         const menuItemsEnter = menuItems.enter()
           .append('li')
@@ -319,7 +336,7 @@ class SetSelector {
             .append('div')
             .attr('id', (d, i) => { return 'sp_' + i; })
             .attr('class', 'panel-collapse collapse ')
-            .classed('in', (d, i) => { return i < 1; })
+            .classed('in', false)
             .append('div')
             .attr('class', 'panel-body');
 

@@ -194,7 +194,7 @@ class SetSelector {
     //   .attr('id', 'allNodes');
 
     //add nodeAttribute filter
-    
+
     // select('#nodeFilter').selectAll('.panel').remove(); //total hack.
 
 
@@ -236,7 +236,7 @@ class SetSelector {
 
     // console.log(select('#nodeFilter').size(), labels)
     // console.log(selectAll('.checkbox').size())
-   
+
     // const cboxes =
 
     let cboxes = select('#nodeFilter')
@@ -427,7 +427,7 @@ class SetSelector {
 
     select('#accordion')
       .selectAll('a')
-      .html((d: any) => { return '<tspan class="icon">' + Config.icons[d.name] + '</tspan> ' + d.name + ' (' + d.size + ')'; });
+      .html((d: any) => { return '<tspan class="icon">' + Config.icons[d.name] + '</tspan> ' + ' (' + d.size + ') ' + d.name ; });
 
     // select('#nodeFilter')
     //   .selectAll('a')
@@ -726,7 +726,7 @@ class SetSelector {
       .html((d: any) => {
         // console.log(d);
         const cellString = d.value.length > 14 ? d.value.slice(0, 12) + '...' : d.value.slice(0, 12);
-        return '<span class="title">' + cellString + '</span>';
+        return '<tspan class="title">' + cellString + '</tspan>';
       });
 
 
@@ -735,9 +735,12 @@ class SetSelector {
         return c.type === 'degree';
       })
       .html((d: any) => {
-        return '<span class="degree">' + d.value + '</span> <span class="addNode">' + Config.icons.AddNode + '</span>';
+        return '<tspan class="degree">' + d.value + '</tspan> <tspan class="addNode">' + Config.icons.AddNode + '</tspan>';
       })
-      .style('text-align', 'center');
+      .style('text-align', 'right');
+
+      // selectAll('tspan.degree')
+      // .style('padding','10px');
 
     //adjust height of table body
     // document.getElementById('genealogyTree').getBoundingClientRect().height

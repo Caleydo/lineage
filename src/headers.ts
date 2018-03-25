@@ -18,8 +18,6 @@ class HeaderMenus {
    * Creates a Header Object
    */
   constructor() {
-
-
     // select('.navbar-collapse')
     // .append('div')
     // .attr('class', 'nav navbar-nav navbar-left')
@@ -48,12 +46,12 @@ class HeaderMenus {
     .on('change', onchange);
 
     selectMenu.append('option')
-    .attr('value','got')
-    .text('Game of Thrones');
-
-    selectMenu.append('option')
     .attr('value','coauth')
     .text('Co-author Network');
+
+    selectMenu.append('option')
+    .attr('value','got')
+    .text('Game of Thrones');
 
     selectMenu.append('option')
     .attr('value','path')

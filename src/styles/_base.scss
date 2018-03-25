@@ -30,6 +30,10 @@ body, html {
   // stroke:black;
 }
 
+tspan.degree{
+  padding:20px;
+}
+
 .panel-group{
   margin-bottom:0px !important; 
   margin-top:10px;
@@ -45,7 +49,7 @@ body, html {
 }
 
 .quant{
-  fill:white;
+  fill:rgb(207, 206, 206);
 }
 
 

@@ -85,7 +85,7 @@ class AttributeTable {
   private allRows;
 
   private rowHeight = Config.glyphSize * 2.5 - 4;
-  private headerHeight = this.rowHeight * 2;
+  private headerHeight = this.rowHeight * 1.5;
   private colWidths = {
     idtype: this.rowHeight * 4,
     categorical: this.rowHeight,
@@ -95,7 +95,7 @@ class AttributeTable {
     string: this.rowHeight * 5,
     id: this.rowHeight * 4.5,
     dataDensity: this.rowHeight,
-    level:this.rowHeight * 4
+    level: this.rowHeight * 4
   };
 
   //Used to store col widths if user resizes a col;
@@ -407,7 +407,7 @@ class AttributeTable {
 
     //Column Summaries
     this.$node.select('#headerGroup').append('g')
-      .attr('transform', 'translate(0, 5)')
+      .attr('transform', 'translate(0, 15)')
       .attr('id', 'colSummaries');
 
     //Columns (except for the first)
@@ -918,8 +918,8 @@ class AttributeTable {
       const type = vector.desc.value.type;
       const name = vector.desc.name;
 
-      const firstNonAdjMatrix = index <orderedCols.length-1 && type === VALUE_TYPE_ADJMATRIX && orderedCols[index+1].desc.value.type !== VALUE_TYPE_ADJMATRIX;
-      let maxOffset = firstNonAdjMatrix ? max(this.colOffsets)+30 :  max(this.colOffsets);
+      const firstNonAdjMatrix = index < orderedCols.length - 1 && type === VALUE_TYPE_ADJMATRIX && orderedCols[index + 1].desc.value.type !== VALUE_TYPE_ADJMATRIX;
+      let maxOffset = firstNonAdjMatrix ? max(this.colOffsets) + 30 : max(this.colOffsets);
       if (type === VALUE_TYPE_CATEGORICAL) {
 
         //Build col offsets array ;
@@ -952,7 +952,7 @@ class AttributeTable {
         }
 
         for (const cat of categories) {
-          maxOffset = firstNonAdjMatrix ? max(this.colOffsets)+30 :  max(this.colOffsets);
+          maxOffset = firstNonAdjMatrix ? max(this.colOffsets) + 30 : max(this.colOffsets);
           if (this.customColWidths[name]) {
             this.colOffsets.push(maxOffset + this.buffer * 2 + this.customColWidths[name]);
           } else {
@@ -960,7 +960,7 @@ class AttributeTable {
           }
         };
       } else if (type === VALUE_TYPE_ADJMATRIX) {
-           // const maxOffset = max(this.colOffsets);
+        // const maxOffset = max(this.colOffsets);
         if (this.customColWidths[name]) {
           this.colOffsets.push(maxOffset + 2 + this.customColWidths[name]);
         } else {
@@ -1059,7 +1059,7 @@ class AttributeTable {
       .select('.headerTitle')
       .text((d: any) => {
         if (d.category && d.category.toLowerCase() !== 'true' && d.category.toLowerCase() !== 'y') {
-          return Config.icons[d.label] +  ' ' + d.name + ' (' + d.category + ')';
+          return Config.icons[d.label] + ' ' + d.name + ' (' + d.category + ')';
         } else if ((d.category) || d.type === 'dataDensity') {
           return d.name.slice(0, 15);
         } else {
@@ -1177,7 +1177,7 @@ class AttributeTable {
       .data(this.colData.map((d, i) => {
         return {
           'name': d.name, 'data': d.data, 'ind': i, 'type': d.type,
-          'ids': d.ids, 'stats': d.stats, 'varName': d.name, 'category': d.category, 'vector': d.vector, 'range':d.range
+          'ids': d.ids, 'stats': d.stats, 'varName': d.name, 'category': d.category, 'vector': d.vector, 'range': d.range
         };
       }), (d: any) => {
         return d.varName;
@@ -1204,7 +1204,7 @@ class AttributeTable {
         return (d.type === VALUE_TYPE_ADJMATRIX ? width : width + 10);
       })
       .attr('height', this.y.range()[1] + 40)
-      .attr('x', (d)=> d.type === VALUE_TYPE_ADJMATRIX ? 0 : -5)
+      .attr('x', (d) => d.type === VALUE_TYPE_ADJMATRIX ? 0 : -5)
       .attr('y', -this.buffer + 3)
       .attr('class', (d) => { return 'starRect_' + this.deriveID(d); })
       .classed('starRect', true)
@@ -1351,7 +1351,9 @@ class AttributeTable {
       } else if (cell.type === 'id' || cell.type === 'idtype') {
         self.renderIDHeader(select(this), cell);
       } else if (cell.type === 'dataDensity') {
-        self.renderStringHeader(select(this),cell);
+        self.renderStringHeader(select(this), cell);
+      } else if (cell.type === VALUE_TYPE_LEVEL) {
+        self.renderIntHeaderHist(select(this), cell);
       }
     });
 
@@ -1389,7 +1391,7 @@ class AttributeTable {
       // .attr('fill', 'transparent')
       .on('mouseover', this.highlightRow)
       .on('mouseout', this.clearHighlight);
-      // .on('click', this.clickHighlight);
+    // .on('click', this.clickHighlight);
 
     // //create slope Lines
     // // //Bind data to the cells
@@ -1509,11 +1511,11 @@ class AttributeTable {
     rowLines = rowLinesEnter.merge(rowLines);
 
     selectAll('.rowLine')
-      .attr('x1', ()=> {
-        const firstTableCol=[];
-        const colVector = this.tableManager.colOrder.filter((colName)=> {
+      .attr('x1', () => {
+        const firstTableCol = [];
+        const colVector = this.tableManager.colOrder.filter((colName) => {
           for (const vector of this.allCols) {
-            if (vector.desc.name === colName && vector.desc.value.type !== VALUE_TYPE_ADJMATRIX ) {
+            if (vector.desc.name === colName && vector.desc.value.type !== VALUE_TYPE_ADJMATRIX) {
               firstTableCol.push(vector);
             };
           }
@@ -1546,7 +1548,7 @@ class AttributeTable {
             'varName': d.name,
             'category': d.category,
             'vector': d.vector,
-            'range':d.range
+            'range': d.range
           };
         });
       }, (d: any) => {
@@ -1561,10 +1563,10 @@ class AttributeTable {
       .on('click', this.clickHighlight);
 
     selectAll('.cell')
-      .on('mouseover', (cellData:any) => {
+      .on('mouseover', (cellData: any) => {
         this.highlightRow(cellData);
         //only add tooltip if not dataDensity type or if value in cell is >99
-        if ((cellData.type !== 'dataDensity' && cellData.type !== VALUE_TYPE_LEVEL) || cellData.data.reduce((acc,cValue)=> {return cValue.value ? acc+cValue.value : acc;},0)>99) {
+        if ((cellData.type !== 'dataDensity' && cellData.type !== VALUE_TYPE_LEVEL) || cellData.data.reduce((acc, cValue) => { return cValue.value ? acc + cValue.value : acc; }, 0) > 99) {
           this.ttip.addTooltip('cell', cellData);
         };
       })
@@ -1735,15 +1737,15 @@ class AttributeTable {
             return e === d.category;
           }).length / el.length)
         };
-      }  else if (d.type === VALUE_TYPE_ADJMATRIX) {
+      } else if (d.type === VALUE_TYPE_ADJMATRIX) {
         // console.log(el)
         const numValidValues = el.reduce((a, v) => {
           return v ? a + 1 : a;
         }, 0);
         return {
-          index: i, value: numValidValues/el.length
+          index: i, value: numValidValues / el.length
         };
-      }else if (d.type === 'idtype') {
+      } else if (d.type === 'idtype') {
         const equalValues = el.reduce(function (a, b) {
           return (a === b) ? a : NaN;
         }); //check for array that has all equal values in an aggregate (such as KindredId);
@@ -1880,12 +1882,12 @@ class AttributeTable {
     icon = iconEnter.merge(icon);
 
     icon
-      .attr('y', this.rowHeight * 1.8 + 17)
+      .attr('y', this.rowHeight * 1.8 + 8)
       .attr('x', (d) => {
-        return  cellData.type === VALUE_TYPE_ADJMATRIX ? colWidth / 2 : colWidth / 2;
+        return cellData.type === VALUE_TYPE_ADJMATRIX ? colWidth / 2 : colWidth / 2;
       });
 
-      icon = element.selectAll('.deleteIcon')
+    icon = element.selectAll('.deleteIcon')
       .data([cellData]);
 
     //Add 'remove col icon'
@@ -1895,15 +1897,15 @@ class AttributeTable {
       .text(' \uf057');
 
     element.select('.deleteIcon')
-      .attr('y', this.rowHeight * 2 + 30)
+      .attr('y', this.rowHeight * 2 + 21)
       .attr('x', (d) => {
-        return cellData.type === VALUE_TYPE_ADJMATRIX ? colWidth/2 : colWidth / 2 ;
+        return cellData.type === VALUE_TYPE_ADJMATRIX ? colWidth / 2 : colWidth / 2;
       });
 
 
     if (cellData.type !== VALUE_TYPE_ADJMATRIX) {
-          //append menu ellipsis
-        icon.enter().append('text')
+      //append menu ellipsis
+      icon.enter().append('text')
         .classed('icon', true)
         .classed('menuIcon', true)
         .text('\uf141');
@@ -1919,7 +1921,7 @@ class AttributeTable {
     const self = this;
 
     element.select('.sortIcon')
-      .on('click', function (d:any) {
+      .on('click', function (d: any) {
         // Set 'sortAttribute'
         const selected = (select(this).classed('sortSelected'));
         let descending = select(this).classed('descending');
@@ -1929,7 +1931,7 @@ class AttributeTable {
 
           const icon = descending ? Config.icons.sortAsc : Config.icons.sortDesc;
 
-          select(this).classed('descending',!select(this).classed('descending'));
+          select(this).classed('descending', !select(this).classed('descending'));
           descending = select(this).classed('descending');
 
           select(this).text(icon);
@@ -1947,16 +1949,16 @@ class AttributeTable {
         select(this)
           .classed('sortSelected', true);
 
-          let data;
-          // console.log(d,d.data)
-          //check to see if data values are arrays of values or array of objects:
-          if (d.type === 'dataDensity') {
-            data = d.data.map((dd)=>dd.map((ddd)=>ddd.value));
-          } else {
-            data = d.data;
-          }
+        let data;
+        // console.log(d,d.data)
+        //check to see if data values are arrays of values or array of objects:
+        if (d.type === 'dataDensity') {
+          data = d.data.map((dd) => dd.map((ddd) => ddd.value));
+        } else {
+          data = d.data;
+        }
 
-        events.fire(TREE_PRESERVING_SORTING,{sortOrder:self.sortAttribute.state,data,ids:d.ids});
+        events.fire(TREE_PRESERVING_SORTING, { sortOrder: self.sortAttribute.state, data, ids: d.ids });
 
 
         //global sorting
@@ -1969,8 +1971,8 @@ class AttributeTable {
     selectAll('.deleteIcon')
       .on('click', (d: any) => {
         this.tableManager.colOrder.splice(this.tableManager.colOrder.indexOf(d.name), 1);
-        const adjMatrixCol = this.tableManager.adjMatrixCols.find((a:any )=> {return a.desc.name === d.name; });
-        this.tableManager.adjMatrixCols.splice(this.tableManager.adjMatrixCols.indexOf(adjMatrixCol),1);
+        const adjMatrixCol = this.tableManager.adjMatrixCols.find((a: any) => { return a.desc.name === d.name; });
+        this.tableManager.adjMatrixCols.splice(this.tableManager.adjMatrixCols.indexOf(adjMatrixCol), 1);
         // this.tableManager.removeStar(d.name);
 
         //Update menu
@@ -2325,9 +2327,9 @@ class AttributeTable {
 
     element.select('.histogram')
       .attr('opacity', 0)
-      .attr('width', headerData.type === VALUE_TYPE_ADJMATRIX ? colWidth*.8 : colWidth)
+      .attr('width', headerData.type === VALUE_TYPE_ADJMATRIX ? colWidth * .8 : colWidth)
       .attr('height', summaryScale(numPositiveValues))
-      .attr('x', headerData.type === VALUE_TYPE_ADJMATRIX ? colWidth*.1 : 0)
+      .attr('x', headerData.type === VALUE_TYPE_ADJMATRIX ? colWidth * .1 : 0)
       .attr('y', (height - summaryScale(numPositiveValues)))
       .attr('opacity', 1)
       .attr('fill', () => {
@@ -2365,7 +2367,7 @@ class AttributeTable {
           return percentage.toFixed(0) + '%';
         }
       })
-      .attr('x',colWidth/2)
+      .attr('x', colWidth / 2)
       .attr('y', (height - summaryScale(numPositiveValues) - 2))
       .attr('opacity', 1);
 
@@ -2691,7 +2693,7 @@ class AttributeTable {
       return c;
     }).length;
 
-    const colorScale = scaleLinear<number, number>().domain([0,1]).range([0,1]);
+    const colorScale = scaleLinear<number, number>().domain([0, 1]).range([0, 1]);
 
     element.selectAll('rect').remove(); //Hack. don't know why the height of the rects isn' being updated.
 
@@ -2712,7 +2714,7 @@ class AttributeTable {
         .attr('stroke', '#9e9d9b')
         .attr('opacity', .6);
 
-        element.selectAll('.cross_out').remove();
+      element.selectAll('.cross_out').remove();
 
       // return;
     }
@@ -2742,8 +2744,8 @@ class AttributeTable {
       .select('.frame')
       .attr('width', rowHeight)
       .attr('height', rowHeight)
-      .style('opacity',(numValues > 0 ? colorScale(numValues/cellData.data.length) :1))
-      .classed('empty',numValues === 0);
+      .style('opacity', (numValues > 0 ? colorScale(numValues / cellData.data.length) : 1))
+      .classed('empty', numValues === 0);
     // .attr('y', 0)
     // .attr('fill', (d) => {
     //   return incomingEdge ? '#4c6999'  : '#4c8899';
@@ -2762,11 +2764,11 @@ class AttributeTable {
 
       .classed('aggregate', () => {
         return cellData.data.length > 1;
-      })
-      // .attr('fill', (d) => {
-      //   return incomingEdge ? '#4c5c7d' : '#c7a95e';
-      //   // return '#dfdfdf';
-      // });
+      });
+    // .attr('fill', (d) => {
+    //   return incomingEdge ? '#4c5c7d' : '#c7a95e';
+    //   // return '#dfdfdf';
+    // });
 
     // .attr('fill', () => {
     //   return '#767a7a';
@@ -2783,62 +2785,62 @@ class AttributeTable {
    */
   private renderLevelCell(element, cellData) {
 
-        //Check for custom column width value, if none, use default
-        const colWidth = this.customColWidths[cellData.name] || this.colWidths[cellData.type];
+    //Check for custom column width value, if none, use default
+    const colWidth = this.customColWidths[cellData.name] || this.colWidths[cellData.type];
 
-        // const colWidth = this.colWidths[cellData.type];
-        const rowHeight = this.rowHeight;
+    // const colWidth = this.colWidths[cellData.type];
+    const rowHeight = this.rowHeight;
 
-        element.selectAll('.cross_out').remove();
+    element.selectAll('.cross_out').remove();
 
-        const numValues = cellData.data.filter((v) => { return v.value !== undefined; }).length;
-        const totalValues = cellData.data.reduce((acc,cValue)=> {return acc+cValue.value;},0);
+    const numValues = cellData.data.filter((v) => { return v.value !== undefined; }).length;
+    const totalValues = cellData.data.reduce((acc, cValue) => { return acc + cValue.value; }, 0);
 
-        if (element.selectAll('.level').size() === 0 && cellData.data[0].value > 0) {
-          element
-            .append('line')
-            .classed('level', true);
-        }
+    if (element.selectAll('.level').size() === 0 && cellData.data[0].value > 0) {
+      element
+        .append('line')
+        .classed('level', true);
+    }
 
-        if (numValues < 1) {
+    if (numValues < 1) {
 
-          console.log(cellData);
+      console.log(cellData);
 
-          //Remove any existing dataDens elements
-          element
-            .select('.level').remove();
+      //Remove any existing dataDens elements
+      element
+        .select('.level').remove();
 
 
-          if (element.selectAll('.cross_out').size() === 0) {
-            element
-              .append('line')
-              .attr('class', 'cross_out');
-          }
-
-          element.select('.cross_out')
-            .attr('x1', colWidth * 0.3)
-            .attr('y1', rowHeight / 2)
-            .attr('x2', colWidth * 0.6)
-            .attr('y2', rowHeight / 2)
-            .attr('stroke-width', 2)
-            .attr('stroke', '#9e9d9b')
-            .attr('opacity', .6);
-
-          return;
-        }
-
-        const xScale = scaleLinear<number, number>().domain(cellData.vector.desc.value.range).range([0,colWidth]);
-
-        // console.log(cellData.data[0].value, colorScale.domain());
+      if (element.selectAll('.cross_out').size() === 0) {
         element
-          .select('.level')
-          .classed('aggregated',(numValues>0 && cellData.data[0].aggregated))
-          .attr('x1', xScale(max(cellData.data,(c:any)=> +c.value)))
-          .attr('x2', xScale(max(cellData.data,(c:any)=> +c.value)))
-          .attr('y1', rowHeight)
-          .attr('y2', 0-(rowHeight*.6));
-
+          .append('line')
+          .attr('class', 'cross_out');
       }
+
+      element.select('.cross_out')
+        .attr('x1', colWidth * 0.3)
+        .attr('y1', rowHeight / 2)
+        .attr('x2', colWidth * 0.6)
+        .attr('y2', rowHeight / 2)
+        .attr('stroke-width', 2)
+        .attr('stroke', '#9e9d9b')
+        .attr('opacity', .6);
+
+      return;
+    }
+
+    const xScale = scaleLinear<number, number>().domain(cellData.vector.desc.value.range).range([0, colWidth]);
+
+    // console.log(cellData.data[0].value, colorScale.domain());
+    element
+      .select('.level')
+      .classed('aggregated', (numValues > 0 && cellData.data[0].aggregated))
+      .attr('x1', xScale(max(cellData.data, (c: any) => +c.value)))
+      .attr('x2', xScale(max(cellData.data, (c: any) => +c.value)))
+      .attr('y1', rowHeight)
+      .attr('y2', 0 - (rowHeight * .6));
+
+  }
 
   /**
    *
@@ -2858,7 +2860,7 @@ class AttributeTable {
     element.selectAll('.cross_out').remove();
 
     const numValues = cellData.data.filter((v) => { return v.value !== undefined; }).length;
-    const totalValues = cellData.data.reduce((acc,cValue)=> {return cValue.value ? acc+cValue.value : acc;},0);
+    const totalValues = cellData.data.reduce((acc, cValue) => { return cValue.value ? acc + cValue.value : acc; }, 0);
 
     // console.assert(!(cellData.name === 'Graph Edges'),numValues,totalValues,cellData);
 
@@ -2903,7 +2905,7 @@ class AttributeTable {
     // console.log(cellData.data[0].value, colorScale.domain());
     element
       .select('.dataDens')
-      .classed('aggregated',(numValues>0 && cellData.data[0].aggregated))
+      .classed('aggregated', (numValues > 0 && cellData.data[0].aggregated))
       .attr('width', colWidth)
       .attr('height', rowHeight)
       .attr('x', 0)
@@ -2918,42 +2920,42 @@ class AttributeTable {
         selectAll('.hiddenEdge')
           .attr('visibility', 'hidden');
 
-          const uuids = cellData.data.map((d)=>d.uuid);
+        const uuids = cellData.data.map((d) => d.uuid);
 
-          // const hiddenEdges = selectAll('.hiddenEdge').filter((e: any) => {
-          //   return (uuids.find((u)=> u === e.source.uuid) || uuids.find((u)=> u === e.target.uuid));
-          // });
+        // const hiddenEdges = selectAll('.hiddenEdge').filter((e: any) => {
+        //   return (uuids.find((u)=> u === e.source.uuid) || uuids.find((u)=> u === e.target.uuid));
+        // });
 
-          select('.nodes')
+        select('.nodes')
           .selectAll('.title')
-          .style('opacity',.4);
+          .style('opacity', .4);
 
-          const eoi = selectAll('.hiddenEdge').filter((e: any) => {
-            let parent, child;
-            if (e.source.children.find((c)=>c.uuid === e.target.uuid)) {
-               parent = e.source;
-               child = e.target;
-           } else if (e.target.children.find((c)=>c.uuid === e.source.uuid)) {
-             child = e.source;
-             parent = e.target;
-           };
-      
-            return (parent === undefined && d.id === e.source.uuid || d.id === e.target.uuid);
-          });
+        const eoi = selectAll('.hiddenEdge').filter((e: any) => {
+          let parent, child;
+          if (e.source.children.find((c) => c.uuid === e.target.uuid)) {
+            parent = e.source;
+            child = e.target;
+          } else if (e.target.children.find((c) => c.uuid === e.source.uuid)) {
+            child = e.source;
+            parent = e.target;
+          };
+
+          return (parent === undefined && d.id === e.source.uuid || d.id === e.target.uuid);
+        });
 
 
-          //only highlight connected nodes
-          eoi.each((element:any) => {
-            select('.nodes')
+        //only highlight connected nodes
+        eoi.each((element: any) => {
+          select('.nodes')
             .selectAll('.title')
             .filter((t: any) => {
               return (t.uuid === element.source.uuid || t.uuid === element.target.uuid);
             })
-            .style('opacity',1);
-          });
+            .style('opacity', 1);
+        });
 
-          eoi
-            .attr('visibility', 'visible');
+        eoi
+          .attr('visibility', 'visible');
       });
 
     // element
@@ -2971,7 +2973,7 @@ class AttributeTable {
       .attr('x', colWidth / 2)
       .attr('y', rowHeight * 0.8)
       .text(() => {
-        return totalValues > 999 ? (Math.floor(totalValues/1000) + 'k') : (totalValues > 99 ? (Math.floor(totalValues/100) + 'h') : totalValues );
+        return totalValues > 999 ? (Math.floor(totalValues / 1000) + 'k') : (totalValues > 99 ? (Math.floor(totalValues / 100) + 'h') : totalValues);
       })
       .attr('text-anchor', 'middle')
       .attr('fill', '#4e4e4e');
@@ -3004,40 +3006,49 @@ class AttributeTable {
    */
   private async renderIntCell(element, cellData) {
 
-    // console.log(cellData.data);
 
     const dataVec = cellData.vector;
 
-    // console.log(cellData)
-    //Check for custom column width value, if none, use default
-    const colWidth = this.customColWidths[cellData.name] || this.colWidths.int;
 
     // const colWidth = this.colWidths.int; //this.getDisplayedColumnWidths(this.width).find(x => x.name === cellData.name).width
     const rowHeight = this.rowHeight;
-    const radius = 3.5;
 
-    const jitterScale = scaleLinear()
-      .domain([0, 1])
-      .range([rowHeight * 0.3, rowHeight * 0.7]);
+    //Check for custom column width value, if none, use default
+    const colWidth = this.customColWidths[cellData.name] || this.colWidths[cellData.type];
 
-      const minV = +min(dataVec.dataValues);
-      const maxV = +max(dataVec.dataValues);
 
-    this.xScale
-    .domain([minV,maxV])
-      // .domain(cellData.vector.desc.value.range)
-      .range([colWidth * 0.1, colWidth * 0.9])
-      .clamp(true);
+    element.selectAll('.cross_out').remove();
 
-    //No of non-undefined elements in this array
     const numValues = cellData.data.filter((v) => { return v !== undefined; }).length;
+    const totalValues = cellData.data.reduce((acc, cValue) => { return acc + cValue; }, 0);
+
+    if (element.selectAll('.quant').size() === 0) {
+      element
+        .append('rect')
+        .classed('quant', true);
+    }
+
+    element
+      .select('.quant')
+      .attr('width', (d) => {
+        return colWidth;
+      })
+      .attr('height', rowHeight);
 
 
+    if (element.selectAll('.level').size() === 0 && cellData.data[0] > 0) {
+      element
+        .append('line')
+        .classed('level', true);
+    }
 
-    // console.log(numValues);
-    if (numValues === 0) {
-      // console.log(cellData.name, cellData.data);
-      //Add a faint cross out to indicate no data here;
+    if (numValues < 1) {
+
+      //Remove any existing dataDens elements
+      element
+        .select('.level').remove();
+
+
       if (element.selectAll('.cross_out').size() === 0) {
         element
           .append('line')
@@ -3056,98 +3067,18 @@ class AttributeTable {
       return;
     }
 
-    if (element.selectAll('.quant').size() === 0) {
-      element
-        .append('rect')
-        .classed('quant', true);
-    }
 
+
+    const xScale = scaleLinear<number, number>().domain(cellData.vector.desc.value.range).range([0, colWidth]);
+
+    // console.log(cellData.data[0].value, colorScale.domain());
     element
-      .select('.quant')
-      .attr('width', (d) => {
-        return colWidth;
-      })
-      .attr('height', rowHeight);
-
-    let ellipses = element
-      .selectAll('ellipse')
-      .data((d) => {
-        const cellArray = cellData.data.filter((f) => {
-          return !isNaN(f) && !isNullOrUndefined((f));
-        })
-          .map((e, i) => {
-            return { 'id': d.id[i], 'name': d.name, 'stats': d.stats, 'value': e };
-          });
-        return cellArray;
-      });
-
-    const ellipsesEnter = ellipses.enter()
-      .append('ellipse')
-      .classed('quant_ellipse', true);
-
-    ellipses.exit().remove();
-
-    ellipses = ellipsesEnter.merge(ellipses);
-
-
-
-    element.selectAll('.quant_ellipse')
-      .attr('cx',
-      (d: any) => {
-        if (!isNaN(d.value)) {
-          return this.xScale(d.value);
-        }
-        ;
-      })
-      .attr('cy', () => {
-        return numValues > 1 ? jitterScale(Math.random()) : rowHeight / 2;
-      }) //introduce jitter in the y position for multiple ellipses.
-      .attr('rx', radius)
-      .attr('ry', radius)
-      .attr('fill', () => {
-
-        let attr;
-        // const ind;
-
-        const primary = this.tableManager.primaryAttribute;
-        const poi = this.tableManager.affectedState;
-
-        if (primary && primary.name === cellData.varName) {
-          attr = primary;
-        } else if (poi && poi.name === cellData.varName) {
-          attr = poi;
-          attr = attr.attributeInfo;
-        }
-
-        if ((poi && poi.name === cellData.varName && poi.isAffected(cellData.data[0])) || (primary && primary.name === cellData.varName)) {
-          return attr.color;
-        }
-        ;
-      });
-
-      //render aggregate cells differently;
-    if (numValues>1) {
-      //Check if histogram already exists
-       let attributeHistogram = this.histograms.filter((hist) => { return hist.attrName === cellData.name; })[0];
-
-
-       if (!attributeHistogram) {
-         attributeHistogram = new BoxPlot(element);
-         this.histograms.push(attributeHistogram);
-       };
-
-       // const graphView = await this.tableManager.graphTable;
-       // const attributeView = await this.tableManager.tableTable;
-       // const allCols = graphView.cols().concat(attributeView.cols());
-       // const dataVec = allCols.filter((col)=> {return col.desc.name === headerData.name;})[0];
-
-       //For now, only render histograms for phovea table vectors
-       // if (!dataVec.desc.arrayVec) {
-         await attributeHistogram.init(cellData.name, dataVec, dataVec.desc.value.type, colWidth, rowHeight);
-       // }
-
-     // return;
-   }
+      .select('.level')
+      .classed('aggregated', (numValues > 0 && cellData.data.find((d)=>d && d.aggregated)))
+      .attr('x1', xScale(max(cellData.data, (c: any) => +c)))
+      .attr('x2', xScale(max(cellData.data, (c: any) => +c)))
+      .attr('y1', rowHeight)
+      .attr('y2', 0);
 
   }
 
@@ -3160,78 +3091,78 @@ class AttributeTable {
    */
   private renderStringCell(element, cellData) {
 
-    //Check for custom column width value, if none, use default
-    const colWidth = this.customColWidths[cellData.name] || this.colWidths[cellData.type];
+  //Check for custom column width value, if none, use default
+  const colWidth = this.customColWidths[cellData.name] || this.colWidths[cellData.type];
 
-    // const colWidth = this.colWidths[cellData.type];
-    const rowHeight = this.rowHeight;
+  // const colWidth = this.colWidths[cellData.type];
+  const rowHeight = this.rowHeight;
 
-    const numValues = cellData.data.reduce((a, v) => v ? a + 1 : a, 0);
+  const numValues = cellData.data.reduce((a, v) => v ? a + 1 : a, 0);
 
-    if (numValues === 0) {
-      return;
-    }
+  if (numValues === 0) {
+    return;
+  }
 
-    if (element.selectAll('.string').size() === 0) {
-
-      element
-        .append('text')
-        .classed('string', true);
-    }
-
-    let textLabel;
-
-    const numChar = colWidth / 8;
-
-    if (cellData.data.length === 0 || cellData.data[0] === undefined) {
-      textLabel = '';
-    } else {
-
-      textLabel = cellData.data[0].toString().toLowerCase().slice(0, numChar);
-      if (cellData.data[0].length > numChar) {
-        textLabel = textLabel.concat(['...']);
-      }
-
-      if (numValues > 1) { //aggregate Row
-        textLabel = '...';
-      }
-
-    }
+  if (element.selectAll('.string').size() === 0) {
 
     element
-      .select('.string')
-      .text(textLabel)
-      .attr('dy', rowHeight * 0.9)
-      .style('stroke', 'none');
-
-    //set Hover to show entire text
-    // element
-    //   .on('mouseover', () => this.addTooltip('cell', cellData))
-    //   .on('mouseout', () => select('#tooltipMenu').select('.menu').remove());
-    // .on('mouseover', function (d) {
-    //   select(this).select('.string')
-    //     .text(() => {
-    //       if (d.data.length === 1) {
-    //         return d.data[0].toLowerCase();
-    //       } else {
-    //         return 'Multiple';
-    //       }
-
-    //     });
-    // })
-    // .on('mouseout', function (d) {
-    //   let textLabel = cellData.data[0].toLowerCase().slice(0, 12);
-
-    //   if (cellData.data[0].length > 12) {
-    //     textLabel = textLabel.concat(['...']);
-    //   }
-
-    //   if (numValues > 1) { //aggregate Row
-    //     textLabel = '...';
-    //   }
-    //   select(this).select('.string').text(textLabel);
-    // });
+      .append('text')
+      .classed('string', true);
   }
+
+  let textLabel;
+
+  const numChar = colWidth / 8;
+
+  if (cellData.data.length === 0 || cellData.data[0] === undefined) {
+    textLabel = '';
+  } else {
+
+    textLabel = cellData.data[0].toString().toLowerCase().slice(0, numChar);
+    if (cellData.data[0].length > numChar) {
+      textLabel = textLabel.concat(['...']);
+    }
+
+    if (numValues > 1) { //aggregate Row
+      textLabel = '...';
+    }
+
+  }
+
+  element
+    .select('.string')
+    .text(textLabel)
+    .attr('dy', rowHeight * 0.9)
+    .style('stroke', 'none');
+
+  //set Hover to show entire text
+  // element
+  //   .on('mouseover', () => this.addTooltip('cell', cellData))
+  //   .on('mouseout', () => select('#tooltipMenu').select('.menu').remove());
+  // .on('mouseover', function (d) {
+  //   select(this).select('.string')
+  //     .text(() => {
+  //       if (d.data.length === 1) {
+  //         return d.data[0].toLowerCase();
+  //       } else {
+  //         return 'Multiple';
+  //       }
+
+  //     });
+  // })
+  // .on('mouseout', function (d) {
+  //   let textLabel = cellData.data[0].toLowerCase().slice(0, 12);
+
+  //   if (cellData.data[0].length > 12) {
+  //     textLabel = textLabel.concat(['...']);
+  //   }
+
+  //   if (numValues > 1) { //aggregate Row
+  //     textLabel = '...';
+  //   }
+  //   select(this).select('.string').text(textLabel);
+  // });
+}
 
 
   /**
@@ -3244,123 +3175,123 @@ class AttributeTable {
   private renderIdCell(element, cellData) {
 
 
-    //Check for custom column width value, if none, use default
-    const colWidth = this.customColWidths[cellData.name] || this.colWidths[cellData.type];
+  //Check for custom column width value, if none, use default
+  const colWidth = this.customColWidths[cellData.name] || this.colWidths[cellData.type];
 
-    // const colWidth = this.colWidths[cellData.type];
-    const rowHeight = this.rowHeight;
+  // const colWidth = this.colWidths[cellData.type];
+  const rowHeight = this.rowHeight;
 
-    this.idScale.range([0, colWidth * 0.6]);
+  this.idScale.range([0, colWidth * 0.6]);
 
-    const numValues = cellData.data.reduce((a, v) => v ? a + 1 : a, 0);
+  const numValues = cellData.data.reduce((a, v) => v ? a + 1 : a, 0);
 
-    const equalValues = cellData.data.reduce(function (a, b) {
-      return (a === b) ? a : NaN;
-    }); //check for array that has all equal values in an aggregate (such as KindredId)
+  const equalValues = cellData.data.reduce(function (a, b) {
+    return (a === b) ? a : NaN;
+  }); //check for array that has all equal values in an aggregate (such as KindredId)
 
-    if (numValues === 0) {
-      return;
-    }
+  if (numValues === 0) {
+    return;
+  }
 
-    if (numValues > 1 && element.select('.idBar').size() === 0) {
-      element
-        .append('rect')
-        .classed('idBar', true);
-    }
+  if (numValues > 1 && element.select('.idBar').size() === 0) {
+    element
+      .append('rect')
+      .classed('idBar', true);
+  }
 
-    if (numValues === 1) {
-      element.select('rect').remove();
-    }
+  if (numValues === 1) {
+    element.select('rect').remove();
+  }
 
-    if (element.selectAll('.string').size() === 0) {
-      element
-        .append('text')
-        .classed('string', true);
-    }
+  if (element.selectAll('.string').size() === 0) {
+    element
+      .append('text')
+      .classed('string', true);
+  }
 
-    let textLabel;
-    if (numValues === 1 || !isNaN(equalValues)) {
-      textLabel = '#' + cellData.data[0];
-      element
-        .select('.string')
-        .text(textLabel)
-        .attr('dy', rowHeight * 0.9)
-        .attr('dx', 0)
-        .style('stroke', 'none');
-    } else {
+  let textLabel;
+  if (numValues === 1 || !isNaN(equalValues)) {
+    textLabel = '#' + cellData.data[0];
+    element
+      .select('.string')
+      .text(textLabel)
+      .attr('dy', rowHeight * 0.9)
+      .attr('dx', 0)
+      .style('stroke', 'none');
+  } else {
 
-      element
-        .select('.string')
-        .text('...')
-        // .style('font-style', 'bold')
-        .attr('dy', rowHeight * 0.9)
-        // .attr('dx', this.idScale(numValues) + 2)
-        .style('stroke', 'none');
-
-    }
-
-    // element.selectAll('text')
-    //   .attr('dx', col_width/2)
-    //   .attr('text-anchor','middle')
-
+    element
+      .select('.string')
+      .text('...')
+      // .style('font-style', 'bold')
+      .attr('dy', rowHeight * 0.9)
+      // .attr('dx', this.idScale(numValues) + 2)
+      .style('stroke', 'none');
 
   }
+
+  // element.selectAll('text')
+  //   .attr('dx', col_width/2)
+  //   .attr('text-anchor','middle')
+
+
+}
 
 
   private slopeChart(d) {
 
-    const slopeWidth = d.width;
+  const slopeWidth = d.width;
 
-    const nx = slopeWidth * 0.2;
-    const width = slopeWidth;
+  const nx = slopeWidth * 0.2;
+  const width = slopeWidth;
 
-    const startingX = this.colWidths.dataDensity + this.buffer + this.colWidths.dataDensity;
+  const startingX = this.colWidths.dataDensity + this.buffer + this.colWidths.dataDensity;
 
-    const linedata = [{
-      x: startingX,
-      y: this.y(d.y) + (this.rowHeight / 2)
-    },
-    {
-      x: startingX + nx,
-      y: this.y(d.y) + (this.rowHeight / 2)
-    },
-    {
-      x: width - nx,
-      y: this.y(this.rowOrder[d.ind]) + (this.rowHeight / 2)
-    },
-    {
-      x: width,
-      y: this.y(this.rowOrder[d.ind]) + (this.rowHeight / 2)
-    }];
+  const linedata = [{
+    x: startingX,
+    y: this.y(d.y) + (this.rowHeight / 2)
+  },
+  {
+    x: startingX + nx,
+    y: this.y(d.y) + (this.rowHeight / 2)
+  },
+  {
+    x: width - nx,
+    y: this.y(this.rowOrder[d.ind]) + (this.rowHeight / 2)
+  },
+  {
+    x: width,
+    y: this.y(this.rowOrder[d.ind]) + (this.rowHeight / 2)
+  }];
 
-    const divHeight = document.getElementById('graphDiv').clientHeight;
-    const scrollOffset = document.getElementById('graphDiv').scrollTop;
+  const divHeight = document.getElementById('graphDiv').clientHeight;
+  const scrollOffset = document.getElementById('graphDiv').scrollTop;
 
-    const start = this.y(d.y);
-    const end = this.y(this.rowOrder[d.ind]);
+  const start = this.y(d.y);
+  const end = this.y(this.rowOrder[d.ind]);
 
-    const highlightedRow = selectAll('.highlightBar').filter('.selected').filter((bar: any) => { return bar.y === d.y || (this.sortedRowOrder && bar.i === this.sortedRowOrder[d.ind]); });
+  const highlightedRow = selectAll('.highlightBar').filter('.selected').filter((bar: any) => { return bar.y === d.y || (this.sortedRowOrder && bar.i === this.sortedRowOrder[d.ind]); });
 
-    if (highlightedRow.empty() && (start < scrollOffset) || (start > (divHeight + scrollOffset))
-      || (end < scrollOffset) || (end > (divHeight + scrollOffset))) {
-      return '';
-    } else {
-      return this.lineFunction(linedata);
-    }
+  if (highlightedRow.empty() && (start < scrollOffset) || (start > (divHeight + scrollOffset))
+    || (end < scrollOffset) || (end > (divHeight + scrollOffset))) {
+    return '';
+  } else {
+    return this.lineFunction(linedata);
   }
+}
   private attachListener() {
-    const self = this;
+  const self = this;
 
-    events.on(TABLE_VIS_ROWS_CHANGED_EVENT, () => {
-      this.update();
-    });
+  events.on(TABLE_VIS_ROWS_CHANGED_EVENT, () => {
+    this.update();
+  });
 
-    events.on(COL_ORDER_CHANGED_EVENT, (evt, item) => {
-      self.update();
-    });
+  events.on(COL_ORDER_CHANGED_EVENT, (evt, item) => {
+    self.update();
+  });
 
 
-  }
+}
 
 }
 

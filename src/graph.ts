@@ -297,7 +297,8 @@ class Graph {
             arrayVector.dataValues = dataValues;
             arrayVector.idValues = nodes.map((e) => { return e.uuid; });
 
-            arrayVector.desc.value.range = [min([max(arrayVector.dataValues), 0]), max(arrayVector.dataValues)];
+            arrayVector.desc.value.range = [min(arrayVector.dataValues), max(arrayVector.dataValues)];
+            console.log('range for ', arrayVector.desc.name, ' is ', arrayVector.desc.value.range);
             // arrayVector.desc.value.label = nodes[0].label;
 
             // console.log(arrayVector);
@@ -311,6 +312,34 @@ class Graph {
             if (this.tableManager.colOrder.filter((a: any) => { return a === arrayVector.desc.name; }).length < 1) {
               this.tableManager.colOrder = this.tableManager.colOrder.concat([arrayVector.desc.name]); // store array of names
             }
+
+            //sort colOrder so that the order is graphEdges, adjMatrix, then attributes. adjMatrix col are sorted by desc degree;
+            this.tableManager.colOrder.sort((a, b) => {
+
+              const arrayVecA = this.tableManager.adjMatrixCols.find((c) => c.desc.name === a);
+              const arrayVecB = this.tableManager.adjMatrixCols.find((c) => c.desc.name === b);
+
+              if (arrayVecA.desc.value.type === 'dataDensity') {
+                return -1;
+              }
+
+              if (arrayVecB.desc.value.type === 'dataDensity') {
+                return 1;
+              }
+
+              if (arrayVecA.desc.value.type === VALUE_TYPE_ADJMATRIX) {
+                if (arrayVecB.desc.value.type === VALUE_TYPE_ADJMATRIX) {
+                  return arrayVecA.dataValues.length > arrayVecB.dataValues.length ? -1 : (arrayVecB.dataValues.length > arrayVecA.dataValues.length ? 1 : 0);                  
+                }
+                return -1;
+              }
+
+              if (arrayVecB.desc.value.type === VALUE_TYPE_ADJMATRIX) {
+                return 1;
+              }
+
+              return 0;
+            });
 
             events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);
 
@@ -551,9 +580,39 @@ class Graph {
 
             //if it's not already in there:
             if (this.tableManager.colOrder.filter((a: any) => { return a === arrayVector.desc.name; }).length < 1) {
-              this.tableManager.colOrder = [arrayVector.desc.name].concat(this.tableManager.colOrder); // store array of names
+              this.tableManager.colOrder = this.tableManager.colOrder.concat([arrayVector.desc.name]); // store array of names
             }
 
+          });
+
+
+          //sort colOrder so that the order is graphEdges, adjMatrix, then attributes. adjMatrix col are sorted by desc degree;
+          this.tableManager.colOrder.sort((a, b) => {
+
+            const arrayVecA = this.tableManager.adjMatrixCols.find((c) => c.desc.name === a);
+            const arrayVecB = this.tableManager.adjMatrixCols.find((c) => c.desc.name === b);
+
+            if (arrayVecA.desc.value.type === 'dataDensity') {
+              return -1;
+            }
+
+            if (arrayVecB.desc.value.type === 'dataDensity') {
+              return 1;
+            }
+
+              if (arrayVecA.desc.value.type === VALUE_TYPE_ADJMATRIX) {
+                if (arrayVecB.desc.value.type === VALUE_TYPE_ADJMATRIX) {
+                  return arrayVecA.dataValues.length > arrayVecB.dataValues.length ? -1 : (arrayVecB.dataValues.length > arrayVecA.dataValues.length ? 1 : 0);
+                }
+              
+              return -1;
+            }
+
+            if (arrayVecB.desc.value.type === VALUE_TYPE_ADJMATRIX) {
+              return 1;
+            }
+
+            return 0;
           });
 
           //clear out any attributes that aren't in the top 5
@@ -1215,8 +1274,8 @@ class Graph {
   //Recursive Function that hides a sub-tree
   public hideBranch(node, hide = true) {
     node.children.map((child) => {
-       //only hide children if they are directly under them.
-       if (child.mode === mode.tree || (child.mode === mode.level && child.aggregateRoot === node)) {
+      //only hide children if they are directly under them.
+      if (child.mode === mode.tree || (child.mode === mode.level && child.aggregateRoot === node)) {
         this.hideBranchHelper(child, hide);
       }
       // else {
@@ -1663,15 +1722,15 @@ class Graph {
     this.addArrayVec(vec);
 
 
-    vec = {
-      type: VALUE_TYPE_LEVEL,
-      title: 'Hierarchy Level',
-      data: this.graph.nodes.map((n, i) => { return { 'value': n.hierarchy, 'uuid': n.uuid, 'aggregated': n.layout === layout.aggregated }; }),
-      ids: this.graph.nodes.map((n) => { return n.uuid; })
-    };
+    // vec = {
+    //   type: VALUE_TYPE_LEVEL,
+    //   title: 'Hierarchy Level',
+    //   data: this.graph.nodes.map((n, i) => { return { 'value': n.hierarchy, 'uuid': n.uuid, 'aggregated': n.layout === layout.aggregated }; }),
+    //   ids: this.graph.nodes.map((n) => { return n.uuid; })
+    // };
 
 
-    this.addArrayVec(vec);
+    // this.addArrayVec(vec);
 
   }
 
@@ -1684,7 +1743,7 @@ class Graph {
     arrayVector.idValues = vec.ids;
 
     arrayVector.desc.value.range = [min(arrayVector.dataValues, (v) => { return v.value; }), max(arrayVector.dataValues, (v) => { return v.value; })];
-
+    // console.log('range for ', arrayVector.desc.name ,  ' is ', arrayVector.desc.value.range);
 
     //remove existing Vector to replace with newly computed values for new tree;
     const existingVec = this.tableManager.adjMatrixCols.filter((a: any) => { return a.desc.name === arrayVector.desc.name; })[0];
@@ -2643,7 +2702,7 @@ class Graph {
       .select('.expand')
       .text(' ');
 
-      aggregatedNodes
+    aggregatedNodes
       .select('.aggIcon')
       .text('');
 
@@ -2832,8 +2891,6 @@ class Graph {
       })
       .on('end', (d, i) => {
 
-        // console.log('resizing...')
-        // console.log(i,select('.nodes').selectAll('text').size())
         if (i >= select('.nodes').selectAll('.title').size() - 1) {
           const nodeGroupWidth = document.getElementById('nodeGroup').getBoundingClientRect().width;
           //set width of svg to size of node group + margin.left
@@ -3147,20 +3204,29 @@ class Graph {
       });
 
 
+      const nodeGroupWidth = document.getElementById('nodeGroup').getBoundingClientRect().width;
+      //set width of svg to size of node group + margin.left
+      select('#graph')
+        .transition('t')
+        .duration(500)
+        .attr('width', nodeGroupWidth + this.margin.left + 50);
+
     allBars
       .select('.backgroundBar')
-      .attr('width', () => {
-        const range = this.xScale.range();
-        return (max([range[0], range[1]]) - min([range[0], range[1]]) + this.margin.right + this.padding.right);
-      })
+      .attr('width', document.getElementById('nodeGroup').getBoundingClientRect().width + this.margin.left + 50)
+      //   const range = this.xScale.range();
+      //   return (max([range[0], range[1]]) - min([range[0], range[1]]) + this.margin.right + this.padding.right);
+      // })
       .attr('height', Config.glyphSize * 2);
+      
 
     allBars
       .select('.highlightBar')
-      .attr('width', (row: any) => {
-        const range = this.xScale.range();
-        return (max([range[0], range[1]]) - this.xScale(row.xx) + this.margin.right + this.padding.right);
-      })
+      .attr('width', document.getElementById('nodeGroup').getBoundingClientRect().width + this.margin.left + 50)
+      // (row: any) => {
+      //   const range = this.xScale.range();
+      //   return (max([range[0], range[1]]) - this.xScale(row.xx) + this.margin.right + this.padding.right);
+      // })
       .attr('x', (row: any) => {
         return this.xScale(row.xx);
       })

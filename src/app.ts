@@ -203,6 +203,9 @@ export class App {
 
       select('.open').style('visibility','hidden');
       selectAll('.hiddenEdge').attr('visibility', 'hidden');
+      selectAll('.hiddenEdge').classed('selected', false);
+
+      selectAll('.highlightBar').classed('selected',false);
 
       select('#pathViewer')
       .style('visibility','hidden');

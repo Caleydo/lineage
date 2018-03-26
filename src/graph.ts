@@ -1115,7 +1115,7 @@ class Graph {
       select('#nodeGroup').selectAll('.title').classed('fadeNode', false);
       select('#nodeGroup').selectAll('.addIcon')
         .classed('fadeNode', false);
-      selectAll('.edge.hiddenEdge')
+      selectAll('.edge.hiddenEdge').filter((e:any)=>!e.classed('selected'))
         .attr('visibility', 'hidden');
     });
 
@@ -2460,21 +2460,10 @@ class Graph {
         };
         return '';
       });
-    // .style('fill', (d) => (d.children.find((c) => c.nodeType === nodeType.levelSummary) ? '#7b94a9' : '#bcb9b9'))
-    // .on('click', (d) => {
-    //   const unaggregate = (d.children.find((c) => c.nodeType === nodeType.levelSummary));
-    //   if (unaggregate) {
-    //     events.fire(AGGREGATE_CHILDREN, { 'uuid': d.uuid, 'aggregate': false });
-    //   } else {
-    //     events.fire(AGGREGATE_CHILDREN, { 'uuid': d.uuid, 'aggregate': true });
-    //   }
-    // });
-
 
 
     //set initial position to parent
     linkEndMarkersEnter
-      // .attr('transform', (d)=> 'translate (' +  this.xScale(d.xx)+ ','+ (d.parent ? this.yScale(d.parent.yy) : this.yScale(d.yy))  +')');
       .attr('x', (d: any, i) => {
         return this.xScale(d.xx);
       })
@@ -2520,7 +2509,7 @@ class Graph {
       .classed('hiddenEdge', (d: any) => {
         return d.visible ? false : true;
       })
-      .on('click', ((d: any) => console.log(d, d.visible, d.source.title, d.target.title)));
+      // .on('click', ((d: any) => console.log(d, d.visible, d.source.title, d.target.title)));
 
 
     selectAll('.hiddenEdge')
@@ -2789,15 +2778,6 @@ class Graph {
     aggregateLabels
       .select('.aggIcon')
       .text(' ');
-    // .on('click', (d:any) => {
-    //   const unaggregate = (d.children.find((c) => c.nodeType === nodeType.levelSummary));
-    //   console.log(d,unaggregate);
-    //   if (unaggregate) {
-    //     events.fire(AGGREGATE_CHILDREN, { 'uuid': d.uuid, 'aggregate': false });
-    //   } else {
-    //     events.fire(AGGREGATE_CHILDREN, { 'uuid': d.uuid, 'aggregate': true });
-    //   }
-    // });
 
 
     selectAll('.aggIcon')
@@ -3387,16 +3367,11 @@ class Graph {
                     }
                   },
                   {
-                    'icon': 'Add2Matrix', 'string': removeAdjMatrix ? 'Remove from Table' : 'Add to Table', 'callback': () => {
+                    'icon': 'Add2Matrix', 'string': removeAdjMatrix ? 'Remove from Adjacency Matrix' : 'Add to Table', 'callback': () => {
                       events.fire(ADJ_MATRIX_CHANGED, { 'db': this.selectedDB, 'name': d.title, 'uuid': d.uuid, 'remove': removeAdjMatrix, 'nodes': this.graph.nodes.map((n) => n.uuid) });
                     },
 
-                  },
-                  // {
-                  //   'icon': 'Aggregate', 'string': 'Aggregate Children', 'callback': () => {
-                  //     events.fire(AGGREGATE_CHILDREN, { 'uuid': d.uuid, 'aggregate': true });
-                  //   }
-                  // }
+                  }
                 ];
                 //Only have option to gather neighbors if this node has hidden children;
                 if (this.nodeNeighbors[d.uuid].hidden > 0) {
@@ -3405,12 +3380,7 @@ class Graph {
                       'icon': 'RemoveNode', 'string': 'Gather Children', 'callback': () => {
                         events.fire(GATHER_CHILDREN_EVENT, { uuid: d.uuid });
                       }
-                    },
-                    // {
-                    //   'icon': 'RemoveNode', 'string': 'Gather Children with duplication', 'callback': () => {
-                    //     events.fire(GATHER_CHILDREN_EVENT, { uuid: d.uuid });
-                    //   }
-                    // }
+                    }
                   ]);
                 }
 
@@ -3440,15 +3410,6 @@ class Graph {
                   );
                 }
                 if (d.children.length > 0) {
-                  // const unaggregate = (d.children.find((c) => c.nodeType === nodeType.levelSummary));
-                  // if (unaggregate) {
-                  //   actions = actions.concat(
-                  //     [{
-                  //       'icon': 'Aggregate', 'string': 'Un-Aggregate Children', 'callback': () => {
-                  //         events.fire(AGGREGATE_CHILDREN, { 'uuid': d.uuid, 'aggregate': false });
-                  //       }
-                  //     }]);
-                  // }
                   const aggregate = !(d.children.find((c) => c.nodeType === nodeType.levelSummary));
                   if (aggregate) {
                     actions = actions.concat(
@@ -3475,37 +3436,33 @@ class Graph {
           });
 
           this.clearHighlights();
-          // selectAll('tspan.menu').remove();
         }
-      });
+      })
 
     //CLICK CALLBACK FOR HIGHLIGHT BARS. DO NOT DELETE.
-    // .on('click', (d: any, i) => {
-    //   if (event.defaultPrevented) { return; } // dragged
+    .on('click', (d: any, i) => {
+      event.stopPropagation();
+      this.highlightRows(d,true);
+      
+      // if (event.defaultPrevented) { return; } // dragged
 
-    //   const wasSelected = selectAll('.highlightBar').filter((e: any) => {
-    //     return e.yy === d.yy || e.y === Math.round(d.yy);
-    //   }).classed('selected');
+      // const wasSelected = selectAll('.highlightBar').filter((e: any) => {
+      //   return e.yy === d.yy || e.y === Math.round(d.yy);
+      // }).classed('selected');
 
 
-    //   //'Unselect all other background bars if ctrl was not pressed
-    //   if (!event.metaKey) {
-    //     selectAll('.slopeLine').classed('clickedSlope', false);
-    //     selectAll('.highlightBar').classed('selected', false);
-    //   }
+      // //'Unselect all other background bars if ctrl was not pressed
+      // if (!event.metaKey) {
+      //   selectAll('.slopeLine').classed('clickedSlope', false);
+      //   selectAll('.highlightBar').classed('selected', false);
+      // }
 
-    //   selectAll('.slopeLine').filter((e: any) => {
-    //     return e.yy === d.yy || e.yy === Math.round(d.yy);
-    //   }).classed('clickedSlope', function () {
-    //     return (!wasSelected);
-    //   });
-
-    //   selectAll('.highlightBar').filter((e: any) => {
-    //     return e.yy === d.yy || e.yy === Math.round(d.yy);
-    //   }).classed('selected', function () {
-    //     return (!wasSelected);
-    //   });
-    // });
+      // selectAll('.highlightBar').filter((e: any) => {
+      //   return e.yy === d.yy || e.yy === Math.round(d.yy);
+      // }).classed('selected', function () {
+      //   return (!wasSelected);
+      // });
+    });
 
     // selectAll('.bars')
     //   .selectAll('.backgroundBar')
@@ -3515,7 +3472,7 @@ class Graph {
   }
 
   //highlight rows for hover on force-directed graph
-  private highlightRows(d: any) {
+  private highlightRows(d: any,click=false) {
 
     function selected(e: any) {
       let returnValue = false;
@@ -3528,13 +3485,19 @@ class Graph {
     }
 
     selectAll('.title').select('.aggregateLabel').filter((bar: any) => { return bar.yy === d.yy; }).attr('visibility', 'visible');
-    //Set opacity of corresponding highlightBar
-    selectAll('.highlightBar').filter(selected).attr('opacity', .2);
-
-    if (d.data) {
-      const className = 'starRect_' + this.createID(d.data);
-      select('.' + className).attr('opacity', .2);
+    
+    if (!click) {
+      //Set opacity of corresponding highlightBar
+        selectAll('.highlightBar').filter(selected).attr('opacity', .2);
+    
+        if (d.data) {
+          const className = 'starRect_' + this.createID(d.data);
+          select('.' + className).attr('opacity', .2);
+        }
+    } else {
+      selectAll('.highlightBar').filter(selected).classed('selected',true);
     }
+    
 
     // console.log(d);
     const eoi = selectAll('.hiddenEdge').filter((e: any) => {
@@ -3555,9 +3518,6 @@ class Graph {
 
     });
 
-    // console.log('eoi size', eoi.size())
-
-    //only highlight connected nodes
     eoi.each((element: any) => {
       select('.nodes')
         .selectAll('.title')
@@ -3565,7 +3525,9 @@ class Graph {
           return (t.uuid === element.source.uuid || t.uuid === element.target.uuid);
         })
         .style('opacity', 1);
-    });
+    })
+
+    eoi.classed('selected',function(e){return select(this).classed('selected') || click;});
 
     eoi
       .attr('visibility', 'visible');
@@ -3577,7 +3539,7 @@ class Graph {
     // selectAll('.aggregateLabel').attr('visibility', 'hidden');
     selectAll('.highlightBar').attr('opacity', 0);
     selectAll('.starRect').attr('opacity', 0);
-    selectAll('.hiddenEdge').attr('visibility', 'hidden');
+    selectAll('.hiddenEdge').filter(function(e:any) {return !select(this).classed('selected');}).attr('visibility', 'hidden');
   }
 
 

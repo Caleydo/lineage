@@ -259,7 +259,6 @@ class SetSelector {
 
     cboxes.select('label')
       .html(function (d: any) {
-        console.log(d);
         return '<g class="dropdownMenu"><tspan class="icon">' + Config.icons[d.name] + '</tspan> ' + d.name + ' [0]</g> ' + '<tspan class="filter icon">' + Config.icons.filter + '</tspan> '; //+  Config.icons.menu;
       });
 

@@ -2508,7 +2508,7 @@ class Graph {
       })
       .classed('hiddenEdge', (d: any) => {
         return d.visible ? false : true;
-      })
+      });
       // .on('click', ((d: any) => console.log(d, d.visible, d.source.title, d.target.title)));
 
 
@@ -3443,7 +3443,7 @@ class Graph {
     .on('click', (d: any, i) => {
       event.stopPropagation();
       this.highlightRows(d,true);
-      
+
       // if (event.defaultPrevented) { return; } // dragged
 
       // const wasSelected = selectAll('.highlightBar').filter((e: any) => {
@@ -3485,11 +3485,11 @@ class Graph {
     }
 
     selectAll('.title').select('.aggregateLabel').filter((bar: any) => { return bar.yy === d.yy; }).attr('visibility', 'visible');
-    
+
     if (!click) {
       //Set opacity of corresponding highlightBar
         selectAll('.highlightBar').filter(selected).attr('opacity', .2);
-    
+
         if (d.data) {
           const className = 'starRect_' + this.createID(d.data);
           select('.' + className).attr('opacity', .2);
@@ -3497,7 +3497,7 @@ class Graph {
     } else {
       selectAll('.highlightBar').filter(selected).classed('selected',true);
     }
-    
+
 
     // console.log(d);
     const eoi = selectAll('.hiddenEdge').filter((e: any) => {
@@ -3525,8 +3525,9 @@ class Graph {
           return (t.uuid === element.source.uuid || t.uuid === element.target.uuid);
         })
         .style('opacity', 1);
-    })
+    });
 
+    //preserve 'selected' status
     eoi.classed('selected',function(e){return select(this).classed('selected') || click;});
 
     eoi

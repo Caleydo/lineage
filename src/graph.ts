@@ -2402,7 +2402,6 @@ class Graph {
 
       // .sort((a, b) => { return a.pathway ? -1 : (b.pathway ? 1 : 0); })
       .map((c, i) => {
-        console.log('visiting ', c.title);
         const lastNode = this.graph.nodes.filter((n: any) =>
           c.aggParent && n.visited && n.layout === layout.aggregated && n.aggParent === c.aggParent);
         let maxX = +max(lastNode, (n: any) => n.xx);

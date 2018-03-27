@@ -3091,7 +3091,7 @@ class AttributeTable {
     }
 
     let levels = element.selectAll('.level')
-    .data(cellData.data);
+    .data(cellData.data.filter((d)=> d!== undefined));
 
     const levelsEnter =
     levels.enter()

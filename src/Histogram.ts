@@ -62,9 +62,13 @@ export default class Histogram {
     this.data = await this.dataVec.data();
     this.xScale = scaleLinear().range([0, this.width]).domain([0,1]);
     this.yScale = scaleLinear().range([0, this.height]).domain([0,1]);
-    this.update(dataVec);
+
     this.width = width;
     this.height = height;
+
+    this.update(dataVec);
+
+
     // this.attachListener();
 
     //return the promise
@@ -193,32 +197,19 @@ export default class Histogram {
       // .attr('transform', 'translate(0,-20)')
       .classed('hist_xscale', true)
       .attr('id','brushScale');
-      // .attr('transform', 'translate(0,' + this.height + ')');
-
-      // element.select('#brushScale')
-      // .call(axisBottom(xScale))
-      // .ticks(0);
-
-      // .call(axisTop(xScale)
-      //   .ticks(0));
-
-
-
-
 
     const brushGroup = element.select('.barContainer').append('g')
       .attr('class', 'brush');
 
-
     const brush = brushX()
       .extent([[0, 0], [this.width, this.height]])
-      .handleSize(4)
+      .handleSize(2)
       .on('brush', brushed)
       .on('end', fireEvent);
 
     brushGroup
       .call(brush)
-      .call(brush.move, xScale.range());
+      // .call(brush.move, xScale.range());
 
     this.brush = brush; //save as class variable since we will need to modify it later when user clicks on POI
 
@@ -249,11 +240,11 @@ export default class Histogram {
         topAxis.call(axisTop(xScale)
           .ticks(0));
         if (!isNull(event.sourceEvent)) { //user cleared brush, nobody is 'affected'
-          events.fire('poiSelected',{'name':attrName, 'callback':(attr:Number) => {return false;} });
+          events.fire('doiSet',{'name':attrName, 'threshold':undefined });
         }
       }else {
         if (!isNull(event.sourceEvent)) {
-          events.fire('poiSelected',{'name':attrName, 'callback':(attr:Number) => {return attr >= xScale.invert(extent[0]) && attr <= xScale.invert(extent[1]);}});
+          events.fire('doiSet',{'name':attrName, 'threshold':[xScale.invert(extent[0]),xScale.invert(extent[1])]});
         }
 
       }
@@ -278,7 +269,7 @@ export default class Histogram {
   /**
    * Removes the brush from this histogram
    */
-  private removeBrush() {
+  public removeBrush() {
       this.node.select('.brush').remove();
       this.node.select('.brushAxis').remove();
       this.brush = undefined;
@@ -373,139 +364,104 @@ export default class Histogram {
    */
   private async renderNumHistogram(dataVec) {
 
-    const data = dataVec.dataValues.filter((d)=>d!== undefined).map((d)=>d.value);
-    console.log(data);
-    const xScale = scaleLinear().range([0, this.width]).domain([+min(data),+max(data)]).nice();
 
-    console.log(xScale.domain());
+    const data = dataVec.dataValues.filter((d)=>d!== undefined).map((d)=>+d.value);
+    const dom = extent(data);
+
+    let domain;
+    domain = +dom[0] === +dom[1] ? [+dom[0]-1,+dom[1]+1] : [+dom[0],+dom[1]+1];
+
+    const xScale = scaleLinear().range([0, this.width]).domain(domain).nice();
     const hist = histogram()
-    // .domain(xScale.domain())
-    // .thresholds(xScale.ticks(20))
+    .domain(domain)
+    .thresholds(xScale.ticks(10))
     (data);
 
-    // const yScale = scaleLinear().range([0, this.height * 0.8]).domain([0, max(data, (d) => {
-    //   return d.v;
-    // })]);
+    const binWidth = (+xScale.range()[1] - +xScale.range()[0]) / hist.length;
 
-    // this.xScale = xScale;
-    // this.yScale = yScale;
+    const yScale = scaleLinear().range([0, this.height * 0.8]).domain([0, max(hist, (d) => {
+      return d.length;
+    })]);
 
-
-    console.log(hist);
-
-    return;
+    this.xScale = xScale;
+    this.yScale = yScale;
 
 
-//  console.log(hist)
+    const currentHist = this.node;
 
-//     const histData = await dataVec.hist(10);
-//     const range = [0, this.width];
+    if (currentHist.select('.elementGroup').size() === 0) {
 
-//     const data = [],
-//       cols = scaleLinear<string,string>().domain([, 0]).range(['#111111', '#999999']),
-//       total = histData.validCount,
-//       binWidth = (range[1] - range[0]) / histData.bins;
-//       let acc = 0;
+      const element = currentHist.append('g')
+        .classed('elementGroup',true);
 
-//     histData.forEach((b, i) => {
-//       data[i] = {
-//         v: b,
-//         acc,
-//         ratio: b / total,
-//         valueRange: histData.valueRange,
-//         name: 'Bin ' + (i + 1) + ' (center: ' + Math.round((i + 0.5) * binWidth) + ')',
-//         binIndex: i,
-//         // color: cols((i + 0.5) * binWidth);
-//         color: cols(b)
-//       };
-//       acc += b;
+      element.append('text').classed('maxValue', true);
 
-//     });
+      //Axis Group
+      element.append('g')
+        .attr('class', 'axis axis--x')
+        .classed('hist_xscale', true)
+        .attr('id','histAxis')
+        .attr('transform', 'translate(0,' + this.height + ')');
 
-//     const bin2value = scaleLinear().range(histData.valueRange).domain([0, histData.bins]);
-//     const xScale = scaleLinear().range([0, this.width]).domain(histData.valueRange).nice();
-//     const yScale = scaleLinear().range([0, this.height * 0.8]).domain([0, max(data, (d) => {
-//       return d.v;
-//     })]);
+     element.append('g')
+        .attr('class','barContainer');
 
-//     this.xScale = xScale;
-//     this.yScale = yScale;
+    }
 
-//     const currentHist = this.node;
-
-//     if (currentHist.select('.elementGroup').size() === 0) {
-
-//       const element = currentHist.append('g')
-//         .classed('elementGroup',true);
-
-//       element.append('text').classed('maxValue', true);
-
-//       //Axis Group
-//       element.append('g')
-//         .attr('class', 'axis axis--x')
-//         .classed('hist_xscale', true)
-//         .attr('id','histAxis')
-//         .attr('transform', 'translate(0,' + this.height + ')');
-
-//      element.append('g')
-//         .attr('class','barContainer');
-
-//     }
-
-//     this.node.select('#histAxis')
-//     .call(axisBottom(xScale)
-//     .tickSize(5)
-//     .tickValues(xScale.domain())
-//     .tickFormat(format('.0f')));
+    this.node.select('#histAxis')
+    .call(axisBottom(xScale)
+    .tickSize(5)
+    .tickValues(xScale.domain())
+    .tickFormat(format('.0f')));
 
 
 
-//      //Position tick labels to be 'inside' the axis bounds. avoid overlap
-//     this.node.select('.hist_xscale').selectAll('.tick').each(function (cell) {
-//       const xtranslate = +select(this).attr('transform').split('translate(')[1].split(',')[0];
-//       if (xtranslate === 0) {//first label in the axis
-//         select(this).select('text').style('text-anchor', 'start');
-//       } else { //last label in the axis
-//         select(this).select('text').style('text-anchor', 'end');
-//       }
-//     });
+     //Position tick labels to be 'inside' the axis bounds. avoid overlap
+    this.node.select('.hist_xscale').selectAll('.tick').each(function (cell) {
+      const xtranslate = +select(this).attr('transform').split('translate(')[1].split(',')[0];
+      if (xtranslate < 1) {//first label in the axis
+        select(this).select('text').style('text-anchor', 'start');
+      } else { //last label in the axis
+        select(this).select('text').style('text-anchor', 'end');
+      }
+    });
 
-//     const totalLabel = (data[data.length - 1]).acc + (data[data.length - 1]).v;
-//     // this.node.select('.maxValue')
-//     //   .text('Total:' + total)
+    // const totalLabel = (data[data.length - 1]).acc + (data[data.length - 1]).v;
+    // this.node.select('.maxValue')
+    //   .text('Total:' + total)
 
-//     //   .attr('x', this.width / 2)
-//     //   .attr('y', -this.height * 0.08)
-//     //   .attr('text-anchor', 'middle');
+    //   .attr('x', this.width / 2)
+    //   .attr('y', -this.height * 0.08)
+    //   .attr('text-anchor', 'middle');
 
-//     let bars = currentHist
-//       .select('.barContainer')
-//       .selectAll('.numBar')
-//       .data(data);
+    let bars = currentHist
+      .select('.barContainer')
+      .selectAll('.numBar')
+      .data(hist);
 
 
-//     const barsEnter = bars
-//       .enter()
-//       .append('rect')
-//       .classed('numBar', true)
-//       .classed('bar', true)
-//       .attr('fill','#5f6262');
+    const barsEnter = bars
+      .enter()
+      .append('rect')
+      .classed('numBar', true)
+      .classed('bar', true)
+      .attr('fill','#5f6262');
 
-//     bars = barsEnter.merge(bars);
+    bars = barsEnter.merge(bars);
 
-//     bars.exit().remove();
+    bars.exit().remove();
 
-//     bars
-//       .attr('width', binWidth * 0.8)
-//       .attr('height', (d) => {
-//         return yScale(d.v);
-//       })
-//       .attr('y', (d) => {
-//         return (this.height - yScale(d.v));
-//       })
-//       .attr('x', (d, i) => {
-//         return xScale(bin2value(i));
-//       });
+    bars
+      .attr('width', binWidth * 0.8)
+      .attr('height', (d) => {
+        return yScale(d.length);
+      })
+      .attr('y', (d) => {
+        return (this.height - yScale(d.length));
+      })
+      .attr('x', (d, i) => {
+        return xScale(d.x0);
+      });
 
     // this.addBrush(); //For now only add brush when the POI button is clicked
   }

@@ -1152,7 +1152,6 @@ class AttributeTable {
         selectAll('.backgroundRect')
           .filter((dd) => { return dd === d; })
           .classed('hoverRect', true);
-        // .style('fill','#e9e9e9');
       })
       .on('mouseout', function (d) {
         select(this).attr('stroke', 'white');
@@ -1912,7 +1911,7 @@ class AttributeTable {
     icon = iconEnter.merge(icon);
 
     icon
-      .attr('y', this.rowHeight * 1.8 + 8)
+      .attr('y', this.rowHeight * 1.8 + 10)
       .attr('x', (d) => {
         return cellData.type === VALUE_TYPE_ADJMATRIX ? colWidth / 2 : colWidth / 2;
       });
@@ -2420,7 +2419,7 @@ class AttributeTable {
 
     element.select('.backgroundRect')
       .attr('width', colWidth + 10)
-      .attr('height', height + 11);
+      .attr('height', height + 11)
 
     element.select('.resizeBar')
       .attr('x1', colWidth + this.buffer / 2)
@@ -2442,127 +2441,15 @@ class AttributeTable {
       this.histograms.push(attributeHistogram);
     };
 
-    // const graphView = await this.tableManager.graphTable;
-    // const attributeView = await this.tableManager.tableTable;
-    // const allCols = graphView.cols().concat(attributeView.cols());
-    // const dataVec = allCols.filter((col)=> {return col.desc.name === headerData.name;})[0];
-
-    //For now, only render histograms for phovea table vectors
-    // if (!dataVec.desc.arrayVec) {
       await attributeHistogram.init(headerData.name, dataVec, dataVec.desc.value.type, colWidth, this.headerHeight);
-    // }
-    // initiate this object
 
-
-    // const hist = headerData.hist;
-
-    // console.log(hist)
-
-
-
-    // const range = [0, colWidth];
-
-    // // var data = [],
-    // // cols = scaleLinear<string,string>().domain([hist.largestFrequency, 0]).range(['#111111', '#999999']),
-    // let total = hist.validCount;
-    // const binWidth = (range[1] - range[0]) / hist.bins;
-    // let acc = 0;
-
-    // const data = [];
-
-    // hist.forEach((b, i) => {
-    //   data[i] = {
-    //     v: b,
-    //     acc,
-    //     ratio: b / total,
-    //     range: hist.range(i),
-    //   };
-    //   acc += b;
-
-
-    // });
-
-    // const xScale = scaleLinear().range([0, colWidth]).domain(hist.valueRange).nice();
-    // const bin2value = scaleLinear().range(hist.valueRange).domain([0, hist.bins]);
-    // const yScale = scaleLinear().range([0, height * 0.8]).domain([0, max(data, (d) => {
-    //   return d.v;
-    // })]);
-
-
-    // const bars = element.selectAll('.histogram')
-    //   .data(data);
-
-    // const barsEnter = bars.enter();
-
-    // barsEnter
-    //   .append('rect')
-    //   .classed('histogram', true);
-
-    // bars.exit().remove();
-
-    // //bars = barsEnter.merge(bars);
-
-    // element.select('.hist_xscale').remove();
-
-    // const xAxis = axisBottom(xScale)
-    //   .tickSize(5)
-    //   .tickValues(xScale.domain())
-    //   .tickFormat(format('.0f'));
-
-    // if (element.selectAll('.hist_xscale').size() === 0) {
-
-    //   element.append('text').classed('maxValue', true);
-    //   element.append('g')
-    //     .attr('transform', 'translate(0,' + height + ')')
-    //     .classed('hist_xscale', true)
-    //     .call(xAxis);
-    // }
-
-    // element.selectAll('.histogram')
-    //   .attr('width', binWidth * 0.8)
-    //   // .transition(t)
-    //   .attr('height', (d) => {
-    //     return yScale(d.v);
-    //   })
-    //   .attr('y', (d) => {
-    //     return (height - yScale(d.v));
-    //   })
-    //   .attr('x', (d, i) => {
-    //     return xScale(bin2value(i));
-    //   })
-    //   .attr('fill', () => {
-    //     let attr = this.tableManager.primaryAttribute;
-    //     if (attr && attr.name === headerData.name) {
-    //       return attr.color;
-    //     } else {
-    //       attr = this.tableManager.affectedState;
-    //       if (attr && attr.attributeInfo.name === headerData.name) {
-    //         return attr.attributeInfo.color;
-    //       }
-    //     }
-    //   }
-    //   );
-
-
-    // //Position tick labels to be 'inside' the axis bounds. avoid overlap
-    // element.selectAll('.tick').each(function (cell) {
-    //   const xtranslate = +select(this).attr('transform').split('translate(')[1].split(',')[0];
-    //   if (xtranslate === 0) {//first label in the axis
-    //     select(this).select('text').style('text-anchor', 'start');
-    //   } else { //last label in the axis
-    //     select(this).select('text').style('text-anchor', 'end');
-    //   }
-    // });
-
-    // total = (data[data.length - 1]).acc + (data[data.length - 1]).v;
-    // element.select('.maxValue')
-    //   .text('Total:' + total)
-
-    //   .attr('x', colWidth / 2)
-    //   .attr('y', -height * 0.08)
-    //   .attr('text-anchor', 'middle');
-
-
+      const values = dataVec.dataValues.map((d)=>d ? d.value : d);
+      const threshold = max([+min(values), +max(values)-3]);
+      element.select('.backgroundRect')
+      .on('click',(d)=> {
+        this.histograms.map((h)=>h.removeBrush());
+        attributeHistogram.setBrush(threshold);
+      });
   };
 
   private removeTooltip() {

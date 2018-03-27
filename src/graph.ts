@@ -156,6 +156,8 @@ class Graph {
   private xScale;
   private yScale;
 
+  private doiFcn = (n) => n.children.length > 0;
+
   private margin = Config.margin;
 
   private menuObject = menu.create();
@@ -183,6 +185,29 @@ class Graph {
 
     select('#graph')
       .on('click', () => { select('.menu').remove(); });
+
+    events.on('doiSet', (evt, info) => {
+
+      console.log(info, info.threshold);
+      if (info.threshold === undefined) {
+        this.doiFcn = (n) => n.children.length > 0;
+      } else {
+        console.log('setting new doi');
+        this.doiFcn = (n) => n.children.length > 0 || +n.graphData.data[info.name] >= info.threshold[0] && +n.graphData.data[info.name] <= info.threshold[1];
+        // this.graph.nodes.map((n)=> {
+        //   console.log(n.title,n.children.length,n.graphData.data,+n.graphData.data[info.name] >= info.threshold[0] &&  +n.graphData.data[info.name] <= info.threshold[1]);
+        // })
+      }
+      // this.graph.nodes.map((n) => {
+      //   n.visited = false;
+      //   n.doi = false;
+      // });
+
+      this.extractTree();
+      this.exportYValues();
+      this.drawTree();
+
+    })
 
     events.on(GRAPH_ADJ_MATRIX_CHANGED, (evt, info) => {
       console.log(info);
@@ -454,6 +479,7 @@ class Graph {
       this.svg.select('.visibleLinks').html('');
       this.svg.select('.hiddenLinks').html('');
       this.svg.select('.nodes').html('');
+      this.svg.select('.endMarkers').html('');
 
       if (this.selectedDB) {
         if (this.layout === 'tree') {
@@ -625,7 +651,7 @@ class Graph {
               arrayVector.dataValues = dataValues;
               arrayVector.idValues = nodes.map((e) => { return e.uuid; });
 
-              arrayVector.desc.value.range = [min(arrayVector.dataValues,(d:any)=>d.value), max(arrayVector.dataValues,(d:any)=>d.value)];
+              arrayVector.desc.value.range = [min(arrayVector.dataValues, (d: any) => d.value), max(arrayVector.dataValues, (d: any) => d.value)];
 
               // const dataValues = nodes.map((e) => {
               //   const node = this.graph.nodes.find((nn)=>nn.uuid === e.uuid);
@@ -1151,7 +1177,7 @@ class Graph {
       select('#nodeGroup').selectAll('.title').classed('fadeNode', false);
       select('#nodeGroup').selectAll('.addIcon')
         .classed('fadeNode', false);
-      selectAll('.edge.hiddenEdge').filter(function(e: any) {return !select(this).classed('selected');})
+      selectAll('.edge.hiddenEdge').filter(function (e: any) { return !select(this).classed('selected'); })
         .attr('visibility', 'hidden');
     });
 
@@ -1962,7 +1988,7 @@ class Graph {
   }
 
   //function that iterates down branch and sets aggregate flag to true/false
-  setAggregation(root, aggregate, setMode, doiFcn = (n) => n.children.length > 0 || n.degree > 5, force = false) { //forcing aggregation overrides child values.
+  setAggregation(root, aggregate, setMode, doiFcn = this.doiFcn, force = false) { //forcing aggregation overrides child values.
     // doiFcn = (n)=>n.children.length > 0,
     // console.log('calling set Aggregation to ', aggregate, ' for ', root.title, ' with force', force , ' and mode', setMode);
     //clear all previous aggregation nodes first
@@ -1983,7 +2009,7 @@ class Graph {
   }
 
   aggregateHelper(root, node, aggregateInput, queue, setMode, doiFcn, force = false) {
-    // console.log('aggregating ', node.title , ' from ', root.title, ' force: ', force, 'aggregate', aggregate, 'setMode', setMode);
+    // console.log('aggregating ', node.title , ' from ', root.title, ' force: ', force, 'aggregate', aggregateInput, 'setMode', setMode);
     const aggregateBy = 'label';
 
     //for non-aggregated level mode, first set aggregate to true, but then expand the specific aggregates
@@ -1998,6 +2024,7 @@ class Graph {
 
       //set doi flags;
       node.children.map((n) => n.doi = doiFcn(n));
+      console.log(node.children.filter((d) => d.doi).length, 'doi found');
       const toAggregate = setMode === mode.tree ? node.children.filter((n) => !doiFcn(n)).filter((n) => n.visible) : node.children.filter((n) => n.visible);
       const allChildren = node.children.filter((n) => n.visible);
 
@@ -2070,7 +2097,7 @@ class Graph {
           //set layout to preserve existing layout for level mode nodes;
           if (c.nodeType === nodeType.single) {
             if (!force) {
-              c.layout = c.layout; //preserve aggregated/expanded state of level mode nodes;
+              c.layout = !doiFcn(c) ? (aggregateInput ? layout.aggregated : layout.expanded) : layout.expanded; //preserve aggregated/expanded state of level mode nodes;
             } else {
               c.layout = !doiFcn(c) ? (aggregateInput ? layout.aggregated : layout.expanded) : layout.expanded;// for new nodes, default to aggregated state.
             }
@@ -2318,7 +2345,7 @@ class Graph {
             }
           }
         }
-        console.log(a,aValues,aloc);
+        // console.log(a,aValues,aloc);
 
         a.value = aValues.reduce((acc, cValue) => acc + cValue, 0);
 
@@ -3717,7 +3744,9 @@ class Graph {
 
   private createID(d) {
     const title = d.title ? d.title : d.uuid;
-
+    if (title === undefined) {
+      console.trace(d);
+    }
     return title.replace(/[^0-9a-z]/gi, '');
     // return title.replace(/ /g, '_').replace(/\./g, '').replace(/\@/g, '').replace(/\?/g, '').replace(/\:/g, '').replace(/\(/g, '').replace(/\)/g, '').replace(/\'/g, '').replace(/\&/g, '').replace(/\!/g, '').replace(/\//g, '').replace(/\,/g, '');
   }

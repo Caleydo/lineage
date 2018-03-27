@@ -615,7 +615,7 @@ class Graph {
 
               // return isNaN(+e.value) ? e.value : +e.value; });;
               //infer type here:
-              const type = typeof dataValues[0].value === 'number' ? VALUE_TYPE_INT : VALUE_TYPE_STRING;
+              const type = dataValues[0] && typeof dataValues[0].value === 'number' ? VALUE_TYPE_INT : VALUE_TYPE_STRING;
 
               // //Add fake vector here:
               arrayVector = arrayVec.create(type);
@@ -1962,7 +1962,7 @@ class Graph {
   }
 
   //function that iterates down branch and sets aggregate flag to true/false
-  setAggregation(root, aggregate, setMode, doiFcn = (n) => n.children.length > 0 || n.title[0] === 'H', force = false) { //forcing aggregation overrides child values.
+  setAggregation(root, aggregate, setMode, doiFcn = (n) => n.children.length > 0 || n.degree > 5, force = false) { //forcing aggregation overrides child values.
     // doiFcn = (n)=>n.children.length > 0,
     // console.log('calling set Aggregation to ', aggregate, ' for ', root.title, ' with force', force , ' and mode', setMode);
     //clear all previous aggregation nodes first
@@ -2318,7 +2318,7 @@ class Graph {
             }
           }
         }
-        // console.log(a,aValues);
+        console.log(a,aValues,aloc);
 
         a.value = aValues.reduce((acc, cValue) => acc + cValue, 0);
 
@@ -3717,7 +3717,9 @@ class Graph {
 
   private createID(d) {
     const title = d.title ? d.title : d.uuid;
-    return title.replace(/ /g, '_').replace(/\./g, '').replace(/\@/g, '').replace(/\?/g, '').replace(/\:/g, '').replace(/\(/g, '').replace(/\)/g, '').replace(/\'/g, '').replace(/\&/g, '').replace(/\!/g, '').replace(/\//g, '').replace(/\,/g, '');
+
+    return title.replace(/[^0-9a-z]/gi, '');
+    // return title.replace(/ /g, '_').replace(/\./g, '').replace(/\@/g, '').replace(/\?/g, '').replace(/\:/g, '').replace(/\(/g, '').replace(/\)/g, '').replace(/\'/g, '').replace(/\&/g, '').replace(/\!/g, '').replace(/\//g, '').replace(/\,/g, '');
   }
 
 

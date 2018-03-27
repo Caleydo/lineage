@@ -7,7 +7,7 @@ import { select, selection, selectAll, mouse, event } from 'd3-selection';
 import { drag } from 'd3-drag';
 import { format } from 'd3-format';
 import { scaleLinear, scaleOrdinal, schemeCategory20c } from 'd3-scale';
-import { max, min, mean } from 'd3-array';
+import { max, min, mean, histogram } from 'd3-array';
 import { axisTop, axisBottom } from 'd3-axis';
 import * as range from 'phovea_core/src/range';
 import { isNullOrUndefined } from 'util';
@@ -103,7 +103,7 @@ class AttributeTable {
 
 
   //store histogram objects for tableHeaders
-  private histograms: BoxPlot[] = [];
+  private histograms: Histogram[] = [];
 
   private lineFunction = line<any>()
     .x((d: any) => {
@@ -988,10 +988,13 @@ class AttributeTable {
 
   //function that removes spaces and periods to be used as ids and selectors. Also includes categories for categorical data.
   private deriveID(d) {
-    const id = (d.type === 'categorical' ?
-      (d.name.replace(/ /g, '_').replace(/\./g, '').replace(/\:/g, '').replace(/\(/g, '').replace(/\)/g, '').replace(/\'/g, '').replace(/\&/g, '').replace(/\&/g, '').replace(/\?/g, '').replace(/\!/g, '').replace(/\@/g, '').replace(/\//g, '').replace(/\,/g, '') + '_'
-        + d.category.replace(/ /g, '_').replace(/\(/g, '').replace(/\)/g, '')) :
-      (d.name.replace(/ /g, '_').replace(/\./g, '').replace(/\:/g, '').replace(/\(/g, '').replace(/\)/g, '').replace(/\'/g, '').replace(/\&/g, '').replace(/\&/g, '').replace(/\?/g, '').replace(/\!/g, '').replace(/\@/g, '').replace(/\//g, '').replace(/\,/g, '')));
+    const id = d.type === 'categorical' ? d.replace(/[^0-9a-z]/gi, '')+d.category.replace(/[^0-9a-z]/gi, ''):d.name.replace(/[^0-9a-z]/gi, '');
+
+
+
+      // (d.name.replace(/ /g, '_').replace(/\./g, '').replace(/\:/g, '').replace(/\(/g, '').replace(/\)/g, '').replace(/\'/g, '').replace(/\&/g, '').replace(/\&/g, '').replace(/\?/g, '').replace(/\!/g, '').replace(/\@/g, '').replace(/\//g, '').replace(/\,/g, '') + '_'
+      //   + d.category.replace(/ /g, '_').replace(/\(/g, '').replace(/\)/g, '')) :
+      // (d.name.replace(/ /g, '_').replace(/\./g, '').replace(/\:/g, '').replace(/\(/g, '').replace(/\)/g, '').replace(/\'/g, '').replace(/\&/g, '').replace(/\&/g, '').replace(/\?/g, '').replace(/\!/g, '').replace(/\@/g, '').replace(/\//g, '').replace(/\,/g, '')));
 
     return id;
   }
@@ -1979,11 +1982,12 @@ class AttributeTable {
         let data;
         // console.log(d,d.data)
         //check to see if data values are arrays of values or array of objects:
-        if (d.type === 'dataDensity') {
-          data = d.data.map((dd) => dd.map((ddd) => ddd.value));
-        } else {
-          data = d.data;
-        }
+        // if (d.type === 'dataDensity') {
+          data = d.data.map((dd) => dd.map((ddd) => ddd ? ddd.value: ddd));
+        // }
+        // else {
+        //   data = d.data;
+        // }
 
         events.fire(TREE_PRESERVING_SORTING, { sortOrder: self.sortAttribute.state, data, ids: d.ids });
 
@@ -2433,8 +2437,8 @@ class AttributeTable {
 
     const dataVec = headerData.vector;
 
-    if (!attributeHistogram && !dataVec.desc.arrayVec) {
-      attributeHistogram = new BoxPlot(element);
+    if (!attributeHistogram) {
+      attributeHistogram = new Histogram(element);
       this.histograms.push(attributeHistogram);
     };
 
@@ -2444,13 +2448,17 @@ class AttributeTable {
     // const dataVec = allCols.filter((col)=> {return col.desc.name === headerData.name;})[0];
 
     //For now, only render histograms for phovea table vectors
-    if (!dataVec.desc.arrayVec) {
+    // if (!dataVec.desc.arrayVec) {
       await attributeHistogram.init(headerData.name, dataVec, dataVec.desc.value.type, colWidth, this.headerHeight);
-    }
+    // }
     // initiate this object
 
 
     // const hist = headerData.hist;
+
+    // console.log(hist)
+
+
 
     // const range = [0, colWidth];
 

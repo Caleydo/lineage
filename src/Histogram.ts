@@ -1,6 +1,6 @@
 import {select, selectAll, event} from 'd3-selection';
 import {scaleLinear, scaleBand} from 'd3-scale';
-import {max, min, ticks, range, extent} from 'd3-array';
+import {max, min, ticks, range, extent, histogram} from 'd3-array';
 import {axisTop, axisLeft, axisRight, axisBottom} from 'd3-axis';
 import {set} from 'd3-collection';
 import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL} from 'phovea_core/src/datatype';
@@ -373,114 +373,139 @@ export default class Histogram {
    */
   private async renderNumHistogram(dataVec) {
 
-    const histData = await dataVec.hist(10);
-    const range = [0, this.width];
+    const data = dataVec.dataValues.filter((d)=>d!== undefined).map((d)=>d.value);
+    console.log(data);
+    const xScale = scaleLinear().range([0, this.width]).domain([+min(data),+max(data)]).nice();
 
-    const data = [],
-      cols = scaleLinear<string,string>().domain([, 0]).range(['#111111', '#999999']),
-      total = histData.validCount,
-      binWidth = (range[1] - range[0]) / histData.bins;
-      let acc = 0;
+    console.log(xScale.domain());
+    const hist = histogram()
+    // .domain(xScale.domain())
+    // .thresholds(xScale.ticks(20))
+    (data);
 
-    histData.forEach((b, i) => {
-      data[i] = {
-        v: b,
-        acc,
-        ratio: b / total,
-        valueRange: histData.valueRange,
-        name: 'Bin ' + (i + 1) + ' (center: ' + Math.round((i + 0.5) * binWidth) + ')',
-        binIndex: i,
-        // color: cols((i + 0.5) * binWidth);
-        color: cols(b)
-      };
-      acc += b;
+    // const yScale = scaleLinear().range([0, this.height * 0.8]).domain([0, max(data, (d) => {
+    //   return d.v;
+    // })]);
 
-    });
-
-    const bin2value = scaleLinear().range(histData.valueRange).domain([0, histData.bins]);
-    const xScale = scaleLinear().range([0, this.width]).domain(histData.valueRange).nice();
-    const yScale = scaleLinear().range([0, this.height * 0.8]).domain([0, max(data, (d) => {
-      return d.v;
-    })]);
-
-    this.xScale = xScale;
-    this.yScale = yScale;
-
-    const currentHist = this.node;
-
-    if (currentHist.select('.elementGroup').size() === 0) {
-
-      const element = currentHist.append('g')
-        .classed('elementGroup',true);
-
-      element.append('text').classed('maxValue', true);
-
-      //Axis Group
-      element.append('g')
-        .attr('class', 'axis axis--x')
-        .classed('hist_xscale', true)
-        .attr('id','histAxis')
-        .attr('transform', 'translate(0,' + this.height + ')');
-
-     element.append('g')
-        .attr('class','barContainer');
-
-    }
-
-    this.node.select('#histAxis')
-    .call(axisBottom(xScale)
-    .tickSize(5)
-    .tickValues(xScale.domain())
-    .tickFormat(format('.0f')));
+    // this.xScale = xScale;
+    // this.yScale = yScale;
 
 
+    console.log(hist);
 
-     //Position tick labels to be 'inside' the axis bounds. avoid overlap
-    this.node.select('.hist_xscale').selectAll('.tick').each(function (cell) {
-      const xtranslate = +select(this).attr('transform').split('translate(')[1].split(',')[0];
-      if (xtranslate === 0) {//first label in the axis
-        select(this).select('text').style('text-anchor', 'start');
-      } else { //last label in the axis
-        select(this).select('text').style('text-anchor', 'end');
-      }
-    });
-
-    const totalLabel = (data[data.length - 1]).acc + (data[data.length - 1]).v;
-    // this.node.select('.maxValue')
-    //   .text('Total:' + total)
-
-    //   .attr('x', this.width / 2)
-    //   .attr('y', -this.height * 0.08)
-    //   .attr('text-anchor', 'middle');
-
-    let bars = currentHist
-      .select('.barContainer')
-      .selectAll('.numBar')
-      .data(data);
+    return;
 
 
-    const barsEnter = bars
-      .enter()
-      .append('rect')
-      .classed('numBar', true)
-      .classed('bar', true)
-      .attr('fill','#5f6262');
+//  console.log(hist)
 
-    bars = barsEnter.merge(bars);
+//     const histData = await dataVec.hist(10);
+//     const range = [0, this.width];
 
-    bars.exit().remove();
+//     const data = [],
+//       cols = scaleLinear<string,string>().domain([, 0]).range(['#111111', '#999999']),
+//       total = histData.validCount,
+//       binWidth = (range[1] - range[0]) / histData.bins;
+//       let acc = 0;
 
-    bars
-      .attr('width', binWidth * 0.8)
-      .attr('height', (d) => {
-        return yScale(d.v);
-      })
-      .attr('y', (d) => {
-        return (this.height - yScale(d.v));
-      })
-      .attr('x', (d, i) => {
-        return xScale(bin2value(i));
-      });
+//     histData.forEach((b, i) => {
+//       data[i] = {
+//         v: b,
+//         acc,
+//         ratio: b / total,
+//         valueRange: histData.valueRange,
+//         name: 'Bin ' + (i + 1) + ' (center: ' + Math.round((i + 0.5) * binWidth) + ')',
+//         binIndex: i,
+//         // color: cols((i + 0.5) * binWidth);
+//         color: cols(b)
+//       };
+//       acc += b;
+
+//     });
+
+//     const bin2value = scaleLinear().range(histData.valueRange).domain([0, histData.bins]);
+//     const xScale = scaleLinear().range([0, this.width]).domain(histData.valueRange).nice();
+//     const yScale = scaleLinear().range([0, this.height * 0.8]).domain([0, max(data, (d) => {
+//       return d.v;
+//     })]);
+
+//     this.xScale = xScale;
+//     this.yScale = yScale;
+
+//     const currentHist = this.node;
+
+//     if (currentHist.select('.elementGroup').size() === 0) {
+
+//       const element = currentHist.append('g')
+//         .classed('elementGroup',true);
+
+//       element.append('text').classed('maxValue', true);
+
+//       //Axis Group
+//       element.append('g')
+//         .attr('class', 'axis axis--x')
+//         .classed('hist_xscale', true)
+//         .attr('id','histAxis')
+//         .attr('transform', 'translate(0,' + this.height + ')');
+
+//      element.append('g')
+//         .attr('class','barContainer');
+
+//     }
+
+//     this.node.select('#histAxis')
+//     .call(axisBottom(xScale)
+//     .tickSize(5)
+//     .tickValues(xScale.domain())
+//     .tickFormat(format('.0f')));
+
+
+
+//      //Position tick labels to be 'inside' the axis bounds. avoid overlap
+//     this.node.select('.hist_xscale').selectAll('.tick').each(function (cell) {
+//       const xtranslate = +select(this).attr('transform').split('translate(')[1].split(',')[0];
+//       if (xtranslate === 0) {//first label in the axis
+//         select(this).select('text').style('text-anchor', 'start');
+//       } else { //last label in the axis
+//         select(this).select('text').style('text-anchor', 'end');
+//       }
+//     });
+
+//     const totalLabel = (data[data.length - 1]).acc + (data[data.length - 1]).v;
+//     // this.node.select('.maxValue')
+//     //   .text('Total:' + total)
+
+//     //   .attr('x', this.width / 2)
+//     //   .attr('y', -this.height * 0.08)
+//     //   .attr('text-anchor', 'middle');
+
+//     let bars = currentHist
+//       .select('.barContainer')
+//       .selectAll('.numBar')
+//       .data(data);
+
+
+//     const barsEnter = bars
+//       .enter()
+//       .append('rect')
+//       .classed('numBar', true)
+//       .classed('bar', true)
+//       .attr('fill','#5f6262');
+
+//     bars = barsEnter.merge(bars);
+
+//     bars.exit().remove();
+
+//     bars
+//       .attr('width', binWidth * 0.8)
+//       .attr('height', (d) => {
+//         return yScale(d.v);
+//       })
+//       .attr('y', (d) => {
+//         return (this.height - yScale(d.v));
+//       })
+//       .attr('x', (d, i) => {
+//         return xScale(bin2value(i));
+//       });
 
     // this.addBrush(); //For now only add brush when the POI button is clicked
   }

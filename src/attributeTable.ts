@@ -3093,8 +3093,6 @@ class AttributeTable {
     let levels = element.selectAll('.level')
     .data(cellData.data);
 
-    console.log(cellData.data)
-
     const levelsEnter =
     levels.enter()
         .append('line')
@@ -3108,9 +3106,13 @@ class AttributeTable {
 
     // console.log(cellData,cellData.data);
     levels
-      .classed('aggregated', (d)=>d.aggregated)
-      .attr('x1',(d)=> xScale(d.value))
-      .attr('x2', (d)=> xScale(d.value))
+      .classed('aggregated', (d)=>d && d.aggregated)
+      .attr('x1',(d)=> {
+        return xScale(d.value);
+      })
+      .attr('x2', (d)=> {
+        return xScale(d.value);
+      })
       .attr('y1', 0)
       .attr('y2', rowHeight);
 

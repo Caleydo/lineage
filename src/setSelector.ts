@@ -68,12 +68,12 @@ class SetSelector {
 
     //add nodeFilter div to header
     select('#caleydoHeader')
-    .select('.navbar-collapse')
+      .select('.navbar-collapse')
       .append('div')
       .attr('id', 'nodeFilter')
-      .style('display','inline-flex')
-      .style('margin-top','8px')
-      .attr('width','1120px');
+      .style('display', 'inline-flex')
+      .style('margin-top', '8px')
+      .attr('width', '1120px');
 
     //add dropdown menu for table attributes
 
@@ -133,18 +133,18 @@ class SetSelector {
     //   .attr('id', 'queryInputForm')
     //   .attr('placeholder', 'Enter Cypher Search Query');
 
-  //     //add query box
-  //  select('#col1')
-  //   .select('#subGraphInput')
-  //   .selectAll('.panel-heading')
-  //   .data([0]) // ensure there is only one search box
-  //   .enter()
-  //   .append('div')
-  //   .attr('class', 'panel-heading')
-  //   .append('input')
-  //   .attr('class', 'form-control')
-  //   .attr('id', 'subGraphInputForm')
-  //   .attr('placeholder', 'Enter Cypher Graph Query');
+    //     //add query box
+    //  select('#col1')
+    //   .select('#subGraphInput')
+    //   .selectAll('.panel-heading')
+    //   .data([0]) // ensure there is only one search box
+    //   .enter()
+    //   .append('div')
+    //   .attr('class', 'panel-heading')
+    //   .append('input')
+    //   .attr('class', 'form-control')
+    //   .attr('id', 'subGraphInputForm')
+    //   .attr('placeholder', 'Enter Cypher Graph Query');
 
     //add query box
     const panelHeading = select('#col1')
@@ -162,10 +162,10 @@ class SetSelector {
       .attr('id', 'searchBoxInput')
       .attr('placeholder', 'Search for node name');
 
-      // panelHeading
-      // .append('text')
-      // .text(Config.icons.Search)
-      // .style('font-family','FontAwesome')
+    // panelHeading
+    // .append('text')
+    // .text(Config.icons.Search)
+    // .style('font-family','FontAwesome')
 
     // // //Add set Selector toolbar
     // // const toolBar = select('#col1')
@@ -240,18 +240,18 @@ class SetSelector {
     // const cboxes =
 
     let cboxes = select('#nodeFilter')
-    .selectAll('.checkboxDiv')
-    .data(labels);
+      .selectAll('.checkboxDiv')
+      .data(labels);
 
     const cBoxesEnter = cboxes
-    .enter()
-    .append('div')
-    .attr('class','checkboxDiv');
+      .enter()
+      .append('div')
+      .attr('class', 'checkboxDiv');
 
     cBoxesEnter
-    .append('g')
-    .attr('class','checkbox')
-    .append('label');
+      .append('g')
+      .attr('class', 'checkbox')
+      .append('label');
 
     cboxes.exit().remove();
 
@@ -285,7 +285,7 @@ class SetSelector {
         select('#nodeFilter').select('.open').style('visibility', 'visible');
 
         let menuItems = select('#nodeFilter').select('.dropdown-menu').selectAll('.demoAttr')
-          .data(this.labelProperties[d.name].sort((a,b)=> a<b ? -1: 1));
+          .data(this.labelProperties[d.name].sort((a, b) => a < b ? -1 : 1));
 
         const menuItemsEnter = menuItems.enter()
           .append('li')
@@ -308,56 +308,56 @@ class SetSelector {
           });
       });
 
-          //creat an accordion div and a table for each label
-          let panels = select('#col1').select('#pathViewerAccordion')
-            .selectAll('.panel-default')
-            .data([{name:'Shortest Path'}]);
+    //creat an accordion div and a table for each label
+    let panels = select('#col1').select('#pathViewerAccordion')
+      .selectAll('.panel-default')
+      .data([{ name: 'Shortest Path' }]);
 
-          panels.exit().remove();
+    panels.exit().remove();
 
-          const panelsEnter = panels.enter();
+    const panelsEnter = panels.enter();
 
-          const panelDefault = panelsEnter
-            .append('div')
-            .attr('class', 'panel panel-default');
+    const panelDefault = panelsEnter
+      .append('div')
+      .attr('class', 'panel panel-default');
 
-          panelDefault
-            .append('div')
-            .attr('class', 'panel-heading')
-            .append('h4')
-            .attr('class', 'panel-title')
-            .append('a')
-            .attr('data-toggle', 'collapse')
-            .attr('data-parent', '#pathViewerAccordion')
-            .attr('href', (d, i) => { return '#sp_' + i; });
-
-
-          const pDefault = panelDefault
-            .append('div')
-            .attr('id', (d, i) => { return 'sp_' + i; })
-            .attr('class', 'panel-collapse collapse ')
-            .classed('in', false)
-            .append('div')
-            .attr('class', 'panel-body');
+    panelDefault
+      .append('div')
+      .attr('class', 'panel-heading')
+      .append('h4')
+      .attr('class', 'panel-title')
+      .append('a')
+      .attr('data-toggle', 'collapse')
+      .attr('data-parent', '#pathViewerAccordion')
+      .attr('href', (d, i) => { return '#sp_' + i; });
 
 
-          const tbody = pDefault
-            .append('div')
-            .attr('id', 'tableBody')
-            .append('table')
-            .attr('class', 'table');
+    const pDefault = panelDefault
+      .append('div')
+      .attr('id', (d, i) => { return 'sp_' + i; })
+      .attr('class', 'panel-collapse collapse ')
+      .classed('in', false)
+      .append('div')
+      .attr('class', 'panel-body');
 
-          tbody.append('tbody');
+
+    const tbody = pDefault
+      .append('div')
+      .attr('id', 'tableBody')
+      .append('table')
+      .attr('class', 'table');
+
+    tbody.append('tbody');
 
 
-          panels = panels.merge(panelsEnter);
+    panels = panels.merge(panelsEnter);
 
-          select('#pathViewerAccordion')
-            .selectAll('a')
-            .text((d: any) => d.name);
+    select('#pathViewerAccordion')
+      .selectAll('a')
+      .text((d: any) => d.name);
 
-        select('#pathViewerAccordion').selectAll('.panel-body')
-            .attr('id', (d: any) => { return d.name + '_body'; });
+    select('#pathViewerAccordion').selectAll('.panel-body')
+      .attr('id', (d: any) => { return d.name + '_body'; });
 
 
 
@@ -427,7 +427,7 @@ class SetSelector {
 
     select('#accordion')
       .selectAll('a')
-      .html((d: any) => { return '<tspan class="icon">' + Config.icons[d.name] + '</tspan> ' + ' (' + d.size + ') ' + d.name ; });
+      .html((d: any) => { return '<tspan class="icon">' + Config.icons[d.name] + '</tspan> ' + ' (' + d.size + ') ' + d.name; });
 
     // select('#nodeFilter')
     //   .selectAll('a')
@@ -515,8 +515,11 @@ class SetSelector {
 
       const data = graphData.labels;
 
-      // const allNodes = [];
-      const labels = data.map((d) => {return { name: d.name, size: d.nodes.length }; });
+
+      const labels = data.filter((l) => l.name !== 'ConferencePaper' &&
+        l.name !== 'Inproceedings' && l.name !== 'Proceedings' &&
+        l.name !== 'Journal' && l.name !== '_Set_Node' && l.name !== 'Article' && l.name !== 'Publication')
+        .map((d) => { return { name: d.name, size: d.nodes.length }; });
 
       this.build(labels);
 
@@ -561,37 +564,37 @@ class SetSelector {
       select('#queryInputForm').on('keypress', (e) => {
         if (event.key === 'Enter') {
           const input = select('#queryInputForm');
-        if (input.property('value').length < 1) {
-          clearTimeout(timer);
-        } else {
-          clearTimeout(timer);
-          timer = setTimeout(() => {
+          if (input.property('value').length < 1) {
+            clearTimeout(timer);
+          } else {
+            clearTimeout(timer);
+            timer = setTimeout(() => {
 
-            const url = 'api/data_api/query/' + this.selectedDB;
+              const url = 'api/data_api/query/' + this.selectedDB;
 
-            const postContent = JSON.stringify({ 'searchString': input.property('value') });
+              const postContent = JSON.stringify({ 'searchString': input.property('value') });
 
 
-            json(url)
-              .header('Content-Type', 'application/json')
-              .post(postContent, (error, graph: any) => {
-                if (error) {
-                  throw error;
-                }
-                console.log(graph);
+              json(url)
+                .header('Content-Type', 'application/json')
+                .post(postContent, (error, graph: any) => {
+                  if (error) {
+                    throw error;
+                  }
+                  console.log(graph);
 
-                const data = graph.labels;
-                const labels = data.map((d) => { return {name: d.name, size: d.nodes.length }; });
-                console.log(data);
+                  const data = graph.labels;
+                  const labels = data.map((d) => { return { name: d.name, size: d.nodes.length }; });
+                  console.log(data);
 
-                this.updateSetSelector(labels);
-                data.map((d) => {
-                  this.populateTableRows('#' + d.name + '_body', d.nodes, this.headerInfo.length, d.name);
+                  this.updateSetSelector(labels);
+                  data.map((d) => {
+                    this.populateTableRows('#' + d.name + '_body', d.nodes, this.headerInfo.length, d.name);
+                  });
                 });
-              });
 
-          }, 500);
-        }
+            }, 500);
+          }
 
         }
 
@@ -739,8 +742,8 @@ class SetSelector {
       })
       .style('text-align', 'right');
 
-      // selectAll('tspan.degree')
-      // .style('padding','10px');
+    // selectAll('tspan.degree')
+    // .style('padding','10px');
 
     //adjust height of table body
     // document.getElementById('genealogyTree').getBoundingClientRect().height

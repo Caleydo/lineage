@@ -610,7 +610,6 @@ class Graph {
 
               const dataValues = nodes.map((e) => {
                 const node = this.graph.nodes.find((nn) => nn.uuid === e.uuid);
-                console.log('node is ', node);
                 return isNaN(+e.value) ? { 'value': e.value, 'aggregated': node.layout === layout.aggregated } : { 'value': +e.value, 'aggregated': node.layout === layout.aggregated }
               });;
 
@@ -1152,7 +1151,7 @@ class Graph {
       select('#nodeGroup').selectAll('.title').classed('fadeNode', false);
       select('#nodeGroup').selectAll('.addIcon')
         .classed('fadeNode', false);
-      selectAll('.edge.hiddenEdge').filter((e: any) => !e.classed('selected'))
+      selectAll('.edge.hiddenEdge').filter(function(e: any) {return !select(this).classed('selected');})
         .attr('visibility', 'hidden');
     });
 
@@ -1994,7 +1993,7 @@ class Graph {
       node.aggLayout === aggregateInput ? layout.aggregated : layout.expanded;
       node.aggMode === setMode;
     }
-    
+
     if (aggregate) {
 
       //set doi flags;
@@ -2277,11 +2276,11 @@ class Graph {
       node.children.sort((a, b) => {
 
         //prioritize children that are part of a pathway or are level Summary Nodes
-        if (this.pathway.start && a.pathway === true) {
+        if (a.pathway === true) {
           return -1;
         };
 
-        if (this.pathway.start && b.pathway === true) {
+        if (b.pathway === true) {
           return 1;
         };
 
@@ -2384,11 +2383,11 @@ class Graph {
       //default sorting is alphabetical
       node.children.sort((a, b) => {
         //prioritize children that are part of a pathway
-        if (this.pathway.start && a.pathway === true) {
+        if (a.pathway === true) {
           return -1;
         };
 
-        if (this.pathway.start && b.pathway === true) {
+        if (b.pathway === true) {
           return 1;
         };
 
@@ -2403,7 +2402,7 @@ class Graph {
 
       // .sort((a, b) => { return a.pathway ? -1 : (b.pathway ? 1 : 0); })
       .map((c, i) => {
-        // console.log('visiting ', c.title);
+        console.log('visiting ', c.title);
         const lastNode = this.graph.nodes.filter((n: any) =>
           c.aggParent && n.visited && n.layout === layout.aggregated && n.aggParent === c.aggParent);
         let maxX = +max(lastNode, (n: any) => n.xx);

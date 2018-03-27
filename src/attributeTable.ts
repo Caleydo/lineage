@@ -2769,6 +2769,9 @@ class AttributeTable {
 
     element
       .select('.frame')
+      .classed('aggregate', () => {
+        return numValues > 1;
+      })
       .attr('width', rowHeight)
       .attr('height', rowHeight)
       .style('opacity', (numValues > 0 ? colorScale(numValues / cellData.data.length) : 1))
@@ -3047,7 +3050,7 @@ class AttributeTable {
     element.selectAll('.cross_out').remove();
 
     const numValues = cellData.data.filter((v) => { return v !== undefined; }).length;
-    const totalValues = cellData.data.reduce((acc, cValue) => { return acc + cValue; }, 0);
+    const totalValues = cellData.data.reduce((acc, cValue) => { return cValue ? acc + cValue.value : acc; }, 0);
 
     if (element.selectAll('.quant').size() === 0) {
       element
@@ -3063,21 +3066,11 @@ class AttributeTable {
       })
       .attr('height', rowHeight);
 
-
-    if (element.selectAll('.level').size() === 0 && cellData.data[0] > 0) {
-      element
-        .append('line')
-        .classed('level', true);
-    }
-
     if (numValues < 1) {
 
       //Remove any existing dataDens elements
       element
-        .select('.level').remove();
-
-
-
+        .selectAll('.level').remove();
 
       if (element.selectAll('.cross_out').size() === 0) {
         element
@@ -3097,16 +3090,27 @@ class AttributeTable {
       return;
     }
 
+    let levels = element.selectAll('.level')
+    .data(cellData.data);
 
+    console.log(cellData.data)
+
+    const levelsEnter =
+    levels.enter()
+        .append('line')
+        .classed('level', true);
+
+    levels.exit().remove();
+
+    levels = levels.merge(levelsEnter);
 
     const xScale = scaleLinear<number, number>().domain(cellData.vector.desc.value.range).range([5, colWidth-5]);
 
-    // console.log(cellData,cellData.data,numValues);
-    element
-      .select('.level')
-      .classed('aggregated', (numValues > 0 && cellData.data.find((d)=>d && d.aggregated)))
-      .attr('x1', xScale(max(cellData.data, (c: any) => +c)))
-      .attr('x2', xScale(max(cellData.data, (c: any) => +c)))
+    // console.log(cellData,cellData.data);
+    levels
+      .classed('aggregated', (d)=>d.aggregated)
+      .attr('x1',(d)=> xScale(d.value))
+      .attr('x2', (d)=> xScale(d.value))
       .attr('y1', 0)
       .attr('y2', rowHeight);
 
@@ -3148,7 +3152,7 @@ class AttributeTable {
     textLabel = '';
   } else {
 
-    textLabel = cellData.data[0].toString().toLowerCase().slice(0, numChar);
+    textLabel = cellData.data[0].value.toString().toLowerCase().slice(0, numChar);
     if (cellData.data[0].length > numChar) {
       textLabel = textLabel.concat(['...']);
     }

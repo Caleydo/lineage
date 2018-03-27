@@ -126,13 +126,22 @@ td .addNode{
   fill:none;
 }
 
-.cell .frame, .cell .dataDens.aggregated{
+.cell .frame, .cell {
+  fill:#8b8b8b
+}
+
+.cell .frame.aggregate {
+  fill:#6994a9
+}
+
+
+.dataDens.aggregated{
   fill:#6994a9;
 }
 
-.cell .dataDens{
- fill:#343434;
-}
+// .cell .dataDens{
+//  fill:#343434;
+// }
 
 
 
@@ -172,8 +181,13 @@ td .addNode{
 
 .level{
   stroke-width:4px;
-  stroke:#859faa;
+  stroke:#7e7e7e;
+  opacity:.4
   // #6994a9
+}
+
+.level.aggregated{
+  stroke:#6994a9;
 }
 
 .title .titleContent{

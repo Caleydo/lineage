@@ -87,9 +87,9 @@ class ToolTip {
 
 
             } else if (data.type === 'int') {
-                content = data.name + ' : ' + data.data.sort((a, b) => { return (a - b); }); //display sorted values
+                content = data.name + ' : ' + data.data.sort((a, b) => { return (a.value - b.value); }); //display sorted values
             } else if (data.type === 'string') {
-                content = data.name + ' : ' + data.data[0].toString().toLowerCase();
+                content = data.name + ' : ' + data.data[0].value.toString().toLowerCase();
             } else if (data.type === 'dataDensity') {
                 const totalValues = data.data.reduce((acc,cValue)=> {return cValue.value? acc+cValue.value : acc;},0);
                 content = data.name + ' : ' + (totalValues >0 ? totalValues : data.data);

@@ -285,9 +285,14 @@ class Graph {
             }
 
             const nodes = resultObj.results;
-            const dataValues = nodes.map((e) => { return isNaN(+e.value) ? e.value : +e.value; });;
+
+            const dataValues = nodes.map((e) => {
+              const node = this.graph.nodes.find((nn) => nn.uuid === e.uuid);
+              return isNaN(+e.value) ? { 'value': e.value, 'aggregated': node.layout === layout.aggregated } : { 'value': +e.value, 'aggregated': node.layout === layout.aggregated }
+            });;
+
             //infer type here:
-            const type = typeof dataValues[0] === 'number' ? VALUE_TYPE_INT : VALUE_TYPE_STRING;
+            const type = typeof dataValues[0].value === 'number' ? VALUE_TYPE_INT : VALUE_TYPE_STRING;
             //Add fake vector here:
             const arrayVector = arrayVec.create(type);
             arrayVector.desc.name = info.name;
@@ -296,11 +301,7 @@ class Graph {
             arrayVector.dataValues = dataValues;
             arrayVector.idValues = nodes.map((e) => { return e.uuid; });
 
-            arrayVector.desc.value.range = [min(arrayVector.dataValues), max(arrayVector.dataValues)];
-            // console.log('range for ', arrayVector.desc.name, ' is ', arrayVector.desc.value.range);
-            // arrayVector.desc.value.label = nodes[0].label;
-
-            // console.log(arrayVector);
+            arrayVector.desc.value.range = [min(arrayVector.dataValues, (d) => d.value), max(arrayVector.dataValues, (d) => d.value)];
 
             //if it's not already in there:
             if (this.tableManager.adjMatrixCols.filter((a: any) => { return a.desc.name === arrayVector.desc.name; }).length < 1) {
@@ -607,9 +608,15 @@ class Graph {
             } else {
               const nodes = data.results;
 
-              const dataValues = nodes.map((e) => { return isNaN(+e.value) ? e.value : +e.value; });;
+              const dataValues = nodes.map((e) => {
+                const node = this.graph.nodes.find((nn) => nn.uuid === e.uuid);
+                console.log('node is ', node);
+                return isNaN(+e.value) ? { 'value': e.value, 'aggregated': node.layout === layout.aggregated } : { 'value': +e.value, 'aggregated': node.layout === layout.aggregated }
+              });;
+
+              // return isNaN(+e.value) ? e.value : +e.value; });;
               //infer type here:
-              const type = typeof dataValues[0] === 'number' ? VALUE_TYPE_INT : VALUE_TYPE_STRING;
+              const type = typeof dataValues[0].value === 'number' ? VALUE_TYPE_INT : VALUE_TYPE_STRING;
 
               // //Add fake vector here:
               arrayVector = arrayVec.create(type);
@@ -619,7 +626,31 @@ class Graph {
               arrayVector.dataValues = dataValues;
               arrayVector.idValues = nodes.map((e) => { return e.uuid; });
 
-              arrayVector.desc.value.range = [min(arrayVector.dataValues), max(arrayVector.dataValues)];
+              arrayVector.desc.value.range = [min(arrayVector.dataValues,(d:any)=>d.value), max(arrayVector.dataValues,(d:any)=>d.value)];
+
+              // const dataValues = nodes.map((e) => { 
+              //   const node = this.graph.nodes.find((nn)=>nn.uuid === e.uuid);
+              //   console.log('node is ', node);
+              //   return isNaN(+e.value) ? {'value':e.value, 'aggregated': node.layout === layout.aggregated} : {'value':+e.value, 'aggregated': node.layout === layout.aggregated} 
+              // });;
+
+              // //infer type here:
+              // const type = typeof dataValues[0].value === 'number' ? VALUE_TYPE_INT : VALUE_TYPE_STRING;
+
+              // //Add fake vector here:
+              // const arrayVector = arrayVec.create(type);
+              // arrayVector.desc.name = nextVec.name;
+
+              // console.log(arrayVector.desc)
+
+
+              // arrayVector.dataValues = dataValues;
+              // arrayVector.idValues = nodes.map((e) => { return e.uuid; });
+
+              // arrayVector.desc.value.range = [min(arrayVector.dataValues,(d)=>d.value), max(arrayVector.dataValues,(d)=>d.value)];
+
+
+
 
               //create array of unique labels for this columns
               const allLabels = [];
@@ -1614,7 +1645,7 @@ class Graph {
       n.mode = n.mode !== undefined ? n.mode : mode.tree; //preserve original 'mode' if there was one
       n.nodeType = nodeType.single;
       n.title = n.title ? n.title : n.uuid;
-      n.aggMode = n.aggMode !== undefined ? n.aggMode :  mode.tree; //default  to tree mode
+      n.aggMode = n.aggMode !== undefined ? n.aggMode : mode.tree; //default  to tree mode
       n.aggLayout = n.aggLayout !== undefined ? n.aggLayout : layout.expanded;
     });
 
@@ -1721,10 +1752,10 @@ class Graph {
         l.visible = false;
       }
 
-        //set all Edges that connect parent in tree mode to child in tree mode to visible
-        if (child && parent.mode === mode.tree && child.mode === mode.tree && child.layout === layout.expanded && parent.layout === layout.expanded) {
-          l.visible = true;
-        }
+      //set all Edges that connect parent in tree mode to child in tree mode to visible
+      if (child && parent.mode === mode.tree && child.mode === mode.tree && child.layout === layout.expanded && parent.layout === layout.expanded) {
+        l.visible = true;
+      }
 
       // Set all edges that connect level-mode to non levelSummary nodes to hidden
       if ((targetNode.mode === mode.level && targetNode.nodeType !== nodeType.levelSummary)
@@ -1842,7 +1873,14 @@ class Graph {
       return l.target.uuid === node.uuid || l.source.uuid === node.uuid;
     });
 
-    edges.map((e) => {
+    //visit potential children aphabetically
+    edges.sort((a, b) => {
+      const targetA = a.source.uuid === node.uuid ? a.target : a.source;
+      const targetB = b.source.uuid === node.uuid ? b.target : b.source;
+
+      return targetA.title < targetB.title ? -1 : 1;
+
+    }).map((e) => {
       const target = e.source.uuid === node.uuid ? e.target : e.source;
       const source = e.source.uuid === node.uuid ? e.source : e.target;
 
@@ -1889,26 +1927,26 @@ class Graph {
       const aggregateLabelNodes = root.children.filter((c) => c.nodeType === nodeType.aggregateLabel); //happens in aggregated tree mode
 
 
-        //remove all aggregateLabel labels (all children of level summary nodes in level mode)
-        levelSummaryNodes.map((levelSummaryNode) => {
-          levelSummaryNode.children.filter((c) => c.nodeType === nodeType.aggregateLabel).map((aggregateLabelNode) => {
-            this.graph.nodes = this.graph.nodes.filter((n) => n.uuid !== aggregateLabelNode.uuid);
-          });
-        });
-
-        //recursively call CLMN on aggregateLabelNodes;
-        levelSummaryNodes.map((levelSummaryNode) => {
-          if (levelSummaryNode.children.find((c) => c.nodeType === nodeType.levelSummary)) {
-            this.clearLevelModeNodes(levelSummaryNode, force);
-          };
-        });
-
-        //remove all aggregateLabel labels (all aggregateLabel children of root in tree mode)
-        aggregateLabelNodes.map((aggregateLabelNode) => {
-          this.graph.links = this.graph.links.filter((l) => l.source.uuid !== aggregateLabelNode.uuid && l.target.uuid !== aggregateLabelNode.uuid);
-          //remove aggregateLabel nodes from this.graph.nodes
+      //remove all aggregateLabel labels (all children of level summary nodes in level mode)
+      levelSummaryNodes.map((levelSummaryNode) => {
+        levelSummaryNode.children.filter((c) => c.nodeType === nodeType.aggregateLabel).map((aggregateLabelNode) => {
           this.graph.nodes = this.graph.nodes.filter((n) => n.uuid !== aggregateLabelNode.uuid);
         });
+      });
+
+      //recursively call CLMN on aggregateLabelNodes;
+      levelSummaryNodes.map((levelSummaryNode) => {
+        if (levelSummaryNode.children.find((c) => c.nodeType === nodeType.levelSummary)) {
+          this.clearLevelModeNodes(levelSummaryNode, force);
+        };
+      });
+
+      //remove all aggregateLabel labels (all aggregateLabel children of root in tree mode)
+      aggregateLabelNodes.map((aggregateLabelNode) => {
+        this.graph.links = this.graph.links.filter((l) => l.source.uuid !== aggregateLabelNode.uuid && l.target.uuid !== aggregateLabelNode.uuid);
+        //remove aggregateLabel nodes from this.graph.nodes
+        this.graph.nodes = this.graph.nodes.filter((n) => n.uuid !== aggregateLabelNode.uuid);
+      });
 
 
 
@@ -1920,7 +1958,7 @@ class Graph {
 
       //remove any levelModeNodes from the child array of the parent;
       root.children = root.children.filter((c) => !toRemove(c));
-      root.children.map((c) => { c.summary = force ? undefined : c.summary; ; this.clearLevelModeNodes(c, force); }); // c.aggMode = force ? undefined : c.aggMode
+      root.children.map((c) => { c.summary = force ? undefined : c.summary;; this.clearLevelModeNodes(c, force); }); // c.aggMode = force ? undefined : c.aggMode
     }
   }
 
@@ -1952,10 +1990,15 @@ class Graph {
     //for non-aggregated level mode, first set aggregate to true, but then expand the specific aggregates
     const aggregate = setMode === mode.level && !aggregateInput ? true : aggregateInput;
 
+    if (force) {
+      node.aggLayout === aggregateInput ? layout.aggregated : layout.expanded;
+      node.aggMode === setMode;
+    }
+    
     if (aggregate) {
 
       //set doi flags;
-      node.children.map((n)=>n.doi = doiFcn(n) );
+      node.children.map((n) => n.doi = doiFcn(n));
       const toAggregate = setMode === mode.tree ? node.children.filter((n) => !doiFcn(n)).filter((n) => n.visible) : node.children.filter((n) => n.visible);
       const allChildren = node.children.filter((n) => n.visible);
 
@@ -2137,7 +2180,7 @@ class Graph {
       // node.children = node.children.filter((n) => n.nodeType === nodeType.single);
 
       //set doi flags;
-      node.children.map((n)=>n.doi = doiFcn(n) );
+      node.children.map((n) => n.doi = doiFcn(n));
 
       node.children.filter((n) => n.visible).map((c) => {
         //set edges between parent and child to visible again
@@ -2790,7 +2833,7 @@ class Graph {
       .append('tspan')
       .attr('class', 'icon aggIcon');
 
-      nodesEnter
+    nodesEnter
       .append('tspan')
       .attr('class', 'icon modeIcon');
 
@@ -2849,7 +2892,7 @@ class Graph {
       .select('.aggIcon')
       .text('');
 
-      aggregatedNodes
+    aggregatedNodes
       .select('.modeIcon')
       .text('');
 
@@ -2880,7 +2923,7 @@ class Graph {
       .select('.aggIcon')
       .text('');
 
-      aggregateLabels
+    aggregateLabels
       .select('.modeIcon')
       .text('');
 
@@ -2888,23 +2931,23 @@ class Graph {
     selectAll('.aggIcon')
       .style('fill', (d: any) => (d.aggLayout === layout.aggregated ? '#7b94a9' : '#bcb9b9'))
       .on('click', (d: any) => {
-        const node = this.graph.nodes.find((n)=>n.uuid === d.uuid);
+        const node = this.graph.nodes.find((n) => n.uuid === d.uuid);
         const unaggregate = d.aggLayout === layout.aggregated; //d.children.find((c) => c.nodeType === nodeType.levelSummary || c.nodeType === nodeType.aggregateLabel);
         node.aggLayout = unaggregate ? layout.expanded : layout.aggregated;
         // console.log(d);
         if (unaggregate) {
-          events.fire(AGGREGATE_CHILDREN, { 'uuid': d.uuid, 'aggregate': false, 'setMode':d.aggMode});
+          events.fire(AGGREGATE_CHILDREN, { 'uuid': d.uuid, 'aggregate': false, 'setMode': d.aggMode });
         } else {
-          events.fire(AGGREGATE_CHILDREN, { 'uuid': d.uuid, 'aggregate': true ,'setMode':d.aggMode});
+          events.fire(AGGREGATE_CHILDREN, { 'uuid': d.uuid, 'aggregate': true, 'setMode': d.aggMode });
         }
       });
 
-      selectAll('.modeIcon')
+    selectAll('.modeIcon')
       .style('fill', (d: any) => d.aggMode === mode.level ? '#7b94a9' : '#bcb9b9')
       .on('click', (d: any) => {
-        const node = this.graph.nodes.find((n)=>n.uuid === d.uuid);
+        const node = this.graph.nodes.find((n) => n.uuid === d.uuid);
         node.aggMode = node.aggMode === mode.level ? mode.tree : mode.level;
-        events.fire(AGGREGATE_CHILDREN, { 'uuid': d.uuid, 'aggregate': node.aggLayout === layout.aggregated, 'setMode':node.aggMode });
+        events.fire(AGGREGATE_CHILDREN, { 'uuid': d.uuid, 'aggregate': node.aggLayout === layout.aggregated, 'setMode': node.aggMode });
       });
 
 
@@ -2921,7 +2964,7 @@ class Graph {
         return '';
       });
 
-      semiAggregatedNodes
+    semiAggregatedNodes
       .select('.modeIcon')
       .text((d: any) => {
         if (this.whichExpandIcon(d) === 'arrowDown') {
@@ -3051,7 +3094,7 @@ class Graph {
 
         // return d.layout === layout.aggregated ? xScale(xpos) + this.radius : (d.nodeType === nodeType.aggregateLabel ? xScale(labelXpos) : (d.mode === mode.level && d.layout === layout.expanded ? xScale(d.xx - 1) + this.radius : xScale(d.xx) + this.radius));
         //
-        return d.layout === layout.aggregated ? xScale(xpos) + this.radius * 2.3 : (d.mode === mode.level ? xScale(d.xx) + + this.radius * 2.3: xScale(d.xx) + this.radius * 2.3);
+        return d.layout === layout.aggregated ? xScale(xpos) + this.radius * 2.3 : (d.mode === mode.level ? xScale(d.xx) + + this.radius * 2.3 : xScale(d.xx) + this.radius * 2.3);
       })
       .attr('y', (d) => {
         const ypos = d.yy + .5 - (1 / 3 * ((d.xx - 1) % 3 + 1) * this.yScale.invert(18));

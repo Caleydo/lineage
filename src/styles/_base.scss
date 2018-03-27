@@ -149,7 +149,7 @@ td .addNode{
   cursor:default;
 }
 
-.title .icon.expand, .title .icon.aggIcon {
+.title .icon.expand, .title .icon.aggIcon, .title .icon.modeIcon {
   pointer-events: all;
 }
 
@@ -214,7 +214,7 @@ td .addNode{
   alignment-baseline:central;
 }
 
-.aggIcon{
+.aggIcon, .modeIcon{
   font-size: 10px !important;
 }
 

@@ -61,6 +61,7 @@ export class Config {
 
       // AggregateIcon:'\uf009',
       AggregateIcon:'\uf04d',
+      ModeIcon:'\uf111',
 
       Linearize:'\uf03a',
 
@@ -71,7 +72,7 @@ export class Config {
       Inproceedings:'\uf0f6',
       Proceedings:'\uf0f6',
       Journal:'\uf02d',
-      CHI:'\uf0c0',
+      CHI:'\uf21d',
       _Set_Node:'\uf0f6',
       Author:'\uf007',
       TVCG:'\uf200',

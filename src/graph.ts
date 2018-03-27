@@ -288,7 +288,7 @@ class Graph {
 
             const dataValues = nodes.map((e) => {
               const node = this.graph.nodes.find((nn) => nn.uuid === e.uuid);
-              return isNaN(+e.value) ? { 'value': e.value, 'aggregated': node.layout === layout.aggregated } : { 'value': +e.value, 'aggregated': node.layout === layout.aggregated }
+              return isNaN(+e.value) ? { 'value': e.value, 'aggregated': node.layout === layout.aggregated } : { 'value': +e.value, 'aggregated': node.layout === layout.aggregated };
             });;
 
             //infer type here:
@@ -610,7 +610,7 @@ class Graph {
 
               const dataValues = nodes.map((e) => {
                 const node = this.graph.nodes.find((nn) => nn.uuid === e.uuid);
-                return isNaN(+e.value) ? { 'value': e.value, 'aggregated': node.layout === layout.aggregated } : { 'value': +e.value, 'aggregated': node.layout === layout.aggregated }
+                return isNaN(+e.value) ? { 'value': e.value, 'aggregated': node.layout === layout.aggregated } : { 'value': +e.value, 'aggregated': node.layout === layout.aggregated };
               });;
 
               // return isNaN(+e.value) ? e.value : +e.value; });;
@@ -627,10 +627,10 @@ class Graph {
 
               arrayVector.desc.value.range = [min(arrayVector.dataValues,(d:any)=>d.value), max(arrayVector.dataValues,(d:any)=>d.value)];
 
-              // const dataValues = nodes.map((e) => { 
+              // const dataValues = nodes.map((e) => {
               //   const node = this.graph.nodes.find((nn)=>nn.uuid === e.uuid);
               //   console.log('node is ', node);
-              //   return isNaN(+e.value) ? {'value':e.value, 'aggregated': node.layout === layout.aggregated} : {'value':+e.value, 'aggregated': node.layout === layout.aggregated} 
+              //   return isNaN(+e.value) ? {'value':e.value, 'aggregated': node.layout === layout.aggregated} : {'value':+e.value, 'aggregated': node.layout === layout.aggregated}
               // });;
 
               // //infer type here:
@@ -1990,8 +1990,8 @@ class Graph {
     const aggregate = setMode === mode.level && !aggregateInput ? true : aggregateInput;
 
     if (force) {
-      node.aggLayout === aggregateInput ? layout.aggregated : layout.expanded;
-      node.aggMode === setMode;
+      node.aggLayout = aggregateInput ? layout.aggregated : layout.expanded;
+      node.aggMode = setMode;
     }
 
     if (aggregate) {

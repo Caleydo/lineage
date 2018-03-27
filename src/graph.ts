@@ -1835,7 +1835,7 @@ class Graph {
 
   // recursive helper function to extract tree from graph
   extractTreeHelper(node, queue) {
-    console.log('visiting ', node.title)
+    // console.log('visiting ', node.title)
 
     node.visited = true;
     const edges = this.graph.links.filter((l) => {
@@ -1878,7 +1878,7 @@ class Graph {
     };
 
     if (!root) {
-      console.trace('shouldnt be here');
+      // console.trace('shouldnt be here');
       //remove relevant edges and aggregateLabel and aggSummary nodes;
       this.graph.links = this.graph.links.filter((l) => !toRemove(l.target) && !toRemove(l.source));
       this.graph.nodes = this.graph.nodes.filter((n) => !toRemove(n));
@@ -1958,7 +1958,7 @@ class Graph {
       node.children.map((n)=>n.doi = doiFcn(n) );
       const toAggregate = setMode === mode.tree ? node.children.filter((n) => !doiFcn(n)).filter((n) => n.visible) : node.children.filter((n) => n.visible);
       const allChildren = node.children.filter((n) => n.visible);
-      
+
       //Create a dictionary of all aggregate types per level;
       const level = (node.level + 1).toString();
       toAggregate.filter((n) => n.nodeType === nodeType.single).map((c) => {
@@ -2077,7 +2077,7 @@ class Graph {
 
 
 
-          aggregateNode.children = semiAggregatedNodes; //what do 'semi-aggregated' nodes look like in tree mode? They are fully expanded nodes; 
+          aggregateNode.children = semiAggregatedNodes; //what do 'semi-aggregated' nodes look like in tree mode? They are fully expanded nodes;
 
           //add node to children array of parent (if it's not already there)
           if (!(levelSummary.children.find((cc) => cc.nodeType === nodeType.aggregateLabel && cc.level === aggregateNode.level && cc[aggregateBy] === aggregateNode[aggregateBy]))) {
@@ -2087,7 +2087,7 @@ class Graph {
               levelSummary.children.push(aggregateNode);
               //add nodes to array of nodes in this graph
               this.graph.nodes.push(aggregateNode);
-  
+
               if (setMode === mode.tree) {
                 //create edge between aggregateLabel and its parent;
                 const edge = { source: aggregateNode.parent, target: aggregateNode, visible: true, visited: true, edge: { data: { uuid: aggregateNode.uuid } } };
@@ -2202,7 +2202,7 @@ class Graph {
   }
 
   layoutTreeHelper(node, sortAttribute = undefined) {
-    
+
     if (node.visited) {
       return;
     }
@@ -3687,7 +3687,7 @@ class Graph {
     const hide = this.whichExpandIcon(d) === 'arrowDown';
 
     if (hide) {
-      console.log('1')
+      // console.log('1');
       //hide all children;
       this.hideBranch(d, true);
       selectedItem.classed('hasHiddenChildren', true);
@@ -3696,11 +3696,11 @@ class Graph {
       selectedItem.classed('hasHiddenChildren', false);
       //check if node already has hidden children in the graph
       if (d.children.find((c) => c.visible === false)) {
-        console.log('2')
+        // console.log('2');
         this.hideBranch(d, false);
         events.fire(FILTER_CHANGED_EVENT, {});
       } else {
-        console.log('3')
+        // console.log('3')
         events.fire(SUBGRAPH_CHANGED_EVENT, { 'db': this.selectedDB, 'rootID': d.uuid, 'replace': false, 'remove': hide });
       }
 

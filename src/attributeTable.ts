@@ -676,7 +676,7 @@ class AttributeTable {
     select('.tableSVG').attr('height', document.getElementById('genealogyTree').getBoundingClientRect().height + this.margin.top * 2);
     select('.tableSVG').attr('width', this.tableManager.colOrder.length * 100);
 
-    let maxY = max(allRows);
+    const maxY = max(allRows);
     this.y.range([0, maxY*25]).domain([0, maxRow]);
     this.rowOrder = allRows; //will be used to set the y position of each cell/row;
 

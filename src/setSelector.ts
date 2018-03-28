@@ -675,8 +675,7 @@ class SetSelector {
       },
       {
         'icon': 'Add2Matrix', 'string': removeAdjMatrix ? 'Remove from Table' : 'Add to Table', 'callback': () => {
-          console.log(d);
-          events.fire(GRAPH_ADJ_MATRIX_CHANGED, { 'db': this.selectedDB, 'name': d.title, 'id': d.id, 'removeAdjMatrix': removeAdjMatrix });
+          events.fire(GRAPH_ADJ_MATRIX_CHANGED, { 'db': this.selectedDB, 'name': d.title, 'label':d.label, 'id': d.id, 'removeAdjMatrix': removeAdjMatrix });
         }
       }
       ];

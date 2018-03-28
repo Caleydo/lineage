@@ -230,6 +230,8 @@ export default class TableManager {
         const arrayVector = arrayVec.create(info.type);
 
         arrayVector.desc.name = info.name;
+        arrayVector.desc.value.label = [info.label];
+
 
 
         const id = encodeURIComponent(info.uuid);
@@ -249,13 +251,21 @@ export default class TableManager {
                 arrayVector.idValues = edges.nodes.map((e)=> {return e.uuid;});
 
                 //if it's not already in there:
-                if (this.adjMatrixCols.filter((a:any )=> {return a.desc.name === arrayVector.desc.name; }).length<1) {
+                if (this.adjMatrixCols.find((a:any )=> {return a.desc.name === arrayVector.desc.name; }) === undefined) {
                   this.adjMatrixCols =this.adjMatrixCols.concat(arrayVector); //store array of vectors
                 }
 
+                // console.log(arrayVector);
                 //if it's not already in there:
                 if (this.colOrder.filter((a:any )=> {return a === arrayVector.desc.name; }).length<1) {
-                  this.colOrder = this.colOrder.concat([arrayVector.desc.name]); // store array of names
+                  if (arrayVector.desc.value.type === 'adjMatrix') {
+                     //find the last adjMatrix and append it there.
+                  const lastAdjMatrixCol = this.adjMatrixCols.find((m)=>m.desc.value.type === 'adjMatrix');
+                  const ind = this.colOrder.indexOf(lastAdjMatrixCol.desc.name);
+                  this.colOrder.splice(ind,0,arrayVector.desc.name); // store array of names
+                  } else {
+                    this.colOrder = this.colOrder.concat([arrayVector.desc.name]); // store array of names
+                  }
                 }
 
                 events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);

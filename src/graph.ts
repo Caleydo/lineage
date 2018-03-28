@@ -208,7 +208,7 @@ class Graph {
     });
 
     events.on(GRAPH_ADJ_MATRIX_CHANGED, (evt, info) => {
-      events.fire(ADJ_MATRIX_CHANGED, { 'db': info.db, 'name': info.name, 'uuid': info.id, 'remove': info.removeAdjMatrix, 'nodes': this.graph.nodes.filter((n) => n.visible && n.nodeType === nodeType.single).map((n) => n.uuid) });
+      events.fire(ADJ_MATRIX_CHANGED, { 'db': info.db, 'name': info.name, 'uuid': info.id, 'label':info.label, 'remove': info.removeAdjMatrix, 'nodes': this.graph.nodes.filter((n) => n.visible && n.nodeType === nodeType.single).map((n) => n.uuid) });
     });
 
     events.on(EXPAND_CHILDREN, (evt, info) => {
@@ -3553,7 +3553,7 @@ class Graph {
                   },
                   {
                     'icon': 'Add2Matrix', 'string': removeAdjMatrix ? 'Remove from Adjacency Matrix' : 'Add to Table', 'callback': () => {
-                      events.fire(ADJ_MATRIX_CHANGED, { 'db': this.selectedDB, 'name': d.title, 'uuid': d.uuid, 'remove': removeAdjMatrix, 'nodes': this.graph.nodes.map((n) => n.uuid) });
+                      events.fire(ADJ_MATRIX_CHANGED, { 'db': this.selectedDB, 'name': d.title, 'uuid': d.uuid, 'remove': removeAdjMatrix, 'label':d.label, 'nodes': this.graph.nodes.map((n) => n.uuid) });
                     },
 
                   }

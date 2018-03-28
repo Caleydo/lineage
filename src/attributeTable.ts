@@ -744,6 +744,7 @@ class AttributeTable {
           });
 
           col.name = name;
+          // console.log(vector);
           col.label = label;
           col.category = cat;
           col.allCategories = allCategories;
@@ -1014,7 +1015,7 @@ class AttributeTable {
     let headers = select('#tableHeaders').selectAll('.header')
       .data(this.colData.map((d: any, i) => {
         return {
-          'name': d.name, 'data': d, 'ind': i, 'type': d.type,
+          'name': d.name, 'data': d, 'ind': i, 'type': d.type, 'uuid':d.uuid,
           'max': d.max, 'min': d.min, 'mean': d.mean, 'allCategories': d.allCategories, 'category': d.category, 'isSorted': d.isSorted
         };
       }), (d: any) => {
@@ -1987,8 +1988,9 @@ class AttributeTable {
         // else {
         //   data = d.data;
         // }
+        // console.log(self.sortAttribute,d)
 
-        events.fire(TREE_PRESERVING_SORTING, { sortOrder: self.sortAttribute.state, data, ids: d.ids });
+        events.fire(TREE_PRESERVING_SORTING, { type:d.type, name:d.name, sortOrder: self.sortAttribute.state, data, ids: d.ids });
 
 
         //global sorting

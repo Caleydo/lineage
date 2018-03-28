@@ -2421,7 +2421,7 @@ class Graph {
           // console.log('visiting', c.title,c.label)
 
           if (c.nodeType === nodeType.aggregateLabel) {
-            console.log(c.label, c.children, 'children of agg node ');
+            // console.log(c.label, c.children, 'children of agg node ');
           }
 
           if (c.layout === layout.aggregated) {
@@ -2518,9 +2518,9 @@ class Graph {
 
 
 
-    levelBracketsEnter
-      .append('text')
-      .attr('class', 'levelBracketMenu');
+    // levelBracketsEnter
+    //   .append('text')
+    //   .attr('class', 'levelBracketMenu');
 
 
 
@@ -2528,11 +2528,11 @@ class Graph {
 
     levelBrackets = levelBrackets.merge(levelBracketsEnter);
 
-    levelBrackets
-      .select('.levelBracketMenu')
-      .text((d) => {
-        return d.children.length > 0 ? Config.icons.arrowDown : Config.icons.arrowRight;
-      });
+    // levelBrackets
+    //   .select('.levelBracketMenu')
+    //   .text((d) => {
+    //     return d.children.length > 0 ? Config.icons.arrowDown : Config.icons.arrowRight;
+    //   });
 
     link = this.svg.select('.hiddenLinks')
       .selectAll('.edge')
@@ -2551,9 +2551,13 @@ class Graph {
       return +n.xx;
     });
 
+    const maxY = max(graph.nodes, (n: any) => {
+      return Math.round(n.yy);
+    });
+
     const yrange: number[] = [min(graph.nodes, function (d: any) {
       return Math.round(d.yy);
-    }), max(graph.nodes, function (d: any) {
+    }), max(graph.nodes.filter((n)=>n.visible), function (d: any) {
       return Math.round(d.yy);
     })];
 
@@ -2563,7 +2567,7 @@ class Graph {
     select('#graph').select('svg').attr('height', this.height);
 
     const xScale = scaleLinear().domain([0, maxX]).range([this.padding.left, maxX * 40]); //- this.padding.right - this.padding.left]);
-    const yScale = scaleLinear().range([0, this.height * .7]).domain(yrange);
+    const yScale = scaleLinear().range([0, maxY*25]).domain(yrange);
 
     this.xScale = xScale;
     this.yScale = yScale;
@@ -2630,15 +2634,15 @@ class Graph {
     // .attr('transform',(d)=> { return 'translate (' + this.xScale(d.xx) + ',' + this.yScale(d.yy)  + ')';});
 
 
-    levelBrackets.select('.levelBracketMenu')
-      .attr('x', (d: any, i) => {
-        return this.xScale(d.xx) + this.xScale.invert(10);
-      })
-      .attr('y', (d: any, i) => {
-        const aggLabelChildren = d.children.filter((n) => n.nodeType === nodeType.aggregateLabel);
-        const minYY = min(aggLabelChildren, (c: any) => c.yy);
-        return this.yScale(minYY);
-      });
+    // levelBrackets.select('.levelBracketMenu')
+    //   .attr('x', (d: any, i) => {
+    //     return this.xScale(d.xx) + this.xScale.invert(10);
+    //   })
+    //   .attr('y', (d: any, i) => {
+    //     const aggLabelChildren = d.children.filter((n) => n.nodeType === nodeType.aggregateLabel);
+    //     const minYY = min(aggLabelChildren, (c: any) => c.yy);
+    //     return this.yScale(minYY);
+    //   });
 
     selectAll('.edge')
       .classed('visible', (d: any) => {
@@ -3105,7 +3109,7 @@ class Graph {
         return d.layout === layout.aggregated ? xScale(xpos) + this.radius * 2.3 : (d.mode === mode.level ? xScale(d.xx) + + this.radius * 2.3 : xScale(d.xx) + this.radius * 2.3);
       })
       .attr('y', (d) => {
-        const ypos = d.yy + .5 - (1 / 3 * ((d.xx - 1) % 3 + 1) * this.yScale.invert(18));
+        const ypos = d.yy +this.yScale.invert(6) - (1 / 3 * ((d.xx - 1) % 3) * this.yScale.invert(18));
         return d.layout === layout.aggregated ? yScale(ypos) : yScale(d.yy);
       })
       .on('end', (d, i) => {
@@ -3943,9 +3947,9 @@ class Graph {
         return max([+c.yy, childrenY]);
       });
 
-      if (n.layout === layout.aggregated && !n.aggParent) {
-        console.log(n);
-      };
+      // if (n.layout === layout.aggregated && !n.aggParent) {
+      //   console.log(n);
+      // };
       n.yy = n.layout === layout.aggregated ? n.aggParent.yy : (n.nodeType === nodeType.levelSummary ? start + (end - start) / 2 : n.yy);
 
       //check for need to add '+' icon to fetch remaining children in server

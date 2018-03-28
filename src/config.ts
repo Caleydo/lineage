@@ -50,9 +50,9 @@ export class Config {
       Culture:'\uf1ce',
       Dead:'\uf235',
       Book:'\uf02d',
-      King:'\uf1ce',
-      Knight:'\uf1ce',
-      Location:'\uf14e',
+      King:'\uf0e3',
+      Knight:'\uf14e',
+      Location:'\uf276',
       Region:'\uf1d1',
       Status:'\uf091',
 

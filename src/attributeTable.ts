@@ -2421,7 +2421,7 @@ class AttributeTable {
 
     element.select('.backgroundRect')
       .attr('width', colWidth + 10)
-      .attr('height', height + 11)
+      .attr('height', height + 11);
 
     element.select('.resizeBar')
       .attr('x1', colWidth + this.buffer / 2)

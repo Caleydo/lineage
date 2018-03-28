@@ -157,6 +157,7 @@ class Graph {
   private yScale;
 
   private doiFcn = undefined;
+  private refreshDoi = false;
 
   private sortAttribute = undefined;
 
@@ -197,6 +198,8 @@ class Graph {
           return +n.graphData.data[info.name] >= info.threshold[0] && +n.graphData.data[info.name] <= info.threshold[1];
         };
       }
+
+      this.refreshDoi = true;
 
       this.extractTree();
       this.exportYValues();
@@ -401,7 +404,7 @@ class Graph {
 
     events.on(TREE_PRESERVING_SORTING, (evt, info) => {
       this.sortAttribute = info;
-      console.log(info)
+      // console.log(info)
       this.layoutTree();
       this.updateEdgeInfo();
       this.exportYValues();
@@ -1719,7 +1722,6 @@ class Graph {
 
     aggRoots.map((aggRoot) => {
       const setMode = aggRoot.aggMode;
-      // console.log('1673 from ', aggRoot, setMode);
       this.setAggregation(aggRoot, aggRoot.aggregate, setMode, undefined, forceAggregation);
     });
 
@@ -2084,10 +2086,10 @@ class Graph {
           //set layout to preserve existing layout for level mode nodes;
           if (c.nodeType === nodeType.single) {
             if (!force) {
-              if (doiFcn === undefined) {
+              if (doiFcn === undefined || this.refreshDoi === false) {
                   c.layout = c.layout;
               } else {
-                c.layout = !internalDoiFcn(c) ? (aggregateInput ? layout.aggregated : layout.expanded) : layout.expanded; //preserve aggregated/expanded state of level mode nodes; 
+                c.layout = !internalDoiFcn(c) ? (aggregateInput ? layout.aggregated : layout.expanded) : layout.expanded; //preserve aggregated/expanded state of level mode nodes;
               }
             } else {
               c.layout = !internalDoiFcn(c) ? (aggregateInput ? layout.aggregated : layout.expanded) : layout.expanded;// for new nodes, default to aggregated state.
@@ -2100,6 +2102,8 @@ class Graph {
           c.level = node.level + 1;
           c.aggregateRoot = root;
         });
+
+        this.refreshDoi = false;
 
         root.summary[level].map((nlabel) => {
 
@@ -2140,7 +2144,7 @@ class Graph {
 
           aggregateNode.children = semiAggregatedNodes; //what do 'semi-aggregated' nodes look like in tree mode? They are fully expanded nodes;
 
-          const existingAggNode = levelSummary.children.find((cc) => cc.nodeType === nodeType.aggregateLabel && cc.level === aggregateNode.level && cc[aggregateBy] === aggregateNode[aggregateBy])
+          const existingAggNode = levelSummary.children.find((cc) => cc.nodeType === nodeType.aggregateLabel && cc.level === aggregateNode.level && cc[aggregateBy] === aggregateNode[aggregateBy]);
           //add node to children array of parent (if it's not already there)
 
           if (existingAggNode === undefined) {
@@ -2300,7 +2304,7 @@ class Graph {
 
       node.children.sort((a, b) => {
 
-        //prioritize children that are part of a pathway; visit levelSummaryNodes last. 
+        //prioritize children that are part of a pathway; visit levelSummaryNodes last.
         if (a.pathway === true) {
           return -1;
         };
@@ -2329,18 +2333,19 @@ class Graph {
           } else {
             attrCallback = (n)=> {
               // console.log(this.graph.links[0],sortAttribute.name);
-              const edge = this.graph.links.find((l)=>(l.source.title === sortAttribute.name 
-              && l.target.title === n.name )|| (l.target.title === sortAttribute.name 
-                && l.source.title === n.name));
-                return edge === undefined ? 0 : 1; 
-              }
+              const edge = this.graph.links.find((l)=>{
+              return (l.source.title === sortAttribute.name
+              && l.target.title === n.title )|| (l.target.title === sortAttribute.name
+                && l.source.title === n.title)});
+                return edge === undefined ? -1 : 1;
+              };
         }
 
         let aValues, bValues;
         // console.log(a.title,attrCallback(a))
         if(a.nodeType === nodeType.single) {
           a.value = attrCallback(a);
-          console.log(a.title,a.value)
+          // console.log(a.title,a.value);
         } else  if (a.nodeType === nodeType.aggregateLabel) { //this is an aggregateLabel Node
             aValues = this.graph.nodes.filter((n) => {
               return (n.visible &&
@@ -2349,7 +2354,7 @@ class Graph {
                 a.aggregateRoot === n.aggregateRoot &&
                 n.mode === mode.level &&
                 n.layout === layout.aggregated);
-            }).map((n)=>n.graphData.data[sortAttribute.name]);
+            }).map(attrCallback);
           a.value = aValues.reduce((acc, cValue) => cValue ? acc + cValue : acc, 0)/aValues.length;
         }
 
@@ -2363,7 +2368,7 @@ class Graph {
                 a.aggregateRoot === n.aggregateRoot &&
                 n.mode === mode.level &&
                 n.layout === layout.aggregated);
-            }).map((n)=>n.graphData.data[sortAttribute.name]);
+            }).map(attrCallback);
             b.value = bValues.reduce((acc, cValue) => cValue ? acc + cValue : acc, 0)/bValues.length;
           }
 
@@ -2435,7 +2440,7 @@ class Graph {
         } else {
           // console.log('visiting', c.title,c.label)
 
-          if (c.nodeType === nodeType.aggregateLabel){
+          if (c.nodeType === nodeType.aggregateLabel) {
             console.log(c.label, c.children,'children of agg node ');
           }
 
@@ -2461,7 +2466,7 @@ class Graph {
         // console.log('visiting ', c.title,c.label, c.xx, 'parent',node.title,node.label,node.xx)
         ////Only visit semi-aggregated nodes if they are the children of aggLabels
         if (c.mode === mode.level && c.nodeType === nodeType.single && c.layout === layout.expanded && node.nodeType !== nodeType.aggregateLabel) {
-  
+          // console.log('skipping ')
         } else {
           this.layoutTreeHelper(c);
         }
@@ -3743,7 +3748,7 @@ class Graph {
   private createID(d) {
     const title = d.title ? d.title : d.uuid;
     if (title === undefined) {
-      console.trace(d);
+      // console.trace(d);
     }
     return title.replace(/[^0-9a-z]/gi, '');
     // return title.replace(/ /g, '_').replace(/\./g, '').replace(/\@/g, '').replace(/\?/g, '').replace(/\:/g, '').replace(/\(/g, '').replace(/\)/g, '').replace(/\'/g, '').replace(/\&/g, '').replace(/\!/g, '').replace(/\//g, '').replace(/\,/g, '');

@@ -208,7 +208,7 @@ export default class Histogram {
       .on('end', fireEvent);
 
     brushGroup
-      .call(brush)
+      .call(brush);
       // .call(brush.move, xScale.range());
 
     this.brush = brush; //save as class variable since we will need to modify it later when user clicks on POI

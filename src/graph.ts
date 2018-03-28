@@ -2332,11 +2332,10 @@ class Graph {
             attrCallback = (n) => n.graphData.data[sortAttribute.name];
           } else {
             attrCallback = (n)=> {
-              // console.log(this.graph.links[0],sortAttribute.name);
-              const edge = this.graph.links.find((l)=>{
+              const edge = this.graph.links.find((l)=> {
               return (l.source.title === sortAttribute.name
               && l.target.title === n.title )|| (l.target.title === sortAttribute.name
-                && l.source.title === n.title)});
+                && l.source.title === n.title);});
                 return edge === undefined ? -1 : 1;
               };
         }

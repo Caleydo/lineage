@@ -451,6 +451,12 @@ class Graph {
         this.exclude.splice(ind, 1);
       }
 
+      this.graph.links.map((l, i) => {
+        l.visited = false;
+      });
+
+      this.graph.nodes.map((n)=> {n.visited = false; n.pinned= false;});
+
 
       if (this.graph) {
         this.extractTree();
@@ -1516,7 +1522,7 @@ class Graph {
   mergeGraph(graph, includeRoot, includeChildren) {
 
 
-    const rootNode = graph.nodes.filter((n) => graph.root.find((r) => r === n.uuid));
+    const rootNode = graph.nodes.find((n) => graph.root.find((r) => r === n.uuid));
     const existingNodes = []; //nodes in the current subgraph that already exist in the tree
 
     graph.nodes.forEach((node) => {
@@ -1545,6 +1551,25 @@ class Graph {
       this.graph.root = this.graph.root.concat(graph.root);
     };
 
+    if (this.sortAttribute === undefined) {
+      //visit potential children aphabetically
+      graph.links.sort((a, b) => {
+        const targetA = a.source.uuid === rootNode.uuid ? a.target : a.source;
+        const targetB = b.source.uuid === rootNode.uuid ? b.target : b.source;
+
+        return targetA.title < targetB.title ? -1 : 1;
+
+      });
+    } else {
+      graph.links.sort((a, b) => {
+        const targetA = a.source.uuid === rootNode.uuid ? a.target : a.source;
+        const targetB = b.source.uuid === rootNode.uuid ? b.target : b.source;
+
+        return this.sortedComparator(targetA, targetB);
+        // return targetA.title < targetB.title ? -1 : 1;
+
+      });
+    }
 
     //update indexes
     graph.links.forEach((link) => {
@@ -1560,12 +1585,27 @@ class Graph {
           link.visible = false;
           link.visited = true;
           // console.log('setting link to hidden ', 's', sourceNode.title, 't', targetNode.title);
-        } else { //set the visibility to true if the link is directly with the root
+        } else { //set the visibility to true if the link is directly with the root if the child doesn't already have a parent;
 
-          if (rootNode[0]) {
-            if (!(includeRoot && !includeChildren) && (sourceNode.uuid === rootNode[0].uuid || targetNode.uuid === rootNode[0].uuid)) {
-              link.visible = true;
-              link.visited = true;
+
+          if (rootNode !== undefined) {
+            if (!(includeRoot && !includeChildren) && (sourceNode.uuid === rootNode.uuid || targetNode.uuid === rootNode.uuid)) {
+              const parent = sourceNode.uuid === rootNode.uuid ? sourceNode: targetNode;
+              const child = sourceNode.uuid === rootNode.uuid ? targetNode: sourceNode;
+
+              //if Node is already in the tree it already has an incoming edge
+              if (child.parent && parent.visited === true) {
+                link.visible = false;
+                link.visited = true;
+              } else {
+                if (child.parent) {
+                  console.log('visiting edge from ', parent.title , ' to ', child.title , rootNode.visited, child.parent);
+                  parent.visited = true;
+                }
+                link.visible = true;
+                link.visited = true;
+              }
+
             } else
               if (!(includeRoot && !includeChildren) || (includeRoot && !includeChildren && targetNode.parent)) {
                 link.visible = false;
@@ -1748,7 +1788,7 @@ class Graph {
 
       //set all Edges that connect parent in tree mode to child in tree mode to visible
       if (child && parent.mode === mode.tree && child.mode === mode.tree && child.layout === layout.expanded && parent.layout === layout.expanded) {
-        // console.log('setting edge from ', parent.title, ' to ' , child.title , ' to visible')
+        // console.log('setting edge from ', parent.title, ' to ' , child.title , ' to visible');
         l.visible = true;
       }
 
@@ -1896,6 +1936,7 @@ class Graph {
 
 
         e.visible = e.visited ? e.visible : true;
+        // console.log('setting the edge from ', target.title, ' to ', source.title , ' to ', e.visible);
         //only visit edge if there are no previous constraints on this edge visibility
         if (e.visible || target.mode === mode.level || (target.mode === mode.tree && target.layout === layout.aggregated)) {
           target.visited = true;

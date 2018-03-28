@@ -2304,7 +2304,7 @@ class Graph {
 
       console.log('layout root is ', root);
       this.layoutTreeHelper(root);
-      
+
     }
   }
 

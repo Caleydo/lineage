@@ -264,7 +264,7 @@ class SetSelector {
 
     cboxes.select('label').select('.filter')
       .on('click', function (d: any) {
-        const parentElement = select('#filterPanel').selectAll('label').filter((l: any) => {
+        const parentElement = select('#nodeFilter').selectAll('label').filter((l: any) => {
           return l.name === d.name;
         });
         events.fire(FILTER_CHANGED_EVENT, { 'label': d.name, 'exclude': !parentElement.classed('exclude') });

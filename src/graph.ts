@@ -208,7 +208,7 @@ class Graph {
     });
 
     events.on(GRAPH_ADJ_MATRIX_CHANGED, (evt, info) => {
-      events.fire(ADJ_MATRIX_CHANGED, { 'db': info.db, 'name': info.name, 'uuid': info.id, 'label':info.label, 'remove': info.removeAdjMatrix, 'nodes': this.graph.nodes.filter((n) => n.visible && n.nodeType === nodeType.single).map((n) => n.uuid) });
+      events.fire(ADJ_MATRIX_CHANGED, { 'db': info.db, 'name': info.name, 'uuid': info.id, 'label': info.label, 'remove': info.removeAdjMatrix, 'nodes': this.graph.nodes.filter((n) => n.visible && n.nodeType === nodeType.single).map((n) => n.uuid) });
     });
 
     events.on(EXPAND_CHILDREN, (evt, info) => {
@@ -1748,6 +1748,7 @@ class Graph {
 
       //set all Edges that connect parent in tree mode to child in tree mode to visible
       if (child && parent.mode === mode.tree && child.mode === mode.tree && child.layout === layout.expanded && parent.layout === layout.expanded) {
+        // console.log('setting edge from ', parent.title, ' to ' , child.title , ' to visible')
         l.visible = true;
       }
 
@@ -1866,14 +1867,27 @@ class Graph {
       return l.target.uuid === node.uuid || l.source.uuid === node.uuid;
     });
 
-    //visit potential children aphabetically
-    edges.sort((a, b) => {
-      const targetA = a.source.uuid === node.uuid ? a.target : a.source;
-      const targetB = b.source.uuid === node.uuid ? b.target : b.source;
+    if (this.sortAttribute === undefined) {
+      //visit potential children aphabetically
+      edges.sort((a, b) => {
+        const targetA = a.source.uuid === node.uuid ? a.target : a.source;
+        const targetB = b.source.uuid === node.uuid ? b.target : b.source;
 
-      return targetA.title < targetB.title ? -1 : 1;
+        return targetA.title < targetB.title ? -1 : 1;
 
-    }).map((e) => {
+      });
+    } else {
+      edges.sort((a, b) => {
+        const targetA = a.source.uuid === node.uuid ? a.target : a.source;
+        const targetB = b.source.uuid === node.uuid ? b.target : b.source;
+
+        return this.sortedComparator(targetA, targetB);
+        // return targetA.title < targetB.title ? -1 : 1;
+
+      });
+    }
+
+    edges.map((e) => {
       const target = e.source.uuid === node.uuid ? e.target : e.source;
       const source = e.source.uuid === node.uuid ? e.source : e.target;
 
@@ -2248,6 +2262,112 @@ class Graph {
     }
   }
 
+  sortedComparator = (a, b) => {
+
+    const sortAttribute = this.sortAttribute;
+    const sortOrder = sortAttribute.sortOrder;
+
+    //prioritize children that are part of a pathway; visit levelSummaryNodes last.
+    if (a.pathway === true) {
+      return -1;
+    };
+
+    if (b.pathway === true) {
+      return 1;
+    };
+
+    if (a.nodeType === nodeType.levelSummary) {
+      return 1;
+    }
+
+    if (b.nodeType === nodeType.levelSummary) {
+      return -1;
+    }
+
+    let attrCallback;
+    if (sortAttribute.name === 'Visible Edges') {
+      attrCallback = (n) => this.nodeNeighbors[n.uuid].degree - this.nodeNeighbors[n.uuid].hidden;
+    } else if (sortAttribute.name === 'Graph Edges') {
+      attrCallback = (n) => n.graphDegree;
+    } else if (sortAttribute.name === 'Hidden Edges') {
+      attrCallback = (n) => this.nodeNeighbors[n.uuid].hidden;
+    } else if (sortAttribute.type !== VALUE_TYPE_ADJMATRIX) {
+      attrCallback = (n) => n.graphData.data[sortAttribute.name];
+    } else {
+      attrCallback = (n) => {
+        const edge = this.graph.links.find((l) => {
+          return (l.source.title === sortAttribute.name
+            && l.target.title === n.title) || (l.target.title === sortAttribute.name
+              && l.source.title === n.title);
+        });
+        return edge === undefined ? -1 : 1;
+      };
+    }
+
+    let aValues, bValues;
+    // console.log(a.title,attrCallback(a))
+    if (a.nodeType === nodeType.single) {
+      a.value = attrCallback(a);
+      // console.log(a.title,a.value);
+    } else if (a.nodeType === nodeType.aggregateLabel) { //this is an aggregateLabel Node
+      aValues = this.graph.nodes.filter((n) => {
+        return (n.visible &&
+          n.label === a.label &&
+          n.level === a.level &&
+          a.aggregateRoot === n.aggregateRoot &&
+          n.mode === mode.level &&
+          n.layout === layout.aggregated);
+      }).map(attrCallback);
+      a.value = aValues.reduce((acc, cValue) => cValue ? acc + cValue : acc, 0) / aValues.length;
+    }
+
+    if (b.nodeType === nodeType.single) {
+      b.value = attrCallback(b);
+    } else if (b.nodeType === nodeType.aggregateLabel) { //this is an aggregateLabel Node
+      bValues = this.graph.nodes.filter((n) => {
+        return (n.visible &&
+          n.label === b.label &&
+          n.level === b.level &&
+          a.aggregateRoot === n.aggregateRoot &&
+          n.mode === mode.level &&
+          n.layout === layout.aggregated);
+      }).map(attrCallback);
+      b.value = bValues.reduce((acc, cValue) => cValue ? acc + cValue : acc, 0) / bValues.length;
+    }
+
+    if (typeof a.value === 'number') {
+      a.value = +a.value;
+    }
+    if (typeof b.value === 'number') {
+      b.value = +b.value;
+    }
+
+    if (sortOrder === sortedState.Ascending) {
+      if (b.value === undefined || a.value < b.value) { return -1; }
+      if (a.value === undefined || a.value > b.value) { return 1; }
+      if (a.value === b.value) {
+        if (a.index === b.index) { return 0; }
+        if (a.title < b.title) { return -1; }
+        if (a.title > b.title) { return 1; }
+      }
+      if (a.value > b.value) { return 1; }
+      if (a.value < b.value) { return -1; }
+
+    } else {
+      if (b.value === undefined || a.value > b.value) { return -1; }
+      if (a.value === undefined || a.value < b.value) { return 1; }
+      if (a.value === b.value) {
+        if (a.title === b.title) { return 0; }
+        if (a.title < b.title) { return -1; }
+        if (a.title > b.title) { return 1; }
+      }
+      if (a.value < b.value) { return 1; }
+      if (a.value > b.value) { return -1; }
+    }
+
+  }
+
+
   layoutTreeHelper(node) {
 
     const sortAttribute = this.sortAttribute;
@@ -2273,8 +2393,8 @@ class Graph {
     if (sortAttribute !== undefined) {
 
       // console.log(sortAttribute)
-      const data = sortAttribute.data;
-      const ids = sortAttribute.ids;
+      // const data = sortAttribute.data;
+      // const ids = sortAttribute.ids;
       const sortOrder = sortAttribute.sortOrder;
 
       // console.log(ids, data);
@@ -2282,107 +2402,7 @@ class Graph {
       // console.table(data.map((d,i)=> {return {id:ids[i],data:d};}))
       // console.table(node.children.map((c,i)=> {return {id:c.uuid,title:c.title};}))
 
-      node.children.sort((a, b) => {
-
-        //prioritize children that are part of a pathway; visit levelSummaryNodes last.
-        if (a.pathway === true) {
-          return -1;
-        };
-
-        if (b.pathway === true) {
-          return 1;
-        };
-
-        if (a.nodeType === nodeType.levelSummary) {
-          return 1;
-        }
-
-        if (b.nodeType === nodeType.levelSummary) {
-          return -1;
-        }
-
-        let attrCallback;
-        if (sortAttribute.name === 'Visible Edges') {
-          attrCallback = (n) => this.nodeNeighbors[n.uuid].degree - this.nodeNeighbors[n.uuid].hidden;
-        } else if (sortAttribute.name === 'Graph Edges') {
-          attrCallback = (n) => n.graphDegree;
-        } else if (sortAttribute.name === 'Hidden Edges') {
-          attrCallback = (n) => this.nodeNeighbors[n.uuid].hidden;
-        } else if (sortAttribute.type !== VALUE_TYPE_ADJMATRIX) {
-          attrCallback = (n) => n.graphData.data[sortAttribute.name];
-        } else {
-          attrCallback = (n) => {
-            const edge = this.graph.links.find((l) => {
-              return (l.source.title === sortAttribute.name
-                && l.target.title === n.title) || (l.target.title === sortAttribute.name
-                  && l.source.title === n.title);
-            });
-            return edge === undefined ? -1 : 1;
-          };
-        }
-
-        let aValues, bValues;
-        // console.log(a.title,attrCallback(a))
-        if (a.nodeType === nodeType.single) {
-          a.value = attrCallback(a);
-          // console.log(a.title,a.value);
-        } else if (a.nodeType === nodeType.aggregateLabel) { //this is an aggregateLabel Node
-          aValues = this.graph.nodes.filter((n) => {
-            return (n.visible &&
-              n.label === a.label &&
-              n.level === a.level &&
-              a.aggregateRoot === n.aggregateRoot &&
-              n.mode === mode.level &&
-              n.layout === layout.aggregated);
-          }).map(attrCallback);
-          a.value = aValues.reduce((acc, cValue) => cValue ? acc + cValue : acc, 0) / aValues.length;
-        }
-
-        if (b.nodeType === nodeType.single) {
-          b.value = attrCallback(b);
-        } else if (b.nodeType === nodeType.aggregateLabel) { //this is an aggregateLabel Node
-          bValues = this.graph.nodes.filter((n) => {
-            return (n.visible &&
-              n.label === b.label &&
-              n.level === b.level &&
-              a.aggregateRoot === n.aggregateRoot &&
-              n.mode === mode.level &&
-              n.layout === layout.aggregated);
-          }).map(attrCallback);
-          b.value = bValues.reduce((acc, cValue) => cValue ? acc + cValue : acc, 0) / bValues.length;
-        }
-
-        if (typeof a.value === 'number') {
-          a.value = +a.value;
-        }
-        if (typeof b.value === 'number') {
-          b.value = +b.value;
-        }
-
-        if (sortOrder === sortedState.Ascending) {
-          if (b.value === undefined || a.value < b.value) { return -1; }
-          if (a.value === undefined || a.value > b.value) { return 1; }
-          if (a.value === b.value) {
-            if (a.index === b.index) { return 0; }
-            if (a.title < b.title) { return -1; }
-            if (a.title > b.title) { return 1; }
-          }
-          if (a.value > b.value) { return 1; }
-          if (a.value < b.value) { return -1; }
-
-        } else {
-          if (b.value === undefined || a.value > b.value) { return -1; }
-          if (a.value === undefined || a.value < b.value) { return 1; }
-          if (a.value === b.value) {
-            if (a.title === b.title) { return 0; }
-            if (a.title < b.title) { return -1; }
-            if (a.title > b.title) { return 1; }
-          }
-          if (a.value < b.value) { return 1; }
-          if (a.value > b.value) { return -1; }
-        }
-
-      });
+      node.children.sort(this.sortedComparator);
     } else {
       //default sorting is alphabetical
       node.children.sort((a, b) => {
@@ -2557,7 +2577,7 @@ class Graph {
 
     const yrange: number[] = [min(graph.nodes, function (d: any) {
       return Math.round(d.yy);
-    }), max(graph.nodes.filter((n)=>n.visible), function (d: any) {
+    }), max(graph.nodes.filter((n) => n.visible), function (d: any) {
       return Math.round(d.yy);
     })];
 
@@ -2567,7 +2587,7 @@ class Graph {
     select('#graph').select('svg').attr('height', this.height);
 
     const xScale = scaleLinear().domain([0, maxX]).range([this.padding.left, maxX * 40]); //- this.padding.right - this.padding.left]);
-    const yScale = scaleLinear().range([0, maxY*25]).domain(yrange);
+    const yScale = scaleLinear().range([0, maxY * 25]).domain(yrange);
 
     this.xScale = xScale;
     this.yScale = yScale;
@@ -3109,7 +3129,7 @@ class Graph {
         return d.layout === layout.aggregated ? xScale(xpos) + this.radius * 2.3 : (d.mode === mode.level ? xScale(d.xx) + + this.radius * 2.3 : xScale(d.xx) + this.radius * 2.3);
       })
       .attr('y', (d) => {
-        const ypos = d.yy +this.yScale.invert(6) - (1 / 3 * ((d.xx - 1) % 3) * this.yScale.invert(18));
+        const ypos = d.yy + this.yScale.invert(6) - (1 / 3 * ((d.xx - 1) % 3) * this.yScale.invert(18));
         return d.layout === layout.aggregated ? yScale(ypos) : yScale(d.yy);
       })
       .on('end', (d, i) => {
@@ -3552,8 +3572,8 @@ class Graph {
                     }
                   },
                   {
-                    'icon': 'Add2Matrix', 'string': removeAdjMatrix ? 'Remove from Adjacency Matrix' : 'Add to Table', 'callback': () => {
-                      events.fire(ADJ_MATRIX_CHANGED, { 'db': this.selectedDB, 'name': d.title, 'uuid': d.uuid, 'remove': removeAdjMatrix, 'label':d.label, 'nodes': this.graph.nodes.map((n) => n.uuid) });
+                    'icon': 'Add2Matrix', 'string': removeAdjMatrix ? 'Remove from Adjacency Matrix' : 'Add to Adjacency Matrix', 'callback': () => {
+                      events.fire(ADJ_MATRIX_CHANGED, { 'db': this.selectedDB, 'name': d.title, 'uuid': d.uuid, 'remove': removeAdjMatrix, 'label': d.label, 'nodes': this.graph.nodes.map((n) => n.uuid) });
                     },
 
                   }

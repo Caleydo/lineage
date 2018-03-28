@@ -232,6 +232,7 @@ class Graph {
           const rootNode = this.graph.nodes.find((n) => n.uuid === graph.root);
           this.postMergeUpdate();
 
+          this.updateAttrs();
         });
 
     });
@@ -539,206 +540,8 @@ class Graph {
 
     events.on(SUBGRAPH_CHANGED_EVENT, async (evt, info) => {
       await this.loadGraph(info.db, info.rootID, info.replace, info.remove, info.includeRoot, info.includeChildren);;
-
-      if (this.autoAdjMatrix.value) {
-
-        // console.profile('profileTest');
-        const fileQueue = queue();
-        // Add highly connected nodes to the adj Matrix:
-        const allNodes = this.graph.nodes.filter((n) => n.visible).slice(0).sort((a, b) => { return a.degree > b.degree ? -1 : 1; });
-
-        const connectedNodes = allNodes.slice(0, this.autoAdjMatrix.count);
-        const allVecs = [];
-        // const queue = [];
-        connectedNodes.map((cNode, i) => {
-          const arrayVector = arrayVec.create(undefined);
-          arrayVector.desc.name = cNode.title;
-          const id = encodeURIComponent(cNode.uuid);
-          allVecs.push({ vec: arrayVector, id, type: 'adjMatrixCol', uuid:cNode.uuid, label: cNode.label });
-
-          const url = 'api/data_api/edges/' + this.selectedDB + '/' + id;
-
-          const postContent = JSON.stringify({ 'treeNodes': this.graph ? this.graph.nodes.map((n) => { return n.uuid; }) : [''] });
-
-          function jsonCall(url, callback) {
-            setTimeout(function () {
-              json(url)
-                .header('Content-Type', 'application/json')
-                .post(postContent, (error, graph: any) => {
-                  callback(null, graph);
-                });
-            }, 0);
-          }
-
-          fileQueue.defer(jsonCall, url);
-        });
-
-        let tableAttributes;
-        if (!this.tableManager.adjMatrixCols.find((c) => c.desc.value.type !== VALUE_TYPE_ADJMATRIX && c.desc.value.type !== 'dataDensity')) {
-          //start with default attributes
-          tableAttributes = Config.defaultAttrs[this.selectedDB];
-        } else { //use existing attributes
-          tableAttributes = this.tableManager.adjMatrixCols
-            .filter((c) => c.desc.value.type !== VALUE_TYPE_ADJMATRIX && c.desc.value.type !== 'dataDensity')
-            .map((c) => c.desc.name);
-        };
-
-        tableAttributes.map((attr, i) => {
-
-          allVecs.push({ vec: {}, type: 'attributeCol', name: attr });
-
-          const url = 'api/data_api/property/' + this.selectedDB + '/' + attr;
-
-          const postContent = JSON.stringify({ 'treeNodes': this.graph ? this.graph.nodes.map((n) => { return n.uuid; }) : [''] });
-
-          function jsonCall(url, callback) {
-            setTimeout(function () {
-              json(url)
-                .header('Content-Type', 'application/json')
-                .post(postContent, (error, graph: any) => {
-                  callback(null, graph);
-                });
-            }, 0);
-          }
-
-          fileQueue.defer(jsonCall, url);
-        });
-
-        fileQueue.awaitAll((error, attributes) => {
-          if (error) {
-            throw error;
-          }
-
-          this.tableManager.adjMatrixCols = this.tableManager.adjMatrixCols.filter((c) => c.desc.value.type === 'dataDensity');
-          this.tableManager.colOrder = this.tableManager.colOrder.filter((c) => this.tableManager.adjMatrixCols.find((cc) => cc.desc.name === c));
-
-          attributes.forEach((data) => {
-            const nextVec = allVecs.splice(0, 1)[0];
-            let arrayVector = nextVec.vec;
-            const colType = nextVec.type;
-
-            if (colType === 'adjMatrixCol') {
-              arrayVector.dataValues = data.nodes.map((e) => { return e; });
-              arrayVector.idValues = data.nodes.map((e) => { return e.uuid; });
-              arrayVector.desc.value.label = [nextVec.label];
-            } else {
-              const nodes = data.results;
-
-              const dataValues = nodes.map((e) => {
-                const node = this.graph.nodes.find((nn) => nn.uuid === e.uuid);
-                return isNaN(+e.value) ? { 'value': e.value, 'aggregated': node.layout === layout.aggregated } : { 'value': +e.value, 'aggregated': node.layout === layout.aggregated };
-              });;
-
-              // return isNaN(+e.value) ? e.value : +e.value; });;
-              //infer type here:
-              const type = dataValues[0] && typeof dataValues[0].value === 'number' ? VALUE_TYPE_INT : VALUE_TYPE_STRING;
-
-              // //Add fake vector here:
-              arrayVector = arrayVec.create(type);
-              arrayVector.desc.name = nextVec.name;
-
-
-              arrayVector.dataValues = dataValues;
-              arrayVector.idValues = nodes.map((e) => { return e.uuid; });
-
-              arrayVector.desc.value.range = [min(arrayVector.dataValues, (d: any) => d.value), max(arrayVector.dataValues, (d: any) => d.value)];
-
-              // const dataValues = nodes.map((e) => {
-              //   const node = this.graph.nodes.find((nn)=>nn.uuid === e.uuid);
-              //   console.log('node is ', node);
-              //   return isNaN(+e.value) ? {'value':e.value, 'aggregated': node.layout === layout.aggregated} : {'value':+e.value, 'aggregated': node.layout === layout.aggregated}
-              // });;
-
-              // //infer type here:
-              // const type = typeof dataValues[0].value === 'number' ? VALUE_TYPE_INT : VALUE_TYPE_STRING;
-
-              // //Add fake vector here:
-              // const arrayVector = arrayVec.create(type);
-              // arrayVector.desc.name = nextVec.name;
-
-              // console.log(arrayVector.desc)
-
-
-              // arrayVector.dataValues = dataValues;
-              // arrayVector.idValues = nodes.map((e) => { return e.uuid; });
-
-              // arrayVector.desc.value.range = [min(arrayVector.dataValues,(d)=>d.value), max(arrayVector.dataValues,(d)=>d.value)];
-
-
-
-
-              //create array of unique labels for this columns
-              const allLabels = [];
-              nodes.map((n) => {
-                n.label.map((label) => {
-                  if (!allLabels.find((l) => l === label)) {
-                    allLabels.push(label);
-                  }
-                });
-              });
-              arrayVector.desc.value.label = allLabels;
-            }
-
-            //if it's not already in there:
-            if (this.tableManager.adjMatrixCols.filter((a: any) => { return a.desc.name === arrayVector.desc.name; }).length < 1) {
-              this.tableManager.adjMatrixCols = this.tableManager.adjMatrixCols.concat(arrayVector); //store array of vectors
-            } else { //replace with new data;
-              const adjMatrixCol = this.tableManager.adjMatrixCols.find((a: any) => { return a.desc.name === info.name; });
-              this.tableManager.adjMatrixCols.splice(this.tableManager.adjMatrixCols.indexOf(adjMatrixCol), 1);
-              this.tableManager.adjMatrixCols = this.tableManager.adjMatrixCols.concat(arrayVector); //store array of vectors
-            }
-
-            //if it's not already in there:
-            if (this.tableManager.colOrder.filter((a: any) => { return a === arrayVector.desc.name; }).length < 1) {
-              this.tableManager.colOrder = this.tableManager.colOrder.concat([arrayVector.desc.name]); // store array of names
-            }
-
-          });
-
-
-          //sort colOrder so that the order is graphEdges, adjMatrix, then attributes. adjMatrix col are sorted by desc degree;
-          this.tableManager.colOrder.sort((a, b) => {
-
-            const arrayVecA = this.tableManager.adjMatrixCols.find((c) => c.desc.name === a);
-            const arrayVecB = this.tableManager.adjMatrixCols.find((c) => c.desc.name === b);
-
-            if (arrayVecA.desc.value.type === 'dataDensity') {
-              return -1;
-            }
-
-            if (arrayVecB.desc.value.type === 'dataDensity') {
-              return 1;
-            }
-
-            if (arrayVecA.desc.value.type === VALUE_TYPE_ADJMATRIX) {
-              if (arrayVecB.desc.value.type === VALUE_TYPE_ADJMATRIX) {
-                return arrayVecA.dataValues.length > arrayVecB.dataValues.length ? -1 : (arrayVecB.dataValues.length > arrayVecA.dataValues.length ? 1 : 0);
-              }
-
-              return -1;
-            }
-
-            if (arrayVecB.desc.value.type === VALUE_TYPE_ADJMATRIX) {
-              return 1;
-            }
-
-            return 0;
-          });
-
-          //clear out any attributes that aren't in the top 5
-          // Add highly connected nodes to the adj Matrix:
-          const allNodes = this.graph.nodes.slice(0).sort((a, b) => { return a.degree > b.degree ? -1 : 1; });
-          const connectedNodes = allNodes.slice(0, 5);
-
-
-          // console.profileEnd();
-          events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);
-
-
-        });
-
-      }
-
+      console.log(info);
+      this.updateAttrs();
     });
 
 
@@ -919,13 +722,190 @@ class Graph {
 
   }
 
+  private updateAttrs() {
+    if (this.autoAdjMatrix.value) {
+
+      // console.profile('profileTest');
+      const fileQueue = queue();
+      // Add highly connected nodes to the adj Matrix:
+      const allNodes = this.graph.nodes.filter((n) => n.visible).slice(0).sort((a, b) => { return a.degree > b.degree ? -1 : 1; });
+
+      const connectedNodes = allNodes.slice(0, this.autoAdjMatrix.count);
+      const allVecs = [];
+      // const queue = [];
+      connectedNodes.map((cNode, i) => {
+        const arrayVector = arrayVec.create(undefined);
+        arrayVector.desc.name = cNode.title;
+        const id = encodeURIComponent(cNode.uuid);
+        allVecs.push({ vec: arrayVector, id, type: 'adjMatrixCol', uuid: cNode.uuid, label: cNode.label });
+
+        const url = 'api/data_api/edges/' + this.selectedDB + '/' + id;
+
+        const postContent = JSON.stringify({ 'treeNodes': this.graph ? this.graph.nodes.map((n) => { return n.uuid; }) : [''] });
+
+        function jsonCall(url, callback) {
+          setTimeout(function () {
+            json(url)
+              .header('Content-Type', 'application/json')
+              .post(postContent, (error, graph: any) => {
+                callback(null, graph);
+              });
+          }, 0);
+        }
+
+        fileQueue.defer(jsonCall, url);
+      });
+
+      let tableAttributes;
+      if (!this.tableManager.adjMatrixCols.find((c) => c.desc.value.type !== VALUE_TYPE_ADJMATRIX && c.desc.value.type !== 'dataDensity')) {
+        //start with default attributes
+        tableAttributes = Config.defaultAttrs[this.selectedDB];
+      } else { //use existing attributes
+        tableAttributes = this.tableManager.adjMatrixCols
+          .filter((c) => c.desc.value.type !== VALUE_TYPE_ADJMATRIX && c.desc.value.type !== 'dataDensity')
+          .map((c) => c.desc.name);
+      };
+
+      tableAttributes.map((attr, i) => {
+
+        allVecs.push({ vec: {}, type: 'attributeCol', name: attr });
+
+        const url = 'api/data_api/property/' + this.selectedDB + '/' + attr;
+
+        const postContent = JSON.stringify({ 'treeNodes': this.graph ? this.graph.nodes.map((n) => { return n.uuid; }) : [''] });
+
+        function jsonCall(url, callback) {
+          setTimeout(function () {
+            json(url)
+              .header('Content-Type', 'application/json')
+              .post(postContent, (error, graph: any) => {
+                callback(null, graph);
+              });
+          }, 0);
+        }
+
+        fileQueue.defer(jsonCall, url);
+      });
+
+      fileQueue.awaitAll((error, attributes) => {
+        if (error) {
+          throw error;
+        }
+
+        this.tableManager.adjMatrixCols = this.tableManager.adjMatrixCols.filter((c) => c.desc.value.type === 'dataDensity');
+        this.tableManager.colOrder = this.tableManager.colOrder.filter((c) => this.tableManager.adjMatrixCols.find((cc) => cc.desc.name === c));
+
+        attributes.forEach((data) => {
+          const nextVec = allVecs.splice(0, 1)[0];
+          let arrayVector = nextVec.vec;
+          const colType = nextVec.type;
+
+          if (colType === 'adjMatrixCol') {
+            arrayVector.dataValues = data.nodes.map((e) => { return e; });
+            arrayVector.idValues = data.nodes.map((e) => { return e.uuid; });
+            arrayVector.desc.value.label = [nextVec.label];
+          } else {
+            const nodes = data.results;
+
+            const dataValues = nodes.map((e) => {
+              const node = this.graph.nodes.find((nn) => nn.uuid === e.uuid);
+              return isNaN(+e.value) ? { 'value': e.value, 'aggregated': node.layout === layout.aggregated } : { 'value': +e.value, 'aggregated': node.layout === layout.aggregated };
+            });;
+
+            // return isNaN(+e.value) ? e.value : +e.value; });;
+            //infer type here:
+            const type = dataValues[0] && typeof dataValues[0].value === 'number' ? VALUE_TYPE_INT : VALUE_TYPE_STRING;
+
+            // //Add fake vector here:
+            arrayVector = arrayVec.create(type);
+            arrayVector.desc.name = nextVec.name;
+
+
+            arrayVector.dataValues = dataValues;
+            arrayVector.idValues = nodes.map((e) => { return e.uuid; });
+
+            arrayVector.desc.value.range = [min(arrayVector.dataValues, (d: any) => d.value), max(arrayVector.dataValues, (d: any) => d.value)];
+
+
+            //create array of unique labels for this columns
+            const allLabels = [];
+            nodes.map((n) => {
+              n.label.map((label) => {
+                if (!allLabels.find((l) => l === label)) {
+                  allLabels.push(label);
+                }
+              });
+            });
+            arrayVector.desc.value.label = allLabels;
+          }
+
+          //if it's not already in there:
+          if (this.tableManager.adjMatrixCols.filter((a: any) => { return a.desc.name === arrayVector.desc.name; }).length < 1) {
+            this.tableManager.adjMatrixCols = this.tableManager.adjMatrixCols.concat(arrayVector); //store array of vectors
+          } else { //replace with new data;
+            const adjMatrixCol = this.tableManager.adjMatrixCols.find((a: any) => { return a.desc.name === arrayVector.desc.name; });
+            this.tableManager.adjMatrixCols.splice(this.tableManager.adjMatrixCols.indexOf(adjMatrixCol), 1);
+            this.tableManager.adjMatrixCols = this.tableManager.adjMatrixCols.concat(arrayVector); //store array of vectors
+          }
+
+          //if it's not already in there:
+          if (this.tableManager.colOrder.filter((a: any) => { return a === arrayVector.desc.name; }).length < 1) {
+            this.tableManager.colOrder = this.tableManager.colOrder.concat([arrayVector.desc.name]); // store array of names
+          }
+
+        });
+
+
+        //sort colOrder so that the order is graphEdges, adjMatrix, then attributes. adjMatrix col are sorted by desc degree;
+        this.tableManager.colOrder.sort((a, b) => {
+
+          const arrayVecA = this.tableManager.adjMatrixCols.find((c) => c.desc.name === a);
+          const arrayVecB = this.tableManager.adjMatrixCols.find((c) => c.desc.name === b);
+
+          if (arrayVecA.desc.value.type === 'dataDensity') {
+            return -1;
+          }
+
+          if (arrayVecB.desc.value.type === 'dataDensity') {
+            return 1;
+          }
+
+          if (arrayVecA.desc.value.type === VALUE_TYPE_ADJMATRIX) {
+            if (arrayVecB.desc.value.type === VALUE_TYPE_ADJMATRIX) {
+              return arrayVecA.dataValues.length > arrayVecB.dataValues.length ? -1 : (arrayVecB.dataValues.length > arrayVecA.dataValues.length ? 1 : 0);
+            }
+
+            return -1;
+          }
+
+          if (arrayVecB.desc.value.type === VALUE_TYPE_ADJMATRIX) {
+            return 1;
+          }
+
+          return 0;
+        });
+
+        //clear out any attributes that aren't in the top 5
+        // Add highly connected nodes to the adj Matrix:
+        const allNodes = this.graph.nodes.slice(0).sort((a, b) => { return a.degree > b.degree ? -1 : 1; });
+        const connectedNodes = allNodes.slice(0, 5);
+
+
+        // console.profileEnd();
+        events.fire(TABLE_VIS_ROWS_CHANGED_EVENT);
+
+
+      });
+
+    }
+  }
 
   private setModeLayout(source, target, level) {
 
     //clear any aggModes in target nodes
     // target.aggMode = undefined;
 
-    target.mode = mode.tree ; //source.aggMode;
+    target.mode = mode.tree; //source.aggMode;
 
     if (source.aggMode === mode.level) {
       const aggNode = this.graph.nodes.find((n) => {
@@ -2000,7 +1980,7 @@ class Graph {
     // console.log('aggregating ', node , ' from ', root.title, ' force: ', force, 'aggregate', aggregateInput, 'setMode', setMode);
     const aggregateBy = 'label';
 
-    const internalDoiFcn = doiFcn !== undefined ? (setMode === mode.tree ? (n)=> n.children.length > 0 || doiFcn(n) : (n)=> doiFcn(n)) : (setMode === mode.tree ? (n)=> n.children.length > 0 : (n)=> false);
+    const internalDoiFcn = doiFcn !== undefined ? (setMode === mode.tree ? (n) => n.children.length > 0 || doiFcn(n) : (n) => doiFcn(n)) : (setMode === mode.tree ? (n) => n.children.length > 0 : (n) => false);
 
     //for non-aggregated level mode, first set aggregate to true, but then expand the specific aggregates
     const aggregate = setMode === mode.level && !aggregateInput ? true : aggregateInput;
@@ -2087,7 +2067,7 @@ class Graph {
           if (c.nodeType === nodeType.single) {
             if (!force) {
               if (doiFcn === undefined || this.refreshDoi === false) {
-                  c.layout = c.layout;
+                c.layout = c.layout;
               } else {
                 c.layout = !internalDoiFcn(c) ? (aggregateInput ? layout.aggregated : layout.expanded) : layout.expanded; //preserve aggregated/expanded state of level mode nodes;
               }
@@ -2098,7 +2078,7 @@ class Graph {
             c.layout = layout.expanded; // levelSummaries and aggregateLabels are always expanded
           }
 
-          c.mode = force ? setMode: c.mode;
+          c.mode = force ? setMode : c.mode;
           c.level = node.level + 1;
           c.aggregateRoot = root;
         });
@@ -2163,7 +2143,7 @@ class Graph {
             }
 
           } else { //update children
-              existingAggNode.children = semiAggregatedNodes;
+            existingAggNode.children = semiAggregatedNodes;
           }
 
         });
@@ -2322,54 +2302,55 @@ class Graph {
         }
 
         let attrCallback;
-          if (sortAttribute.name === 'Visible Edges') {
-            attrCallback = (n) => this.nodeNeighbors[n.uuid].degree - this.nodeNeighbors[n.uuid].hidden;
-          } else if (sortAttribute.name === 'Graph Edges') {
-            attrCallback = (n) => n.graphDegree;
-          } else if (sortAttribute.name === 'Hidden Edges') {
-            attrCallback = (n) => this.nodeNeighbors[n.uuid].hidden;
-          } else if (sortAttribute.type !== VALUE_TYPE_ADJMATRIX) {
-            attrCallback = (n) => n.graphData.data[sortAttribute.name];
-          } else {
-            attrCallback = (n)=> {
-              const edge = this.graph.links.find((l)=> {
+        if (sortAttribute.name === 'Visible Edges') {
+          attrCallback = (n) => this.nodeNeighbors[n.uuid].degree - this.nodeNeighbors[n.uuid].hidden;
+        } else if (sortAttribute.name === 'Graph Edges') {
+          attrCallback = (n) => n.graphDegree;
+        } else if (sortAttribute.name === 'Hidden Edges') {
+          attrCallback = (n) => this.nodeNeighbors[n.uuid].hidden;
+        } else if (sortAttribute.type !== VALUE_TYPE_ADJMATRIX) {
+          attrCallback = (n) => n.graphData.data[sortAttribute.name];
+        } else {
+          attrCallback = (n) => {
+            const edge = this.graph.links.find((l) => {
               return (l.source.title === sortAttribute.name
-              && l.target.title === n.title )|| (l.target.title === sortAttribute.name
-                && l.source.title === n.title);});
-                return edge === undefined ? -1 : 1;
-              };
+                && l.target.title === n.title) || (l.target.title === sortAttribute.name
+                  && l.source.title === n.title);
+            });
+            return edge === undefined ? -1 : 1;
+          };
         }
 
         let aValues, bValues;
         // console.log(a.title,attrCallback(a))
-        if(a.nodeType === nodeType.single) {
+        if (a.nodeType === nodeType.single) {
           a.value = attrCallback(a);
           // console.log(a.title,a.value);
-        } else  if (a.nodeType === nodeType.aggregateLabel) { //this is an aggregateLabel Node
-            aValues = this.graph.nodes.filter((n) => {
-              return (n.visible &&
-                n.label === a.label &&
-                n.level === a.level &&
-                a.aggregateRoot === n.aggregateRoot &&
-                n.mode === mode.level &&
-                n.layout === layout.aggregated);
-            }).map(attrCallback);
-          a.value = aValues.reduce((acc, cValue) => cValue ? acc + cValue : acc, 0)/aValues.length;
+        } else if (a.nodeType === nodeType.aggregateLabel) { //this is an aggregateLabel Node
+          aValues = this.graph.nodes.filter((n) => {
+            return (n.visible &&
+              n.label === a.label &&
+              n.level === a.level &&
+              a.aggregateRoot === n.aggregateRoot &&
+              n.mode === mode.level &&
+              n.layout === layout.aggregated);
+          }).map(attrCallback);
+          a.value = aValues.reduce((acc, cValue) => cValue ? acc + cValue : acc, 0) / aValues.length;
         }
 
         if (b.nodeType === nodeType.single) {
           b.value = attrCallback(b);
         } else if (b.nodeType === nodeType.aggregateLabel) { //this is an aggregateLabel Node
-            bValues = this.graph.nodes.filter((n) => {
-              return (n.visible &&
-                n.label === b.label &&
-                n.level === b.level &&
-                a.aggregateRoot === n.aggregateRoot &&
-                n.mode === mode.level &&
-                n.layout === layout.aggregated);
-            }).map(attrCallback);
-            b.value = bValues.reduce((acc, cValue) => cValue ? acc + cValue : acc, 0)/bValues.length;
-          }
+          bValues = this.graph.nodes.filter((n) => {
+            return (n.visible &&
+              n.label === b.label &&
+              n.level === b.level &&
+              a.aggregateRoot === n.aggregateRoot &&
+              n.mode === mode.level &&
+              n.layout === layout.aggregated);
+          }).map(attrCallback);
+          b.value = bValues.reduce((acc, cValue) => cValue ? acc + cValue : acc, 0) / bValues.length;
+        }
 
         if (typeof a.value === 'number') {
           a.value = +a.value;
@@ -2440,7 +2421,7 @@ class Graph {
           // console.log('visiting', c.title,c.label)
 
           if (c.nodeType === nodeType.aggregateLabel) {
-            console.log(c.label, c.children,'children of agg node ');
+            console.log(c.label, c.children, 'children of agg node ');
           }
 
           if (c.layout === layout.aggregated) {
@@ -3024,8 +3005,8 @@ class Graph {
     regularNodes
       .select('.titleContent')
       .text((d) => {
-        return ' ' + d.title.slice(0, (70 - d.hierarchy*10));
-    });
+        return ' ' + d.title.slice(0, (70 - d.hierarchy * 10));
+      });
 
     // node.on('click', (d) => console.log(d));
 

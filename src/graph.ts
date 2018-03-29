@@ -1068,7 +1068,7 @@ class Graph {
       });
 
       //don't revisit the node that you just came from
-      children.filter((cc) => !parent || cc.uuid !== parent.uuid).map((c) => {
+      children.filter((cc) => (!parent || cc.uuid !== parent.uuid) && cc.visible).map((c) => {
         if (level <= stopLevel) {
           queue.push({ node: c, level: level + 1, parent: node });
         }
@@ -1555,25 +1555,25 @@ class Graph {
       this.graph.root = this.graph.root.concat(graph.root);
     };
 
-    if (this.sortAttribute === undefined) {
-      //visit potential children aphabetically
-      graph.links.sort((a, b) => {
-        const targetA = a.source.uuid === rootNode.uuid ? a.target : a.source;
-        const targetB = b.source.uuid === rootNode.uuid ? b.target : b.source;
+    // if (this.sortAttribute === undefined) {
+    //   //visit potential children aphabetically
+    //   graph.links.sort((a, b) => {
+    //     const targetA = a.source.uuid === rootNode.uuid ? a.target : a.source;
+    //     const targetB = b.source.uuid === rootNode.uuid ? b.target : b.source;
 
-        return targetA.title < targetB.title ? -1 : 1;
+    //     return targetA.title < targetB.title ? -1 : 1;
 
-      });
-    } else {
-      graph.links.sort((a, b) => {
-        const targetA = a.source.uuid === rootNode.uuid ? a.target : a.source;
-        const targetB = b.source.uuid === rootNode.uuid ? b.target : b.source;
+    //   });
+    // } else {
+    //   graph.links.sort((a, b) => {
+    //     const targetA = a.source.uuid === rootNode.uuid ? a.target : a.source;
+    //     const targetB = b.source.uuid === rootNode.uuid ? b.target : b.source;
 
-        return this.sortedComparator(targetA, targetB);
-        // return targetA.title < targetB.title ? -1 : 1;
+    //     return this.sortedComparator(targetA, targetB);
+    //     // return targetA.title < targetB.title ? -1 : 1;
 
-      });
-    }
+    //   });
+    // }
 
     //update indexes
     graph.links.forEach((link) => {
@@ -1597,18 +1597,21 @@ class Graph {
               const parent = sourceNode.uuid === rootNode.uuid ? sourceNode: targetNode;
               const child = sourceNode.uuid === rootNode.uuid ? targetNode: sourceNode;
 
-              //if Node is already in the tree it already has an incoming edge
-              if (child.parent && parent.visited === true) {
-                link.visible = false;
-                link.visited = true;
-              } else {
-                if (child.parent) {
-                  // console.log('visiting edge from ', parent.title , ' to ', child.title , rootNode.visited, child.parent);
-                  parent.visited = true;
-                }
-                link.visible = true;
-                link.visited = true;
-              }
+              // //if Node is already in the tree it already has an incoming edge
+              // if (child.parent && parent.visited === true) {
+              //   link.visible = false;
+              //   link.visited = true;
+              // } else {
+              //   if (child.parent) {
+              //     // console.log('visiting edge from ', parent.title , ' to ', child.title , rootNode.visited, child.parent);
+              //     parent.visited = true;
+              //   }
+              //   link.visible = true;
+              //   link.visited = true;
+              // }
+
+              link.visible = true;
+              link.visited = true;
 
             } else
               if (!(includeRoot && !includeChildren) || (includeRoot && !includeChildren && targetNode.parent)) {

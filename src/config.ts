@@ -75,7 +75,7 @@ export class Config {
       CHI:'\uf21d',
       _Set_Node:'\uf0f6',
       Author:'\uf007',
-      TVCG:'\uf200',
+      TVCG:'\uf1fe',
       Article:'\uf0f6',
       Publication:'\uf0f6',
 

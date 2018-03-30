@@ -3737,6 +3737,7 @@ class Graph {
       if (parent === undefined || (child.mode === mode.level && !parent.children.find((c) => child.aggParent && c.uuid === child.aggParent.parent.uuid))) {
         return (d.id === e.source.uuid || d.id === e.target.uuid);
       } else {
+        // console.log('edge between ', parent,child, ' is set to hidden');
         return false;
       }
 

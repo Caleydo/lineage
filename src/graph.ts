@@ -2044,6 +2044,7 @@ class Graph {
 
     const internalDoiFcn = doiFcn !== undefined ? (setMode === mode.tree ? (n) => n.children.length > 0 || doiFcn(n) : (n) => doiFcn(n)) : (setMode === mode.tree ? (n) => n.children.length > 0 : (n) => false);
 
+    // console.log(doiFcn === undefined)
     //for non-aggregated level mode, first set aggregate to true, but then expand the specific aggregates
     const aggregate = setMode === mode.level && !aggregateInput ? true : aggregateInput;
 
@@ -2056,8 +2057,12 @@ class Graph {
 
       //set doi flags;
       node.children.map((n) => n.doi = internalDoiFcn(n));
-      const toAggregate = setMode === mode.tree ? node.children.filter((n) => !internalDoiFcn(n)).filter((n) => n.visible) : node.children.filter((n) => n.visible);
+      const toAggregate = node.children.filter((n) => !internalDoiFcn(n)).filter((n) => n.visible) ;
       const allChildren = node.children.filter((n) => n.visible);
+
+      // console.log('parent ', node.title,node.label);
+      // console.log('should aggregate ', toAggregate.length);
+      // console.log('of interest', node.children.filter((n) => n.doi === true).length);
 
       //Create a dictionary of all aggregate types per level;
       const level = (node.level + 1).toString();
@@ -2122,6 +2127,7 @@ class Graph {
           }
         }
 
+        console.log('refresh DOI', this.refreshDoi);
         //set children mode, level, and aggregateRoot values
         allChildren.map((c) => {
 
@@ -2131,10 +2137,10 @@ class Graph {
               if (doiFcn === undefined || this.refreshDoi === false) {
                 c.layout = c.layout;
               } else {
-                c.layout = !internalDoiFcn(c) ? (aggregateInput ? layout.aggregated : layout.expanded) : layout.expanded; //preserve aggregated/expanded state of level mode nodes;
+                c.layout = !c.doi ? (aggregateInput ? layout.aggregated : layout.expanded) : layout.expanded; //preserve aggregated/expanded state of level mode nodes;
               }
             } else {
-              c.layout = !internalDoiFcn(c) ? (aggregateInput ? layout.aggregated : layout.expanded) : layout.expanded;// for new nodes, default to aggregated state.
+              c.layout = !c.doi ? (aggregateInput ? layout.aggregated : layout.expanded) : layout.expanded;// for new nodes, default to aggregated state.
             }
           } else {
             c.layout = layout.expanded; // levelSummaries and aggregateLabels are always expanded
@@ -2145,7 +2151,7 @@ class Graph {
           c.aggregateRoot = root;
         });
 
-        this.refreshDoi = false;
+        this.refreshDoi = true;
 
         root.summary[level].map((nlabel) => {
 
@@ -2305,7 +2311,6 @@ class Graph {
       root.mode = mode.tree;
       root.layout = layout.expanded;
 
-      console.log('layout root is ', root);
       this.layoutTreeHelper(root);
 
     }
@@ -2341,7 +2346,7 @@ class Graph {
     } else if (sortAttribute.name === 'Hidden Edges') {
       attrCallback = (n) => this.nodeNeighbors[n.uuid].hidden;
     } else if (sortAttribute.type !== VALUE_TYPE_ADJMATRIX) {
-      attrCallback = (n) => n.graphData.data[sortAttribute.name];
+      attrCallback = (n) => n.graphData && n.graphData.data[sortAttribute.name];
     } else {
       attrCallback = (n) => {
         const edge = this.graph.links.find((l) => {
@@ -2392,6 +2397,8 @@ class Graph {
     }
 
     if (sortOrder === sortedState.Ascending) {
+      if (a.value === undefined && b.value === undefined) {
+        return a.title < b.title ? -1 : (a.title === b.title ? (a.uuid < b.uuid ? -1 : 1) : 1);}
       if (b.value === undefined || a.value < b.value) { return -1; }
       if (a.value === undefined || a.value > b.value) { return 1; }
       if (a.value === b.value) {
@@ -2403,6 +2410,8 @@ class Graph {
       if (a.value < b.value) { return -1; }
 
     } else {
+      if (a.value === undefined && b.value === undefined) {
+        return a.title < b.title ? -1 : (a.title === b.title ? (a.uuid < b.uuid ? -1 : 1) : 1);}
       if (b.value === undefined || a.value > b.value) { return -1; }
       if (a.value === undefined || a.value < b.value) { return 1; }
       if (a.value === b.value) {
@@ -2437,12 +2446,14 @@ class Graph {
       node.yy = this.ypos;
     }
 
+    // console.log(this.sortAttribute)
     //sort Children by chosen attribute
     if (sortAttribute !== undefined) {
-
       // const data = sortAttribute.data;
       // const ids = sortAttribute.ids;
       const sortOrder = sortAttribute.sortOrder;
+      //check if nodes has children of that type.
+
       node.children.sort(this.sortedComparator);
     } else {
       //default sorting is alphabetical

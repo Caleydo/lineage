@@ -25,7 +25,7 @@ export class Config {
   public static defaultAttrs = {
     got:['name', 'year','gender','sequence','book_death_chapter'],
     path:['name','degree', 'pathways'],
-    coauth:['name','tvcg_publications','chi_publications','year','cited','type']
+    coauth:['tvcg_publications','chi_publications','year','cited']
   };
 
   public static icons = {

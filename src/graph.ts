@@ -234,11 +234,11 @@ class Graph {
 
       this.graph = graph;
 
-      console.log('this.graph is ', graph)
+      console.log('this.graph is ', graph);
 
       this.postMergeUpdate();
 
-    })
+    });
 
     events.on(GRAPH_ADJ_MATRIX_CHANGED, (evt, info) => {
       events.fire(ADJ_MATRIX_CHANGED, { 'db': info.db, 'name': info.name, 'uuid': info.id, 'label': info.label, 'remove': info.removeAdjMatrix, 'nodes': this.graph.nodes.filter((n) => n.visible && n.nodeType === nodeType.single).map((n) => n.uuid) });

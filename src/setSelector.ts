@@ -171,12 +171,12 @@ class SetSelector {
       .attr('class', 'form-control')
       .style('display', 'none')
       .attr('id', 'subGraphInputForm')
-      .attr('placeholder', 'Enter Cypher Graph Query') 
-      // + 
+      .attr('placeholder', 'Enter Cypher Graph Query');
+      // +
       // ' Example Query: MATCH (root)-[edge]-(target) WHERE COALESCE (root.uuid, root.id) = "journals/tvcg/LeePPBVGK06 ' +
       // ' WITH size((root)--()) as rootDegree, size((target)--()) as targetDegree, root, edge, target ' +
       // ' RETURN rootDegree, targetDegree, root, {title: COALESCE (root.title,root.name), label:labels(root), id:COALESCE (root.uuid, root.id), data:root} as root, edge, {title: COALESCE (target.name, target.title), label:labels(target), id:COALESCE (target.uuid, target.id),data:target} as target');
-     
+
 
       panelHeading.append('div')
       .attr('id','advancedSearch')

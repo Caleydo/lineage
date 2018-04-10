@@ -17,7 +17,17 @@ body, html {
 	width: 100%;
 }
 
+#searchBar #advancedSearch{
+  font-family: FontAwesome;
+  padding: 8px 0px 0px 5px;
+  cursor: pointer;
+  display:inline;
+  float:right;
+}
 
+// #searchBar .form-control{
+//   display:inline;
+// }
 
 #graphHeaders{
   padding:20px;

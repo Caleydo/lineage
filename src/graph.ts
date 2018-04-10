@@ -207,6 +207,39 @@ class Graph {
 
     });
 
+    events.on('subGraphQuery', (evt,info)=> {
+
+      const graph = info.graph;
+
+      const newLinks = [];
+      //update indexes to contain refs of the actual nodes;
+      graph.links.forEach((link) => {
+
+        link.source = graph.nodes.find((n) => n.uuid === link.source.uuid);
+        link.target = graph.nodes.find((n) => n.uuid === link.target.uuid);
+
+        if (link.source && link.target) {
+          const existingLink = newLinks.filter((l) => {
+            return l.edge.data.uuid === link.edge.data.uuid;
+          });
+          //check for existing node
+          if (existingLink.length < 1) {
+            newLinks.push(link);
+          }
+          ;
+        }
+      });
+      graph.links = newLinks;
+
+
+      this.graph = graph;
+
+      console.log('this.graph is ', graph)
+
+      this.postMergeUpdate();
+
+    })
+
     events.on(GRAPH_ADJ_MATRIX_CHANGED, (evt, info) => {
       events.fire(ADJ_MATRIX_CHANGED, { 'db': info.db, 'name': info.name, 'uuid': info.id, 'label': info.label, 'remove': info.removeAdjMatrix, 'nodes': this.graph.nodes.filter((n) => n.visible && n.nodeType === nodeType.single).map((n) => n.uuid) });
     });

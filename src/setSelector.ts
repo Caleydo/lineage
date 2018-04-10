@@ -133,7 +133,7 @@ class SetSelector {
     //   .attr('id', 'queryInputForm')
     //   .attr('placeholder', 'Enter Cypher Search Query');
 
-    //     //add query box
+        //add query box
     //  select('#col1')
     //   .select('#subGraphInput')
     //   .selectAll('.panel-heading')
@@ -153,14 +153,55 @@ class SetSelector {
       .data([0]) // ensure there is only one search box
       .enter()
       .append('div')
-      .attr('class', 'panel-heading');
+      .attr('class', 'panel-heading')
+      .style('text-align','center');
 
     panelHeading
       .append('input')
-      // .style('width','80%')
+      .style('width','90%')
       .attr('class', 'form-control')
       .attr('id', 'searchBoxInput')
+      .style('display','inline')
       .attr('placeholder', 'Search for node name');
+
+      panelHeading
+      .append('textarea')
+      .style('width','90%')
+      .style('height','100px')
+      .attr('class', 'form-control')
+      .style('display', 'none')
+      .attr('id', 'subGraphInputForm')
+      .attr('placeholder', 'Enter Cypher Graph Query') 
+      // + 
+      // ' Example Query: MATCH (root)-[edge]-(target) WHERE COALESCE (root.uuid, root.id) = "journals/tvcg/LeePPBVGK06 ' +
+      // ' WITH size((root)--()) as rootDegree, size((target)--()) as targetDegree, root, edge, target ' +
+      // ' RETURN rootDegree, targetDegree, root, {title: COALESCE (root.title,root.name), label:labels(root), id:COALESCE (root.uuid, root.id), data:root} as root, edge, {title: COALESCE (target.name, target.title), label:labels(target), id:COALESCE (target.uuid, target.id),data:target} as target');
+     
+
+      panelHeading.append('div')
+      .attr('id','advancedSearch')
+      .text(Config.icons.AdvancedSearch);
+
+      select('#advancedSearch')
+      .on('click',(d)=> {
+
+        if ( select('#searchBoxInput').style('display') === 'none') {
+          select('#searchBoxInput')
+          .style('display','inline');
+          select('#subGraphInputForm')
+          .style('display','none');
+          select('#advancedSearch')
+          .text(Config.icons.AdvancedSearch);
+
+        } else {
+          select('#searchBoxInput')
+          .style('display','none');
+          select('#subGraphInputForm')
+          .style('display','inline');
+          select('#advancedSearch')
+          .text(Config.icons.Search);
+        }
+      });
 
     // panelHeading
     // .append('text')
@@ -591,6 +632,47 @@ class SetSelector {
                   data.map((d) => {
                     this.populateTableRows('#' + d.name + '_body', d.nodes, this.headerInfo.length, d.name);
                   });
+                });
+
+            }, 500);
+          }
+
+        }
+
+      });
+
+      select('#subGraphInputForm').on('keypress', (e) => {
+        if (event.key === 'Enter') {
+          const input = select('#subGraphInputForm');
+          if (input.property('value').length < 1) {
+            clearTimeout(timer);
+          } else {
+            clearTimeout(timer);
+            timer = setTimeout(() => {
+
+              const url = 'api/data_api/query/' + this.selectedDB;
+
+              const postContent = JSON.stringify({ 'searchString': input.property('value') });
+
+
+              json(url)
+                .header('Content-Type', 'application/json')
+                .post(postContent, (error, graph: any) => {
+                  if (error) {
+                    throw error;
+                  }
+                  console.log('graph returned is ', graph);
+
+                  events.fire('subGraphQuery', {graph});
+
+                  // const data = graph.labels;
+                  // const labels = data.map((d) => { return { name: d.name, size: d.nodes.length }; });
+                  // console.log(data);
+
+                  // this.updateSetSelector(labels);
+                  // data.map((d) => {
+                  //   this.populateTableRows('#' + d.name + '_body', d.nodes, this.headerInfo.length, d.name);
+                  // });
                 });
 
             }, 500);

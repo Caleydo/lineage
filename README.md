@@ -1,12 +1,9 @@
-Lineage [![Phovea][phovea-image]][phovea-url] [![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Dependency Status][daviddm-image]][daviddm-url]
+Juniper [![Phovea][phovea-image]][phovea-url] [![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Dependency Status][daviddm-image]][daviddm-url]
 =====================
 
-Lineage is a genalogy visualization tool developed at the [Visualization Design Lab](http://vdl.sci.utah.edu) at the University of Utah, with contributions from the [Gehlenborg Lab](http://gehlenborg.com/) at the Harvard Medical School. 
+Juniper is a tree-based graph visualization tool developed at the [Visualization Design Lab](http://vdl.sci.utah.edu) at the University of Utah, with contributions from [Marc Streit's lab](https://www.jku.at/en/institute-of-computer-graphics/) at JKU Linz, in Austria. 
 
-See also the [lineage_server](https://github.com/Caleydo/lineage_server) and the [lineage_product](https://github.com/Caleydo/lineage_product/) repositories.
-
-Data preprocessing and anonymization is done in the (currently private) [lineage_data_anonymization repository](https://github.com/Caleydo/lineage_data_anonymization).
-
+This is a branch of Lineage, a genealogy visualization tool. Lineage and Juniper use some common technology. A better separation will follow in the future. 
 
 ## Installation
 

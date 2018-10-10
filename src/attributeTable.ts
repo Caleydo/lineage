@@ -68,7 +68,8 @@ class AttributeTable {
   //private margin = {top: 60, right: 20, bottom: 60, left: 40};
 
   private tableManager;
-  private colData;    // <- everything we need to bind
+
+  public colData;    // <- everything we need to bind
   private firstCol; //bind separetly on the left side of the slope chart.
 
   private allCols; //array of col vectors (needed for re-ordering, does not contain dadta)
@@ -148,6 +149,11 @@ class AttributeTable {
   public async update() {
     await this.initData();
     this.render();
+  }
+
+  public getColData(){
+    console.log(this)
+    return this.colData;
   }
 
   /**
@@ -3150,6 +3156,7 @@ class AttributeTable {
     });
 
   }
+
 
 }
 

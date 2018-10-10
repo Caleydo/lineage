@@ -10,6 +10,7 @@ import * as tree from './genealogyTree';
 import * as table from './attributeTable';
 import * as panel from './attributePanel';
 import * as familySelector from './familySelector';
+import * as mapview from 'MapView';
 
 
 
@@ -35,6 +36,7 @@ export class App {
     this.$node.select('#col1').append('div').attr('id', 'data_selection');
     this.$node.select('#col2').append('div').attr('id', 'graph');
     this.$node.select('#col3').append('div').attr('id', 'table');
+    this.$node.select('#col4').append('div').attr('id','map_view');
 
     //Add div for tooltip that sits on top of all other divs.
     select('#app').append('div').attr('id', 'tooltipMenu');
@@ -129,6 +131,7 @@ export class App {
     const graphDataObj = graphData.create(tableManager);
     await graphDataObj.createTree().then(() => {
       graphDataObj.aggregateTreeWrapper(undefined, layoutState.Aggregated); //default to aggregated state;
+      console.log(graphDataObj,tableManager);
     });
 
     const genealogyTree = tree.create(this.$node.select('#graph').node());
@@ -141,6 +144,9 @@ export class App {
     const familySelectorView = familySelector.create(this.$node.select('#familySelector').node());
     familySelectorView.init(tableManager);
     familySelectorView.updateTable();
+
+    const mapView = mapview.create();
+    mapview.dataSet(attributeTable.getColData());
 
     // const changeDataset = async function(d:any){
 

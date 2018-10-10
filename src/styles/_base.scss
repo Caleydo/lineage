@@ -9,8 +9,8 @@ body, html {
   table-layout: fixed;
 }
 
-::-webkit-scrollbar { 
-  display: none; 
+::-webkit-scrollbar {
+  display: none;
 }
 
 h1 {
@@ -65,7 +65,7 @@ table text{
 }
 
 .equalHMR {
-	width: 32%;
+	width: 25%;
 	margin-bottom: 2%;
 }
 
@@ -74,16 +74,16 @@ table text{
 }
 
 .equalHMV {
-	width: 32%;
-	margin: 1%;	
+	width: 25%;
+	margin: 1%;
 }
 
 .equalHMV:nth-of-type(3n) {
-	margin-right: 0;	
+	margin-right: 0;
 }
 
 .equalHMV:nth-of-type(3n+1) {
-	margin-left: 0;	
+	margin-left: 0;
 }
 
 .btn-link,.dropdown-toggle{
@@ -240,6 +240,9 @@ ul.nav.navbar-nav{
   cursor:progress;
 }
 
-
-
-
+#mapLayer{
+  fill: none;
+  stroke: #969696;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}

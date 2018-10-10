@@ -68,8 +68,10 @@ class AttributeTable {
   //private margin = {top: 60, right: 20, bottom: 60, left: 40};
 
   private tableManager;
+  //to call upon data change
+  private mapView
 
-  public colData;    // <- everything we need to bind
+  private colData;    // <- everything we need to bind
   private firstCol; //bind separetly on the left side of the slope chart.
 
   private allCols; //array of col vectors (needed for re-ordering, does not contain dadta)
@@ -149,11 +151,19 @@ class AttributeTable {
   public async update() {
     await this.initData();
     this.render();
+    this.mapView.setData(this);
   }
 
   public getColData(){
-    console.log(this)
     return this.colData;
+  }
+
+  public getTableManager(){
+    return this.tableManager;
+  }
+
+  public setMapView(mapview){
+    this.mapView = mapview;
   }
 
   /**

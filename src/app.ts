@@ -138,15 +138,21 @@ export class App {
     genealogyTree.init(graphDataObj, tableManager);
     genealogyTree.update();
 
+    const mapView = mapview.create();
+    mapView.init();
+
+
     const attributeTable = table.create(this.$node.select('#table').node());
-    attributeTable.init(tableManager);
+    attributeTable.setMapView(mapView);
+    await attributeTable.init(tableManager);
 
     const familySelectorView = familySelector.create(this.$node.select('#familySelector').node());
     familySelectorView.init(tableManager);
     familySelectorView.updateTable();
 
-    const mapView = mapview.create();
-    mapview.dataSet(attributeTable.getColData());
+
+
+
 
     // const changeDataset = async function(d:any){
 

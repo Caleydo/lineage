@@ -152,7 +152,6 @@ class AttributeTable {
   }
 
   public getColData(){
-    console.log(this)
     return this.colData;
   }
 

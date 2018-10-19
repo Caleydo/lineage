@@ -131,20 +131,22 @@ export class App {
     const graphDataObj = graphData.create(tableManager);
     await graphDataObj.createTree().then(() => {
       graphDataObj.aggregateTreeWrapper(undefined, layoutState.Aggregated); //default to aggregated state;
-      console.log(graphDataObj,tableManager);
+    
     });
 
     const genealogyTree = tree.create(this.$node.select('#graph').node());
     genealogyTree.init(graphDataObj, tableManager);
     genealogyTree.update();
 
-    const mapView = mapview.create();
-    mapView.init();
 
+    const mapView = mapview.create();
+    mapView.init(tableManager.colOrder);
 
     const attributeTable = table.create(this.$node.select('#table').node());
     attributeTable.setMapView(mapView);
     await attributeTable.init(tableManager);
+
+
 
     const familySelectorView = familySelector.create(this.$node.select('#familySelector').node());
     familySelectorView.init(tableManager);

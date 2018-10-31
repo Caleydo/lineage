@@ -58,7 +58,7 @@ rect.total{
   fill:#b5b7b7;
   text-anchor: middle;
   cursor:default !important;
-  
+
 }
 
 .checkboxIcon{
@@ -401,7 +401,7 @@ rect.selected{
 }
 
 .cell .label{
-  fill: white;
+  fill: '#6f7373';
   //font-weight:bold;
   font-size:12px;
 }
@@ -682,6 +682,3 @@ visibility:hidden;
   background-color:rgb(232, 108, 55)  ;
   color:white !important;
 }
-
-
-

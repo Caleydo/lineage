@@ -131,7 +131,7 @@ export class App {
     const graphDataObj = graphData.create(tableManager);
     await graphDataObj.createTree().then(() => {
       graphDataObj.aggregateTreeWrapper(undefined, layoutState.Aggregated); //default to aggregated state;
-    
+
     });
 
     const genealogyTree = tree.create(this.$node.select('#graph').node());
@@ -143,7 +143,8 @@ export class App {
     mapView.init(tableManager.colOrder);
 
     const attributeTable = table.create(this.$node.select('#table').node());
-    attributeTable.setMapView(mapView);
+  //  attributeTable.setMapView(mapView);
+    tableManager.setMapView(mapView);
     await attributeTable.init(tableManager);
 
 

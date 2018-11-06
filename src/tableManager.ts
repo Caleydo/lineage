@@ -149,7 +149,7 @@ export default class TableManager {
   // private defaultCols: String[] =
   //   ['KindredID','PersonID', 'Asthma', 'Bipolar', 'sex', 'deceased', 'suicide', 'gen', 'Age', 'FirstBMI', 'AgeFirstBMI', 'race', 'cause_death', 'weapon']; //set of default cols to read in, minimizes load time for large files;
 
-    private defaultCols: String[];
+  private defaultCols: String[];
 
   // //default cols for Autism data
   // private defaultCols: String[] =
@@ -160,6 +160,8 @@ export default class TableManager {
   private starCols=[];
 
   /** Basic information about all the loaded families */
+  public mapView;
+
   public readonly familyInfo: IFamilyInfo[] = [];
 
   // TODO what is this? Should this be in this class?
@@ -179,6 +181,8 @@ export default class TableManager {
   public addStar(attributeName:string,trueValue:string) {
     this.updateFamilySelector(attributeName,trueValue,true);
   }
+
+
 
   //Method that removes cols from the Family Selector;
   public removeStar(attributeName:string) {
@@ -261,6 +265,10 @@ export default class TableManager {
     } else {
       return undefined;
     }
+  }
+
+  public setMapView(mapview){
+    this.mapView = mapview;
   }
 
   /**

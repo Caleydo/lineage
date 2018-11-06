@@ -69,7 +69,7 @@ class AttributeTable {
 
   private tableManager;
   //to call upon data change
-  private mapView
+  //private mapView
 
   private colData;    // <- everything we need to bind
   private firstCol; //bind separetly on the left side of the slope chart.
@@ -151,7 +151,7 @@ class AttributeTable {
   public async update() {
     await this.initData();
     this.render();
-    this.mapView.setData(this);
+    this.tableManager.mapView.setData(this);
   }
 
   public getColData(){
@@ -162,9 +162,9 @@ class AttributeTable {
     return this.tableManager;
   }
 
-  public setMapView(mapview){
-    this.mapView = mapview;
-  }
+  // public setMapView(mapview){
+  //   this.mapView = mapview;
+  // }
 
   /**
    * Build the basic DOM elements and binds the change function

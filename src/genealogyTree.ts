@@ -1735,7 +1735,7 @@ class GenealogyTree {
 
         this.renderPersonView(d);
         if(d.affected){
-          this.tableManager.mapView.highlightSelected(d.id)；
+          this.tableManager.mapView.highlightSelected(d.id);
         }
 
         event.stopPropagation();

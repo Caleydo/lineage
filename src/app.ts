@@ -108,11 +108,7 @@ export class App {
     //await tableManager.loadData('TenFamiliesDescend', 'TenFamiliesAttr');
     if (dataset === 'suicide' || !dataset) {
       dataset = 'suicide';
-      const table = await tableManager.loadData('AllFamiliesDescend', 'AllFamiliesAttributes');
-      if (!table) {
-        console.log('loading Anonymous Dataset');
-        await tableManager.loadData('TenFamiliesDescendAnon', 'TenFamiliesAttrAnon');
-      }
+      await tableManager.loadData('AllFamiliesDescend', 'AllFamiliesAttributes');
     } else if (dataset === 'autism') {
      await tableManager.loadData('AllAutismFamiliesDescend', 'AllAutismFamiliesAttributes');
     } else if (dataset === 'suicide_anon') {
@@ -144,9 +140,9 @@ export class App {
 
     const attributeTable = table.create(this.$node.select('#table').node());
   //  attributeTable.setMapView(mapView);
+
     tableManager.setMapView(mapView);
     await attributeTable.init(tableManager);
-
 
 
     const familySelectorView = familySelector.create(this.$node.select('#familySelector').node());

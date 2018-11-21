@@ -151,7 +151,7 @@ class AttributeTable {
   public async update() {
     await this.initData();
     this.render();
-    this.tableManager.mapView.setData(this);
+    this.tableManager.mapView.draw(this)
   }
 
   public getColData(){
@@ -159,6 +159,7 @@ class AttributeTable {
   }
 
   public getTableManager(){
+    console.log(this.tableManager)
     return this.tableManager;
   }
 

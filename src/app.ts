@@ -108,7 +108,7 @@ export class App {
     //await tableManager.loadData('TenFamiliesDescend', 'TenFamiliesAttr');
     if (dataset === 'suicide' || !dataset) {
       dataset = 'suicide';
-      await tableManager.loadData('AllFamiliesDescend', 'AllFamiliesAttributes');
+      await tableManager.loadData('TenFamiliesDescend','TenFamiliesAttr');
     } else if (dataset === 'autism') {
      await tableManager.loadData('AllAutismFamiliesDescend', 'AllAutismFamiliesAttributes');
     } else if (dataset === 'suicide_anon') {

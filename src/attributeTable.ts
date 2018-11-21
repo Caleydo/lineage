@@ -159,7 +159,6 @@ class AttributeTable {
   }
 
   public getTableManager(){
-    console.log(this.tableManager)
     return this.tableManager;
   }
 
@@ -590,7 +589,6 @@ class AttributeTable {
 };
 
   public async initData() {
-
     this.colOffsets = [0];
     const graphView = await this.tableManager.graphTable;
     const attributeView = await this.tableManager.tableTable;

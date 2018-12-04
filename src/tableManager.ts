@@ -590,7 +590,7 @@ export default class TableManager {
       this.familyInfo[index].affected=affectedDict[familyID];
       this.familyInfo[index].percentage=affectedDict[familyID]/this.familyInfo[index].size;
     });
-
+    console.log(this.colOrder)
     events.fire(FAMILY_INFO_UPDATED, this);
   }
 
@@ -672,6 +672,7 @@ export default class TableManager {
     this._activeTableRows = range.all();
     this.activeTableColumns = range.list(colIndexAccum);
 
+    console.log(this.activeTableColumns)
     await this.refreshActiveTableView();
 
   }

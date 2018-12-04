@@ -136,7 +136,7 @@ export class App {
 
 
     const mapView = mapview.create();
-    mapView.init(tableManager.colOrder);
+    mapView.init();
 
     const attributeTable = table.create(this.$node.select('#table').node());
   //  attributeTable.setMapView(mapView);

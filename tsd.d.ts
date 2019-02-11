@@ -29,6 +29,8 @@ declare module "imports-loader!*";
 //allow override webpack config on import
 declare module "!*";
 
+declare module "mapview";
+
 
 //define System.import as understood by webpack2
 interface ISystem {

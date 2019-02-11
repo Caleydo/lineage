@@ -247,17 +247,28 @@ ul.nav.navbar-nav{
   stroke-linejoin: round;
 }
 
-#col4.div.tooltip {
+#drawLayer .county-count{
+  text-anchor: middle;
+  dominant-baseline: middle;
+  font-size:18px;
+  fill:#969696
+}
+
+#col4 .tooltip {
     position: absolute;
     text-align: center;
-    width: 60px;
+    width: 180px;
     height: 28px;
     padding: 2px;
     font: 12px sans-serif;
-    background: lightsteelblue;
+    background: white;
     border: 0px;
     border-radius: 8px;
     pointer-events: none;
+}
+
+#col4 path:hover{
+  fill:#f7f7f7
 }
 
 .highlightedCircle{

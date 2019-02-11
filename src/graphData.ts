@@ -370,7 +370,6 @@ class GraphData {
       }
     });
 
-    console.log(dict);
 
     //Assign y values to the tableManager object
     this.tableManager.yValues = dict;

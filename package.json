@@ -37,8 +37,8 @@
     "@types/jasmine": "2.5.41",
     "awesome-typescript-loader": "3.0.3",
     "css-loader": "0.26.1",
-    "extract-text-webpack-plugin": "2.0.0-rc.3",
     "extract-loader": "0.1.0",
+    "extract-text-webpack-plugin": "2.0.0-rc.3",
     "file-loader": "0.10.0",
     "html-loader": "0.4.4",
     "imports-loader": "0.7.0",
@@ -57,13 +57,13 @@
     "raw-loader": "0.5.1",
     "sass-loader": "5.0.0",
     "style-loader": "0.13.1",
+    "tslib": "1.5.0",
     "tslint": "4.4.2",
     "typedoc": "0.7.2",
     "typescript": "2.3.4",
     "url-loader": "0.5.7",
     "webpack": "2.2.1",
-    "webpack-dev-server": "2.3.0",
-    "tslib": "1.5.0"
+    "webpack-dev-server": "2.3.0"
   },
   "dependencies": {
     "@types/d3-array": "^1.0.7",

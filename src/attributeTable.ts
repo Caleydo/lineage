@@ -14,7 +14,6 @@ import { isNullOrUndefined } from 'util';
 import { transition } from 'd3-transition';
 import { easeLinear } from 'd3-ease';
 import { curveBasis, curveLinear } from 'd3-shape';
-
 import Histogram from './Histogram';
 
 import { VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL, VALUE_TYPE_STRING } from 'phovea_core/src/datatype';
@@ -74,7 +73,7 @@ class AttributeTable {
   private colData;    // <- everything we need to bind
   private firstCol; //bind separetly on the left side of the slope chart.
 
-  private allCols; //array of col vectors (needed for re-ordering, does not contain dadta)
+  private allCols; //array of col vectors (needed for re-ordering, does not contain data)
 
   private rowHeight = Config.glyphSize * 2.5 - 4;
   private headerHeight = this.rowHeight * 2;
@@ -85,7 +84,8 @@ class AttributeTable {
     real: this.rowHeight * 4,
     string: this.rowHeight * 5,
     id: this.rowHeight * 4.5,
-    dataDensity: this.rowHeight
+    dataDensity: this.rowHeight,
+    temporal: this.rowHeight*7
   };
 
   //Used to store col widths if user resizes a col;
@@ -111,7 +111,7 @@ class AttributeTable {
   private sortAttribute = { state: sortedState.Unsorted, data: undefined, name: undefined };
 
   private idScale = scaleLinear(); //used to size the bars in the first col of the table;
-
+  private linelineFunction = line<any>();
   private colorScale = ['#969696', '#9e9ac8', '#74c476', '#fd8d3c', '#9ecae1'];
 
   private margin = Config.margin;
@@ -162,9 +162,6 @@ class AttributeTable {
     return this.tableManager;
   }
 
-  // public setMapView(mapview){
-  //   this.mapView = mapview;
-  // }
 
   /**
    * Build the basic DOM elements and binds the change function
@@ -334,7 +331,22 @@ class AttributeTable {
       .html((d:any) => { return d; })
       .merge(menuItems);
 
+
+    menu.append('li').attr('class', 'divider').attr('role', 'separator');
+    menu.append('h4').attr('class', 'dropdown-header').style('font-size', '16px')
+      .html('Air Quality Attributes');
+    colNames = this.tableManager.getAirQualityColumns(this.tableManager.airqualityTable);
+    menuItems = menu.selectAll('.airqualityAttr').data(colNames);
+    menuItems = menuItems.enter()
+                         .append('li')
+                         .append('a')
+                           .attr('class', 'dropdown-item airqualityAttr')
+                           //.classed('active', (d) => { return this.tableManager.colOrder.includes(d); })
+                           .html((d:any) => { return d; })
+                           .merge(menuItems);
+
     const self = this;
+    //TODO the mousedown to add/remove an item
     selectAll('.dropdown-item').on('mousedown', function (d) {
       event.preventDefault();
       //Check if is selected, if so remove from table.
@@ -587,22 +599,29 @@ class AttributeTable {
         }
       });
 };
+ //TODO Need to change this to change the colData
+ //What is the difference between colData and
 
   public async initData() {
     this.colOffsets = [0];
     const graphView = await this.tableManager.graphTable;
     const attributeView = await this.tableManager.tableTable;
+    const aqView = await this.tableManager.AQTable;
 
-    const allCols = graphView.cols().concat(attributeView.cols());
+    const allCols = graphView.cols().concat(attributeView.cols()).concat(aqView.cols());
     const colOrder = this.tableManager.colOrder;
     const orderedCols = [];
-
+    const aqCols= [];
+    const aqColNames = new Set();
     this.allCols = allCols;
-
     for (const colName of colOrder) {
       for (const vector of allCols) {
         if (vector.desc.name === colName) {
           orderedCols.push(vector);
+        }
+        else if (this.tableManager.temporal_data.includes(colName) && vector.desc.name.includes(colName)){
+            aqCols.push(vector)
+            aqColNames.add(colName)
         }
       }
     }
@@ -641,10 +660,13 @@ class AttributeTable {
       }
     });
 
+    //Get the AQ matrix:
+
 
 
     //Find y indexes of all rows
     const allRows = Object.keys(y2personDict).map(Number);
+
     //Set height and width of svg
     this.height = Config.glyphSize * 4 * (maxRow);
     // select('.tableSVG').attr('viewBox','0 0 ' + this.width + ' ' + (this.height + this.margin.top + this.margin.bottom))
@@ -683,7 +705,7 @@ class AttributeTable {
     this.firstCol = [col];
 
     const colDataAccum = [];
-
+//collect all the data important
     let allPromises = [];
     orderedCols.forEach((vector, index) => {
       allPromises = allPromises.concat([
@@ -695,6 +717,77 @@ class AttributeTable {
       ]);
     });
     const finishedPromises = await Promise.all(allPromises);
+
+    const aqDataAccum = [];
+
+    let allaqPromises = [];
+
+    aqCols.forEach((vector)=>{
+      allaqPromises = allaqPromises.concat([
+        vector.data(),
+        vector.names(),
+        vector.desc.name,
+        vector.ids(),
+        vector.desc.value.range
+      ]);
+    });
+    const finishedAQPromises = await Promise.all(allaqPromises);
+
+    let aqDataDict = {}
+    aqCols.forEach((vector,index)=>{
+      aqDataDict[finishedAQPromises[index*5+2]] = {'data':finishedAQPromises[index*5],'ids':finishedAQPromises[index*5+1],
+      'range':finishedAQPromises[index*5+4]}
+    });
+
+
+    //TODO Make a scale for the each type
+
+    aqColNames.forEach((aqName, index)=>{
+      let personArrayDict = {};
+      finishedAQPromises[1].forEach((personID)=>{
+        personArrayDict[personID] =  new Array(29)
+      });
+      let range_counter = []
+
+      for (let i = -14; i < 15; i++){
+        const dayentry = aqDataDict[aqName+i.toString()]
+        const data = dayentry.data;
+        dayentry.ids.forEach((personID,number_index)=>{
+          personArrayDict[personID][i+14]=data[number_index];
+        })
+        range_counter = range_counter.concat(dayentry.range)
+      }
+
+
+      const col:any = {}
+      col.isSorted = false;
+      col.range =
+      col.ids = allRows.map((row)=>{
+        return y2personDict[row].map((d)=>{return d.split('_')[0];});
+      });
+      col.type = 'temporal'
+      col.name = aqName;
+      col.range = [min(range_counter),max(range_counter)]
+      col.data = allRows.map((row) => {
+          const colData = [];
+          const people = y2personDict[row];
+
+          people.map((person) => {
+            person = person.split('_')[0];
+            if (person in personArrayDict) {
+              colData.push(personArrayDict[person]);
+            } else {
+              colData.push(undefined);
+            }
+          });
+          return colData;
+        });
+        aqDataAccum.push(col)
+      });
+
+    //  console.log(aqDataAccum)
+
+
 
     // for (const vector of orderedCols) {
     orderedCols.forEach((vector, index) => {
@@ -877,39 +970,34 @@ class AttributeTable {
 
 
     });
+    aqDataAccum.forEach((aqDataCol,index)=>{
+      const indexToInsert = colOrder.indexOf(aqDataCol.name)
+      colDataAccum.splice(indexToInsert,0,aqDataCol);
+    })
+
     this.colData = colDataAccum;
 
     this.calculateOffset();
-
-
+  //  console.log(this.colData)
   }
 
   private calculateOffset() {
     this.colOffsets = [this.colWidths.dataDensity + this.buffer];
 
     const colOrder = this.tableManager.colOrder;
-    const orderedCols = [];
 
-    for (const colName of colOrder) {
-      for (const vector of this.allCols) {
-        if (vector.desc.name === colName) {
-          orderedCols.push(vector);
-        }
-      }
-    }
 
-    orderedCols.forEach((vector, index) => {
 
-      const type = vector.valuetype.type;
-      const name = vector.desc.name;
+    this.colData.forEach((data_entry, index) => {
+
+      const type = data_entry.type;
+      const name = data_entry.name;
 
       let maxOffset = max(this.colOffsets);
       if (type === VALUE_TYPE_CATEGORICAL) {
 
         //Build col offsets array ;
-        const allCategories = vector.desc.value.categories.map((c) => {
-          return c.name;
-        }); //get categories from index.json def
+        const allCategories = data_entry.allCategories;
         let categories;
 
 
@@ -968,7 +1056,9 @@ class AttributeTable {
   }
 
   private lazyScroll = _.throttle(this.updateSlopeLines, 300);
+
   //renders the DOM elements
+  //The big method TODO need to change for temporal
   private render() {
 
     // const t = transition('t').ease(easeLinear);
@@ -1035,7 +1125,9 @@ class AttributeTable {
           return d.name + ' (' + d.category + ')';
         } else if (d.category) {
           return d.name;
-        } else {
+        } else if (d.type === 'temporal') {
+          return d.name.slice(0,d.name.length-3)
+        }else {
           return d.name.slice(0, 8);
         };
 
@@ -1146,10 +1238,11 @@ class AttributeTable {
 
     // TABLE
     //Bind data to the col groups
+
     let cols = select('#columns').selectAll('.dataCols')
       .data(this.colData.map((d, i) => {
         return {
-          'name': d.name, 'data': d.data, 'ind': i, 'type': d.type,
+          'name': d.name, 'data': d.data, 'ind': i, 'type': d.type, 'range':d.range,
           'ids': d.ids, 'stats': d.stats, 'varName': d.name, 'category': d.category, 'vector': d.vector
         };
       }), (d: any) => {
@@ -1312,14 +1405,11 @@ class AttributeTable {
         .on('drag', dragged)
         .on('end', dragended));
 
-    // selectAll('.backgroundRect')
-    // .call(drag()
-    // .on('start', dragstarted)
-    // .on('drag', lazyDrag)
-    // .on('end', dragended));
-
+    //TODO self.renderTemporalHeader
+    //each cell is an object, that contains data
     colSummaries.each(function (cell) {
       if (cell.type === VALUE_TYPE_CATEGORICAL) {
+
         self.renderCategoricalHeader(select(this), cell);
       } else if (cell.type === VALUE_TYPE_INT || cell.type === VALUE_TYPE_REAL) {
         self.renderIntHeaderHist(select(this), cell);
@@ -1327,7 +1417,11 @@ class AttributeTable {
         self.renderStringHeader(select(this), cell);
       } else if (cell.type === 'id' || cell.type === 'idtype') {
         self.renderIDHeader(select(this), cell);
+      } else if (cell.type === 'temporal'){
+        self.renderTemporalHeader(select(this),cell);
       }
+
+
     });
 
 
@@ -1413,7 +1507,7 @@ class AttributeTable {
     let firstCol = select('#slopeChart').selectAll('.dataCols')
       .data(this.firstCol.map((d, i) => {
         const out = {
-          'name': d.name, 'data': d.data, 'ind': i, 'type': d.type,
+          'name': d.name, 'data': d.data, 'ind': i, 'type': d.type,'range':d.range,
           'ids': d.ids, 'stats': d.stats, 'varName': d.name, 'category': d.category, 'vector': d.vector
         };
         return out;
@@ -1442,6 +1536,7 @@ class AttributeTable {
             'type': d.type,
             'stats': d.stats,
             'varName': d.name,
+            'range':d.range,
             'category': d.category,
             'vector': d.vector
           };
@@ -1511,6 +1606,7 @@ class AttributeTable {
             'type': d.type,
             'stats': d.stats,
             'varName': d.name,
+            'range':d.range,
             'category': d.category,
             'vector': d.vector
           };
@@ -1556,16 +1652,19 @@ class AttributeTable {
         self.renderCategoricalCell(select(this), cell);
       } else if (cell.type === VALUE_TYPE_INT || cell.type === VALUE_TYPE_REAL) {
         self.renderIntCell(select(this), cell);
+      //  console.log(cell)
       } else if (cell.type === VALUE_TYPE_STRING) {
         self.renderStringCell(select(this), cell);
       } else if (cell.name === 'KindredID') {
         self.renderFamilyIDCell(select(this), cell);
       } else if (cell.type === 'id' || cell.type === 'idtype') {
-
         self.renderIdCell(select(this), cell);
       } else if (cell.type === 'dataDensity') {
         self.renderDataDensCell(select(this), cell);
+      } else if (cell.type === 'temporal'){
+        self.renderTemporalCell(select(this),cell);
       }
+
 
     });
 
@@ -2201,6 +2300,10 @@ class AttributeTable {
 
   };
 
+  private renderTemporalHeader(element, headerData){
+      //design a temporal header TODO
+  }
+
 
   /**
    *
@@ -2482,18 +2585,19 @@ class AttributeTable {
       } else if (data.type === 'string') {
         content = data.name + ' : ' + data.data[0].toString().toLowerCase();
       } else if (data.type === 'dataDensity') {
-      content = data.name + ' : ' + (data.data[0] ? data.data[0].toLowerCase() : data.data);
-    } else if (data.type === 'idtype') {
-  content = data.name + ' : ' +  data.data;
-}
+        content = data.name + ' : ' + (data.data[0] ? data.data[0].toLowerCase() : data.data);
+      } else if (data.type === 'idtype') {
+        content = data.name + ' : ' +  data.data;
+      }else if (data.type === 'temporal'){
+        content = data.data[0].map(d=>d.toFixed(1));
+      }}
 
-    } else if (type === 'header') {
-      content = (data.type === 'categorical' ? (data.name + '(' + data.category + ') ') : data.name);
-    };
+     else if (type === 'header') {
+        content = (data.type === 'categorical' ? (data.name + '(' + data.category + ') ') : data.name);
+      } ;
 
     let menuWidth = 10; //dummy value. to be updated;
     const menuHeight = 30;
-
 
     select('#tooltipMenu')
     .select('svg').remove();
@@ -2515,7 +2619,7 @@ class AttributeTable {
       .append('text')
       .attr('x', 10)
       .attr('y', 20)
-      .text(() => content)
+      .text(content)
       .classed('tooltipTitle', true);
 
     const textNode = <SVGTSpanElement>menu.select('text').node();
@@ -2784,6 +2888,75 @@ class AttributeTable {
 
   }
 
+  private renderTemporalCell(element,cellData){
+    const colWidth = this.customColWidths[cellData.name]||this.colWidths.temporal;
+    const rowHeight = this.rowHeight;
+    //make a scale for the data
+    const xLineScale = scaleLinear().domain([0,28]).range([0,colWidth]);
+    const yLineScale = scaleLinear().domain(cellData.range).range([0,rowHeight]);
+    if (cellData.data[0]===undefined){
+
+        if (element.selectAll('.cross_out').size() === 0) {
+          element
+            .append('line')
+            .attr('class', 'cross_out');
+        }
+
+        element.select('.cross_out')
+          .attr('x1', colWidth * 0.3)
+          .attr('y1', rowHeight / 2)
+          .attr('x2', colWidth * 0.6)
+          .attr('y2', rowHeight / 2)
+          .attr('stroke-width', 2)
+          .attr('stroke', '#9e9d9b')
+          .attr('opacity', .6);
+
+        return;
+      }
+
+    else{
+      //TODO make a red line on the day of the death
+      let dataArray = cellData.data[0];
+      dataArray = dataArray.map(d=>isNaN(d)? 0 : d);
+
+      element.append('rect')
+        .classed('quant', true);
+      element
+          .select('.quant')
+          .attr('width', (d) => {
+            return colWidth;
+          })
+          .attr('height', rowHeight);
+    element.select('#line_marker').remove();
+
+    let line_marker = element.append('line')
+                          .attr('id','line_marker')
+                          .attr('x1',xLineScale(14))
+                          .attr('y1',0)
+                          .attr('x2',xLineScale(14))
+                          .attr('y2',rowHeight)
+                          .attr('stroke','red')
+
+
+     let line = element.selectAll('.line_graph')
+                        .data(dataArray.slice(0,28))
+                        .enter()
+                        .append('line');
+
+      line.exit().remove();
+      line = line.merge(line)
+                .attr('x1',(d,i)=>xLineScale(i))
+                .attr('y1',(d,i)=>rowHeight-yLineScale(dataArray[i]))
+                .attr('x2',(d,i)=>xLineScale(i+1))
+                .attr('y2',(d,i)=>rowHeight-yLineScale(dataArray[i+1]))
+                .classed('line_graph',true)
+                .attr('stroke','steelblue');
+
+
+    }
+
+  }
+
   /**
    *
    * This function renders the content of Quantitative (type === int)  Cells in the Table View.
@@ -2793,14 +2966,8 @@ class AttributeTable {
    */
   private renderIntCell(element, cellData) {
 
-    // console.log(cellData);
-
-    // console.log(cellData)
-    //Check for custom column width value, if none, use default
     const colWidth = this.customColWidths[cellData.name] || this.colWidths.int;
-
-    // const colWidth = this.colWidths.int; //this.getDisplayedColumnWidths(this.width).find(x => x.name === cellData.name).width
-    const rowHeight = this.rowHeight;
+  const rowHeight = this.rowHeight;
     const radius = 3.5;
 
     const jitterScale = scaleLinear()

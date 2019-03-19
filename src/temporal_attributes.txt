@@ -1,0 +1,1 @@
+['ptot','pm25', 'meanO3','maxO3','meanNO2','maxNO2','cloudy','opaque','Tcloud','AirTemp','Pressure','RH','daylength','daydiff']

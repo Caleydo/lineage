@@ -129,21 +129,27 @@ export default class TableManager {
   /** The table that contains attribute information */
   attributeTable: ITable;
 
+  airqualityTable: ITable;
   /** The table view (of attributeTable) used in the table visualization */
   public tableTable: ITable; // table view
-  /** The columns currently displayed in the table */
+
+  public AQTable: ITable;
+    /** The columns currently displayed in the table */
   private activeTableColumns: range.Range = range.all(); //default value;
   /** The rows currently shown in the table, a subset of the activeGraphRows */
   private _activeTableRows: range.Range = range.all(); //default value;
 
 
-  /** The table view (of table) used for the graph */
+  /** The table view (of table) used for the graph, all thbe rows that are current in the view */
   public graphTable: ITable; // table view
   /** All rows that are used in the graph - corresponds to a family */
   private _activeGraphRows: range.Range = range.all();
   /** The columns currently displayed in the graph  */
   private activeGraphColumns: range.Range = range.all(); //default value
   /** Array of Selected Attributes in the Panel */
+
+  private _activeAQrows: range.Range = range.all()
+  private activeAQColumns:range.Range = range.all()
   private _selectedAttributes: selectedAttribute[];
 
   // private defaultCols: String[] =
@@ -172,6 +178,10 @@ export default class TableManager {
 
   public dataSets = ['Dataset 1','Dataset 2', 'Dataset 3'];
 
+  public temporal_data  = ['ptotday','pm25day', 'meanO3day','maxO3day','meanNO2day','maxNO2day','cloudyday','opaqueday',
+          'Tcloudday','AirTempday','Pressureday','RHday','daylengthday','daydiffday']
+
+
   //Keeps track of selected primary/secondary variable
   private primaryAttribute: IPrimaryAttribute;
 
@@ -189,6 +199,7 @@ export default class TableManager {
     this.updateFamilySelector(attributeName,undefined,false);
   }
 
+
   /**
    * Loads the graph data and the attribute data from the server and stores it in the public table variable
    * Parses out the familySpecific information to populate the Family Selector
@@ -199,7 +210,7 @@ export default class TableManager {
     if (descendDataSetID === 'AllFamiliesDescend' || descendDataSetID ===  'TenFamiliesDescend') {
       // this.defaultCols = ['KindredID', 'RelativeID', 'sex', 'deceased', 'suicide', 'Age','LabID','alcohol','Nr.Diag_alcohol','psychosis','Nr.Diag_psychosis','anxiety-non-trauma','Nr.Diag_anxiety-non-trauma', 'depression','cause_death']; //set of default cols to read in, minimizes load time for large files;
       //this.defaultCols = ['KindredID', 'RelativeID', 'sex', 'deceased', 'suicide', 'Age','bipolar spectrum illness','anxiety-non-trauma','alcohol','PD','psychosis','depression','cause_death','zip','longitude','latitude']; //set of default cols to read in, minimizes load time for large files;
-      this.defaultCols = ['KindredID', 'RelativeID', 'sex', 'bdate', 'ddate', 'Age','bipolar spectrum illness','depression','cause_death','zip','longitude','latitude','CountyCode']; //set of default cols to read in, minimizes load time for large files;
+      this.defaultCols = ['KindredID', 'RelativeID', 'sex', 'bdate', 'ddate', 'Age','zip','longitude','latitude','CountyCode']; //set of default cols to read in, minimizes load time for large files;
 
     } else {
       this.defaultCols = ['KindredID', 'RelativeID', 'sex', 'affected', 'labid'];
@@ -226,10 +237,11 @@ export default class TableManager {
     };
 
     this.attributeTable = attributeTable;
-
     //retrieving the desired dataset by name
     this.table = <ITable>await getById(descendDataSetID);
 
+    this.airqualityTable = <ITable>await getById('matched_aq_merged')
+  //  console.log(this.airqualityTable)
     await this.parseFamilyInfo(); //this needs to come first because the setAffectedState sets default values based on the data for a selected family.
     return Promise.resolve(this);
   }
@@ -246,7 +258,6 @@ export default class TableManager {
   public getAttribute(attribute, personID) {
 
     let selectedAttribute;
-
     if (attribute === this.affectedState.name) {
       selectedAttribute = this.affectedState;
     } else if (this.primaryAttribute && attribute === this.primaryAttribute.name) {
@@ -272,7 +283,7 @@ export default class TableManager {
   }
 
   /**
-   *
+   *TODO add AQ vector
    * This function get the requested attribute vector.
    *
    * @param attribute - attribute to search for
@@ -282,10 +293,12 @@ export default class TableManager {
 
     let allColumns;
     //Find Vector of that attribute in either table.
+    //TODO concat with AQ
     if (this.graphTable && !allFamilies) { //familyView has been defined && allFamilies has not been requested)
-      allColumns = this.graphTable.cols().concat(this.tableTable.cols());
+
+      allColumns = this.graphTable.cols().concat(this.tableTable.cols()).concat(this.AQTable.cols());
     } else {
-      allColumns = this.table.cols().concat(this.attributeTable.cols());
+      allColumns = this.table.cols().concat(this.attributeTable.cols()).concat(this.airqualityTable.cols());
     }
 
     let attributeVector = undefined;
@@ -298,6 +311,7 @@ export default class TableManager {
     return attributeVector;
   }
 
+  //TODO need to change
 
   public async setPrimaryAttribute(attributeName?) {
 
@@ -528,11 +542,14 @@ export default class TableManager {
     await this.refreshActiveGraphView();
 
     //Update the activeAttributeRows. This ensure that vector.stats() returns the correct values in the table.
-
+    //important part seems like
     const familyMembersRange = await this.graphTable.col(0).ids();
     const familyMembers = familyMembersRange.dim(0).asList();
     const attributeMembersRange = await this.attributeTable.col(0).ids();
     const attributeMembers = attributeMembersRange.dim(0).asList();
+
+    const aqMembersRange = await this.airqualityTable.col(0).ids();
+    const aqMembers = aqMembersRange.dim(0).asList()
 
     const attributeRows = [];
 
@@ -542,10 +559,20 @@ export default class TableManager {
       }
     });
 
+    const aqattributeRows = [];
+
+    aqMembers.forEach((member,i)=>{
+      if (familyMembers.indexOf(member)>-1){
+        aqattributeRows.push(i)
+      }
+    })
+
+//What does this do?
     this._activeTableRows = range.list(attributeRows);
+    this._activeAQrows = range.list(aqattributeRows)
 
     await this.refreshActiveTableView();
-
+    await this.refreshActiveAQView()
     this.updatePOI_Primary();
       events.fire(FAMILY_SELECTED_EVENT);
 
@@ -653,7 +680,7 @@ export default class TableManager {
   /**
    * This function is called after loadData.
    * This function populates needed variables for attribute table and attribute panel
-   *
+   * IMPORTANT: This is never called?
    */
   public async parseAttributeData() {
     const columns = await this.attributeTable.cols();
@@ -671,8 +698,7 @@ export default class TableManager {
 
     this._activeTableRows = range.all();
     this.activeTableColumns = range.list(colIndexAccum);
-
-    console.log(this.activeTableColumns)
+  //  console.log(this.activeTableColumns)
     await this.refreshActiveTableView();
 
   }
@@ -752,6 +778,11 @@ export default class TableManager {
     this.graphTable = await this.table.view(graphRange); //view on graph table
   }
 
+  public async refreshActiveAQView(){
+    const aqRange = range.join(this._activeAQrows,this.activeAQColumns);
+    this.AQTable = await this.airqualityTable.view(aqRange);
+  }
+
 
   /**
    * Updates the active rows for the table visualization, creates a new table view and fires a {TABLE_VIS_ROWS_CHANGED} event.
@@ -805,6 +836,23 @@ export default class TableManager {
 
   public getAttrColumns() {
     return this.attributeTable.cols();
+  }
+
+  public getAirQualityColumns(AQTable){
+    let colNames = AQTable.cols().map((col)=>{
+      let is_returnable = true;
+      for (let item in this.temporal_data){
+        if (col.desc.name.includes(item)){
+          is_returnable = false;
+          break;
+        }
+      }
+      if (is_returnable){
+      return col.desc.name;
+    }
+    })
+    colNames = colNames.filter(e=>e!=null)
+    return colNames.concat(this.temporal_data)
   }
 }
 

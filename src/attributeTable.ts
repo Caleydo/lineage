@@ -2302,6 +2302,25 @@ class AttributeTable {
 
   private renderTemporalHeader(element, headerData){
       //design a temporal header TODO
+      console.log(headerData)
+      const colWidth = this.customColWidths[headerData.name] || this.colWidths.temporal;
+
+      const height = this.headerHeight;
+
+      element.select('.backgroundRect')
+        .attr('width', colWidth + 10)
+        .attr('height', height + 11);
+
+      element.select('.resizeBar')
+        .attr('x1', colWidth + this.buffer / 2)
+        .attr('x2', colWidth + this.buffer / 2)
+        .attr('y1', -11)
+        .attr('y2', height)
+        .attr('stroke-width', '4px')
+        .attr('stroke', 'white');
+
+        this.addSortingIcons(element, headerData);
+
   }
 
 
@@ -2588,8 +2607,15 @@ class AttributeTable {
         content = data.name + ' : ' + (data.data[0] ? data.data[0].toLowerCase() : data.data);
       } else if (data.type === 'idtype') {
         content = data.name + ' : ' +  data.data;
-      }else if (data.type === 'temporal'){
-        content = data.data[0].map(d=>d.toFixed(1));
+      }else if (data.type === 'temporal' && data.data[0]!= undefined){
+      //  content = data.data[0].map(d=>d.toFixed(1));
+        let dataArray = data.data[0]
+        let before_average = mean(dataArray.slice(0,14))  ;
+        before_average = before_average==undefined?NaN : before_average;
+        let after_average = mean(dataArray.slice(15,29));
+        after_average = after_average == undefined? NaN : after_average;
+        //console.log(dataArray,before_array,after_array)
+        content = 'Before Average: ' + before_average + ' After Average: ' + after_average;
       }}
 
      else if (type === 'header') {
@@ -2917,7 +2943,7 @@ class AttributeTable {
     else{
       //TODO make a red line on the day of the death
       let dataArray = cellData.data[0];
-      dataArray = dataArray.map(d=>isNaN(d)? 0 : d);
+      let cleaned_dataArray = dataArray.map(d=>isNaN(d)? 0 : d);
 
       element.append('rect')
         .classed('quant', true);
@@ -2946,11 +2972,15 @@ class AttributeTable {
       line.exit().remove();
       line = line.merge(line)
                 .attr('x1',(d,i)=>xLineScale(i))
-                .attr('y1',(d,i)=>rowHeight-yLineScale(dataArray[i]))
+                .attr('y1',(d,i)=>rowHeight-yLineScale(cleaned_dataArray[i]))
                 .attr('x2',(d,i)=>xLineScale(i+1))
-                .attr('y2',(d,i)=>rowHeight-yLineScale(dataArray[i+1]))
+                .attr('y2',(d,i)=>rowHeight-yLineScale(cleaned_dataArray[i+1]))
                 .classed('line_graph',true)
-                .attr('stroke','steelblue');
+                .attr('stroke',(d,i)=>{
+                  if (isNaN(dataArray[i]) || isNaN(dataArray[i+1]))
+                  { return '#ececec';}
+                  else
+                  {return 'steelblue';}});
 
 
     }

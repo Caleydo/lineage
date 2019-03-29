@@ -8,7 +8,7 @@ import { drag } from 'd3-drag';
 import { format } from 'd3-format';
 import { scaleLinear, scaleOrdinal, schemeCategory20c } from 'd3-scale';
 import { max, min, mean } from 'd3-array';
-import { axisTop, axisBottom } from 'd3-axis';
+import { axisTop, axisBottom,axisLeft } from 'd3-axis';
 import * as range from 'phovea_core/src/range';
 import { isNullOrUndefined } from 'util';
 import { transition } from 'd3-transition';
@@ -50,7 +50,7 @@ class AttributeTable {
 
   private width;
   private height;
-  private buffer = 13; //pixel dist between columns
+  private buffer = 20; //pixel dist between columns
 
   //for entire Table
   private y = scaleLinear();
@@ -120,6 +120,7 @@ class AttributeTable {
   private sortedRowOrder: number[]; //keeps track of the sorted order of rows (defined when a column is sorted)
 
   private t2 = transition('t2').duration(600).ease(easeLinear);
+
 
   constructor(parent: Element) {
     this.$node = select(parent);
@@ -492,14 +493,6 @@ class AttributeTable {
             return ('translate(' + Config.collapseSlopeChartWidth + ' ,95)');
           });
 
-
-
-        // select('#tableHeaders')
-        //   .transition(t2)
-        //   .attr('transform', () => {
-        //     return ('translate(0,0)');
-        //   });
-
         select('#colSummaries')
           // .transition(t2)
           .attr('transform', () => {
@@ -528,6 +521,8 @@ class AttributeTable {
       .attr('fill', '#757472')
       .text('Sort by Tree')
       .attr('text-anchor', 'middle');
+
+
 
     // this.updateSlopeLines(false);
 
@@ -607,7 +602,7 @@ class AttributeTable {
     const graphView = await this.tableManager.graphTable;
     const attributeView = await this.tableManager.tableTable;
     const aqView = await this.tableManager.AQTable;
-
+    const self  = this;
     const allCols = graphView.cols().concat(attributeView.cols()).concat(aqView.cols());
     const colOrder = this.tableManager.colOrder;
     const orderedCols = [];
@@ -761,11 +756,16 @@ class AttributeTable {
 
       const col:any = {}
       col.isSorted = false;
-      col.range =
+      col.average_limit = 14
+      if (self.colData != undefined){
+        if (self.colData.filter(d=>d.name==aqName).length >0){
+        col.average_limit = self.colData.filter(d=>d.name==aqName)[0].average_limit;
+        }
+      }
       col.ids = allRows.map((row)=>{
         return y2personDict[row].map((d)=>{return d.split('_')[0];});
       });
-      col.type = 'temporal'
+      col.type = 'temporal';
       col.name = aqName;
       col.range = [min(range_counter),max(range_counter)]
       col.data = allRows.map((row) => {
@@ -1073,7 +1073,9 @@ class AttributeTable {
       .data(this.colData.map((d: any, i) => {
         return {
           'name': d.name, 'data': d, 'ind': i, 'type': d.type,
-          'max': d.max, 'min': d.min, 'mean': d.mean, 'allCategories': d.allCategories, 'category': d.category, 'isSorted': d.isSorted
+          'max': d.max, 'min': d.min, 'mean': d.mean,
+          'allCategories': d.allCategories, 'category': d.category,
+          'isSorted': d.isSorted, 'average_limit':d.average_limit
         };
       }), (d: any) => {
         return d.name;
@@ -1243,6 +1245,7 @@ class AttributeTable {
       .data(this.colData.map((d, i) => {
         return {
           'name': d.name, 'data': d.data, 'ind': i, 'type': d.type, 'range':d.range,
+          'average_limit':d.average_limit,
           'ids': d.ids, 'stats': d.stats, 'varName': d.name, 'category': d.category, 'vector': d.vector
         };
       }), (d: any) => {
@@ -1538,7 +1541,8 @@ class AttributeTable {
             'varName': d.name,
             'range':d.range,
             'category': d.category,
-            'vector': d.vector
+            'vector': d.vector,
+            'average_limit': d.average_limit
           };
         });
       }, (d: any) => {
@@ -1608,7 +1612,8 @@ class AttributeTable {
             'varName': d.name,
             'range':d.range,
             'category': d.category,
-            'vector': d.vector
+            'vector': d.vector,
+            'average_limit': d.average_limit
           };
         });
       }, (d: any) => {
@@ -1748,7 +1753,7 @@ class AttributeTable {
   /**
    *
    * This function sorts the table by the current Attribute
-   *
+   * TODO add temporal sort
    * @param d data to be sorted
    * @param ascending, boolean flag set to true if sort order is ascending
    */
@@ -1768,7 +1773,6 @@ class AttributeTable {
     const toSort = this.colData.find((c) => {
       return c.name === d.name;
     }).data;
-
     // temporary array holds objects with position and sort-value
     const mapped = toSort.map(function (el, i) {
       if (d.type === VALUE_TYPE_REAL || d.type === VALUE_TYPE_INT) {
@@ -1789,10 +1793,19 @@ class AttributeTable {
           return (a === b) ? a : NaN;
         }); //check for array that has all equal values in an aggregate (such as KindredId);
         return isNaN(equalValues) ? { index: i, value: undefined } : { index: i, value: equalValues };
+      } else if (d.type === 'temporal'){
+        let dataArray = el[0]
+        let before_average = undefined;
+        if (dataArray!==undefined){
+          before_average = mean(dataArray.slice(14-d.average_limit,14))  ;
+        }
+        return {
+          index: i, value: before_average
+        };
       }
 
     });
-
+    
     const equalValues = mapped.reduce(function (a, b) {
       return (a.value === b.value) ? a : NaN;
     }); //check for array that has all equal values in an aggregate (such as KindredId);
@@ -1802,11 +1815,7 @@ class AttributeTable {
       return;
     }
 
-    // select('#revertTreeOrder')
-    //   // .transition(t2.transition().duration(500).ease(easeLinear))
-    //   .attr('visibility', 'visible');
 
-    // sorting the mapped array containing the reduced values
     if (sortOrder === sortedState.Ascending) {
       mapped.sort(function (a, b) {
         if (a.value === b.value) {
@@ -2028,9 +2037,13 @@ class AttributeTable {
     } else if (d.type === 'categorical' && d.allCategories.length > 3) {
       option1 = 'Show ' + d.category;
       option2 = 'Show NOT ' + d.category;
+    } else if(d.type === 'temporal'){
+      option1 = 'Set Average Limit'
+      option2 = 'Change View Type'
     }
 
-    const menuLabels = (d.type === 'categorical' ? [option1, option2, 'Set as POI', 'Set as Primary Attribute', 'Star'] : ['Set as POI', 'Set as Primary Attribute',  'Star']);
+    const menuLabels = (d.type === 'categorical'||d.type==='temporal' ? [option1, option2, 'Set as POI', 'Set as Primary Attribute', 'Star'] : ['Set as POI', 'Set as Primary Attribute',  'Star']);
+
     const menuObjects = menuLabels.map((m)=> {return {label:m,attr:d.name};});
 
     const container = document.getElementById('app');
@@ -2106,7 +2119,7 @@ class AttributeTable {
           const header = select('#' + this.deriveID(d) + '_header');
           const starBackground = select('.starRect_' + this.deriveID(d));
           header.classed('star', !header.classed('star'));
-
+          console.log(header)
           if (header.classed('star')) {
             this.tableManager.addStar(d.name, d.category);
             starBackground.attr('opacity', .2);
@@ -2167,6 +2180,17 @@ class AttributeTable {
             return ee.label.includes('Primary') && this.tableManager.primaryAttribute && this.tableManager.primaryAttribute.name === d.name;
           });
 
+        }
+        else if (e.label.includes('Average')){
+          let new_limit = parseInt(prompt("Please set average limit for column " + d.name, d.average_limit));
+
+          if (!isNaN(new_limit) && new_limit >0 && new_limit <=14 ){
+            this.colData.filter(col=>col.name === d.name)[0].average_limit = new_limit;
+            this.update();
+          }
+          else{
+            alert("Invalid Input");
+          }
         }
         select('#treeMenu').select('.menu').remove();
       });
@@ -2302,10 +2326,12 @@ class AttributeTable {
 
   private renderTemporalHeader(element, headerData){
       //design a temporal header TODO
-      console.log(headerData)
       const colWidth = this.customColWidths[headerData.name] || this.colWidths.temporal;
 
       const height = this.headerHeight;
+
+      const xLineScale = scaleLinear().domain([-14,14]).range([0,colWidth]);
+      const yLineScale = scaleLinear().domain([headerData.range[1],headerData.range[0]]).range([0,height]);
 
       element.select('.backgroundRect')
         .attr('width', colWidth + 10)
@@ -2319,7 +2345,54 @@ class AttributeTable {
         .attr('stroke-width', '4px')
         .attr('stroke', 'white');
 
-        this.addSortingIcons(element, headerData);
+      this.addSortingIcons(element, headerData);
+        //Add X-Axis and Y-Axis
+      element.selectAll('.axis').remove();
+      element.append('g')
+          .attr('class', 'axis axis--x')
+          .classed('hist_xscale', true)
+          .call(axisBottom(xLineScale).tickValues([-14,0,14]).tickSize(5))
+          .attr('transform', 'translate(0,' + height + ')');
+
+      element.append('g')
+          .attr('class','axis axis--y')
+          .call(axisLeft(yLineScale).tickArguments([4,'d']).tickSize(5))
+
+      const data_list = headerData.data.filter(d=>d.length ==1 && d[0]!== undefined);
+
+
+      element.selectAll('.line_graph').remove()
+      data_list.forEach((dataArray)=>{
+          dataArray = dataArray[0]
+          let cleaned_dataArray = dataArray.map(d=>isNaN(d)? 0 : d);
+
+          element.selectAll('.playce_holder')
+                 .data(dataArray.slice(0,28))
+                 .enter()
+                 .append('line')
+                 .attr('x1',(d,i)=>xLineScale(i-14))
+                 .attr('y1',(d,i)=>yLineScale(cleaned_dataArray[i]))
+                 .attr('x2',(d,i)=>xLineScale(i-13))
+                 .attr('y2',(d,i)=>yLineScale(cleaned_dataArray[i+1]))
+                 .classed('line_graph',true)
+                 .attr('stroke',(d,i)=>{
+                  if (isNaN(dataArray[i]) || isNaN(dataArray[i+1]))
+                               { return 'none';}
+                  else
+                    {return 'steelblue';}});
+      })
+
+
+      element.select('#line_marker').remove();
+      let line_marker = element.append('line')
+                            .attr('id','line_marker')
+                            .attr('x1',xLineScale(0))
+                            .attr('y1',0)
+                            .attr('x2',xLineScale(0))
+                            .attr('y2',height)
+                            .attr('stroke','red')
+
+
 
   }
 
@@ -2579,10 +2652,8 @@ class AttributeTable {
   }
 
   private addTooltip(type, data = null) {
-    // console.log('adding tooltip');
     const container = document.getElementById('app');
     const coordinates = mouse(container);
-
     let content;
     if (type === 'cell') {
       if (data.type === 'categorical') {
@@ -2609,13 +2680,15 @@ class AttributeTable {
         content = data.name + ' : ' +  data.data;
       }else if (data.type === 'temporal' && data.data[0]!= undefined){
       //  content = data.data[0].map(d=>d.toFixed(1));
+
         let dataArray = data.data[0]
-        let before_average = mean(dataArray.slice(0,14))  ;
-        before_average = before_average==undefined?NaN : before_average;
-        let after_average = mean(dataArray.slice(15,29));
-        after_average = after_average == undefined? NaN : after_average;
-        //console.log(dataArray,before_array,after_array)
-        content = 'Before Average: ' + before_average + ' After Average: ' + after_average;
+
+        let before_average = mean(dataArray.slice(14-data.average_limit,14))  ;
+        before_average = before_average==undefined ? NaN : before_average;
+        let after_average = mean(dataArray.slice(15,15+data.average_limit));
+        after_average = after_average == undefined ? NaN : after_average;
+        content = 'Before Average: ' + before_average.toFixed(2).toString() + ' After Average: ' + after_average.toFixed(2).toString();
+
       }}
 
      else if (type === 'header') {
@@ -2941,7 +3014,7 @@ class AttributeTable {
       }
 
     else{
-      //TODO make a red line on the day of the death
+
       let dataArray = cellData.data[0];
       let cleaned_dataArray = dataArray.map(d=>isNaN(d)? 0 : d);
 
@@ -2953,24 +3026,38 @@ class AttributeTable {
             return colWidth;
           })
           .attr('height', rowHeight);
-    element.select('#line_marker').remove();
+    element.selectAll('.line_marker').remove();
 
     let line_marker = element.append('line')
-                          .attr('id','line_marker')
+                          .attr('class','line_marker')
                           .attr('x1',xLineScale(14))
                           .attr('y1',0)
                           .attr('x2',xLineScale(14))
                           .attr('y2',rowHeight)
                           .attr('stroke','red')
+    let aver_line_before = element.append('line')
+                                  .attr('class','line_marker')
+                                  .attr('x1', xLineScale(14-cellData.average_limit))
+                                  .attr('y1',0)
+                                  .attr('x2', xLineScale(14-cellData.average_limit))
+                                  .attr('y2', rowHeight)
+                                  .attr('stroke','red')
+                                  .attr('stroke-dasharray', '5,5')
 
+    let aver_line_after = element.append('line')
+                                  .attr('class','line_marker')
+                                  .attr('x1', xLineScale(14+cellData.average_limit))
+                                  .attr('y1',0)
+                                  .attr('x2', xLineScale(14+cellData.average_limit))
+                                  .attr('y2', rowHeight)
+                                  .attr('stroke','red')
+                                  .attr('stroke-dasharray', '5,5')
+    element.selectAll('.line_graph').remove()
 
-     let line = element.selectAll('.line_graph')
-                        .data(dataArray.slice(0,28))
-                        .enter()
-                        .append('line');
-
-      line.exit().remove();
-      line = line.merge(line)
+    element.selectAll('.line_graph')
+            .data(dataArray.slice(0,28))
+              .enter()
+              .append('line')
                 .attr('x1',(d,i)=>xLineScale(i))
                 .attr('y1',(d,i)=>rowHeight-yLineScale(cleaned_dataArray[i]))
                 .attr('x2',(d,i)=>xLineScale(i+1))

@@ -90,17 +90,9 @@ export const FAMILY_INFO_UPDATED = 'family_stats_updated';
 export const COL_ORDER_CHANGED_EVENT = 'col_ordering_changed';
 export const FAMILY_SELECTED_EVENT = 'family_selected_event';
 export const UPDATE_TABLE_EVENT = 'update_table';
+export const SET_ALL_AVERAGE_LIMIT_EVENT = 'all_average_limit_changed';
 
 
-// export const PRIMARY_COLOR = '#335b8e';
-// export const PRIMARY_COLOR_2 = '#b5b867';
-//
-// export const SECONDARY_COLOR = '#9f295d';
-// export const SECONDARY_COLOR_2 = '#e7a396';
-//
-// export const PRIMARY_CATEGORICAL_COLORS = ['#b5b867', '#ffea59', '#b7dbdb', '#335b8e', '#6ca18f'];
-// export const SECONDARY_CATEGORICAL_COLORS = ['#e7a396', '#9f295d', '#d9a34b', '#ecd1ca', '#430e00']; //
-//
 
 export const POI_COLOR = '#285880';
 export const POI_COLOR_2 = '#49aaf3';
@@ -151,10 +143,6 @@ export default class TableManager {
   private _activeAQrows: range.Range = range.all()
   private activeAQColumns:range.Range = range.all()
   private _selectedAttributes: selectedAttribute[];
-
-  // private defaultCols: String[] =
-  //   ['KindredID','PersonID', 'Asthma', 'Bipolar', 'sex', 'deceased', 'suicide', 'gen', 'Age', 'FirstBMI', 'AgeFirstBMI', 'race', 'cause_death', 'weapon']; //set of default cols to read in, minimizes load time for large files;
-
   private defaultCols: String[];
 
   // //default cols for Autism data
@@ -177,6 +165,8 @@ export default class TableManager {
   public affectedState: IAffectedState;
 
   public dataSets = ['Dataset 1','Dataset 2', 'Dataset 3'];
+
+//The array indicates the columns that are temporal
 
   public temporal_data  = ['ptotday','pm25day', 'meanO3day','maxO3day','meanNO2day','maxNO2day','cloudyday','opaqueday',
           'Tcloudday','AirTempday','Pressureday','RHday','daylengthday','daydiffday']
@@ -210,7 +200,7 @@ export default class TableManager {
     if (descendDataSetID === 'AllFamiliesDescend' || descendDataSetID ===  'TenFamiliesDescend') {
       // this.defaultCols = ['KindredID', 'RelativeID', 'sex', 'deceased', 'suicide', 'Age','LabID','alcohol','Nr.Diag_alcohol','psychosis','Nr.Diag_psychosis','anxiety-non-trauma','Nr.Diag_anxiety-non-trauma', 'depression','cause_death']; //set of default cols to read in, minimizes load time for large files;
       //this.defaultCols = ['KindredID', 'RelativeID', 'sex', 'deceased', 'suicide', 'Age','bipolar spectrum illness','anxiety-non-trauma','alcohol','PD','psychosis','depression','cause_death','zip','longitude','latitude']; //set of default cols to read in, minimizes load time for large files;
-      this.defaultCols = ['KindredID', 'RelativeID', 'sex', 'bdate', 'ddate', 'ptotday','zip','longitude','latitude','CountyCode']; //set of default cols to read in, minimizes load time for large files;
+      this.defaultCols = ['KindredID','maxNO2day', 'RelativeID', 'sex', 'bdate', 'ddate', 'ptotday','zip','longitude','latitude','CountyCode']; //set of default cols to read in, minimizes load time for large files;
 
     } else {
       this.defaultCols = ['KindredID', 'RelativeID', 'sex', 'affected', 'labid'];
@@ -226,11 +216,6 @@ export default class TableManager {
     } catch (err) {
       return undefined;
   }
-
-    // console.log('error is ',error)
-    // if (error) {
-    //   return undefined;
-    // }
 
     if (!attributeTable) {
       return;
@@ -293,7 +278,6 @@ export default class TableManager {
 
     let allColumns;
     //Find Vector of that attribute in either table.
-    //TODO concat with AQ
     if (this.graphTable && !allFamilies) { //familyView has been defined && allFamilies has not been requested)
 
       allColumns = this.graphTable.cols().concat(this.tableTable.cols()).concat(this.AQTable.cols());
@@ -310,8 +294,6 @@ export default class TableManager {
 
     return attributeVector;
   }
-
-  //TODO need to change
 
   public async setPrimaryAttribute(attributeName?) {
 
@@ -567,7 +549,6 @@ export default class TableManager {
       }
     })
 
-//What does this do?
     this._activeTableRows = range.list(attributeRows);
     this._activeAQrows = range.list(aqattributeRows)
 

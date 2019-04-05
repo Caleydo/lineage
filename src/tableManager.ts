@@ -91,6 +91,7 @@ export const COL_ORDER_CHANGED_EVENT = 'col_ordering_changed';
 export const FAMILY_SELECTED_EVENT = 'family_selected_event';
 export const UPDATE_TABLE_EVENT = 'update_table';
 export const SET_ALL_AVERAGE_LIMIT_EVENT = 'all_average_limit_changed';
+export const HIDE_FAMILY_TREE = 'hide_family_tree'
 
 
 
@@ -200,7 +201,7 @@ export default class TableManager {
     if (descendDataSetID === 'AllFamiliesDescend' || descendDataSetID ===  'TenFamiliesDescend') {
       // this.defaultCols = ['KindredID', 'RelativeID', 'sex', 'deceased', 'suicide', 'Age','LabID','alcohol','Nr.Diag_alcohol','psychosis','Nr.Diag_psychosis','anxiety-non-trauma','Nr.Diag_anxiety-non-trauma', 'depression','cause_death']; //set of default cols to read in, minimizes load time for large files;
       //this.defaultCols = ['KindredID', 'RelativeID', 'sex', 'deceased', 'suicide', 'Age','bipolar spectrum illness','anxiety-non-trauma','alcohol','PD','psychosis','depression','cause_death','zip','longitude','latitude']; //set of default cols to read in, minimizes load time for large files;
-      this.defaultCols = ['KindredID','maxNO2day', 'RelativeID', 'sex', 'bdate', 'ddate', 'ptotday','zip','longitude','latitude','CountyCode']; //set of default cols to read in, minimizes load time for large files;
+      this.defaultCols = ['KindredID','maxNO2day','ptotday', 'RelativeID', 'sex', 'bdate', 'ddate', 'zip','longitude','latitude','CountyCode']; //set of default cols to read in, minimizes load time for large files;
 
     } else {
       this.defaultCols = ['KindredID', 'RelativeID', 'sex', 'affected', 'labid'];

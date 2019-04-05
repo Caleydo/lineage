@@ -10,7 +10,7 @@ import * as tree from './genealogyTree';
 import * as table from './attributeTable';
 import * as panel from './attributePanel';
 import * as familySelector from './familySelector';
-import * as mapview from 'mapview';
+import * as mapview from './mapView';
 
 
 

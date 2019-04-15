@@ -14,6 +14,8 @@ import { isNullOrUndefined } from 'util';
 import { transition } from 'd3-transition';
 import { easeLinear } from 'd3-ease';
 import { curveBasis, curveLinear } from 'd3-shape';
+import {interpolateLab} from 'd3-interpolate';
+import {interpolateOrRd} from 'd3-scale-chromatic';
 import Histogram from './Histogram';
 
 import { VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL, VALUE_TYPE_STRING } from 'phovea_core/src/datatype';
@@ -87,6 +89,12 @@ class AttributeTable {
     id: this.rowHeight * 4.5,
     dataDensity: this.rowHeight,
     temporal: this.rowHeight*7
+  };
+  private EPA_color = ['#00e400', '#ff0', '#ff7e00', '#f00','#99004c', '#7e0023']
+  private temporal_data_range = {
+    pm25day: [0,12,35.4,55.4,150.4, 250.4],
+    meanO3day: [0,54,70,85,105],
+    meanNO2day: [0,53,100,360,649,1249]
   };
 
   //Used to store col widths if user resizes a col;
@@ -2238,15 +2246,10 @@ class AttributeTable {
         else if (e.label.includes('View Type')){
 
           let old_levels = (d.level_set==undefined ? NaN : d.level_set).toString();
-          let new_levels = prompt('Please input three number as levels, seperated by comma. If to change back to normal view, input NaN', old_levels);
-          if (new_levels == null){
+          let new_levels = parseInt(prompt('Please input the y-value cap. If to change back to normal view, leave it empty', old_levels));
 
-          }
-          else if (new_levels !== 'NaN'){
-              let level_array = new_levels.split(",").map(d=>parseInt(d))
-              console.log(new_levels,level_array)
-              this.colData.filter(col=>col.name === d.name)[0].level_set = level_array;
-
+          if (!isNaN(new_levels) && new_levels>0 ){
+              this.colData.filter(col=>col.name === d.name)[0].level_set = new_levels;
           }
 
           else{
@@ -2960,7 +2963,7 @@ class AttributeTable {
    * @param cellData the data bound to the cell element being passed in.
    */
   private renderDataDensCell(element, cellData) {
-
+    const self = this;
     //Check for custom column width value, if none, use default
     const colWidth = this.customColWidths[cellData.name] || this.colWidths[cellData.type];
 
@@ -3053,6 +3056,7 @@ class AttributeTable {
     const colWidth = this.customColWidths[cellData.name]||this.colWidths.temporal;
     const rowHeight = this.rowHeight;
     element.selectAll('.line_polygones').remove()
+    const self = this;
 
     element.selectAll('.average_marker').remove();
     //make a scale for the data
@@ -3139,7 +3143,8 @@ class AttributeTable {
             }
       else{
         const xLineScale = scaleLinear().domain([0,28]).range([0,colWidth]);
-        let yLineScale = scaleLinear().domain([cellData.range[0],cellData.level_set[1]]).range([0,rowHeight]).clamp(true);
+        let yLineScale = scaleLinear().domain([cellData.range[0],cellData.level_set]).range([0,rowHeight]).clamp(true);
+        let colorScale = scaleLinear().domain(cellData.range).range([0,1]);
         let dataArray = cellData.data[0];
         let cleaned_dataArray = dataArray.map(d=>isNaN(d)? 0 : parseInt(d));
         let before_average = mean(cleaned_dataArray.slice(14-cellData.average_limit,14))  ;
@@ -3164,30 +3169,71 @@ class AttributeTable {
 
 
       element.selectAll('.line_polygones')
-              .data(dataArray.slice(0,28))
+              .data(dataArray)
                 .enter()
                 .append('polygon')
                 .attr('points',(d,i)=>{
-                  let x1 = xLineScale(i);
-                  let x2 = xLineScale(i+1);
-                  let y1 = rowHeight-yLineScale(cleaned_dataArray[i]);
-                  let y2 = rowHeight-yLineScale(cleaned_dataArray[i+1]);
+                  let x1, x2, y1, y2, x3, y3;
+
+                  if (i==0){
+                    x1 = xLineScale(0)
+                    x2 = xLineScale(0.5)
+                    y1 = rowHeight-yLineScale(cleaned_dataArray[i]);
+                    y2 = rowHeight - yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i+1])/2)
+                    x3 = xLineScale(0.5)
+                    y3 = rowHeight - yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i+1])/2)
+                  }
+                  else if (i == 28){
+                    x1 = xLineScale(27.5)
+                    x2 = xLineScale(28)
+                    y1 = rowHeight - yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i-1])/2)
+                    y2 = rowHeight - yLineScale ( cleaned_dataArray[i])
+                    x3 = xLineScale(28)
+                    y3 = rowHeight - yLineScale(cleaned_dataArray[i])
+                  }
+                  else{
+                    x1 = xLineScale(i-0.5);
+                    x2 = xLineScale(i+0.5);
+                    x3 = xLineScale(i);
+                    y1 = rowHeight-yLineScale((cleaned_dataArray[i] + cleaned_dataArray [ i-1])/2);
+                    y2 = rowHeight-yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i+1])/2);
+                    y3 = rowHeight - yLineScale(cleaned_dataArray[i])
+                  }
+
                   return x1 + ',' + rowHeight + ' ' +
                          x1 + ',' + y1 + ' ' +
+                         x3 + ',' + y3 + ' ' +
                          x2 + ',' + y2 + ' ' +
                          x2 + ',' + rowHeight})
                   .classed('line_polygones',true)
                   .attr('fill', (d,i)=>{
-                    if (isNaN(dataArray[i]) || isNaN(dataArray[i+1]))
-                    { return 'none';}
-                    else if (dataArray[i] >= cellData.level_set[2] && dataArray[i+1] >= cellData.level_set[2])
-                    { return '#800000'}
-                    else if (dataArray[i] >= cellData.level_set[1] && dataArray[i+1] >= cellData.level_set[1])
-                    {return '#FF0000'}
-                    else if (dataArray[i] >= cellData.level_set[0]&& dataArray[i+1]>=cellData.level_set[0])
-                    {return '#FFFF00'}
-                    else
-                    {return 'none'}
+                    if (self.temporal_data_range.hasOwnProperty(cellData.name)){
+                      const data_level = self.temporal_data_range[cellData.name];
+                      if (isNaN(dataArray[i])){
+                        return 'none'
+                      }
+                      else{
+                        return self.getCorrespondColor(dataArray[i],data_level);
+                      }
+                    }
+                    else{
+                      if (isNaN(dataArray[i])){
+                        return 'none'
+                      }
+                      else{
+                        return interpolateOrRd(colorScale(dataArray[i]))
+                      }
+                    // if (isNaN(dataArray[i]) || isNaN(dataArray[i+1]))
+                    // { return 'none';}
+                    // else if (dataArray[i] >= cellData.level_set[2] && dataArray[i+1] >= cellData.level_set[2])
+                    // { return '#7E0023'}
+                    // else if (dataArray[i] >= cellData.level_set[1] && dataArray[i+1] >= cellData.level_set[1])
+                    // {return '#FF0000'}
+                    // else if (dataArray[i] >= cellData.level_set[0]&& dataArray[i+1]>=cellData.level_set[0])
+                    // {return '#FFFF00'}
+                    // else
+                    // {return 'none'}
+                  }
                   });
           let before_line = element.append('line')
                                    .attr('class','average_marker')
@@ -3217,12 +3263,12 @@ class AttributeTable {
                       .attr('y2',(d,i)=>rowHeight-yLineScale(cleaned_dataArray[i+1]))
                       .classed('line_graph',true)
                       .attr('stroke',(d,i)=>{
-                        if (isNaN(dataArray[i]) || isNaN(dataArray[i+1]))
+                        if (isNaN(dataArray[i]) || isNaN(dataArray[i+1]) || dataArray[i]>cellData.level_set || dataArray[i+1]>cellData.level_set)
                         { return 'none';}
                         else
                         {return '#767a7a';}});
 
-          let new_ylineScale = scaleLinear().domain([cellData.range[0],cellData.level_set[1]]).range([0,rowHeight]).clamp(false);
+          let new_ylineScale = scaleLinear().domain([cellData.range[0],cellData.level_set]).range([0,rowHeight]).clamp(false);
           element.selectAll('.background_polygon').remove()
           let ymax = new_ylineScale(data_max)
           const y1 = (rowHeight - ymax)<0?rowHeight - ymax:0
@@ -3254,6 +3300,22 @@ class AttributeTable {
       }
     }
 
+  }
+
+  private getCorrespondColor(val, level_array){
+    let capIndex;
+    let lowerIndex;
+    for (let i = 0; i < level_array.length; i++){
+      if (level_array[i]>val){
+        capIndex = i;
+        lowerIndex = i-1;
+         break;
+      }
+    }
+    const lowerColor = this.EPA_color[lowerIndex];
+    const capColor = this.EPA_color[capIndex];
+    const normalized_val = val/(level_array[capIndex] - level_array[lowerIndex])
+    return interpolateLab(lowerColor,capColor)(normalized_val)
   }
 
   /**

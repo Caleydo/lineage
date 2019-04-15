@@ -10,13 +10,14 @@ import * as tree from './genealogyTree';
 import * as table from './attributeTable';
 import * as panel from './attributePanel';
 import * as familySelector from './familySelector';
-import * as mapview from './mapView';
+import * as map from './mapView';
 
 
 
 //Import Data Structure for graph & table
 import * as graphData from './graphData';
 import * as TableManager from './tableManager';
+import * as MapManager from './mapManager';
 import { layoutState } from './Node';
 
 /**
@@ -36,7 +37,7 @@ export class App {
     this.$node.select('#col1').append('div').attr('id', 'data_selection');
     this.$node.select('#col2').append('div').attr('id', 'graph');
     this.$node.select('#col3').append('div').attr('id', 'table');
-    this.$node.select('#col4').append('div').attr('id','map_view');
+    this.$node.select('#col4').append('div').attr('id','map');
 
     //Add div for tooltip that sits on top of all other divs.
     select('#app').append('div').attr('id', 'tooltipMenu');
@@ -121,6 +122,8 @@ export class App {
     /** ============= */
     const attributePanel = panel.create(this.$node.select('#data_selection').node());
 
+    const mapManager = MapManager.create();
+    mapManager.init(tableManager)
     attributePanel.build();
     attributePanel.init(tableManager,dataset);
 
@@ -135,14 +138,16 @@ export class App {
     genealogyTree.update();
 
 
-    const mapView = mapview.create();
-    mapView.init();
+    const mapView = map.create();
+    mapView.init(mapManager);
+
 
     const attributeTable = table.create(this.$node.select('#table').node());
   //  attributeTable.setMapView(mapView);
 
     tableManager.setMapView(mapView);
     await attributeTable.init(tableManager);
+
 
 
     const familySelectorView = familySelector.create(this.$node.select('#familySelector').node());

@@ -173,6 +173,8 @@ export default class TableManager {
           'Tcloudday','AirTempday','Pressureday','RHday','daylengthday','daydiffday']
 
 
+
+
   //Keeps track of selected primary/secondary variable
   private primaryAttribute: IPrimaryAttribute;
 
@@ -201,7 +203,7 @@ export default class TableManager {
     if (descendDataSetID === 'AllFamiliesDescend' || descendDataSetID ===  'TenFamiliesDescend') {
       // this.defaultCols = ['KindredID', 'RelativeID', 'sex', 'deceased', 'suicide', 'Age','LabID','alcohol','Nr.Diag_alcohol','psychosis','Nr.Diag_psychosis','anxiety-non-trauma','Nr.Diag_anxiety-non-trauma', 'depression','cause_death']; //set of default cols to read in, minimizes load time for large files;
       //this.defaultCols = ['KindredID', 'RelativeID', 'sex', 'deceased', 'suicide', 'Age','bipolar spectrum illness','anxiety-non-trauma','alcohol','PD','psychosis','depression','cause_death','zip','longitude','latitude']; //set of default cols to read in, minimizes load time for large files;
-      this.defaultCols = ['KindredID','maxNO2day','ptotday', 'RelativeID', 'sex', 'bdate', 'ddate', 'zip','longitude','latitude','CountyCode']; //set of default cols to read in, minimizes load time for large files;
+      this.defaultCols = ['KindredID','maxNO2day','pm25day', 'RelativeID', 'sex', 'bdate', 'ddate', 'zip','longitude','latitude','CountyCode']; //set of default cols to read in, minimizes load time for large files;
 
     } else {
       this.defaultCols = ['KindredID', 'RelativeID', 'sex', 'affected', 'labid'];

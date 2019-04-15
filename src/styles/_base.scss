@@ -193,6 +193,10 @@ ul.nav.navbar-nav{
     background-color: #d9d9d9 !important;
 }
 
+.dropdown-item-map.active{
+    background-color: #d9d9d9 !important;
+}
+
 #graphHeaders, #tableDiv1{
   height:195px;
 }
@@ -271,6 +275,14 @@ ul.nav.navbar-nav{
   fill:#f7f7f7
 }
 
+
+
+#col4 .map-paths{
+  stroke: #6f7373;
+  stroke-width: 1;
+  fill:white
+}
+
 .highlightedCircle{
   opacity: 1
 }
@@ -289,5 +301,5 @@ ul.nav.navbar-nav{
 }
 .line_polygones{
   stroke: none;
-  opacity: 0.4
+  opacity: 0.8
 }

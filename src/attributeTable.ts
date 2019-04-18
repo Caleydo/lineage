@@ -81,6 +81,8 @@ class AttributeTable {
 
   private rowHeight = Config.glyphSize * 2.5 - 4;
   private headerHeight = this.rowHeight * 2;
+  private temporalMaximum = {};
+  private temporalMinimum = {};
   private colWidths = {
     idtype: this.rowHeight * 4,
     categorical: this.rowHeight,
@@ -798,7 +800,26 @@ class AttributeTable {
 
           people.map((person) => {
             person = person.split('_')[0];
+            let maximum = (personArrayDict[person]) ?  max(personArrayDict[person]) :0
+            maximum = maximum? maximum : 0
+            let minimum = (personArrayDict[person]) ? min(personArrayDict[person]) : 0
+
+            minimum = minimum < 0 ? minimum : 0
             if (person in personArrayDict) {
+              if (self.temporalMaximum[aqName]){
+                  self.temporalMaximum[aqName] = self.temporalMaximum[aqName] > maximum ? self.temporalMaximum[aqName] : maximum;
+              }
+              else{
+                  self.temporalMaximum[aqName] = maximum
+              }
+
+              if (self.temporalMinimum[aqName]){
+                    self.temporalMinimum[aqName] = self.temporalMaximum[aqName] < minimum ? self.temporalMinimum[aqName] : minimum;
+                }
+              else{
+                    self.temporalMinimum[aqName] = minimum
+                }
+
               colData.push(personArrayDict[person]);
             } else {
               colData.push(undefined);
@@ -808,8 +829,8 @@ class AttributeTable {
         });
         aqDataAccum.push(col)
       });
+      console.log(self.temporalMinimum)
 
-    //  console.log(aqDataAccum)
 
 
 
@@ -1668,8 +1689,6 @@ class AttributeTable {
           select(this).selectAll('.line_polygones').attr('opacity',0.1)
         }
         else{
-          //TODO change so that it draws upon hovering
-
           const yLineScale = scaleLinear().domain([cellData.range[0],cellData.level_set]).range([0,self.rowHeight]).clamp(false);
           const colWidth = self.customColWidths[cellData.name]||self.colWidths.temporal;
           const xLineScale = scaleLinear().domain([0,28]).range([0,colWidth]);
@@ -1702,7 +1721,6 @@ class AttributeTable {
                           x1 = xLineScale(27.5)
                           x2 = xLineScale(28)
                           y1 =isNaN(cellData.data[0][i-1])?self.rowHeight - yLineScale(cleaned_dataArray[i]):self.rowHeight - yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i-1])/2)
-
                           y2 = self.rowHeight - yLineScale ( cleaned_dataArray[i])
                           x3 = xLineScale(28)
                           y3 = self.rowHeight - yLineScale(cleaned_dataArray[i])
@@ -1711,7 +1729,6 @@ class AttributeTable {
                           x1 = xLineScale(i-0.5);
                           x2 = xLineScale(i+0.5);
                           x3 = xLineScale(i);
-
                           y3 = self.rowHeight - yLineScale(cleaned_dataArray[i])
                           if (isNaN(cellData.data[0][i-1])){
                             y1 = self.rowHeight - yLineScale(cleaned_dataArray[i])
@@ -1742,8 +1759,6 @@ class AttributeTable {
 
 
           select(this).selectAll('.line_graph').attr('opacity',0)
-          //select(this).selectAll('.full_line_graph').attr('opacity',1)
-          //select(this).select('.background_polygon').attr('opacity',1)
         }
       }
     })
@@ -1753,15 +1768,11 @@ class AttributeTable {
         if (d.type=='temporal'){
           select(this).selectAll('.full_line_graph').remove();
           select(this).selectAll('.quant').attr('height',self.rowHeight ).attr('y',0).attr('transform', 'translate(0,0)')
+          select(this).selectAll('.line_graph').attr('opacity',1)
           if (d.level_set==undefined){
             select(this).selectAll('.average_marker').attr('opacity',0)
-            select(this).selectAll('.line_graph').attr('opacity',1)
+
             select(this).selectAll('.line_polygones').attr('opacity',0.4)
-          }
-          else{
-          //  select(this).selectAll('.full_line_graph').attr('opacity',0)
-            select(this).selectAll('.line_graph').attr('opacity',1)
-        //    select(this).select('.background_polygon').attr('opacity',0)
           }
         }
       })
@@ -2470,13 +2481,16 @@ class AttributeTable {
   };
 
   private renderTemporalHeader(element, headerData){
-      //design a temporal header TODO
+      //TODO change to the new design.
+      const self = this;
       const colWidth = this.customColWidths[headerData.name] || this.colWidths.temporal;
 
       const height = this.headerHeight;
 
       const xLineScale = scaleLinear().domain([-14,14]).range([0,colWidth]);
-      const yLineScale = scaleLinear().domain([headerData.range[1],headerData.range[0]]).range([0,height]);
+      const yLineScale = scaleLinear()
+                .domain([self.temporalMaximum[headerData.name], self.temporalMinimum[headerData.name]])
+                .range([0,height]);
 
       element.select('.backgroundRect')
         .attr('width', colWidth + 10)
@@ -3163,7 +3177,9 @@ class AttributeTable {
     else{
       if (cellData.level_set == undefined){
         const xLineScale = scaleLinear().domain([0,28]).range([0,colWidth]);
-        const yLineScale = scaleLinear().domain(cellData.range).range([0,rowHeight]);
+        const yLineScale = scaleLinear()
+                    .domain([self.temporalMinimum[cellData.name], self.temporalMaximum[cellData.name]])
+                    .range([0,rowHeight]);
         let dataArray = cellData.data[0];
         let cleaned_dataArray = dataArray.map(d=>isNaN(d)? 0 : d);
 

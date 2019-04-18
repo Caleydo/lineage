@@ -65,6 +65,7 @@ class AttributeTable {
   // RENDERING THINGS
   private table;
   private tableHeader;
+  private average_limit = 14;
   private columnSummaries;
 
   //private margin = {top: 60, right: 20, bottom: 60, left: 40};
@@ -773,12 +774,12 @@ class AttributeTable {
 
       const col:any = {}
       col.isSorted = false;
-      col.average_limit = 14
-      if (self.colData != undefined){
-        if (self.colData.filter(d=>d.name==aqName).length >0){
-        col.average_limit = self.colData.filter(d=>d.name==aqName)[0].average_limit;
-        }
-      }
+      //col.average_limit = 14
+      //if (self.colData != undefined){
+        //if (self.colData.filter(d=>d.name==aqName).length >0){
+        //col.average_limit = self.colData.filter(d=>d.name==aqName)[0].average_limit;
+        //}
+      //}
       col.level_set = undefined;
       if (self.colData != undefined){
         if (self.colData.filter(d=>d.name==aqName).length >0){
@@ -1098,7 +1099,8 @@ class AttributeTable {
           'name': d.name, 'data': d, 'ind': i, 'type': d.type,
           'max': d.max, 'min': d.min, 'mean': d.mean,
           'allCategories': d.allCategories, 'category': d.category,
-          'isSorted': d.isSorted, 'average_limit':d.average_limit,
+          'isSorted': d.isSorted,
+        //  'average_limit':d.average_limit,
           'level_set': d.level_set
         };
       }), (d: any) => {
@@ -1270,7 +1272,8 @@ class AttributeTable {
       .data(this.colData.map((d, i) => {
         return {
           'name': d.name, 'data': d.data, 'ind': i, 'type': d.type, 'range':d.range,
-          'average_limit':d.average_limit,'level_set': d.level_set,
+          //'average_limit':d.average_limit,
+          'level_set': d.level_set,
           'ids': d.ids, 'stats': d.stats, 'varName': d.name, 'category': d.category, 'vector': d.vector
         };
       }), (d: any) => {
@@ -1567,7 +1570,7 @@ class AttributeTable {
             'range':d.range,
             'category': d.category,
             'vector': d.vector,
-            'average_limit': d.average_limit,
+          //  'average_limit': d.average_limit,
             'level_set': d.level_set
           };
         });
@@ -1639,7 +1642,7 @@ class AttributeTable {
             'range':d.range,
             'category': d.category,
             'vector': d.vector,
-            'average_limit': d.average_limit,
+      //      'average_limit': d.average_limit,
             'level_set': d.level_set
           };
         });
@@ -1665,9 +1668,82 @@ class AttributeTable {
           select(this).selectAll('.line_polygones').attr('opacity',0.1)
         }
         else{
+          //TODO change so that it draws upon hovering
+
+          const yLineScale = scaleLinear().domain([cellData.range[0],cellData.level_set]).range([0,self.rowHeight]).clamp(false);
+          const colWidth = self.customColWidths[cellData.name]||self.colWidths.temporal;
+          const xLineScale = scaleLinear().domain([0,28]).range([0,colWidth]);
+          const cleaned_dataArray = cellData.data[0].map(d=>isNaN(d)? 0 : d);
+          const dataArray = cellData.data[0]
+          let new_quant_height = yLineScale(parseInt(max(cleaned_dataArray)))
+          new_quant_height = new_quant_height>self.rowHeight? new_quant_height : self.rowHeight;
+
+          select(this).selectAll('.quant')
+                      .attr('height', new_quant_height)
+                      .attr('transform', 'translate(0, ' + (self.rowHeight - new_quant_height) +')')
+
+          select(this).selectAll('.full_line_graph')
+                      .data(cellData.data[0])
+                      .enter()
+                      .append('polyline')
+                      .attr('points',(d,i)=>{
+                        let x1, x2, y1, y2, x3, y3;
+
+                        if (i==0){
+                          x1 = xLineScale(0)
+                          x2 = xLineScale(0.5)
+                          y1 = self.rowHeight-yLineScale(cleaned_dataArray[i]);
+                          y2 = isNaN(cellData.data[0][i+1])?self.rowHeight - yLineScale(cleaned_dataArray[i]):self.rowHeight - yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i+1])/2)
+                          x3 = xLineScale(0.5)
+                          y3 = isNaN(cellData.data[0][i+1])?self.rowHeight - yLineScale(cleaned_dataArray[i]):self.rowHeight - yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i+1])/2)
+
+                        }
+                        else if (i == 28){
+                          x1 = xLineScale(27.5)
+                          x2 = xLineScale(28)
+                          y1 =isNaN(cellData.data[0][i-1])?self.rowHeight - yLineScale(cleaned_dataArray[i]):self.rowHeight - yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i-1])/2)
+
+                          y2 = self.rowHeight - yLineScale ( cleaned_dataArray[i])
+                          x3 = xLineScale(28)
+                          y3 = self.rowHeight - yLineScale(cleaned_dataArray[i])
+                        }
+                        else{
+                          x1 = xLineScale(i-0.5);
+                          x2 = xLineScale(i+0.5);
+                          x3 = xLineScale(i);
+
+                          y3 = self.rowHeight - yLineScale(cleaned_dataArray[i])
+                          if (isNaN(cellData.data[0][i-1])){
+                            y1 = self.rowHeight - yLineScale(cleaned_dataArray[i])
+                          }
+                          else{
+                            y1 = self.rowHeight-yLineScale((cleaned_dataArray[i] + cleaned_dataArray [ i-1])/2);
+                          }
+                          if (isNaN(cellData.data[0][i+1])){
+                            y2 = self.rowHeight - yLineScale(cleaned_dataArray[i])
+                          }
+                          else{
+                            y2 = self.rowHeight-yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i+1])/2);
+                          }
+
+                        }
+
+                        return x1 + ',' + y1 + ' ' +
+                               x3 + ',' + y3 + ' ' +
+                               x2 + ',' + y2 + ' ' })
+                        .classed('full_line_graph',true)
+                        .attr('fill','none')
+                        .attr('stroke',(d,i)=>{
+                          if (isNaN(dataArray[i]))
+                          { return 'none';}
+                          else
+                          {return '#767a7a';}});
+
+
+
           select(this).selectAll('.line_graph').attr('opacity',0)
-          select(this).selectAll('.full_line_graph').attr('opacity',1)
-          select(this).select('.background_polygon').attr('opacity',1)
+          //select(this).selectAll('.full_line_graph').attr('opacity',1)
+          //select(this).select('.background_polygon').attr('opacity',1)
         }
       }
     })
@@ -1675,15 +1751,17 @@ class AttributeTable {
         self.clearHighlight();
         select('.menu').remove();
         if (d.type=='temporal'){
+          select(this).selectAll('.full_line_graph').remove();
+          select(this).selectAll('.quant').attr('height',self.rowHeight ).attr('y',0).attr('transform', 'translate(0,0)')
           if (d.level_set==undefined){
             select(this).selectAll('.average_marker').attr('opacity',0)
             select(this).selectAll('.line_graph').attr('opacity',1)
             select(this).selectAll('.line_polygones').attr('opacity',0.4)
           }
           else{
-            select(this).selectAll('.full_line_graph').attr('opacity',0)
+          //  select(this).selectAll('.full_line_graph').attr('opacity',0)
             select(this).selectAll('.line_graph').attr('opacity',1)
-            select(this).select('.background_polygon').attr('opacity',0)
+        //    select(this).select('.background_polygon').attr('opacity',0)
           }
         }
       })
@@ -1809,7 +1887,7 @@ class AttributeTable {
    * @param ascending, boolean flag set to true if sort order is ascending
    */
   private sortRows(d: any, sortOrder: sortedState, animate: boolean) {
-
+    const self = this;
     const maxWidth = max(this.colOffsets) + 50 + Config.slopeChartWidth;
     this.$node.select('#headers')
       .attr('width', maxWidth);
@@ -1848,7 +1926,7 @@ class AttributeTable {
         let dataArray = el[0]
         let before_average = undefined;
         if (dataArray!==undefined){
-          before_average = mean(dataArray.slice(14-d.average_limit,14))  ;
+          before_average = mean(dataArray.slice(14-self.average_limit,14))  ;
         }
         return {
           index: i, value: before_average
@@ -2076,7 +2154,7 @@ class AttributeTable {
   private addMenu(d) {
 
     select('#treeMenu').select('.menu').remove();
-
+    const self = this;
     event.stopPropagation();
     let option1, option2;
     if (d.type === 'categorical' && (d.category.toLowerCase() === 'true' || d.category.toLowerCase() === 'y')) {
@@ -2233,10 +2311,11 @@ class AttributeTable {
 
         }
         else if (e.label.includes('Average')){
-          let new_limit = parseInt(prompt("Please set average limit for column " + d.name, d.average_limit));
+          const new_limit = parseInt(prompt("Please set average limit for column " + d.name, self.average_limit.toString()));
 
           if (!isNaN(new_limit) && new_limit >0 && new_limit <=14 ){
-            this.colData.filter(col=>col.name === d.name)[0].average_limit = new_limit;
+            //this.colData.filter(col=>col.name === d.name)[0].average_limit = new_limit;
+            self.average_limit = new_limit;
             this.update();
           }
           else{
@@ -2719,6 +2798,7 @@ class AttributeTable {
   private addTooltip(type, data = null) {
     const container = document.getElementById('app');
     const coordinates = mouse(container);
+    const self = this;
     let content;
     if (type === 'cell') {
       if (data.type === 'categorical') {
@@ -2748,9 +2828,9 @@ class AttributeTable {
 
         let dataArray = data.data[0]
 
-        let before_average = mean(dataArray.slice(14-data.average_limit,14))  ;
+        let before_average = mean(dataArray.slice(14-self.average_limit,14))  ;
         before_average = before_average==undefined ? NaN : before_average;
-        let after_average = mean(dataArray.slice(15,15+data.average_limit));
+        let after_average = mean(dataArray.slice(15,15+self.average_limit));
         after_average = after_average == undefined ? NaN : after_average;
         content = 'Before Average: ' + before_average.toFixed(2).toString() + ' After Average: ' + after_average.toFixed(2).toString();
 
@@ -3054,6 +3134,8 @@ class AttributeTable {
 
   private renderTemporalCell(element,cellData){
     const colWidth = this.customColWidths[cellData.name]||this.colWidths.temporal;
+
+
     const rowHeight = this.rowHeight;
     element.selectAll('.line_polygones').remove()
     const self = this;
@@ -3085,13 +3167,16 @@ class AttributeTable {
         let dataArray = cellData.data[0];
         let cleaned_dataArray = dataArray.map(d=>isNaN(d)? 0 : d);
 
-        let before_average = mean(cleaned_dataArray.slice(14-cellData.average_limit,14))  ;
-        let after_average = mean(cleaned_dataArray.slice(15,15+cellData.average_limit));
+        let before_average = mean(cleaned_dataArray.slice(14-self.average_limit,14))  ;
+        let after_average = mean(cleaned_dataArray.slice(15,15+self.average_limit));
 
 
 
-        element.append('rect')
-          .classed('quant', true);
+        if (element.selectAll('.quant').size() === 0) {
+          element
+            .append('rect')
+            .classed('quant', true);
+        }
         element
             .select('.quant')
             .attr('width', (d) => {
@@ -3101,7 +3186,7 @@ class AttributeTable {
         element.selectAll('.death_marker').remove();
         let before_line = element.append('line')
                                  .attr('class','average_marker')
-                                 .attr('x1',xLineScale(14-cellData.average_limit))
+                                 .attr('x1',xLineScale(14-self.average_limit))
                                  .attr('x2',xLineScale(14))
                                  .attr('y1',rowHeight -  yLineScale(before_average))
                                  .attr('y2',rowHeight - yLineScale(before_average))
@@ -3110,7 +3195,7 @@ class AttributeTable {
         let after_line = element.append('line')
                                 .attr('class','average_marker')
                                 .attr('x1',xLineScale(14))
-                                .attr('x2',xLineScale(14+cellData.average_limit))
+                                .attr('x2',xLineScale(14+self.average_limit))
                                 .attr('y1', rowHeight - yLineScale(after_average))
                                 .attr('y2',rowHeight - yLineScale(after_average))
                                 .attr('opacity',0)
@@ -3125,17 +3210,57 @@ class AttributeTable {
         element.selectAll('.line_graph').remove()
 
         element.selectAll('.line_graph')
-                .data(dataArray.slice(0,28))
+                .data(dataArray)
                   .enter()
-                  .append('line')
-                    .attr('x1',(d,i)=>xLineScale(i))
-                    .attr('y1',(d,i)=>rowHeight-yLineScale(cleaned_dataArray[i]))
-                    .attr('x2',(d,i)=>xLineScale(i+1))
-                    .attr('y2',(d,i)=>rowHeight-yLineScale(cleaned_dataArray[i+1]))
+                  .append('polyline')
+                  .attr('points',(d,i)=>{
+                    let x1, x2, y1, y2, x3, y3;
+
+                    if (i==0){
+                      x1 = xLineScale(0)
+                      x2 = xLineScale(0.5)
+                      y1 = rowHeight-yLineScale(cleaned_dataArray[i]);
+                      y2 = isNaN(cellData.data[0][i+1])?rowHeight - yLineScale(cleaned_dataArray[i]):rowHeight - yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i+1])/2)
+                      x3 = xLineScale(0.5)
+                      y3 = isNaN(cellData.data[0][i+1])?rowHeight - yLineScale(cleaned_dataArray[i]):rowHeight - yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i+1])/2)
+
+                    }
+                    else if (i == 28){
+                      x1 = xLineScale(27.5)
+                      x2 = xLineScale(28)
+                      y1 =isNaN(cellData.data[0][i-1])?rowHeight - yLineScale(cleaned_dataArray[i]):rowHeight - yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i-1])/2)
+
+                      y2 = rowHeight - yLineScale ( cleaned_dataArray[i])
+                      x3 = xLineScale(28)
+                      y3 = rowHeight - yLineScale(cleaned_dataArray[i])
+                    }
+                    else{
+                      x1 = xLineScale(i-0.5);
+                      x2 = xLineScale(i+0.5);
+                      x3 = xLineScale(i);
+
+                      y3 = rowHeight - yLineScale(cleaned_dataArray[i])
+                      if (isNaN(cellData.data[0][i-1])){
+                        y1 = rowHeight - yLineScale(cleaned_dataArray[i])
+                      }
+                      else{
+                        y1 = rowHeight-yLineScale((cleaned_dataArray[i] + cleaned_dataArray [ i-1])/2);
+                      }
+                      if (isNaN(cellData.data[0][i+1])){
+                        y2 = rowHeight - yLineScale(cleaned_dataArray[i])
+                      }
+                      else{
+                        y2 = rowHeight-yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i+1])/2);
+                      }
+
+                    }
+
+                    return x1 + ',' + y1 + ' ' +
+                           x3 + ',' + y3 + ' ' +
+                           x2 + ',' + y2 + ' ' })
                     .classed('line_graph',true)
-                    .attr('opacity',1)
                     .attr('stroke',(d,i)=>{
-                      if (isNaN(dataArray[i]) || isNaN(dataArray[i+1]))
+                      if (isNaN(dataArray[i]) || dataArray[i]>cellData.level_set)
                       { return 'none';}
                       else
                       {return '#767a7a';}});
@@ -3147,8 +3272,8 @@ class AttributeTable {
         let colorScale = scaleLinear().domain(cellData.range).range([0,1]);
         let dataArray = cellData.data[0];
         let cleaned_dataArray = dataArray.map(d=>isNaN(d)? 0 : parseInt(d));
-        let before_average = mean(cleaned_dataArray.slice(14-cellData.average_limit,14))  ;
-        let after_average = mean(cleaned_dataArray.slice(15,15+cellData.average_limit));
+        let before_average = mean(cleaned_dataArray.slice(14-self.average_limit,14))  ;
+        let after_average = mean(cleaned_dataArray.slice(15,15+self.average_limit));
         let data_max = parseInt(max(cleaned_dataArray));
         element.append('rect')
           .classed('quant', true);
@@ -3160,12 +3285,6 @@ class AttributeTable {
             .attr('height', rowHeight);
       element.selectAll('.death_marker').remove();
 
-      let death_marker = element.append('line')
-                            .attr('class','death_marker')
-                            .attr('x1',xLineScale(14))
-                            .attr('y1',0)
-                            .attr('x2',xLineScale(14))
-                            .attr('y2',rowHeight)
 
 
       element.selectAll('.line_polygones')
@@ -3179,14 +3298,17 @@ class AttributeTable {
                     x1 = xLineScale(0)
                     x2 = xLineScale(0.5)
                     y1 = rowHeight-yLineScale(cleaned_dataArray[i]);
-                    y2 = rowHeight - yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i+1])/2)
+                    y2 = isNaN(cellData.data[0][i+1])?rowHeight - yLineScale(cleaned_dataArray[i]):rowHeight - yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i+1])/2)
+
                     x3 = xLineScale(0.5)
-                    y3 = rowHeight - yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i+1])/2)
+                    y3 = isNaN(cellData.data[0][i+1])?rowHeight - yLineScale(cleaned_dataArray[i]):rowHeight - yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i+1])/2)
+
                   }
                   else if (i == 28){
                     x1 = xLineScale(27.5)
                     x2 = xLineScale(28)
-                    y1 = rowHeight - yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i-1])/2)
+                    y1 = isNaN(cellData.data[0][i-1])?rowHeight - yLineScale(cleaned_dataArray[i]):rowHeight - yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i-1])/2)
+
                     y2 = rowHeight - yLineScale ( cleaned_dataArray[i])
                     x3 = xLineScale(28)
                     y3 = rowHeight - yLineScale(cleaned_dataArray[i])
@@ -3195,9 +3317,21 @@ class AttributeTable {
                     x1 = xLineScale(i-0.5);
                     x2 = xLineScale(i+0.5);
                     x3 = xLineScale(i);
-                    y1 = rowHeight-yLineScale((cleaned_dataArray[i] + cleaned_dataArray [ i-1])/2);
-                    y2 = rowHeight-yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i+1])/2);
+
                     y3 = rowHeight - yLineScale(cleaned_dataArray[i])
+                    if (isNaN(cellData.data[0][i-1])){
+                      y1 = rowHeight - yLineScale(cleaned_dataArray[i])
+                    }
+                    else{
+                      y1 = rowHeight-yLineScale((cleaned_dataArray[i] + cleaned_dataArray [ i-1])/2);
+                    }
+                    if (isNaN(cellData.data[0][i+1])){
+                      y2 = rowHeight - yLineScale(cleaned_dataArray[i])
+                    }
+                    else{
+                      y2 = rowHeight-yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i+1])/2);
+                    }
+
                   }
 
                   return x1 + ',' + rowHeight + ' ' +
@@ -3237,7 +3371,7 @@ class AttributeTable {
                   });
           let before_line = element.append('line')
                                    .attr('class','average_marker')
-                                   .attr('x1',xLineScale(14-cellData.average_limit))
+                                   .attr('x1',xLineScale(14-self.average_limit))
                                    .attr('x2',xLineScale(14))
                                    .attr('y1',rowHeight -  yLineScale(before_average))
                                    .attr('y2',rowHeight - yLineScale(before_average))
@@ -3246,7 +3380,7 @@ class AttributeTable {
           let after_line = element.append('line')
                                   .attr('class','average_marker')
                                   .attr('x1',xLineScale(14))
-                                  .attr('x2',xLineScale(14+cellData.average_limit))
+                                  .attr('x2',xLineScale(14+self.average_limit))
                                   .attr('y1', rowHeight - yLineScale(after_average))
                                   .attr('y2',rowHeight - yLineScale(after_average))
                                   .attr('opacity',0)
@@ -3254,49 +3388,68 @@ class AttributeTable {
           element.selectAll('.line_graph').remove()
 
           element.selectAll('.line_graph')
-                  .data(dataArray.slice(0,28))
+                  .data(dataArray)
                     .enter()
-                    .append('line')
-                      .attr('x1',(d,i)=>xLineScale(i))
-                      .attr('y1',(d,i)=>rowHeight-yLineScale(cleaned_dataArray[i]))
-                      .attr('x2',(d,i)=>xLineScale(i+1))
-                      .attr('y2',(d,i)=>rowHeight-yLineScale(cleaned_dataArray[i+1]))
+                    .append('polyline')
+                    .attr('points',(d,i)=>{
+                      let x1, x2, y1, y2, x3, y3;
+
+                      if (i==0){
+                        x1 = xLineScale(0)
+                        x2 = xLineScale(0.5)
+                        y1 = rowHeight-yLineScale(cleaned_dataArray[i]);
+                        y2 = isNaN(cellData.data[0][i+1])?rowHeight - yLineScale(cleaned_dataArray[i]):rowHeight - yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i+1])/2)
+
+                        x3 = xLineScale(0.5)
+                        y3 = isNaN(cellData.data[0][i+1])?rowHeight - yLineScale(cleaned_dataArray[i]):rowHeight - yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i+1])/2)
+
+                      }
+                      else if (i == 28){
+                        x1 = xLineScale(27.5)
+                        x2 = xLineScale(28)
+                        y1 = isNaN(cellData.data[0][i-1])?rowHeight - yLineScale(cleaned_dataArray[i]):rowHeight - yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i-1])/2)
+
+                        y2 = rowHeight - yLineScale ( cleaned_dataArray[i])
+                        x3 = xLineScale(28)
+                        y3 = rowHeight - yLineScale(cleaned_dataArray[i])
+                      }
+                      else{
+                        x1 = xLineScale(i-0.5);
+                        x2 = xLineScale(i+0.5);
+                        x3 = xLineScale(i);
+
+                        y3 = rowHeight - yLineScale(cleaned_dataArray[i])
+                        if (isNaN(cellData.data[0][i-1])){
+                          y1 = rowHeight - yLineScale(cleaned_dataArray[i])
+                        }
+                        else{
+                          y1 = rowHeight-yLineScale((cleaned_dataArray[i] + cleaned_dataArray [ i-1])/2);
+                        }
+                        if (isNaN(cellData.data[0][i+1])){
+                          y2 = rowHeight - yLineScale(cleaned_dataArray[i])
+                        }
+                        else{
+                          y2 = rowHeight-yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i+1])/2);
+                        }
+
+                      }
+
+                      return x1 + ',' + y1 + ' ' +
+                             x3 + ',' + y3 + ' ' +
+                             x2 + ',' + y2 + ' ' })
                       .classed('line_graph',true)
                       .attr('stroke',(d,i)=>{
-                        if (isNaN(dataArray[i]) || isNaN(dataArray[i+1]) || dataArray[i]>cellData.level_set || dataArray[i+1]>cellData.level_set)
+                        if (isNaN(dataArray[i]) || dataArray[i]>cellData.level_set)
                         { return 'none';}
                         else
                         {return '#767a7a';}});
 
-          let new_ylineScale = scaleLinear().domain([cellData.range[0],cellData.level_set]).range([0,rowHeight]).clamp(false);
-          element.selectAll('.background_polygon').remove()
-          let ymax = new_ylineScale(data_max)
-          const y1 = (rowHeight - ymax)<0?rowHeight - ymax:0
-          element.append('polygon')
-                 .attr('class','background_polygon')
-                 .attr('points',d=>{
-
-                   return "0 , 0 0, " + y1.toString() + " "+
-                                        colWidth.toString()+"," + y1.toString()+" "+
-                                       colWidth.toString() + ", 0"})
-                 .attr('fill','white')
-                 .attr('opacity','0')
-          element.selectAll('.full_line_graph').remove();
-          element.selectAll('.full_line_graph')
-                  .data(dataArray.slice(0,28))
-                    .enter()
-                    .append('line')
-                      .attr('x1',(d,i)=>xLineScale(i))
-                      .attr('y1',(d,i)=>rowHeight-new_ylineScale(cleaned_dataArray[i]))
-                      .attr('x2',(d,i)=>xLineScale(i+1))
-                      .attr('y2',(d,i)=>rowHeight-new_ylineScale(cleaned_dataArray[i+1]))
-                      .classed('full_line_graph',true)
-                      .attr('opacity',0)
-                      .attr('stroke',(d,i)=>{
-                        if (isNaN(dataArray[i]) || isNaN(dataArray[i+1]))
-                        { return 'none';}
-                        else
-                        {return '#767a7a';}});
+        let death_marker = element.append('line')
+                              .attr('class','death_marker')
+                              .attr('x1',xLineScale(14))
+                              .attr('y1',0)
+                              .attr('x2',xLineScale(14))
+                              .attr('y2',rowHeight)
       }
     }
 

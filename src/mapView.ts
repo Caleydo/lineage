@@ -167,7 +167,7 @@ class MapView{
       //      .duration(700)
       paths.attr("id",(d)=>(d as any).properties.GEOID)
            .attr("d", path_fuction);
-      console.log(self.mapManager.topojson_features.features)
+    //  console.log(self.mapManager.topojson_features.features)
       paths.on('mouseover',function(d){
                county_tooltip.transition()
                .duration(200)

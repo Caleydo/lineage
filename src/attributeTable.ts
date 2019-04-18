@@ -15,7 +15,7 @@ import { transition } from 'd3-transition';
 import { easeLinear } from 'd3-ease';
 import { curveBasis, curveLinear } from 'd3-shape';
 import {interpolateLab} from 'd3-interpolate';
-import {interpolateOrRd} from 'd3-scale-chromatic';
+import {interpolateOrRd,schemePaired} from 'd3-scale-chromatic';
 import Histogram from './Histogram';
 
 import { VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL, VALUE_TYPE_STRING } from 'phovea_core/src/datatype';
@@ -829,7 +829,6 @@ class AttributeTable {
         });
         aqDataAccum.push(col)
       });
-      console.log(self.temporalMinimum)
 
 
 
@@ -1023,7 +1022,7 @@ class AttributeTable {
     this.colData = colDataAccum;
 
     this.calculateOffset();
-    console.log(this.colData)
+
   }
 
   private calculateOffset() {
@@ -2259,7 +2258,7 @@ class AttributeTable {
           const header = select('#' + this.deriveID(d) + '_header');
           const starBackground = select('.starRect_' + this.deriveID(d));
           header.classed('star', !header.classed('star'));
-          console.log(header)
+
           if (header.classed('star')) {
             this.tableManager.addStar(d.name, d.category);
             starBackground.attr('opacity', .2);
@@ -2484,6 +2483,35 @@ class AttributeTable {
       //TODO change to the new design.
       const self = this;
       const colWidth = this.customColWidths[headerData.name] || this.colWidths.temporal;
+      const kindredIDData = self.colData.filter(d=>d.name == 'KindredID')[0].data;
+      let beforeFamilyAverageSet = {};
+      let afterFamilyAverageSet = {};
+      const temporalMeans = headerData.data.map((d,i)=>{
+      //  console.log(d)
+        if (d.length === 1 && d[0]){
+          let dataArray = d[0]
+
+          let before_average = mean(dataArray.slice(14-self.average_limit,14))  ;
+
+          before_average = !before_average ? NaN : before_average;
+          let after_average = mean(dataArray.slice(15,15+self.average_limit));
+          after_average = !after_average  ? NaN : after_average;
+
+
+          let familyID = kindredIDData[i][0]
+          if (beforeFamilyAverageSet[familyID]){
+            beforeFamilyAverageSet[familyID].push(before_average);
+            afterFamilyAverageSet[familyID].push(after_average);
+          }
+          else{
+            beforeFamilyAverageSet[familyID] = [before_average]
+            afterFamilyAverageSet[familyID] = [after_average]
+          }
+
+        }
+
+      })
+
 
       const height = this.headerHeight;
 
@@ -2505,41 +2533,145 @@ class AttributeTable {
         .attr('stroke', 'white');
 
       this.addSortingIcons(element, headerData);
-        //Add X-Axis and Y-Axis
-      element.selectAll('.axis').remove();
-      element.append('g')
-          .attr('class', 'axis axis--x')
-          .classed('hist_xscale', true)
-          .call(axisBottom(xLineScale).tickValues([-14,0,14]).tickSize(5))
-          .attr('transform', 'translate(0,' + height + ')');
+      const familyIDArray = Object.keys(beforeFamilyAverageSet)
+      const lineLength = 0.5*colWidth/(familyIDArray.length+1)
+     //Add family seperator
+      element.selectAll('.family_seperator').remove()
+      element.selectAll('.header_average_line').remove()
+      element.selectAll('.header_summuary_line').remove()
+      element.selectAll('.header_family_id').remove()
+      let before_average_cacher = []
+      let after_average_cacher = []
+      familyIDArray.forEach((familyID,i)=>{
+        const before_average = mean(beforeFamilyAverageSet[familyID])
+        const after_average = mean(afterFamilyAverageSet[familyID])
+        before_average_cacher.push(before_average)
+        after_average_cacher.push(after_average)
+        element.append('line')
+               .attr('class','family_seperator')
+               .attr('x1',xLineScale(0))
+               .attr('y1',0)
+               .attr('x2',xLineScale(0))
+               .attr('y2',height)
+               .attr('transform','translate(' + (i+1) * lineLength + ',0)')
 
-      element.append('g')
-          .attr('class','axis axis--y')
-          .call(axisLeft(yLineScale).tickArguments([4,'d']).tickSize(5))
+        element.selectAll('.place_holder')
+               .data(beforeFamilyAverageSet[familyID])
+               .enter()
+               .append('line')
+               .attr('x1',xLineScale(0))
+               .attr('x2',xLineScale(0) + lineLength)
+               .attr('y1',d=> d? height-yLineScale(d):yLineScale(0))
+               .attr('y2',d=> d? height-yLineScale(d):yLineScale(0))
+               .attr('stroke',schemePaired[2*i+2])
+               .attr('transform', 'translate(' + (-i-1) * lineLength + ',0)')
+               .attr('class','header_average_line')
 
-      const data_list = headerData.data.filter(d=>d.length ==1 && d[0]!== undefined);
+        element.append('line')
+               .attr('class', 'header_summuary_line')
+               .attr('x1',xLineScale(0))
+               .attr('x2',xLineScale(0) + lineLength)
+               .attr('y1',height-yLineScale(before_average))
+               .attr('y2',height-yLineScale(before_average))
+               .attr('stroke',schemePaired[2*i+3])
+               .attr('transform', 'translate(' + (-i-1) * lineLength + ',0)')
+        element.append('text')
+                .text(familyID)
+                .attr('x', xLineScale(0))
+                .attr('y', 5)
+                .attr('fill',schemePaired[2*i+3])
+                .attr('transform','translate(' + (-i-0.5) * lineLength + ',0)')
+                .attr('class','header_family_id')
 
+        element.append('line')
+               .attr('class','family_seperator')
+               .attr('x1',xLineScale(0))
+               .attr('y1',0)
+               .attr('x2',xLineScale(0))
+               .attr('y2',height)
+               .attr('transform','translate(' + (-i-1) * lineLength + ',0)')
 
-      element.selectAll('.line_graph').remove()
-      data_list.forEach((dataArray)=>{
-          dataArray = dataArray[0]
-          let cleaned_dataArray = dataArray.map(d=>isNaN(d)? 0 : d);
+         element.selectAll('.place_holder')
+                .data(afterFamilyAverageSet[familyID])
+                .enter()
+                .append('line')
+                .attr('x1',xLineScale(0))
+                .attr('x2',xLineScale(0) + lineLength)
+                .attr('y1',d=> d? height-yLineScale(d):yLineScale(0))
+                .attr('y2',d=> d? height-yLineScale(d):yLineScale(0))
+                .attr('stroke',schemePaired[2*i+2])
+                .attr('transform', 'translate(' + (i) * lineLength + ',0)')
+                .attr('class','header_average_line')
 
-          element.selectAll('.playce_holder')
-                 .data(dataArray.slice(0,28))
-                 .enter()
-                 .append('line')
-                 .attr('x1',(d,i)=>xLineScale(i-14))
-                 .attr('y1',(d,i)=>yLineScale(cleaned_dataArray[i]))
-                 .attr('x2',(d,i)=>xLineScale(i-13))
-                 .attr('y2',(d,i)=>yLineScale(cleaned_dataArray[i+1]))
-                 .classed('line_graph',true)
-                 .attr('stroke',(d,i)=>{
-                  if (isNaN(dataArray[i]) || isNaN(dataArray[i+1]))
-                               { return 'none';}
-                  else
-                    {return '#767a7a';}});
+        element.append('line')
+               .attr('class', 'header_summuary_line')
+               .attr('x1',xLineScale(0))
+               .attr('x2',xLineScale(0) + lineLength)
+               .attr('y1',height-yLineScale(after_average))
+               .attr('y2',height-yLineScale(after_average))
+               .attr('stroke',schemePaired[2*i+3])
+               .attr('transform', 'translate(' + (i) * lineLength + ',0)')
+
       })
+      //Add overall average
+        const overall_before_average = mean(before_average_cacher)
+        const overall_after_average = mean(after_average_cacher)
+        element.append('line')
+              .attr('class','header_summuary_line')
+              .attr('x1',xLineScale(0))
+              .attr('x2' , xLineScale(0) +lineLength)
+              .attr('y1',height-yLineScale(overall_before_average))
+              .attr('y2',height-yLineScale(overall_before_average))
+              .attr('stroke',schemePaired[1])
+              .attr('transform', 'translate(' + (-familyIDArray.length-1) * lineLength + ',0)')
+        element.append('line')
+             .attr('class','header_summuary_line')
+             .attr('x1',xLineScale(0))
+             .attr('x2' , xLineScale(0) +lineLength)
+             .attr('y1',height-yLineScale(overall_after_average))
+             .attr('y2',height-yLineScale(overall_after_average))
+             .attr('stroke',schemePaired[1])
+             .attr('transform', 'translate(' + (familyIDArray.length) * lineLength + ',0)')
+
+
+      //add Family ID
+
+
+      //   //Add X-Axis and Y-Axis
+      // element.selectAll('.axis').remove();
+      // element.append('g')
+      //     .attr('class', 'axis axis--x')
+      //     .classed('hist_xscale', true)
+      //     .call(axisBottom(xLineScale).tickValues([-14,0,14]).tickSize(5))
+      //     .attr('transform', 'translate(0,' + height + ')');
+      //
+      // element.append('g')
+      //     .attr('class','axis axis--y')
+      //     .call(axisLeft(yLineScale).tickArguments([4,'d']).tickSize(5))
+      //
+      // const data_list = headerData.data.filter(d=>d.length ==1 && d[0]!== undefined);
+      //
+      //
+      // element.selectAll('.line_graph').remove()
+      // data_list.forEach((dataArray)=>{
+      //     dataArray = dataArray[0]
+      //     let cleaned_dataArray = dataArray.map(d=>isNaN(d)? 0 : d);
+      //
+      //     element.selectAll('.place_holder')
+      //            .data(dataArray.slice(0,28))
+      //            .enter()
+      //            .append('line')
+      //            .attr('x1',(d,i)=>xLineScale(i-14))
+      //            .attr('y1',(d,i)=>yLineScale(cleaned_dataArray[i]))
+      //            .attr('x2',(d,i)=>xLineScale(i-13))
+      //            .attr('y2',(d,i)=>yLineScale(cleaned_dataArray[i+1]))
+      //            .classed('line_graph',true)
+      //            .attr('stroke',(d,i)=>{
+      //             if (isNaN(dataArray[i]) || isNaN(dataArray[i+1]))
+      //                          { return 'none';}
+      //             else
+      //               {return '#767a7a';}});
+      // })
 
 
       element.select('.death_marker').remove();
@@ -2549,6 +2681,13 @@ class AttributeTable {
                             .attr('y1',0)
                             .attr('x2',xLineScale(0))
                             .attr('y2',height)
+      element.select('.base_line').remove();
+      let base_line = element.append('line')
+                             .attr('class','base_line')
+                             .attr('x1',0)
+                             .attr('x2',colWidth)
+                             .attr('y1',height)
+                             .attr('y2',height)
 
 
 

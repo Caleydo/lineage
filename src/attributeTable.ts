@@ -15,7 +15,7 @@ import { transition } from 'd3-transition';
 import { easeLinear } from 'd3-ease';
 import { curveBasis, curveLinear } from 'd3-shape';
 import {interpolateLab} from 'd3-interpolate';
-import {interpolateOrRd,schemePaired} from 'd3-scale-chromatic';
+import {interpolateReds,schemePaired, interpolateRdBu} from 'd3-scale-chromatic';
 import Histogram from './Histogram';
 
 import { VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL, VALUE_TYPE_STRING } from 'phovea_core/src/datatype';
@@ -81,8 +81,8 @@ class AttributeTable {
 
   private rowHeight = Config.glyphSize * 2.5 - 4;
   private headerHeight = this.rowHeight * 2;
-  private temporalMaximum = {};
-  private temporalMinimum = {};
+  private temporalMaximum = {AirTempday: 30};
+  private temporalMinimum = {AirTempday: -20};
   private colWidths = {
     idtype: this.rowHeight * 4,
     categorical: this.rowHeight,
@@ -814,7 +814,7 @@ class AttributeTable {
               }
 
               if (self.temporalMinimum[aqName]){
-                    self.temporalMinimum[aqName] = self.temporalMaximum[aqName] < minimum ? self.temporalMinimum[aqName] : minimum;
+                    self.temporalMinimum[aqName] = self.temporalMinimum[aqName] < minimum ? self.temporalMinimum[aqName] : minimum;
                 }
               else{
                     self.temporalMinimum[aqName] = minimum
@@ -3505,12 +3505,32 @@ class AttributeTable {
                         return self.getCorrespondColor(dataArray[i],data_level);
                       }
                     }
+                    else if (cellData.name === 'AirTempday'){
+                      if (isNaN(dataArray[i])){
+
+                        return 'none'
+                      }
+                      else{
+                        if(dataArray[i]==0){
+                          return interpolateRdBu(0.5)
+                        }
+                        else if(dataArray[i]>0){
+                          const interpolate_val = 0.5+dataArray[i]/self.temporalMaximum[cellData.name]*0.5
+                          return interpolateRdBu(1-interpolate_val)
+                        }
+                        else{
+                          const interpolate_val = 0.5-dataArray[i]/self.temporalMinimum[cellData.name]*0.5
+                          return interpolateRdBu(1-interpolate_val)
+
+                        }
+                      }
+                    }
                     else{
                       if (isNaN(dataArray[i])){
                         return 'none'
                       }
                       else{
-                        return interpolateOrRd(colorScale(dataArray[i]))
+                        return interpolateReds(colorScale(dataArray[i]))
                       }
                     // if (isNaN(dataArray[i]) || isNaN(dataArray[i+1]))
                     // { return 'none';}

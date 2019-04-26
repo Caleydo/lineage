@@ -82,7 +82,7 @@ class AttributeTable {
   private rowHeight = Config.glyphSize * 2.5 - 4;
   private headerHeight = this.rowHeight * 2;
   private temporalMaximum = {AirTempday: 30};
-  private temporalMinimum = {AirTempday: -20};
+  private temporalMinimum = {AirTempday: -30};
   private colWidths = {
     idtype: this.rowHeight * 4,
     categorical: this.rowHeight,
@@ -622,6 +622,7 @@ class AttributeTable {
     const graphView = await this.tableManager.graphTable;
     const attributeView = await this.tableManager.tableTable;
     const aqView = await this.tableManager.AQTable;
+    console.log(aqView)
     const self  = this;
     const allCols = graphView.cols().concat(attributeView.cols()).concat(aqView.cols());
     const colOrder = this.tableManager.colOrder;

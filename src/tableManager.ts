@@ -3,7 +3,7 @@ import { list as listData, getFirstByName, get as getById } from 'phovea_core/sr
 import { VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL, VALUE_TYPE_STRING } from 'phovea_core/src/datatype';
 import * as range from 'phovea_core/src/range';
 import * as events from 'phovea_core/src/event';
-import { max, min, mean } from 'd3-array';
+import { max, min, mean, quantile,ascending } from 'd3-array';
 import { IStatistics } from 'phovea_core/src/math';
 import { transition } from 'd3-transition';
 import { easeLinear } from 'd3-ease';
@@ -122,6 +122,7 @@ export default class TableManager {
   /** The table that contains attribute information */
   attributeTable: ITable;
 
+/**The table that constains air quality information*/
   airqualityTable: ITable;
   /** The table view (of attributeTable) used in the table visualization */
   public tableTable: ITable; // table view
@@ -172,6 +173,8 @@ export default class TableManager {
   public temporal_data  = ['ptotday','pm25day', 'meanO3day','maxO3day','meanNO2day','maxNO2day','cloudyday','opaqueday',
           'Tcloudday','AirTempday','Pressureday','RHday','daylengthday','daydiffday']
 
+  public temporal_data_interval = {}
+
 
 
 
@@ -199,7 +202,7 @@ export default class TableManager {
    * @param: id of the dataset
    */
   public async loadData(descendDataSetID: string, attributeDataSetID: string) {
-
+    const self=this;
     if (descendDataSetID === 'AllFamiliesDescend' || descendDataSetID ===  'TenFamiliesDescend') {
       // this.defaultCols = ['KindredID', 'RelativeID', 'sex', 'deceased', 'suicide', 'Age','LabID','alcohol','Nr.Diag_alcohol','psychosis','Nr.Diag_psychosis','anxiety-non-trauma','Nr.Diag_anxiety-non-trauma', 'depression','cause_death']; //set of default cols to read in, minimizes load time for large files;
       //this.defaultCols = ['KindredID', 'RelativeID', 'sex', 'deceased', 'suicide', 'Age','bipolar spectrum illness','anxiety-non-trauma','alcohol','PD','psychosis','depression','cause_death','zip','longitude','latitude']; //set of default cols to read in, minimizes load time for large files;
@@ -228,7 +231,32 @@ export default class TableManager {
     //retrieving the desired dataset by name
     this.table = <ITable>await getById(descendDataSetID);
 
+
+    //TODO add the code for calculating averages
     this.airqualityTable = <ITable>await getById('matched_aq_merged')
+    let promises = []
+    this.temporal_data.forEach((aqName, index)=>{
+
+      for (let i = -14; i < 15; i++){
+
+        promises.push(self.airqualityTable.colData(aqName + i.toString()))
+
+      }
+
+    })
+
+    const finishedPromises = await Promise.all(promises);
+
+    this.temporal_data.forEach((aqName,index)=>{
+      let dataArray = []
+      for (let i = 0; i<29 ; i++){
+        dataArray = dataArray.concat(finishedPromises[i + 29 * index])
+      }
+
+      dataArray = dataArray.filter(d=>!isNaN(d)).sort(ascending)
+      self.temporal_data_interval[aqName] = [quantile(dataArray, 0.025), quantile(dataArray,0.975)]
+    })
+    console.log(self.temporal_data_interval)
   //  console.log(this.airqualityTable)
     await this.parseFamilyInfo(); //this needs to come first because the setAffectedState sets default values based on the data for a selected family.
     return Promise.resolve(this);
@@ -765,6 +793,7 @@ export default class TableManager {
   public async refreshActiveAQView(){
     const aqRange = range.join(this._activeAQrows,this.activeAQColumns);
     this.AQTable = await this.airqualityTable.view(aqRange);
+    console.log(this.activeAQColumns)
   }
 
 

@@ -1727,16 +1727,26 @@ class GenealogyTree {
 
     }
 
+    element.selectAll('.nodeIcon')
+           .on('contextmenu', (d:Node)=>{
+             event.preventDefault();
+             //TODO add menu for show menu to add to personal view
+           })
+
+
+
+
+
 
     element.selectAll('.nodeIcon')
       .on('click', (d: Node) => {
 
-        console.log(d);
+      //  console.log(d);
 
 
         this.renderPersonView(d);
         if(d.affected){
-          this.tableManager.mapView.highlightSelected(d.id);
+          //this.tableManager.mapView.highlightSelected(d.id);
         }
 
         event.stopPropagation();
@@ -1779,6 +1789,7 @@ class GenealogyTree {
 
           this.addMenu(d, actions);
         }
+
 
         selectAll('.slopeLine').classed('selectedSlope', false);
 

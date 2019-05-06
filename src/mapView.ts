@@ -1,15 +1,21 @@
+import * as events from 'phovea_core/src/event';
 import { select, selection, selectAll, mouse, event } from 'd3-selection';
 import { format } from 'd3-format';
 import { scaleLinear, scaleOrdinal, schemeCategory20c } from 'd3-scale';
 import { max, min, mean } from 'd3-array';
 import {zoom, zoomIdentity} from 'd3-zoom';
 import {geoCentroid,geoMercator,geoPath} from 'd3-geo'
+import {forceSimulation,forceCollide} from 'd3-force'
+import {timeout} from 'd3-timer'
 import {feature as topofeature} from 'topojson';
 import * as MapManager from './mapManager';
+import {
+  TABLE_VIS_ROWS_CHANGED_EVENT
+} from './tableManager';
 
 class MapView{
     private mapManager;
-    private currentSelectedMapAttribute;
+    private currentSelectedMapAttribute: string = 'sex';
     private currentViewType = 'map';
     //private topojson_features;
     private map_center;
@@ -17,6 +23,7 @@ class MapView{
     private svgHeight = (select('#col4').node() as any).getBoundingClientRect().height;
     private node_center;
     private projection;
+    private dotDataColloection;
 
     public init(mapManager){
       this.mapManager = mapManager;
@@ -121,34 +128,105 @@ class MapView{
       selectAll('.dropdown-item-map').on('mousedown', function (d) {
           event.preventDefault();
           //Check if is selected, if so remove from table.
+          d = d.toString()
           if (self.currentSelectedMapAttribute==d) {
             self.currentSelectedMapAttribute = undefined
             selectAll('.dropdown-item-map').classed('active', false);
           } else {
 
-            self.currentSelectedMapAttribute = d;
+            self.currentSelectedMapAttribute = d as string;
             selectAll('.dropdown-item-map').classed('active',false);
             select(this).classed('active', true);
           }
-          //events.fire(COL_ORDER_CHANGED_EVENT);
-          self.mapManager.prepareData(self.currentSelectedMapAttribute);
-          self.draw();
         });
 
+      self.update();
     }
+
     deleteHighlight(){
 
     }
 
-    draw(){
+    async update(){
       const self = this;
+      self.dotDataColloection = await self.mapManager.prepareData(this.currentSelectedMapAttribute);
       if (this.currentViewType == 'map'){
         self.drawGeographicalMap();
         self.drawMapDots();
       }
     }
-    private drawMapDots(){
 
+    private drawMapDots(){
+      let self = this;
+
+      let draw = select("#drawLayer");
+      draw.selectAll('rect').remove()
+
+      let circle_tip = select('#col4').select('#circletip');
+
+      // if (this.selectedValue==='Age'){
+      //   legendScale = scaleLinear().domain([0,90]).range([d3.interpolatePuRd(0.3),d3.interpolatePuRd(1)])
+      // }
+      // else{
+      //   let uniques = actualAttrData.filter((v, i, a) => a.indexOf(v) === i);
+      //   legendScale = scaleOrdinal().domain(uniques).range(d3.schemeSet1 );
+      // }
+
+      //TODO make new legend
+      // select('.legend').selectAll('.rectLegend').remove()
+      //
+      // let legend = svglegend.legendColor()
+      // legend.scale(self.legendScale);
+      // legend.shapeWidth((that.svgWidth)/8);
+      // d3.select('.legend').call(legend);
+      self.dotDataColloection.forEach(dot =>{
+        [dot.x,dot.y] = self.projection([dot.longitude,dot.latitude])
+      })
+
+      let simulation = forceSimulation(self.dotDataColloection)
+                          .force('collide',forceCollide().radius(5).iterations(10))
+                          .stop();
+
+      timeout(function(){
+      for (var i = 0,
+        n = Math.ceil(Math.log(simulation.alphaMin()) / Math.log(1 - simulation.alphaDecay()));
+         i < n; ++i) {
+          simulation.tick();}
+
+      let circles = draw.selectAll('circle').data(self.dotDataColloection);
+          circles.exit().remove();
+          circles = circles.enter()
+                      .append('circle')
+                      .merge(circles);
+          circles.attr('cx',(d:any)=>d.x)
+                     .attr('cy',(d:any)=>d.y)
+                     .attr('r',5)
+                     .attr('fill','blue')
+                     // .on("mouseover", function(d:any) {
+                     //    circle_tip.transition()
+                     //    .duration(10)
+                     //    .style("opacity", .9);
+                     //    // circle_tip.html(d.id + ' ' + d.bdate + '-' + d.ddate)
+                     //    // .style("left", (event.pageX) + "px")
+                     //    // .style("top", (event.pageY - 28) + "px");
+                     //    draw.append('line')
+                     //      .attr('id','exactLocationLine')
+                     //      .attr('stroke','red')
+                     //      .attr('strokeWidth',2)
+                     //      .attr('x1',d.x)
+                     //      .attr('y1',d.y)
+                     //      .attr('x2',self.projection(d.longitude))
+                     //      .attr('y2',self.projection(d.latitude))
+                     //      .attr('opacity',1);
+                     //    })
+                     // .on("mouseout", function(d:any) {
+                     //    circle_tip.transition()
+                     //    .duration(10)
+                     //    .style("opacity", 0);
+                     //    draw.select('#exactLocationLine').remove();
+                     //  });
+                  }
+              )
     }
 
     private drawGeographicalMap(){
@@ -199,6 +277,13 @@ class MapView{
            }
          })
 
+       }
+
+       private attachListener() {
+         const self = this;
+         events.on(TABLE_VIS_ROWS_CHANGED_EVENT, () => {
+           self.update();
+         });
        }
 
 

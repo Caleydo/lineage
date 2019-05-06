@@ -7,6 +7,7 @@ export default class MapManager{
   public tableManager;
   private demographic_table;
   public topojson_features;
+  public selectedMapAttributeType;
 
 
   constructor(){
@@ -21,63 +22,52 @@ export default class MapManager{
 
 
 
-  prepareData(currentSelectedMapAttribute){
-       let that = this;
-       console.log(this.tableManager)
-       // let longitudeArray = longitudeData.data;
-       // let latitudeData = this.attributeTable.getColData()[this.attributeTable.getTableManager().colOrder.indexOf("latitude")];
-       // let latitudeArray = latitudeData.data;
-       // let bdateData = this.attributeTable.getColData()[this.attributeTable.getTableManager().colOrder.indexOf('bdate')].data;
-       // let ddateData =  this.attributeTable.getColData()[this.attributeTable.getTableManager().colOrder.indexOf('ddate')].data;
-       //
-       // let countyCodeData = this.attributeTable.getColData()[this.attributeTable.getTableManager().colOrder.indexOf('CountyCode')].data;
-       // let idData = longitudeData.ids;
-       // let tempData = this.attributeTable.getColData()[this.attributeTable.getTableManager().colOrder.indexOf(this.selectedValue)].data;
-       // let actualAttrData = []
-       //
-       // //The zipData is the data to draw. It is a 2D array, an element is [long,lat,personID]
-       // let geoData = longitudeArray.map((longitude,index) =>{
-       //   if (longitude.length===1){
-       //     if (longitude!==0 && !isNaN(longitude[0])){
-       //
-       //       let geoLoc=[longitude[0],latitudeArray[index][0]];
-       //
-       //       if(that.selectedValue==='Age'){
-       //           actualAttrData.push(tempData[index][0]);
-       //           return {geoLocation:geoLoc,x:that.projection(geoLoc)[0], y:that.projection(geoLoc)[1],
-       //             id:idData[index][0],value:tempData[index][0],countyCode:countyCodeData[index][0],bdate:bdateData[index][0],ddate:ddateData[index][0]}
-       //       }
-       //       else{
-       //         if (tempData[index][0]!==undefined){
-       //           let dataValue;
-       //           if(that.selectedValue==='cause_death'){
-       //             let tempVal = tempData[index][0].toUpperCase()
-       //             if (tempVal.includes('SHOT')){
-       //               dataValue='GUNSHOT';
-       //             }
-       //             else if (tempVal.includes('POISON')){
-       //               dataValue = 'POISONING'
-       //             }
-       //             else{
-       //               dataValue = tempVal
-       //             }
-       //           }
-       //           else{
-       //             dataValue = tempData[index][0].toUpperCase()
-       //           }
-       //           actualAttrData.push(dataValue);
-       //         return {geoLocation:geoLoc,x:that.projection(geoLoc)[0], y:that.projection(geoLoc)[1],id:idData[index][0],
-       //             value:dataValue,countyCode:countyCodeData[index][0],bdate:bdateData[index][0],ddate:ddateData[index][0]}
-       //         }
-       //       }
-       //     }
-       //   }
-       // })
-       // return [geoData,actualAttrData]
+  public async prepareData(currentSelectedMapAttribute){
+       let self = this;
+       const graphView = await this.tableManager.graphTable;
+       const attributeView = await this.tableManager.tableTable;
+       const allCols = graphView.cols().concat(attributeView.cols());
+       const colOrder = ['longitude','latitude',currentSelectedMapAttribute, 'CountyCode']
+       let orderedCols = []
+       for (const colName of colOrder) {
+         for (const vector of allCols) {
+           if (vector.desc.name === colName) {
+             orderedCols.push(vector);
+           }
+         }
+       }
+       self.selectedMapAttributeType = orderedCols[2].valuetype.type;
+
+       let dotDataAccum  = []
+   //collect all the data important
+       let allPromises = [];
+       orderedCols.forEach((vector, index) => {
+         allPromises = allPromises.concat([
+           vector.data(),
+           vector.names()
+         ]);
+       });
+
+       const finishedPromises = await Promise.all(allPromises);
+
+       finishedPromises[1].forEach((IDNumber, index)=>{
+         const dataEntry:any = {}
+         dataEntry.ID = IDNumber;
+         dataEntry.longitude = finishedPromises[0][index]
+         dataEntry.latitude = finishedPromises[2][index]
+         dataEntry.dataVal = finishedPromises[4][index]
+         dataEntry.county_code = finishedPromises[6][index]
+         dotDataAccum.push(dataEntry)
+       })
+        dotDataAccum = dotDataAccum.filter(d=>d.longitude && d.latitude)
+      return dotDataAccum
    }
 
 
-}
+
+ }
+
+
 
 export function create(){
 

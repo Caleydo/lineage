@@ -15,7 +15,7 @@ import { transition } from 'd3-transition';
 import { easeLinear } from 'd3-ease';
 import { curveBasis, curveLinear } from 'd3-shape';
 import {interpolateLab} from 'd3-interpolate';
-import {interpolateReds,schemePaired, interpolateRdBu} from 'd3-scale-chromatic';
+import {interpolateReds,schemeCategory10, interpolateRdBu} from 'd3-scale-chromatic';
 import Histogram from './Histogram';
 
 import { VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL, VALUE_TYPE_STRING } from 'phovea_core/src/datatype';
@@ -81,8 +81,6 @@ class AttributeTable {
 
   private rowHeight = Config.glyphSize * 2.5 - 4;
   private headerHeight = this.rowHeight * 2;
-  private temporalMaximum = {AirTempday: 30};
-  private temporalMinimum = {AirTempday: -30};
   private colWidths = {
     idtype: this.rowHeight * 4,
     categorical: this.rowHeight,
@@ -164,7 +162,6 @@ class AttributeTable {
   public async update() {
     await this.initData();
     this.render();
-    this.tableManager.mapView.draw(this)
   }
 
   public getColData(){
@@ -655,7 +652,7 @@ class AttributeTable {
     //Create a dictionary of y value to people
     const y2personDict = {};
     const yDict = this.tableManager.yValues;
-
+    console.log(yDict)
     let maxRow=0;
     //Find max value in yDict
     Object.keys(yDict).forEach((person)=> {
@@ -687,8 +684,8 @@ class AttributeTable {
     this.height = Config.glyphSize * 4 * (maxRow);
     // select('.tableSVG').attr('viewBox','0 0 ' + this.width + ' ' + (this.height + this.margin.top + this.margin.bottom))
 
-    // select('.tableSVG').attr('height', this.height);
-    select('.tableSVG').attr('height',document.getElementById('genealogyTree').getBoundingClientRect().height);
+     select('.tableSVG').attr('height', this.tableManager.tableHeight);
+  //  select('.tableSVG').attr('height',document.getElementById('genealogyTree').getBoundingClientRect().height);
     select('.tableSVG').attr('width', this.tableManager.colOrder.length * 100);
 
     this.y.range([0, this.height * .7]).domain([1, maxRow]);
@@ -801,25 +798,8 @@ class AttributeTable {
 
           people.map((person) => {
             person = person.split('_')[0];
-            let maximum = (personArrayDict[person]) ?  max(personArrayDict[person]) :0
-            maximum = maximum? maximum : 0
-            let minimum = (personArrayDict[person]) ? min(personArrayDict[person]) : 0
-
-            minimum = minimum < 0 ? minimum : 0
             if (person in personArrayDict) {
-              if (self.temporalMaximum[aqName]){
-                  self.temporalMaximum[aqName] = self.temporalMaximum[aqName] > maximum ? self.temporalMaximum[aqName] : maximum;
-              }
-              else{
-                  self.temporalMaximum[aqName] = maximum
-              }
 
-              if (self.temporalMinimum[aqName]){
-                    self.temporalMinimum[aqName] = self.temporalMinimum[aqName] < minimum ? self.temporalMinimum[aqName] : minimum;
-                }
-              else{
-                    self.temporalMinimum[aqName] = minimum
-                }
 
               colData.push(personArrayDict[person]);
             } else {
@@ -1689,7 +1669,7 @@ class AttributeTable {
           select(this).selectAll('.line_polygones').attr('opacity',0.1)
         }
         else{
-          const yLineScale = scaleLinear().domain([cellData.range[0],cellData.level_set]).range([0,self.rowHeight]).clamp(false);
+          const yLineScale = scaleLinear().domain([self.tableManager.getAQRange(cellData.name)[0],cellData.level_set]).range([0,self.rowHeight]).clamp(false);
           const colWidth = self.customColWidths[cellData.name]||self.colWidths.temporal;
           const xLineScale = scaleLinear().domain([0,28]).range([0,colWidth]);
           const cleaned_dataArray = cellData.data[0].map(d=>isNaN(d)? 0 : d);
@@ -1936,11 +1916,15 @@ class AttributeTable {
       } else if (d.type === 'temporal'){
         let dataArray = el[0]
         let before_average = undefined;
+        let after_average = undefined;
         if (dataArray!==undefined){
           before_average = mean(dataArray.slice(14-self.average_limit,14))  ;
+          after_average = mean(dataArray.slice(15,15+self.average_limit));
         }
+        let valueToReturn = Math.abs(before_average - after_average);
+        valueToReturn = valueToReturn?valueToReturn : 0
         return {
-          index: i, value: before_average
+          index: i, value: valueToReturn
         };
       }
 
@@ -2480,8 +2464,8 @@ class AttributeTable {
 
   };
 
-  private renderTemporalHeader(element, headerData){
-      //TODO change to the new design.
+  private renderTemporalHeader(element, headerData ){
+      //TODO Make it only appear the current family VS entire dataSets
       const self = this;
       const colWidth = this.customColWidths[headerData.name] || this.colWidths.temporal;
       const kindredIDData = self.colData.filter(d=>d.name == 'KindredID')[0].data;
@@ -2518,7 +2502,7 @@ class AttributeTable {
 
       const xLineScale = scaleLinear().domain([-14,14]).range([0,colWidth]);
       const yLineScale = scaleLinear()
-                .domain([self.temporalMaximum[headerData.name], self.temporalMinimum[headerData.name]])
+                .domain(self.tableManager.getAQRange(headerData.name))
                 .range([0,height]);
 
       element.select('.backgroundRect')
@@ -2535,12 +2519,27 @@ class AttributeTable {
 
       this.addSortingIcons(element, headerData);
       const familyIDArray = Object.keys(beforeFamilyAverageSet)
-      const lineLength = 0.5*colWidth/(familyIDArray.length+1)
+    //  const lineLength = 0.5*colWidth/(familyIDArray.length+1)
+      const lineLength = colWidth/4
      //Add family seperator
       element.selectAll('.family_seperator').remove()
       element.selectAll('.header_average_line').remove()
       element.selectAll('.header_summuary_line').remove()
       element.selectAll('.header_family_id').remove()
+      element.append('line')
+             .attr('class','family_seperator')
+             .attr('x1',xLineScale(0))
+             .attr('y1',0)
+             .attr('x2',xLineScale(0))
+             .attr('y2',height)
+             .attr('transform','translate(' + lineLength + ',0)')
+     element.append('line')
+            .attr('class','family_seperator')
+            .attr('x1',xLineScale(0))
+            .attr('y1',0)
+            .attr('x2',xLineScale(0))
+            .attr('y2',height)
+            .attr('transform','translate(' + (-1) * lineLength + ',0)')
       let before_average_cacher = []
       let after_average_cacher = []
       familyIDArray.forEach((familyID,i)=>{
@@ -2548,25 +2547,25 @@ class AttributeTable {
         const after_average = mean(afterFamilyAverageSet[familyID])
         before_average_cacher.push(before_average)
         after_average_cacher.push(after_average)
-        element.append('line')
-               .attr('class','family_seperator')
-               .attr('x1',xLineScale(0))
-               .attr('y1',0)
-               .attr('x2',xLineScale(0))
-               .attr('y2',height)
-               .attr('transform','translate(' + (i+1) * lineLength + ',0)')
+        // element.append('line')
+        //        .attr('class','family_seperator')
+        //        .attr('x1',xLineScale(0))
+        //        .attr('y1',0)
+        //        .attr('x2',xLineScale(0))
+        //        .attr('y2',height)
+        //        .attr('transform','translate(' + (i+1) * lineLength + ',0)')
 
-        element.selectAll('.place_holder')
-               .data(beforeFamilyAverageSet[familyID])
-               .enter()
-               .append('line')
-               .attr('x1',xLineScale(0))
-               .attr('x2',xLineScale(0) + lineLength)
-               .attr('y1',d=> d? height-yLineScale(d):yLineScale(0))
-               .attr('y2',d=> d? height-yLineScale(d):yLineScale(0))
-               .attr('stroke',schemePaired[2*i+2])
-               .attr('transform', 'translate(' + (-i-1) * lineLength + ',0)')
-               .attr('class','header_average_line')
+        // element.selectAll('.place_holder')
+        //        .data(beforeFamilyAverageSet[familyID])
+        //        .enter()
+        //        .append('line')
+        //        .attr('x1',xLineScale(0))
+        //        .attr('x2',xLineScale(0) + lineLength)
+        //        .attr('y1',d=> d? height-yLineScale(d):yLineScale(0))
+        //        .attr('y2',d=> d? height-yLineScale(d):yLineScale(0))
+        //        .attr('stroke',schemeCategory10[2*i+2])
+        //        .attr('transform', 'translate(' + (-i-1) * lineLength + ',0)')
+        //        .attr('class','header_average_line')
 
         element.append('line')
                .attr('class', 'header_summuary_line')
@@ -2574,35 +2573,35 @@ class AttributeTable {
                .attr('x2',xLineScale(0) + lineLength)
                .attr('y1',height-yLineScale(before_average))
                .attr('y2',height-yLineScale(before_average))
-               .attr('stroke',schemePaired[2*i+3])
-               .attr('transform', 'translate(' + (-i-1) * lineLength + ',0)')
-        element.append('text')
-                .text(familyID)
-                .attr('x', xLineScale(0))
-                .attr('y', 5)
-                .attr('fill',schemePaired[2*i+3])
-                .attr('transform','translate(' + (-i-0.5) * lineLength + ',0)')
-                .attr('class','header_family_id')
+               .attr('stroke',schemeCategory10[i+1])
+               .attr('transform', 'translate(' + (-1) * lineLength + ',0)')
+        // element.append('text')
+        //         .text(familyID)
+        //         .attr('x', xLineScale(0))
+        //         .attr('y', 5)
+        //         .attr('fill',schemeCategory10[2*i+3])
+        //         .attr('transform','translate(' + (-i-0.5) * lineLength + ',0)')
+        //         .attr('class','header_family_id')
 
-        element.append('line')
-               .attr('class','family_seperator')
-               .attr('x1',xLineScale(0))
-               .attr('y1',0)
-               .attr('x2',xLineScale(0))
-               .attr('y2',height)
-               .attr('transform','translate(' + (-i-1) * lineLength + ',0)')
+        // element.append('line')
+        //        .attr('class','family_seperator')
+        //        .attr('x1',xLineScale(0))
+        //        .attr('y1',0)
+        //        .attr('x2',xLineScale(0))
+        //        .attr('y2',height)
+        //        .attr('transform','translate(' + (-i-1) * lineLength + ',0)')
 
-         element.selectAll('.place_holder')
-                .data(afterFamilyAverageSet[familyID])
-                .enter()
-                .append('line')
-                .attr('x1',xLineScale(0))
-                .attr('x2',xLineScale(0) + lineLength)
-                .attr('y1',d=> d? height-yLineScale(d):yLineScale(0))
-                .attr('y2',d=> d? height-yLineScale(d):yLineScale(0))
-                .attr('stroke',schemePaired[2*i+2])
-                .attr('transform', 'translate(' + (i) * lineLength + ',0)')
-                .attr('class','header_average_line')
+         // element.selectAll('.place_holder')
+         //        .data(afterFamilyAverageSet[familyID])
+         //        .enter()
+         //        .append('line')
+         //        .attr('x1',xLineScale(0))
+         //        .attr('x2',xLineScale(0) + lineLength)
+         //        .attr('y1',d=> d? height-yLineScale(d):yLineScale(0))
+         //        .attr('y2',d=> d? height-yLineScale(d):yLineScale(0))
+         //        .attr('stroke',schemeCategory10[2*i+2])
+         //        .attr('transform', 'translate(' + (i) * lineLength + ',0)')
+         //        .attr('class','header_average_line')
 
         element.append('line')
                .attr('class', 'header_summuary_line')
@@ -2610,29 +2609,30 @@ class AttributeTable {
                .attr('x2',xLineScale(0) + lineLength)
                .attr('y1',height-yLineScale(after_average))
                .attr('y2',height-yLineScale(after_average))
-               .attr('stroke',schemePaired[2*i+3])
-               .attr('transform', 'translate(' + (i) * lineLength + ',0)')
+               .attr('stroke',schemeCategory10[i+1])
+               //.attr('transform', 'translate(' + (i) * lineLength + ',0)')
 
       })
       //Add overall average
-        const overall_before_average = mean(before_average_cacher)
-        const overall_after_average = mean(after_average_cacher)
+
         element.append('line')
               .attr('class','header_summuary_line')
               .attr('x1',xLineScale(0))
               .attr('x2' , xLineScale(0) +lineLength)
-              .attr('y1',height-yLineScale(overall_before_average))
-              .attr('y2',height-yLineScale(overall_before_average))
-              .attr('stroke',schemePaired[1])
-              .attr('transform', 'translate(' + (-familyIDArray.length-1) * lineLength + ',0)')
+              .attr('y1',height-yLineScale(self.tableManager.temporal_data_means[headerData.name][0]))
+              .attr('y2',height-yLineScale(self.tableManager.temporal_data_means[headerData.name][0]))
+              .attr('stroke',schemeCategory10[0])
+              .attr('transform', 'translate(' + (-2) * lineLength + ',0)')
+            //  .attr('transform', 'translate(' + (-familyIDArray.length-1) * lineLength + ',0)')
         element.append('line')
              .attr('class','header_summuary_line')
              .attr('x1',xLineScale(0))
              .attr('x2' , xLineScale(0) +lineLength)
-             .attr('y1',height-yLineScale(overall_after_average))
-             .attr('y2',height-yLineScale(overall_after_average))
-             .attr('stroke',schemePaired[1])
-             .attr('transform', 'translate(' + (familyIDArray.length) * lineLength + ',0)')
+             .attr('y1',height-yLineScale(self.tableManager.temporal_data_means[headerData.name][1]))
+             .attr('y2',height-yLineScale(self.tableManager.temporal_data_means[headerData.name][1]))
+             .attr('stroke',schemeCategory10[0])
+            .attr('transform', 'translate(' +  lineLength + ',0)')
+             //.attr('transform', 'translate(' + (familyIDArray.length) * lineLength + ',0)')
 
 
       //add Family ID
@@ -3318,7 +3318,7 @@ class AttributeTable {
       if (cellData.level_set == undefined){
         const xLineScale = scaleLinear().domain([0,28]).range([0,colWidth]);
         const yLineScale = scaleLinear()
-                    .domain([self.temporalMinimum[cellData.name], self.temporalMaximum[cellData.name]])
+                    .domain(self.tableManager.getAQRange(cellData.name))
                     .range([0,rowHeight]);
         let dataArray = cellData.data[0];
         let cleaned_dataArray = dataArray.map(d=>isNaN(d)? 0 : d);
@@ -3424,7 +3424,7 @@ class AttributeTable {
             }
       else{
         const xLineScale = scaleLinear().domain([0,28]).range([0,colWidth]);
-        let yLineScale = scaleLinear().domain([cellData.range[0],cellData.level_set]).range([0,rowHeight]).clamp(true);
+        let yLineScale = scaleLinear().domain([self.tableManager.getAQRange(cellData.name)[0],cellData.level_set]).range([0,rowHeight]).clamp(true);
         let colorScale = scaleLinear().domain(cellData.range).range([0,1]);
         let dataArray = cellData.data[0];
         let cleaned_dataArray = dataArray.map(d=>isNaN(d)? 0 : parseInt(d));
@@ -3516,11 +3516,11 @@ class AttributeTable {
                           return interpolateRdBu(0.5)
                         }
                         else if(dataArray[i]>0){
-                          const interpolate_val = 0.5+dataArray[i]/self.temporalMaximum[cellData.name]*0.5
+                          const interpolate_val = 0.5+dataArray[i]/self.tableManager.getAQRange(cellData.name)[1]*0.5
                           return interpolateRdBu(1-interpolate_val)
                         }
                         else{
-                          const interpolate_val = 0.5-dataArray[i]/self.temporalMinimum[cellData.name]*0.5
+                          const interpolate_val = 0.5-dataArray[i]/self.tableManager.getAQRange(cellData.name)[0]*0.5
                           return interpolateRdBu(1-interpolate_val)
 
                         }
@@ -4020,14 +4020,7 @@ class AttributeTable {
     events.on(COL_ORDER_CHANGED_EVENT, (evt, item) => {
       self.update();
     });
-    events.on(HIDE_FAMILY_TREE, (evt, item)=>{
-      let tree_component = document.getElementById('col2')
-      if (tree_component.style.display === 'none'){
-        tree_component.style.display = 'block';
-      } else{
-        tree_component.style.display = 'none';
-      }
-    });
+
 
   }
 

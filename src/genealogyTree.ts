@@ -75,7 +75,7 @@ import * as _ from 'underscore';
 //   legendColor
 // } from 'd3-svg-legend';
 
-import { PRIMARY_SELECTED, POI_SELECTED, TABLE_VIS_ROWS_CHANGED_EVENT } from './tableManager';
+import { PRIMARY_SELECTED, POI_SELECTED, TABLE_VIS_ROWS_CHANGED_EVENT,HIDE_FAMILY_TREE } from './tableManager';
 import { VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL } from 'phovea_core/src/datatype';
 // import {TABLE_SORTED_EVENT} from './attributeTable'
 import Node from './Node';
@@ -336,47 +336,7 @@ class GenealogyTree {
         }
       });
 
-    // buttonMenu
-    //   .append('li')
-    //   .append('a')
-    //   .attr('class', 'btn-link')
-    //   .attr('role', 'button')
-    //   .html('Aggregate')
-    //   .on('click', (d) => {
-    //     selectAll('.slopeLine').classed('clickedSlope', false);
-    //     selectAll('.highlightBar').classed('selected', false);
 
-    //     this.data.aggregateTreeWrapper(undefined, layoutState.Aggregated);
-    //     // this.update_graph();
-    //   });
-
-    // buttonMenu
-    //   .append('li')
-    //   .append('a')
-    //   .attr('class', 'btn-link')
-    //   .attr('role', 'button')
-    //   .html('Hide')
-    //   .on('click', (d) => {
-
-    //     selectAll('.slopeLine').classed('clickedSlope', false);
-    //     selectAll('.highlightBar').classed('selected', false);
-
-    //     this.data.aggregateTreeWrapper(undefined, layoutState.Hidden);
-    //   });
-
-    // buttonMenu
-    //   .append('li')
-    //   .append('a')
-    //   .attr('class', 'btn-link')
-    //   .attr('role', 'button')
-    //   .html('Expand')
-    //   .on('click', (d) => {
-
-    //     selectAll('.slopeLine').classed('clickedSlope', false);
-    //     selectAll('.highlightBar').classed('selected', false);
-
-    //     this.data.aggregateTreeWrapper(undefined, layoutState.Expanded);
-    //   });
 
     const headerDiv = this.$node.append('div').attr('id', 'graphHeaders');
 
@@ -675,7 +635,8 @@ class GenealogyTree {
     })];
 
     this.height = Config.glyphSize * 4 * (yrange[1] - yrange[0] + 1); // - this.margin.top - this.margin.bottom;
-
+  //  console.log(this.height)
+    this.tableManager.tableHeight = this.height
     this.y.range([0, this.height * .7]).domain(yrange);
 
     this.interGenerationScale.range([.75, .25]).domain([2, nodes.length]);
@@ -684,15 +645,15 @@ class GenealogyTree {
     this.$node.select('#graph')
       // .attr('viewBox','0 0 ' + this.width +  ' ' +  (this.height + this.margin.top + this.margin.bottom))
       // .attr('preserveAspectRatio','none');
-      .attr('width', this.width + Config.slopeChartWidth);
-      // .attr('height', this.height);
+      .attr('width', this.width + Config.slopeChartWidth)
+       .attr('height', this.height);
 
     this.update_edges();
     this.update_nodes();
 
     this.addFamilyBars();
-    this.$node.select('#graph')
-    .attr('height',document.getElementById('genealogyTree').getBoundingClientRect().height);
+    // this.$node.select('#graph')
+    // .attr('height',document.getElementById('genealogyTree').getBoundingClientRect().height);
   }
 
   private addFamilyBars() {
@@ -2598,6 +2559,15 @@ class GenealogyTree {
       this.data.aggregateTreeWrapper(undefined, undefined);
       this.update_time_axis();
       this.update_graph();
+    });
+    events.on(HIDE_FAMILY_TREE, (evt, item)=>{
+      let tree_component = document.getElementById('col2')
+      if (tree_component.style.display === 'none'){
+        tree_component.style.display = 'block';
+        this.update();
+      } else{
+        tree_component.style.display = 'none';
+      }
     });
 
   }

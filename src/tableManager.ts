@@ -174,8 +174,9 @@ export default class TableManager {
           'Tcloudday','AirTempday','Pressureday','RHday','daylengthday','daydiffday']
 
   public temporal_data_interval = {}
+  public temporal_data_means = {}
 
-
+  public tableHeight;
 
 
   //Keeps track of selected primary/secondary variable
@@ -206,7 +207,7 @@ export default class TableManager {
     if (descendDataSetID === 'AllFamiliesDescend' || descendDataSetID ===  'TenFamiliesDescend') {
       // this.defaultCols = ['KindredID', 'RelativeID', 'sex', 'deceased', 'suicide', 'Age','LabID','alcohol','Nr.Diag_alcohol','psychosis','Nr.Diag_psychosis','anxiety-non-trauma','Nr.Diag_anxiety-non-trauma', 'depression','cause_death']; //set of default cols to read in, minimizes load time for large files;
       //this.defaultCols = ['KindredID', 'RelativeID', 'sex', 'deceased', 'suicide', 'Age','bipolar spectrum illness','anxiety-non-trauma','alcohol','PD','psychosis','depression','cause_death','zip','longitude','latitude']; //set of default cols to read in, minimizes load time for large files;
-      this.defaultCols = ['KindredID','maxNO2day','pm25day', 'AirTempday','RelativeID', 'sex', 'bdate', 'ddate', 'zip','longitude','latitude','CountyCode']; //set of default cols to read in, minimizes load time for large files;
+      this.defaultCols = ['KindredID','maxNO2day','pm25day', 'AirTempday','RelativeID', 'sex', 'bdate', 'ddate']; //set of default cols to read in, minimizes load time for large files;
 
     } else {
       this.defaultCols = ['KindredID', 'RelativeID', 'sex', 'affected', 'labid'];
@@ -249,14 +250,24 @@ export default class TableManager {
 
     this.temporal_data.forEach((aqName,index)=>{
       let dataArray = []
+      let beforeArray = []
+      let afterArray = []
       for (let i = 0; i<29 ; i++){
         dataArray = dataArray.concat(finishedPromises[i + 29 * index])
+        if (i<14){
+          beforeArray = beforeArray.concat(finishedPromises[i+29*index])
+        }
+        else if (i > 14){
+          afterArray = afterArray.concat(finishedPromises[i+29*index])
+        }
       }
+
 
       dataArray = dataArray.filter(d=>!isNaN(d)).sort(ascending)
       self.temporal_data_interval[aqName] = [quantile(dataArray, 0.025), quantile(dataArray,0.975)]
+      self.temporal_data_means[aqName] = [mean(beforeArray),mean(afterArray)]
     })
-    console.log(self.temporal_data_interval)
+    console.log(self.temporal_data_means)
   //  console.log(this.airqualityTable)
     await this.parseFamilyInfo(); //this needs to come first because the setAffectedState sets default values based on the data for a selected family.
     return Promise.resolve(this);
@@ -588,6 +599,7 @@ export default class TableManager {
     this.updatePOI_Primary();
       events.fire(FAMILY_SELECTED_EVENT);
 
+
   }
 
 
@@ -787,13 +799,15 @@ export default class TableManager {
    */
   public async refreshActiveGraphView() {
     const graphRange = range.join(this._activeGraphRows, this.activeGraphColumns);
+
     this.graphTable = await this.table.view(graphRange); //view on graph table
+
   }
 
   public async refreshActiveAQView(){
     const aqRange = range.join(this._activeAQrows,this.activeAQColumns);
     this.AQTable = await this.airqualityTable.view(aqRange);
-    console.log(this.activeAQColumns)
+
   }
 
 
@@ -849,6 +863,10 @@ export default class TableManager {
 
   public getAttrColumns() {
     return this.attributeTable.cols();
+  }
+
+  public getAQRange(columnName){
+    return this.temporal_data_interval[columnName]
   }
 
   public getAirQualityColumns(AQTable){

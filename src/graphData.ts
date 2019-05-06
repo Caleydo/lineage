@@ -29,7 +29,7 @@ class GraphData {
 
   public nodes: Node[];
   public graphTable: ITable;
-  public attributeTable: ITable;
+  //public attributeTable: ITable;
   private tableManager: TableManager;
   private ids: string[]; //unique identifier for each person. Is used to create new range on graphView
   private uniqueIDs: string[];
@@ -591,7 +591,7 @@ class GraphData {
 
     this.exportYValues();
     this.tableManager.activeGraphRows = idRange;
-
+  //  console.log(idRange)
   }
 
 

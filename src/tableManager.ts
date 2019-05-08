@@ -599,7 +599,7 @@ export default class TableManager {
     await this.refreshActiveTableView();
     await this.refreshActiveAQView()
     this.updatePOI_Primary();
-      events.fire(FAMILY_SELECTED_EVENT);
+    events.fire(FAMILY_SELECTED_EVENT);
 
 
   }
@@ -889,7 +889,7 @@ export default class TableManager {
     colNames = colNames.filter(e=>e!=null)
     return colNames.concat(this.temporal_data)
   }
-
+  //TODO change this into => on calling it, make the active table into entire dataset, exclude any none
   public findTop100(attributeName){
     const self = this;
     let colVectors = self.airqualityTable.cols().filter(col=>col.desc.name.includes( attributeName))

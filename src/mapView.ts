@@ -1,6 +1,7 @@
 import * as events from 'phovea_core/src/event';
 import { select, selection, selectAll, mouse, event } from 'd3-selection';
 import { format } from 'd3-format';
+import {Config} from './config';
 import { scaleLinear, scaleOrdinal, schemeCategory20c } from 'd3-scale';
 import { max, min, mean } from 'd3-array';
 import {zoom, zoomIdentity} from 'd3-zoom';
@@ -10,8 +11,14 @@ import {timeout} from 'd3-timer'
 import {feature as topofeature} from 'topojson';
 import * as MapManager from './mapManager';
 import {
-  TABLE_VIS_ROWS_CHANGED_EVENT
+  TABLE_VIS_ROWS_CHANGED_EVENT,
+  MAP_ATTRIBUTE_CHANGE_EVENT
 } from './tableManager';
+import { VALUE_TYPE_CATEGORICAL,
+        VALUE_TYPE_INT,
+        VALUE_TYPE_REAL,
+        VALUE_TYPE_STRING } from 'phovea_core/src/datatype';
+
 
 class MapView{
     private mapManager;
@@ -20,10 +27,11 @@ class MapView{
     //private topojson_features;
     private map_center;
     private svgWidth = (select('#map').node() as any).getBoundingClientRect().width;
-    private svgHeight = (select('#col4').node() as any).getBoundingClientRect().height;
     private node_center;
     private projection;
     private dotDataColloection;
+    private margin = Config.margin;
+    private svgHeight = (select('#col4').node() as any).getBoundingClientRect().height-this.margin.top - this.margin.bottom;
 
     public init(mapManager){
       this.mapManager = mapManager;
@@ -52,14 +60,16 @@ class MapView{
           .attr('opacity',0)
           .attr('background','white');
       this.initUtil();
+
+      this.attachListener();
     }
 
     private initUtil(){
       const self = this;
       let buttondiv = select('#map').append('div').attr('id','button-div');
-      let resetButton = buttondiv.append('button')
-                  .attr('id','reset_button')
-                  .text('Reset zoom');
+      // let resetButton = buttondiv.append('button')
+      //             .attr('id','reset_button')
+      //             .text('Reset zoom');
       select('.navbar-collapse')
           .append('ul').attr('class', 'nav navbar-nav navbar-left').attr('id', 'Toggle Tree')
           .append('li')
@@ -129,14 +139,12 @@ class MapView{
           event.preventDefault();
           //Check if is selected, if so remove from table.
           d = d.toString()
-          if (self.currentSelectedMapAttribute==d) {
-            self.currentSelectedMapAttribute = undefined
-            selectAll('.dropdown-item-map').classed('active', false);
-          } else {
 
+          if (self.currentSelectedMapAttribute!=d) {
             self.currentSelectedMapAttribute = d as string;
             selectAll('.dropdown-item-map').classed('active',false);
             select(this).classed('active', true);
+            events.fire(MAP_ATTRIBUTE_CHANGE_EVENT,undefined)
           }
         });
 
@@ -151,6 +159,7 @@ class MapView{
       const self = this;
       self.dotDataColloection = await self.mapManager.prepareData(this.currentSelectedMapAttribute);
       if (this.currentViewType == 'map'){
+
         self.drawGeographicalMap();
         self.drawMapDots();
       }
@@ -200,15 +209,22 @@ class MapView{
                       .merge(circles);
           circles.attr('cx',(d:any)=>d.x)
                      .attr('cy',(d:any)=>d.y)
-                     .attr('r',5)
-                     .attr('fill','blue')
-                     // .on("mouseover", function(d:any) {
-                     //    circle_tip.transition()
-                     //    .duration(10)
-                     //    .style("opacity", .9);
-                     //    // circle_tip.html(d.id + ' ' + d.bdate + '-' + d.ddate)
-                     //    // .style("left", (event.pageX) + "px")
-                     //    // .style("top", (event.pageY - 28) + "px");
+                     .attr('r',4)
+                     .attr('fill',(d:any)=>self.mapManager.scaleFunction(d.dataVal))
+                      .on("mouseover", function(d:any) {
+                         circle_tip.style("opacity", .9);
+                         // .transition()
+                         // .duration(10)
+                         let tooltip_string;
+                         if (self.mapManager.selectedMapAttributeType === VALUE_TYPE_STRING){
+                           tooltip_string = d.ID + ' ' + d.dataVal;
+                         }
+                         else{
+                           tooltip_string = d.ID
+                         }
+                         circle_tip.html(tooltip_string)
+                        .style("left", (event.pageX) + "px")
+                        .style("top", (event.pageY - 28) + "px");
                      //    draw.append('line')
                      //      .attr('id','exactLocationLine')
                      //      .attr('stroke','red')
@@ -218,13 +234,14 @@ class MapView{
                      //      .attr('x2',self.projection(d.longitude))
                      //      .attr('y2',self.projection(d.latitude))
                      //      .attr('opacity',1);
-                     //    })
-                     // .on("mouseout", function(d:any) {
-                     //    circle_tip.transition()
+                         })
+                      .on("mouseout", function(d:any) {
+                         circle_tip
+                         //.transition()
                      //    .duration(10)
-                     //    .style("opacity", 0);
+                         .style("opacity", 0);
                      //    draw.select('#exactLocationLine').remove();
-                     //  });
+                       });
                   }
               )
     }
@@ -247,16 +264,18 @@ class MapView{
            .attr("d", path_fuction);
     //  console.log(self.mapManager.topojson_features.features)
       paths.on('mouseover',function(d){
-               county_tooltip.transition()
-               .duration(200)
+               county_tooltip
+               // .transition()
+               // .duration(200)
                .style('opacity',0.9);
                county_tooltip.html((d as any).properties.NAME)
                .style("left", (event.pageX) + "px")
                 .style("top", (event.pageY - 28) + "px");
               })
              .on('mouseout',function(d){
-               county_tooltip.transition()
-                       .duration(200)
+               county_tooltip
+                       //  .transition()
+                       // .duration(200)
                        .style('opacity',0)});
 
          select('#map-svg').call(zoom().on('zoom',function(){
@@ -268,14 +287,14 @@ class MapView{
 
 
 
-         select('#reset_button').on('click',function(){
-           if(self.currentViewType==='mapView'){
-             zoom().transform(select('map-svg'),zoomIdentity)
-             self.projection.scale(5000).translate(self.node_center).center(self.map_center);
-             select('#mapLayer').selectAll('path').attr('d',path_fuction);
-             self.drawMapDots();
-           }
-         })
+         // select('#reset_button').on('click',function(){
+         //   if(self.currentViewType==='mapView'){
+         //     zoom().transform(select('map-svg'),zoomIdentity)
+         //     self.projection.scale(5000).translate(self.node_center).center(self.map_center);
+         //     select('#mapLayer').selectAll('path').attr('d',path_fuction);
+         //     self.drawMapDots();
+         //   }
+         // })
 
        }
 
@@ -283,7 +302,10 @@ class MapView{
          const self = this;
          events.on(TABLE_VIS_ROWS_CHANGED_EVENT, () => {
            self.update();
-         });
+         })
+         events.on(MAP_ATTRIBUTE_CHANGE_EVENT,()=>{
+           self.update();
+         })
        }
 
 

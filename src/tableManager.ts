@@ -92,7 +92,8 @@ export const FAMILY_SELECTED_EVENT = 'family_selected_event';
 export const UPDATE_TABLE_EVENT = 'update_table';
 export const SET_ALL_AVERAGE_LIMIT_EVENT = 'all_average_limit_changed';
 export const HIDE_FAMILY_TREE = 'hide_family_tree'
-
+export const MAP_ATTRIBUTE_CHANGE_EVENT = 'map_attribute_changed'
+export const SHOW_TOP_100_EVENT = 'show_top_100_expose';
 
 
 export const POI_COLOR = '#285880';
@@ -177,6 +178,7 @@ export default class TableManager {
   public temporal_data_means = {}
 
   public tableHeight;
+
 
 
   //Keeps track of selected primary/secondary variable
@@ -811,6 +813,8 @@ export default class TableManager {
   }
 
 
+
+
   /**
    * Updates the active rows for the table visualization, creates a new table view and fires a {TABLE_VIS_ROWS_CHANGED} event.
    * @param newRows
@@ -884,6 +888,12 @@ export default class TableManager {
     })
     colNames = colNames.filter(e=>e!=null)
     return colNames.concat(this.temporal_data)
+  }
+
+  public findTop100(attributeName){
+    const self = this;
+    let colVectors = self.airqualityTable.cols().filter(col=>col.desc.name.includes( attributeName))
+    console.log(colVectors)
   }
 }
 

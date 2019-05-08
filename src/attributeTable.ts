@@ -31,7 +31,8 @@ import {
   UPDATE_TABLE_EVENT,
   VIEW_CHANGED_EVENT,
   TABLE_VIS_ROWS_CHANGED_EVENT,
-  HIDE_FAMILY_TREE
+  HIDE_FAMILY_TREE,
+  SHOW_TOP_100_EVENT
 } from './tableManager';
 import { isUndefined } from 'util';
 
@@ -380,6 +381,32 @@ class AttributeTable {
 
     });
 
+    const list_top = dropdownMenu.append('li').attr('class', 'dropdown');
+
+    list_top
+      .append('a')
+      .attr('class', 'dropdown-toggle')
+      .attr('data-toggle', 'dropdown')
+      .attr('role', 'button')
+      .html('Show Top 100')
+      .append('span')
+      .attr('class', 'caret');
+    const menu_top = list_top.append('ul').attr('class', 'dropdown-menu')
+
+      menuItems = menu_top.selectAll('.airqualityAttr').data(self.tableManager.temporal_data);
+      menuItems = menuItems.enter()
+                           .append('li')
+                           .append('a')
+                             .attr('class', 'dropdown-item-top')
+                             .html((d:any) => { return d; })
+                             .merge(menuItems)
+                             .on('click',d=>{
+                               console.log(d)
+                               document.getElementById('col2').style.display = 'none';
+                               events.fire(SHOW_TOP_100_EVENT, {'attribute': d})
+                               self.tableManager.findTop100(d);
+                             })
+
     const tableDiv = this.$node.append('div')
       .attr('id', 'tableDiv');
 
@@ -619,7 +646,7 @@ class AttributeTable {
     const graphView = await this.tableManager.graphTable;
     const attributeView = await this.tableManager.tableTable;
     const aqView = await this.tableManager.AQTable;
-    console.log(aqView)
+    //console.log(aqView)
     const self  = this;
     const allCols = graphView.cols().concat(attributeView.cols()).concat(aqView.cols());
     const colOrder = this.tableManager.colOrder;
@@ -652,7 +679,7 @@ class AttributeTable {
     //Create a dictionary of y value to people
     const y2personDict = {};
     const yDict = this.tableManager.yValues;
-    console.log(yDict)
+    //console.log(yDict)
     let maxRow=0;
     //Find max value in yDict
     Object.keys(yDict).forEach((person)=> {
@@ -4020,7 +4047,6 @@ class AttributeTable {
     events.on(COL_ORDER_CHANGED_EVENT, (evt, item) => {
       self.update();
     });
-
 
   }
 

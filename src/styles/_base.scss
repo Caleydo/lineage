@@ -189,12 +189,12 @@ ul.nav.navbar-nav{
   text-align: center;
 }
 
-.dropdown-item.active, .datasetMenuItem.active{
+.dropdown-item.active, .datasetMenuItem.active, .dropdown-item-map.active, .dropdown-item-top.active{
     background-color: #d9d9d9 !important;
 }
 
-.dropdown-item-map.active{
-    background-color: #d9d9d9 !important;
+.dropdown-item-top, .dropdown-item-map{
+  cursor:pointer;
 }
 
 #graphHeaders, #tableDiv1{

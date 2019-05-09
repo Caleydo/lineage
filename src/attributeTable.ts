@@ -354,7 +354,7 @@ class AttributeTable {
     menu.append('li').attr('class', 'divider').attr('role', 'separator');
     menu.append('h4').attr('class', 'dropdown-header').style('font-size', '16px')
       .html('Air Quality Attributes');
-    colNames = this.tableManager.getAirQualityColumns(this.tableManager.airqualityTable);
+    colNames = this.tableManager.getAirQualityColumnsNames(this.tableManager.airqualityTable);
     menuItems = menu.selectAll('.airqualityAttr').data(colNames);
     menuItems = menuItems.enter()
                          .append('li')
@@ -401,10 +401,10 @@ class AttributeTable {
                              .html((d:any) => { return d; })
                              .merge(menuItems)
                              .on('click',d=>{
-                               console.log(d)
+
                                document.getElementById('col2').style.display = 'none';
-                               events.fire(SHOW_TOP_100_EVENT, {'attribute': d})
-                               self.tableManager.findTop100(d);
+                               self.findTop100(d);
+
                              })
 
     const tableDiv = this.$node.append('div')
@@ -638,15 +638,88 @@ class AttributeTable {
         }
       });
 };
- //TODO Need to change this to change the colData
- //What is the difference between colData and
+
+  public async findTop100(attributeName){
+    const self  =this;
+    const allAQCols = await self.tableManager.getEntireAirQualityColumns(attributeName)
+    const allFamilyIDCol = await self.tableManager.getAttributeVector('KindredID',true)
+    let familyIDPromises = [allFamilyIDCol.data(),allFamilyIDCol.names()];
+    let allaqPromises = [];
+
+    allAQCols.forEach((vector)=>{
+      allaqPromises = allaqPromises.concat([
+        vector.data(),
+        vector.names(),
+        vector.desc.name
+      ]);
+    });
+    const finishedAQPromises = await Promise.all(allaqPromises);
+    const finishedFamilyIDPromises = await Promise.all(familyIDPromises);
+    let kindredIDDict = {}
+    finishedFamilyIDPromises[1].forEach((personID, index)=>{
+      kindredIDDict[personID] = finishedFamilyIDPromises[0][index]
+    })
+    let aqDataDict = {}
+    finishedAQPromises[1].forEach((personID,index)=>{
+      aqDataDict[personID] = {}
+      for (let i = 0; i <29;i++){
+        aqDataDict[personID][finishedAQPromises[i*3+2]] = finishedAQPromises[i*3][index]
+      }
+    })
+  //Find people with largesat before-after average difference
+    let personChangeAbsDict = {};
+    finishedAQPromises[1].forEach((personID)=>{
+      let dataArray = []
+         for (let i=-14; i<15; i++){
+           dataArray.push(aqDataDict[personID][attributeName+i])
+         }
+      let before_average = undefined;
+      let after_average = undefined;
+      if (dataArray.length >0){
+           before_average = mean(dataArray.slice(14-self.average_limit,14))  ;
+           after_average = mean(dataArray.slice(15,15+self.average_limit));
+      }
+     let valueToReturn = Math.abs(before_average - after_average);
+     if (valueToReturn){
+       personChangeAbsDict[personID] = valueToReturn
+     }
+
+    });
+
+    let yDict = {}
+    let rank = 0
+    let idRange = []
+    while(idRange.length<101 && Object.keys(personChangeAbsDict).length > 0){
+    // for (let rank = 1; rank < 101; rank ++){
+      let id=Object.keys(personChangeAbsDict).reduce(function(a, b){ return personChangeAbsDict[a] > personChangeAbsDict[b] ? a : b })
+      if(kindredIDDict[id]){
+        rank+=1
+        yDict[id+'_' + kindredIDDict[id]] = [rank]
+        idRange.push(id)
+      }
+      // else{
+      //   console.log(id)
+      // }
+      delete personChangeAbsDict[id]
+    }
+   this.tableManager.yValues = yDict
+
+   await this.tableManager.setActiveRowsWithoutEvent(idRange);
+   this.tableManager.tableHeight = Config.glyphSize * 4 * 100
+
+
+   this.update()
+   events.fire(SHOW_TOP_100_EVENT)
+  }
+
+
 
   public async initData() {
     this.colOffsets = [0];
     const graphView = await this.tableManager.graphTable;
     const attributeView = await this.tableManager.tableTable;
     const aqView = await this.tableManager.AQTable;
-    //console.log(aqView)
+
     const self  = this;
     const allCols = graphView.cols().concat(attributeView.cols()).concat(aqView.cols());
     const colOrder = this.tableManager.colOrder;
@@ -679,7 +752,7 @@ class AttributeTable {
     //Create a dictionary of y value to people
     const y2personDict = {};
     const yDict = this.tableManager.yValues;
-    //console.log(yDict)
+
     let maxRow=0;
     //Find max value in yDict
     Object.keys(yDict).forEach((person)=> {
@@ -699,6 +772,7 @@ class AttributeTable {
         });
       }
     });
+    //console.log(yDict,y2personDict)
 
     //Get the AQ matrix:
 

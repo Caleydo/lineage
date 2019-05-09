@@ -12,7 +12,8 @@ import {feature as topofeature} from 'topojson';
 import * as MapManager from './mapManager';
 import {
   TABLE_VIS_ROWS_CHANGED_EVENT,
-  MAP_ATTRIBUTE_CHANGE_EVENT
+  MAP_ATTRIBUTE_CHANGE_EVENT,
+  SHOW_TOP_100_EVENT
 } from './tableManager';
 import { VALUE_TYPE_CATEGORICAL,
         VALUE_TYPE_INT,
@@ -158,6 +159,7 @@ class MapView{
     async update(){
       const self = this;
       self.dotDataColloection = await self.mapManager.prepareData(this.currentSelectedMapAttribute);
+      console.log(this.dotDataColloection)
       if (this.currentViewType == 'map'){
 
         self.drawGeographicalMap();
@@ -302,9 +304,14 @@ class MapView{
          const self = this;
          events.on(TABLE_VIS_ROWS_CHANGED_EVENT, () => {
            self.update();
+        //   console.log('fire table row')
          })
          events.on(MAP_ATTRIBUTE_CHANGE_EVENT,()=>{
            self.update();
+         })
+         events.on(SHOW_TOP_100_EVENT,()=>{
+           self.update();
+        //   console.log('fire top 100')
          })
        }
 

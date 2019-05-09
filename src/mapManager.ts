@@ -30,7 +30,7 @@ export default class MapManager{
 
 
   public async prepareData(currentSelectedMapAttribute){
-       let self = this;
+       const self = this;
        const graphView = await this.tableManager.graphTable;
        const attributeView = await this.tableManager.tableTable;
        const allCols = graphView.cols().concat(attributeView.cols());
@@ -56,7 +56,7 @@ export default class MapManager{
        });
 
        const finishedPromises = await Promise.all(allPromises);
-
+       console.log(finishedPromises)
        finishedPromises[1].forEach((IDNumber, index)=>{
          const dataEntry:any = {}
          dataEntry.ID = IDNumber;

@@ -269,7 +269,7 @@ export default class TableManager {
       self.temporal_data_interval[aqName] = [quantile(dataArray, 0.025), quantile(dataArray,0.975)]
       self.temporal_data_means[aqName] = [mean(beforeArray),mean(afterArray)]
     })
-    console.log(self.temporal_data_means)
+
   //  console.log(this.airqualityTable)
     await this.parseFamilyInfo(); //this needs to come first because the setAffectedState sets default values based on the data for a selected family.
     return Promise.resolve(this);
@@ -312,7 +312,6 @@ export default class TableManager {
   }
 
   /**
-   *TODO add AQ vector
    * This function get the requested attribute vector.
    *
    * @param attribute - attribute to search for
@@ -550,7 +549,6 @@ export default class TableManager {
    */
   public async selectFamily(chosenFamilyIDs: number[] = [this.familyInfo[0].id]) {
     console.log('selectingFamily',chosenFamilyIDs);
-
     const family = this.familyInfo.find((family) => { return family.id === chosenFamilyIDs[0]; });
     let familyRange = range.list(family.range); //familyRange.concat(family.range);
 
@@ -562,7 +560,7 @@ export default class TableManager {
         familyRange = familyRange.union(range.list(family.range));
       }
     });
-
+  //  console.log(family.range)
     this._activeGraphRows = familyRange;
 
     await this.refreshActiveGraphView();
@@ -578,7 +576,7 @@ export default class TableManager {
     const aqMembers = aqMembersRange.dim(0).asList()
 
     const attributeRows = [];
-
+    //console.log(attributeMembers,attributeMembersRange)
     attributeMembers.forEach((member, i) => {
       if (familyMembers.indexOf(member) > -1) {
         attributeRows.push(i);
@@ -594,10 +592,10 @@ export default class TableManager {
     })
 
     this._activeTableRows = range.list(attributeRows);
-    this._activeAQrows = range.list(aqattributeRows)
+    this._activeAQrows = range.list(aqattributeRows);
 
     await this.refreshActiveTableView();
-    await this.refreshActiveAQView()
+    await this.refreshActiveAQView();
     this.updatePOI_Primary();
     events.fire(FAMILY_SELECTED_EVENT);
 
@@ -812,6 +810,53 @@ export default class TableManager {
 
   }
 
+  public async setActiveRowsWithoutEvent(newRows: string[]){
+  //  let allIDs  = await this.table.col(0).names()
+    let allIDs = await this.attributeTable.col(0).names();
+
+    const newRange = [];
+    allIDs.forEach((id, i) => {
+      if (newRows.indexOf(id.toString()) > -1) {
+        newRange.push(i);
+      }
+    });
+    this._activeTableRows = range.list(newRange);
+
+
+    await this.refreshActiveTableView();
+
+
+  //  console.log(this.graphTable)
+    const allMembers = await this.tableTable.col(0).names();
+    const familyMembers = await this.table.col(0).names();
+    const aqMembers = await this.airqualityTable.col(0).names();
+
+    const familyRows = [];
+
+    familyMembers.forEach((member, i) => {
+      if (allMembers.indexOf(member) > -1) {
+        familyRows.push(i);
+      }
+    });
+  //  console.log(attributeRows);
+
+    const aqattributeRows = [];
+
+    aqMembers.forEach((member,i)=>{
+      if (allMembers.indexOf(member)>-1){
+        aqattributeRows.push(i)
+      }
+    })
+//    console.log(aqattributeRows);
+    this._activeGraphRows = range.list(familyRows);
+    this._activeAQrows = range.list(aqattributeRows);
+
+
+    await this.refreshActiveGraphView();
+    await this.refreshActiveAQView();
+
+
+  }
 
 
 
@@ -873,7 +918,7 @@ export default class TableManager {
     return this.temporal_data_interval[columnName]
   }
 
-  public getAirQualityColumns(AQTable){
+  public getAirQualityColumnsNames(AQTable){
     let colNames = AQTable.cols().map((col)=>{
       let is_returnable = true;
       for (let item in this.temporal_data){
@@ -889,12 +934,16 @@ export default class TableManager {
     colNames = colNames.filter(e=>e!=null)
     return colNames.concat(this.temporal_data)
   }
-  //TODO change this into => on calling it, make the active table into entire dataset, exclude any none
-  public findTop100(attributeName){
-    const self = this;
-    let colVectors = self.airqualityTable.cols().filter(col=>col.desc.name.includes( attributeName))
-    console.log(colVectors)
+
+  public getEntireAirQualityColumns(attributeName){
+    return this.airqualityTable.cols().filter(col=>col.desc.name.includes(attributeName))
   }
+  //TODO change this into => on calling it, make the active table into entire dataset, exclude any none
+  // public findTop100(attributeName){
+  //   const self = this;
+  //   let colVectors = self.airqualityTable.cols().filter(col=>col.desc.name.includes( attributeName))
+  //   console.log(colVectors)
+  // }
 }
 
 /**

@@ -159,7 +159,7 @@ class MapView{
     async update(){
       const self = this;
       self.dotDataColloection = await self.mapManager.prepareData(this.currentSelectedMapAttribute);
-      console.log(this.dotDataColloection)
+    //  console.log(this.dotDataColloection)
       if (this.currentViewType == 'map'){
 
         self.drawGeographicalMap();

@@ -548,6 +548,7 @@ export default class TableManager {
    * @param chosenFamilyID the numeric value of the familyID, uses the first family ID when none is specified
    */
   public async selectFamily(chosenFamilyIDs: number[] = [this.familyInfo[0].id]) {
+    console.log(this.familyInfo)
     console.log('selectingFamily',chosenFamilyIDs);
     const family = this.familyInfo.find((family) => { return family.id === chosenFamilyIDs[0]; });
     let familyRange = range.list(family.range); //familyRange.concat(family.range);

@@ -56,7 +56,7 @@ export default class MapManager{
        });
 
        const finishedPromises = await Promise.all(allPromises);
-       console.log(finishedPromises)
+
        finishedPromises[1].forEach((IDNumber, index)=>{
          const dataEntry:any = {}
          dataEntry.ID = IDNumber;

@@ -32,7 +32,8 @@ import {
   VIEW_CHANGED_EVENT,
   TABLE_VIS_ROWS_CHANGED_EVENT,
   HIDE_FAMILY_TREE,
-  SHOW_TOP_100_EVENT
+  SHOW_TOP_100_EVENT,
+  FAMILY_SELECTED_EVENT
 } from './tableManager';
 import { isUndefined } from 'util';
 
@@ -679,7 +680,8 @@ class AttributeTable {
            before_average = mean(dataArray.slice(14-self.average_limit,14))  ;
            after_average = mean(dataArray.slice(15,15+self.average_limit));
       }
-     let valueToReturn = Math.abs(before_average - after_average);
+     //let valueToReturn = Math.abs(before_average - after_average);
+     let valueToReturn = before_average;
      if (valueToReturn){
        personChangeAbsDict[personID] = valueToReturn
      }
@@ -1765,82 +1767,88 @@ class AttributeTable {
         self.addTooltip('cell', cellData);
       if (cellData.type =='temporal'){
         if (cellData.level_set == undefined){
-          select(this).selectAll('.average_marker').attr('opacity',0.8)
+          select(this).selectAll('.average_marker').attr('opacity',0.5)
           select(this).selectAll('.line_graph').attr('opacity',0.1)
-          select(this).selectAll('.line_polygones').attr('opacity',0.1)
+          //select(this).selectAll('.line_polygones').attr('opacity',0.1)
+        }
+        select(this).selectAll('.line_graph').attr('opacity',0)
+        let yLineScale;
+        if(cellData.level_set){
+          yLineScale = scaleLinear().domain([self.tableManager.getAQRange(cellData.name)[0],cellData.level_set]).range([0,self.rowHeight]).clamp(false);
         }
         else{
-          const yLineScale = scaleLinear().domain([self.tableManager.getAQRange(cellData.name)[0],cellData.level_set]).range([0,self.rowHeight]).clamp(false);
-          const colWidth = self.customColWidths[cellData.name]||self.colWidths.temporal;
-          const xLineScale = scaleLinear().domain([0,28]).range([0,colWidth]);
-          const cleaned_dataArray = cellData.data[0].map(d=>isNaN(d)? 0 : d);
-          const dataArray = cellData.data[0]
-          let new_quant_height = yLineScale(parseInt(max(cleaned_dataArray)))
-          new_quant_height = new_quant_height>self.rowHeight? new_quant_height : self.rowHeight;
+          yLineScale = scaleLinear().domain(self.tableManager.getAQRange(cellData.name)).range([0,self.rowHeight]).clamp(false);
+        }
+        const colWidth = self.customColWidths[cellData.name]||self.colWidths.temporal;
+        const xLineScale = scaleLinear().domain([0,28]).range([0,colWidth]);
+        const cleaned_dataArray = cellData.data[0].map(d=>isNaN(d)? 0 : d);
+        const dataArray = cellData.data[0]
+        let new_quant_height = yLineScale(parseInt(max(cleaned_dataArray)))
+        new_quant_height = new_quant_height>self.rowHeight? new_quant_height : self.rowHeight;
 
-          select(this).selectAll('.quant')
-                      .attr('height', new_quant_height)
-                      .attr('transform', 'translate(0, ' + (self.rowHeight - new_quant_height) +')')
+        select(this).selectAll('.quant')
+                    .attr('height', new_quant_height)
+                    .attr('transform', 'translate(0, ' + (self.rowHeight - new_quant_height) +')')
 
-          select(this).selectAll('.full_line_graph')
-                      .data(cellData.data[0])
-                      .enter()
-                      .append('polyline')
-                      .attr('points',(d,i)=>{
-                        let x1, x2, y1, y2, x3, y3;
+        select(this).selectAll('.full_line_graph')
+                    .data(cellData.data[0])
+                    .enter()
+                    .append('polyline')
+                    .attr('points',(d,i)=>{
+                      let x1, x2, y1, y2, x3, y3;
 
-                        if (i==0){
-                          x1 = xLineScale(0)
-                          x2 = xLineScale(0.5)
-                          y1 = self.rowHeight-yLineScale(cleaned_dataArray[i]);
-                          y2 = isNaN(cellData.data[0][i+1])?self.rowHeight - yLineScale(cleaned_dataArray[i]):self.rowHeight - yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i+1])/2)
-                          x3 = xLineScale(0.5)
-                          y3 = isNaN(cellData.data[0][i+1])?self.rowHeight - yLineScale(cleaned_dataArray[i]):self.rowHeight - yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i+1])/2)
+                      if (i==0){
+                        x1 = xLineScale(0)
+                        x2 = xLineScale(0.5)
+                        y1 = self.rowHeight-yLineScale(cleaned_dataArray[i]);
+                        y2 = isNaN(cellData.data[0][i+1])?self.rowHeight - yLineScale(cleaned_dataArray[i]):self.rowHeight - yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i+1])/2)
+                        x3 = xLineScale(0.5)
+                        y3 = isNaN(cellData.data[0][i+1])?self.rowHeight - yLineScale(cleaned_dataArray[i]):self.rowHeight - yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i+1])/2)
 
-                        }
-                        else if (i == 28){
-                          x1 = xLineScale(27.5)
-                          x2 = xLineScale(28)
-                          y1 =isNaN(cellData.data[0][i-1])?self.rowHeight - yLineScale(cleaned_dataArray[i]):self.rowHeight - yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i-1])/2)
-                          y2 = self.rowHeight - yLineScale ( cleaned_dataArray[i])
-                          x3 = xLineScale(28)
-                          y3 = self.rowHeight - yLineScale(cleaned_dataArray[i])
+                      }
+                      else if (i == 28){
+                        x1 = xLineScale(27.5)
+                        x2 = xLineScale(28)
+                        y1 =isNaN(cellData.data[0][i-1])?self.rowHeight - yLineScale(cleaned_dataArray[i]):self.rowHeight - yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i-1])/2)
+                        y2 = self.rowHeight - yLineScale ( cleaned_dataArray[i])
+                        x3 = xLineScale(28)
+                        y3 = self.rowHeight - yLineScale(cleaned_dataArray[i])
+                      }
+                      else{
+                        x1 = xLineScale(i-0.5);
+                        x2 = xLineScale(i+0.5);
+                        x3 = xLineScale(i);
+                        y3 = self.rowHeight - yLineScale(cleaned_dataArray[i])
+                        if (isNaN(cellData.data[0][i-1])){
+                          y1 = self.rowHeight - yLineScale(cleaned_dataArray[i])
                         }
                         else{
-                          x1 = xLineScale(i-0.5);
-                          x2 = xLineScale(i+0.5);
-                          x3 = xLineScale(i);
-                          y3 = self.rowHeight - yLineScale(cleaned_dataArray[i])
-                          if (isNaN(cellData.data[0][i-1])){
-                            y1 = self.rowHeight - yLineScale(cleaned_dataArray[i])
-                          }
-                          else{
-                            y1 = self.rowHeight-yLineScale((cleaned_dataArray[i] + cleaned_dataArray [ i-1])/2);
-                          }
-                          if (isNaN(cellData.data[0][i+1])){
-                            y2 = self.rowHeight - yLineScale(cleaned_dataArray[i])
-                          }
-                          else{
-                            y2 = self.rowHeight-yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i+1])/2);
-                          }
-
+                          y1 = self.rowHeight-yLineScale((cleaned_dataArray[i] + cleaned_dataArray [ i-1])/2);
+                        }
+                        if (isNaN(cellData.data[0][i+1])){
+                          y2 = self.rowHeight - yLineScale(cleaned_dataArray[i])
+                        }
+                        else{
+                          y2 = self.rowHeight-yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i+1])/2);
                         }
 
-                        return x1 + ',' + y1 + ' ' +
-                               x3 + ',' + y3 + ' ' +
-                               x2 + ',' + y2 + ' ' })
-                        .classed('full_line_graph',true)
-                        .attr('fill','none')
-                        .attr('stroke',(d,i)=>{
-                          if (isNaN(dataArray[i]))
-                          { return 'none';}
-                          else
-                          {return '#767a7a';}});
+                      }
+
+                      return x1 + ',' + y1 + ' ' +
+                             x3 + ',' + y3 + ' ' +
+                             x2 + ',' + y2 + ' ' })
+                      .classed('full_line_graph',true)
+                      .attr('fill','none')
+                      .attr('stroke',(d,i)=>{
+                        if (isNaN(dataArray[i]))
+                        { return 'none';}
+                        else
+                        {return '#767a7a';}});
 
 
 
-          select(this).selectAll('.line_graph').attr('opacity',0)
-        }
+
+
       }
     })
       .on('mouseout', function(d:any){
@@ -1857,7 +1865,12 @@ class AttributeTable {
           }
         }
       })
-      .on('click', this.clickHighlight);
+      .on('click', function(d:any){
+        if (d.name === 'KindredID'){
+          document.getElementById('col2').style.display = 'block';
+          self.tableManager.selectFamily([parseInt(d.data)])
+        }
+        self.clickHighlight(d)});
 
     cells.exit().remove();
 
@@ -1915,6 +1928,8 @@ class AttributeTable {
 
   private clickHighlight(d: any) {
     // event.stopPropagation();
+
+
 
     if (event.defaultPrevented) { return; } // dragged
 
@@ -3517,7 +3532,7 @@ class AttributeTable {
                            x2 + ',' + y2 + ' ' })
                     .classed('line_graph',true)
                     .attr('stroke',(d,i)=>{
-                      if (isNaN(dataArray[i]) || dataArray[i]>cellData.level_set)
+                      if (isNaN(dataArray[i]) || dataArray[i]>self.tableManager.getAQRange(cellData.name)[1] || dataArray[i]<self.tableManager.getAQRange(cellData.name)[0])
                       { return 'none';}
                       else
                       {return '#767a7a';}});
@@ -4070,6 +4085,8 @@ class AttributeTable {
     events.on('poiSelected', (evt,info) => {
       this.tableManager.setAffectedState(info.name, info.callback);
     });
+
+
 
     events.on('primarySelected', (evt, item) => {
 

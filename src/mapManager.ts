@@ -44,7 +44,6 @@ export default class MapManager{
          }
        }
        self.selectedAttributeVector = orderedCols[2];
-
        let dotDataAccum  = []
    //collect all the data important
        let allPromises = [];
@@ -54,33 +53,53 @@ export default class MapManager{
            vector.names()
          ]);
        });
-
        const finishedPromises = await Promise.all(allPromises);
+       let dataValDict = {}
+       if (self.selectedAttributeVector.desc.name === 'KindredID'){
+         finishedPromises[5].forEach((value, index)=>{
+            if (self.tableManager.familyIDArray.indexOf(finishedPromises[4][index])>=0){
+                dataValDict[value] = finishedPromises[4][index]}
+          })
+       }
+       else {
+         finishedPromises[5].forEach((value, index)=>{
+
+                dataValDict[value] = finishedPromises[4][index]
+          })
+       }
+
+
 
        finishedPromises[1].forEach((IDNumber, index)=>{
          const dataEntry:any = {}
          dataEntry.ID = IDNumber;
          dataEntry.longitude = finishedPromises[0][index]
          dataEntry.latitude = finishedPromises[2][index]
-         dataEntry.dataVal = finishedPromises[4][index]
+         dataEntry.dataVal = dataValDict[IDNumber]
          dataEntry.county_code = finishedPromises[6][index]
          dotDataAccum.push(dataEntry)
        })
         dotDataAccum = dotDataAccum.filter(d=>d.longitude && d.latitude)
         self.selectedMapAttributeType = self.selectedAttributeVector.valuetype.type;
+
         if (self.selectedMapAttributeType === VALUE_TYPE_CATEGORICAL){
           const allCategories = self.selectedAttributeVector.desc.value.categories.map(c=>c.name)
           self.scaleFunction = function(inputValue){return schemeCategory10[allCategories.indexOf(inputValue)]}
+
         }
         else if (self.selectedMapAttributeType === VALUE_TYPE_INT ||self.selectedMapAttributeType === VALUE_TYPE_REAL){
           let dataScale = scaleLinear().domain(self.selectedAttributeVector.desc.value.range).range([0.05,1])
           self.scaleFunction = function(inputValue){return interpolatePurples(dataScale(inputValue))}
         }
+        else if (self.selectedAttributeVector.desc.name === "KindredID"){
+          console.log(self.tableManager.familyIDArray)
+          self.scaleFunction = function(inputValue){
+            return schemeCategory10[self.tableManager.familyIDArray.indexOf(inputValue)+1]}
+        }
         else if(self.selectedMapAttributeType === 'id' || self.selectedMapAttributeType === 'idtype'
                   || self.selectedMapAttributeType === VALUE_TYPE_STRING){
           self.scaleFunction = function(inputValue){return '#295981'}
         }
-
 
       return dotDataAccum
    }

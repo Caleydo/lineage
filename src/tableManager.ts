@@ -158,6 +158,7 @@ export default class TableManager {
 
   /** Basic information about all the loaded families */
   public mapView;
+  public familyIDArray = [];
 
   public readonly familyInfo: IFamilyInfo[] = [];
 
@@ -548,8 +549,10 @@ export default class TableManager {
    * @param chosenFamilyID the numeric value of the familyID, uses the first family ID when none is specified
    */
   public async selectFamily(chosenFamilyIDs: number[] = [this.familyInfo[0].id]) {
+    const self = this;
     console.log(this.familyInfo)
     console.log('selectingFamily',chosenFamilyIDs);
+    self.familyIDArray = chosenFamilyIDs
     const family = this.familyInfo.find((family) => { return family.id === chosenFamilyIDs[0]; });
     let familyRange = range.list(family.range); //familyRange.concat(family.range);
 

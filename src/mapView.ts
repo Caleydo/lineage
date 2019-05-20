@@ -2,7 +2,7 @@ import * as events from 'phovea_core/src/event';
 import { select, selection, selectAll, mouse, event } from 'd3-selection';
 import { format } from 'd3-format';
 import {Config} from './config';
-import { scaleLinear, scaleOrdinal, schemeCategory20c } from 'd3-scale';
+import { scaleLinear, scaleOrdinal, schemeCategory10 } from 'd3-scale';
 import { max, min, mean } from 'd3-array';
 import {zoom, zoomIdentity} from 'd3-zoom';
 import {geoCentroid,geoMercator,geoPath} from 'd3-geo'
@@ -85,7 +85,7 @@ class MapView{
             } else{
               map_component.style.display = 'none';
             }})
-
+    document.getElementById('col4').style.display = 'none';
     const dropdownMenu = select('.navbar-collapse')
       .append('ul').attr('class', 'nav navbar-nav').attr('id', 'mapAttribute');
 
@@ -246,6 +246,26 @@ class MapView{
                        });
                   }
               )
+              //// TODO: get the array for the legend
+          if (self.mapManager.selectedMapAttributeType === VALUE_TYPE_CATEGORICAL){
+              const allCategories = self.mapManager.selectedAttributeVector.desc.value.categories.map(c=>c.name)
+              self.drawLegend(allCategories,schemeCategory10.slice(0,allCategories.length))
+          }
+          else if (self.mapManager.selectedMapAttributeType === VALUE_TYPE_REAL ||
+                   self.mapManager.selectedMapAttributeType === VALUE_TYPE_INT){
+              const formater = format('.0f')
+              const dataScale = scaleLinear().domain([0,1]).range(self.mapManager.selectedAttributeVector.desc.value.range)
+              const dataInputs = [formater(dataScale(0.2)),formater(dataScale(0.4)),formater(dataScale(0.6)),formater(dataScale(0.8)),formater(dataScale(1))]
+              const colors = dataInputs.map(d=>self.mapManager.scaleFunction(d))
+              self.drawLegend(dataInputs,colors)
+          }
+          else if (self.currentSelectedMapAttribute === 'KindredID'){
+            const allCategories = self.mapManager.tableManager.familyIDArray
+            self.drawLegend(allCategories, schemeCategory10.slice(1, allCategories.length+1))
+          }
+          else{
+            select('#map-util-svg').attr('opacity', 0)
+          }
     }
 
     private drawGeographicalMap(){
@@ -299,6 +319,32 @@ class MapView{
          // })
 
        }
+
+       private drawLegend(dataArray,colorArray){
+         const legendContainer = select('#map-util-svg').attr('opacity', 1)
+         let legendRects = legendContainer.selectAll('.legend-rect').data(colorArray);
+         legendRects.exit().remove();
+         legendRects = legendRects.enter().append('rect').merge(legendRects)
+
+         legendRects.attr('x',0)
+                    .attr('y',(d,i)=>i * 25)
+                    .attr('width', 100)
+                    .attr('height',20)
+                    .attr('fill',(d:any)=>d)
+                    .attr('class','legend-rect')
+         let legendText = legendContainer.selectAll('.legend-text').data(dataArray);
+         legendText.exit().remove();
+         legendText = legendText.enter().append('text').merge(legendText)
+
+         legendText.attr('x',110)
+                   .attr('y',(d,i)=>i*25)
+                   .attr('class','legend-text')
+                   .attr('alignment-baseline','hanging')
+                  // .attr('fill','white')
+                   .text((d:any)=>d)
+
+       }
+
 
        private attachListener() {
          const self = this;

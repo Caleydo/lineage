@@ -34,7 +34,9 @@ import {
   HIDE_FAMILY_TREE,
   SHOW_TOP_100_EVENT,
   FAMILY_SELECTED_EVENT,
-
+  SHOW_DETAIL_VIEW,
+  HIGHLIGHT_BY_ID,
+  CLEAR_TABLE_HIGHLIGHT
 } from './tableManager';
 import { isUndefined } from 'util';
 
@@ -1121,7 +1123,6 @@ class AttributeTable {
     })
 
     this.colData = colDataAccum;
-
     this.calculateOffset();
 
   }
@@ -1947,7 +1948,6 @@ class AttributeTable {
     // event.stopPropagation();
 
 
-
     if (event.defaultPrevented) { return; } // dragged
 
     const wasSelected = selectAll('.highlightBar').filter((e: any) => {
@@ -1979,6 +1979,16 @@ class AttributeTable {
     selectAll('.slopeLine').classed('selectedSlope', false);
     //Hide all the highlightBars
     selectAll('.highlightBar').attr('opacity', 0);
+  }
+
+  private highlightRowByID(id){
+    const all_rows = Object.keys(this.tableManager.yValues)
+    all_rows.forEach(key=>{
+      if(key.includes(id)){
+        this.highlightRow({y:this.tableManager.yValues[key]})
+      }
+    })
+
   }
 
   private highlightRow(d) {
@@ -2284,7 +2294,7 @@ class AttributeTable {
     select('#treeMenu').select('.menu').remove();
     const self = this;
     event.stopPropagation();
-    let option1, option2;
+    let option1, option2,option3;
     if (d.type === 'categorical' && (d.category.toLowerCase() === 'true' || d.category.toLowerCase() === 'y')) {
       option1 = 'Show ' + d.name;
       option2 = 'Show NOT ' + d.name;
@@ -2297,10 +2307,18 @@ class AttributeTable {
     } else if(d.type === 'temporal'){
       option1 = 'Set Average Limit'
       option2 = 'Change View Type'
+      option3 = 'View in Detail'
     }
-
-    const menuLabels = (d.type === 'categorical'||d.type==='temporal' ? [option1, option2, 'Set as POI', 'Set as Primary Attribute', 'Star'] : ['Set as POI', 'Set as Primary Attribute',  'Star']);
-
+    let menuLabels;
+    if (d.type==='categorical'){
+      menuLabels =  [option1, option2, 'Set as POI', 'Set as Primary Attribute', 'Star'];
+    }
+    else if (d.type = 'temporal'){
+       menuLabels = [option1, option2,option3]
+    }
+    else{
+        menuLabels = ['Set as POI', 'Set as Primary Attribute',  'Star'];
+   }
     const menuObjects = menuLabels.map((m)=> {return {label:m,attr:d.name};});
 
     const container = document.getElementById('app');
@@ -2371,7 +2389,7 @@ class AttributeTable {
       .attr('fill', '#f7f7f7')
       .attr('height', menuItemHeight)
       .attr('opacity', 1)
-      .on('click', (e) => {
+      .on('click', (e:any) => {
         if (e.label.includes('Star')) {
           const header = select('#' + this.deriveID(d) + '_header');
           const starBackground = select('.starRect_' + this.deriveID(d));
@@ -2465,6 +2483,9 @@ class AttributeTable {
           this.update();
 
         }
+        else if (e.label.includes('Detail')){
+          events.fire(SHOW_DETAIL_VIEW, d)
+        }
         select('#treeMenu').select('.menu').remove();
       });
 
@@ -2493,14 +2514,14 @@ class AttributeTable {
 
       })
       .classed('tooltipTitle', true)
-      .classed('star', (e) => {
+      .classed('star', (e:any) => {
         const header = select('#' + this.deriveID(d) + '_header');
         return e.label.includes('Star') && header.classed('star');
       })
-      .classed('poi', (e) => {
+      .classed('poi', (e:any) => {
         return e.label.includes('POI') && this.tableManager.affectedState.name === d.name;
       })
-      .classed('primaryAttribute', (e) => {
+      .classed('primaryAttribute', (e:any) => {
         return e.label.includes('Primary') && this.tableManager.primaryAttribute && this.tableManager.primaryAttribute.name === d.name;
       });
 
@@ -4157,6 +4178,14 @@ class AttributeTable {
     events.on(COL_ORDER_CHANGED_EVENT, (evt, item) => {
       self.update();
     });
+
+    events.on(HIGHLIGHT_BY_ID,(evt,item)=>{
+      self.highlightRowByID(item)
+    })
+
+    events.on(CLEAR_TABLE_HIGHLIGHT,()=>{
+      self.clearHighlight();
+    })
 
   }
 

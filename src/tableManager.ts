@@ -94,7 +94,9 @@ export const SET_ALL_AVERAGE_LIMIT_EVENT = 'all_average_limit_changed';
 export const HIDE_FAMILY_TREE = 'hide_family_tree'
 export const MAP_ATTRIBUTE_CHANGE_EVENT = 'map_attribute_changed'
 export const SHOW_TOP_100_EVENT = 'show_top_100_expose';
-
+export const SHOW_DETAIL_VIEW = 'show_detail view';
+export const HIGHLIGHT_BY_ID = 'HIGHLIGHT_BY_ID';
+export const CLEAR_TABLE_HIGHLIGHT = 'CLEAR_TABLE_HIGHLIGHT'
 
 export const POI_COLOR = '#285880';
 export const POI_COLOR_2 = '#49aaf3';
@@ -550,7 +552,7 @@ export default class TableManager {
    */
   public async selectFamily(chosenFamilyIDs: number[] = [this.familyInfo[0].id]) {
     const self = this;
-    console.log(this.familyInfo)
+    //console.log(this.familyInfo)
     console.log('selectingFamily',chosenFamilyIDs);
     self.familyIDArray = chosenFamilyIDs
     const family = this.familyInfo.find((family) => { return family.id === chosenFamilyIDs[0]; });

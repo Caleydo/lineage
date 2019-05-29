@@ -18,7 +18,9 @@ import {
   SHOW_DETAIL_VIEW,
   COL_ORDER_CHANGED_EVENT,
   HIGHLIGHT_BY_ID,
-  CLEAR_TABLE_HIGHLIGHT
+  HIGHLIGHT_MAP_BY_ID,
+  CLEAR_TABLE_HIGHLIGHT,
+  CLEAR_MAP_HIGHLIGHT
 } from './tableManager';
 import { VALUE_TYPE_CATEGORICAL,
         VALUE_TYPE_INT,
@@ -39,8 +41,8 @@ class MapView{
     private margin = Config.margin;
     private svgHeight = (select('#col4').node() as any).getBoundingClientRect().height-this.margin.top - this.margin.bottom;
     private detailViewAttribute: string = 'None';
-    private graphMargin = {top: 50, right: 50, bottom: 50, left: 50}
-
+    private graphMargin = {top: 50, right: 50, bottom: 0.25*this.svgHeight, left: 50}
+    private all_ids = []
     public init(mapManager){
       this.mapManager = mapManager;
       //document.getElementById('col4').style.display = 'none';
@@ -210,14 +212,12 @@ class MapView{
       self.update();
     }
 
-    deleteHighlight(){
 
-    }
 
     async update(){
       const self = this;
       self.dotDataColloection = await self.mapManager.prepareData(this.currentSelectedMapAttribute);
-    //  console.log(this.dotDataColloection)
+    //  console.log(self.dotDataColloection)
       if (this.currentViewType == 'Map'){
         document.getElementById('col4').style.display = 'block';
         select('#graphLayer').attr('opacity',0).attr('pointer-events','none')
@@ -282,6 +282,7 @@ class MapView{
                      .attr('cy',(d:any)=>d.y)
                      .attr('r',4)
                      .attr('fill',(d:any)=>self.mapManager.scaleFunction(d.dataVal))
+                     .attr('id',(d:any)=>'circle_' + d.ID)
                       .on("mouseover", function(d:any) {
                          circle_tip.style("opacity", .9);
                          // .transition()
@@ -603,6 +604,27 @@ class MapView{
 
        }
 
+       private highlightID(selected_id){
+         this.dotDataColloection.forEach((person)=>{
+           const id = person.ID
+           if (id !== selected_id){
+             select('#graphLayer').selectAll('.line_graph_'+id).attr('opacity',0.2)
+             select('#drawLayer').select('#circle_'+id).attr('opacity',0.2)
+           }
+           else{
+             select('#graphLayer').selectAll('.line_graph_'+id).attr('opaity',0.8)
+             select('#drawLayer').select('#circle_'+id).attr('opacity',1)
+           }
+
+         })
+       }
+
+       private clearAllHighlight(){
+         select('#graphLayer').selectAll('polyline').attr('opacity',0.8)
+         select('#drawLayer').selectAll('circle').attr('opacity',1)
+       }
+
+
 
        private attachListener() {
          const self = this;
@@ -622,6 +644,12 @@ class MapView{
            self.currentViewType = 'Detail';
            self.update();
 
+         })
+         events.on(HIGHLIGHT_MAP_BY_ID,(evt,id)=>{
+           self.highlightID(id);
+         })
+         events.on(CLEAR_MAP_HIGHLIGHT,()=>{
+           self.clearAllHighlight();
          })
 
          events.on(COL_ORDER_CHANGED_EVENT,()=>{

@@ -36,7 +36,9 @@ import {
   FAMILY_SELECTED_EVENT,
   SHOW_DETAIL_VIEW,
   HIGHLIGHT_BY_ID,
-  CLEAR_TABLE_HIGHLIGHT
+  CLEAR_TABLE_HIGHLIGHT,
+  HIGHLIGHT_MAP_BY_ID,
+  CLEAR_MAP_HIGHLIGHT
 } from './tableManager';
 import { isUndefined } from 'util';
 
@@ -1611,8 +1613,10 @@ class AttributeTable {
       .attr('height', this.rowHeight)
       .attr('opacity', 0)
     // .attr('fill', 'transparent')
-    .on('mouseover', this.highlightRow)
-    .on('mouseout', this.clearHighlight)
+    .on('mouseover', d=>{
+      this.highlightRow(d);
+      this.tableHighlightToMap(d)})
+    .on('mouseout', d=>{this.clearHighlight();events.fire(CLEAR_MAP_HIGHLIGHT)})
     .on('click', this.clickHighlight);
 
     //create slope Lines
@@ -1793,6 +1797,7 @@ class AttributeTable {
     selectAll('.cell')
       .on('mouseover', function(cellData: any) {
         self.highlightRow(cellData);
+        events.fire(HIGHLIGHT_MAP_BY_ID, cellData.id[0])
         self.addTooltip('cell', cellData);
       if (cellData.type =='temporal'){
         if (cellData.level_set == undefined){
@@ -1883,6 +1888,7 @@ class AttributeTable {
       .on('mouseout', function(d:any){
         self.clearHighlight();
         select('.menu').remove();
+        events.fire(CLEAR_MAP_HIGHLIGHT)
         if (d.type=='temporal'){
           select(this).selectAll('.full_line_graph').remove();
           select(this).selectAll('.quant').attr('height',self.rowHeight ).attr('y',0).attr('transform', 'translate(0,0)')
@@ -2026,8 +2032,19 @@ class AttributeTable {
 
   }
 
+  private tableHighlightToMap(yVal){
+    const all_rows = Object.keys(this.tableManager.yValues)
+    all_rows.forEach(key=>{
+      if (this.tableManager.yValues[key]===yVal){
+
+        events.fire(HIGHLIGHT_MAP_BY_ID, key.split('_')[0])
+      }
+    })
+  }
+
   private highlightRow(d) {
     // event.stopPropagation();
+
     function selected(e: any) {
       let returnValue = false;
       //Highlight the current row in the graph and table

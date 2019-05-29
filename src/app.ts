@@ -204,7 +204,7 @@ export class App {
       selectAll('.edges').classed('selected', false);
       selectAll('.parentEdges').classed('selected', false);
       selectAll('.clicked').classed('clicked', false);
-      mapView.deleteHighlight();
+
     });
 
 

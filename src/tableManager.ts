@@ -97,6 +97,8 @@ export const SHOW_TOP_100_EVENT = 'show_top_100_expose';
 export const SHOW_DETAIL_VIEW = 'show_detail view';
 export const HIGHLIGHT_BY_ID = 'HIGHLIGHT_BY_ID';
 export const CLEAR_TABLE_HIGHLIGHT = 'CLEAR_TABLE_HIGHLIGHT'
+export const HIGHLIGHT_MAP_BY_ID = 'HIGHLIGHT_MAP_BY_ID'
+export const CLEAR_MAP_HIGHLIGHT = 'CLEAR_MAP_HIGHLIGHT'
 
 export const POI_COLOR = '#285880';
 export const POI_COLOR_2 = '#49aaf3';

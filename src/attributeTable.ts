@@ -808,7 +808,7 @@ class AttributeTable {
     this.height = Config.glyphSize * 4 * (maxRow);
     // select('.tableSVG').attr('viewBox','0 0 ' + this.width + ' ' + (this.height + this.margin.top + this.margin.bottom))
 
-     select('.tableSVG').attr('height', this.tableManager.tableHeight);
+     select('.tableSVG').attr('height', this.height);
   //  select('.tableSVG').attr('height',document.getElementById('genealogyTree').getBoundingClientRect().height);
     select('.tableSVG').attr('width', this.tableManager.colOrder.length * 100);
 
@@ -904,7 +904,7 @@ class AttributeTable {
         //col.average_limit = self.colData.filter(d=>d.name==aqName)[0].average_limit;
         //}
       //}
-      col.level_set = undefined;
+      col.level_set = self.tableManager.getAQRange(aqName)[1];
       if (self.colData != undefined){
         if (self.colData.filter(d=>d.name==aqName).length >0){
         col.level_set = self.colData.filter(d=>d.name==aqName)[0].level_set;
@@ -1723,11 +1723,20 @@ class AttributeTable {
       self.renderDataDensCell(select(this), cell);
     });
 
-
+  //  console.log(this.colData,this.firstCol,this.allCols,this.tableManager.yValues)
+    const rowNum = this.colData[0].data.length
     //create table Lines
     // //Bind data to the cells
+    // let rowLines = select('#columns').selectAll('.rowLine')
+    //   .data(Array.apply(null, {length: this.y.range()[1]}).map(function(value, index){
+    //     return index + 1;
+    //   }), (d: any) => {
+    //     console.log(d)
+    //     return d;
+    //   });
+
     let rowLines = select('#columns').selectAll('.rowLine')
-      .data(Array.apply(null, {length: this.y.range()[1]}).map(function(value, index){
+      .data(Array.apply(null, {length: rowNum}).map(function(value, index){
         return index + 1;
       }), (d: any) => {
         return d;
@@ -2332,7 +2341,7 @@ class AttributeTable {
       option2 = 'Show NOT ' + d.category;
     } else if(d.type === 'temporal'){
       option1 = 'Set Average Limit'
-      option2 = 'Change View Type'
+      option2 = 'Change Axis Cap'
       option3 = 'View in Detail'
     }
     let menuLabels;
@@ -2494,7 +2503,7 @@ class AttributeTable {
             alert("Invalid Input");
           }
         }
-        else if (e.label.includes('View Type')){
+        else if (e.label.includes('Axis Cap')){
 
           let old_levels = (d.level_set==undefined ? NaN : d.level_set).toString();
           let new_levels = parseInt(prompt('Please input the y-value cap. If to change back to normal view, leave it empty', old_levels));
@@ -2805,6 +2814,19 @@ class AttributeTable {
               .attr('y2',yLineScale(self.tableManager.temporal_data_means[headerData.name][0]))
               .attr('stroke',schemeCategory10[0])
               .attr('transform', 'translate(' + (-2) * lineLength + ',0)')
+        element.append('rect')
+               .attr('class','mouse_helper')
+               .attr('x',xLineScale(0))
+               .attr('y',0)
+               .attr('width',lineLength)
+               .attr('height',height)
+               .attr('transform', 'translate(' + (-2) * lineLength + ',0)')
+               .attr('opacity',0)
+               .attr('pointer-events','bounding-box')
+              .on('mouseover',d=>this.addTooltip('header',d,'Before Average: '+ self.tableManager.temporal_data_means[headerData.name][0].toFixed(2).toString()))
+              .on('mouseleave', (d) => {
+                select('#tooltipMenu').select('.menu').remove();
+              });
             //  .attr('transform', 'translate(' + (-familyIDArray.length-1) * lineLength + ',0)')
         element.append('line')
              .attr('class','header_summuary_line')
@@ -2814,6 +2836,20 @@ class AttributeTable {
              .attr('y2',yLineScale(self.tableManager.temporal_data_means[headerData.name][1]))
              .attr('stroke',schemeCategory10[0])
             .attr('transform', 'translate(' +  lineLength + ',0)')
+        element.append('rect')
+               .attr('class','mouse_helper')
+               .attr('x',xLineScale(0))
+               .attr('y',0)
+               .attr('width',lineLength)
+               .attr('height',height)
+               .attr('opacity',0)
+               .attr('pointer-events','bounding-box')
+               .attr('transform', 'translate(' +  lineLength + ',0)')
+            .on('mouseover',d=>this.addTooltip('header',d,'After Average: '+ self.tableManager.temporal_data_means[headerData.name][1].toFixed(2).toString()))
+            .on('mouseleave', (d) => {
+              select('#tooltipMenu').select('.menu').remove();
+            });
+
              //.attr('transform', 'translate(' + (familyIDArray.length) * lineLength + ',0)')
 
 
@@ -3131,7 +3167,7 @@ class AttributeTable {
     // select('#tooltipMenu').html(''); //select('.menu').remove();
   }
 
-  private addTooltip(type, data = null) {
+  private addTooltip(type, data = null,special_text = null) {
     const container = document.getElementById('app');
     const coordinates = mouse(container);
     const self = this;
@@ -3173,8 +3209,17 @@ class AttributeTable {
       }}
 
      else if (type === 'header') {
-        content = (data.type === 'categorical' ? (data.name + '(' + data.category + ') ') : data.name);
-      } ;
+
+        if (data.type === 'categorical'){
+          content = (data.name + '(' + data.category + ') ')
+        }
+        else if (data.type === 'temporal'&&special_text ){
+          content = special_text;
+        }
+        else{
+        content =  data.name;
+      }
+    };
 
     let menuWidth = 10; //dummy value. to be updated;
     const menuHeight = 30;
@@ -3479,7 +3524,7 @@ class AttributeTable {
     element.selectAll('.average_marker').remove();
     //make a scale for the data
 
-    if (cellData.data[0]===undefined){
+    if (cellData.data[0]===undefined ||cellData.data[0].filter(d=>d).length===0){
         if (element.selectAll('.cross_out').size() === 0) {
           element
             .append('line')
@@ -3797,7 +3842,7 @@ class AttributeTable {
                              x2 + ',' + y2 + ' ' })
                       .classed('line_graph',true)
                       .attr('stroke',(d,i)=>{
-                        if (isNaN(dataArray[i]) || dataArray[i]>cellData.level_set)
+                        if (isNaN(dataArray[i]) || dataArray[i]>cellData.level_set || dataArray[i]<self.tableManager.getAQRange(cellData.name)[0])
                         { return 'none';}
                         else
                         {return '#767a7a';}});

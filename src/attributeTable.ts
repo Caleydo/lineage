@@ -135,7 +135,7 @@ class AttributeTable {
   private sortedRowOrder: number[]; //keeps track of the sorted order of rows (defined when a column is sorted)
 
   private t2 = transition('t2').duration(600).ease(easeLinear);
-
+  private highlightedID:string = 'none'
 
   constructor(parent: Element) {
     this.$node = select(parent);
@@ -697,7 +697,7 @@ class AttributeTable {
     let yDict = {}
     let rank = 0
     let idRange = []
-    personChangeAbsDict.sort(function(a,b){return a.data-b.data})
+    personChangeAbsDict.sort(function(a,b){return b.data-a.data})
     personChangeAbsDict.forEach(person=>{
       const id = person.ID
       if(kindredIDDict[id]){
@@ -728,7 +728,9 @@ class AttributeTable {
    await this.tableManager.setActiveRowsWithoutEvent(idRange);
    this.tableManager.tableHeight = Config.glyphSize * 4 * 100
 
+   selectAll('.slopeLine').classed('clickedSlope', false);
 
+   selectAll('.highlightBar').classed('selected', false);
    this.update()
    events.fire(SHOW_TOP_100_EVENT)
   }
@@ -1887,8 +1889,10 @@ class AttributeTable {
         if (d.name === 'KindredID'){
           document.getElementById('col2').style.display = 'block';
           self.tableManager.selectFamily([parseInt(d.data)])
+          self.highlightedID = d.id[0]
         }
-        self.clickHighlight(d)});
+        else{
+        self.clickHighlight(d)}});
 
     cells.exit().remove();
 
@@ -1941,6 +1945,10 @@ class AttributeTable {
     this.$node.select('.tableSVG')
       .attr('width', maxWidth);
 
+    if(this.highlightedID !=='none'){
+      this.clickHighlightRowByID(this.highlightedID)
+      this.highlightedID  = 'none'
+    }
 
   }
 
@@ -1979,6 +1987,24 @@ class AttributeTable {
     selectAll('.slopeLine').classed('selectedSlope', false);
     //Hide all the highlightBars
     selectAll('.highlightBar').attr('opacity', 0);
+  }
+
+  private clickHighlightRowByID(id){
+    const all_rows = Object.keys(this.tableManager.yValues)
+    all_rows.forEach(key=>{
+      if(key.includes(id)){
+        let d = {y:this.tableManager.yValues[key]}
+        selectAll('.slopeLine').filter((e: any) => {
+          return e.y === d.y || e.y === Math.round(d.y);
+        }).classed('clickedSlope', true);
+
+        selectAll('.highlightBar').filter((e: any) => {
+          return e.y === d.y || e.y === Math.round(d.y);
+        }).classed('selected',true);
+
+      }
+    })
+
   }
 
   private highlightRowByID(id){

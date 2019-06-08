@@ -88,7 +88,7 @@ export default class MapManager{
 
         }
         else if (self.selectedMapAttributeType === VALUE_TYPE_INT ||self.selectedMapAttributeType === VALUE_TYPE_REAL){
-          let dataScale = scaleLinear().domain(self.selectedAttributeVector.desc.value.range).range([0.05,1])
+          let dataScale = scaleLinear().domain(self.selectedAttributeVector.desc.value.range).range([0.2,1])
           self.scaleFunction = function(inputValue){return interpolatePurples(dataScale(inputValue))}
         }
         else if (self.selectedAttributeVector.desc.name === "KindredID"){

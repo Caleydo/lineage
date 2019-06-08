@@ -214,7 +214,7 @@ export default class TableManager {
     if (descendDataSetID === 'AllFamiliesDescend' || descendDataSetID ===  'TenFamiliesDescend') {
       // this.defaultCols = ['KindredID', 'RelativeID', 'sex', 'deceased', 'suicide', 'Age','LabID','alcohol','Nr.Diag_alcohol','psychosis','Nr.Diag_psychosis','anxiety-non-trauma','Nr.Diag_anxiety-non-trauma', 'depression','cause_death']; //set of default cols to read in, minimizes load time for large files;
       //this.defaultCols = ['KindredID', 'RelativeID', 'sex', 'deceased', 'suicide', 'Age','bipolar spectrum illness','anxiety-non-trauma','alcohol','PD','psychosis','depression','cause_death','zip','longitude','latitude']; //set of default cols to read in, minimizes load time for large files;
-      this.defaultCols = ['KindredID','maxNO2day','pm25day', 'AirTempday','RelativeID', 'sex', 'bdate', 'ddate']; //set of default cols to read in, minimizes load time for large files;
+      this.defaultCols = ['KindredID','maxNO2day','pm25day', 'AirTempday','meanNO2day', 'meanO3day', 'bdate', 'ddate']; //set of default cols to read in, minimizes load time for large files;
 
     } else {
       this.defaultCols = ['KindredID', 'RelativeID', 'sex', 'affected', 'labid'];
@@ -556,6 +556,7 @@ export default class TableManager {
     const self = this;
     //console.log(this.familyInfo)
     console.log('selectingFamily',chosenFamilyIDs);
+
     self.familyIDArray = chosenFamilyIDs
     const family = this.familyInfo.find((family) => { return family.id === chosenFamilyIDs[0]; });
     let familyRange = range.list(family.range); //familyRange.concat(family.range);

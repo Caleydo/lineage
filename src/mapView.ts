@@ -43,6 +43,12 @@ class MapView{
     private detailViewAttribute: string = 'None';
     private graphMargin = {top: 50, right: 50, bottom: 0.25*this.svgHeight, left: 50}
     private all_ids = []
+    private EPA_color = ['#00e400', '#ff0', '#ff7e00', '#f00','#99004c', '#7e0023']
+    private temporal_data_range = {
+      pm25day: [0,12,35.4,55.4,150.4, 250.4],
+      meanO3day: [0,54,70,85,105],
+      meanNO2day: [0,53,100,360,649,1249]
+    };
     public init(mapManager){
       this.mapManager = mapManager;
       //document.getElementById('col4').style.display = 'none';
@@ -288,7 +294,8 @@ class MapView{
                          // .transition()
                          // .duration(10)
                          events.fire(HIGHLIGHT_BY_ID,d.ID)
-                         circle_tip.html(d.dataVal)
+                         //TODO: this need to not ignore 0
+                         circle_tip.html(d.dataVal?d.dataVal:'-')
                         .style("left", (event.pageX) + "px")
                         .style("top", (event.pageY - 28) + "px");
                      //    draw.append('line')
@@ -337,10 +344,12 @@ class MapView{
     private async drawDetailView(){
 
       const self = this;
-      const width = self.svgWidth - self.graphMargin.left - self.graphMargin.right
+      const colorRampWidth = 50
+      const width = self.svgWidth - self.graphMargin.left - self.graphMargin.right - colorRampWidth
       const height = self.svgHeight - self.graphMargin.top - self.graphMargin.bottom-195
 
       const graph = select('#graphLayer');
+      select('#graph-util').selectAll('text').remove();
       if(self.detailViewAttribute === 'None'  || !self.mapManager.tableManager.colOrder.includes(self.detailViewAttribute)){
         self.detailViewAttribute = 'None'
         graph.selectAll('text').remove()
@@ -426,11 +435,12 @@ class MapView{
       graph.append('g')
           .attr('class','axis visible_axis')
           .call(axisLeft(yLineScale))
+          .attr('transform','translate('+colorRampWidth +',0)')
 
       graph.append('g')
           .attr('class','axis visible_axis')
           .call(axisBottom(xLineScale))
-          .attr('transform', 'translate(0,' + height + ')');
+          .attr('transform', 'translate(' + colorRampWidth+',' + height + ')');
 
       detailViewData.data.forEach((singleData,index)=>{
 
@@ -496,11 +506,12 @@ class MapView{
                 .attr('opacity', 0.8)
       })
       graph.selectAll('.line_graph')
+           .attr('transform','translate(' + colorRampWidth + ',0)')
            .on('mouseover',function(d){
               const selected_id = select(this).attr('class').split('_')[3]
               detailViewData.ids.forEach((id)=>{
                 if (id !== selected_id){
-                  graph.selectAll('.line_graph_'+id).attr('opacity',0.2)
+                  graph.selectAll('.line_graph_'+id).attr('opacity',0.1)
                 }
                 else{
                   graph.selectAll('.line_graph_'+id).attr('opaity',0.8)
@@ -512,7 +523,11 @@ class MapView{
              graph.selectAll('.line_graph').attr('opacity',0.8)
              events.fire(CLEAR_TABLE_HIGHLIGHT)
            })
-
+      graph.append('rect')
+           .attr('x',0)
+           .attr('y',0)
+           .attr('width',colorRampWidth)
+           .attr('height',height)
 
     }
 
@@ -575,7 +590,7 @@ class MapView{
                         .attr('font-size','20px')
                         .attr('y',25)
                         .attr('x',0.125*this.svgWidth)
-                        .attr('text-anchor','middle')
+                        .attr('text-anchor','end')
 
          if(colorArray==='TEXT'){
             legendContainer.selectAll('rect').remove()
@@ -608,8 +623,8 @@ class MapView{
          this.dotDataColloection.forEach((person)=>{
            const id = person.ID
            if (id !== selected_id){
-             select('#graphLayer').selectAll('.line_graph_'+id).attr('opacity',0.2)
-             select('#drawLayer').select('#circle_'+id).attr('opacity',0.2)
+             select('#graphLayer').selectAll('.line_graph_'+id).attr('opacity',0.1)
+             select('#drawLayer').select('#circle_'+id).attr('opacity',0.1)
            }
            else{
              select('#graphLayer').selectAll('.line_graph_'+id).attr('opaity',0.8)

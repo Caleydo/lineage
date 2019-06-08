@@ -57,7 +57,7 @@ enum sortedState {
 class AttributeTable {
 
   private $node;
-
+  private SHOWING_RANKED = false ;
   private width;
   private height;
   private buffer = 20; //pixel dist between columns
@@ -98,10 +98,10 @@ class AttributeTable {
     dataDensity: this.rowHeight,
     temporal: this.rowHeight*7
   };
-  private EPA_color = ['#00e400', '#ff0', '#ff7e00', '#f00','#99004c', '#7e0023']
+  private EPA_color = ['#00e400', '#ffff00', '#ff7e00', '#ff0000','#99004c', '#7e0023']
   private temporal_data_range = {
     pm25day: [0,12,35.4,55.4,150.4, 250.4],
-    meanO3day: [0,54,70,85,105],
+    meanO3day: [0,54,70,85,105,200],
     meanNO2day: [0,53,100,360,649,1249]
   };
 
@@ -409,6 +409,7 @@ class AttributeTable {
                              .on('click',d=>{
 
                                document.getElementById('col2').style.display = 'none';
+                               self.SHOWING_RANKED = true;
                                self.findTop100(d);
 
                              })
@@ -726,7 +727,8 @@ class AttributeTable {
     //   delete personChangeAbsDict[id]
     // }
    this.tableManager.yValues = yDict
-   //console.log(yDict,idRange)
+
+   console.log(yDict,idRange)
    await this.tableManager.setActiveRowsWithoutEvent(idRange);
    this.tableManager.tableHeight = Config.glyphSize * 4 * 100
 
@@ -748,6 +750,13 @@ class AttributeTable {
     const self  = this;
     const allCols = graphView.cols().concat(attributeView.cols()).concat(aqView.cols());
     const colOrder = this.tableManager.colOrder;
+    // if (this.SHOWING_RANKED){
+    //     colOrder = ['KindredID'].concat(this.tableManager.colOrder);
+    // }
+    // else{
+    //   colOrder = this.tableManager.colOrder
+    // }
+
     const orderedCols = [];
     const aqCols= [];
     const aqColNames = new Set();
@@ -842,7 +851,6 @@ class AttributeTable {
     });
 
     this.firstCol = [col];
-
     const colDataAccum = [];
 //collect all the data important
     let allPromises = [];
@@ -948,6 +956,10 @@ class AttributeTable {
 
       const type = vector.valuetype.type;
       const name = vector.desc.name;
+
+      // if(self.SHOWING_RANKED && index === 0){
+      //   const row_num = max(Object.keys(this.tableManager.yValues).map(d=>this.tableManager.yValues[d][0]))
+      // }
 
       if (type === VALUE_TYPE_CATEGORICAL) {
         //Build col offsets array ;
@@ -1902,9 +1914,12 @@ class AttributeTable {
       })
       .on('click', function(d:any){
         if (d.name === 'KindredID'){
-          document.getElementById('col2').style.display = 'block';
+
           self.tableManager.selectFamily([parseInt(d.data)])
           self.highlightedID = d.id[0]
+
+          document.getElementById('col2').style.display = 'block';
+
         }
         else{
         self.clickHighlight(d)}});
@@ -2670,10 +2685,11 @@ class AttributeTable {
 
   };
 
-  private renderTemporalHeader(element, headerData ){
+  private renderTemporalHeader(element, headerData){
       //TODO Make it only appear the current family VS entire dataSets
       const self = this;
       const colWidth = this.customColWidths[headerData.name] || this.colWidths.temporal;
+      console.log(this.colData)
       const kindredIDData = self.colData.filter(d=>d.name == 'KindredID')[0].data;
       let beforeFamilyAverageSet = {};
       let afterFamilyAverageSet = {};
@@ -2755,25 +2771,6 @@ class AttributeTable {
         const after_average = mean(afterFamilyAverageSet[familyID])
         before_average_cacher.push(before_average)
         after_average_cacher.push(after_average)
-        // element.append('line')
-        //        .attr('class','family_seperator')
-        //        .attr('x1',xLineScale(0))
-        //        .attr('y1',0)
-        //        .attr('x2',xLineScale(0))
-        //        .attr('y2',height)
-        //        .attr('transform','translate(' + (i+1) * lineLength + ',0)')
-
-        // element.selectAll('.place_holder')
-        //        .data(beforeFamilyAverageSet[familyID])
-        //        .enter()
-        //        .append('line')
-        //        .attr('x1',xLineScale(0))
-        //        .attr('x2',xLineScale(0) + lineLength)
-        //        .attr('y1',d=> d? height-yLineScale(d):yLineScale(0))
-        //        .attr('y2',d=> d? height-yLineScale(d):yLineScale(0))
-        //        .attr('stroke',schemeCategory10[2*i+2])
-        //        .attr('transform', 'translate(' + (-i-1) * lineLength + ',0)')
-        //        .attr('class','header_average_line')
 
         element.append('line')
                .attr('class', 'header_summuary_line')
@@ -2783,33 +2780,6 @@ class AttributeTable {
                .attr('y2',yLineScale(before_average))
                .attr('stroke',schemeCategory10[i+1])
                .attr('transform', 'translate(' + (-1) * lineLength + ',0)')
-        // element.append('text')
-        //         .text(familyID)
-        //         .attr('x', xLineScale(0))
-        //         .attr('y', 5)
-        //         .attr('fill',schemeCategory10[2*i+3])
-        //         .attr('transform','translate(' + (-i-0.5) * lineLength + ',0)')
-        //         .attr('class','header_family_id')
-
-        // element.append('line')
-        //        .attr('class','family_seperator')
-        //        .attr('x1',xLineScale(0))
-        //        .attr('y1',0)
-        //        .attr('x2',xLineScale(0))
-        //        .attr('y2',height)
-        //        .attr('transform','translate(' + (-i-1) * lineLength + ',0)')
-
-         // element.selectAll('.place_holder')
-         //        .data(afterFamilyAverageSet[familyID])
-         //        .enter()
-         //        .append('line')
-         //        .attr('x1',xLineScale(0))
-         //        .attr('x2',xLineScale(0) + lineLength)
-         //        .attr('y1',d=> d? height-yLineScale(d):yLineScale(0))
-         //        .attr('y2',d=> d? height-yLineScale(d):yLineScale(0))
-         //        .attr('stroke',schemeCategory10[2*i+2])
-         //        .attr('transform', 'translate(' + (i) * lineLength + ',0)')
-         //        .attr('class','header_average_line')
 
         element.append('line')
                .attr('class', 'header_summuary_line')
@@ -3669,7 +3639,7 @@ class AttributeTable {
       else{
         const xLineScale = scaleLinear().domain([0,28]).range([0,colWidth]);
         let yLineScale = scaleLinear().domain([self.tableManager.getAQRange(cellData.name)[0],cellData.level_set]).range([0,rowHeight]).clamp(true);
-        let colorScale = scaleLinear().domain(cellData.range).range([0,1]);
+        let colorScale = scaleLinear().domain(self.tableManager.getAQRange(cellData.name)).range([0,1]);
         let dataArray = cellData.data[0];
         let cleaned_dataArray = dataArray.map(d=>isNaN(d)? 0 : parseInt(d));
         let before_average = mean(cleaned_dataArray.slice(14-self.average_limit,14))  ;
@@ -3747,7 +3717,7 @@ class AttributeTable {
                         return 'none'
                       }
                       else{
-                        return self.getCorrespondColor(dataArray[i],data_level);
+                        return self.getCorrespondColor(dataArray[i],cellData.name);
                       }
                     }
                     else if (cellData.name === 'AirTempday'){
@@ -3875,9 +3845,10 @@ class AttributeTable {
 
   }
 
-  private getCorrespondColor(val, level_array){
-    let capIndex;
-    let lowerIndex;
+  private getCorrespondColor(val, name){
+    const level_array = this.temporal_data_range[name]
+    let capIndex = 6;
+    let lowerIndex = 5;
     for (let i = 0; i < level_array.length; i++){
       if (level_array[i]>val){
         capIndex = i;
@@ -3885,10 +3856,11 @@ class AttributeTable {
          break;
       }
     }
+
     const lowerColor = this.EPA_color[lowerIndex];
     const capColor = this.EPA_color[capIndex];
-    const normalized_val = val/(level_array[capIndex] - level_array[lowerIndex])
-    return interpolateLab(lowerColor,capColor)(normalized_val)
+    const normalized_val = (val-level_array[lowerIndex])/(level_array[capIndex] - level_array[lowerIndex])
+        return interpolateLab(lowerColor,capColor)(normalized_val)
   }
 
   /**
@@ -4273,6 +4245,10 @@ class AttributeTable {
 
     events.on(CLEAR_TABLE_HIGHLIGHT,()=>{
       self.clearHighlight();
+    })
+
+    events.on(FAMILY_SELECTED_EVENT,()=>{
+      self.SHOWING_RANKED = false;
     })
 
   }

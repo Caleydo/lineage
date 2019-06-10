@@ -595,7 +595,7 @@ class MapView{
       const begin_percent = 100-yLineScale(interval_range[0])/height*100
       const mid_percent = 100-yLineScale(0)/height*100
       const end_percent = 100 - yLineScale(interval_range[1])/height*100
-      for(let i = 0;i<4;i++){
+      for(let i = 1;i<5;i++){
         colorGradient.append('stop')
                      .attr('offset',(begin_percent+0.25*i*(mid_percent-begin_percent))+'%')
                      .attr('stop-color',interpolateRdBu(0.5+0.125*(4-i)))
@@ -603,9 +603,9 @@ class MapView{
       colorGradient.append('stop')
                    .attr('offset',mid_percent+'%')
                    .attr('stop-color',interpolateRdBu(0.5))
-     for(let i = 0;i<4;i++){
+     for(let i = 1;i<5;i++){
        colorGradient.append('stop')
-                    .attr('offset',(begin_percent+0.25*i*(end_percent-mid_percent))+'%')
+                    .attr('offset',(mid_percent+0.25*i*(end_percent-mid_percent))+'%')
                     .attr('stop-color',interpolateRdBu(0.5-0.125*i))
      }
     }

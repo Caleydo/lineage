@@ -43,6 +43,7 @@ class MapView{
     private margin = Config.margin;
     private svgHeight = (select('#col4').node() as any).getBoundingClientRect().height-this.margin.top - this.margin.bottom;
   //  private detailViewAttribute = [];
+    private scaleDict = {}
     private detailViewAttribute = 'None'
     private graphMargin = {top: 0.25*this.svgHeight, right: 50, bottom: 0.25*this.svgHeight, left: 50}
     private all_ids = []
@@ -437,7 +438,9 @@ class MapView{
       detailViewData.ids = Object.keys(personArrayDict)
       detailViewData.data = detailViewData.ids.map(key => personArrayDict[key]).filter(d=>d);
       detailViewData.range = [min(range_counter),max(range_counter)]
-
+      if(self.scaleDict[self.detailViewAttribute]){
+        detailViewData.range = [self.scaleDict[self.detailViewAttribute]*min(range_counter),max(range_counter)*self.scaleDict[self.detailViewAttribute]]
+      }
       const xLineScale = scaleLinear().domain([0,29]).range([0,width])
       const yLineScale = scaleLinear().domain(detailViewData.range).range([height,0])
       //add icon
@@ -449,6 +452,15 @@ class MapView{
            .text('\uf0dd')
            .attr('y', -5)
            .attr('x', 10)
+           .on('click',function(){
+             if(self.scaleDict[self.detailViewAttribute]){
+               self.scaleDict[self.detailViewAttribute]-=0.1
+             }
+             else{
+               self.scaleDict[self.detailViewAttribute]=0.9
+             }
+             self.update()
+           })
 
      graph.append('text')
           .classed('axis-icon', true)
@@ -457,6 +469,15 @@ class MapView{
           .text('\uf0de')
           .attr('y', -10)
           .attr('x', 10)
+          .on('click',function(){
+            if(self.scaleDict[self.detailViewAttribute]){
+              self.scaleDict[self.detailViewAttribute]+=0.1
+            }
+            else{
+              self.scaleDict[self.detailViewAttribute]=1.1
+            }
+            self.update()
+          })
 
       graph.append('g')
           .attr('class','axis visible_axis')
@@ -613,7 +634,7 @@ class MapView{
       const interval_range = this.mapManager.tableManager.getAQRange(this.detailViewAttribute)
       const begin_percent = 100-yLineScale(interval_range[0])/height*100
       const end_percent = 100-yLineScale(interval_range[1])/height*100
-      console.log(begin_percent,end_percent)
+      
       for (let i =0; i < 6; i++){
         colorGradient.append('stop')
                      .attr('offset',(begin_percent+0.2*i*(end_percent-begin_percent))+'%')

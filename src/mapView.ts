@@ -42,10 +42,10 @@ class MapView{
     private dotDataColloection;
     private margin = Config.margin;
     private svgHeight = (select('#col4').node() as any).getBoundingClientRect().height-this.margin.top - this.margin.bottom;
-  //  private detailViewAttribute = [];
+    private detailViewAttribute = [];
     private scaleDict = {}
-    private detailViewAttribute = 'None'
-    private graphMargin = {top: 0.25*this.svgHeight, right: 50, bottom: 0.25*this.svgHeight, left: 50}
+  //  private detailViewAttribute = 'None'
+    private graphMargin = {top: 0.1*this.svgHeight, right: 50, bottom: 0.1  *this.svgHeight, left: 50}
     private all_ids = []
     private EPA_color = ['#00e400', '#ff0', '#ff7e00', '#f00','#99004c', '#7e0023']
     private temporal_data_range = {
@@ -349,19 +349,22 @@ class MapView{
       const self = this;
       const colorRampWidth = 50
 
+
       const width = self.svgWidth - self.graphMargin.left - self.graphMargin.right - colorRampWidth
-      const height = self.svgHeight - self.graphMargin.top - self.graphMargin.bottom
+      const height = (self.svgHeight-0.7*self.detailViewAttribute.length*self.graphMargin.top - 0.7*self.detailViewAttribute.length*self.graphMargin.bottom) /self.detailViewAttribute.length
       const graph = select('#graphLayer');
     //  select('#graph-util').selectAll('text').remove();
-      if(self.detailViewAttribute=== 'None'  ){
-        self.detailViewAttribute = 'None'
+      if(self.detailViewAttribute.length===0 ){
+
         graph.selectAll('text').remove()
         graph.selectAll('.axis').remove()
         graph.selectAll('.line_graph').remove();
-        graph.selectAll('#linear-gradient').remove();
+        graph.selectAll('.color_ramp').remove();
+        graph.selectAll('.linear_gradient').remove()
 
       //  select('graph-util').selectAll('text').remove()
-        graph.append('text').text('No attribute selected').attr('transform','translate('+0.5*width+','+0.5*height+')');
+        graph.append('text').text('No attribute selected')
+            .attr('transform','translate('+0.5*(self.svgWidth - self.graphMargin.left - self.graphMargin.right)+','+0.5*(self.svgHeight - self.graphMargin.top - self.graphMargin.bottom)+')');
         return;
       }
 
@@ -370,147 +373,235 @@ class MapView{
       graph.selectAll('text').remove()
       graph.selectAll('.axis').remove()
       graph.selectAll('.line_graph').remove();
-      graph.selectAll('#color-ramp').remove();
-      graph.selectAll('#linear-gradient').remove();
-      graph.append('g').append('text')
-                          .text(self.detailViewAttribute.slice(0,self.detailViewAttribute.length-3))
-                          .attr('x',this.svgWidth*0.5)
-                          .attr('font-size','23px')
-                          .attr('y','0%')
-                          .attr('text-anchor','middle')
-                          .attr('alignment-baseline','baseline')
+      graph.selectAll('.color_ramp').remove();
+      graph.selectAll('.linear_gradient').remove();
 
-      const aqCols = [];
-      const allCols = await this.mapManager.tableManager.AQTable.cols();
 
-      for (const vector of allCols){
-        if (vector.desc.name.includes(self.detailViewAttribute)){
-          aqCols.push(vector)
+      for(let current_index = 0;current_index<self.detailViewAttribute.length; current_index++){
+        const attributeName = self.detailViewAttribute[current_index]
+
+        const startingHeight = current_index*height + current_index * self.graphMargin.top
+
+        graph.append('text')
+             .text(attributeName.slice(0,attributeName.length-3))
+             .attr('x',(this.svgWidth- self.graphMargin.left - self.graphMargin.right )*0.5)
+             .attr('font-size','23px')
+             .attr('y',startingHeight)
+             .attr('text-anchor','middle')
+             .attr('alignment-baseline','baseline')
+
+        graph.append('text')
+             .classed('graph-icon',true)
+             .classed('icon',true)
+             .text(' \uf057')
+             .attr('y',-7+(startingHeight))
+             .attr('x', -6)
+             .on('click',function(){
+               self.detailViewAttribute.splice(current_index,1)
+               self.update()
+             })
+
+        const aqCols = [];
+        const allCols = await this.mapManager.tableManager.AQTable.cols();
+
+        for (const vector of allCols){
+          if (vector.desc.name.includes(attributeName)){
+            aqCols.push(vector)
+          }
         }
-      }
 
-      if (aqCols.length === 0){
-        graph.selectAll('text').remove()
-        graph.selectAll('.axis').remove()
-        graph.selectAll('.line_graph').remove();
-    //    select('graph-util').selectAll('text').remove()
-        graph.append('text').text('No attribute selected').attr('transform','translate('+0.5*width+','+0.5*height+')');
-        self.detailViewAttribute = 'None'
-        return;
-      }
+        const aqDataAccum = [];
+        let allaqPromises = [];
+        aqCols.forEach((vector)=>{
+          allaqPromises = allaqPromises.concat([
+            vector.data(),
+            vector.names(),
+            vector.desc.name,
+            vector.ids(),
+            vector.desc.value.range
+          ]);
+        });
+        const finishedAQPromises = await Promise.all(allaqPromises);
 
-      const aqDataAccum = [];
-      let allaqPromises = [];
-      aqCols.forEach((vector)=>{
-        allaqPromises = allaqPromises.concat([
-          vector.data(),
-          vector.names(),
-          vector.desc.name,
-          vector.ids(),
-          vector.desc.value.range
-        ]);
-      });
-      const finishedAQPromises = await Promise.all(allaqPromises);
+        let aqDataDict = {}
+        aqCols.forEach((vector,index)=>{
+          aqDataDict[finishedAQPromises[index*5+2]] = {'data':finishedAQPromises[index*5],'ids':finishedAQPromises[index*5+1],
+          'range':finishedAQPromises[index*5+4]}
+        });
+        let range_counter = []
 
-      let aqDataDict = {}
-      aqCols.forEach((vector,index)=>{
-        aqDataDict[finishedAQPromises[index*5+2]] = {'data':finishedAQPromises[index*5],'ids':finishedAQPromises[index*5+1],
-        'range':finishedAQPromises[index*5+4]}
-      });
-      let range_counter = []
-
-      let personArrayDict = {};
-      finishedAQPromises[1].forEach((personID)=>{
-        personArrayDict[personID] =  new Array(29)
-      });
+        let personArrayDict = {};
+        finishedAQPromises[1].forEach((personID)=>{
+          personArrayDict[personID] =  new Array(29)
+        });
 
 
-      for (let i = -14; i < 15; i++){
-        const dayentry = aqDataDict[self.detailViewAttribute+i.toString()]
-        const data = dayentry.data;
-        //console.log(dayentry)
-        dayentry.ids.forEach((personID,number_index)=>{
-          personArrayDict[personID][i+14]=data[number_index];
-        })
-        range_counter = range_counter.concat(dayentry.range)
-      }
-      const detailViewData:any = {}
-      detailViewData.ids = Object.keys(personArrayDict)
-      detailViewData.data = detailViewData.ids.map(key => personArrayDict[key]).filter(d=>d);
-      detailViewData.range = [min(range_counter),max(range_counter)]
-      if(self.scaleDict[self.detailViewAttribute]){
-        detailViewData.range = [self.scaleDict[self.detailViewAttribute]*min(range_counter),max(range_counter)*self.scaleDict[self.detailViewAttribute]]
-      }
-      const xLineScale = scaleLinear().domain([0,29]).range([0,width])
-      const yLineScale = scaleLinear().domain(detailViewData.range).range([height,0])
-      //add icon
+        for (let i = -14; i < 15; i++){
+          const dayentry = aqDataDict[attributeName+i.toString()]
+          const data = dayentry.data;
+          //console.log(dayentry)
+          dayentry.ids.forEach((personID,number_index)=>{
+            personArrayDict[personID][i+14]=data[number_index];
+          })
+          range_counter = range_counter.concat(dayentry.range)
+        }
+        const detailViewData:any = {}
+        detailViewData.ids = Object.keys(personArrayDict)
+        detailViewData.data = detailViewData.ids.map(key => personArrayDict[key]).filter(d=>d);
+        detailViewData.range = [min(range_counter),max(range_counter)]
+        if(self.scaleDict[attributeName]){
+          detailViewData.range = [self.scaleDict[attributeName]*min(range_counter),max(range_counter)*self.scaleDict[attributeName]]
+        }
+        const xLineScale = scaleLinear().domain([0,29]).range([0,width])
+        const yLineScale = scaleLinear().domain(detailViewData.range).range([height+startingHeight , startingHeight])
+        //add icon
 
-      graph.append('text')
-           .classed('axis-icon', true)
-           .classed('icon', true)
-           .classed('minus', true)
-           .text('\uf0dd')
-           .attr('y', -5)
-           .attr('x', 10)
-           .on('click',function(){
-             if(self.scaleDict[self.detailViewAttribute]){
-               self.scaleDict[self.detailViewAttribute]-=0.1
+        graph.append('text')
+             .classed('axis-icon', true)
+             .classed('icon', true)
+             .classed('minus', true)
+             .text('\uf0dd')
+             .attr('y', -5+(startingHeight))
+             .attr('x', 10)
+             .on('click',function(){
+               if(self.scaleDict[attributeName]){
+                 self.scaleDict[attributeName] = self.scaleDict[attributeName]===0.1?0.1:self.scaleDict[attributeName]-0.1
+               }
+               else{
+                 self.scaleDict[attributeName]=0.9
+               }
+               self.update()
+             })
+
+       graph.append('text')
+            .classed('axis-icon', true)
+            .classed('icon', true)
+            .classed('plus', true)
+            .text('\uf0de')
+            .attr('y', -10+(startingHeight))
+            .attr('x', 10)
+            .on('click',function(){
+              if(self.scaleDict[attributeName]){
+                self.scaleDict[attributeName]+=0.1
+              }
+              else{
+                self.scaleDict[attributeName]=1.1
+              }
+              self.update()
+            })
+
+        graph.append('g')
+            .attr('class','axis visible_axis')
+            .call(axisLeft(yLineScale))
+            .attr('transform','translate('+colorRampWidth +',0)')
+
+        graph.append('g')
+            .attr('class','axis visible_axis')
+            .call(axisBottom(xLineScale))
+            .attr('transform', 'translate(' + colorRampWidth+',' + (startingHeight+height) + ')');
+        let line_function =  line_generator()
+                      .x((d:any)=>d.x)
+                      .y((d:any)=>d.y)
+                      .curve(curveMonotoneX)
+
+        detailViewData.data.forEach((singleData,index)=>{
+
+          //let cleaned_dataArray = singleData.map(d=>isNaN(d)? 0: d)
+          //detailViewData is the object to be visualized in the supplement view
+          let cleaned_dataArray = singleData.map((d,i)=>{
+              if(!isNaN(d)){
+              return {x: xLineScale(i), y:yLineScale(d)}
+              }
+            })
+          cleaned_dataArray = cleaned_dataArray.filter(d=>d)
+
+          graph.append('path')
+               .datum(cleaned_dataArray)
+               .attr('d',line_function)
+               .attr('stroke-width',2)
+               .attr('opacity', 0.75)
+               .attr('class','line_graph line_graph_'+detailViewData.ids[index])
+               .attr('stroke','#767a7a')
+               })
+               graph.selectAll('.line_graph')
+                    .attr('transform','translate(' + colorRampWidth + ',0)')
+                    .attr("fill", "none")
+                    .on('mouseover',function(d){
+                       const selected_id = select(this).attr('class').split('_')[3]
+                       detailViewData.ids.forEach((id)=>{
+                         if (id !== selected_id){
+                           graph.selectAll('.line_graph_'+id).attr('opacity',0.1)
+                         }
+                         else{
+                           graph.selectAll('.line_graph_'+id).attr('opaity',0.8)
+                         }
+                       })
+                       events.fire(HIGHLIGHT_BY_ID,selected_id)
+                    })
+                    .on('mouseout',d=>{
+                      graph.selectAll('.line_graph').attr('opacity',0.8)
+                      events.fire(CLEAR_TABLE_HIGHLIGHT)
+                    })
+
+               //Create gradient
+               graph.append('rect')
+                    .attr('x',0)
+                    .attr('y',yLineScale.range()[1])
+                    .attr('width',colorRampWidth-30)
+                    .attr('height',height)
+                    .attr('id','color_ramp_'+current_index)
+                    .attr('class','color_ramp')
+               const colorGradient = graph.append('linearGradient')
+                                          .attr('id','linear_gradient_'+current_index)
+                                          .attr('class','linear_gradient')
+                                          .attr('x1',0)
+                                          .attr('x2',0)
+                                          .attr('y1',1)
+                                          .attr('y2',0)
+                                          .attr('color-interpolation','CIE-Lab')
+
+             if(self.temporal_data_range[attributeName]){
+               const data_levels = self.temporal_data_range[attributeName];
+               data_levels.forEach((data_level,i)=>{
+                 colorGradient.append('stop')
+                              .attr('offset',(1-(yLineScale(data_level)-startingHeight)/height)*100+'%')
+                              .attr('stop-color',self.EPA_color[i])
+               })
+             }
+             else if(attributeName === 'AirTempday'){
+               const interval_range = self.mapManager.tableManager.getAQRange(attributeName)
+               const begin_percent = 100-(yLineScale(interval_range[0])-startingHeight)/height*100
+               const mid_percent = 100-(yLineScale(0)-startingHeight)/height*100
+               const end_percent = 100 - (yLineScale(interval_range[1])-startingHeight)/height*100
+               for(let i = 1;i<5;i++){
+                 colorGradient.append('stop')
+                              .attr('offset',(begin_percent+0.25*i*(mid_percent-begin_percent))+'%')
+                              .attr('stop-color',interpolateRdBu(0.5+0.125*(4-i)))
+               }
+               colorGradient.append('stop')
+                            .attr('offset',mid_percent+'%')
+                            .attr('stop-color',interpolateRdBu(0.5))
+              for(let i = 1;i<5;i++){
+                colorGradient.append('stop')
+                             .attr('offset',(mid_percent+0.25*i*(end_percent-mid_percent))+'%')
+                             .attr('stop-color',interpolateRdBu(0.5-0.125*i))
+              }
              }
              else{
-               self.scaleDict[self.detailViewAttribute]=0.9
-             }
-             self.update()
-           })
+               const interval_range = self.mapManager.tableManager.getAQRange(attributeName)
+               const begin_percent = 100-(yLineScale(interval_range[0])-startingHeight)/height*100
+               const end_percent = 100-(yLineScale(interval_range[1])-startingHeight)/height*100
 
-     graph.append('text')
-          .classed('axis-icon', true)
-          .classed('icon', true)
-          .classed('plus', true)
-          .text('\uf0de')
-          .attr('y', -10)
-          .attr('x', 10)
-          .on('click',function(){
-            if(self.scaleDict[self.detailViewAttribute]){
-              self.scaleDict[self.detailViewAttribute]+=0.1
-            }
-            else{
-              self.scaleDict[self.detailViewAttribute]=1.1
-            }
-            self.update()
-          })
+               for (let i =0; i < 6; i++){
+                 colorGradient.append('stop')
+                              .attr('offset',(begin_percent+0.2*i*(end_percent-begin_percent))+'%')
+                              .attr('stop-color',interpolateReds(0.2*i))
+               }
 
-      graph.append('g')
-          .attr('class','axis visible_axis')
-          .call(axisLeft(yLineScale))
-          .attr('transform','translate('+colorRampWidth +',0)')
+              }
+             graph.select('#color_ramp_'+current_index).attr('fill','url(#linear_gradient_'+current_index+')')
+      }
 
-      graph.append('g')
-          .attr('class','axis visible_axis')
-          .call(axisBottom(xLineScale))
-          .attr('transform', 'translate(' + colorRampWidth+',' + height + ')');
-      let line_function =  line_generator()
-                    .x((d:any)=>d.x)
-                    .y((d:any)=>d.y)
-                    .curve(curveMonotoneX)
-
-      detailViewData.data.forEach((singleData,index)=>{
-
-        //let cleaned_dataArray = singleData.map(d=>isNaN(d)? 0: d)
-        //detailViewData is the object to be visualized in the supplement view
-        let cleaned_dataArray = singleData.map((d,i)=>{
-            if(!isNaN(d)){
-            return {x: xLineScale(i), y:yLineScale(d)}
-            }
-          })
-        cleaned_dataArray = cleaned_dataArray.filter(d=>d)
-
-        graph.append('path')
-             .datum(cleaned_dataArray)
-             .attr('d',line_function)
-             .attr('stroke-width',3)
-             .attr('opacity', 0.8)
-             .attr('class','line_graph line_graph_'+detailViewData.ids[index])
-             .attr('stroke','#767a7a')
 
         // graph.selectAll('.place_holder')
         //       .data(singleData)
@@ -568,81 +659,8 @@ class MapView{
         //           else
         //           {return '#767a7a';}})
 
-      })
-      graph.selectAll('.line_graph')
-           .attr('transform','translate(' + colorRampWidth + ',0)')
-           .attr("fill", "none")
-           .on('mouseover',function(d){
-              const selected_id = select(this).attr('class').split('_')[3]
-              detailViewData.ids.forEach((id)=>{
-                if (id !== selected_id){
-                  graph.selectAll('.line_graph_'+id).attr('opacity',0.1)
-                }
-                else{
-                  graph.selectAll('.line_graph_'+id).attr('opaity',0.8)
-                }
-              })
-              events.fire(HIGHLIGHT_BY_ID,selected_id)
-           })
-           .on('mouseout',d=>{
-             graph.selectAll('.line_graph').attr('opacity',0.8)
-             events.fire(CLEAR_TABLE_HIGHLIGHT)
-           })
 
-      //Create gradient
-      graph.append('rect')
-           .attr('x',0)
-           .attr('y',0)
-           .attr('width',colorRampWidth-30)
-           .attr('height',height)
-           .attr('id','color-ramp')
-      const colorGradient = graph.append('linearGradient')
-                                 .attr('id','linear-gradient')
-                                 .attr('x1',0)
-                                 .attr('x2',0)
-                                 .attr('y1',1)
-                                 .attr('y2',0)
-                                 .attr('color-interpolation','CIE-Lab')
-    if(this.temporal_data_range[this.detailViewAttribute]){
-      const data_levels = this.temporal_data_range[this.detailViewAttribute];
-      data_levels.forEach((data_level,i)=>{
-        colorGradient.append('stop')
-                     .attr('offset',(1-yLineScale(data_level)/height)*100+'%')
-                     .attr('stop-color',this.EPA_color[i])
-      })
-    }
-    else if(this.detailViewAttribute === 'AirTempday'){
-      const interval_range = this.mapManager.tableManager.getAQRange(this.detailViewAttribute)
-      const begin_percent = 100-yLineScale(interval_range[0])/height*100
-      const mid_percent = 100-yLineScale(0)/height*100
-      const end_percent = 100 - yLineScale(interval_range[1])/height*100
-      for(let i = 1;i<5;i++){
-        colorGradient.append('stop')
-                     .attr('offset',(begin_percent+0.25*i*(mid_percent-begin_percent))+'%')
-                     .attr('stop-color',interpolateRdBu(0.5+0.125*(4-i)))
-      }
-      colorGradient.append('stop')
-                   .attr('offset',mid_percent+'%')
-                   .attr('stop-color',interpolateRdBu(0.5))
-     for(let i = 1;i<5;i++){
-       colorGradient.append('stop')
-                    .attr('offset',(mid_percent+0.25*i*(end_percent-mid_percent))+'%')
-                    .attr('stop-color',interpolateRdBu(0.5-0.125*i))
-     }
-    }
-    else{
-      const interval_range = this.mapManager.tableManager.getAQRange(this.detailViewAttribute)
-      const begin_percent = 100-yLineScale(interval_range[0])/height*100
-      const end_percent = 100-yLineScale(interval_range[1])/height*100
-      
-      for (let i =0; i < 6; i++){
-        colorGradient.append('stop')
-                     .attr('offset',(begin_percent+0.2*i*(end_percent-begin_percent))+'%')
-                     .attr('stop-color',interpolateReds(0.2*i))
-      }
 
-                 }
-    graph.select('#color-ramp').attr('fill','url(#linear-gradient)')
     }
 
     private drawGeographicalMap(){
@@ -768,7 +786,12 @@ class MapView{
         //   console.log('fire top 100')
          })
          events.on(SHOW_DETAIL_VIEW, (evt, vector) => {
-           self.detailViewAttribute = vector.name;
+           if(!self.detailViewAttribute.includes(vector.name)){
+              self.detailViewAttribute.unshift(vector.name);
+           }
+           if(self.detailViewAttribute.length>3){
+              self.detailViewAttribute = self.detailViewAttribute.slice(0,3)
+           }
            self.currentViewType = 'Detail';
            self.update();
 

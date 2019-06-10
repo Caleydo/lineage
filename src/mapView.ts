@@ -3,6 +3,8 @@ import { select, selection, selectAll, mouse, event } from 'd3-selection';
 import { format } from 'd3-format';
 import {Config} from './config';
 import { scaleLinear, scaleOrdinal, schemeCategory10 } from 'd3-scale';
+import {interpolateReds, interpolateRdBu} from 'd3-scale-chromatic';
+import {line as line_generator,curveCatmullRom,curveMonotoneX} from 'd3-shape'
 import { max, min, mean } from 'd3-array';
 import {zoom, zoomIdentity} from 'd3-zoom';
 import {axisBottom,axisLeft } from 'd3-axis';
@@ -40,8 +42,9 @@ class MapView{
     private dotDataColloection;
     private margin = Config.margin;
     private svgHeight = (select('#col4').node() as any).getBoundingClientRect().height-this.margin.top - this.margin.bottom;
-    private detailViewAttribute: string = 'None';
-    private graphMargin = {top: 50, right: 50, bottom: 0.25*this.svgHeight, left: 50}
+  //  private detailViewAttribute = [];
+    private detailViewAttribute = 'None'
+    private graphMargin = {top: 0.25*this.svgHeight, right: 50, bottom: 0.25*this.svgHeight, left: 50}
     private all_ids = []
     private EPA_color = ['#00e400', '#ff0', '#ff7e00', '#f00','#99004c', '#7e0023']
     private temporal_data_range = {
@@ -55,18 +58,17 @@ class MapView{
 
 
       this.map_center=geoCentroid(this.mapManager.topojson_features);
-      this.node_center = [this.svgWidth/2,(this.svgHeight-195)/2];
-      select('#map').append('div').attr('id','mapDiv1')
-          .append('svg').attr('width',this.svgWidth).attr('height',195).attr('id','util');
+      this.node_center = [this.svgWidth/2,(this.svgHeight)/2];
+
 
       select('#map').append('div').attr('id','mapDiv2')
-          .append('svg').attr('id','map-svg').attr('width',this.svgWidth).attr('height',this.svgHeight-195);
+          .append('svg').attr('id','map-svg').attr('width',this.svgWidth).attr('height',this.svgHeight);
 
-      select('#util').append('g').attr('id','graph-util');
-      select('#util').append('g').attr('id','map-util')
+      //select('#util').append('g').attr('id','graph-util');
+      select('#map-svg').append('g').attr('id','map-util')
                                  .attr('transform','translate('+0.75*this.svgWidth+',0)')
-      select('#map-svg').append('g').attr('id',"mapLayer");
-      select('#map-svg').append('g').attr('id','drawLayer');
+      select('#map-svg').append('g').attr('id',"mapLayer").attr('transform','translate(0,195)');
+      select('#map-svg').append('g').attr('id','drawLayer').attr('transform','translate(0,195)');
 
       select('#map-svg').append('g').attr('id','graphLayer')
                                     .attr('transform','translate('+this.graphMargin.left+','+this.graphMargin.top+')');
@@ -227,7 +229,7 @@ class MapView{
       if (this.currentViewType == 'Map'){
         document.getElementById('col4').style.display = 'block';
         select('#graphLayer').attr('opacity',0).attr('pointer-events','none')
-        select('#graph-util').attr('opacity',0)
+      //  select('#graph-util').attr('opacity',0)
         select('#map-util').attr('opacity',1)
         select('#mapLayer').attr('opacity',1).attr('pointer-events','auto')
         select('#drawLayer').attr('opacity',1).attr('pointer-events','auto')
@@ -239,7 +241,7 @@ class MapView{
         select('#graphLayer').attr('opacity',1).attr('pointer-events','auto')
         select('#mapLayer').attr('opacity',0).attr('pointer-events','none')
         select('#drawLayer').attr('opacity',0).attr('pointer-events','none')
-        select('#graph-util').attr('opacity',1)
+      //  select('#graph-util').attr('opacity',1)
         select('#map-util').attr('opacity',0)
 
         self.drawDetailView();
@@ -345,26 +347,35 @@ class MapView{
 
       const self = this;
       const colorRampWidth = 50
-      const width = self.svgWidth - self.graphMargin.left - self.graphMargin.right - colorRampWidth
-      const height = self.svgHeight - self.graphMargin.top - self.graphMargin.bottom-195
 
+      const width = self.svgWidth - self.graphMargin.left - self.graphMargin.right - colorRampWidth
+      const height = self.svgHeight - self.graphMargin.top - self.graphMargin.bottom
       const graph = select('#graphLayer');
-      select('#graph-util').selectAll('text').remove();
-      if(self.detailViewAttribute === 'None'  || !self.mapManager.tableManager.colOrder.includes(self.detailViewAttribute)){
+    //  select('#graph-util').selectAll('text').remove();
+      if(self.detailViewAttribute=== 'None'  ){
         self.detailViewAttribute = 'None'
         graph.selectAll('text').remove()
         graph.selectAll('.axis').remove()
         graph.selectAll('.line_graph').remove();
-        select('graph-util').selectAll('text').remove()
+        graph.selectAll('#linear-gradient').remove();
+
+      //  select('graph-util').selectAll('text').remove()
         graph.append('text').text('No attribute selected').attr('transform','translate('+0.5*width+','+0.5*height+')');
         return;
       }
 
-      select('#graph-util').append('text')
+
+
+      graph.selectAll('text').remove()
+      graph.selectAll('.axis').remove()
+      graph.selectAll('.line_graph').remove();
+      graph.selectAll('#color-ramp').remove();
+      graph.selectAll('#linear-gradient').remove();
+      graph.append('g').append('text')
                           .text(self.detailViewAttribute.slice(0,self.detailViewAttribute.length-3))
                           .attr('x',this.svgWidth*0.5)
                           .attr('font-size','23px')
-                          .attr('y','95%')
+                          .attr('y','0%')
                           .attr('text-anchor','middle')
                           .attr('alignment-baseline','baseline')
 
@@ -381,7 +392,7 @@ class MapView{
         graph.selectAll('text').remove()
         graph.selectAll('.axis').remove()
         graph.selectAll('.line_graph').remove();
-        select('graph-util').selectAll('text').remove()
+    //    select('graph-util').selectAll('text').remove()
         graph.append('text').text('No attribute selected').attr('transform','translate('+0.5*width+','+0.5*height+')');
         self.detailViewAttribute = 'None'
         return;
@@ -416,6 +427,7 @@ class MapView{
       for (let i = -14; i < 15; i++){
         const dayentry = aqDataDict[self.detailViewAttribute+i.toString()]
         const data = dayentry.data;
+        //console.log(dayentry)
         dayentry.ids.forEach((personID,number_index)=>{
           personArrayDict[personID][i+14]=data[number_index];
         })
@@ -425,12 +437,26 @@ class MapView{
       detailViewData.ids = Object.keys(personArrayDict)
       detailViewData.data = detailViewData.ids.map(key => personArrayDict[key]).filter(d=>d);
       detailViewData.range = [min(range_counter),max(range_counter)]
-      graph.selectAll('text').remove()
-      graph.selectAll('.axis').remove()
-      graph.selectAll('.line_graph').remove();
 
       const xLineScale = scaleLinear().domain([0,29]).range([0,width])
       const yLineScale = scaleLinear().domain(detailViewData.range).range([height,0])
+      //add icon
+
+      graph.append('text')
+           .classed('axis-icon', true)
+           .classed('icon', true)
+           .classed('minus', true)
+           .text('\uf0dd')
+           .attr('y', -5)
+           .attr('x', 10)
+
+     graph.append('text')
+          .classed('axis-icon', true)
+          .classed('icon', true)
+          .classed('plus', true)
+          .text('\uf0de')
+          .attr('y', -10)
+          .attr('x', 10)
 
       graph.append('g')
           .attr('class','axis visible_axis')
@@ -441,72 +467,90 @@ class MapView{
           .attr('class','axis visible_axis')
           .call(axisBottom(xLineScale))
           .attr('transform', 'translate(' + colorRampWidth+',' + height + ')');
+      let line_function =  line_generator()
+                    .x((d:any)=>d.x)
+                    .y((d:any)=>d.y)
+                    .curve(curveMonotoneX)
 
       detailViewData.data.forEach((singleData,index)=>{
 
-        let cleaned_dataArray = singleData.map(d=>isNaN(d)? 0: d)
+        //let cleaned_dataArray = singleData.map(d=>isNaN(d)? 0: d)
         //detailViewData is the object to be visualized in the supplement view
+        let cleaned_dataArray = singleData.map((d,i)=>{
+            if(!isNaN(d)){
+            return {x: xLineScale(i), y:yLineScale(d)}
+            }
+          })
+        cleaned_dataArray = cleaned_dataArray.filter(d=>d)
 
-        graph.selectAll('.place_holder')
-              .data(singleData)
-              .enter()
-              .append('polyline')
-              .attr('points',(d,i)=>{
-                let x1,x2,y1,y2,x3,y3;
-                if (i==0){
-                  x1 = xLineScale(0)
-                  x2 = xLineScale(0.5)
-                  y1 = yLineScale(cleaned_dataArray[i]);
-                  y2 = isNaN(singleData[i+1])?yLineScale(cleaned_dataArray[i]):yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i+1])/2)
+        graph.append('path')
+             .datum(cleaned_dataArray)
+             .attr('d',line_function)
+             .attr('stroke-width',3)
+             .attr('opacity', 0.8)
+             .attr('class','line_graph line_graph_'+detailViewData.ids[index])
+             .attr('stroke','#767a7a')
 
-                  x3 = xLineScale(0.5)
-                  y3 = isNaN(singleData[i+1])? yLineScale(cleaned_dataArray[i]):yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i+1])/2)
+        // graph.selectAll('.place_holder')
+        //       .data(singleData)
+        //       .enter()
+        //       .append('polyline')
+        //       .attr('points',(d,i)=>{
+        //         let x1,x2,y1,y2,x3,y3;
+        //         if (i==0){
+        //           x1 = xLineScale(0)
+        //           x2 = xLineScale(0.5)
+        //           y1 = yLineScale(cleaned_dataArray[i]);
+        //           y2 = isNaN(singleData[i+1])?yLineScale(cleaned_dataArray[i]):yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i+1])/2)
+        //
+        //           x3 = xLineScale(0.5)
+        //           y3 = isNaN(singleData[i+1])? yLineScale(cleaned_dataArray[i]):yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i+1])/2)
+        //
+        //         }
+        //         else if (i == 28){
+        //           x1 = xLineScale(27.5)
+        //           x2 = xLineScale(28)
+        //           y1 = isNaN(singleData[i-1]) ? yLineScale(cleaned_dataArray[i]): yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i-1])/2)
+        //
+        //           y2 =yLineScale ( cleaned_dataArray[i])
+        //           x3 = xLineScale(28)
+        //           y3 = yLineScale(cleaned_dataArray[i])
+        //         }
+        //         else{
+        //           x1 = xLineScale(i-0.5);
+        //           x2 = xLineScale(i+0.5);
+        //           x3 = xLineScale(i);
+        //
+        //           y3 = yLineScale(cleaned_dataArray[i])
+        //           if (isNaN(singleData[i-1])){
+        //             y1 = yLineScale(cleaned_dataArray[i])
+        //           }
+        //           else{
+        //             y1 = yLineScale((cleaned_dataArray[i] + cleaned_dataArray [ i-1])/2);
+        //           }
+        //           if (isNaN(singleData[i+1])){
+        //             y2 = yLineScale(cleaned_dataArray[i])
+        //           }
+        //           else{
+        //             y2 = yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i+1])/2);
+        //           }
+        //
+        //         }
+        //
+        //         return x1 + ',' + y1 + ' ' +
+        //                x3 + ',' + y3 + ' ' +
+        //                x2 + ',' + y2 + ' ' })
+        //         .attr('class','line_graph line_graph_'+detailViewData.ids[index])
+        //         .attr('stroke',(d,i)=>{
+        //           if (isNaN(singleData[i]))
+        //           { return 'none';}
+        //           else
+        //           {return '#767a7a';}})
 
-                }
-                else if (i == 28){
-                  x1 = xLineScale(27.5)
-                  x2 = xLineScale(28)
-                  y1 = isNaN(singleData[i-1]) ? yLineScale(cleaned_dataArray[i]): yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i-1])/2)
-
-                  y2 =yLineScale ( cleaned_dataArray[i])
-                  x3 = xLineScale(28)
-                  y3 = yLineScale(cleaned_dataArray[i])
-                }
-                else{
-                  x1 = xLineScale(i-0.5);
-                  x2 = xLineScale(i+0.5);
-                  x3 = xLineScale(i);
-
-                  y3 = yLineScale(cleaned_dataArray[i])
-                  if (isNaN(singleData[i-1])){
-                    y1 = yLineScale(cleaned_dataArray[i])
-                  }
-                  else{
-                    y1 = yLineScale((cleaned_dataArray[i] + cleaned_dataArray [ i-1])/2);
-                  }
-                  if (isNaN(singleData[i+1])){
-                    y2 = yLineScale(cleaned_dataArray[i])
-                  }
-                  else{
-                    y2 = yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i+1])/2);
-                  }
-
-                }
-
-                return x1 + ',' + y1 + ' ' +
-                       x3 + ',' + y3 + ' ' +
-                       x2 + ',' + y2 + ' ' })
-                .attr('class','line_graph line_graph_'+detailViewData.ids[index])
-                .attr('stroke',(d,i)=>{
-                  if (isNaN(singleData[i]))
-                  { return 'none';}
-                  else
-                  {return '#767a7a';}})
-                .attr('stroke-width',3)
-                .attr('opacity', 0.8)
       })
       graph.selectAll('.line_graph')
            .attr('transform','translate(' + colorRampWidth + ',0)')
+           .attr("fill", "none")
            .on('mouseover',function(d){
               const selected_id = select(this).attr('class').split('_')[3]
               detailViewData.ids.forEach((id)=>{
@@ -523,12 +567,61 @@ class MapView{
              graph.selectAll('.line_graph').attr('opacity',0.8)
              events.fire(CLEAR_TABLE_HIGHLIGHT)
            })
+
+      //Create gradient
       graph.append('rect')
            .attr('x',0)
            .attr('y',0)
-           .attr('width',colorRampWidth)
+           .attr('width',colorRampWidth-30)
            .attr('height',height)
+           .attr('id','color-ramp')
+      const colorGradient = graph.append('linearGradient')
+                                 .attr('id','linear-gradient')
+                                 .attr('x1',0)
+                                 .attr('x2',0)
+                                 .attr('y1',1)
+                                 .attr('y2',0)
+                                 .attr('color-interpolation','CIE-Lab')
+    if(this.temporal_data_range[this.detailViewAttribute]){
+      const data_levels = this.temporal_data_range[this.detailViewAttribute];
+      data_levels.forEach((data_level,i)=>{
+        colorGradient.append('stop')
+                     .attr('offset',(1-yLineScale(data_level)/height)*100+'%')
+                     .attr('stop-color',this.EPA_color[i])
+      })
+    }
+    else if(this.detailViewAttribute === 'AirTempday'){
+      const interval_range = this.mapManager.tableManager.getAQRange(this.detailViewAttribute)
+      const begin_percent = 100-yLineScale(interval_range[0])/height*100
+      const mid_percent = 100-yLineScale(0)/height*100
+      const end_percent = 100 - yLineScale(interval_range[1])/height*100
+      for(let i = 0;i<4;i++){
+        colorGradient.append('stop')
+                     .attr('offset',(begin_percent+0.25*i*(mid_percent-begin_percent))+'%')
+                     .attr('stop-color',interpolateRdBu(0.5+0.125*(4-i)))
+      }
+      colorGradient.append('stop')
+                   .attr('offset',mid_percent+'%')
+                   .attr('stop-color',interpolateRdBu(0.5))
+     for(let i = 0;i<4;i++){
+       colorGradient.append('stop')
+                    .attr('offset',(begin_percent+0.25*i*(end_percent-mid_percent))+'%')
+                    .attr('stop-color',interpolateRdBu(0.5-0.125*i))
+     }
+    }
+    else{
+      const interval_range = this.mapManager.tableManager.getAQRange(this.detailViewAttribute)
+      const begin_percent = 100-yLineScale(interval_range[0])/height*100
+      const end_percent = 100-yLineScale(interval_range[1])/height*100
+      console.log(begin_percent,end_percent)
+      for (let i =0; i < 6; i++){
+        colorGradient.append('stop')
+                     .attr('offset',(begin_percent+0.2*i*(end_percent-begin_percent))+'%')
+                     .attr('stop-color',interpolateReds(0.2*i))
+      }
 
+                 }
+    graph.select('#color-ramp').attr('fill','url(#linear-gradient)')
     }
 
     private drawGeographicalMap(){
@@ -630,12 +723,11 @@ class MapView{
              select('#graphLayer').selectAll('.line_graph_'+id).attr('opaity',0.8)
              select('#drawLayer').select('#circle_'+id).attr('opacity',1)
            }
-
          })
        }
 
        private clearAllHighlight(){
-         select('#graphLayer').selectAll('polyline').attr('opacity',0.8)
+         select('#graphLayer').selectAll('.line_graph').attr('opacity',0.8)
          select('#drawLayer').selectAll('circle').attr('opacity',1)
        }
 

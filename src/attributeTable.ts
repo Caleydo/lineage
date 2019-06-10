@@ -2689,7 +2689,7 @@ class AttributeTable {
       //TODO Make it only appear the current family VS entire dataSets
       const self = this;
       const colWidth = this.customColWidths[headerData.name] || this.colWidths.temporal;
-      console.log(this.colData)
+
       const kindredIDData = self.colData.filter(d=>d.name == 'KindredID')[0].data;
       let beforeFamilyAverageSet = {};
       let afterFamilyAverageSet = {};

@@ -12,6 +12,7 @@ import {geoCentroid,geoMercator,geoPath} from 'd3-geo'
 import {forceSimulation,forceCollide} from 'd3-force'
 import {timeout} from 'd3-timer'
 import {feature as topofeature} from 'topojson';
+
 import * as MapManager from './mapManager';
 import {
   TABLE_VIS_ROWS_CHANGED_EVENT,
@@ -270,7 +271,10 @@ class MapView{
       // d3.select('.legend').call(legend);
       self.dotDataColloection.forEach(dot =>{
         [dot.x,dot.y] = self.projection([dot.longitude,dot.latitude])
+        dot.x = dot.x + Math.random()*20
+        dot.y = dot.y+Math.random()*20
       })
+
 
       let simulation = forceSimulation(self.dotDataColloection)
                           .force('collide',forceCollide().radius(5).iterations(10))
@@ -351,7 +355,7 @@ class MapView{
 
 
       const width = self.svgWidth - self.graphMargin.left - self.graphMargin.right - colorRampWidth
-      const height = (self.svgHeight-0.7*self.detailViewAttribute.length*self.graphMargin.top - 0.7*self.detailViewAttribute.length*self.graphMargin.bottom) /self.detailViewAttribute.length
+      const height = self.detailViewAttribute.length===1? 0.5*self.svgHeight:(self.svgHeight-0.7*self.detailViewAttribute.length*self.graphMargin.top - 0.7*self.detailViewAttribute.length*self.graphMargin.bottom) /self.detailViewAttribute.length
       const graph = select('#graphLayer');
     //  select('#graph-util').selectAll('text').remove();
       if(self.detailViewAttribute.length===0 ){

@@ -1827,6 +1827,7 @@ class AttributeTable {
         }
         const colWidth = self.customColWidths[cellData.name]||self.colWidths.temporal;
         const xLineScale = scaleLinear().domain([0,28]).range([0,colWidth]);
+
         const cleaned_dataArray = cellData.data[0].map(d=>isNaN(d)? 0 : d);
         const dataArray = cellData.data[0]
         let new_quant_height = yLineScale(parseInt(max(cleaned_dataArray)))
@@ -1835,6 +1836,59 @@ class AttributeTable {
         select(this).selectAll('.quant')
                     .attr('height', new_quant_height)
                     .attr('transform', 'translate(0, ' + (self.rowHeight - new_quant_height) +')')
+        select(this).selectAll('.line_polygones')
+                    // .data(cellData.data[0])
+                    // .enter()
+                    // .append('polygon')
+                    .attr('points',(d,i)=>{
+                      let x1,x2,y1,y2,x3,y3;
+                      const rowHeight=self.rowHeight
+                                        if (i==0){
+                                          x1 = xLineScale(0)
+                                          x2 = xLineScale(0.5)
+                                          y1 = rowHeight-yLineScale(cleaned_dataArray[i]);
+                                          y2 = isNaN(cellData.data[0][i+1])?rowHeight - yLineScale(cleaned_dataArray[i]):rowHeight - yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i+1])/2)
+
+                                          x3 = xLineScale(0.5)
+                                          y3 = isNaN(cellData.data[0][i+1])?rowHeight - yLineScale(cleaned_dataArray[i]):rowHeight - yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i+1])/2)
+
+                                        }
+                                        else if (i == 28){
+                                          x1 = xLineScale(27.5)
+                                          x2 = xLineScale(28)
+                                          y1 = isNaN(cellData.data[0][i-1])?rowHeight - yLineScale(cleaned_dataArray[i]):rowHeight - yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i-1])/2)
+
+                                          y2 = rowHeight - yLineScale ( cleaned_dataArray[i])
+                                          x3 = xLineScale(28)
+                                          y3 = rowHeight - yLineScale(cleaned_dataArray[i])
+                                        }
+                                        else{
+                                          x1 = xLineScale(i-0.5);
+                                          x2 = xLineScale(i+0.5);
+                                          x3 = xLineScale(i);
+
+                                          y3 = rowHeight - yLineScale(cleaned_dataArray[i])
+                                          if (isNaN(cellData.data[0][i-1])){
+                                            y1 = rowHeight - yLineScale(cleaned_dataArray[i])
+                                          }
+                                          else{
+                                            y1 = rowHeight-yLineScale((cleaned_dataArray[i] + cleaned_dataArray [ i-1])/2);
+                                          }
+                                          if (isNaN(cellData.data[0][i+1])){
+                                            y2 = rowHeight - yLineScale(cleaned_dataArray[i])
+                                          }
+                                          else{
+                                            y2 = rowHeight-yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i+1])/2);
+                                          }
+
+                                        }
+
+                                        return x1 + ',' + rowHeight + ' ' +
+                                               x1 + ',' + y1 + ' ' +
+                                               x3 + ',' + y3 + ' ' +
+                                               x2 + ',' + y2 + ' ' +
+                                               x2 + ',' + rowHeight})
+
 
         select(this).selectAll('.full_line_graph')
                     .data(cellData.data[0])
@@ -1891,21 +1945,79 @@ class AttributeTable {
                         else
                         {return '#767a7a';}});
 
-
-
-
-
       }
     })
-      .on('mouseout', function(d:any){
+      .on('mouseout', function(cellData: any){
         self.clearHighlight();
         select('.menu').remove();
         events.fire(CLEAR_MAP_HIGHLIGHT)
-        if (d.type=='temporal'){
+        if (cellData.type=='temporal'){
           select(this).selectAll('.full_line_graph').remove();
+          const colWidth = self.customColWidths[cellData.name]||self.colWidths.temporal;
+
+          const xLineScale = scaleLinear().domain([0,28]).range([0,colWidth]);
+          let yLineScale;
+          if(cellData.level_set){
+            yLineScale = scaleLinear().domain([self.tableManager.getAQRange(cellData.name)[0],cellData.level_set]).range([0,self.rowHeight]).clamp(true);
+          }
+          else{
+            yLineScale = scaleLinear().domain(self.tableManager.getAQRange(cellData.name)).range([0,self.rowHeight]).clamp(true);
+          }
+          const cleaned_dataArray = cellData.data[0].map(d=>isNaN(d)? 0 : d);
+          const dataArray = cellData.data[0]
+          select(this).selectAll('.line_polygones')
+                    .attr('points',(d,i)=>{
+                      let x1, x2, y1, y2, x3, y3;
+                      const rowHeight = self.rowHeight
+                      if (i==0){
+                        x1 = xLineScale(0)
+                        x2 = xLineScale(0.5)
+                        y1 = rowHeight-yLineScale(cleaned_dataArray[i]);
+                        y2 = isNaN(cellData.data[0][i+1])?rowHeight - yLineScale(cleaned_dataArray[i]):rowHeight - yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i+1])/2)
+
+                        x3 = xLineScale(0.5)
+                        y3 = isNaN(cellData.data[0][i+1])?rowHeight - yLineScale(cleaned_dataArray[i]):rowHeight - yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i+1])/2)
+
+                      }
+                      else if (i == 28){
+                        x1 = xLineScale(27.5)
+                        x2 = xLineScale(28)
+                        y1 = isNaN(cellData.data[0][i-1])?rowHeight - yLineScale(cleaned_dataArray[i]):rowHeight - yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i-1])/2)
+
+                        y2 = rowHeight - yLineScale ( cleaned_dataArray[i])
+                        x3 = xLineScale(28)
+                        y3 = rowHeight - yLineScale(cleaned_dataArray[i])
+                      }
+                      else{
+                        x1 = xLineScale(i-0.5);
+                        x2 = xLineScale(i+0.5);
+                        x3 = xLineScale(i);
+
+                        y3 = rowHeight - yLineScale(cleaned_dataArray[i])
+                        if (isNaN(cellData.data[0][i-1])){
+                          y1 = rowHeight - yLineScale(cleaned_dataArray[i])
+                        }
+                        else{
+                          y1 = rowHeight-yLineScale((cleaned_dataArray[i] + cleaned_dataArray [ i-1])/2);
+                        }
+                        if (isNaN(cellData.data[0][i+1])){
+                          y2 = rowHeight - yLineScale(cleaned_dataArray[i])
+                        }
+                        else{
+                          y2 = rowHeight-yLineScale((cleaned_dataArray[i] + cleaned_dataArray[i+1])/2);
+                        }
+
+                      }
+
+                      return x1 + ',' + rowHeight + ' ' +
+                             x1 + ',' + y1 + ' ' +
+                             x3 + ',' + y3 + ' ' +
+                             x2 + ',' + y2 + ' ' +
+                             x2 + ',' + rowHeight})
+        //  select(this).selectAll('.full_line_polygones').remove()
           select(this).selectAll('.quant').attr('height',self.rowHeight ).attr('y',0).attr('transform', 'translate(0,0)')
           select(this).selectAll('.line_graph').attr('opacity',1)
-          if (d.level_set==undefined){
+          if (cellData.level_set==undefined){
             select(this).selectAll('.average_marker').attr('opacity',0)
 
             select(this).selectAll('.line_polygones').attr('opacity',0.4)

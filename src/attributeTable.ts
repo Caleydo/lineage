@@ -394,7 +394,7 @@ class AttributeTable {
       .attr('class', 'dropdown-toggle')
       .attr('data-toggle', 'dropdown')
       .attr('role', 'button')
-      .html('Show Top 100')
+      .html('Rank By')
       .append('span')
       .attr('class', 'caret');
     const menu_top = list_top.append('ul').attr('class', 'dropdown-menu')
@@ -728,7 +728,7 @@ class AttributeTable {
     // }
    this.tableManager.yValues = yDict
 
-   console.log(yDict,idRange)
+  // console.log(yDict,idRange)
    await this.tableManager.setActiveRowsWithoutEvent(idRange);
    this.tableManager.tableHeight = Config.glyphSize * 4 * 100
 
@@ -925,7 +925,7 @@ class AttributeTable {
       });
       col.type = 'temporal';
       col.name = aqName;
-      col.range = [min(range_counter),max(range_counter)]
+      col.range = self.tableManager.getAQExtreme(aqName)
       col.data = allRows.map((row) => {
           const colData = [];
           const people = y2personDict[row];
@@ -1830,7 +1830,7 @@ class AttributeTable {
 
         const cleaned_dataArray = cellData.data[0].map(d=>isNaN(d)? 0 : d);
         const dataArray = cellData.data[0]
-        let new_quant_height = yLineScale(parseInt(max(cleaned_dataArray)))
+        let new_quant_height = yLineScale(parseInt(max(cleaned_dataArray)))+2
         new_quant_height = new_quant_height>self.rowHeight? new_quant_height : self.rowHeight;
 
         select(this).selectAll('.quant')
@@ -2243,8 +2243,9 @@ class AttributeTable {
           before_average = mean(dataArray.slice(14-self.average_limit,14))  ;
           after_average = mean(dataArray.slice(15,15+self.average_limit));
         }
-        let valueToReturn = Math.abs(before_average - after_average);
-        valueToReturn = valueToReturn?valueToReturn : 0
+        //let valueToReturn = Math.abs(before_average - after_average);
+
+        const valueToReturn = before_average?before_average : 0
         return {
           index: i, value: valueToReturn
         };
@@ -2801,8 +2802,9 @@ class AttributeTable {
       //TODO Make it only appear the current family VS entire dataSets
       const self = this;
       const colWidth = this.customColWidths[headerData.name] || this.colWidths.temporal;
-
+      const attributeName = headerData.name;
       const kindredIDData = self.colData.filter(d=>d.name == 'KindredID')[0].data;
+    //  console.log(kindredIDData,self.colData)
       let beforeFamilyAverageSet = {};
       let afterFamilyAverageSet = {};
 
@@ -2833,11 +2835,12 @@ class AttributeTable {
       })
 
 
+
       const height = this.headerHeight;
 
       const xLineScale = scaleLinear().domain([-14,14]).range([0,colWidth]);
       const yLineScale = scaleLinear()
-                .domain(self.tableManager.getAQRange(headerData.name))
+                .domain(headerData.range)
                 .range([height,0]);
 
       element.select('.backgroundRect')
@@ -2853,7 +2856,10 @@ class AttributeTable {
         .attr('stroke', 'white');
 
       this.addSortingIcons(element, headerData);
-      const familyIDArray = self.tableManager.familyIDArray
+      let familyIDArray = self.tableManager.familyIDArray
+      if(self.SHOWING_RANKED){
+        familyIDArray = []
+      }
 
     //  const lineLength = 0.5*colWidth/(familyIDArray.length+1)
       const lineLength = colWidth/4
@@ -2957,39 +2963,18 @@ class AttributeTable {
 
       //   //Add X-Axis and Y-Axis
       element.selectAll('.axis').remove();
-      // element.append('g')
-      //     .attr('class', 'axis axis--x')
-      //     .classed('hist_xscale', true)
-      //     .call(axisBottom(xLineScale).tickValues([-14,0,14]).tickSize(5))
-      //     .attr('transform', 'translate(0,' + height + ')');
-      //
+      element.selectAll('.color_ramp').remove()
+      element.selectAll('.linear_gradient').remove()
+      element.append('rect')
+             .attr('x',-5)
+             .attr('y',0)
+             .attr('width',5)
+             .attr('height',height)
+             .attr('class','color_ramp')
+
       element.append('g')
           .attr('class','axis axis--y')
           .call(axisLeft(yLineScale).tickArguments([4,'d']).tickSize(5))
-      //
-      //const data_list = headerData.data.filter(d=>d.length ==1 && d[0]!== undefined);
-      //
-      //
-      // element.selectAll('.line_graph').remove()
-      // data_list.forEach((dataArray)=>{
-      //     dataArray = dataArray[0]
-      //     let cleaned_dataArray = dataArray.map(d=>isNaN(d)? 0 : d);
-      //
-      //     element.selectAll('.place_holder')
-      //            .data(dataArray.slice(0,28))
-      //            .enter()
-      //            .append('line')
-      //            .attr('x1',(d,i)=>xLineScale(i-14))
-      //            .attr('y1',(d,i)=>yLineScale(cleaned_dataArray[i]))
-      //            .attr('x2',(d,i)=>xLineScale(i-13))
-      //            .attr('y2',(d,i)=>yLineScale(cleaned_dataArray[i+1]))
-      //            .classed('line_graph',true)
-      //            .attr('stroke',(d,i)=>{
-      //             if (isNaN(dataArray[i]) || isNaN(dataArray[i+1]))
-      //                          { return 'none';}
-      //             else
-      //               {return '#767a7a';}});
-      // })
 
 
       element.select('.death_marker').remove();
@@ -3007,8 +2992,68 @@ class AttributeTable {
                              .attr('y1',height)
                              .attr('y2',height)
 
+      element.select('.clip_line').remove();
+
+     if(headerData.name!=='AirTempday'){
+       let clip_line = element.append('line')
+                              .attr('class','clip_line')
+                              .attr('x1',0)
+                              .attr('x2',colWidth)
+                              .attr('y1',yLineScale(headerData.level_set))
+                              .attr('y2',yLineScale(headerData.level_set))
+     }
 
 
+
+     const colorGradient = element.append('linearGradient')
+                                .attr('class','linear_gradient')
+                                .attr('id','linear_gradient_' + headerData.name)
+                                .attr('x1',0)
+                                .attr('x2',0)
+                                .attr('y1',1)
+                                .attr('y2',0)
+                                .attr('color-interpolation','CIE-Lab')
+
+      if(self.temporal_data_range[attributeName]){
+        const data_levels = self.temporal_data_range[attributeName];
+        data_levels.forEach((data_level,i)=>{
+          colorGradient.append('stop')
+                       .attr('offset',(1-yLineScale(data_level)/height)*100+'%')
+                       .attr('stop-color',self.EPA_color[i])
+        })
+      }
+      else if(attributeName === 'AirTempday'){
+        const interval_range = self.tableManager.getAQExtreme(attributeName)
+        const begin_percent = 100-yLineScale(interval_range[0])/height*100
+        const mid_percent = 100-yLineScale(0)/height*100
+        const end_percent = 100 - yLineScale(interval_range[1])/height*100
+        for(let i = 1;i<5;i++){
+          colorGradient.append('stop')
+                       .attr('offset',(begin_percent+0.25*i*(mid_percent-begin_percent))+'%')
+                       .attr('stop-color',interpolateRdBu(0.5+0.125*(4-i)))
+        }
+        colorGradient.append('stop')
+                     .attr('offset',mid_percent+'%')
+                     .attr('stop-color',interpolateRdBu(0.5))
+       for(let i = 1;i<5;i++){
+         colorGradient.append('stop')
+                      .attr('offset',(mid_percent+0.25*i*(end_percent-mid_percent))+'%')
+                      .attr('stop-color',interpolateRdBu(0.5-0.125*i))
+       }
+      }
+      else{
+        const interval_range = headerData.range;
+        const begin_percent = 100-yLineScale(interval_range[0])/height*100
+        const end_percent = 100-yLineScale(interval_range[1])/height*100
+
+        for (let i =0; i < 6; i++){
+          colorGradient.append('stop')
+                       .attr('offset',(begin_percent+0.2*i*(end_percent-begin_percent))+'%')
+                       .attr('stop-color',interpolateReds(0.2*i))
+        }
+
+       }
+      element.select('.color_ramp').attr('fill','url(#linear_gradient_'+attributeName+')')
   }
 
 
@@ -3751,7 +3796,8 @@ class AttributeTable {
       else{
         const xLineScale = scaleLinear().domain([0,28]).range([0,colWidth]);
         let yLineScale = scaleLinear().domain([self.tableManager.getAQRange(cellData.name)[0],cellData.level_set]).range([0,rowHeight]).clamp(true);
-        let colorScale = scaleLinear().domain(self.tableManager.getAQRange(cellData.name)).range([0,1]);
+
+        let colorScale = scaleLinear().domain(cellData.range).range([0,1]);
         let dataArray = cellData.data[0];
         let cleaned_dataArray = dataArray.map(d=>isNaN(d)? 0 : parseInt(d));
         let before_average = mean(cleaned_dataArray.slice(14-self.average_limit,14))  ;
@@ -3842,11 +3888,11 @@ class AttributeTable {
                           return interpolateRdBu(0.5)
                         }
                         else if(dataArray[i]>0){
-                          const interpolate_val = 0.5+dataArray[i]/self.tableManager.getAQRange(cellData.name)[1]*0.5
+                          const interpolate_val = 0.5+dataArray[i]/cellData.range[1]*0.5
                           return interpolateRdBu(1-interpolate_val)
                         }
                         else{
-                          const interpolate_val = 0.5-dataArray[i]/self.tableManager.getAQRange(cellData.name)[0]*0.5
+                          const interpolate_val = 0.5-dataArray[i]/cellData.range[0]*0.5
                           return interpolateRdBu(1-interpolate_val)
 
                         }

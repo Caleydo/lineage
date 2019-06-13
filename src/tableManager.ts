@@ -181,6 +181,7 @@ export default class TableManager {
 
   public temporal_data_interval = {}
   public temporal_data_means = {}
+  public temporal_data_extreme = {}
 
   public tableHeight;
 
@@ -271,7 +272,13 @@ export default class TableManager {
 
 
       dataArray = dataArray.filter(d=>!isNaN(d)).sort(ascending)
-      self.temporal_data_interval[aqName] = [quantile(dataArray, 0.025), quantile(dataArray,0.975)]
+      if (aqName === 'AirTempday'){
+        self.temporal_data_interval[aqName] = [min(dataArray),max(dataArray)]
+      }
+      else{
+        self.temporal_data_interval[aqName] = [0, quantile(dataArray,0.9)]
+      }
+      self.temporal_data_extreme[aqName] = [min(dataArray),max(dataArray)]
       self.temporal_data_means[aqName] = [mean(beforeArray),mean(afterArray)]
     })
 
@@ -925,6 +932,10 @@ export default class TableManager {
 
   public getAQRange(columnName){
     return this.temporal_data_interval[columnName]
+  }
+
+  public getAQExtreme(columnName){
+    return this.temporal_data_extreme[columnName]
   }
 
   public getAirQualityColumnsNames(AQTable){

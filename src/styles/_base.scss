@@ -302,6 +302,11 @@ ul.nav.navbar-nav{
 .base_line{
   stroke: #767a7a
 }
+.clip_line{
+  stroke: #767a7a;
+  stroke-dasharray: 3,3;
+  opacity: 0.6;
+}
 .family_seperator{
   stroke: #767a7a;
   opacity: 0.7

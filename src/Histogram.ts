@@ -1,24 +1,30 @@
-import {select, selectAll, event} from 'd3-selection';
-import {scaleLinear, scaleBand} from 'd3-scale';
-import {max, min, ticks, range, extent} from 'd3-array';
-import {axisTop, axisLeft, axisRight, axisBottom} from 'd3-axis';
-import {set} from 'd3-collection';
-import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL} from 'phovea_core/src/datatype';
-import {ICategoricalVector, INumericalVector} from 'phovea_core/src/vector/IVector';
-import {IAnyVector} from 'phovea_core/src/vector';
+import { select, selectAll, event } from 'd3-selection';
+import { scaleLinear, scaleBand } from 'd3-scale';
+import { max, min, ticks, range, extent } from 'd3-array';
+import { axisTop, axisLeft, axisRight, axisBottom } from 'd3-axis';
+import { set } from 'd3-collection';
+import {
+  VALUE_TYPE_CATEGORICAL,
+  VALUE_TYPE_INT,
+  VALUE_TYPE_REAL
+} from 'phovea_core/src/datatype';
+import {
+  ICategoricalVector,
+  INumericalVector
+} from 'phovea_core/src/vector/IVector';
+import { IAnyVector } from 'phovea_core/src/vector';
 import * as events from 'phovea_core/src/event';
-import {transition} from 'd3-transition';
-import {easeLinear} from 'd3-ease';
-import {format} from 'd3-format';
-import {brushX, brushSelection} from 'd3-brush';
+import { transition } from 'd3-transition';
+import { easeLinear } from 'd3-ease';
+import { format } from 'd3-format';
+import { brushX, brushSelection } from 'd3-brush';
 
-import {IHistogram, rangeHist} from 'phovea_core/src/math';
-import {line} from 'd3-shape';
+import { IHistogram, rangeHist } from 'phovea_core/src/math';
+import { line } from 'd3-shape';
 
-import {Config} from './config';
-import {isNull} from 'util';
-import {isNullOrUndefined} from 'util';
-
+import { Config } from './config';
+import { isNull } from 'util';
+import { isNullOrUndefined } from 'util';
 
 export default class Histogram {
   //DOM elements
@@ -29,7 +35,7 @@ export default class Histogram {
   private $histogramCols;
   //settings
 
-  private margin = {top: 40, right: 30, bottom: 5, left: 65};
+  private margin = { top: 40, right: 30, bottom: 5, left: 65 };
   private width;
   private height;
 
@@ -45,7 +51,6 @@ export default class Histogram {
   // categories specified in the data desc
   private categories = [];
 
-
   constructor(parent: Element) {
     this.node = parent;
   }
@@ -54,14 +59,18 @@ export default class Histogram {
    * initalize the histogram and return a promise
    * that is resolved as soon the view is completely initialized
    */
-  async init(name, dataVec, type,width,height) {
+  async init(name, dataVec, type, width, height) {
     this.attrName = name;
     this.dataVec = dataVec;
     this.type = type;
     this.categories = dataVec.desc.value.categories;
     this.data = await this.dataVec.data();
-    this.xScale = scaleLinear().range([0, this.width]).domain([0,1]);
-    this.yScale = scaleLinear().range([0, this.height]).domain([0,1]);
+    this.xScale = scaleLinear()
+      .range([0, this.width])
+      .domain([0, 1]);
+    this.yScale = scaleLinear()
+      .range([0, this.height])
+      .domain([0, 1]);
     this.update(dataVec);
     this.width = width;
     this.height = height;
@@ -71,13 +80,12 @@ export default class Histogram {
     return Promise.resolve(this);
   }
 
-
   private async update(dataVec) {
     if (this.type === VALUE_TYPE_CATEGORICAL) {
       await this.renderCategoricalHistogram(dataVec);
     } else if (this.type === VALUE_TYPE_INT || this.type === VALUE_TYPE_REAL) {
       await this.renderNumHistogram(dataVec);
-    };
+    }
     // else if (this.type === 'string') {}
   }
 
@@ -93,22 +101,29 @@ export default class Histogram {
    * Adds ability to hover and click to select histogram bars.
    */
   private addCategorySelection() {
-
     const attrName = this.attrName;
 
-    this.node.selectAll('.catBar').on('click', function (d:any) {
+    this.node.selectAll('.catBar').on('click', function(d: any) {
       if (select(this).classed('picked')) {
         select(this).classed('picked', false);
-        events.fire('poi_selected',{'name':attrName, 'callback':(attr:String) => {return false;}}); //if a bar is unclicked affected State is false for all
+        events.fire('poi_selected', {
+          name: attrName,
+          callback: (attr: String) => {
+            return false;
+          }
+        }); //if a bar is unclicked affected State is false for all
       } else {
         selectAll('.picked').classed('picked', false);
         select(this).classed('picked', true);
       }
 
-      events.fire('poi_selected',{'name':attrName, 'callback':(attr:String) => {return attr.toLowerCase() === d.key.toLowerCase();}});
-
+      events.fire('poi_selected', {
+        name: attrName,
+        callback: (attr: String) => {
+          return attr.toLowerCase() === d.key.toLowerCase();
+        }
+      });
     });
-
   }
 
   /**
@@ -123,29 +138,34 @@ export default class Histogram {
       this.addCategorySelection();
     }
 
-    this.node.selectAll('.catBar').attr('fill','#5f6262');
+    this.node.selectAll('.catBar').attr('fill', '#5f6262');
     //select right bar and set classed to picked.
-    this.node.selectAll('.catBar').filter((bar)=> { return bar.key.toLowerCase() === category.toLowerCase(); }).classed('picked',true);
-    }
-
+    this.node
+      .selectAll('.catBar')
+      .filter((bar) => {
+        return bar.key.toLowerCase() === category.toLowerCase();
+      })
+      .classed('picked', true);
+  }
 
   /**
    * Set categorical bar as primary or secondary.
    */
   public setPrimarySecondary(attributeObj) {
-
     //Only need to set colors for categorical type
     if (this.type === VALUE_TYPE_INT || this.type === VALUE_TYPE_REAL) {
-      this.node.selectAll('.numBar').attr('fill',attributeObj.color);
-
+      this.node.selectAll('.numBar').attr('fill', attributeObj.color);
     }
 
     if (this.type === VALUE_TYPE_CATEGORICAL) {
       //Color Bars appropriately.
       attributeObj.categories.forEach((category, i) => {
-        this.node.selectAll('.catBar').filter((bar) => {
-          return bar.key === category;
-        }).attr('fill', attributeObj.color[i]);
+        this.node
+          .selectAll('.catBar')
+          .filter((bar) => {
+            return bar.key === category;
+          })
+          .attr('fill', attributeObj.color[i]);
       });
     }
   }
@@ -154,10 +174,9 @@ export default class Histogram {
    * Clear coloring for categorical bar as primary or secondary.
    */
   public clearPrimarySecondary() {
-
     //Only need to set colors for categorical type
     if (this.type === VALUE_TYPE_INT || this.type === VALUE_TYPE_REAL) {
-      this.node.selectAll('.numBar').attr('fill','#5f6262');
+      this.node.selectAll('.numBar').attr('fill', '#5f6262');
     }
 
     if (this.type === VALUE_TYPE_CATEGORICAL) {
@@ -166,15 +185,11 @@ export default class Histogram {
     }
   }
 
-
-
-
-
   /**
    * Remove ability to select categories.
    */
   private removeCategorySelection() {
-    this.node.selectAll('.catBar').classed('picked',false);
+    this.node.selectAll('.catBar').classed('picked', false);
     this.node.selectAll('.catBar').on('click', null);
   }
 
@@ -182,33 +197,31 @@ export default class Histogram {
    * Adds a brush to this histogram.
    */
   private addBrush() {
-
     const attrName = this.attrName;
 
     const element = this.node;
     const xScale = this.xScale;
 
-    const topAxis = element.select('g').append('g')
+    const topAxis = element
+      .select('g')
+      .append('g')
       .attr('class', 'axis brushAxis')
       // .attr('transform', 'translate(0,-20)')
       .classed('hist_xscale', true)
-      .attr('id','brushScale');
-      // .attr('transform', 'translate(0,' + this.height + ')');
+      .attr('id', 'brushScale');
+    // .attr('transform', 'translate(0,' + this.height + ')');
 
-      // element.select('#brushScale')
-      // .call(axisBottom(xScale))
-      // .ticks(0);
+    // element.select('#brushScale')
+    // .call(axisBottom(xScale))
+    // .ticks(0);
 
-      // .call(axisTop(xScale)
-      //   .ticks(0));
+    // .call(axisTop(xScale)
+    //   .ticks(0));
 
-
-
-
-
-    const brushGroup = element.select('.barContainer').append('g')
+    const brushGroup = element
+      .select('.barContainer')
+      .append('g')
       .attr('class', 'brush');
-
 
     const brush = brushX()
       .extent([[0, 0], [this.width, this.height]])
@@ -216,9 +229,7 @@ export default class Histogram {
       .on('brush', brushed)
       .on('end', fireEvent);
 
-    brushGroup
-      .call(brush)
-      .call(brush.move, xScale.range());
+    brushGroup.call(brush).call(brush.move, xScale.range());
 
     this.brush = brush; //save as class variable since we will need to modify it later when user clicks on POI
 
@@ -230,58 +241,74 @@ export default class Histogram {
       const domain = xScale.domain();
       // let allTicks = Array.from(new Set([lowerBound,upperBound].concat(domain)));
 
-      let allTicks=[];
+      let allTicks = [];
       if (lowerBound !== domain[0] || upperBound !== domain[1]) {
-        allTicks = [lowerBound,upperBound];
+        allTicks = [lowerBound, upperBound];
       }
 
       //Create a tick mark at the edges of the brush
-      topAxis.call(axisTop(xScale)
-        .tickSize(0)
-        .tickValues(allTicks)
-        .tickFormat(format('.0f')));
+      topAxis.call(
+        axisTop(xScale)
+          .tickSize(0)
+          .tickValues(allTicks)
+          .tickFormat(format('.0f'))
+      );
     }
 
     function fireEvent() {
       const extent = brushSelection(brushGroup.node());
 
-      if (isNull(extent)) { //user cleared brush entirely
-        topAxis.call(axisTop(xScale)
-          .ticks(0));
-        if (!isNull(event.sourceEvent)) { //user cleared brush, nobody is 'affected'
-          events.fire('poiSelected',{'name':attrName, 'callback':(attr:Number) => {return false;} });
-        }
-      }else {
+      if (isNull(extent)) {
+        //user cleared brush entirely
+        topAxis.call(axisTop(xScale).ticks(0));
         if (!isNull(event.sourceEvent)) {
-          events.fire('poiSelected',{'name':attrName, 'callback':(attr:Number) => {return attr >= xScale.invert(extent[0]) && attr <= xScale.invert(extent[1]);}});
+          //user cleared brush, nobody is 'affected'
+          events.fire('poiSelected', {
+            name: attrName,
+            callback: (attr: Number) => {
+              return false;
+            }
+          });
         }
-
+      } else {
+        if (!isNull(event.sourceEvent)) {
+          events.fire('poiSelected', {
+            name: attrName,
+            callback: (attr: Number) => {
+              return (
+                attr >= xScale.invert(extent[0]) &&
+                attr <= xScale.invert(extent[1])
+              );
+            }
+          });
+        }
       }
-
     }
-
   }
 
   /**
    * Sets the brush extent for this histogram.
    */
   public setBrush(threshold) {
-
-    if (!this.brush) { //no brush exists. define default
+    if (!this.brush) {
+      //no brush exists. define default
       this.addBrush();
-      this.node.select('.brush')
-        .call(this.brush.move, [this.xScale(threshold), this.xScale.range()[1]]);
+      this.node
+        .select('.brush')
+        .call(this.brush.move, [
+          this.xScale(threshold),
+          this.xScale.range()[1]
+        ]);
     }
-
   }
 
   /**
    * Removes the brush from this histogram
    */
   private removeBrush() {
-      this.node.select('.brush').remove();
-      this.node.select('.brushAxis').remove();
-      this.brush = undefined;
+    this.node.select('.brush').remove();
+    this.node.select('.brushAxis').remove();
+    this.brush = undefined;
   }
 
   /**
@@ -289,7 +316,6 @@ export default class Histogram {
    *
    */
   private async renderCategoricalHistogram(dataVec) {
-
     const currentHist = this.node;
 
     const categoricalDataVec = <ICategoricalVector>dataVec;
@@ -299,40 +325,51 @@ export default class Histogram {
     const histData: any = await categoricalDataVec.hist();
     // console.log(histData)
     const catData = [];
-    histData.forEach((d, i) => {catData.push({key: histData.categories[i], value: d});});
+    histData.forEach((d, i) => {
+      catData.push({ key: histData.categories[i], value: d });
+    });
 
-    const t = transition('t').duration(500).ease(easeLinear);
-
+    const t = transition('t')
+      .duration(500)
+      .ease(easeLinear);
 
     //scales
     const xScale = scaleBand();
     const yScale = scaleLinear();
 
     //scales
-    xScale.rangeRound([0, this.width]).padding(0.2)
-      .domain(catData.map(function (d) {
-        return d.key;
-      }));
+    xScale
+      .rangeRound([0, this.width])
+      .padding(0.2)
+      .domain(
+        catData.map(function(d) {
+          return d.key;
+        })
+      );
 
-    yScale.rangeRound([this.height, 0])
-      .domain([0, max(catData, function (d) {
+    yScale.rangeRound([this.height, 0]).domain([
+      0,
+      max(catData, function(d) {
         return d.value;
-      })]);
+      })
+    ]);
 
-
-    const bandwidth = min([xScale.bandwidth(),40]);
+    const bandwidth = min([xScale.bandwidth(), 40]);
     if (currentHist.selectAll('.svg-g').size() === 0) {
-      currentHist.append('g')
-     .attr('class', 'svg-g');
+      currentHist.append('g').attr('class', 'svg-g');
 
       const element = currentHist.selectAll('.svg-g');
 
-      element.append('g')
+      element
+        .append('g')
         .attr('class', 'axis axis--x')
-        .call(axisBottom(xScale).tickFormat((d)=> {return d[0];}));
+        .call(
+          axisBottom(xScale).tickFormat((d) => {
+            return d[0];
+          })
+        );
 
-      element.append('g')
-        .classed('barContainer',true);
+      element.append('g').classed('barContainer', true);
     }
 
     let bars = currentHist
@@ -341,10 +378,11 @@ export default class Histogram {
       .data(catData);
 
     const barsEnter = bars
-      .enter().append('rect')
+      .enter()
+      .append('rect')
       .classed('catBar', true)
       .classed('bar', true)
-      .attr('fill','#5f6262');
+      .attr('fill', '#5f6262');
 
     bars = barsEnter.merge(bars);
 
@@ -352,7 +390,7 @@ export default class Histogram {
 
     bars
       .attr('x', (d) => {
-        return xScale(d.key) + (xScale.bandwidth() - bandwidth)/2; //potential offset created from making bars skinnier
+        return xScale(d.key) + (xScale.bandwidth() - bandwidth) / 2; //potential offset created from making bars skinnier
       })
       .attr('y', (d) => {
         return yScale(d.value);
@@ -362,25 +400,23 @@ export default class Histogram {
         return this.height - yScale(d.value);
       })
       .attr('attribute', this.attrName);
-
-    }
-
-
+  }
 
   /**
    * This function renders the histogram for numerical attribute in the attribute panel
    *
    */
   private async renderNumHistogram(dataVec) {
-
     const histData = await dataVec.hist(10);
     const range = [0, this.width];
 
     const data = [],
-      cols = scaleLinear<string,string>().domain([, 0]).range(['#111111', '#999999']),
+      cols = scaleLinear<string, string>()
+        .domain([, 0])
+        .range(['#111111', '#999999']),
       total = histData.validCount,
       binWidth = (range[1] - range[0]) / histData.bins;
-      let acc = 0;
+    let acc = 0;
 
     histData.forEach((b, i) => {
       data[i] = {
@@ -388,20 +424,34 @@ export default class Histogram {
         acc,
         ratio: b / total,
         valueRange: histData.valueRange,
-        name: 'Bin ' + (i + 1) + ' (center: ' + Math.round((i + 0.5) * binWidth) + ')',
+        name:
+          'Bin ' +
+          (i + 1) +
+          ' (center: ' +
+          Math.round((i + 0.5) * binWidth) +
+          ')',
         binIndex: i,
         // color: cols((i + 0.5) * binWidth);
         color: cols(b)
       };
       acc += b;
-
     });
 
-    const bin2value = scaleLinear().range(histData.valueRange).domain([0, histData.bins]);
-    const xScale = scaleLinear().range([0, this.width]).domain(histData.valueRange).nice();
-    const yScale = scaleLinear().range([0, this.height * 0.8]).domain([0, max(data, (d) => {
-      return d.v;
-    })]);
+    const bin2value = scaleLinear()
+      .range(histData.valueRange)
+      .domain([0, histData.bins]);
+    const xScale = scaleLinear()
+      .range([0, this.width])
+      .domain(histData.valueRange)
+      .nice();
+    const yScale = scaleLinear()
+      .range([0, this.height * 0.8])
+      .domain([
+        0,
+        max(data, (d) => {
+          return d.v;
+        })
+      ]);
 
     this.xScale = xScale;
     this.yScale = yScale;
@@ -409,43 +459,51 @@ export default class Histogram {
     const currentHist = this.node;
 
     if (currentHist.select('.elementGroup').size() === 0) {
-
-      const element = currentHist.append('g')
-        .classed('elementGroup',true);
+      const element = currentHist.append('g').classed('elementGroup', true);
 
       element.append('text').classed('maxValue', true);
 
       //Axis Group
-      element.append('g')
+      element
+        .append('g')
         .attr('class', 'axis axis--x')
         .classed('hist_xscale', true)
-        .attr('id','histAxis')
+        .attr('id', 'histAxis')
         .attr('transform', 'translate(0,' + this.height + ')');
 
-     element.append('g')
-        .attr('class','barContainer');
-
+      element.append('g').attr('class', 'barContainer');
     }
 
-    this.node.select('#histAxis')
-    .call(axisBottom(xScale)
-    .tickSize(5)
-    .tickValues(xScale.domain())
-    .tickFormat(format('.0f')));
+    this.node.select('#histAxis').call(
+      axisBottom(xScale)
+        .tickSize(5)
+        .tickValues(xScale.domain())
+        .tickFormat(format('.0f'))
+    );
 
+    //Position tick labels to be 'inside' the axis bounds. avoid overlap
+    this.node
+      .select('.hist_xscale')
+      .selectAll('.tick')
+      .each(function(cell) {
+        const xtranslate = +select(this)
+          .attr('transform')
+          .split('translate(')[1]
+          .split(',')[0];
+        if (xtranslate === 0) {
+          //first label in the axis
+          select(this)
+            .select('text')
+            .style('text-anchor', 'start');
+        } else {
+          //last label in the axis
+          select(this)
+            .select('text')
+            .style('text-anchor', 'end');
+        }
+      });
 
-
-     //Position tick labels to be 'inside' the axis bounds. avoid overlap
-    this.node.select('.hist_xscale').selectAll('.tick').each(function (cell) {
-      const xtranslate = +select(this).attr('transform').split('translate(')[1].split(',')[0];
-      if (xtranslate === 0) {//first label in the axis
-        select(this).select('text').style('text-anchor', 'start');
-      } else { //last label in the axis
-        select(this).select('text').style('text-anchor', 'end');
-      }
-    });
-
-    const totalLabel = (data[data.length - 1]).acc + (data[data.length - 1]).v;
+    const totalLabel = data[data.length - 1].acc + data[data.length - 1].v;
     // this.node.select('.maxValue')
     //   .text('Total:' + total)
 
@@ -458,13 +516,12 @@ export default class Histogram {
       .selectAll('.numBar')
       .data(data);
 
-
     const barsEnter = bars
       .enter()
       .append('rect')
       .classed('numBar', true)
       .classed('bar', true)
-      .attr('fill','#5f6262');
+      .attr('fill', '#5f6262');
 
     bars = barsEnter.merge(bars);
 
@@ -476,7 +533,7 @@ export default class Histogram {
         return yScale(d.v);
       })
       .attr('y', (d) => {
-        return (this.height - yScale(d.v));
+        return this.height - yScale(d.v);
       })
       .attr('x', (d, i) => {
         return xScale(bin2value(i));
@@ -488,10 +545,7 @@ export default class Histogram {
   // private attachListener() {
 
   // }
-
-
 }
-
 
 /**
  * Factory method to create a new instance of the histogram

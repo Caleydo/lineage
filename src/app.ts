@@ -124,7 +124,7 @@ export class App {
     const attributePanel = panel.create(this.$node.select('#data_selection').node());
 
     const mapManager = MapManager.create();
-    mapManager.init(tableManager)
+    mapManager.init(tableManager);
     attributePanel.build();
     attributePanel.init(tableManager,dataset);
 

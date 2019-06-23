@@ -3,7 +3,7 @@
  * Copyright (c) The Caleydo Team. All rights reserved.
  * Licensed under the new BSD license, available at http://caleydo.org/license
  **************************************************************************** */
-
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const {
   libraryAliases,
   libraryExternals,

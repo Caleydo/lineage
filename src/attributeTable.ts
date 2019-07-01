@@ -792,12 +792,13 @@ class AttributeTable {
     });
     personChangeAbsDict.forEach((person) => {
       const id = person.ID;
-      if (kindredIDDict[id]) {
+      if (kindredIDDict[id] && rank<=100) {
         rank += 1;
         yDict[id + '_' + kindredIDDict[id]] = [rank];
         idRange.push(id);
       }
     });
+
 
     // while(&&idRange.length<101){
     //

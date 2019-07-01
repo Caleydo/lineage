@@ -1,4 +1,4 @@
-/*! lineage - v1.0.0-20190527-190114 - 2019
+/*! lineage - v1.0.0-20190601-171541 - 2019
 * https://phovea.caleydo.org
 * Copyright (c) 2019 Carolina Nobre; Licensed BSD-3-Clause*/
 

@@ -1,4 +1,4 @@
-/*! lineage - v1.0.0-20190527-190114 - 2019
+/*! lineage - v1.0.0-20190601-171541 - 2019
 * https://phovea.caleydo.org
 * Copyright (c) 2019 Carolina Nobre; Licensed BSD-3-Clause*/
 
@@ -1595,7 +1595,7 @@ function cell() {
 
 
 
-var version = "1.0.0-20190527-190114";
+var version = "1.0.0-20190601-171541";
 /**
  * whether the standard api calls should be prevented
  * @type {boolean}
@@ -5393,7 +5393,7 @@ function __importDefault(mod) {
 
 
 
-var version = "1.0.0-20190527-190114";
+var version = "1.0.0-20190601-171541";
 /**
  * whether the standard api calls should be prevented
  * @type {boolean}
@@ -34959,7 +34959,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 
 
-var version = "1.0.0-20190527-190114";
+var version = "1.0.0-20190601-171541";
 /**
  * whether the standard api calls should be prevented
  * @type {boolean}
@@ -39251,7 +39251,7 @@ var AttributeTable = /** @class */ (function () {
                 menuTop = listTop.append('ul').attr('class', 'dropdown-menu');
                 menuItems = menuTop
                     .selectAll('.airqualityAttr')
-                    .data(self.tableManager.temporal_data);
+                    .data(self.tableManager.temporalData);
                 menuItems = menuItems
                     .enter()
                     .append('li')
@@ -39590,7 +39590,7 @@ var AttributeTable = /** @class */ (function () {
                         return [4 /*yield*/, this.tableManager.tableTable];
                     case 2:
                         attributeView = _c.sent();
-                        return [4 /*yield*/, this.tableManager.AQTable];
+                        return [4 /*yield*/, this.tableManager.aqTable];
                     case 3:
                         aqView = _c.sent();
                         self = this;
@@ -39610,7 +39610,7 @@ var AttributeTable = /** @class */ (function () {
                                 if (vector.desc.name === colName) {
                                     orderedCols.push(vector);
                                 }
-                                else if (this.tableManager.temporal_data.includes(colName) &&
+                                else if (this.tableManager.temporalData.includes(colName) &&
                                     vector.desc.name.includes(colName)) {
                                     aqCols.push(vector);
                                     aqColNames.add(colName);
@@ -41769,8 +41769,8 @@ var AttributeTable = /** @class */ (function () {
             .attr('class', 'header_summuary_line')
             .attr('x1', xLineScale(0))
             .attr('x2', xLineScale(0) + lineLength)
-            .attr('y1', yLineScale(self.tableManager.temporal_data_means[headerData.name][0]))
-            .attr('y2', yLineScale(self.tableManager.temporal_data_means[headerData.name][0]))
+            .attr('y1', yLineScale(self.tableManager.temporalDataMeans[headerData.name][0]))
+            .attr('y2', yLineScale(self.tableManager.temporalDataMeans[headerData.name][0]))
             .attr('stroke', __WEBPACK_IMPORTED_MODULE_13_d3_scale_chromatic__["a" /* schemeCategory10 */][0])
             .attr('transform', 'translate(' + -2 * lineLength + ',0)');
         element
@@ -41785,7 +41785,7 @@ var AttributeTable = /** @class */ (function () {
             .attr('pointer-events', 'bounding-box')
             .on('mouseover', function (d) {
             return _this.addTooltip('header', d, 'Before Average: ' +
-                self.tableManager.temporal_data_means[headerData.name][0]
+                self.tableManager.temporalDataMeans[headerData.name][0]
                     .toFixed(2)
                     .toString());
         })
@@ -41800,8 +41800,8 @@ var AttributeTable = /** @class */ (function () {
             .attr('class', 'header_summuary_line')
             .attr('x1', xLineScale(0))
             .attr('x2', xLineScale(0) + lineLength)
-            .attr('y1', yLineScale(self.tableManager.temporal_data_means[headerData.name][1]))
-            .attr('y2', yLineScale(self.tableManager.temporal_data_means[headerData.name][1]))
+            .attr('y1', yLineScale(self.tableManager.temporalDataMeans[headerData.name][1]))
+            .attr('y2', yLineScale(self.tableManager.temporalDataMeans[headerData.name][1]))
             .attr('stroke', __WEBPACK_IMPORTED_MODULE_13_d3_scale_chromatic__["a" /* schemeCategory10 */][0])
             .attr('transform', 'translate(' + lineLength + ',0)');
         element
@@ -41816,7 +41816,7 @@ var AttributeTable = /** @class */ (function () {
             .attr('transform', 'translate(' + lineLength + ',0)')
             .on('mouseover', function (d) {
             return _this.addTooltip('header', d, 'After Average: ' +
-                self.tableManager.temporal_data_means[headerData.name][1]
+                self.tableManager.temporalDataMeans[headerData.name][1]
                     .toFixed(2)
                     .toString());
         })
@@ -44735,7 +44735,7 @@ var MapView = /** @class */ (function () {
     MapView.prototype.init = function (mapManager) {
         this.mapManager = mapManager;
         //document.getElementById('col4').style.display = 'none';
-        this.mapCenter = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_10_d3_geo__["a" /* geoCentroid */])(this.mapManager.topojson_features);
+        this.mapCenter = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_10_d3_geo__["a" /* geoCentroid */])(this.mapManager.topojsonFeatures);
         this.nodeCenter = [this.svgWidth / 2, (this.svgHeight) / 2];
         __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_2_d3_selection__["a" /* select */])('#map').append('div').attr('id', 'mapDiv2')
             .append('svg').attr('id', 'map-svg').attr('width', this.svgWidth).attr('height', this.svgHeight);
@@ -45039,7 +45039,7 @@ var MapView = /** @class */ (function () {
                                             self.update();
                                         });
                                         aqCols = [];
-                                        return [4 /*yield*/, this_1.mapManager.tableManager.AQTable.cols()];
+                                        return [4 /*yield*/, this_1.mapManager.tableManager.aqTable.cols()];
                                     case 1:
                                         allCols = _a.sent();
                                         for (_i = 0, allCols_1 = allCols; _i < allCols_1.length; _i++) {
@@ -45257,7 +45257,7 @@ var MapView = /** @class */ (function () {
             .center(this.mapCenter);
         var pathFuction = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_10_d3_geo__["c" /* geoPath */])().projection(self.projection);
         var countyTooltip = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_2_d3_selection__["a" /* select */])('#countytip');
-        var paths = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_2_d3_selection__["a" /* select */])('#mapLayer').selectAll('path').data(self.mapManager.topojson_features.features);
+        var paths = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_2_d3_selection__["a" /* select */])('#mapLayer').selectAll('path').data(self.mapManager.topojsonFeatures.features);
         paths.exit().remove();
         paths = paths.enter().append('path').merge(paths).classed('map-paths', true);
         // paths.transition()

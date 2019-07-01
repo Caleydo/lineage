@@ -454,7 +454,6 @@ class AttributeTable {
       .append('span')
       .attr('class', 'caret');
     const menuTop = listTop.append('ul').attr('class', 'dropdown-menu');
-    console.log(menuItems)
     menuItems = menuTop
       .selectAll('.airqualityAttr')
       .data(self.tableManager.temporalData);

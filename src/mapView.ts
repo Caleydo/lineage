@@ -59,7 +59,7 @@ class MapView {
       //document.getElementById('col4').style.display = 'none';
 
 
-      this.mapCenter=geoCentroid(this.mapManager.topojson_features);
+      this.mapCenter=geoCentroid(this.mapManager.topojsonFeatures);
       this.nodeCenter = [this.svgWidth/2,(this.svgHeight)/2];
 
 
@@ -401,7 +401,7 @@ class MapView {
              });
 
         const aqCols = [];
-        const allCols = await this.mapManager.tableManager.AQTable.cols();
+        const allCols = await this.mapManager.tableManager.aqTable.cols();
 
         for (const vector of allCols) {
           if (vector.desc.name.includes(attributeName)) {
@@ -666,7 +666,7 @@ class MapView {
       const pathFuction = geoPath().projection(self.projection);
       const countyTooltip = select('#countytip');
 
-      let paths = select('#mapLayer').selectAll('path').data(self.mapManager.topojson_features.features);
+      let paths = select('#mapLayer').selectAll('path').data(self.mapManager.topojsonFeatures.features);
       paths.exit().remove();
       paths = paths.enter().append('path').merge(paths).classed('map-paths',true);
       // paths.transition()

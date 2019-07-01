@@ -454,10 +454,10 @@ class AttributeTable {
       .append('span')
       .attr('class', 'caret');
     const menuTop = listTop.append('ul').attr('class', 'dropdown-menu');
-
+    console.log(menuItems)
     menuItems = menuTop
       .selectAll('.airqualityAttr')
-      .data(self.tableManager.temporal_data);
+      .data(self.tableManager.temporalData);
     menuItems = menuItems
       .enter()
       .append('li')
@@ -833,7 +833,7 @@ class AttributeTable {
     this.colOffsets = [0];
     const graphView = await this.tableManager.graphTable;
     const attributeView = await this.tableManager.tableTable;
-    const aqView = await this.tableManager.AQTable;
+    const aqView = await this.tableManager.aqTable;
 
     const self = this;
     const allCols = graphView
@@ -857,7 +857,7 @@ class AttributeTable {
         if (vector.desc.name === colName) {
           orderedCols.push(vector);
         } else if (
-          this.tableManager.temporal_data.includes(colName) &&
+          this.tableManager.temporalData.includes(colName) &&
           vector.desc.name.includes(colName)
         ) {
           aqCols.push(vector);
@@ -3382,11 +3382,11 @@ class AttributeTable {
       .attr('x2', xLineScale(0) + lineLength)
       .attr(
         'y1',
-        yLineScale(self.tableManager.temporal_data_means[headerData.name][0])
+        yLineScale(self.tableManager.temporalDataMeans[headerData.name][0])
       )
       .attr(
         'y2',
-        yLineScale(self.tableManager.temporal_data_means[headerData.name][0])
+        yLineScale(self.tableManager.temporalDataMeans[headerData.name][0])
       )
       .attr('stroke', schemeCategory10[0])
       .attr('transform', 'translate(' + -2 * lineLength + ',0)');
@@ -3405,7 +3405,7 @@ class AttributeTable {
           'header',
           d,
           'Before Average: ' +
-            self.tableManager.temporal_data_means[headerData.name][0]
+            self.tableManager.temporalDataMeans[headerData.name][0]
               .toFixed(2)
               .toString()
         )
@@ -3423,11 +3423,11 @@ class AttributeTable {
       .attr('x2', xLineScale(0) + lineLength)
       .attr(
         'y1',
-        yLineScale(self.tableManager.temporal_data_means[headerData.name][1])
+        yLineScale(self.tableManager.temporalDataMeans[headerData.name][1])
       )
       .attr(
         'y2',
-        yLineScale(self.tableManager.temporal_data_means[headerData.name][1])
+        yLineScale(self.tableManager.temporalDataMeans[headerData.name][1])
       )
       .attr('stroke', schemeCategory10[0])
       .attr('transform', 'translate(' + lineLength + ',0)');
@@ -3446,7 +3446,7 @@ class AttributeTable {
           'header',
           d,
           'After Average: ' +
-            self.tableManager.temporal_data_means[headerData.name][1]
+            self.tableManager.temporalDataMeans[headerData.name][1]
               .toFixed(2)
               .toString()
         )

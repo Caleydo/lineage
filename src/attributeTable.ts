@@ -42,12 +42,12 @@ import {
   TABLE_VIS_ROWS_CHANGED_EVENT,
   HIDE_FAMILY_TREE,
   SHOW_TOP_100_EVENT,
-  FAMILY_SELECTED_EVENT,
   SHOW_DETAIL_VIEW,
   HIGHLIGHT_BY_ID,
   CLEAR_TABLE_HIGHLIGHT,
   HIGHLIGHT_MAP_BY_ID,
-  CLEAR_MAP_HIGHLIGHT
+  CLEAR_MAP_HIGHLIGHT,
+  SINGLE_FAMILY_SELECTED_EVENT
 } from './tableManager';
 import { isUndefined } from 'util';
 
@@ -2382,6 +2382,7 @@ class AttributeTable {
       })
       .on('click', function(d: any) {
         if (d.name === 'KindredID') {
+          events.fire(SINGLE_FAMILY_SELECTED_EVENT,parseInt(d.data,10));
           self.tableManager.selectFamily([parseInt(d.data,10)]);
           self.highlightedID = d.id[0];
 
@@ -5051,7 +5052,7 @@ class AttributeTable {
       self.clearHighlight();
     });
 
-    events.on(FAMILY_SELECTED_EVENT, () => {
+    events.on(SINGLE_FAMILY_SELECTED_EVENT, () => {
       self.SHOWING_RANKED = false;
     });
   }

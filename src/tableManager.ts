@@ -96,6 +96,7 @@ export const POI_SELECTED = 'affected_attribute_event';
 export const FAMILY_INFO_UPDATED = 'family_stats_updated';
 export const COL_ORDER_CHANGED_EVENT = 'col_ordering_changed';
 export const FAMILY_SELECTED_EVENT = 'family_selected_event';
+export const SINGLE_FAMILY_SELECTED_EVENT = 'SINGLE_FAMILY_SELECTED_EVENT'
 export const UPDATE_TABLE_EVENT = 'update_table';
 export const SET_ALL_AVERAGE_LIMIT_EVENT = 'all_average_limit_changed';
 export const HIDE_FAMILY_TREE = 'hide_family_tree';
@@ -635,7 +636,6 @@ export default class TableManager {
     chosenFamilyIDs: number[] = [this.familyInfo[0].id]
   ) {
     const self = this;
-    //console.log(this.familyInfo)
     console.log('selectingFamily', chosenFamilyIDs);
 
     self.familyIDArray = chosenFamilyIDs;

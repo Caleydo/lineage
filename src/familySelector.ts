@@ -17,7 +17,8 @@ import IFamilyInfo from './tableManager';
 
 import {
   FAMILY_INFO_UPDATED,
-  TABLE_VIS_ROWS_CHANGED_EVENT
+  TABLE_VIS_ROWS_CHANGED_EVENT,
+  SINGLE_FAMILY_SELECTED_EVENT
 } from './tableManager';
 
 /**
@@ -61,6 +62,10 @@ class FamilySelector {
     events.on(FAMILY_INFO_UPDATED, (evt, tableManagerObject) => {
       this.updateTable();
     });
+    events.on(SINGLE_FAMILY_SELECTED_EVENT,(evt,familyIDNum)=>{
+      this.selectedFamilyIds = [familyIDNum];
+      this.updateTable();
+    })
 
     // return the promise directly as long there is no dynamical data to update
     return Promise.resolve(this);
@@ -223,7 +228,6 @@ class FamilySelector {
   }
 
   private selectRow(familyID: any, rowData: any, numCols, update = true) {
-    console.log(familyID);
 
     const thisIcon = select('#tableBody')
       .select('tbody')

@@ -104,6 +104,7 @@
     "sortablejs": "^1.5.0-rc1",
     "topojson": "^3.0.2",
     "underscore": "^1.8.3"
+
   },
   "name": "lineage",
   "description": "",

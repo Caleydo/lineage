@@ -2,10 +2,6 @@ $edge-color: #4f4f4d;
 $node-color: #6f7373;
 $affected-node-color: #285880;
 
-#headersDIV {
-  //position:fixed;
-}
-
 .node.affected .nodeIcon{
   fill: $affected-node-color;
   stroke: none;
@@ -22,13 +18,6 @@ $affected-node-color: #285880;
   padding-bottom: 0px;
   //width: 500px;
 }
-.fixed_headers {
-  font-size: 14px !important;
-  font-weight: 200;
-  margin-top: 15px;
-  margin-bottom: 20px;
-  color: #0e2231 !important;
-}
 
 #legend, #nodeActions{
   //fill: #e7e7e7;
@@ -39,9 +28,8 @@ $affected-node-color: #285880;
   //stroke-width: 2px;
 }
 
-td rect{
+rect.total{
   fill: #636363;
-
 }
 
 .barLabel{
@@ -66,9 +54,74 @@ td rect{
   font-size:10px;
 }
 
-.sortIcon {
+.sortIcon,.icon {
   fill:#b5b7b7;
+  text-anchor: middle;
+  cursor:default !important;
+
 }
+
+.checkboxIcon{
+  font-size: 13px;
+  font-family:FontAwesome;
+  fill:white;
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+
+
+
+
+.icon,{
+  font-size: 13px;
+  font-family:FontAwesome;
+}
+
+.star{
+  fill:coral !important;
+}
+
+.poi{
+  fill:#285880 !important;
+}
+
+.primaryAttribute{
+  fill:#1ada99 !important;
+}
+
+.label{
+  cursor:pointer;
+}
+
+.sortIcon.icon{
+  font-size: 17px;
+}
+
+.menuItem rect{
+  fill:#909090;
+}
+
+
+
+#treeMenu text{
+  fill:white;
+}
+
+#treeMenu .menuItemBackground:hover{
+  fill:rgb(235, 113, 65);
+}
+
+#treeMenu text{
+  pointer-events: none;
+}
+
+// .slopeLine.test{
+//   opacity: .1;
+// }
+
+
+
 
 .duplicateLine{
   opacity:0;
@@ -144,7 +197,7 @@ td rect{
 }
 
 
-text.header{
+text.headerTitle{
   font-weight:bold;
   //text-anchor: middle;
 }
@@ -174,7 +227,7 @@ text.header{
 
 
 .cell text{
-  fill: #484848;
+  // fill: #484848;
   cursor: pointer;
 }
 
@@ -199,7 +252,7 @@ tr.selected{
 
 
 ////tr:nth-child(even) {background-color: #f2f2f2}
-tr:hover {background-color: #f5f5f5}
+#tableBody tr:hover {background-color: #f5f5f5}
 
 th{
   height:40%;
@@ -216,62 +269,10 @@ th.aes:after {
   content: "\21E7";
 }
 
-
-.fixed_headers {
-  width: 300px;
-  table-layout: fixed;
-  border-collapse: collapse;
-}
-
-.fixed_headers th,
-.fixed_headers td {
-  padding: 5px;
-  text-align: left;
-}
-.fixed_headers td:nth-child(1),
-.fixed_headers th:nth-child(1) {
-  min-width: 60px;
-}
-.fixed_headers td:nth-child(2),
-.fixed_headers th:nth-child(2) {
-  min-width: 130px;
-}
-.fixed_headers td:nth-child(3),
-.fixed_headers th:nth-child(3) {
-  width: 110px;
-}
-
-.fixed_headers thead tr {
-  display: block;
-  position: relative;
-}
-.fixed_headers tbody {
-  display: block;
-  overflow: auto;
-  width: 100%;
-  height: 300px;
-}
-
-
-.fixed_headers thead tr {
-  display: block;
-  position: relative;
-}
-.fixed_headers tbody {
-  display: block;
-  overflow: auto;
-  width: 100%;
-  height: 300px;
-}
-
-
 label {
   margin-bottom: 10px;
 }
 
-.colSummary{
-  cursor: pointer;
-}
 .line {
     fill: none;
     stroke: red;
@@ -286,10 +287,8 @@ label {
   width: 2000px;
 }
 
-
-#familySelector{
-  height:380px;
-  border-bottom: solid lightgray;
+#data_selection{
+  border-right:#cdcdcd medium solid;
 }
 
 
@@ -302,6 +301,11 @@ label {
 	opacity: .2
 }
 
+.node.affected .nodeIcon.highlightedNode, .highlightedNode{
+  stroke:coral;
+  stroke-width:3px;
+  fill:coral;
+}
 #extremes_axis text{
 	display: none
 }
@@ -326,6 +330,11 @@ label {
   font-weight:bold;
 }
 
+.axis--y .tick text{
+  font-size: 8px;
+  font-weight: bold;
+}
+
 
 .hist_xscale .tick text{
   font-size:8px;
@@ -339,9 +348,9 @@ label {
 //    overflow-x:scroll;
 //}
 
-#familySelector{
-  //overflow-x: scroll;
-}
+// #familySelector{
+//   //overflow-x: scroll;
+// }
 
 
 .nodeIcon.clicked{
@@ -371,16 +380,16 @@ label {
 rect.selected{
 //     stroke:  #ff6400;
     stroke-width:0px;
-    opacity: .2;
-    fill:#ff6400
+    opacity: .4;
+    fill:#df7813
 }
 
-.node rect,
-.node circle,
-.node .hex{
-    //stroke:$node-color;
-//     stroke-width: 3px;
-}
+// .node rect,
+// .node circle,
+// .node .hex{
+//     //stroke:$node-color;
+// //     stroke-width: 3px;
+// }
 
 .couplesLine{
   stroke:#4f4f4d;
@@ -397,7 +406,7 @@ rect.selected{
 }
 
 .cell .label{
-  fill: white;
+  fill: '#6f7373';
   //font-weight:bold;
   font-size:12px;
 }
@@ -422,8 +431,13 @@ rect.selected{
  	fill: white  !important
 }
 
+.brushAxis text {
+  fill:#df7813;
+  font-weight:bolder;
+}
+
 .handle{
-  fill: #f61637;
+  fill: #df7813;
   fill-opacity: 0.8;
   stroke-width: 3;
   stroke-linecap: round;
@@ -496,6 +510,33 @@ rect.selected{
   stroke:none;
 }
 
+.addRemoveIcon{
+  font-family: FontAwesome;
+  font-size: 17px;
+  cursor: pointer;
+  padding:5px !important;
+}
+
+.dropdown-menu{
+    height: auto;
+    max-height: 1000px;
+    overflow-x: hidden;
+    overflow-y: scroll;
+}
+
+// .dataCols{
+//   pointer-events:none;
+// }
+
+// .cell rect, .cell ellipse, .cell text{
+//   pointer-events: none;
+// }
+
+.titleBackground{
+  fill:rgb(255, 255, 255);
+  cursor: move;
+}
+
 .personIcon {
   font-family: FontAwesome;
   /*content: "\f078";*/
@@ -506,6 +547,14 @@ rect.selected{
   vertical-align: middle;
   //float: right;
   font-size: 14px;
+}
+
+.slopeIcon{
+  font-family: FontAwesome;
+  font-size:15px;
+  fill:#e2e2e0;
+  text-anchor:start;
+  cursor:pointer;
 }
 
 
@@ -523,21 +572,21 @@ rect.selected{
 //.highlightBar,
 .nodeButtonText,
 .kidGrid,
-.cell{
+.quant_ellipse {
 	pointer-events: none;
 }
 
 
-.ageLabel{
+// .ageLabel{
 
-}
+// }
 
-.node:hover .male,
-.node:hover .female {
-     //opacity: 0.2;
-     //stroke:red;
-  //fill:none;
-  }
+// .node:hover .male,
+// .node:hover .female {
+//      //opacity: 0.2;
+//      //stroke:red;
+//   //fill:none;
+//   }
 
 .selectedDIV{
   background-color: rgba(177, 176, 174, 0.2);
@@ -568,10 +617,6 @@ rect.selected{
   }
 }*/
 
-#app{
-  display: inline-flex;
-}
-
 
 .node a{
 visibility:hidden;
@@ -589,7 +634,7 @@ visibility:hidden;
 .slopeLine{
   stroke-width:6;
   stroke: #e2e2e0;
-  opacity:.5;
+  opacity:.6;
   fill:none;
   //fill: #dfdfdf
 }
@@ -603,6 +648,7 @@ visibility:hidden;
 .clickedSlope{
   stroke: #df7813;
   stroke-width: 8px;
+  opacity:.4;
 }
 
 #revertTreeOrder{
@@ -614,5 +660,30 @@ visibility:hidden;
   pointer-events: none;
 }
 
+.checkbox{
+  fill:white;
+  stroke:#b3b3b3;
+  stroke-width:2px;
+}
 
+.checkbox.checked{
+  fill:rgb(232, 108, 55)  ;
+  stroke-width:0;
+}
 
+.checkbox{
+  cursor:pointer;
+}
+
+.checkboxIcon{
+  visibility: hidden;
+}
+
+.checkboxIcon.checked{
+  visibility: visible;
+}
+
+#exportIDs{
+  background-color:rgb(232, 108, 55)  ;
+  color:white !important;
+}

@@ -1,12 +1,322 @@
 body, html {
   font-family: Yantramanav, 'Helvetica Neue', Helvetica, sans-serif;
   font-weight: 400;
+  height: 100%;
+	width: 100%;
 }
 
-th, label, strong, b, .label {
-  font-weight: 500 !important;
+.table{
+  table-layout: fixed;
 }
 
-.col{
-	overflow:scroll;
+::-webkit-scrollbar {
+  display: none;
+}
+
+h1 {
+  font-size: 150%;
+}
+
+p {
+  margin-bottom: 10px;
+}
+
+.paddingBlock {
+	padding: 20px 0 0 0 ;
+}
+
+.eqWrap {
+	display: flex;
+}
+
+.eq {
+	padding: 10px;
+}
+
+
+.equalHW {
+	flex: 1;
+}
+
+
+#col1{
+  width:250px;
+  transition: all 400ms ease;
+}
+
+#col1-expanded{
+  width:500px;
+  transition: all 400ms ease;
+}
+
+#col3{
+  flex:1;
+  min-width: 10px;
+}
+
+table text{
+  pointer-events: none;
+}
+
+
+.equalHMRWrap {
+	justify-content: space-between;
+	flex-wrap: wrap;
+}
+
+.equalHMR {
+	width: 25%;
+	margin-bottom: 2%;
+}
+
+.equalHMVWrap {
+	flex-wrap: wrap;
+}
+
+.equalHMV {
+	width: 25%;
+	margin: 1%;
+}
+
+.equalHMV:nth-of-type(3n) {
+	margin-right: 0;
+}
+
+.equalHMV:nth-of-type(3n+1) {
+	margin-left: 0;
+}
+
+.btn-link,.dropdown-toggle{
+  background-color: #e4e4e4;
+  margin-left:5px;
+}
+
+ul.nav.navbar-nav{
+  float:right;
+}
+
+#attributeMenu{
+  float:left;
+}
+
+.headerTitle{
+  pointer-events:none;
+}
+
+.starRect{
+  pointer-events: none;
+}
+
+
+.resizeBar{
+  cursor:ew-resize;
+}
+
+.tooltipTitle, .tooltipContent{
+  font-weight:200;
+  fill:#676666;
+}
+
+.tooltipContent{
+  font-size:12px;
+}
+
+
+.container-fluid{
+  display:inline-flex;
+}
+
+#tooltipMenu, #treeMenu{
+  position: absolute;
+}
+
+#tableBody{
+  height: calc(100vh - 310px);
+}
+
+#data_selection{
+  height: calc(100vh - 60px);
+}
+
+#data_selection {
+  overflow: scroll;
+}
+
+#tableBody{
+  overflow-y: scroll;
+}
+
+#tableHead{
+  overflow-x:scroll;
+}
+
+#personView{
+  background-color:#dddede;
+}
+
+.personViewLabel{
+  cursor: pointer;
+}
+
+.backgroundRect{
+  fill:white;
+  cursor: move;
+}
+
+.personViewStaticLabel{
+  fill:#5a5959;
+
+}
+
+.backgroundRect.hoverRect{
+  fill:#ececec;
+}
+
+#tooltipMenu text{
+  pointer-events: none;
+}
+
+.familyBar{
+  stroke-width: 3px;
+  stroke:rgb(25, 25, 25);
+  stroke-dasharray: 5px;
+}
+
+#loading{
+  position:absolute;
+  width:100%;
+  margin-top:200px;
+  text-align: center;
+}
+
+.dropdown-item.active, .datasetMenuItem.active, .dropdown-item-map.active, .dropdown-item-top.active{
+    background-color: #d9d9d9 !important;
+}
+
+.dropdown-item-top, .dropdown-item-map{
+  cursor:pointer;
+}
+
+#graphHeaders, #tableDiv1{
+  height:195px;
+}
+
+#tableDiv1{
+  overflow-x:scroll;
+}
+
+#tableDiv{
+  width:1920;
+  height:3600;
+  overflow-x: scroll
+}
+
+#viewPort{
+  height:100%;
+}
+
+#tableDiv2, #graphDiv{
+  height: calc(100vh - 255px);
+  overflow-y: scroll;
+}
+
+#graphDiv{
+  overflow-x: hidden;
+}
+
+#tableDiv2{
+  overflow-x: visible;
+}
+
+.dropdown-item{
+  cursor: copy;
+}
+
+.datasetMenuItem, .layoutMenu{
+  cursor: pointer;
+}
+
+.dropdown-item.active{
+  cursor: default;
+}
+
+.progress{
+  cursor:progress;
+}
+
+#mapLayer{
+  fill: none;
+  stroke: #969696;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+#drawLayer .county-count{
+  text-anchor: middle;
+  dominant-baseline: middle;
+  font-size:18px;
+  fill:#969696
+}
+
+#col4 .tooltip {
+    position: absolute;
+    text-align: center;
+    width: 180px;
+    height: 28px;
+    padding: 2px;
+    font: 12px sans-serif;
+    background: white;
+    border: 0px;
+    border-radius: 8px;
+    pointer-events: none;
+}
+
+#col4 path:hover{
+  fill:#f7f7f7
+}
+
+
+
+#col4 .map-paths{
+  stroke: #6f7373;
+  stroke-width: 1;
+  fill:white
+}
+
+.highlightedCircle{
+  opacity: 1
+}
+
+.unhighlightedCircle{
+  opacity: 0.3
+}
+
+.average_marker{
+  stroke: #767a7a
+}
+
+.deathMarker{
+  stroke: #285880;
+  opacity: 0.9;
+}
+.baseLine{
+  stroke: #767a7a
+}
+.clipLine{
+  stroke: #767a7a;
+  stroke-dasharray: 3,3;
+  opacity: 0.6;
+}
+.family_seperator{
+  stroke: #767a7a;
+  opacity: 0.7
+}
+
+.line_polygones{
+  stroke: none;
+  opacity: 0.8
+}
+
+.line_graph{
+  fill: none;
 }

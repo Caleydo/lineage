@@ -282,7 +282,7 @@ export default class TableManager {
     this.table = <ITable>await getById(descendDataSetID);
 
     //TODO add the code for calculating averages
-    this.airqualityTable = <ITable>await getById('matched_aq_merged');
+    this.airqualityTable = <ITable>await getById('airquality_anon');
     const promises = [];
     this.temporalData.forEach((aqName, index) => {
       for (let i = -14; i < 15; i++) {

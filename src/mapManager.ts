@@ -26,6 +26,7 @@ export default class MapManager {
   constructor() {
     this.maptopo = require('../../lineage_server/data/utah.json');
   }
+  console.log('maptopo', this.maptopo)
   public async init(tableManager) {
     this.tableManager = tableManager;
     this.demographicTable = <ITable>await getById('demographic_data');
@@ -77,14 +78,15 @@ export default class MapManager {
         dataValDict[value] = finishedPromises[4][index];
       });
     }
-
+    console.log('dataval', dataValDict)
+    console.log('finishedPromises', finishedPromises.length)
     finishedPromises[1].forEach((idNumber, index) => {
       const dataEntry: any = {};
       dataEntry.ID = idNumber;
       dataEntry.longitude = finishedPromises[0][index];
       dataEntry.latitude = finishedPromises[2][index];
       dataEntry.dataVal = dataValDict[idNumber];
-      dataEntry.county_code = finishedPromises[6][index];
+      //dataEntry.county_code = finishedPromises[6][index];
       dotDataAccum.push(dataEntry);
     });
     dotDataAccum = dotDataAccum.filter((d) => d.longitude && d.latitude);
@@ -129,5 +131,6 @@ export default class MapManager {
 }
 
 export function create() {
+  console.log('create called in map manager')
   return new MapManager();
 }

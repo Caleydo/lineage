@@ -9,7 +9,12 @@ declare module "*.scss" {
   const content:string;
   export default content;
 }
+declare module "*.css" {
+  const content:string;
+  export default content;
+}
 declare module "*.png";
+declare module "*.jpg";
 //allow html dependencies
 declare module "*.html" {
   const content:string;
@@ -25,11 +30,6 @@ declare module "raw-loader!*";
 declare module "url-loader!*";
 //allow html dependencies
 declare module "imports-loader!*";
-
-//allow override webpack config on import
-declare module "!*";
-
-declare module "mapview";
 
 
 //define System.import as understood by webpack2

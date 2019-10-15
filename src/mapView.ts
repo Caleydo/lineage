@@ -65,6 +65,8 @@ class MapView {
 
       select('#map').append('div').attr('id','mapDiv2')
           .append('svg').attr('id','map-svg').attr('width',this.svgWidth).attr('height',this.svgHeight);
+    //let mapdivv = select('#map').append('div').attr('id','mapDiv2')
+    //console.log('mappdivv', mapdivv)
 
       //select('#util').append('g').attr('id','graph-util');
       select('#map-svg').append('g').attr('id','map-util')
@@ -227,7 +229,7 @@ class MapView {
     async update() {
       const self = this;
       self.dotDataColloection = await self.mapManager.prepareData(this.currentSelectedMapAttribute);
-    //  console.log(self.dotDataColloection)
+      console.log('dotDataColloection', self.dotDataColloection)
       if (this.currentViewType === 'Map') {
         document.getElementById('col4').style.display = 'block';
         select('#graphLayer').attr('opacity',0).attr('pointer-events','none');
@@ -510,8 +512,9 @@ class MapView {
               return {x: xLineScale(i), y:yLineScale(d)};
               }
             });
-          cleanedDataArray = cleanedDataArray.filter((d)=>d);
 
+          cleanedDataArray = cleanedDataArray.filter((d)=>d);
+          console.log('cleanedDataArray', cleanedDataArray)
           graph.append('path')
                .datum(cleanedDataArray)
                .attr('d',lineFunction)
@@ -744,6 +747,7 @@ class MapView {
                    .text((d:any)=>d);
 
        }
+       console.log('this.dotDataColloection', this.dotDataColloection)
 
        private highlightID(selectedId) {
          this.dotDataColloection.forEach((person)=> {

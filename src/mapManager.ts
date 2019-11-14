@@ -25,14 +25,15 @@ export default class MapManager {
 
   constructor() {
     this.maptopo = require('../../lineage_server/data/utah.json');
-  }
-  console.log('maptopo', this.maptopo)
+    console.log('maptopo', this.maptopo);
+  };
   public async init(tableManager) {
     this.tableManager = tableManager;
     this.demographicTable = <ITable>await getById('demographic_data');
     this.topojsonFeatures = topofeature(
       this.maptopo,
-      this.maptopo.objects.cb_2015_utah_county_20m
+      // this.maptopo.objects.cb_2015_utah_county_20m
+            this.maptopo.objects.census_suic
     );
   }
 
@@ -78,8 +79,9 @@ export default class MapManager {
         dataValDict[value] = finishedPromises[4][index];
       });
     }
-    console.log('dataval', dataValDict)
-    console.log('finishedPromises', finishedPromises.length)
+    // console.log('dataval', dataValDict);
+    // console.log('finishedPromises', finishedPromises.length);
+
     finishedPromises[1].forEach((idNumber, index) => {
       const dataEntry: any = {};
       dataEntry.ID = idNumber;
@@ -131,6 +133,6 @@ export default class MapManager {
 }
 
 export function create() {
-  console.log('create called in map manager')
+  console.log('create called in map manager');
   return new MapManager();
 }

@@ -8,9 +8,11 @@ import {line as line_generator,curveCatmullRom,curveMonotoneX} from 'd3-shape';
 import { max, min, mean } from 'd3-array';
 import {zoom, zoomIdentity} from 'd3-zoom';
 import {axisBottom,axisLeft } from 'd3-axis';
-import {geoCentroid,geoMercator,geoPath} from 'd3-geo';
+import {geoCentroid,geoMercator,geoPath, geoConicConformal} from 'd3-geo';
+// import {geoCentroid,geoMercator,geoPath} from 'd3-geo';
 import {forceSimulation,forceCollide} from 'd3-force';
 import {timeout} from 'd3-timer';
+import * as L from 'leaflet';
 import {feature as topofeature} from 'topojson';
 
 import * as MapManager from './mapManager';
@@ -37,7 +39,8 @@ class MapView {
     private currentViewType = 'Hide';
     //private topojson_features;
     private mapCenter;
-    private svgWidth = (select('#map').node() as any).getBoundingClientRect().width;
+    // private svgWidth = (select('#map').node() as any).getBoundingClientRect().width;
+    private svgWidth = ((select('#map').node() as any).getBoundingClientRect().width <400? 400:(select('#map').node() as any).getBoundingClientRect().width);
     private nodeCenter;
     private projection;
     private dotDataColloection;
@@ -71,8 +74,9 @@ class MapView {
       //select('#util').append('g').attr('id','graph-util');
       select('#map-svg').append('g').attr('id','map-util')
                                  .attr('transform','translate('+0.75*this.svgWidth+',0)');
-      select('#map-svg').append('g').attr('id','mapLayer').attr('transform','translate(0,195)');
-      select('#map-svg').append('g').attr('id','drawLayer').attr('transform','translate(0,195)');
+      //Changed y translate from 150 to 50
+      select('#map-svg').append('g').attr('id','mapLayer').attr('transform','translate(0,20)');
+      select('#map-svg').append('g').attr('id','drawLayer').attr('transform','translate(0,20)');
 
       select('#map-svg').append('g').attr('id','graphLayer')
                                     .attr('transform','translate('+this.graphMargin.left+','+this.graphMargin.top+')');
@@ -229,6 +233,7 @@ class MapView {
     async update() {
       const self = this;
       self.dotDataColloection = await self.mapManager.prepareData(this.currentSelectedMapAttribute);
+
       console.log('dotDataColloection', self.dotDataColloection)
       if (this.currentViewType === 'Map') {
         document.getElementById('col4').style.display = 'block';
@@ -280,7 +285,7 @@ class MapView {
                           .force('collide',forceCollide().radius(5).iterations(10))
                           .stop();
 
-      timeout(function() {
+      let timeout1 = timeout(function() {
       for (let i = 0,
         n = Math.ceil(Math.log(simulation.alphaMin()) / Math.log(1 - simulation.alphaDecay()));
          i < n; ++i) {
@@ -662,13 +667,21 @@ class MapView {
 
     private drawGeographicalMap() {
       const self = this;
-      this.projection = geoMercator()
-            .translate(this.nodeCenter)
-            .scale(5000)
-            .center(this.mapCenter);
+    //     const projection = d3.geoConicConformal()
+    // .parallels([39 + 1 / 60, 40 + 39 / 60])
+    // .rotate([111 + 30 / 60, 0])
+    // .fitExtent([[padding, padding],[width, height]], mapdata)
+      this.projection = geoConicConformal()
+        .parallels([39 + 1 / 60, 40 + 39 / 60])
+        .rotate([111 + 30 / 60, 0])
+        .fitExtent([[10, 10],[this.svgWidth, this.svgHeight]], self.mapManager.topojsonFeatures);
+      // this.projection = geoMercator()
+      //       .translate(this.nodeCenter)
+      //       .scale(5000)
+      //       .center(this.mapCenter);
       const pathFuction = geoPath().projection(self.projection);
       const countyTooltip = select('#countytip');
-
+      console.log('topojsonFeatures', self.mapManager.topojsonFeatures)
       let paths = select('#mapLayer').selectAll('path').data(self.mapManager.topojsonFeatures.features);
       paths.exit().remove();
       paths = paths.enter().append('path').merge(paths).classed('map-paths',true);
@@ -707,6 +720,10 @@ class MapView {
          //     self.drawMapDots();
          //   }
          // })
+      let map = L.map('mapLayer').setView([39.384167, -111.683500], 7);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          }).addTo(map);
 
        }
 
@@ -756,7 +773,7 @@ class MapView {
              select('#graphLayer').selectAll('.line_graph_'+id).attr('opacity',0.1);
              select('#drawLayer').select('#circle_'+id).attr('opacity',0.1);
            } else {
-             select('#graphLayer').selectAll('.line_graph_'+id).attr('opaity',0.8);
+             select('#graphLayer').selectAll('.line_graph_'+id).attr('opacity',0.8);
              select('#drawLayer').select('#circle_'+id).attr('opacity',1);
            }
          });

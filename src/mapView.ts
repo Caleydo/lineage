@@ -34,6 +34,7 @@ import { VALUE_TYPE_CATEGORICAL,
 
 
 class MapView {
+    private leafmap;
     private mapManager;
     private currentSelectedMapAttribute: string = 'sex';
     private currentViewType = 'Hide';
@@ -66,10 +67,20 @@ class MapView {
       this.nodeCenter = [this.svgWidth/2,(this.svgHeight)/2];
 
       // for leaflet map
-      const leafdiv = select('#map').append('div').attr('id', 'leafdiv')
-        .style('width', '500px')
-        .style('height', '700px')
-        .style('position', 'relative');
+    const leafmaster = select('#map').append('div').attr('id', 'leafmaster')
+      .style('width', this.svgWidth+'px')
+      .style('height', this.svgHeight+'px')
+      .style('position', 'relative')
+      // .style('display':'flex');
+    const maplegend = leafmaster.append('div')
+      .attr('id', 'maplegend')
+      .style('height', '200px')
+      .style('width', this.svgWidth+'px');
+    const leafdiv = leafmaster.append('div')
+      .attr('id', 'leafdiv')
+      // .style('flex-grow', '1')
+      .style('height', '600px');
+    this.drawLeafletMap();
 
       select('#map').append('dheightiv').attr('id','mapDiv2')
           .append('svg').attr('id','map-svg').attr('width',this.svgWidth).attr('height',this.svgHeight);
@@ -77,14 +88,14 @@ class MapView {
     //console.log('mappdivv', mapdivv)
 
       //select('#util').append('g').attr('id','graph-util');
-      select('#map-svg').append('g').attr('id','map-util')
-                                 .attr('transform','translate('+0.75*this.svgWidth+',0)');
-      //Changed y translate from 150 to 50
-      select('#map-svg').append('g').attr('id','mapLayer').attr('transform','translate(0,20)');
-      select('#map-svg').append('g').attr('id','drawLayer').attr('transform','translate(0,20)');
-
-      select('#map-svg').append('g').attr('id','graphLayer')
-                                    .attr('transform','translate('+this.graphMargin.left+','+this.graphMargin.top+')');
+      // select('#map-svg').append('g').attr('id','map-util')
+      //                            .attr('transform','translate('+0.75*this.svgWidth+',0)');
+      // //Changed y translate from 150 to 50
+      // select('#map-svg').append('g').attr('id','mapLayer').attr('transform','translate(0,20)');
+      // select('#map-svg').append('g').attr('id','drawLayer').attr('transform','translate(0,20)');
+      //
+      // select('#map-svg').append('g').attr('id','graphLayer')
+      //                               .attr('transform','translate('+this.graphMargin.left+','+this.graphMargin.top+')');
       select('#col4').append('div')
           .attr('class', 'tooltip')
           .attr('id','circletip')
@@ -239,7 +250,7 @@ class MapView {
       const self = this;
       self.dotDataColloection = await self.mapManager.prepareData(this.currentSelectedMapAttribute);
 
-      console.log('dotDataColloection', self.dotDataColloection)
+      console.log('dotDataColloection', self.dotDataColloection);
       if (this.currentViewType === 'Map') {
         document.getElementById('col4').style.display = 'block';
         select('#graphLayer').attr('opacity',0).attr('pointer-events','none');
@@ -247,8 +258,8 @@ class MapView {
         select('#map-util').attr('opacity',1);
         select('#mapLayer').attr('opacity',1).attr('pointer-events','auto');
         select('#drawLayer').attr('opacity',1).attr('pointer-events','auto');
-        console.log('map functions currently suppressed')
-        self.drawLeafletMap()
+        console.log('map functions currently suppressed');
+        self.updateCircles();
         // self.drawGeographicalMap();
         // self.drawMapDots();
       } else if(this.currentViewType === 'Detail') {
@@ -292,7 +303,7 @@ class MapView {
                           .force('collide',forceCollide().radius(5).iterations(10))
                           .stop();
 
-      let timeout1 = timeout(function() {
+      const timeout1 = timeout(function() {
       for (let i = 0,
         n = Math.ceil(Math.log(simulation.alphaMin()) / Math.log(1 - simulation.alphaDecay()));
          i < n; ++i) {
@@ -526,7 +537,7 @@ class MapView {
             });
 
           cleanedDataArray = cleanedDataArray.filter((d)=>d);
-          console.log('cleanedDataArray', cleanedDataArray)
+          console.log('cleanedDataArray', cleanedDataArray);
           graph.append('path')
                .datum(cleanedDataArray)
                .attr('d',lineFunction)
@@ -673,18 +684,32 @@ class MapView {
     }
     private drawLeafletMap() {
       const self = this;
-        this.projection = geoConicConformal()
-          .parallels([39 + 1 / 60, 40 + 39 / 60])
-          .rotate([111 + 30 / 60, 0])
-          .fitExtent([[10, 10],[this.svgWidth, this.svgHeight]], self.mapManager.topojsonFeatures);
-        if (typeof lmap == 'undefined') {
-          const lmap = L.map('leafdiv').setView([39.384167, -111.683500], 7);
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            }).addTo(lmap);
-          L.geoJSON(self.mapManager.topojsonFeatures).addTo(lmap);
-        }
-
+      const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          })
+      const tracts = L.geoJSON(self.mapManager.topojsonFeatures);
+      // tracts.setStyle({fillColor:"#ffffff"});
+      tracts.setStyle({fillOpacity:0.1, weight:1.5});
+      const lmap = L.map('leafdiv',{
+          center: [39.384167, -111.683500],
+          zoom: 7,
+          // layers: [tracts,dots, osm]
+          layers: [tracts, osm]
+        });
+      self.leafmap = lmap;
+    }
+    private updateCircles() {
+      const self = this;
+      const lmap = self.leafmap;
+      lmap.removeLayer
+      const dots = new L.LayerGroup();
+      const circlemarkers = self.dotDataColloection.map(function(dot) {
+      const newdot =  new L.CircleMarker([dot.latitude, dot.longitude], {color: 'red', fillColor: 'orange'});
+        newdot.addTo(dots);
+        return newdot;
+      });
+        console.log('new leaf circles', dots)
+          lmap.addLayer(dots);
     }
 
     private drawGeographicalMap() {
@@ -703,7 +728,7 @@ class MapView {
       //       .center(this.mapCenter);
       const pathFuction = geoPath().projection(self.projection);
       const countyTooltip = select('#countytip');
-      console.log('topojsonFeatures', self.mapManager.topojsonFeatures)
+      console.log('topojsonFeatures', self.mapManager.topojsonFeatures);
     //   let paths = select('#mapLayer').selectAll('path').data(self.mapManager.topojsonFeatures.features);
     //   paths.exit().remove();
     //   paths = paths.enter().append('path').merge(paths).classed('map-paths',true);
@@ -784,7 +809,7 @@ class MapView {
                    .text((d:any)=>d);
 
        }
-       console.log('this.dotDataColloection', this.dotDataColloection)
+       console;.log('this.dotDataColloection', this.dotDataColloection);
 
        private highlightID(selectedId) {
          this.dotDataColloection.forEach((person)=> {

@@ -12,7 +12,7 @@ import {geoCentroid,geoMercator,geoPath, geoConicConformal} from 'd3-geo';
 // import {geoCentroid,geoMercator,geoPath} from 'd3-geo';
 import {forceSimulation,forceCollide} from 'd3-force';
 import {timeout} from 'd3-timer';
-import * as L from 'leaflet';
+import L from 'leaflet';
 import {feature as topofeature} from 'topojson';
 
 import * as MapManager from './mapManager';
@@ -65,8 +65,13 @@ class MapView {
       this.mapCenter=geoCentroid(this.mapManager.topojsonFeatures);
       this.nodeCenter = [this.svgWidth/2,(this.svgHeight)/2];
 
+      // for leaflet map
+      const leafdiv = select('#map').append('div').attr('id', 'leafdiv')
+        .style('width', '500px')
+        .style('height', '700px')
+        .style('position', 'relative');
 
-      select('#map').append('div').attr('id','mapDiv2')
+      select('#map').append('dheightiv').attr('id','mapDiv2')
           .append('svg').attr('id','map-svg').attr('width',this.svgWidth).attr('height',this.svgHeight);
     //let mapdivv = select('#map').append('div').attr('id','mapDiv2')
     //console.log('mappdivv', mapdivv)
@@ -242,8 +247,10 @@ class MapView {
         select('#map-util').attr('opacity',1);
         select('#mapLayer').attr('opacity',1).attr('pointer-events','auto');
         select('#drawLayer').attr('opacity',1).attr('pointer-events','auto');
-        self.drawGeographicalMap();
-        self.drawMapDots();
+        console.log('map functions currently suppressed')
+        self.drawLeafletMap()
+        // self.drawGeographicalMap();
+        // self.drawMapDots();
       } else if(this.currentViewType === 'Detail') {
         document.getElementById('col4').style.display = 'block';
         select('#graphLayer').attr('opacity',1).attr('pointer-events','auto');
@@ -664,6 +671,21 @@ class MapView {
 
 
     }
+    private drawLeafletMap() {
+      const self = this;
+        this.projection = geoConicConformal()
+          .parallels([39 + 1 / 60, 40 + 39 / 60])
+          .rotate([111 + 30 / 60, 0])
+          .fitExtent([[10, 10],[this.svgWidth, this.svgHeight]], self.mapManager.topojsonFeatures);
+        if (typeof lmap == 'undefined') {
+          const lmap = L.map('leafdiv').setView([39.384167, -111.683500], 7);
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(lmap);
+          L.geoJSON(self.mapManager.topojsonFeatures).addTo(lmap);
+        }
+
+    }
 
     private drawGeographicalMap() {
       const self = this;
@@ -682,28 +704,28 @@ class MapView {
       const pathFuction = geoPath().projection(self.projection);
       const countyTooltip = select('#countytip');
       console.log('topojsonFeatures', self.mapManager.topojsonFeatures)
-      let paths = select('#mapLayer').selectAll('path').data(self.mapManager.topojsonFeatures.features);
-      paths.exit().remove();
-      paths = paths.enter().append('path').merge(paths).classed('map-paths',true);
-      // paths.transition()
-      //      .duration(700)
-      paths.attr('id',(d)=>(d as any).properties.GEOID)
-           .attr('d', pathFuction);
-    //  console.log(self.mapManager.topojson_features.features)
-      paths.on('mouseover',function(d) {
-               countyTooltip
-               // .transition()
-               // .duration(200)
-               .style('opacity',0.9);
-               countyTooltip.html((d as any).properties.NAME)
-               .style('left', (event.pageX) + 'px')
-                .style('top', (event.pageY - 28) + 'px');
-              })
-             .on('mouseout',function(d) {
-               countyTooltip
-                       //  .transition()
-                       // .duration(200)
-                       .style('opacity',0);});
+    //   let paths = select('#mapLayer').selectAll('path').data(self.mapManager.topojsonFeatures.features);
+    //   paths.exit().remove();
+    //   paths = paths.enter().append('path').merge(paths).classed('map-paths',true);
+    //   // paths.transition()
+    //   //      .duration(700)
+    //   paths.attr('id',(d)=>(d as any).properties.GEOID)
+    //        .attr('d', pathFuction);
+    // //  console.log(self.mapManager.topojson_features.features)
+    //   paths.on('mouseover',function(d) {
+    //            countyTooltip
+    //            // .transition()
+    //            // .duration(200)
+    //            .style('opacity',0.9);
+    //            countyTooltip.html((d as any).properties.NAME)
+    //            .style('left', (event.pageX) + 'px')
+    //             .style('top', (event.pageY - 28) + 'px');
+    //           })
+    //          .on('mouseout',function(d) {
+    //            countyTooltip
+    //                    //  .transition()
+    //                    // .duration(200)
+    //                    .style('opacity',0);});
 
          // select('#map-svg').call(zoom().on('zoom',function(){
          //         self.projection.scale(event.transform.k*5000).center(self.mapCenter)
@@ -720,10 +742,8 @@ class MapView {
          //     self.drawMapDots();
          //   }
          // })
-      // let map = L.map('mapLayer').setView([39.384167, -111.683500], 7);
-      // L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      //   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      //     }).addTo(map);
+
+
 
        }
 

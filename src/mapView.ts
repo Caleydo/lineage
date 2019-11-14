@@ -720,10 +720,10 @@ class MapView {
          //     self.drawMapDots();
          //   }
          // })
-      let map = L.map('mapLayer').setView([39.384167, -111.683500], 7);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          }).addTo(map);
+      // let map = L.map('mapLayer').setView([39.384167, -111.683500], 7);
+      // L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      //   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      //     }).addTo(map);
 
        }
 

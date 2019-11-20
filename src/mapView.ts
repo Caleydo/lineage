@@ -61,8 +61,6 @@ class MapView {
     public init(mapManager) {
       this.mapManager = mapManager;
       //document.getElementById('col4').style.display = 'none';
-
-
       this.mapCenter=geoCentroid(this.mapManager.topojsonFeatures);
       this.nodeCenter = [this.svgWidth/2,(this.svgHeight)/2];
 
@@ -689,20 +687,32 @@ class MapView {
           })
       const tracts = L.geoJSON(self.mapManager.topojsonFeatures);
       // tracts.setStyle({fillColor:"#ffffff"});
-      tracts.setStyle({fillOpacity:0.1, weight:1.5});
+      tracts.setStyle({fillOpacity:0.1, weight:1.0, color: '#285880'});
       const lmap = L.map('leafdiv',{
           center: [39.384167, -111.683500],
           zoom: 7,
           // layers: [tracts,dots, osm]
           layers: [tracts, osm]
         });
+      // TODO - maybe use this object, delete the entire map on update....?
       self.leafmap = lmap;
     }
     private updateCircles() {
       const self = this;
       const lmap = self.leafmap;
-      lmap.removeLayer
-      const dots = new L.LayerGroup();
+      let dots;
+      console.log('dots', dots, 'typeofdots', typeof dots);
+      //
+      try {
+        lmap.removeLayer('circledots');
+      } catch(e) {
+        console.log(e);
+      }
+      console.log('map has layer dots', lmap.hasLayer(dots));
+      console.log('lmap layers', lmap._layers);
+      dots = new L.LayerGroup();
+      dots.id = 'circledots';
+      // console.log('dots id', dots.id, dots.getlayerId());
       const circlemarkers = self.dotDataColloection.map(function(dot) {
       const newdot =  new L.CircleMarker([dot.latitude, dot.longitude], {color: 'red', fillColor: 'orange'});
         newdot.addTo(dots);
@@ -710,6 +720,8 @@ class MapView {
       });
         console.log('new leaf circles', dots)
           lmap.addLayer(dots);
+        //nothing here
+
     }
 
     private drawGeographicalMap() {
@@ -767,8 +779,6 @@ class MapView {
          //     self.drawMapDots();
          //   }
          // })
-
-
 
        }
 

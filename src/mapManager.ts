@@ -26,7 +26,7 @@ export default class MapManager {
   constructor() {
     this.maptopo = require('../../lineage_server/data/utah.json');
     console.log('maptopo', this.maptopo);
-  };
+  }
   public async init(tableManager) {
     this.tableManager = tableManager;
     this.demographicTable = <ITable>await getById('demographic_data');
@@ -42,11 +42,12 @@ export default class MapManager {
     const graphView = await this.tableManager.graphTable;
     const attributeView = await this.tableManager.tableTable;
     const allCols = graphView.cols().concat(attributeView.cols());
+    console.log('alll cols', allCols)
     const colOrder = [
       'longitude',
       'latitude',
       currentSelectedMapAttribute,
-      'CountyCode'
+      'STATENUM'
     ];
     const orderedCols = [];
     for (const colName of colOrder) {
@@ -56,6 +57,7 @@ export default class MapManager {
         }
       }
     }
+    console.log('ordered cols', orderedCols)
     self.selectedAttributeVector = orderedCols[2];
     let dotDataAccum = [];
     //collect all the data important
@@ -64,6 +66,7 @@ export default class MapManager {
       allPromises = allPromises.concat([vector.data(), vector.names()]);
     });
     const finishedPromises = await Promise.all(allPromises);
+    console.log('finished promises', finishedPromises)
     const dataValDict = {};
     if (self.selectedAttributeVector.desc.name === 'KindredID') {
       finishedPromises[5].forEach((value, index) => {
@@ -88,7 +91,7 @@ export default class MapManager {
       dataEntry.longitude = finishedPromises[0][index];
       dataEntry.latitude = finishedPromises[2][index];
       dataEntry.dataVal = dataValDict[idNumber];
-      //dataEntry.county_code = finishedPromises[6][index];
+      dataEntry.statenum = finishedPromises[6][index];
       dotDataAccum.push(dataEntry);
     });
     dotDataAccum = dotDataAccum.filter((d) => d.longitude && d.latitude);

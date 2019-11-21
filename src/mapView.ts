@@ -10,7 +10,7 @@ import {zoom, zoomIdentity} from 'd3-zoom';
 import {axisBottom,axisLeft } from 'd3-axis';
 import {geoCentroid,geoMercator,geoPath, geoConicConformal} from 'd3-geo';
 // import {geoCentroid,geoMercator,geoPath} from 'd3-geo';
-import {forceSimulation,forceCollide} from 'd3-force';
+import {forceSimulation,forceCollide, forceX, forceY} from 'd3-force';
 import {timeout} from 'd3-timer';
 import L from 'leaflet';
 import {feature as topofeature} from 'topojson';
@@ -35,6 +35,7 @@ import { VALUE_TYPE_CATEGORICAL,
 
 class MapView {
     private leafmap;
+    private circleLayer;
     private mapManager;
     private currentSelectedMapAttribute: string = 'sex';
     private currentViewType = 'Hide';
@@ -694,6 +695,16 @@ class MapView {
           // layers: [tracts,dots, osm]
           layers: [tracts, osm]
         });
+      lmap.on('zoomend', function() {
+        const bnds = lmap.getBounds()
+        console.log('current map bounds', bnds);
+        const nebound = lmap.latLngToContainerPoint(bnds._northEast)
+        const swbound = lmap.latLngToContainerPoint(bnds._southWest)
+        console.log(nebound, swbound)
+        self.updateCircles()
+        console.log('map zoom', lmap.getZoom());
+        // alert(map.getBounds())
+      });
       // TODO - maybe use this object, delete the entire map on update....?
       self.leafmap = lmap;
     }
@@ -704,22 +715,40 @@ class MapView {
       console.log('dots', dots, 'typeofdots', typeof dots);
       //
       try {
-        lmap.removeLayer('circledots');
+        lmap.removeLayer(self.circleLayer);
       } catch(e) {
         console.log(e);
       }
-      console.log('map has layer dots', lmap.hasLayer(dots));
-      console.log('lmap layers', lmap._layers);
+      // console.log('map has layer dots', lmap.hasLayer(dots));
+      // console.log('lmap layers', lmap._layers);
       dots = new L.LayerGroup();
       dots.id = 'circledots';
-      // console.log('dots id', dots.id, dots.getlayerId());
-      const circlemarkers = self.dotDataColloection.map(function(dot) {
-      const newdot =  new L.CircleMarker([dot.latitude, dot.longitude], {color: 'red', fillColor: 'orange'});
+
+      const contpts = self.dotDataColloection.map(function(d) {
+        d.containercoords = lmap.latLngToContainerPoint([d.latitude, d.longitude])
+      return d;
+      });
+        const forcesim = forceSimulation(contpts)
+        .force('collision', forceCollide().radius(function(d) {
+          const radiusweight = 1.2;
+          // return rscale(d.properties.Nnorm)*radiusweight
+          return 10;
+        }))
+        .force('x', forceX().x(function(d) {
+          return d.containercoords.x;}))
+        .force('y', forceY().y(function(d) {
+          return d.containercoords.y;}))
+        .tick(100) //test
+        .stop();
+      const circlemarkers = contpts.map(function(dot) {
+        const nlatnlon = lmap.containerPointToLatLng([dot.x, dot.y])
+      const newdot =  new L.CircleMarker(nlatnlon, {color: 'red', fillColor: 'orange', radius: 10});
         newdot.addTo(dots);
         return newdot;
       });
         console.log('new leaf circles', dots)
           lmap.addLayer(dots);
+        self.circleLayer = dots;
         //nothing here
 
     }
@@ -819,7 +848,7 @@ class MapView {
                    .text((d:any)=>d);
 
        }
-       console;.log('this.dotDataColloection', this.dotDataColloection);
+       // console.log('this.dotDataColloection', this.dotDataColloection);
 
        private highlightID(selectedId) {
          this.dotDataColloection.forEach((person)=> {

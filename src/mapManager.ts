@@ -42,17 +42,21 @@ export default class MapManager {
     const graphView = await this.tableManager.graphTable;
     const attributeView = await this.tableManager.tableTable;
     const allCols = graphView.cols().concat(attributeView.cols());
-    console.log('alll cols', allCols)
+    console.log('alll cols', [...allCols.map((d)=>d.desc.name)])
     const colOrder = [
       'longitude',
       'latitude',
       currentSelectedMapAttribute,
-      'STATENUM'
+      'STATENUM',
+      'zip',
+      'GEOID10',
+      'TRACTCE10'
     ];
     const orderedCols = [];
     for (const colName of colOrder) {
       for (const vector of allCols) {
         if (vector.desc.name === colName) {
+          console.log('colname in vector', colName)
           orderedCols.push(vector);
         }
       }
@@ -84,6 +88,7 @@ export default class MapManager {
     }
     // console.log('dataval', dataValDict);
     // console.log('finishedPromises', finishedPromises.length);
+    console.log('finished promises', finishedPromises[8])
 
     finishedPromises[1].forEach((idNumber, index) => {
       const dataEntry: any = {};
@@ -92,6 +97,7 @@ export default class MapManager {
       dataEntry.latitude = finishedPromises[2][index];
       dataEntry.dataVal = dataValDict[idNumber];
       dataEntry.statenum = finishedPromises[6][index];
+      dataEntry.GEOID10 = finishedPromises[8][index];
       dotDataAccum.push(dataEntry);
     });
     dotDataAccum = dotDataAccum.filter((d) => d.longitude && d.latitude);

@@ -229,7 +229,7 @@ class MapView {
 
       selectAll('.dropdown-item-map').on('mousedown', function (d) {
           event.preventDefault();
-          //Check if is selected, if so remove from table.
+          //Check if is selected, if so remove from table..
           d = d.toString();
 
           if (self.currentSelectedMapAttribute !== d) {
@@ -371,8 +371,6 @@ class MapView {
 
       const self = this;
       const colorRampWidth = 50;
-
-
       const width = self.svgWidth - self.graphMargin.left - self.graphMargin.right - colorRampWidth;
       const height = self.detailViewAttribute.length===1? 0.5*self.svgHeight:(self.svgHeight-0.7*self.detailViewAttribute.length*self.graphMargin.top - 0.7*self.detailViewAttribute.length*self.graphMargin.bottom) /self.detailViewAttribute.length;
       const graph = select('#graphLayer');
@@ -683,6 +681,19 @@ class MapView {
     }
     private drawLeafletMap() {
       const self = this;
+      const stamenBasemap = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}{r}.{ext}', {
+        subdomains: 'abcd',
+        minZoom: 0,
+        maxZoom: 20,
+        ext: 'png'
+      });
+      const positronBasemap = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd',
+        minZoom: 0,
+        maxZoom: 20
+      });
+
       const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           })
@@ -693,7 +704,7 @@ class MapView {
           center: [39.384167, -111.683500],
           zoom: 7,
           // layers: [tracts,dots, osm]
-          layers: [tracts, osm]
+          layers: [tracts, positronBasemap]
         });
       lmap.on('zoomend', function() {
         const bnds = lmap.getBounds()
@@ -707,6 +718,28 @@ class MapView {
       });
       // TODO - maybe use this object, delete the entire map on update....?
       self.leafmap = lmap;
+      const lmapLegend = select('#maplegend').append('div').attr('id','lmaplegend-div')
+                        .append('ul')
+                        .attr('class', 'nav navbar-nav')
+                        .attr('id', 'mapAttribute');
+
+      const lmapList = lmapLegend.append('li').attr('class', 'dropdown');
+      const lmapMenu = lmapList.append('ul').attr('class', 'dropdown-menu');
+            lmapList.append('a')
+        .attr('class', 'dropdown-toggle')
+        .attr('data-toggle', 'dropdown')
+        .attr('role', 'button')
+        .html('Map Display')
+        .append('span')
+        .attr('class', 'caret');
+      //      TODO  - these should not be headers, need to be options...
+      lmapMenu.append('h5').attr('class', 'dropdown-header')
+        .style('font-size', '14px')
+        .html('All Cases');
+      lmapMenu.append('h5').attr('class', 'dropdown-header')
+        .style('font-size', '14px')
+        .html('Family Selection');
+
     }
     private updateCircles() {
       const self = this;
@@ -738,7 +771,7 @@ class MapView {
           return d.containercoords.x;}))
         .force('y', forceY().y(function(d) {
           return d.containercoords.y;}))
-        .tick(100) //test
+        .tick(1000) //test
         .stop();
       const circlemarkers = contpts.map(function(dot) {
         const nlatnlon = lmap.containerPointToLatLng([dot.x, dot.y])

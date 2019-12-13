@@ -31,10 +31,13 @@ import { VALUE_TYPE_CATEGORICAL,
         VALUE_TYPE_INT,
         VALUE_TYPE_REAL,
         VALUE_TYPE_STRING } from 'phovea_core/src/datatype';
+import * as d3 from 'd3';
 
 
 class MapView {
-    private leafmap;
+    private leafMap;
+    private currentCases;
+    private displayfamilyCases = true;
     private circleLayer;
     private mapManager;
     private currentSelectedMapAttribute: string = 'sex';
@@ -65,36 +68,25 @@ class MapView {
       this.mapCenter=geoCentroid(this.mapManager.topojsonFeatures);
       this.nodeCenter = [this.svgWidth/2,(this.svgHeight)/2];
 
-      // for leaflet map
-    const leafmaster = select('#map').append('div').attr('id', 'leafmaster')
-      .style('width', this.svgWidth+'px')
-      .style('height', this.svgHeight+'px')
-      .style('position', 'relative')
-      // .style('display':'flex');
-    const maplegend = leafmaster.append('div')
-      .attr('id', 'maplegend')
-      .style('height', '200px')
-      .style('width', this.svgWidth+'px');
-    const leafdiv = leafmaster.append('div')
-      .attr('id', 'leafdiv')
-      // .style('flex-grow', '1')
-      .style('height', '600px');
-    this.drawLeafletMap();
+        // for leaflet map
+      const leafmaster = select('#map').append('div').attr('id', 'leafmaster')
+        .style('width', this.svgWidth+'px')
+        .style('height', this.svgHeight+'px')
+        .style('position', 'relative');
+        // .style('display':'flex');
+      const maplegend = leafmaster.append('div')
+        .attr('id', 'maplegend')
+        .style('height', '200px')
+        .style('width', this.svgWidth+'px');
+      const leafdiv = leafmaster.append('div')
+        .attr('id', 'leafdiv')
+        // .style('flex-grow', '1')
+        .style('height', '600px');
+      this.drawLeafletMap();
 
       select('#map').append('dheightiv').attr('id','mapDiv2')
-          .append('svg').attr('id','map-svg').attr('width',this.svgWidth).attr('height',this.svgHeight);
-    //let mapdivv = select('#map').append('div').attr('id','mapDiv2')
-    //console.log('mappdivv', mapdivv)
+        .append('svg').attr('id','map-svg').attr('width',this.svgWidth).attr('height',this.svgHeight);
 
-      //select('#util').append('g').attr('id','graph-util');
-      // select('#map-svg').append('g').attr('id','map-util')
-      //                            .attr('transform','translate('+0.75*this.svgWidth+',0)');
-      // //Changed y translate from 150 to 50
-      // select('#map-svg').append('g').attr('id','mapLayer').attr('transform','translate(0,20)');
-      // select('#map-svg').append('g').attr('id','drawLayer').attr('transform','translate(0,20)');
-      //
-      // select('#map-svg').append('g').attr('id','graphLayer')
-      //                               .attr('transform','translate('+this.graphMargin.left+','+this.graphMargin.top+')');
       select('#col4').append('div')
           .attr('class', 'tooltip')
           .attr('id','circletip')
@@ -242,14 +234,11 @@ class MapView {
 
       self.update();
     }
-
-
-
     async update() {
       const self = this;
       self.dotDataColloection = await self.mapManager.prepareData(this.currentSelectedMapAttribute);
-
-      console.log('dotDataColloection', self.dotDataColloection);
+      // if self.mapView === 'All Cases'... else if === 'Family Cases'::
+      // console.log('dotDataColloection', self.dotDataColloection);
       if (this.currentViewType === 'Map') {
         document.getElementById('col4').style.display = 'block';
         select('#graphLayer').attr('opacity',0).attr('pointer-events','none');
@@ -456,7 +445,6 @@ class MapView {
           personArrayDict[personID] =  new Array(29);
         });
 
-
         for (let i = -14; i < 15; i++) {
           const dayentry = aqDataDict[attributeName+i.toString()];
           const data = dayentry.data;
@@ -534,7 +522,7 @@ class MapView {
             });
 
           cleanedDataArray = cleanedDataArray.filter((d)=>d);
-          console.log('cleanedDataArray', cleanedDataArray);
+          // console.log('cleanedDataArray', cleanedDataArray);
           graph.append('path')
                .datum(cleanedDataArray)
                .attr('d',lineFunction)
@@ -679,74 +667,178 @@ class MapView {
 
 
     }
-    private drawLeafletMap() {
+    private async drawLeafletMap() {
       const self = this;
-      const stamenBasemap = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}{r}.{ext}', {
-        subdomains: 'abcd',
-        minZoom: 0,
-        maxZoom: 20,
-        ext: 'png'
-      });
+      //Basemaps:
       const positronBasemap = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
         subdomains: 'abcd',
-        minZoom: 0,
-        maxZoom: 20
+        minZoom: 4,
+        maxZoom: 15
       });
-
       const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          })
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        // subdomains: 'abcd',
+        minZoom: 4,
+        maxZoom: 15
+          });
       const tracts = L.geoJSON(self.mapManager.topojsonFeatures);
-      // tracts.setStyle({fillColor:"#ffffff"});
       tracts.setStyle({fillOpacity:0.1, weight:1.0, color: '#285880'});
       const lmap = L.map('leafdiv',{
           center: [39.384167, -111.683500],
           zoom: 7,
-          // layers: [tracts,dots, osm]
           layers: [tracts, positronBasemap]
         });
+      // leafSVG is an svg layer/renderer that is added to leaflet overlay by default
+      const leafSVG = L.svg();
+      leafSVG.addTo(lmap);
+      leafSVG._container.setAttribute('id', 'leafSVG');
+      const leafBasemaps = {
+        'Grayscale': positronBasemap,
+        'OSM': osm
+      };
+      const leafOverlays = {
+        'Census Tracts': tracts,
+        'Cases': leafSVG
+      };
+      L.control.layers(leafBasemaps, leafOverlays).addTo(lmap);
+
+
       lmap.on('zoomend', function() {
-        const bnds = lmap.getBounds()
-        console.log('current map bounds', bnds);
-        const nebound = lmap.latLngToContainerPoint(bnds._northEast)
-        const swbound = lmap.latLngToContainerPoint(bnds._southWest)
-        console.log(nebound, swbound)
-        self.updateCircles()
+        self.updateCircles();
         console.log('map zoom', lmap.getZoom());
         // alert(map.getBounds())
       });
       // TODO - maybe use this object, delete the entire map on update....?
-      self.leafmap = lmap;
+      self.leafMap = lmap;
       const lmapLegend = select('#maplegend').append('div').attr('id','lmaplegend-div')
                         .append('ul')
-                        .attr('class', 'nav navbar-nav')
+                        .attr('class', 'nav navbar-nav navbar-left')
                         .attr('id', 'mapAttribute');
 
-      const lmapList = lmapLegend.append('li').attr('class', 'dropdown');
-      const lmapMenu = lmapList.append('ul').attr('class', 'dropdown-menu');
-            lmapList.append('a')
-        .attr('class', 'dropdown-toggle')
-        .attr('data-toggle', 'dropdown')
-        .attr('role', 'button')
-        .html('Map Display')
-        .append('span')
-        .attr('class', 'caret');
-      //      TODO  - these should not be headers, need to be options...
-      lmapMenu.append('h5').attr('class', 'dropdown-header')
-        .style('font-size', '14px')
-        .html('All Cases');
-      lmapMenu.append('h5').attr('class', 'dropdown-header')
-        .style('font-size', '14px')
-        .html('Family Selection');
+    const legendlist = lmapLegend.append('li').attr('class','dropdown');
+    legendlist.append('a')
+              .attr('class','dropdown-toggle')
+              .attr('data-toggle','dropdown')
+              .attr('role','button')
+              .html('Map View')
+              .append('span')
+              .attr('class', 'caret');
+
+    const legendMenu = legendlist.append('ul').attr('class', 'dropdown-menu');
+      let maplegendItems = legendMenu.selectAll('.demoAttr')
+      .data(['All Tracts', 'Family Selection']);
+      maplegendItems = maplegendItems.enter()
+        .append('li')
+        .append('a')
+        .attr('class', 'layoutMenu')
+        .classed('active', function(d) { return d === 'Expand';})
+        .html((d:any) => { return d; })
+        .merge(maplegendItems);
+    maplegendItems.on('click',(d)=> {
+      const currSelection = selectAll('.layoutMenu').filter((e)=> {return e === d;});
+      selectAll('.layoutMenu').classed('active',false);
+      currSelection.classed('active',true);
+      if (d === 'All Tracts') {
+        self.displayfamilyCases = false;
+        self.getAllCases();
+        console.log('All Tracts');
+      } else if (d === 'Family Selection') {
+        self.displayfamilyCases = true;
+        self.getFamilyCases();
+        self.drawFamilyCases();
+        console.log('Family Selection');
+      }
+      // self.update();
+      });
+
+    }
+    private async getFamilyCases() {
+      console.log('getFamilyCases');
+      const self = this;
+      const geographies = self.mapManager.topojsonFeatures;
+      const tractDict = {};
+      const familyCases = await self.mapManager.prepareData(this.currentSelectedMapAttribute);
+      const redu = familyCases.reduce((m, i) => {
+        const tract = i.GEOID10;
+        if(!m[tract]) {
+          const tractGEO = geographies.features.find((g)=>g.properties.GEOID10.toString() === tract.toString());
+          m[tract] = {cases:[], coords: {lat:tractGEO.properties.INTPTLAT10, lon: tractGEO.properties.INTPTLON10}, properties: tractGEO.properties};
+        }
+        m[tract].cases.push(i);
+        return m;
+      }, {});
+    }
+
+    private async drawFamilyCases() {
+      const self = this;
+      const lmap = self.leafMap;
+      const familyCases = self.dotDataColloection.map(function(d) {
+        d.layerCoords = lmap.latLngToLayerPoint([d.latitude, d.longitude]);
+        return d;
+      });
+      const forcesim = forceSimulation(familyCases)
+      .force('collision', forceCollide().radius(function(d) {
+        const radiusweight = 1.2;
+        // return rscale(d.properties.Nnorm)*radiusweight
+        return 10;
+      }))
+      .force('x', forceX().x(function(d) {
+        return d.layerCoords.x;}))
+      .force('y', forceY().y(function(d) {
+        return d.layerCoords.y;}))
+      .tick(100)
+      .stop();
+      console.log('familyCases', familyCases);
+      // plot pts
+      const leafSVG = d3.select('#leafSVG');
+      leafSVG.selectAll('circle').data(familyCases).enter().append('circle')
+        .attr('cx', (d)=> d.x)
+        .attr('cy', (d)=> d.y)
+        .attr('r', 10)
+        .attr('stroke', 'pink')
+        .style('fill', 'black');
+    }
+    private async getAllCases() {
+      console.log('get all Cases');
+      const self = this;
+      const geographies = self.mapManager.topojsonFeatures;
+      const attributeTable = self.mapManager.tableManager.attributeTable;
+       //Next few lines are testing to extract all data for map view
+      const attrpromises = [];
+      //the ids, in this case 'personid' is accessed via the .names() method
+      attrpromises.push(attributeTable.col(0).names());
+      attributeTable.cols().forEach((vect, index)=> {
+        const cname = vect.column.toString();
+        attrpromises.push(attributeTable.colData(cname));
+    });
+    // attrpromises.push(self.attributeTable.colData('TRACTCE10'));
+    const attrfinishedPromises = await Promise.all(attrpromises);
+    console.log(attrfinishedPromises);
+    const allCases = {}
+    attrfinishedPromises[0].forEach((d, i) => {
+        console.log('d, i', d, i);
+        // TODO - add row/record for each case, then group and aggregate?? or can do this in this one step??
+      });
+
+    // const redu = attrfinishedPromises.reduce((m,i)=>{
+    // })
+
+    // const redu = familyCases.reduce((m, i) => {
+    // const tract = i.GEOID10;
+    // if(!m[tract]) {
+    //   const tractGEO = geographies.features.find((g)=>g.properties.GEOID10.toString() === tract.toString());
+    //   m[tract] = {cases:[], coords: {lat:tractGEO.properties.INTPTLAT10, lon: tractGEO.properties.INTPTLON10}, properties: tractGEO.properties};
+    // }
+    // m[tract].cases.push(i);
+    // return m;
+    // }, {});
 
     }
     private updateCircles() {
       const self = this;
-      const lmap = self.leafmap;
+      const lmap = self.leafMap;
       let dots;
-      console.log('dots', dots, 'typeofdots', typeof dots);
-      //
       try {
         lmap.removeLayer(self.circleLayer);
       } catch(e) {
@@ -771,19 +863,18 @@ class MapView {
           return d.containercoords.x;}))
         .force('y', forceY().y(function(d) {
           return d.containercoords.y;}))
-        .tick(1000) //test
+        .tick(100) //tes
         .stop();
       const circlemarkers = contpts.map(function(dot) {
-        const nlatnlon = lmap.containerPointToLatLng([dot.x, dot.y])
+      const nlatnlon = lmap.containerPointToLatLng([dot.x, dot.y]);
       const newdot =  new L.CircleMarker(nlatnlon, {color: 'red', fillColor: 'orange', radius: 10});
         newdot.addTo(dots);
         return newdot;
       });
-        console.log('new leaf circles', dots)
-          lmap.addLayer(dots);
-        self.circleLayer = dots;
+        // console.log('new leaf circles', dots)
+      lmap.addLayer(dots);
+      self.circleLayer = dots;
         //nothing here
-
     }
 
     private drawGeographicalMap() {
@@ -802,7 +893,7 @@ class MapView {
       //       .center(this.mapCenter);
       const pathFuction = geoPath().projection(self.projection);
       const countyTooltip = select('#countytip');
-      console.log('topojsonFeatures', self.mapManager.topojsonFeatures);
+      // console.log('topojsonFeatures', self.mapManager.topojsonFeatures);
     //   let paths = select('#mapLayer').selectAll('path').data(self.mapManager.topojsonFeatures.features);
     //   paths.exit().remove();
     //   paths = paths.enter().append('path').merge(paths).classed('map-paths',true);

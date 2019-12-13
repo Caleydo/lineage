@@ -25,7 +25,6 @@ export default class MapManager {
 
   constructor() {
     this.maptopo = require('../../lineage_server/data/utah.json');
-    console.log('maptopo', this.maptopo);
   }
   public async init(tableManager) {
     this.tableManager = tableManager;
@@ -42,13 +41,12 @@ export default class MapManager {
     const graphView = await this.tableManager.graphTable;
     const attributeView = await this.tableManager.tableTable;
     const allCols = graphView.cols().concat(attributeView.cols());
-    console.log('alll cols', [...allCols.map((d)=>d.desc.name)])
+    // console.log('alll cols', [...allCols.map((d)=>d.desc.name)])
     const colOrder = [
       'longitude',
       'latitude',
       currentSelectedMapAttribute,
       'STATENUM',
-      'zip',
       'GEOID10',
       'TRACTCE10'
     ];
@@ -56,12 +54,11 @@ export default class MapManager {
     for (const colName of colOrder) {
       for (const vector of allCols) {
         if (vector.desc.name === colName) {
-          console.log('colname in vector', colName)
+          // console.log('colname in vector', colName)
           orderedCols.push(vector);
         }
       }
     }
-    console.log('ordered cols', orderedCols)
     self.selectedAttributeVector = orderedCols[2];
     let dotDataAccum = [];
     //collect all the data important
@@ -70,7 +67,6 @@ export default class MapManager {
       allPromises = allPromises.concat([vector.data(), vector.names()]);
     });
     const finishedPromises = await Promise.all(allPromises);
-    console.log('finished promises', finishedPromises)
     const dataValDict = {};
     if (self.selectedAttributeVector.desc.name === 'KindredID') {
       finishedPromises[5].forEach((value, index) => {
@@ -88,7 +84,7 @@ export default class MapManager {
     }
     // console.log('dataval', dataValDict);
     // console.log('finishedPromises', finishedPromises.length);
-    console.log('finished promises', finishedPromises[8])
+    // console.log('finished promises', finishedPromises[8])
 
     finishedPromises[1].forEach((idNumber, index) => {
       const dataEntry: any = {};
@@ -98,11 +94,15 @@ export default class MapManager {
       dataEntry.dataVal = dataValDict[idNumber];
       dataEntry.statenum = finishedPromises[6][index];
       dataEntry.GEOID10 = finishedPromises[8][index];
+      dataEntry.TRACTID10 = finishedPromises[10][index];
       dotDataAccum.push(dataEntry);
     });
+    // console.log('finished promises[1] id?', finishedPromises[1])
+    //Only return rows with lat and lon
     dotDataAccum = dotDataAccum.filter((d) => d.longitude && d.latitude);
     self.selectedMapAttributeType = self.selectedAttributeVector.valuetype.type;
-
+    //Generate the necessary scale functions for the data based on type
+    //Categorical
     if (self.selectedMapAttributeType === VALUE_TYPE_CATEGORICAL) {
       const allCategories = self.selectedAttributeVector.desc.value.categories.map(
         (c) => c.name
@@ -110,6 +110,7 @@ export default class MapManager {
       self.scaleFunction = function(inputValue) {
         return schemeCategory10[allCategories.indexOf(inputValue)];
       };
+    //  Int or Real:
     } else if (
       self.selectedMapAttributeType === VALUE_TYPE_INT ||
       self.selectedMapAttributeType === VALUE_TYPE_REAL
@@ -120,6 +121,7 @@ export default class MapManager {
       self.scaleFunction = function(inputValue) {
         return interpolatePurples(dataScale(inputValue));
       };
+    //  if selected attr is 'KindredID' - same as categorical
     } else if (self.selectedAttributeVector.desc.name === 'KindredID') {
       console.log(self.tableManager.familyIDArray);
       self.scaleFunction = function(inputValue) {
@@ -127,6 +129,7 @@ export default class MapManager {
           self.tableManager.familyIDArray.indexOf(inputValue) + 1
         ];
       };
+    //  selected attr is id, idtype, or string : blue
     } else if (
       self.selectedMapAttributeType === 'id' ||
       self.selectedMapAttributeType === 'idtype' ||
@@ -139,6 +142,29 @@ export default class MapManager {
 
     return dotDataAccum;
   }
+  public mappedCase = class {
+    private mapManager = this;
+    private caseID;
+    private geoID;
+    private lat;
+    private lon;
+    private radius;
+    private currentAttribute;
+    private currentAttributeValue;
+    private attributes;
+    private layerCoords;
+    constructor(id, geoID, dataval) {
+      this.caseID = id;
+      this.geoID = geoID;
+      this.currentAttributeValue = dataval;
+    }
+    private getCoords(geographies) {
+      const self = this;
+      const match = geographies.find((g)=>g.properties.GEOID10.toString() === self.geoID.toString());
+      console.log('match', match);
+      // get geography that matches self.geoID and set lat lon and attributes
+    }
+};
 }
 
 export function create() {

@@ -149,18 +149,20 @@ export default class MapManager {
     private lat;
     private lon;
     private radius;
-    private currentAttribute;
     private currentAttributeValue;
+    private currentAttribute;
     private attributes;
     private layerCoords;
-    constructor(id, geoID, dataval) {
-      this.caseID = id;
+    constructor(geoID, dataval, currentAttribute) {
       this.geoID = geoID;
       this.currentAttributeValue = dataval;
+      this.currentAttribute = currentAttribute;
     }
-    private getCoords(geographies) {
+    private getCoords(geographies, latCol = 'INTPTLAT10', lonCol = 'INTPTLON10') {
       const self = this;
       const match = geographies.find((g)=>g.properties.GEOID10.toString() === self.geoID.toString());
+      self.lat = match.properties[latCol];
+      self.lon = match.properties[lonCol];
       console.log('match', match);
       // get geography that matches self.geoID and set lat lon and attributes
     }

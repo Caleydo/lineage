@@ -236,6 +236,9 @@ class MapView {
     }
     async update() {
       const self = this;
+      if (self.displayfamilyCases===true) {
+        self.getFamilyCases();
+      }
       self.dotDataColloection = await self.mapManager.prepareData(this.currentSelectedMapAttribute);
       // if self.mapView === 'All Cases'... else if === 'Family Cases'::
       // console.log('dotDataColloection', self.dotDataColloection);
@@ -247,7 +250,8 @@ class MapView {
         select('#mapLayer').attr('opacity',1).attr('pointer-events','auto');
         select('#drawLayer').attr('opacity',1).attr('pointer-events','auto');
         console.log('map functions currently suppressed');
-        self.updateCircles();
+        // self.drawCases();
+        // self.updateCircles();
         // self.drawGeographicalMap();
         // self.drawMapDots();
       } else if(this.currentViewType === 'Detail') {
@@ -668,6 +672,7 @@ class MapView {
 
     }
     private async drawLeafletMap() {
+      console.log('draw leaflet map');
       const self = this;
       //Basemaps:
       const positronBasemap = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
@@ -684,33 +689,32 @@ class MapView {
           });
       const tracts = L.geoJSON(self.mapManager.topojsonFeatures);
       tracts.setStyle({fillOpacity:0.1, weight:1.0, color: '#285880'});
-      const lmap = L.map('leafdiv',{
+      const mapObject = L.map('leafdiv',{
           center: [39.384167, -111.683500],
-          zoom: 7,
-          layers: [tracts, positronBasemap]
+          zoom: 6,
+          // layers: [tracts, positronBasemap]
         });
       // leafSVG is an svg layer/renderer that is added to leaflet overlay by default
+      tracts.addTo(mapObject);
       const leafSVG = L.svg();
-      leafSVG.addTo(lmap);
+      leafSVG.addTo(mapObject);
       leafSVG._container.setAttribute('id', 'leafSVG');
       const leafBasemaps = {
-        'Grayscale': positronBasemap,
+        'Grayscale': positronBasemap.addTo(mapObject),
         'OSM': osm
       };
       const leafOverlays = {
-        'Census Tracts': tracts,
-        'Cases': leafSVG
+        'Census Tracts': tracts
       };
-      L.control.layers(leafBasemaps, leafOverlays).addTo(lmap);
-
-
-      lmap.on('zoomend', function() {
-        self.updateCircles();
-        console.log('map zoom', lmap.getZoom());
+      L.control.layers(leafBasemaps, leafOverlays).addTo(mapObject);
+      mapObject.on('zoomend', function() {
+        self.drawCases();
+        // self.updateCircles();
+        console.log('map zoom', mapObject.getZoom());
         // alert(map.getBounds())
       });
       // TODO - maybe use this object, delete the entire map on update....?
-      self.leafMap = lmap;
+      self.leafMap = mapObject;
       const lmapLegend = select('#maplegend').append('div').attr('id','lmaplegend-div')
                         .append('ul')
                         .attr('class', 'nav navbar-nav navbar-left')
@@ -746,7 +750,7 @@ class MapView {
       } else if (d === 'Family Selection') {
         self.displayfamilyCases = true;
         self.getFamilyCases();
-        self.drawFamilyCases();
+        self.drawCases();
         console.log('Family Selection');
       }
       // self.update();
@@ -757,52 +761,29 @@ class MapView {
       console.log('getFamilyCases');
       const self = this;
       const geographies = self.mapManager.topojsonFeatures;
-      const tractDict = {};
       const familyCases = await self.mapManager.prepareData(this.currentSelectedMapAttribute);
-      const redu = familyCases.reduce((m, i) => {
-        const tract = i.GEOID10;
+      const tractGroups = familyCases.reduce((m, i) => {
+        // console.log('m,i', m,i);
+        const tract = i.GEOID10.toString();
+        // const mapobj = new self.mapManager.mappedCase(i.GEOID10, i.dataVal, self.currentSelectedMapAttribute);
         if(!m[tract]) {
-          const tractGEO = geographies.features.find((g)=>g.properties.GEOID10.toString() === tract.toString());
-          m[tract] = {cases:[], coords: {lat:tractGEO.properties.INTPTLAT10, lon: tractGEO.properties.INTPTLON10}, properties: tractGEO.properties};
+          const tractGEO = geographies.features.find((g)=>g.properties.GEOID10.toString() === tract);
+          m[tract] = {cases:[]
+            ,coords: {lat:tractGEO.properties.INTPTLAT10, lon: tractGEO.properties.INTPTLON10}
+            ,properties: tractGEO.properties};
         }
         m[tract].cases.push(i);
         return m;
       }, {});
-    }
-
-    private async drawFamilyCases() {
-      const self = this;
-      const lmap = self.leafMap;
-      const familyCases = self.dotDataColloection.map(function(d) {
-        d.layerCoords = lmap.latLngToLayerPoint([d.latitude, d.longitude]);
-        return d;
+      self.currentCases = Object.keys(tractGroups).map((k)=> {
+        const datadict = Object.assign({}, {'GEOID10':k}, tractGroups[k]);
+        return datadict;
       });
-      const forcesim = forceSimulation(familyCases)
-      .force('collision', forceCollide().radius(function(d) {
-        const radiusweight = 1.2;
-        // return rscale(d.properties.Nnorm)*radiusweight
-        return 10;
-      }))
-      .force('x', forceX().x(function(d) {
-        return d.layerCoords.x;}))
-      .force('y', forceY().y(function(d) {
-        return d.layerCoords.y;}))
-      .tick(100)
-      .stop();
-      console.log('familyCases', familyCases);
-      // plot pts
-      const leafSVG = d3.select('#leafSVG');
-      leafSVG.selectAll('circle').data(familyCases).enter().append('circle')
-        .attr('cx', (d)=> d.x)
-        .attr('cy', (d)=> d.y)
-        .attr('r', 10)
-        .attr('stroke', 'pink')
-        .style('fill', 'black');
     }
     private async getAllCases() {
       console.log('get all Cases');
       const self = this;
-      const geographies = self.mapManager.topojsonFeatures;
+      const geographies = await self.mapManager.topojsonFeatures;
       const attributeTable = self.mapManager.tableManager.attributeTable;
        //Next few lines are testing to extract all data for map view
       const attrpromises = [];
@@ -821,36 +802,62 @@ class MapView {
         // TODO - add row/record for each case, then group and aggregate?? or can do this in this one step??
       });
 
-    // const redu = attrfinishedPromises.reduce((m,i)=>{
-    // })
+    }
+    private async drawCases() {
+      console.log('Draw Cases');
+      const self = this;
+      const mapObject = self.leafMap;
+      // const familyCases = self.dotDataColloection.map(function(d) {
+      //   d.layerCoords = lmap.latLngToLayerPoint([d.latitude, d.longitude]);
+      //   return d;
+      // });
+      const cCases = self.currentCases.map((d)=> {
+        d.layerCoords = mapObject.latLngToLayerPoint([d.coords.lat, d.coords.lon]);
+        return d;
+      });
+      console.log('cCases - test for .x.y', cCases);
 
-    // const redu = familyCases.reduce((m, i) => {
-    // const tract = i.GEOID10;
-    // if(!m[tract]) {
-    //   const tractGEO = geographies.features.find((g)=>g.properties.GEOID10.toString() === tract.toString());
-    //   m[tract] = {cases:[], coords: {lat:tractGEO.properties.INTPTLAT10, lon: tractGEO.properties.INTPTLON10}, properties: tractGEO.properties};
-    // }
-    // m[tract].cases.push(i);
-    // return m;
-    // }, {});
-
+      const forcesim = forceSimulation(cCases)
+      .force('collision', forceCollide().radius(function(d) {
+        const radiusweight = 1.2;
+        // return rscale(d.properties.Nnorm)*radiusweight
+        return 10;
+      }))
+      .force('x', forceX().x(function(d) {
+        return d.layerCoords.x;}))
+      .force('y', forceY().y(function(d) {
+        return d.layerCoords.y;}))
+      .tick(100)
+      .stop();
+      console.log('forcesim', forcesim);
+      // plot pts
+      const leafContainer = select('#leafSVG').select('g');
+      let leafCircles = leafContainer.selectAll('circle').data(cCases);
+      leafCircles.exit().remove();
+      leafCircles = leafCircles.enter().append('circle').merge(leafCircles)
+        .attr('class', 'leaflet-interactive')
+        .attr('cx', (d) => d.x)
+        .attr('cy', (d) => d.y)
+        .attr('r', 10)
+        .attr('stroke', 'black')
+        .style('fill', 'pink');
     }
     private updateCircles() {
       const self = this;
-      const lmap = self.leafMap;
+      const mapObject = self.leafMap;
       let dots;
       try {
-        lmap.removeLayer(self.circleLayer);
+        mapObject.removeLayer(self.circleLayer);
       } catch(e) {
         console.log(e);
       }
-      // console.log('map has layer dots', lmap.hasLayer(dots));
-      // console.log('lmap layers', lmap._layers);
+      // console.log('map has layer dots', mapObject.hasLayer(dots));
+      // console.log('mapObject layers', mapObject._layers);
       dots = new L.LayerGroup();
       dots.id = 'circledots';
 
       const contpts = self.dotDataColloection.map(function(d) {
-        d.containercoords = lmap.latLngToContainerPoint([d.latitude, d.longitude])
+        d.containercoords = mapObject.latLngToContainerPoint([d.latitude, d.longitude])
       return d;
       });
         const forcesim = forceSimulation(contpts)
@@ -866,13 +873,13 @@ class MapView {
         .tick(100) //tes
         .stop();
       const circlemarkers = contpts.map(function(dot) {
-      const nlatnlon = lmap.containerPointToLatLng([dot.x, dot.y]);
+      const nlatnlon = mapObject.containerPointToLatLng([dot.x, dot.y]);
       const newdot =  new L.CircleMarker(nlatnlon, {color: 'red', fillColor: 'orange', radius: 10});
         newdot.addTo(dots);
         return newdot;
       });
         // console.log('new leaf circles', dots)
-      lmap.addLayer(dots);
+      mapObject.addLayer(dots);
       self.circleLayer = dots;
         //nothing here
     }

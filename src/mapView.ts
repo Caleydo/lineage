@@ -32,6 +32,7 @@ import { VALUE_TYPE_CATEGORICAL,
         VALUE_TYPE_REAL,
         VALUE_TYPE_STRING } from 'phovea_core/src/datatype';
 import * as d3 from 'd3';
+import any = jasmine.any;
 
 
 class MapView {
@@ -141,40 +142,28 @@ class MapView {
 
     mapmenuItems.on('click',(d)=> {
       const currSelection = selectAll('.layoutMenu').filter((e)=> {return e === d;});
-
       // if (currSelection.classed('active')) {
       //   return;
       // }
-
       selectAll('.layoutMenu').classed('active',false);
       currSelection.classed('active',true);
 
       if (d === 'Detail') {
-
           self.currentViewType = 'Detail';
-
-
       } else if (d === 'Map') {
-
           self.currentViewType = 'Map';
-
       } else {
          self.currentViewType = 'None';
-
       }
       self.update();
       }
     );
-
-
-
     const dropdownMenu = select('.navbar-collapse')
                         .append('ul')
                         .attr('class', 'nav navbar-nav')
                         .attr('id', 'mapAttribute');
 
       const list = dropdownMenu.append('li').attr('class', 'dropdown');
-
       list.append('a')
         .attr('class', 'dropdown-toggle')
         .attr('data-toggle', 'dropdown')
@@ -184,7 +173,6 @@ class MapView {
         .attr('class', 'caret');
 
       const menu = list.append('ul').attr('class', 'dropdown-menu');
-
       menu.append('h4').attr('class', 'dropdown-header')
         .style('font-size', '16px')
         .html('Demographic Attributes');
@@ -192,7 +180,6 @@ class MapView {
       let colNames = this.mapManager.tableManager.getDemographicColumns().map((col) => {
         return col.desc.name;
       });
-
       let menuItems = menu.selectAll('.demoAttr')
         .data(colNames);
       menuItems = menuItems.enter()
@@ -235,10 +222,9 @@ class MapView {
       self.update();
     }
     async update() {
+      console.log('UPDATE');
       const self = this;
-      if (self.displayfamilyCases===true) {
-        self.getFamilyCases();
-      }
+
       self.dotDataColloection = await self.mapManager.prepareData(this.currentSelectedMapAttribute);
       // if self.mapView === 'All Cases'... else if === 'Family Cases'::
       // console.log('dotDataColloection', self.dotDataColloection);
@@ -250,7 +236,8 @@ class MapView {
         select('#mapLayer').attr('opacity',1).attr('pointer-events','auto');
         select('#drawLayer').attr('opacity',1).attr('pointer-events','auto');
         console.log('map functions currently suppressed');
-        // self.drawCases();
+
+        await self.drawCases();
         // self.updateCircles();
         // self.drawGeographicalMap();
         // self.drawMapDots();
@@ -708,6 +695,7 @@ class MapView {
       };
       L.control.layers(leafBasemaps, leafOverlays).addTo(mapObject);
       mapObject.on('zoomend', function() {
+        // testing, remove call to get family on zoomend
         self.drawCases();
         // self.updateCircles();
         console.log('map zoom', mapObject.getZoom());
@@ -745,15 +733,16 @@ class MapView {
       currSelection.classed('active',true);
       if (d === 'All Tracts') {
         self.displayfamilyCases = false;
-        self.getAllCases();
+        // self.getAllCases();
+        // self.drawCases()
         console.log('All Tracts');
       } else if (d === 'Family Selection') {
         self.displayfamilyCases = true;
-        self.getFamilyCases();
-        self.drawCases();
+        // self.getFamilyCases();
+        // self.drawCases();
         console.log('Family Selection');
       }
-      // self.update();
+      self.update();
       });
 
     }
@@ -762,21 +751,23 @@ class MapView {
       const self = this;
       const geographies = self.mapManager.topojsonFeatures;
       const familyCases = await self.mapManager.prepareData(this.currentSelectedMapAttribute);
-      const tractGroups = familyCases.reduce((m, i) => {
+      const tractGroups = familyCases.reduce((d, i) => {
         // console.log('m,i', m,i);
         const tract = i.GEOID10.toString();
         // const mapobj = new self.mapManager.mappedCase(i.GEOID10, i.dataVal, self.currentSelectedMapAttribute);
-        if(!m[tract]) {
+        if(!d[tract]) {
           const tractGEO = geographies.features.find((g)=>g.properties.GEOID10.toString() === tract);
-          m[tract] = {cases:[]
+          d[tract] = {cases:[]
             ,coords: {lat:tractGEO.properties.INTPTLAT10, lon: tractGEO.properties.INTPTLON10}
             ,properties: tractGEO.properties};
         }
-        m[tract].cases.push(i);
-        return m;
+        d[tract].cases.push(i);
+        return d;
       }, {});
       self.currentCases = Object.keys(tractGroups).map((k)=> {
-        const datadict = Object.assign({}, {'GEOID10':k}, tractGroups[k]);
+        const datadict: any= {};
+        datadict.GEOID10 = k;
+        Object.assign(datadict, tractGroups[k]);
         return datadict;
       });
     }
@@ -787,36 +778,72 @@ class MapView {
       const attributeTable = self.mapManager.tableManager.attributeTable;
        //Next few lines are testing to extract all data for map view
       const attrpromises = [];
+      const attrColNames = [];
       //the ids, in this case 'personid' is accessed via the .names() method
       attrpromises.push(attributeTable.col(0).names());
+      attrColNames.push(attributeTable.col(0).idtype.id);
       attributeTable.cols().forEach((vect, index)=> {
         const cname = vect.column.toString();
+        attrColNames.push(cname);
         attrpromises.push(attributeTable.colData(cname));
     });
-    // attrpromises.push(self.attributeTable.colData('TRACTCE10'));
     const attrfinishedPromises = await Promise.all(attrpromises);
-    console.log(attrfinishedPromises);
-    const allCases = {}
-    attrfinishedPromises[0].forEach((d, i) => {
-        console.log('d, i', d, i);
-        // TODO - add row/record for each case, then group and aggregate?? or can do this in this one step??
+    const cc = attrfinishedPromises[0].map((col, i)=> {
+      const datadict: any = {};
+      datadict.coords = {lat:undefined, lon:undefined};
+      attrfinishedPromises.forEach((ccol, ii)=> {
+        let dataVal = ccol[i];
+        const cname =  attrColNames[ii];
+        if (cname === 'GEOID10') {
+          dataVal = dataVal.toString();
+          const tractGEO = geographies.features.find((g)=>g.properties.GEOID10.toString() === dataVal);
+          if (typeof(tractGEO) !== 'undefined') {
+            datadict.coords =  {lat:tractGEO.properties.INTPTLAT10, lon: tractGEO.properties.INTPTLON10};
+          }
+        }
+        datadict[cname] = dataVal;
       });
+      return datadict;
+    });
+      console.log('cc', cc)
+    // const casesRows = attrfinishedPromises.map((col, i)=> attrfinishedPromises.map((row, ii) => row[i]));
 
-    }
+
+    // Todo - so i guess i need to query each kindred id, by person id?? seems like that's not right... but needed for family grouping
+    //  look at family attributeparser for hints...
+    const kindredIDVector = await self.mapManager.tableManager.getAttributeVector('KindredID', true); //get FamilyID vector for all families
+    const familyIDs: number[] = <number[]>await kindredIDVector.data();
+    const peopleIDs: string[] = await kindredIDVector.names();
+      console.log('fam', kindredIDVector);
+
+        // TODO - add row/record for each case, then group and aggregate?? or can do this in this one step??
+      self.currentCases = cc;
+      return cc;
+      }
+
+
     private async drawCases() {
       console.log('Draw Cases');
       const self = this;
       const mapObject = self.leafMap;
-      // const familyCases = self.dotDataColloection.map(function(d) {
-      //   d.layerCoords = lmap.latLngToLayerPoint([d.latitude, d.longitude]);
-      //   return d;
-      // });
-      const cCases = self.currentCases.map((d)=> {
+      if (self.displayfamilyCases===true) {
+        console.log('draw family cases');
+        await self.getFamilyCases();
+      } else {
+        console.log('draw All Cases');
+        await self.getAllCases();
+      }
+
+      console.log('total cases: ', self.currentCases.length);
+      console.log('current cases', self.currentCases);
+      let cCases = self.currentCases.filter((d)=> {return d.GEOID10 !== 'NaN';});
+      cCases = cCases.map((d)=> {
         d.layerCoords = mapObject.latLngToLayerPoint([d.coords.lat, d.coords.lon]);
+        d.x = null;
+        d.y = null;
         return d;
       });
-      console.log('cCases - test for .x.y', cCases);
-
+      console.log('after filter cases: ', cCases.length);
       const forcesim = forceSimulation(cCases)
       .force('collision', forceCollide().radius(function(d) {
         const radiusweight = 1.2;
@@ -829,7 +856,6 @@ class MapView {
         return d.layerCoords.y;}))
       .tick(100)
       .stop();
-      console.log('forcesim', forcesim);
       // plot pts
       const leafContainer = select('#leafSVG').select('g');
       let leafCircles = leafContainer.selectAll('circle').data(cCases);
@@ -857,7 +883,7 @@ class MapView {
       dots.id = 'circledots';
 
       const contpts = self.dotDataColloection.map(function(d) {
-        d.containercoords = mapObject.latLngToContainerPoint([d.latitude, d.longitude])
+        d.containercoords = mapObject.latLngToContainerPoint([d.latitude, d.longitude]);
       return d;
       });
         const forcesim = forceSimulation(contpts)

@@ -2,8 +2,8 @@ import * as events from 'phovea_core/src/event';
 import { select, selection, selectAll, mouse, event } from 'd3-selection';
 import { format } from 'd3-format';
 import {Config} from './config';
-import { scaleLinear, scaleOrdinal, schemeCategory10 } from 'd3-scale';
-import {interpolateReds, interpolateRdBu} from 'd3-scale-chromatic';
+import {scaleLinear, scaleOrdinal, schemeCategory10, scaleSqrt} from 'd3-scale';
+import {interpolateReds, interpolateRdBu, interpolateViridis} from 'd3-scale-chromatic';
 import {line as line_generator,curveCatmullRom,curveMonotoneX} from 'd3-shape';
 import { max, min, mean } from 'd3-array';
 import {zoom, zoomIdentity} from 'd3-zoom';
@@ -75,6 +75,7 @@ class MapView {
         .style('height', this.svgHeight+'px')
         .style('position', 'relative');
         // .style('display':'flex');
+      const mapPopup = select('#map').append('div').attr('id', 'mapPopup');
       const maplegend = leafmaster.append('div')
         .attr('id', 'maplegend')
         .style('height', '200px')
@@ -788,7 +789,7 @@ class MapView {
         attrpromises.push(attributeTable.colData(cname));
     });
     const attrfinishedPromises = await Promise.all(attrpromises);
-    const cc = attrfinishedPromises[0].map((col, i)=> {
+    let cc = attrfinishedPromises[0].map((col, i)=> {
       const datadict: any = {};
       datadict.coords = {lat:undefined, lon:undefined};
       attrfinishedPromises.forEach((ccol, ii)=> {
@@ -799,31 +800,54 @@ class MapView {
           const tractGEO = geographies.features.find((g)=>g.properties.GEOID10.toString() === dataVal);
           if (typeof(tractGEO) !== 'undefined') {
             datadict.coords =  {lat:tractGEO.properties.INTPTLAT10, lon: tractGEO.properties.INTPTLON10};
+            datadict.properties = tractGEO.properties;
           }
         }
         datadict[cname] = dataVal;
       });
       return datadict;
     });
-      console.log('cc', cc)
-    // const casesRows = attrfinishedPromises.map((col, i)=> attrfinishedPromises.map((row, ii) => row[i]));
-
-
-    // Todo - so i guess i need to query each kindred id, by person id?? seems like that's not right... but needed for family grouping
-    //  look at family attributeparser for hints...
     const kindredIDVector = await self.mapManager.tableManager.getAttributeVector('KindredID', true); //get FamilyID vector for all families
     const familyIDs: number[] = <number[]>await kindredIDVector.data();
     const peopleIDs: string[] = await kindredIDVector.names();
       console.log('fam', kindredIDVector);
+    cc = cc.map((d)=> {
+      const pID = d.personid;
+      d.kindredID = familyIDs[peopleIDs.indexOf(pID)];
+      return d;
+    });
+    // Filter out records that do not have a matching tract (GEOID10)
+    //   Todo - need to make this not hardcoded with 'NaN' below
+    cc = cc.filter((d)=> {
+      return d.GEOID10 !== 'NaN';
+    });
+    const tractGroups = cc.reduce((d, i) => {
+      const tract = i.GEOID10.toString();
+      // const mapobj = new self.mapManager.mappedCase(i.GEOID10, i.dataVal, self.currentSelectedMapAttribute);
+      if(!d[tract]) {
+        const tractGEO = geographies.features.find((g)=>g.properties.GEOID10.toString() === tract);
+        d[tract] = {cases:[]
+          ,coords: {lat:tractGEO.properties.INTPTLAT10, lon: tractGEO.properties.INTPTLON10}
+          ,properties: tractGEO.properties};
+      }
+      d[tract].cases.push(i);
+      return d;
+  }, {});
 
-        // TODO - add row/record for each case, then group and aggregate?? or can do this in this one step??
-      self.currentCases = cc;
-      return cc;
+    // Group the individual cases by tract (GEOID10) and assign to self.currentCases
+    self.currentCases = Object.keys(tractGroups).map((k)=> {
+      const datadict: any= {};
+      datadict.GEOID10 = k;
+      Object.assign(datadict, tractGroups[k]);
+      return datadict;
+    });
       }
 
 
     private async drawCases() {
       console.log('Draw Cases');
+      const normVar = 'POP100';
+      let maxRadiusVal = 0;
       const self = this;
       const mapObject = self.leafMap;
       if (self.displayfamilyCases===true) {
@@ -833,22 +857,26 @@ class MapView {
         console.log('draw All Cases');
         await self.getAllCases();
       }
-
       console.log('total cases: ', self.currentCases.length);
       console.log('current cases', self.currentCases);
       let cCases = self.currentCases.filter((d)=> {return d.GEOID10 !== 'NaN';});
       cCases = cCases.map((d)=> {
         d.layerCoords = mapObject.latLngToLayerPoint([d.coords.lat, d.coords.lon]);
-        d.x = null;
-        d.y = null;
+        d.radiusVal = d.cases.length/d.properties[normVar];
+        maxRadiusVal = d.radiusVal > maxRadiusVal?d.radiusVal:maxRadiusVal;
         return d;
       });
       console.log('after filter cases: ', cCases.length);
+      const rScale = scaleSqrt()
+        .domain([0, maxRadiusVal])
+        .range([2, 10]);
+      const cScale = scaleLinear().domain([0, maxRadiusVal]).range([0,1]);
+
       const forcesim = forceSimulation(cCases)
       .force('collision', forceCollide().radius(function(d) {
-        const radiusweight = 1.2;
-        // return rscale(d.properties.Nnorm)*radiusweight
-        return 10;
+        const radiusWeight = 1.2;
+        return rScale(d.radiusVal)*radiusWeight;
+        // return 10;
       }))
       .force('x', forceX().x(function(d) {
         return d.layerCoords.x;}))
@@ -864,9 +892,14 @@ class MapView {
         .attr('class', 'leaflet-interactive')
         .attr('cx', (d) => d.x)
         .attr('cy', (d) => d.y)
-        .attr('r', 10)
+        .attr('r', (d) => rScale(d.radiusVal))
         .attr('stroke', 'black')
-        .style('fill', 'pink');
+        // .style('fill', 'pink')
+        .style('fill', (d) => (interpolateViridis(cScale(d.radiusVal))))
+        .on('click', function(d) {
+          console.log('bubble clicked', d);
+          return d;
+          });
     }
     private updateCircles() {
       const self = this;

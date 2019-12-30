@@ -3,7 +3,7 @@ import { select, selection, selectAll, mouse, event } from 'd3-selection';
 import { format } from 'd3-format';
 import {Config} from './config';
 import {scaleLinear, scaleOrdinal, schemeCategory10, scaleSqrt} from 'd3-scale';
-import {interpolateReds, interpolateRdBu, interpolateViridis} from 'd3-scale-chromatic';
+import {interpolateReds, interpolateRdBu, interpolateViridis, interpolatePlasma} from 'd3-scale-chromatic';
 import {line as line_generator,curveCatmullRom,curveMonotoneX} from 'd3-shape';
 import { max, min, mean } from 'd3-array';
 import {zoom, zoomIdentity} from 'd3-zoom';
@@ -682,9 +682,10 @@ class MapView {
           zoom: 6,
           // layers: [tracts, positronBasemap]
         });
-      // leafSVG is an svg layer/renderer that is added to leaflet overlay by default
+      // leafSVG is an svg layer/renderer that is added to leaflet overlay div by default
       tracts.addTo(mapObject);
-      const leafSVG = L.svg();
+      const leafSVG = L.svg({clickable: true});
+      // leafSVG.interactive(true);
       leafSVG.addTo(mapObject);
       leafSVG._container.setAttribute('id', 'leafSVG');
       const leafBasemaps = {
@@ -734,17 +735,17 @@ class MapView {
       currSelection.classed('active',true);
       if (d === 'All Tracts') {
         self.displayfamilyCases = false;
-        // self.getAllCases();
-        // self.drawCases()
         console.log('All Tracts');
       } else if (d === 'Family Selection') {
         self.displayfamilyCases = true;
-        // self.getFamilyCases();
-        // self.drawCases();
         console.log('Family Selection');
       }
       self.update();
       });
+    const mapLegend = select('#maplegend').append('svg')
+      .attr('id', 'circleBrush')
+      .attr('width', self.svgHeight+'px')
+      .attr('height', '100px');
 
     }
     private async getFamilyCases() {
@@ -885,21 +886,63 @@ class MapView {
       .tick(100)
       .stop();
       // plot pts
-      const leafContainer = select('#leafSVG').select('g');
+
+      const leafSVG = select('#leafSVG');
+      leafSVG.attr('pointer-events', 'auto');
+      const leafContainer = leafSVG.select('g');
       let leafCircles = leafContainer.selectAll('circle').data(cCases);
       leafCircles.exit().remove();
       leafCircles = leafCircles.enter().append('circle').merge(leafCircles)
         .attr('class', 'leaflet-interactive')
-        .attr('cx', (d) => d.x)
-        .attr('cy', (d) => d.y)
-        .attr('r', (d) => rScale(d.radiusVal))
+        .attr('cx', (d:any) => d.x)
+        .attr('cy', (d:any) => d.y)
+        .attr('r', (d:any) => rScale(d.radiusVal))
         .attr('stroke', 'black')
         // .style('fill', 'pink')
-        .style('fill', (d) => (interpolateViridis(cScale(d.radiusVal))))
+        .style('fill', (d:any) => (interpolatePlasma(cScale(d.radiusVal))))
+        .on('mouseover', function(d) {
+          select(this).transition()
+            .attr('stroke-width', '5px')
+            .attr('r', (d:any) => {
+              return rScale(d.radiusVal)*2;
+            });
+          console.log('bubble hover', d);
+          return d;
+          })
+        .on('mouseout', function(d) {
+          select(this).transition()
+          .attr('stroke-width', '1px')
+          .style('fill', (d:any) => (interpolatePlasma(cScale(d.radiusVal))))
+          .attr('r', (d:any) => rScale(d.radiusVal));
+          })
+
         .on('click', function(d) {
           console.log('bubble clicked', d);
           return d;
           });
+      // draw brushable circles
+      // @ts-ignore
+      const distinctVals = [...new Set(cCases.map((d)=> Math.floor(rScale(d.radiusVal))))].sort((a,b)=> a-b);
+      const legendCircles = [0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1];
+
+      let brushCircles = select ('#circleBrush').selectAll('circle').data(distinctVals);
+      brushCircles.exit().remove();
+      brushCircles = brushCircles.enter().append('circle').merge(brushCircles)
+      // brushCircles.enter().append('circle')
+        // .attr('class', 'leaflet-interactive')
+        .attr('cx', (d, i) => {
+          return 10+i*40;
+        })
+        .attr('cy', 60)
+        .attr('r', (d) => d)
+        .attr('stroke', 'black')
+        // .style('fill', 'pink')
+        .style('fill', (d:any) => (interpolatePlasma(rScale.invert(d)/maxRadiusVal)));
+    }
+    private casesTable(cases:any) {
+      console.log('render cases table');
+      // TODO - create and populate cases table within div (could use circle tip div ??)
+
     }
     private updateCircles() {
       const self = this;

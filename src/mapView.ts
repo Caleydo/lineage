@@ -3,7 +3,7 @@ import { select, selection, selectAll, mouse, event } from 'd3-selection';
 import { format } from 'd3-format';
 import {Config} from './config';
 import {scaleLinear, scaleOrdinal, schemeCategory10, scaleSqrt} from 'd3-scale';
-import {interpolateReds, interpolateRdBu, interpolateViridis, interpolatePlasma} from 'd3-scale-chromatic';
+import {interpolateReds, interpolateRdBu, interpolateViridis, interpolateCividis} from 'd3-scale-chromatic';
 import {line as line_generator,curveCatmullRom,curveMonotoneX} from 'd3-shape';
 import { max, min, mean } from 'd3-array';
 import {zoom, zoomIdentity} from 'd3-zoom';
@@ -40,6 +40,7 @@ class MapView {
     private currentCases;
     private displayfamilyCases = true;
     private circleLayer;
+    private leafCircles;
     private mapManager;
     private currentSelectedMapAttribute: string = 'sex';
     private currentViewType = 'Hide';
@@ -684,10 +685,11 @@ class MapView {
         });
       // leafSVG is an svg layer/renderer that is added to leaflet overlay div by default
       tracts.addTo(mapObject);
-      const leafSVG = L.svg({clickable: true});
+      const leafSVG = L.svg({clickable: true, pane: 'markerPane'});
       // leafSVG.interactive(true);
       leafSVG.addTo(mapObject);
       leafSVG._container.setAttribute('id', 'leafSVG');
+      self.leafCircles = leafSVG;
       const leafBasemaps = {
         'Grayscale': positronBasemap.addTo(mapObject),
         'OSM': osm
@@ -846,10 +848,14 @@ class MapView {
 
 
     private async drawCases() {
+      const self = this;
+      const circleTip = select('#col4').select('#circletip');
+      const leafMapObject = self.leafMap;
+      leafMapObject.invalidateSize();
       console.log('Draw Cases');
       const normVar = 'POP100';
       let maxRadiusVal = 0;
-      const self = this;
+
       const mapObject = self.leafMap;
       if (self.displayfamilyCases===true) {
         console.log('draw family cases');
@@ -899,9 +905,10 @@ class MapView {
         .attr('r', (d:any) => rScale(d.radiusVal))
         .attr('stroke', 'black')
         // .style('fill', 'pink')
-        .style('fill', (d:any) => (interpolatePlasma(cScale(d.radiusVal))))
+        .style('fill', (d:any) => (interpolateCividis(cScale(d.radiusVal))))
         .on('mouseover', function(d) {
-          select(this).transition()
+          // select(this).transition()
+          select(this)
             .attr('stroke-width', '5px')
             .attr('r', (d:any) => {
               return rScale(d.radiusVal)*2;
@@ -912,13 +919,43 @@ class MapView {
         .on('mouseout', function(d) {
           select(this).transition()
           .attr('stroke-width', '1px')
-          .style('fill', (d:any) => (interpolatePlasma(cScale(d.radiusVal))))
+          .style('fill', (d:any) => (interpolateCividis(cScale(d.radiusVal))))
           .attr('r', (d:any) => rScale(d.radiusVal));
           })
+        .on('click', function(d:any) {
+          // const famIDfield: string;
+          // const famData = {};
+          // TODO - group the cases based on family id - need to get family id for family selection view... (query same as 'all')??
+          // d.cases.map((d) => {
+          //   const reduce
+          // })
+          //Create this table at init, or when building the map, then no need to add and remove...
+          select('#btable').remove();
+          const btab = select('body').append('table')
+            .attr('id', 'btable')
+            .attr('class', 'testclassnoref');
+          // const popupTable = select('#mapPopupTable');
+          const popTableHeader = btab.append('thead');
+          popTableHeader.append('tr').append('th').text('Cases');
+          const popTableBody = btab.append('tbody');
+          // NEED TO PROCESS THESE DATAT POINTS SO THAT THEY ARE GROUPED BY FAMILY ID!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+          const tblTH = popTableBody.selectAll('tr').data(d.cases).enter().append('tr').append('td')
+            .attr('class', 'trdata')
+            .text((dd:any) => {
+              console.log('dd', dd);
+              return dd.GEOID10;
+            })
+            .append('tr').append('td').text('doopadoopado');
 
-        .on('click', function(d) {
+          // select('#mapPopupTable').remove();
           console.log('bubble clicked', d);
-          return d;
+          const popUp = L.popup({closeOnClick: false, keepInView: true, maxWidth: 'auto'})
+            .setLatLng([d.properties.INTPTLAT10, d.properties.INTPTLON10])
+            // .setContent('<table id=mapPopupTable></table>')
+            .setContent(document.getElementById('btable'))
+            .openOn(self.leafMap);
+
+          // popUp.update();
           });
       // draw brushable circles
       // @ts-ignore
@@ -934,17 +971,19 @@ class MapView {
           return 10+i*40;
         })
         .attr('cy', 60)
-        .attr('r', (d) => d)
+        .attr('r', (d:any) => d)
         .attr('stroke', 'black')
         // .style('fill', 'pink')
-        .style('fill', (d:any) => (interpolatePlasma(rScale.invert(d)/maxRadiusVal)));
+        .style('fill', (d:any) => (interpolateCividis(rScale.invert(d)/maxRadiusVal)));
     }
-    private casesTable(cases:any) {
-      console.log('render cases table');
-      // TODO - create and populate cases table within div (could use circle tip div ??)
+  private casesTable(cases:any) {
+      // reusing circletip div from previous code
+    const circleTip = select('#col4').select('#circletip');
+    console.log('render cases table');
+    // TODO - create and populate cases table within div (could use circle tip div ??)
 
-    }
-    private updateCircles() {
+  }
+  private updateCircles() {
       const self = this;
       const mapObject = self.leafMap;
       let dots;

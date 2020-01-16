@@ -41,14 +41,15 @@ export default class MapManager {
     const graphView = await this.tableManager.graphTable;
     const attributeView = await this.tableManager.tableTable;
     const allCols = graphView.cols().concat(attributeView.cols());
-    // console.log('alll cols', [...allCols.map((d)=>d.desc.name)])
+    console.log('alll cols', [...allCols.map((d)=>d.desc.name)])
     const colOrder = [
       'longitude',
       'latitude',
       currentSelectedMapAttribute,
       'STATENUM',
       'GEOID10',
-      'TRACTCE10'
+      'TRACTCE10',
+      'KindredID'
     ];
     const orderedCols = [];
     for (const colName of colOrder) {
@@ -95,6 +96,8 @@ export default class MapManager {
       dataEntry.statenum = finishedPromises[6][index];
       dataEntry.GEOID10 = finishedPromises[8][index];
       dataEntry.TRACTID10 = finishedPromises[10][index];
+      dataEntry.KindredID = finishedPromises[12][index];
+      // TODO - CHECK IF KINDREDID COMES THROUGH
       dotDataAccum.push(dataEntry);
     });
     // console.log('finished promises[1] id?', finishedPromises[1])

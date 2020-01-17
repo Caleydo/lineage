@@ -816,7 +816,7 @@ class MapView {
       console.log('fam', kindredIDVector);
     cc = cc.map((d)=> {
       const pID = d.personid;
-      d.kindredID = familyIDs[peopleIDs.indexOf(pID)];
+      d.KindredID = familyIDs[peopleIDs.indexOf(pID)];
       return d;
     });
     // Filter out records that do not have a matching tract (GEOID10)
@@ -923,12 +923,20 @@ class MapView {
           .attr('r', (d:any) => rScale(d.radiusVal));
           })
         .on('click', function(d:any) {
-          // const famIDfield: string;
-          // const famData = {};
-          // TODO - group the cases based on family id - need to get family id for family selection view... (query same as 'all')??
-          // d.cases.map((d) => {
-          //   const reduce
-          // })
+          const tractData = d;
+
+          const kindredMap = new Map();
+          tractData.cases.forEach((scase) => {
+            const kID = scase.KindredID;
+            const coll = kindredMap.get(kID);
+            if (!coll) {
+              kindredMap.set(kID, [scase]);
+            } else {
+              coll.push(scase);
+            }
+          });
+          const kindredArray = Array.from(kindredMap.entries());
+          console.log('kindred aray', kindredArray);
           //Create this table at init, or when building the map, then no need to add and remove...
           select('#btable').remove();
           const btab = select('body').append('table')
@@ -936,20 +944,38 @@ class MapView {
             .attr('class', 'testclassnoref');
           // const popupTable = select('#mapPopupTable');
           const popTableHeader = btab.append('thead');
-          popTableHeader.append('tr').append('th').text('Cases');
           const popTableBody = btab.append('tbody');
-          // NEED TO PROCESS THESE DATAT POINTS SO THAT THEY ARE GROUPED BY FAMILY ID!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-          const tblTH = popTableBody.selectAll('tr').data(d.cases).enter().append('tr').append('td')
-            .attr('class', 'trdata')
-            .text((dd:any) => {
-              console.log('dd', dd);
-              return dd.GEOID10;
+          const tableColumns = popTableHeader.append('tr').selectAll('th').data(['1', '2', '3', '4']).enter().append('th')
+            .text((d)=> {return d;});
+          // NEED TO PROCESS THESE DATA POINTS SO THAT THEY ARE GROUPED BY FAMILY ID!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+          const tableRows = popTableBody.selectAll('tr').data(tractData.cases).enter().append('tr');
+
+          const tableCells = tableRows.selectAll('td')
+            .data((d:any, i) => {
+              return [4,5,6,7];
+
             })
-            .append('tr').append('td').text('doopadoopado');
+            .enter().append('td')
+            .text((d:any, i) => {return d;});
+                          // .attr('class', 'trdata')
+            // .text((dd:any) => {
+            //   const kID = dd[0]
+            //   const kCases = dd[1]
+            //   console.log('dd', dd);
+            //   return 'Kindred ID: '+kID;
+            // })
+            // tableRows.selectAll('tr')
+            // .append('tr').append('td').text((d:any) => {
+            //   console.log('can i get d - bubble from here??');
+            //   return tractData.properties.POP100;})
+            // .append('tr').append('td').text((d:any) => {
+            //
+            //
+            //   return tractData.properties.POP100;});
 
           // select('#mapPopupTable').remove();
           console.log('bubble clicked', d);
-          const popUp = L.popup({closeOnClick: false, keepInView: true, maxWidth: 'auto'})
+          const popUp = L.popup({closeOnClick: false, keepInView: true, maxWidth: '600'})
             .setLatLng([d.properties.INTPTLAT10, d.properties.INTPTLON10])
             // .setContent('<table id=mapPopupTable></table>')
             .setContent(document.getElementById('btable'))

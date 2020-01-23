@@ -274,7 +274,19 @@ ul.nav.navbar-nav{
 #col4 path:hover{
   fill:#f7f7f7
 }
-
+#btable th{
+  background-color: transparent;
+  color: #020203;
+  text-transform: capitalize;
+}
+#btable tr{
+  border-bottom:1px solid #000;
+}
+#btable th, td{
+  padding: 5px;
+}
+//#btable tr:first-child{
+//  border-bottom:1px solid #000;}
 
 
 #col4 .map-paths{

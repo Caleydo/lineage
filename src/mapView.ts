@@ -12,6 +12,7 @@ import {geoCentroid,geoMercator,geoPath, geoConicConformal} from 'd3-geo';
 // import {geoCentroid,geoMercator,geoPath} from 'd3-geo';
 import {forceSimulation,forceCollide, forceX, forceY} from 'd3-force';
 import {timeout} from 'd3-timer';
+import {brush, brushX} from 'd3-brush';
 import L from 'leaflet';
 import {feature as topofeature} from 'topojson';
 
@@ -220,6 +221,49 @@ class MapView {
             events.fire(MAP_ATTRIBUTE_CHANGE_EVENT,undefined);
           }
         });
+      // MAP VIEW
+
+      const lmapLegend = select('.navbar-collapse').append('div').attr('id','lmaplegend-div')
+        .append('ul')
+        // .attr('class', 'nav navbar-nav navbar-left')
+        .attr('class', 'nav navbar-nav')
+        .attr('id', 'mapAttribute');
+
+      const legendlist = lmapLegend.append('li').attr('class','dropdown');
+      legendlist.append('a')
+        .attr('class','dropdown-toggle')
+        .attr('data-toggle','dropdown')
+        .attr('role','button')
+        .html('Map View')
+        .append('span')
+        .attr('class', 'caret');
+
+      const legendMenu = legendlist.append('ul').attr('class', 'dropdown-menu');
+      let maplegendItems = legendMenu.selectAll('.demoAttr')
+        .data(['All Tracts', 'Family Selection']);
+      maplegendItems = maplegendItems.enter()
+        .append('li')
+        .append('a')
+        .attr('class', 'layoutMenu')
+        .classed('active', function(d) { return d === 'Expand';})
+        .html((d:any) => { return d; })
+        .merge(maplegendItems);
+      maplegendItems.on('click',(d)=> {
+        const currSelection = selectAll('.layoutMenu').filter((e)=> {return e === d;});
+        selectAll('.layoutMenu').classed('active',false);
+        currSelection.classed('active',true);
+        if (d === 'All Tracts') {
+          self.displayfamilyCases = false;
+          console.log('All Tracts');
+        } else if (d === 'Family Selection') {
+          self.displayfamilyCases = true;
+          console.log('Family Selection');
+        }
+        self.update();
+      });
+
+
+
 
       self.update();
     }
@@ -707,54 +751,71 @@ class MapView {
       });
       // TODO - maybe use this object, delete the entire map on update....?
       self.leafMap = mapObject;
-      const lmapLegend = select('#maplegend').append('div').attr('id','lmaplegend-div')
-                        .append('ul')
-                        .attr('class', 'nav navbar-nav navbar-left')
-                        .attr('id', 'mapAttribute');
+    //   const lmapLegend = select('#maplegend').append('div').attr('id','lmaplegend-div')
+    //     .append('ul')
+    //     .attr('class', 'nav navbar-nav navbar-left')
+    //     .attr('id', 'mapAttribute');
+    //
+    //   const legendlist = lmapLegend.append('li').attr('class','dropdown');
+    //   legendlist.append('a')
+    //     .attr('class','dropdown-toggle')
+    //     .attr('data-toggle','dropdown')
+    //     .attr('role','button')
+    //     .html('Map View')
+    //     .append('span')
+    //     .attr('class', 'caret');
+    //
+    //   const legendMenu = legendlist.append('ul').attr('class', 'dropdown-menu');
+    //   let maplegendItems = legendMenu.selectAll('.demoAttr')
+    //     .data(['All Tracts', 'Family Selection']);
+    //   maplegendItems = maplegendItems.enter()
+    //     .append('li')
+    //     .append('a')
+    //     .attr('class', 'layoutMenu')
+    //     .classed('active', function(d) { return d === 'Expand';})
+    //     .html((d:any) => { return d; })
+    //     .merge(maplegendItems);
+    // maplegendItems.on('click',(d)=> {
+    //   const currSelection = selectAll('.layoutMenu').filter((e)=> {return e === d;});
+    //   selectAll('.layoutMenu').classed('active',false);
+    //   currSelection.classed('active',true);
+    //   if (d === 'All Tracts') {
+    //     self.displayfamilyCases = false;
+    //     console.log('All Tracts');
+    //   } else if (d === 'Family Selection') {
+    //     self.displayfamilyCases = true;
+    //     console.log('Family Selection');
+    //   }
+    //   self.update();
+    //   });
 
-    const legendlist = lmapLegend.append('li').attr('class','dropdown');
-    legendlist.append('a')
-              .attr('class','dropdown-toggle')
-              .attr('data-toggle','dropdown')
-              .attr('role','button')
-              .html('Map View')
-              .append('span')
-              .attr('class', 'caret');
 
-    const legendMenu = legendlist.append('ul').attr('class', 'dropdown-menu');
-      let maplegendItems = legendMenu.selectAll('.demoAttr')
-      .data(['All Tracts', 'Family Selection']);
-      maplegendItems = maplegendItems.enter()
-        .append('li')
-        .append('a')
-        .attr('class', 'layoutMenu')
-        .classed('active', function(d) { return d === 'Expand';})
-        .html((d:any) => { return d; })
-        .merge(maplegendItems);
-    maplegendItems.on('click',(d)=> {
-      const currSelection = selectAll('.layoutMenu').filter((e)=> {return e === d;});
-      selectAll('.layoutMenu').classed('active',false);
-      currSelection.classed('active',true);
-      if (d === 'All Tracts') {
-        self.displayfamilyCases = false;
-        console.log('All Tracts');
-      } else if (d === 'Family Selection') {
-        self.displayfamilyCases = true;
-        console.log('Family Selection');
-      }
-      self.update();
-      });
     const mapLegend = select('#maplegend').append('svg')
+      // TODO - These width and heights are strange!!
       .attr('id', 'circleBrush')
-      .attr('width', self.svgHeight+'px')
+      .attr('width', self.svgWidth+'px')
       .attr('height', '100px');
-
+    mapLegend.append('g').call(brushX().extent([[0, 0], [200,self.svgHeight]]));
     }
     private async getFamilyCases() {
       console.log('getFamilyCases');
       const self = this;
       const geographies = self.mapManager.topojsonFeatures;
       const familyCases = await self.mapManager.prepareData(this.currentSelectedMapAttribute);
+
+      const kindredIDVector = await self.mapManager.tableManager.getAttributeVector('KindredID', true); //get FamilyID vector for all families
+      const familyIDs: number[] = <number[]>await kindredIDVector.data();
+      const peopleIDs: string[] = await kindredIDVector.names();
+      familyCases.forEach((d) => {
+        d.KindredID = familyIDs[peopleIDs.indexOf(d.ID)];
+      });
+      //
+      // const cc = familyCases.map((d)=> {
+      //   const pID = d.ID;
+      //   d.kid = familyIDs[peopleIDs.indexOf(pID)];
+      //   return d;
+      // });
+
       const tractGroups = familyCases.reduce((d, i) => {
         // console.log('m,i', m,i);
         const tract = i.GEOID10.toString();
@@ -810,6 +871,7 @@ class MapView {
       });
       return datadict;
     });
+    // const kindredIDVector = await self.mapManager.tableManager.getAttributeVector('KindredID', true); //get FamilyID vector for all families
     const kindredIDVector = await self.mapManager.tableManager.getAttributeVector('KindredID', true); //get FamilyID vector for all families
     const familyIDs: number[] = <number[]>await kindredIDVector.data();
     const peopleIDs: string[] = await kindredIDVector.names();
@@ -869,6 +931,7 @@ class MapView {
       let cCases = self.currentCases.filter((d)=> {return d.GEOID10 !== 'NaN';});
       cCases = cCases.map((d)=> {
         d.layerCoords = mapObject.latLngToLayerPoint([d.coords.lat, d.coords.lon]);
+        d.numCases = d.cases.length;
         d.radiusVal = d.cases.length/d.properties[normVar];
         maxRadiusVal = d.radiusVal > maxRadiusVal?d.radiusVal:maxRadiusVal;
         return d;
@@ -913,7 +976,7 @@ class MapView {
             .attr('r', (d:any) => {
               return rScale(d.radiusVal)*2;
             });
-          console.log('bubble hover', d);
+          // console.log('bubble hover', d);
           return d;
           })
         .on('mouseout', function(d) {
@@ -924,9 +987,11 @@ class MapView {
           })
         .on('click', function(d:any) {
           const tractData = d;
-
           const kindredMap = new Map();
           tractData.cases.forEach((scase) => {
+            if(scase.ID) {
+              scase.personid = scase.ID;
+            }
             const kID = scase.KindredID;
             const coll = kindredMap.get(kID);
             if (!coll) {
@@ -936,44 +1001,30 @@ class MapView {
             }
           });
           const kindredArray = Array.from(kindredMap.entries());
-          console.log('kindred aray', kindredArray);
+          // console.log('kindred aray', kindredArray);
           //Create this table at init, or when building the map, then no need to add and remove...
           select('#btable').remove();
           const btab = select('body').append('table')
             .attr('id', 'btable')
-            .attr('class', 'testclassnoref');
+            .attr('class', 'popupTable');
           // const popupTable = select('#mapPopupTable');
           const popTableHeader = btab.append('thead');
           const popTableBody = btab.append('tbody');
-          const tableColumns = popTableHeader.append('tr').selectAll('th').data(['1', '2', '3', '4']).enter().append('th')
+          const tableColumns = popTableHeader.append('tr').selectAll('th').data(['Family ID', 'Person ID', self.currentSelectedMapAttribute]).enter().append('th')
             .text((d)=> {return d;});
-          // NEED TO PROCESS THESE DATA POINTS SO THAT THEY ARE GROUPED BY FAMILY ID!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+          // PROCESS THESE DATA POINTS SO THAT THEY ARE GROUPED BY FAMILY ID
           const tableRows = popTableBody.selectAll('tr').data(tractData.cases).enter().append('tr');
 
           const tableCells = tableRows.selectAll('td')
             .data((d:any, i) => {
-              return [4,5,6,7];
+              console.log(d);
+              return [d.KindredID, d.personid, d.dataVal];
 
             })
             .enter().append('td')
-            .text((d:any, i) => {return d;});
-                          // .attr('class', 'trdata')
-            // .text((dd:any) => {
-            //   const kID = dd[0]
-            //   const kCases = dd[1]
-            //   console.log('dd', dd);
-            //   return 'Kindred ID: '+kID;
-            // })
-            // tableRows.selectAll('tr')
-            // .append('tr').append('td').text((d:any) => {
-            //   console.log('can i get d - bubble from here??');
-            //   return tractData.properties.POP100;})
-            // .append('tr').append('td').text((d:any) => {
-            //
-            //
-            //   return tractData.properties.POP100;});
+            .text((d:any, i) => {
+              return d;});
 
-          // select('#mapPopupTable').remove();
           console.log('bubble clicked', d);
           const popUp = L.popup({closeOnClick: false, keepInView: true, maxWidth: '600'})
             .setLatLng([d.properties.INTPTLAT10, d.properties.INTPTLON10])
@@ -981,12 +1032,20 @@ class MapView {
             .setContent(document.getElementById('btable'))
             .openOn(self.leafMap);
 
+          // set hover on table row
+          const caseRows = select('#btable').select('tbody').selectAll('tr');
+          caseRows.on('click', function(d:any) {
+            console.log('row d', d);
+            self.highlightID(d.personid);
+            return d;
+          });
+
           // popUp.update();
           });
       // draw brushable circles
       // @ts-ignore
       const distinctVals = [...new Set(cCases.map((d)=> Math.floor(rScale(d.radiusVal))))].sort((a,b)=> a-b);
-      const legendCircles = [0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1];
+      // const legendCircles = [0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1];
 
       let brushCircles = select ('#circleBrush').selectAll('circle').data(distinctVals);
       brushCircles.exit().remove();

@@ -249,6 +249,7 @@ class MapView {
         .html((d:any) => { return d; })
         .merge(maplegendItems);
       maplegendItems.on('click',(d)=> {
+        self.leafMap.closePopup();
         const currSelection = selectAll('.layoutMenu').filter((e)=> {return e === d;});
         selectAll('.layoutMenu').classed('active',false);
         currSelection.classed('active',true);
@@ -275,6 +276,7 @@ class MapView {
       // if self.mapView === 'All Cases'... else if === 'Family Cases'::
       // console.log('dotDataColloection', self.dotDataColloection);
       if (this.currentViewType === 'Map') {
+        self.leafMap.closePopup();
         document.getElementById('col4').style.display = 'block';
         select('#graphLayer').attr('opacity',0).attr('pointer-events','none');
       //  select('#graph-util').attr('opacity',0)
@@ -932,6 +934,7 @@ class MapView {
       cCases = cCases.map((d)=> {
         d.layerCoords = mapObject.latLngToLayerPoint([d.coords.lat, d.coords.lon]);
         d.numCases = d.cases.length;
+        // d.radiusVal = d.cases.length/d.properties[normVar];
         d.radiusVal = d.cases.length/d.properties[normVar];
         maxRadiusVal = d.radiusVal > maxRadiusVal?d.radiusVal:maxRadiusVal;
         return d;
@@ -945,7 +948,8 @@ class MapView {
       const forcesim = forceSimulation(cCases)
       .force('collision', forceCollide().radius(function(d) {
         const radiusWeight = 1.2;
-        return rScale(d.radiusVal)*radiusWeight;
+        // return rScale(d.radiusVal)*radiusWeight;
+        return d.cases.length*5;
         // return 10;
       }))
       .force('x', forceX().x(function(d) {
@@ -965,7 +969,8 @@ class MapView {
         .attr('class', 'leaflet-interactive')
         .attr('cx', (d:any) => d.x)
         .attr('cy', (d:any) => d.y)
-        .attr('r', (d:any) => rScale(d.radiusVal))
+        // .attr('r', (d:any) => rScale(d.radiusVal))
+        .attr('r', (d:any) => d.cases.length*5)
         .attr('stroke', 'black')
         // .style('fill', 'pink')
         .style('fill', (d:any) => (interpolateCividis(cScale(d.radiusVal))))
@@ -1008,6 +1013,7 @@ class MapView {
             .attr('id', 'btable')
             .attr('class', 'popupTable');
           // const popupTable = select('#mapPopupTable');
+          btab.append('caption').html('Tract: '+tractData.GEOID10+'<br>2010 Pop.: '+tractData.properties.POP100);
           const popTableHeader = btab.append('thead');
           const popTableBody = btab.append('tbody');
           const tableColumns = popTableHeader.append('tr').selectAll('th').data(['Family ID', 'Person ID', self.currentSelectedMapAttribute]).enter().append('th')
@@ -1036,6 +1042,7 @@ class MapView {
           const caseRows = select('#btable').select('tbody').selectAll('tr');
           caseRows.on('click', function(d:any) {
             console.log('row d', d);
+            // This does not work!!! - perhaps the highlightID method does not work
             self.highlightID(d.personid);
             return d;
           });
@@ -1056,7 +1063,8 @@ class MapView {
           return 10+i*40;
         })
         .attr('cy', 60)
-        .attr('r', (d:any) => d)
+        // .attr('r', (d:any) => d)
+        .attr('r', (d:any) => Math.round(Math.random()*10))
         .attr('stroke', 'black')
         // .style('fill', 'pink')
         .style('fill', (d:any) => (interpolateCividis(rScale.invert(d)/maxRadiusVal)));

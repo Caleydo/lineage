@@ -41,7 +41,7 @@ export default class MapManager {
     const graphView = await this.tableManager.graphTable;
     const attributeView = await this.tableManager.tableTable;
     const allCols = graphView.cols().concat(attributeView.cols());
-    console.log('alll cols', [...allCols.map((d)=>d.desc.name)])
+    // console.log('alll cols', [...allCols.map((d)=>d.desc.name)])
     const colOrder = [
       'longitude',
       'latitude',

@@ -26,7 +26,8 @@ import {
   HIGHLIGHT_BY_ID,
   HIGHLIGHT_MAP_BY_ID,
   CLEAR_TABLE_HIGHLIGHT,
-  CLEAR_MAP_HIGHLIGHT
+  CLEAR_MAP_HIGHLIGHT,
+  CLICKHIGHLIGHT_BY_ID
 } from './tableManager';
 import { VALUE_TYPE_CATEGORICAL,
         VALUE_TYPE_INT,
@@ -1041,9 +1042,16 @@ class MapView {
           // set hover on table row
           const caseRows = select('#btable').select('tbody').selectAll('tr');
           caseRows.on('click', function(d:any) {
+            const personid = d.personid;
             console.log('row d', d);
-            // This does not work!!! - perhaps the highlightID method does not work
-            self.highlightID(d.personid);
+            const affNodes = select('#col2').select('#nodes').selectAll('g.node.affected');
+            const selNode:any = affNodes.filter((dd:any) => {
+              return dd.id === personid;
+            }).data()[0];
+            console.log('Node ID, y'+selNode.id);
+            events.fire(CLEAR_TABLE_HIGHLIGHT);
+            events.fire(CLICKHIGHLIGHT_BY_ID,personid);
+            // self.mapManager.highlightedID()
             return d;
           });
 
@@ -1063,19 +1071,19 @@ class MapView {
           return 10+i*40;
         })
         .attr('cy', 60)
-        // .attr('r', (d:any) => d)
-        .attr('r', (d:any) => Math.round(Math.random()*10))
+        .attr('r', (d:any) => d)
+        // .attr('r', (d:any) => Math.round(Math.random()*10))
         .attr('stroke', 'black')
         // .style('fill', 'pink')
         .style('fill', (d:any) => (interpolateCividis(rScale.invert(d)/maxRadiusVal)));
     }
-  private casesTable(cases:any) {
-      // reusing circletip div from previous code
-    const circleTip = select('#col4').select('#circletip');
-    console.log('render cases table');
-    // TODO - create and populate cases table within div (could use circle tip div ??)
-
-  }
+  // private casesTable(cases:any) {
+  //     // reusing circletip div from previous code
+  //   const circleTip = select('#col4').select('#circletip');
+  //   console.log('render cases table');
+  //   // TODO - create and populate cases table within div (could use circle tip div ??)
+  //
+  // }
   private updateCircles() {
       const self = this;
       const mapObject = self.leafMap;

@@ -47,7 +47,8 @@ import {
   CLEAR_TABLE_HIGHLIGHT,
   HIGHLIGHT_MAP_BY_ID,
   CLEAR_MAP_HIGHLIGHT,
-  SINGLE_FAMILY_SELECTED_EVENT
+  SINGLE_FAMILY_SELECTED_EVENT,
+  CLICKHIGHLIGHT_BY_ID
 } from './tableManager';
 import { isUndefined } from 'util';
 
@@ -2508,7 +2509,8 @@ class AttributeTable {
             return e.y === d.y || e.y === Math.round(d.y);
           })
           .classed('clickedSlope', true);
-
+        // Added line below to remove previous selection before classing current one
+        selectAll('.highlightBar').classed('selected', false);
         selectAll('.highlightBar')
           .filter((e: any) => {
             return e.y === d.y || e.y === Math.round(d.y);
@@ -5046,6 +5048,10 @@ class AttributeTable {
 
     events.on(HIGHLIGHT_BY_ID, (evt, item) => {
       self.highlightRowByID(item);
+    });
+
+    events.on(CLICKHIGHLIGHT_BY_ID, (evt, item) => {
+      self.clickHighlightRowByID(item);
     });
 
     events.on(CLEAR_TABLE_HIGHLIGHT, () => {

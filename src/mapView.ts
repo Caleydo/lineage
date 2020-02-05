@@ -1,40 +1,30 @@
 import * as events from 'phovea_core/src/event';
-import { select, selection, selectAll, mouse, event } from 'd3-selection';
-import { format } from 'd3-format';
+import {event, select, selectAll} from 'd3-selection';
+import {format} from 'd3-format';
 import {Config} from './config';
-import {scaleLinear, scaleOrdinal, schemeCategory10, scaleSqrt} from 'd3-scale';
-import {interpolateReds, interpolateRdBu, interpolateViridis, interpolateCividis} from 'd3-scale-chromatic';
-import {line as line_generator,curveCatmullRom,curveMonotoneX} from 'd3-shape';
-import { max, min, mean } from 'd3-array';
-import {zoom, zoomIdentity} from 'd3-zoom';
-import {axisBottom,axisLeft } from 'd3-axis';
-import {geoCentroid,geoMercator,geoPath, geoConicConformal} from 'd3-geo';
+import {scaleLinear, scaleSqrt, schemeCategory10} from 'd3-scale';
+import {interpolateCividis, interpolateRdBu, interpolateReds} from 'd3-scale-chromatic';
+import {curveMonotoneX, line as line_generator} from 'd3-shape';
+import {max, min} from 'd3-array';
+import {axisBottom, axisLeft} from 'd3-axis';
+import {geoCentroid, geoConicConformal, geoPath} from 'd3-geo';
 // import {geoCentroid,geoMercator,geoPath} from 'd3-geo';
-import {forceSimulation,forceCollide, forceX, forceY} from 'd3-force';
+import {forceCollide, forceSimulation, forceX, forceY} from 'd3-force';
 import {timeout} from 'd3-timer';
-import {brush, brushX} from 'd3-brush';
 import L from 'leaflet';
-import {feature as topofeature} from 'topojson';
-
-import * as MapManager from './mapManager';
 import {
-  TABLE_VIS_ROWS_CHANGED_EVENT,
-  MAP_ATTRIBUTE_CHANGE_EVENT,
-  SHOW_TOP_100_EVENT,
-  SHOW_DETAIL_VIEW,
+  CLEAR_MAP_HIGHLIGHT,
+  CLEAR_TABLE_HIGHLIGHT,
+  CLICKHIGHLIGHT_BY_ID,
   COL_ORDER_CHANGED_EVENT,
   HIGHLIGHT_BY_ID,
   HIGHLIGHT_MAP_BY_ID,
-  CLEAR_TABLE_HIGHLIGHT,
-  CLEAR_MAP_HIGHLIGHT,
-  CLICKHIGHLIGHT_BY_ID
+  MAP_ATTRIBUTE_CHANGE_EVENT, OPEN_MAP_POPUP,
+  SHOW_DETAIL_VIEW,
+  SHOW_TOP_100_EVENT,
+  TABLE_VIS_ROWS_CHANGED_EVENT
 } from './tableManager';
-import { VALUE_TYPE_CATEGORICAL,
-        VALUE_TYPE_INT,
-        VALUE_TYPE_REAL,
-        VALUE_TYPE_STRING } from 'phovea_core/src/datatype';
-import * as d3 from 'd3';
-import any = jasmine.any;
+import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL} from 'phovea_core/src/datatype';
 
 
 class MapView {
@@ -792,13 +782,13 @@ class MapView {
     //   self.update();
     //   });
 
-
-    const mapLegend = select('#maplegend').append('svg')
-      // TODO - These width and heights are strange!!
-      .attr('id', 'circleBrush')
-      .attr('width', self.svgWidth+'px')
-      .attr('height', '100px');
-    mapLegend.append('g').call(brushX().extent([[0, 0], [200,self.svgHeight]]));
+    // // circle brush, map legend, brush
+    // const mapLegend = select('#maplegend').append('svg')
+    //   // TODO - These width and heights are strange!!
+    //   .attr('id', 'circleBrush')
+    //   .attr('width', self.svgWidth+'px')
+    //   .attr('height', '100px');
+    // mapLegend.append('g').call(brushX().extent([[0, 0], [200,self.svgHeight]]));
     }
     private async getFamilyCases() {
       console.log('getFamilyCases');
@@ -1044,11 +1034,16 @@ class MapView {
           caseRows.on('click', function(d:any) {
             const personid = d.personid;
             console.log('row d', d);
+            //TESTing
+
+            self.getTractCircleByID(personid)
+
             const affNodes = select('#col2').select('#nodes').selectAll('g.node.affected');
             const selNode:any = affNodes.filter((dd:any) => {
               return dd.id === personid;
             }).data()[0];
             console.log('Node ID, y'+selNode.id);
+            // selectAll('.slopeLine').classed('clickedSlope', false);
             events.fire(CLEAR_TABLE_HIGHLIGHT);
             events.fire(CLICKHIGHLIGHT_BY_ID,personid);
             // self.mapManager.highlightedID()
@@ -1057,33 +1052,27 @@ class MapView {
 
           // popUp.update();
           });
-      // draw brushable circles
+      // draw brushable circles map legend maplegend
       // @ts-ignore
-      const distinctVals = [...new Set(cCases.map((d)=> Math.floor(rScale(d.radiusVal))))].sort((a,b)=> a-b);
-      // const legendCircles = [0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1];
-
-      let brushCircles = select ('#circleBrush').selectAll('circle').data(distinctVals);
-      brushCircles.exit().remove();
-      brushCircles = brushCircles.enter().append('circle').merge(brushCircles)
-      // brushCircles.enter().append('circle')
-        // .attr('class', 'leaflet-interactive')
-        .attr('cx', (d, i) => {
-          return 10+i*40;
-        })
-        .attr('cy', 60)
-        .attr('r', (d:any) => d)
-        // .attr('r', (d:any) => Math.round(Math.random()*10))
-        .attr('stroke', 'black')
-        // .style('fill', 'pink')
-        .style('fill', (d:any) => (interpolateCividis(rScale.invert(d)/maxRadiusVal)));
+      // const distinctVals = [...new Set(cCases.map((d)=> Math.floor(rScale(d.radiusVal))))].sort((a,b)=> a-b);
+      // // const legendCircles = [0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1];
+      //
+      // let brushCircles = select ('#circleBrush').selectAll('circle').data(distinctVals);
+      // brushCircles.exit().remove();
+      // brushCircles = brushCircles.enter().append('circle').merge(brushCircles)
+      // // brushCircles.enter().append('circle')
+      //   // .attr('class', 'leaflet-interactive')
+      //   .attr('cx', (d, i) => {
+      //     return 10+i*40;
+      //   })
+      //   .attr('cy', 60)
+      //   .attr('r', (d:any) => d)
+      //   // .attr('r', (d:any) => Math.round(Math.random()*10))
+      //   .attr('stroke', 'black')
+      //   // .style('fill', 'pink')
+      //   .style('fill', (d:any) => (interpolateCividis(rScale.invert(d)/maxRadiusVal)));
     }
-  // private casesTable(cases:any) {
-  //     // reusing circletip div from previous code
-  //   const circleTip = select('#col4').select('#circletip');
-  //   console.log('render cases table');
-  //   // TODO - create and populate cases table within div (could use circle tip div ??)
-  //
-  // }
+
   private updateCircles() {
       const self = this;
       const mapObject = self.leafMap;
@@ -1223,7 +1212,8 @@ class MapView {
        }
        // console.log('this.dotDataColloection', this.dotDataColloection);
 
-       private highlightID(selectedId) {
+    private highlightID(selectedId) {
+      console.log('HIGHLIGHT BY ID FUNCTION FROM mapView.ts');
          this.dotDataColloection.forEach((person)=> {
            const id = person.ID;
            if (id !== selectedId) {
@@ -1235,10 +1225,92 @@ class MapView {
            }
          });
        }
-
-       private clearAllHighlight() {
+    private clearAllHighlight() {
          select('#graphLayer').selectAll('.line_graph').attr('opacity',0.8);
          select('#drawLayer').selectAll('circle').attr('opacity',1);
+       }
+    private getTractCircleByID(personID) {
+        const pID = personID;
+          const selCircle = select('#col4').selectAll('circle').filter((circ:any) => {
+            const ids = circ.cases.map((ccase:any) => {
+              return ccase.ID;
+            });
+            console.log('circ: '+circ);
+            if(ids.includes(pID)){
+              return circ;
+            }
+        });
+        return selCircle.data()[0];
+       }
+    private openPopup(selectedId) {
+      const self = this;
+      const tractData:any = self.getTractCircleByID(selectedId);
+
+      const kindredMap = new Map();
+      tractData.cases.forEach((scase) => {
+        if(scase.ID) {
+          scase.personid = scase.ID;
+        }
+        const kID = scase.KindredID;
+        const coll = kindredMap.get(kID);
+        if (!coll) {
+          kindredMap.set(kID, [scase]);
+        } else {
+          coll.push(scase);
+        }
+      });
+      const kindredArray = Array.from(kindredMap.entries());
+      // console.log('kindred aray', kindredArray);
+      //Create this table at init, or when building the map, then no need to add and remove...
+      select('#btable').remove();
+      const btab = select('body').append('table')
+        .attr('id', 'btable')
+        .attr('class', 'popupTable');
+      // const popupTable = select('#mapPopupTable');
+      btab.append('caption').html('Tract: '+tractData.GEOID10+'<br>2010 Pop.: '+tractData.properties.POP100);
+      const popTableHeader = btab.append('thead');
+      const popTableBody = btab.append('tbody');
+      const tableColumns = popTableHeader.append('tr').selectAll('th').data(['Family ID', 'Person ID', self.currentSelectedMapAttribute]).enter().append('th')
+        .text((d)=> {return d;});
+      // PROCESS THESE DATA POINTS SO THAT THEY ARE GROUPED BY FAMILY ID
+      const tableRows = popTableBody.selectAll('tr').data(tractData.cases).enter().append('tr');
+
+      const tableCells = tableRows.selectAll('td')
+        .data((d:any, i) => {
+          console.log(d);
+          return [d.KindredID, d.personid, d.dataVal];
+
+        })
+        .enter().append('td')
+        .text((d:any, i) => {
+          return d;});
+
+      console.log('bubble clicked', tractData);
+      const popUp = L.popup({closeOnClick: false, keepInView: true, maxWidth: '600'})
+        .setLatLng([tractData.properties.INTPTLAT10, tractData.properties.INTPTLON10])
+        // .setContent('<table id=mapPopupTable></table>')
+        .setContent(document.getElementById('btable'))
+        .openOn(self.leafMap);
+
+      // set hover on table row
+      const caseRows = select('#btable').select('tbody').selectAll('tr');
+      caseRows.on('click', function(d:any) {
+        const personid = d.personid;
+        console.log('row d', d);
+        const affNodes = select('#col2').select('#nodes').selectAll('g.node.affected');
+        const selNode:any = affNodes.filter((dd:any) => {
+          return dd.id === personid;
+        }).data()[0];
+        console.log('Node ID, y'+selNode.id);
+        // selectAll('.slopeLine').classed('clickedSlope', false);
+        events.fire(CLEAR_TABLE_HIGHLIGHT);
+        events.fire(CLICKHIGHLIGHT_BY_ID,personid);
+        // self.mapManager.highlightedID()
+        return d;
+      });
+          //
+          //
+          //
        }
 
 
@@ -1276,6 +1348,9 @@ class MapView {
 
          events.on(COL_ORDER_CHANGED_EVENT,()=> {
            self.update();
+         });
+          events.on(OPEN_MAP_POPUP,(evt, id)=> {
+           self.openPopup(id);
          });
        }
 

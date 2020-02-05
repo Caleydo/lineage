@@ -48,7 +48,8 @@ import {
   HIGHLIGHT_MAP_BY_ID,
   CLEAR_MAP_HIGHLIGHT,
   SINGLE_FAMILY_SELECTED_EVENT,
-  CLICKHIGHLIGHT_BY_ID
+  CLICKHIGHLIGHT_BY_ID,
+  OPEN_MAP_POPUP
 } from './tableManager';
 import { isUndefined } from 'util';
 
@@ -1816,7 +1817,12 @@ class AttributeTable {
         this.clearHighlight();
         events.fire(CLEAR_MAP_HIGHLIGHT);
       })
-      .on('click', this.clickHighlight);
+      // .on('click', this.clickHighlight);
+      .on('click', (d) => {
+        console.log('from attributeTable.ts, event on highlightbars', d);
+        this.tableClickToMap(d);
+        this.clickHighlight(d);
+      });
 
     //create slope Lines
     // //Bind data to the cells
@@ -2025,7 +2031,7 @@ class AttributeTable {
     selectAll('.cell')
       .on('mouseover', function(cellData: any) {
         self.highlightRow(cellData);
-        events.fire(HIGHLIGHT_MAP_BY_ID, cellData.id[0]);
+        // events.fire(HIGHLIGHT_MAP_BY_ID, cellData.id[0]);
         self.addTooltip('cell', cellData);
         if (cellData.type === 'temporal') {
           if (cellData.level_set === undefined) {
@@ -2382,6 +2388,7 @@ class AttributeTable {
         }
       })
       .on('click', function(d: any) {
+        console.log('on click from attributeTable.ts on cells', d.id[0]);
         if (d.name === 'KindredID') {
           events.fire(SINGLE_FAMILY_SELECTED_EVENT,parseInt(d.data,10));
           self.tableManager.selectFamily([parseInt(d.data,10)]);
@@ -2390,6 +2397,7 @@ class AttributeTable {
           document.getElementById('col2').style.display = 'block';
         } else {
           self.clickHighlight(d);
+          self.tableClickToMap(d);
         }
       });
 
@@ -2536,6 +2544,16 @@ class AttributeTable {
         events.fire(HIGHLIGHT_MAP_BY_ID, key.split('_')[0]);
       }
     });
+  }
+  private tableClickToMap(yVal) {
+    yVal = yVal.y;
+    console.log('tableClickToMap');
+  const allRows = Object.keys(this.tableManager.yValues);
+  allRows.forEach((key) => {
+    if (this.tableManager.yValues[key] == yVal) {
+      events.fire(OPEN_MAP_POPUP, key.split('_')[0]);
+    }
+  });
   }
 
   private highlightRow(d) {

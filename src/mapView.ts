@@ -11,6 +11,7 @@ import {geoCentroid, geoConicConformal, geoPath} from 'd3-geo';
 // import {geoCentroid,geoMercator,geoPath} from 'd3-geo';
 import {forceCollide, forceSimulation, forceX, forceY} from 'd3-force';
 import {timeout} from 'd3-timer';
+import {brushX} from 'd3-brush';
 import L from 'leaflet';
 import {
   CLEAR_MAP_HIGHLIGHT,
@@ -782,13 +783,13 @@ class MapView {
     //   self.update();
     //   });
 
-    // // circle brush, map legend, brush
-    // const mapLegend = select('#maplegend').append('svg')
-    //   // TODO - These width and heights are strange!!
-    //   .attr('id', 'circleBrush')
-    //   .attr('width', self.svgWidth+'px')
-    //   .attr('height', '100px');
-    // mapLegend.append('g').call(brushX().extent([[0, 0], [200,self.svgHeight]]));
+    // circle brush, map legend, brush
+    const mapLegend = select('#maplegend').append('svg')
+      // TODO - These width and heights are strange!!
+      .attr('id', 'circleBrush')
+      .attr('width', self.svgWidth+'px')
+      .attr('height', '100px');
+    mapLegend.append('g').call(brushX().extent([[0, 0], [200,self.svgHeight]]));
     }
     private async getFamilyCases() {
       console.log('getFamilyCases');
@@ -801,14 +802,8 @@ class MapView {
       const peopleIDs: string[] = await kindredIDVector.names();
       familyCases.forEach((d) => {
         d.KindredID = familyIDs[peopleIDs.indexOf(d.ID)];
+        d.personID = d.ID;
       });
-      //
-      // const cc = familyCases.map((d)=> {
-      //   const pID = d.ID;
-      //   d.kid = familyIDs[peopleIDs.indexOf(pID)];
-      //   return d;
-      // });
-
       const tractGroups = familyCases.reduce((d, i) => {
         // console.log('m,i', m,i);
         const tract = i.GEOID10.toString();
@@ -872,6 +867,7 @@ class MapView {
     cc = cc.map((d)=> {
       const pID = d.personid;
       d.KindredID = familyIDs[peopleIDs.indexOf(pID)];
+      d.personID = d.personid;
       return d;
     });
     // Filter out records that do not have a matching tract (GEOID10)
@@ -979,7 +975,7 @@ class MapView {
           select(this).transition()
           .attr('stroke-width', '1px')
           .style('fill', (d:any) => (interpolateCividis(cScale(d.radiusVal))))
-          .attr('r', (d:any) => rScale(d.radiusVal));
+          .attr('r', (d:any) => d.cases.length*5);
           })
         .on('click', function(d:any) {
           const tractData = d;
@@ -1011,66 +1007,48 @@ class MapView {
             .text((d)=> {return d;});
           // PROCESS THESE DATA POINTS SO THAT THEY ARE GROUPED BY FAMILY ID
           const tableRows = popTableBody.selectAll('tr').data(tractData.cases).enter().append('tr');
-
           const tableCells = tableRows.selectAll('td')
             .data((d:any, i) => {
-              console.log(d);
               return [d.KindredID, d.personid, d.dataVal];
-
             })
             .enter().append('td')
             .text((d:any, i) => {
               return d;});
-
-          console.log('bubble clicked', d);
           const popUp = L.popup({closeOnClick: false, keepInView: true, maxWidth: '600'})
             .setLatLng([d.properties.INTPTLAT10, d.properties.INTPTLON10])
             // .setContent('<table id=mapPopupTable></table>')
             .setContent(document.getElementById('btable'))
             .openOn(self.leafMap);
-
-          // set hover on table row
+          // Fire click highlight event to table and tree
           const caseRows = select('#btable').select('tbody').selectAll('tr');
           caseRows.on('click', function(d:any) {
-            const personid = d.personid;
-            console.log('row d', d);
-            //TESTing
-
-            self.getTractCircleByID(personid)
-
-            const affNodes = select('#col2').select('#nodes').selectAll('g.node.affected');
-            const selNode:any = affNodes.filter((dd:any) => {
-              return dd.id === personid;
-            }).data()[0];
-            console.log('Node ID, y'+selNode.id);
-            // selectAll('.slopeLine').classed('clickedSlope', false);
+            const pID = d.personid;
+            // const kID = d.KindredID;
             events.fire(CLEAR_TABLE_HIGHLIGHT);
-            events.fire(CLICKHIGHLIGHT_BY_ID,personid);
-            // self.mapManager.highlightedID()
+            events.fire(CLICKHIGHLIGHT_BY_ID,pID);
             return d;
           });
-
           // popUp.update();
           });
       // draw brushable circles map legend maplegend
       // @ts-ignore
-      // const distinctVals = [...new Set(cCases.map((d)=> Math.floor(rScale(d.radiusVal))))].sort((a,b)=> a-b);
-      // // const legendCircles = [0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1];
-      //
-      // let brushCircles = select ('#circleBrush').selectAll('circle').data(distinctVals);
-      // brushCircles.exit().remove();
-      // brushCircles = brushCircles.enter().append('circle').merge(brushCircles)
-      // // brushCircles.enter().append('circle')
-      //   // .attr('class', 'leaflet-interactive')
-      //   .attr('cx', (d, i) => {
-      //     return 10+i*40;
-      //   })
-      //   .attr('cy', 60)
-      //   .attr('r', (d:any) => d)
-      //   // .attr('r', (d:any) => Math.round(Math.random()*10))
-      //   .attr('stroke', 'black')
-      //   // .style('fill', 'pink')
-      //   .style('fill', (d:any) => (interpolateCividis(rScale.invert(d)/maxRadiusVal)));
+      const distinctVals = [...new Set(cCases.map((d)=> Math.floor(rScale(d.radiusVal))))].sort((a,b)=> a-b);
+      // const legendCircles = [0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1];
+
+      let brushCircles = select ('#circleBrush').selectAll('circle').data(distinctVals);
+      brushCircles.exit().remove();
+      brushCircles = brushCircles.enter().append('circle').merge(brushCircles)
+      // brushCircles.enter().append('circle')
+        // .attr('class', 'leaflet-interactive')
+        .attr('cx', (d, i) => {
+          return 10+i*40;
+        })
+        .attr('cy', 60)
+        .attr('r', (d:any) => d)
+        // .attr('r', (d:any) => Math.round(Math.random()*10))
+        .attr('stroke', 'black')
+        // .style('fill', 'pink')
+        .style('fill', (d:any) => (interpolateCividis(rScale.invert(d)/maxRadiusVal)));
     }
 
   private updateCircles() {
@@ -1229,23 +1207,40 @@ class MapView {
          select('#graphLayer').selectAll('.line_graph').attr('opacity',0.8);
          select('#drawLayer').selectAll('circle').attr('opacity',1);
        }
-    private getTractCircleByID(personID) {
+    private getTractCircleByID(personID, kindredID) {
         const pID = personID;
-          const selCircle = select('#col4').selectAll('circle').filter((circ:any) => {
-            const ids = circ.cases.map((ccase:any) => {
-              return ccase.ID;
-            });
-            console.log('circ: '+circ);
-            if(ids.includes(pID)){
-              return circ;
+        const kID = kindredID;
+        const selCircle = select('#col4').select('#leafSVG').selectAll('circle').filter((circ:any) => {
+          const ids = circ.cases.map((ccase: any) => {
+            if (ccase.personID.toString() === pID.toString() && ccase.KindredID.toString() === kID.toString()) {
+              return 1;
+            } else {
+              return 0;
             }
+          });
+          if (ids.includes(1)) {
+            return circ;
+          }
         });
         return selCircle.data()[0];
-       }
-    private openPopup(selectedId) {
+     }
+    private getIDFromY(rowY) {
+      const yVal = rowY;
+      const affNodes = select('#col2').select('#nodes').selectAll('g.node.affected');
+      const selNode:any = affNodes.filter((dd:any) => {
+        return dd.y === yVal;
+      }).data()[0];
+      return typeof(selNode) !== 'undefined'? [selNode.id, selNode.kindredID]: [];
+      // return [selNode.id, selNode.kindredID];
+    }
+    private openPopup(selectedId, kindredID) {
       const self = this;
-      const tractData:any = self.getTractCircleByID(selectedId);
-
+      const tractData:any = self.getTractCircleByID(selectedId, kindredID);
+      if (typeof tractData === 'undefined') {
+        console.log('Record has no geospatial reference');
+        return;
+      //  TODO - add function to display info/error for no matching map record...
+      }
       const kindredMap = new Map();
       tractData.cases.forEach((scase) => {
         if(scase.ID) {
@@ -1274,87 +1269,72 @@ class MapView {
         .text((d)=> {return d;});
       // PROCESS THESE DATA POINTS SO THAT THEY ARE GROUPED BY FAMILY ID
       const tableRows = popTableBody.selectAll('tr').data(tractData.cases).enter().append('tr');
-
       const tableCells = tableRows.selectAll('td')
         .data((d:any, i) => {
-          console.log(d);
           return [d.KindredID, d.personid, d.dataVal];
-
         })
         .enter().append('td')
         .text((d:any, i) => {
           return d;});
-
-      console.log('bubble clicked', tractData);
+      // Generate popup content and open:
       const popUp = L.popup({closeOnClick: false, keepInView: true, maxWidth: '600'})
         .setLatLng([tractData.properties.INTPTLAT10, tractData.properties.INTPTLON10])
         // .setContent('<table id=mapPopupTable></table>')
         .setContent(document.getElementById('btable'))
         .openOn(self.leafMap);
-
-      // set hover on table row
       const caseRows = select('#btable').select('tbody').selectAll('tr');
       caseRows.on('click', function(d:any) {
-        const personid = d.personid;
-        console.log('row d', d);
-        const affNodes = select('#col2').select('#nodes').selectAll('g.node.affected');
-        const selNode:any = affNodes.filter((dd:any) => {
-          return dd.id === personid;
-        }).data()[0];
-        console.log('Node ID, y'+selNode.id);
-        // selectAll('.slopeLine').classed('clickedSlope', false);
+        const personID = d.personid;
         events.fire(CLEAR_TABLE_HIGHLIGHT);
-        events.fire(CLICKHIGHLIGHT_BY_ID,personid);
-        // self.mapManager.highlightedID()
+        events.fire(CLICKHIGHLIGHT_BY_ID,personID);
         return d;
       });
-          //
-          //
-          //
        }
-
-
-
-       private attachListener() {
-         const self = this;
-         events.on(TABLE_VIS_ROWS_CHANGED_EVENT, () => {
-           self.update();
-        //   console.log('fire table row')
-         });
-         events.on(MAP_ATTRIBUTE_CHANGE_EVENT,()=> {
-           self.update();
-         });
-         events.on(SHOW_TOP_100_EVENT,()=> {
-           self.update();
-        //   console.log('fire top 100')
-         });
-         events.on(SHOW_DETAIL_VIEW, (evt, vector) => {
-           if(!self.detailViewAttribute.includes(vector.name)) {
-              self.detailViewAttribute.unshift(vector.name);
-           }
-           if(self.detailViewAttribute.length>3) {
-              self.detailViewAttribute = self.detailViewAttribute.slice(0,3);
-           }
-           self.currentViewType = 'Detail';
-           self.update();
-
-         });
-         events.on(HIGHLIGHT_MAP_BY_ID,(evt,id)=> {
-           self.highlightID(id);
-         });
-         events.on(CLEAR_MAP_HIGHLIGHT,()=> {
-           self.clearAllHighlight();
-         });
-
-         events.on(COL_ORDER_CHANGED_EVENT,()=> {
-           self.update();
-         });
-          events.on(OPEN_MAP_POPUP,(evt, id)=> {
-           self.openPopup(id);
-         });
+    private openPopupFromY(yVal) {
+      const self = this;
+      const selNode = self.getIDFromY(yVal);
+      if(selNode.length===0) {
+        console.log('No spatial reference for selected case');
+        return;
+      }
+      const [pID, kID] = selNode;
+      self.openPopup(pID, kID);
+    }
+    private attachListener() {
+      const self = this;
+      events.on(TABLE_VIS_ROWS_CHANGED_EVENT, () => {
+        self.update();
+      });
+      events.on(MAP_ATTRIBUTE_CHANGE_EVENT,()=> {
+        self.update();
+     });
+     events.on(SHOW_TOP_100_EVENT,()=> {
+       self.update();
+      //   console.log('fire top 100')
+     });
+     events.on(SHOW_DETAIL_VIEW, (evt, vector) => {
+       if(!self.detailViewAttribute.includes(vector.name)) {
+          self.detailViewAttribute.unshift(vector.name);
        }
-
-
+       if(self.detailViewAttribute.length>3) {
+          self.detailViewAttribute = self.detailViewAttribute.slice(0,3);
+       }
+       self.currentViewType = 'Detail';
+       self.update();
+     });
+     events.on(HIGHLIGHT_MAP_BY_ID,(evt,id)=> {
+      self.highlightID(id);
+     });
+     events.on(CLEAR_MAP_HIGHLIGHT,()=> {
+       self.clearAllHighlight();
+       });
+     events.on(COL_ORDER_CHANGED_EVENT,()=> {
+       self.update();
+     });
+     events.on(OPEN_MAP_POPUP,(evt, yVal)=> {
+       self.openPopupFromY(yVal);
+     });
+   }
 }
 export function create() {
     return new MapView();

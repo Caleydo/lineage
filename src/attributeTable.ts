@@ -1819,8 +1819,7 @@ class AttributeTable {
       })
       // .on('click', this.clickHighlight);
       .on('click', (d) => {
-        console.log('from attributeTable.ts, event on highlightbars', d);
-        this.tableClickToMap(d);
+        events.fire(OPEN_MAP_POPUP, d.y);
         this.clickHighlight(d);
       });
 
@@ -2388,7 +2387,7 @@ class AttributeTable {
         }
       })
       .on('click', function(d: any) {
-        console.log('on click from attributeTable.ts on cells', d.id[0]);
+        console.log('click from attributeTable.ts on cells', d.id[0]);
         if (d.name === 'KindredID') {
           events.fire(SINGLE_FAMILY_SELECTED_EVENT,parseInt(d.data,10));
           self.tableManager.selectFamily([parseInt(d.data,10)]);
@@ -2397,7 +2396,8 @@ class AttributeTable {
           document.getElementById('col2').style.display = 'block';
         } else {
           self.clickHighlight(d);
-          self.tableClickToMap(d);
+          events.fire(OPEN_MAP_POPUP, d.y);
+          // AttributeTable.tableClickToMap(d.y);
         }
       });
 
@@ -2465,8 +2465,6 @@ class AttributeTable {
   }
 
   private clickHighlight(d: any) {
-    // event.stopPropagation();
-
     if (event.defaultPrevented) {
       return;
     } // dragged
@@ -2529,6 +2527,7 @@ class AttributeTable {
   }
 
   private highlightRowByID(id) {
+    console.log('attributeTable.ts - highlightRowByID');
     const allRows = Object.keys(this.tableManager.yValues);
     allRows.forEach((key) => {
       if (key.includes(id)) {
@@ -2544,16 +2543,6 @@ class AttributeTable {
         events.fire(HIGHLIGHT_MAP_BY_ID, key.split('_')[0]);
       }
     });
-  }
-  private tableClickToMap(yVal) {
-    yVal = yVal.y;
-    console.log('tableClickToMap');
-  const allRows = Object.keys(this.tableManager.yValues);
-  allRows.forEach((key) => {
-    if (this.tableManager.yValues[key] == yVal) {
-      events.fire(OPEN_MAP_POPUP, key.split('_')[0]);
-    }
-  });
   }
 
   private highlightRow(d) {

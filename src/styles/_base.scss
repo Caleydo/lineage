@@ -270,6 +270,11 @@ ul.nav.navbar-nav{
     border-radius: 8px;
     pointer-events: none;
 }
+#col4 tr.poprow.selected{
+  //background-color: #df7813;
+  //this is #df7813 with opacity 0.4
+  background-color: rgba(223, 120, 19, 0.41);
+}
 
 #col4 path:hover{
   fill:#f7f7f7

@@ -979,56 +979,7 @@ class MapView {
           })
         .on('click', function(d:any) {
           const tractData = d;
-          const kindredMap = new Map();
-          tractData.cases.forEach((scase) => {
-            if(scase.ID) {
-              scase.personid = scase.ID;
-            }
-            const kID = scase.KindredID;
-            const coll = kindredMap.get(kID);
-            if (!coll) {
-              kindredMap.set(kID, [scase]);
-            } else {
-              coll.push(scase);
-            }
-          });
-          const kindredArray = Array.from(kindredMap.entries());
-          // console.log('kindred aray', kindredArray);
-          //Create this table at init, or when building the map, then no need to add and remove...
-          select('#btable').remove();
-          const btab = select('body').append('table')
-            .attr('id', 'btable')
-            .attr('class', 'popupTable');
-          // const popupTable = select('#mapPopupTable');
-          btab.append('caption').html('Tract: '+tractData.GEOID10+'<br>2010 Pop.: '+tractData.properties.POP100);
-          const popTableHeader = btab.append('thead');
-          const popTableBody = btab.append('tbody');
-          const tableColumns = popTableHeader.append('tr').selectAll('th').data(['Family ID', 'Person ID', self.currentSelectedMapAttribute]).enter().append('th')
-            .text((d)=> {return d;});
-          // PROCESS THESE DATA POINTS SO THAT THEY ARE GROUPED BY FAMILY ID
-          const tableRows = popTableBody.selectAll('tr').data(tractData.cases).enter().append('tr');
-          const tableCells = tableRows.selectAll('td')
-            .data((d:any, i) => {
-              return [d.KindredID, d.personid, d.dataVal];
-            })
-            .enter().append('td')
-            .text((d:any, i) => {
-              return d;});
-          const popUp = L.popup({closeOnClick: false, keepInView: true, maxWidth: '600'})
-            .setLatLng([d.properties.INTPTLAT10, d.properties.INTPTLON10])
-            // .setContent('<table id=mapPopupTable></table>')
-            .setContent(document.getElementById('btable'))
-            .openOn(self.leafMap);
-          // Fire click highlight event to table and tree
-          const caseRows = select('#btable').select('tbody').selectAll('tr');
-          caseRows.on('click', function(d:any) {
-            const pID = d.personid;
-            // const kID = d.KindredID;
-            events.fire(CLEAR_TABLE_HIGHLIGHT);
-            events.fire(CLICKHIGHLIGHT_BY_ID,pID);
-            return d;
-          });
-          // popUp.update();
+          self.openPopup(tractData);
           });
       // draw brushable circles map legend maplegend
       // @ts-ignore
@@ -1233,9 +1184,11 @@ class MapView {
       return typeof(selNode) !== 'undefined'? [selNode.id, selNode.kindredID]: [];
       // return [selNode.id, selNode.kindredID];
     }
-    private openPopup(selectedId, kindredID) {
+    private openPopup(tractData) {
+    // private openPopup(selectedId, kindredID) {
       const self = this;
-      const tractData:any = self.getTractCircleByID(selectedId, kindredID);
+      const mo = self.getMapOption();
+      // const tractData:any = self.getTractCircleByID(selectedId, kindredID);
       if (typeof tractData === 'undefined') {
         console.log('Record has no geospatial reference');
         return;
@@ -1262,13 +1215,14 @@ class MapView {
         .attr('id', 'btable')
         .attr('class', 'popupTable');
       // const popupTable = select('#mapPopupTable');
-      btab.append('caption').html('Tract: '+tractData.GEOID10+'<br>2010 Pop.: '+tractData.properties.POP100);
+      btab.append('caption').html('Tract: '+tractData.GEOID10+'<br>2010 Pop: '+tractData.properties.POP100);
       const popTableHeader = btab.append('thead');
       const popTableBody = btab.append('tbody');
       const tableColumns = popTableHeader.append('tr').selectAll('th').data(['Family ID', 'Person ID', self.currentSelectedMapAttribute]).enter().append('th')
         .text((d)=> {return d;});
       // PROCESS THESE DATA POINTS SO THAT THEY ARE GROUPED BY FAMILY ID
       const tableRows = popTableBody.selectAll('tr').data(tractData.cases).enter().append('tr');
+      tableRows.classed('poprow', true);
       const tableCells = tableRows.selectAll('td')
         .data((d:any, i) => {
           return [d.KindredID, d.personid, d.dataVal];
@@ -1284,6 +1238,9 @@ class MapView {
         .openOn(self.leafMap);
       const caseRows = select('#btable').select('tbody').selectAll('tr');
       caseRows.on('click', function(d:any) {
+        const currentrow = this;
+        caseRows.classed('selected', false);
+        select(currentrow).classed('selected', true);
         const personID = d.personid;
         events.fire(CLEAR_TABLE_HIGHLIGHT);
         events.fire(CLICKHIGHLIGHT_BY_ID,personID);
@@ -1298,7 +1255,13 @@ class MapView {
         return;
       }
       const [pID, kID] = selNode;
-      self.openPopup(pID, kID);
+      const tractData:any = self.getTractCircleByID(pID, kID);
+      self.openPopup(tractData);
+      // self.openPopup(pID, kID);
+    }
+    private getMapOption() {
+      const mapOption = select('#mapOption').selectAll('a')
+      const active = mapOption.select('active');
     }
     private attachListener() {
       const self = this;

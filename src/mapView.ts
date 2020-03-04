@@ -11,7 +11,7 @@ import {geoCentroid, geoConicConformal, geoPath} from 'd3-geo';
 // import {geoCentroid,geoMercator,geoPath} from 'd3-geo';
 import {forceCollide, forceSimulation, forceX, forceY} from 'd3-force';
 import {timeout} from 'd3-timer';
-import {brushX} from 'd3-brush';
+import {brushX, brush} from 'd3-brush';
 import L from 'leaflet';
 import {
   CLEAR_MAP_HIGHLIGHT,
@@ -788,8 +788,9 @@ class MapView {
       // TODO - These width and heights are strange!!
       .attr('id', 'circleBrush')
       .attr('width', self.svgWidth+'px')
-      .attr('height', '100px');
-    mapLegend.append('g').call(brushX().extent([[0, 0], [200,self.svgHeight]]));
+      .attr('height', self.svgHeight+'px');
+      // .attr('height', '100px');
+    mapLegend.append('g').call(brush().extent([[0, 0], [200,self.svgHeight]]));
     }
     private async getFamilyCases() {
       console.log('getFamilyCases');
@@ -886,17 +887,15 @@ class MapView {
       }
       d[tract].cases.push(i);
       return d;
-  }, {});
-
-    // Group the individual cases by tract (GEOID10) and assign to self.currentCases
+    }, {});
+      // Group the individual cases by tract (GEOID10) and assign to self.currentCases
     self.currentCases = Object.keys(tractGroups).map((k)=> {
       const datadict: any= {};
       datadict.GEOID10 = k;
       Object.assign(datadict, tractGroups[k]);
       return datadict;
-    });
-      }
-
+      });
+    }
 
     private async drawCases() {
       const self = this;
@@ -984,22 +983,38 @@ class MapView {
       // draw brushable circles map legend maplegend
       // @ts-ignore
       const distinctVals = [...new Set(cCases.map((d)=> Math.floor(rScale(d.radiusVal))))].sort((a,b)=> a-b);
+      const fakeQuantiles = [0.25, 0.5, 0.75, 1];
+      let brushPts = fakeQuantiles.map((v)=> {
+        return distinctVals.map((d)=> {
+          return [v,d];
+        });
+      });
+      brushPts = Array.prototype.concat.apply([], brushPts);
       // const legendCircles = [0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1];
 
-      let brushCircles = select ('#circleBrush').selectAll('circle').data(distinctVals);
+      let brushCircles = select ('#circleBrush').selectAll('circle').data(brushPts);
+      // let brushCircles = select ('#circleBrush').selectAll('circle').data(distinctVals);
       brushCircles.exit().remove();
       brushCircles = brushCircles.enter().append('circle').merge(brushCircles)
       // brushCircles.enter().append('circle')
         // .attr('class', 'leaflet-interactive')
-        .attr('cx', (d, i) => {
-          return 10+i*40;
+        .attr('cx', (d:any, i) => {
+          const q = d[0];
+          return (q*130)+30;
         })
-        .attr('cy', 60)
-        .attr('r', (d:any) => d)
+        .attr('cy', (d:any, i) => {
+          const dd = d[1];
+          return (dd*25)-80;
+        })
+        // .attr('cy', 60)
+        .attr('r', (d:any) => {
+          return d[1];
+        })
         // .attr('r', (d:any) => Math.round(Math.random()*10))
         .attr('stroke', 'black')
         // .style('fill', 'pink')
-        .style('fill', (d:any) => (interpolateCividis(rScale.invert(d)/maxRadiusVal)));
+        .style('fill', (d:any) => (interpolateCividis(d[0])));
+        // .style('fill', (d:any) => (interpolateCividis(rScale.invert(d)/maxRadiusVal)));
     }
 
   private updateCircles() {
@@ -1044,101 +1059,101 @@ class MapView {
         //nothing here
     }
 
-    private drawGeographicalMap() {
-      const self = this;
-    //     const projection = d3.geoConicConformal()
-    // .parallels([39 + 1 / 60, 40 + 39 / 60])
-    // .rotate([111 + 30 / 60, 0])
-    // .fitExtent([[padding, padding],[width, height]], mapdata)
-      this.projection = geoConicConformal()
-        .parallels([39 + 1 / 60, 40 + 39 / 60])
-        .rotate([111 + 30 / 60, 0])
-        .fitExtent([[10, 10],[this.svgWidth, this.svgHeight]], self.mapManager.topojsonFeatures);
-      // this.projection = geoMercator()
-      //       .translate(this.nodeCenter)
-      //       .scale(5000)
-      //       .center(this.mapCenter);
-      const pathFuction = geoPath().projection(self.projection);
-      const countyTooltip = select('#countytip');
-      // console.log('topojsonFeatures', self.mapManager.topojsonFeatures);
-    //   let paths = select('#mapLayer').selectAll('path').data(self.mapManager.topojsonFeatures.features);
-    //   paths.exit().remove();
-    //   paths = paths.enter().append('path').merge(paths).classed('map-paths',true);
-    //   // paths.transition()
-    //   //      .duration(700)
-    //   paths.attr('id',(d)=>(d as any).properties.GEOID)
-    //        .attr('d', pathFuction);
-    // //  console.log(self.mapManager.topojson_features.features)
-    //   paths.on('mouseover',function(d) {
-    //            countyTooltip
-    //            // .transition()
-    //            // .duration(200)
-    //            .style('opacity',0.9);
-    //            countyTooltip.html((d as any).properties.NAME)
-    //            .style('left', (event.pageX) + 'px')
-    //             .style('top', (event.pageY - 28) + 'px');
-    //           })
-    //          .on('mouseout',function(d) {
-    //            countyTooltip
-    //                    //  .transition()
-    //                    // .duration(200)
-    //                    .style('opacity',0);});
+  private drawGeographicalMap() {
+    const self = this;
+  //     const projection = d3.geoConicConformal()
+  // .parallels([39 + 1 / 60, 40 + 39 / 60])
+  // .rotate([111 + 30 / 60, 0])
+  // .fitExtent([[padding, padding],[width, height]], mapdata)
+    this.projection = geoConicConformal()
+      .parallels([39 + 1 / 60, 40 + 39 / 60])
+      .rotate([111 + 30 / 60, 0])
+      .fitExtent([[10, 10],[this.svgWidth, this.svgHeight]], self.mapManager.topojsonFeatures);
+    // this.projection = geoMercator()
+    //       .translate(this.nodeCenter)
+    //       .scale(5000)
+    //       .center(this.mapCenter);
+    const pathFuction = geoPath().projection(self.projection);
+    const countyTooltip = select('#countytip');
+    // console.log('topojsonFeatures', self.mapManager.topojsonFeatures);
+  //   let paths = select('#mapLayer').selectAll('path').data(self.mapManager.topojsonFeatures.features);
+  //   paths.exit().remove();
+  //   paths = paths.enter().append('path').merge(paths).classed('map-paths',true);
+  //   // paths.transition()
+  //   //      .duration(700)
+  //   paths.attr('id',(d)=>(d as any).properties.GEOID)
+  //        .attr('d', pathFuction);
+  // //  console.log(self.mapManager.topojson_features.features)
+  //   paths.on('mouseover',function(d) {
+  //            countyTooltip
+  //            // .transition()
+  //            // .duration(200)
+  //            .style('opacity',0.9);
+  //            countyTooltip.html((d as any).properties.NAME)
+  //            .style('left', (event.pageX) + 'px')
+  //             .style('top', (event.pageY - 28) + 'px');
+  //           })
+  //          .on('mouseout',function(d) {
+  //            countyTooltip
+  //                    //  .transition()
+  //                    // .duration(200)
+  //                    .style('opacity',0);});
 
-         // select('#map-svg').call(zoom().on('zoom',function(){
-         //         self.projection.scale(event.transform.k*5000).center(self.mapCenter)
-         //         .translate([self.nodeCenter[0]+event.transform.x,self.nodeCenter[1]+event.transform.y]);
-         //         select('#mapLayer').selectAll('path').attr('d',pathFuction);
-         //         self.drawMapDots()
-         //         }))
+       // select('#map-svg').call(zoom().on('zoom',function(){
+       //         self.projection.scale(event.transform.k*5000).center(self.mapCenter)
+       //         .translate([self.nodeCenter[0]+event.transform.x,self.nodeCenter[1]+event.transform.y]);
+       //         select('#mapLayer').selectAll('path').attr('d',pathFuction);
+       //         self.drawMapDots()
+       //         }))
 
-         // select('#reset_button').on('click',function(){
-         //   if(self.currentViewType==='mapView'){
-         //     zoom().transform(select('map-svg'),zoomIdentity)
-         //     self.projection.scale(5000).translate(self.nodeCenter).center(self.mapCenter);
-         //     select('#mapLayer').selectAll('path').attr('d',pathFuction);
-         //     self.drawMapDots();
-         //   }
-         // })
+       // select('#reset_button').on('click',function(){
+       //   if(self.currentViewType==='mapView'){
+       //     zoom().transform(select('map-svg'),zoomIdentity)
+       //     self.projection.scale(5000).translate(self.nodeCenter).center(self.mapCenter);
+       //     select('#mapLayer').selectAll('path').attr('d',pathFuction);
+       //     self.drawMapDots();
+       //   }
+       // })
 
+     }
+
+     private drawLegend(dataArray,colorArray) {
+
+       const legendContainer = select('#map-util');
+       legendContainer.selectAll('text').remove();
+       legendContainer.append('text')
+                      .text(this.currentSelectedMapAttribute)
+                      .attr('font-size','20px')
+                      .attr('y',25)
+                      .attr('x',0.125*this.svgWidth)
+                      .attr('text-anchor','end');
+
+       if(colorArray==='TEXT') {
+          legendContainer.selectAll('rect').remove();
+         return;
        }
+       let legendRects = legendContainer.selectAll('.legend-rect').data(colorArray);
+       legendRects.exit().remove();
+       legendRects = legendRects.enter().append('rect').merge(legendRects);
 
-       private drawLegend(dataArray,colorArray) {
+       legendRects.attr('x',0)
+                  .attr('y',(d,i)=>i * 25+50)
+                  .attr('width', 100)
+                  .attr('height',20)
+                  .attr('fill',(d:any)=>d)
+                  .attr('class','legend-rect');
+       let legendText = legendContainer.selectAll('.legend-text').data(dataArray);
+       legendText.exit().remove();
+       legendText = legendText.enter().append('text').merge(legendText);
 
-         const legendContainer = select('#map-util');
-         legendContainer.selectAll('text').remove();
-         legendContainer.append('text')
-                        .text(this.currentSelectedMapAttribute)
-                        .attr('font-size','20px')
-                        .attr('y',25)
-                        .attr('x',0.125*this.svgWidth)
-                        .attr('text-anchor','end');
+       legendText.attr('x',110)
+                 .attr('y',(d,i)=>i*25+50)
+                 .attr('class','legend-text')
+                 .attr('alignment-baseline','hanging')
+                // .attr('fill','white')
+                 .text((d:any)=>d);
 
-         if(colorArray==='TEXT') {
-            legendContainer.selectAll('rect').remove();
-           return;
-         }
-         let legendRects = legendContainer.selectAll('.legend-rect').data(colorArray);
-         legendRects.exit().remove();
-         legendRects = legendRects.enter().append('rect').merge(legendRects);
-
-         legendRects.attr('x',0)
-                    .attr('y',(d,i)=>i * 25+50)
-                    .attr('width', 100)
-                    .attr('height',20)
-                    .attr('fill',(d:any)=>d)
-                    .attr('class','legend-rect');
-         let legendText = legendContainer.selectAll('.legend-text').data(dataArray);
-         legendText.exit().remove();
-         legendText = legendText.enter().append('text').merge(legendText);
-
-         legendText.attr('x',110)
-                   .attr('y',(d,i)=>i*25+50)
-                   .attr('class','legend-text')
-                   .attr('alignment-baseline','hanging')
-                  // .attr('fill','white')
-                   .text((d:any)=>d);
-
-       }
+     }
        // console.log('this.dotDataColloection', this.dotDataColloection);
 
     private highlightID(selectedId) {

@@ -638,65 +638,6 @@ class MapView {
              graph.select('#color_ramp_'+currentIndex).attr('fill','url(#linear_gradient_'+currentIndex+')');
       }
 
-
-        // graph.selectAll('.place_holder')
-        //       .data(singleData)
-        //       .enter()
-        //       .append('polyline')
-        //       .attr('points',(d,i)=>{
-        //         let x1,x2,y1,y2,x3,y3;
-        //         if (i==0){
-        //           x1 = xLineScale(0)
-        //           x2 = xLineScale(0.5)
-        //           y1 = yLineScale(cleanedDataArray[i]);
-        //           y2 = isNaN(singleData[i+1])?yLineScale(cleanedDataArray[i]):yLineScale((cleanedDataArray[i] + cleanedDataArray[i+1])/2)
-        //
-        //           x3 = xLineScale(0.5)
-        //           y3 = isNaN(singleData[i+1])? yLineScale(cleanedDataArray[i]):yLineScale((cleanedDataArray[i] + cleanedDataArray[i+1])/2)
-        //
-        //         }
-        //         else if (i == 28){
-        //           x1 = xLineScale(27.5)
-        //           x2 = xLineScale(28)
-        //           y1 = isNaN(singleData[i-1]) ? yLineScale(cleanedDataArray[i]): yLineScale((cleanedDataArray[i] + cleanedDataArray[i-1])/2)
-        //
-        //           y2 =yLineScale ( cleanedDataArray[i])
-        //           x3 = xLineScale(28)
-        //           y3 = yLineScale(cleanedDataArray[i])
-        //         }
-        //         else{
-        //           x1 = xLineScale(i-0.5);
-        //           x2 = xLineScale(i+0.5);
-        //           x3 = xLineScale(i);
-        //
-        //           y3 = yLineScale(cleanedDataArray[i])
-        //           if (isNaN(singleData[i-1])){
-        //             y1 = yLineScale(cleanedDataArray[i])
-        //           }
-        //           else{
-        //             y1 = yLineScale((cleanedDataArray[i] + cleanedDataArray [ i-1])/2);
-        //           }
-        //           if (isNaN(singleData[i+1])){
-        //             y2 = yLineScale(cleanedDataArray[i])
-        //           }
-        //           else{
-        //             y2 = yLineScale((cleanedDataArray[i] + cleanedDataArray[i+1])/2);
-        //           }
-        //
-        //         }
-        //
-        //         return x1 + ',' + y1 + ' ' +
-        //                x3 + ',' + y3 + ' ' +
-        //                x2 + ',' + y2 + ' ' })
-        //         .attr('class','line_graph line_graph_'+detailViewData.ids[index])
-        //         .attr('stroke',(d,i)=>{
-        //           if (isNaN(singleData[i]))
-        //           { return 'none';}
-        //           else
-        //           {return '#767a7a';}})
-
-
-
     }
     private async drawLeafletMap() {
       console.log('draw leaflet map');
@@ -783,14 +724,6 @@ class MapView {
     //   self.update();
     //   });
 
-    // circle brush, map legend, brush
-    const mapLegend = select('#maplegend').append('svg')
-      // TODO - These width and heights are strange!!
-      .attr('id', 'circleBrush')
-      .attr('width', self.svgWidth+'px')
-      .attr('height', self.svgHeight+'px');
-      // .attr('height', '100px');
-    mapLegend.append('g').call(brush().extent([[0, 0], [200,self.svgHeight]]));
     }
     private async getFamilyCases() {
       console.log('getFamilyCases');
@@ -905,6 +838,7 @@ class MapView {
       console.log('Draw Cases');
       const normVar = 'POP100';
       let maxRadiusVal = 0;
+      let maxCases = 0;
 
       const mapObject = self.leafMap;
       if (self.displayfamilyCases===true) {
@@ -923,12 +857,14 @@ class MapView {
         // d.radiusVal = d.cases.length/d.properties[normVar];
         d.radiusVal = d.cases.length/d.properties[normVar];
         maxRadiusVal = d.radiusVal > maxRadiusVal?d.radiusVal:maxRadiusVal;
+        maxCases = d.cases.length > maxCases?d.cases.length:maxCases;
         return d;
       });
       console.log('after filter cases: ', cCases.length);
       const rScale = scaleSqrt()
         .domain([0, maxRadiusVal])
         .range([2, 10]);
+
       const cScale = scaleLinear().domain([0, maxRadiusVal]).range([0,1]);
 
       const forcesim = forceSimulation(cCases)
@@ -980,19 +916,71 @@ class MapView {
           const tractData = d;
           self.openPopup(tractData);
           });
+      ///////////////////////////////////////////////////////////////////////////////////////////////////////
+      // Brushable legend
+      const quarters = [1, 0.8, 0.6, 0.4, 0.2, 0];
       // draw brushable circles map legend maplegend
+      //Remove this once pulling from max cases for entire pop
+      //TODO!! - this needs to match scales for map circles!
+      maxCases = 6;
+      const countScale = scaleSqrt()
+        .domain([0, maxCases])
+        .range([2, 10]);
+      const marg = {top: 20, bottom:50, right: 30, left:40},
+        lwidth = 300 - marg.left - marg.right,
+        lheight = 200 - marg.top - marg.bottom;
+      const xax = scaleLinear()
+        .domain([0, 1])
+        .range([0,lwidth]);
+      const yax = scaleLinear()
+        .domain([maxCases, 0])
+        .range([0,lheight])
+        .nice();
+          // circle brush, map legend, brush
+      const mapLegend = select('#maplegend').append('svg')
+        // TODO - These width and heights are strange!!
+        .attr('id', 'circleBrush')
+        .attr('width', lwidth+marg.left+marg.right)
+        .attr('height', lheight+marg.top+marg.bottom)
+        .append('g')
+        .attr('id', 'brushLegendGroup')
+        .attr('transform', 'translate('+marg.left+','+marg.top+')');
+        // .attr('height', '100px');
+      const xAxisGroup = mapLegend.append('g')
+        .attr('transform', 'translate(0,'+lheight+')')
+        .call(axisBottom(xax)
+          // .tickValues([0.25, 0.5, 0.75]));
+          .ticks(5));
+      const xAxisLabel = mapLegend.append('text')
+        .attr('transform', 'translate('+lwidth/2+','+(lheight+marg.top+10)+')')
+        .style('text-anchor', 'middle')
+        .text('Cases/Population (color)');
+      const yAxisGroup = mapLegend.append('g')
+        .call(axisLeft(yax)
+          .ticks(maxCases));
+      const yAxisLabel = mapLegend.append('text')
+        .attr('transform', 'rotate(-90)')
+        .attr('y', 0-marg.left)
+        .attr('x', 0-(lheight/2))
+        .style('text-anchor', 'middle')
+        .attr('dy', '1em')
+        .text('Cases Count (radius)');
+
+
       // @ts-ignore
       const distinctVals = [...new Set(cCases.map((d)=> Math.floor(rScale(d.radiusVal))))].sort((a,b)=> a-b);
-      const fakeQuantiles = [0.25, 0.5, 0.75, 1];
-      let brushPts = fakeQuantiles.map((v)=> {
-        return distinctVals.map((d)=> {
+      const caseRange = Array.from({length:maxCases},(v,k)=>k+1);
+
+      let brushPts = quarters.map((v)=> {
+        return caseRange.map((d)=> {
           return [v,d];
         });
       });
       brushPts = Array.prototype.concat.apply([], brushPts);
       // const legendCircles = [0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1];
 
-      let brushCircles = select ('#circleBrush').selectAll('circle').data(brushPts);
+      // let brushCircles = select ('#circleBrush').selectAll('circle').data(brushPts);
+      let brushCircles = mapLegend.append('g').selectAll('circle').data(brushPts);
       // let brushCircles = select ('#circleBrush').selectAll('circle').data(distinctVals);
       brushCircles.exit().remove();
       brushCircles = brushCircles.enter().append('circle').merge(brushCircles)
@@ -1000,21 +988,26 @@ class MapView {
         // .attr('class', 'leaflet-interactive')
         .attr('cx', (d:any, i) => {
           const q = d[0];
-          return (q*130)+30;
+          // return (q*130)+30;
+          return xax(q);
         })
         .attr('cy', (d:any, i) => {
           const dd = d[1];
-          return (dd*25)-80;
+          // return (dd*25)-80;
+          return yax(dd);
         })
         // .attr('cy', 60)
         .attr('r', (d:any) => {
-          return d[1];
+          return countScale(d[1]);
+          // return d[1];
         })
         // .attr('r', (d:any) => Math.round(Math.random()*10))
         .attr('stroke', 'black')
         // .style('fill', 'pink')
         .style('fill', (d:any) => (interpolateCividis(d[0])));
         // .style('fill', (d:any) => (interpolateCividis(rScale.invert(d)/maxRadiusVal)));
+      //Brush
+      mapLegend.append('g').call(brush().extent([[0, 0], [lwidth,lheight]]));
     }
 
   private updateCircles() {
@@ -1275,7 +1268,7 @@ class MapView {
       // self.openPopup(pID, kID);
     }
     private getMapOption() {
-      const mapOption = select('#mapOption').selectAll('a')
+      const mapOption = select('#mapOption').selectAll('a');
       const active = mapOption.select('active');
     }
     private attachListener() {

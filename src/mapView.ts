@@ -13,6 +13,7 @@ import {forceCollide, forceSimulation, forceX, forceY} from 'd3-force';
 import {timeout} from 'd3-timer';
 import {brushX, brush} from 'd3-brush';
 import L from 'leaflet';
+import 'leaflet-search';
 import {
   CLEAR_MAP_HIGHLIGHT,
   CLEAR_TABLE_HIGHLIGHT,
@@ -26,7 +27,6 @@ import {
   TABLE_VIS_ROWS_CHANGED_EVENT
 } from './tableManager';
 import {VALUE_TYPE_CATEGORICAL, VALUE_TYPE_INT, VALUE_TYPE_REAL} from 'phovea_core/src/datatype';
-
 
 class MapView {
     private leafMap;
@@ -79,9 +79,9 @@ class MapView {
         // .style('flex-grow', '1')
         .style('height', '600px');
       this.drawLeafletMap();
-
-      select('#map').append('dheightiv').attr('id','mapDiv2')
-        .append('svg').attr('id','map-svg').attr('width',this.svgWidth).attr('height',this.svgHeight);
+      // below is relic from old map ui
+      // select('#map').append('dheightiv').attr('id','mapDiv2')
+      //   .append('svg').attr('id','map-svg').attr('width',this.svgWidth).attr('height',this.svgHeight);
 
       select('#col4').append('div')
           .attr('class', 'tooltip')
@@ -664,6 +664,19 @@ class MapView {
         });
       // leafSVG is an svg layer/renderer that is added to leaflet overlay div by default
       tracts.addTo(mapObject);
+      const controlSearch = new L.Control.Search({
+        url: 'https://nominatim.openstreetmap.org/search?format=json&q={s}',
+        jsonParam: 'json_callback',
+        propertyName: 'display_name',
+        propertyLoc: ['lat', 'lon'],
+        // marker: L.circleMarker([0,0],{radius:20}),
+        autoCollapse: true,
+        autoType: true,
+        minLength: 3,
+        zoom: 11,
+        initial: false
+      });
+      mapObject.addControl(controlSearch);
       const leafSVG = L.svg({clickable: true, pane: 'markerPane'});
       // leafSVG.interactive(true);
       leafSVG.addTo(mapObject);
@@ -796,11 +809,11 @@ class MapView {
     // const kindredIDVector = await self.mapManager.tableManager.getAttributeVector('KindredID', true); //get FamilyID vector for all families
     const kindredIDVector = await self.mapManager.tableManager.getAttributeVector('KindredID', true); //get FamilyID vector for all families
     const familyIDs: number[] = <number[]>await kindredIDVector.data();
-    const peopleIDs: string[] = await kindredIDVector.names();
+    const personIDs: string[] = await kindredIDVector.names();
       console.log('fam', kindredIDVector);
     cc = cc.map((d)=> {
       const pID = d.personid;
-      d.KindredID = familyIDs[peopleIDs.indexOf(pID)];
+      d.KindredID = familyIDs[personIDs.indexOf(pID)];
       d.personID = d.personid;
       return d;
     });
@@ -832,13 +845,14 @@ class MapView {
 
     private async drawCases() {
       const self = this;
+      select('#circleBrush').remove();
       const circleTip = select('#col4').select('#circletip');
       const leafMapObject = self.leafMap;
       leafMapObject.invalidateSize();
       console.log('Draw Cases');
       const normVar = 'POP100';
       let maxRadiusVal = 0;
-      let maxCases = 0;
+      let maxCases = 3;
 
       const mapObject = self.leafMap;
       if (self.displayfamilyCases===true) {
@@ -857,12 +871,13 @@ class MapView {
         // d.radiusVal = d.cases.length/d.properties[normVar];
         d.radiusVal = d.cases.length/d.properties[normVar];
         maxRadiusVal = d.radiusVal > maxRadiusVal?d.radiusVal:maxRadiusVal;
-        maxCases = d.cases.length > maxCases?d.cases.length:maxCases;
+        // maxCases = d.cases.length > maxCases?d.cases.length:maxCases;
         return d;
       });
       console.log('after filter cases: ', cCases.length);
       const rScale = scaleSqrt()
-        .domain([0, maxRadiusVal])
+        .domain([0, maxCases])
+        // .domain([0, maxRadiusVal])
         .range([2, 10]);
 
       const cScale = scaleLinear().domain([0, maxRadiusVal]).range([0,1]);
@@ -892,7 +907,8 @@ class MapView {
         .attr('cx', (d:any) => d.x)
         .attr('cy', (d:any) => d.y)
         // .attr('r', (d:any) => rScale(d.radiusVal))
-        .attr('r', (d:any) => d.cases.length*5)
+        .attr('r', (d:any) => rScale(d.cases.length))
+        // .attr('r', (d:any) => d.cases.length*5)
         .attr('stroke', 'black')
         // .style('fill', 'pink')
         .style('fill', (d:any) => (interpolateCividis(cScale(d.radiusVal))))
@@ -918,15 +934,15 @@ class MapView {
           });
       ///////////////////////////////////////////////////////////////////////////////////////////////////////
       // Brushable legend
-      const quarters = [1, 0.8, 0.6, 0.4, 0.2, 0];
+      const quarters = [1, 0.8, 0.6, 0.4, 0.2];
       // draw brushable circles map legend maplegend
       //Remove this once pulling from max cases for entire pop
       //TODO!! - this needs to match scales for map circles!
-      maxCases = 6;
+      // maxCases = 5;
       const countScale = scaleSqrt()
         .domain([0, maxCases])
         .range([2, 10]);
-      const marg = {top: 20, bottom:50, right: 30, left:40},
+      const marg = {top: 20, bottom:50, right: 30, left:50},
         lwidth = 300 - marg.left - marg.right,
         lheight = 200 - marg.top - marg.bottom;
       const xax = scaleLinear()
@@ -954,7 +970,7 @@ class MapView {
       const xAxisLabel = mapLegend.append('text')
         .attr('transform', 'translate('+lwidth/2+','+(lheight+marg.top+10)+')')
         .style('text-anchor', 'middle')
-        .text('Cases/Population (color)');
+        .text('Cases/Population % of max (color)');
       const yAxisGroup = mapLegend.append('g')
         .call(axisLeft(yax)
           .ticks(maxCases));
@@ -964,7 +980,7 @@ class MapView {
         .attr('x', 0-(lheight/2))
         .style('text-anchor', 'middle')
         .attr('dy', '1em')
-        .text('Cases Count (radius)');
+        .text('Cases per Tract (radius)');
 
 
       // @ts-ignore
@@ -1007,7 +1023,7 @@ class MapView {
         .style('fill', (d:any) => (interpolateCividis(d[0])));
         // .style('fill', (d:any) => (interpolateCividis(rScale.invert(d)/maxRadiusVal)));
       //Brush
-      mapLegend.append('g').call(brush().extent([[0, 0], [lwidth,lheight]]));
+      mapLegend.append('g').call(brush().extent([[-5, -5], [lwidth+10,lheight+10]]));
     }
 
   private updateCircles() {

@@ -105,8 +105,13 @@
     "sortablejs": "^1.5.0-rc1",
     "topojson": "^3.0.2",
     "underscore": "^1.8.3",
+<<<<<<< HEAD
     "leaflet": "latest",
     "leaflet-search": "latest"
+=======
+    "leaflet": "1.6.0",
+    "leaflet-search": "^2.9.8"
+>>>>>>> leafletsearchcontrol
   },
   "name": "lineage",
   "description": "",

@@ -96,7 +96,8 @@ const webpackloaders = [
       mimetype: 'image/svg+xml'
     }
   },
-  {test: /\.(ttf|eot)(\?v=[0-9]\.[0-9]\.[0-9])?$/, loader: 'file-loader'}
+  {test: /\.(ttf|eot|gif)(\?v=[0-9]\.[0-9]\.[0-9])?$/, loader: 'file-loader'}
+  // {test: /\.(ttf|eot)(\?v=[0-9]\.[0-9]\.[0-9])?$/, loader: 'file-loader'}
 ];
 
 /**

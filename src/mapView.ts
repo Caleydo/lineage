@@ -79,9 +79,12 @@ class MapView {
         // .style('flex-grow', '1')
         .style('height', '600px');
       this.drawLeafletMap();
+<<<<<<< HEAD
       // below is relic from old map ui
       // select('#map').append('dheightiv').attr('id','mapDiv2')
       //   .append('svg').attr('id','map-svg').attr('width',this.svgWidth).attr('height',this.svgHeight);
+=======
+>>>>>>> leafletsearchcontrol
 
       select('#col4').append('div')
           .attr('class', 'tooltip')
@@ -663,6 +666,7 @@ class MapView {
           // layers: [tracts, positronBasemap]
         });
       // leafSVG is an svg layer/renderer that is added to leaflet overlay div by default
+
       tracts.addTo(mapObject);
       const controlSearch = new L.Control.Search({
         url: 'https://nominatim.openstreetmap.org/search?format=json&q={s}',
@@ -809,8 +813,13 @@ class MapView {
     // const kindredIDVector = await self.mapManager.tableManager.getAttributeVector('KindredID', true); //get FamilyID vector for all families
     const kindredIDVector = await self.mapManager.tableManager.getAttributeVector('KindredID', true); //get FamilyID vector for all families
     const familyIDs: number[] = <number[]>await kindredIDVector.data();
+<<<<<<< HEAD
     const personIDs: string[] = await kindredIDVector.names();
       console.log('fam', kindredIDVector);
+=======
+    const peopleIDs: string[] = await kindredIDVector.names();
+    console.log('fam', kindredIDVector);
+>>>>>>> leafletsearchcontrol
     cc = cc.map((d)=> {
       const pID = d.personid;
       d.KindredID = familyIDs[personIDs.indexOf(pID)];
@@ -871,6 +880,10 @@ class MapView {
         // d.radiusVal = d.cases.length/d.properties[normVar];
         d.radiusVal = d.cases.length/d.properties[normVar];
         maxRadiusVal = d.radiusVal > maxRadiusVal?d.radiusVal:maxRadiusVal;
+<<<<<<< HEAD
+=======
+        //TODO: adjust max cases
+>>>>>>> leafletsearchcontrol
         // maxCases = d.cases.length > maxCases?d.cases.length:maxCases;
         return d;
       });
@@ -907,7 +920,11 @@ class MapView {
         .attr('cx', (d:any) => d.x)
         .attr('cy', (d:any) => d.y)
         // .attr('r', (d:any) => rScale(d.radiusVal))
+<<<<<<< HEAD
         .attr('r', (d:any) => rScale(d.cases.length))
+=======
+        .attr('r', (d:any) => d.cases.length)
+>>>>>>> leafletsearchcontrol
         // .attr('r', (d:any) => d.cases.length*5)
         .attr('stroke', 'black')
         // .style('fill', 'pink')
@@ -938,7 +955,11 @@ class MapView {
       // draw brushable circles map legend maplegend
       //Remove this once pulling from max cases for entire pop
       //TODO!! - this needs to match scales for map circles!
+<<<<<<< HEAD
       // maxCases = 5;
+=======
+      // maxCases = 6;
+>>>>>>> leafletsearchcontrol
       const countScale = scaleSqrt()
         .domain([0, maxCases])
         .range([2, 10]);
@@ -970,7 +991,11 @@ class MapView {
       const xAxisLabel = mapLegend.append('text')
         .attr('transform', 'translate('+lwidth/2+','+(lheight+marg.top+10)+')')
         .style('text-anchor', 'middle')
+<<<<<<< HEAD
         .text('Cases/Population % of max (color)');
+=======
+        .text('Cases/Population %max (color)');
+>>>>>>> leafletsearchcontrol
       const yAxisGroup = mapLegend.append('g')
         .call(axisLeft(yax)
           .ticks(maxCases));
@@ -1023,7 +1048,11 @@ class MapView {
         .style('fill', (d:any) => (interpolateCividis(d[0])));
         // .style('fill', (d:any) => (interpolateCividis(rScale.invert(d)/maxRadiusVal)));
       //Brush
+<<<<<<< HEAD
       mapLegend.append('g').call(brush().extent([[-5, -5], [lwidth+10,lheight+10]]));
+=======
+      mapLegend.append('g').call(brush().extent([[-5, -5], [lwidth+5,lheight+5]]));
+>>>>>>> leafletsearchcontrol
     }
 
   private updateCircles() {

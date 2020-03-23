@@ -79,12 +79,6 @@ class MapView {
         // .style('flex-grow', '1')
         .style('height', '600px');
       this.drawLeafletMap();
-<<<<<<< HEAD
-      // below is relic from old map ui
-      // select('#map').append('dheightiv').attr('id','mapDiv2')
-      //   .append('svg').attr('id','map-svg').attr('width',this.svgWidth).attr('height',this.svgHeight);
-=======
->>>>>>> leafletsearchcontrol
 
       select('#col4').append('div')
           .attr('class', 'tooltip')
@@ -257,10 +251,6 @@ class MapView {
         }
         self.update();
       });
-
-
-
-
       self.update();
     }
     async update() {
@@ -813,16 +803,11 @@ class MapView {
     // const kindredIDVector = await self.mapManager.tableManager.getAttributeVector('KindredID', true); //get FamilyID vector for all families
     const kindredIDVector = await self.mapManager.tableManager.getAttributeVector('KindredID', true); //get FamilyID vector for all families
     const familyIDs: number[] = <number[]>await kindredIDVector.data();
-<<<<<<< HEAD
-    const personIDs: string[] = await kindredIDVector.names();
-      console.log('fam', kindredIDVector);
-=======
     const peopleIDs: string[] = await kindredIDVector.names();
-    console.log('fam', kindredIDVector);
->>>>>>> leafletsearchcontrol
+      console.log('fam', kindredIDVector);
     cc = cc.map((d)=> {
       const pID = d.personid;
-      d.KindredID = familyIDs[personIDs.indexOf(pID)];
+      d.KindredID = familyIDs[peopleIDs.indexOf(pID)];
       d.personID = d.personid;
       return d;
     });
@@ -864,7 +849,7 @@ class MapView {
       let maxCases = 3;
 
       const mapObject = self.leafMap;
-      if (self.displayfamilyCases===true) {
+      if (self.displayfamilyCases === true) {
         console.log('draw family cases');
         await self.getFamilyCases();
       } else {
@@ -873,17 +858,16 @@ class MapView {
       }
       console.log('total cases: ', self.currentCases.length);
       console.log('current cases', self.currentCases);
-      let cCases = self.currentCases.filter((d)=> {return d.GEOID10 !== 'NaN';});
-      cCases = cCases.map((d)=> {
+      let cCases = self.currentCases.filter((d) => {
+        return d.GEOID10 !== 'NaN';
+      });
+      cCases = cCases.map((d) => {
         d.layerCoords = mapObject.latLngToLayerPoint([d.coords.lat, d.coords.lon]);
         d.numCases = d.cases.length;
         // d.radiusVal = d.cases.length/d.properties[normVar];
-        d.radiusVal = d.cases.length/d.properties[normVar];
-        maxRadiusVal = d.radiusVal > maxRadiusVal?d.radiusVal:maxRadiusVal;
-<<<<<<< HEAD
-=======
-        //TODO: adjust max cases
->>>>>>> leafletsearchcontrol
+        d.radiusVal = d.cases.length / d.properties[normVar];
+        maxRadiusVal = d.radiusVal > maxRadiusVal ? d.radiusVal : maxRadiusVal;
+        //TODO: adjust max cases;
         // maxCases = d.cases.length > maxCases?d.cases.length:maxCases;
         return d;
       });
@@ -893,21 +877,23 @@ class MapView {
         // .domain([0, maxRadiusVal])
         .range([2, 10]);
 
-      const cScale = scaleLinear().domain([0, maxRadiusVal]).range([0,1]);
+      const cScale = scaleLinear().domain([0, maxRadiusVal]).range([0, 1]);
 
       const forcesim = forceSimulation(cCases)
-      .force('collision', forceCollide().radius(function(d) {
-        const radiusWeight = 1.2;
-        // return rScale(d.radiusVal)*radiusWeight;
-        return d.cases.length*5;
-        // return 10;
-      }))
-      .force('x', forceX().x(function(d) {
-        return d.layerCoords.x;}))
-      .force('y', forceY().y(function(d) {
-        return d.layerCoords.y;}))
-      .tick(100)
-      .stop();
+        .force('collision', forceCollide().radius(function (d) {
+          const radiusWeight = 1.2;
+          // return rScale(d.radiusVal)*radiusWeight;
+          return d.cases.length * 5;
+          // return 10;
+        }))
+        .force('x', forceX().x(function (d) {
+          return d.layerCoords.x;
+        }))
+        .force('y', forceY().y(function (d) {
+          return d.layerCoords.y;
+        }))
+        .tick(100)
+        .stop();
       // plot pts
 
       const leafSVG = select('#leafSVG');
@@ -917,104 +903,95 @@ class MapView {
       leafCircles.exit().remove();
       leafCircles = leafCircles.enter().append('circle').merge(leafCircles)
         .attr('class', 'leaflet-interactive')
-        .attr('cx', (d:any) => d.x)
-        .attr('cy', (d:any) => d.y)
-        // .attr('r', (d:any) => rScale(d.radiusVal))
-<<<<<<< HEAD
-        .attr('r', (d:any) => rScale(d.cases.length))
-=======
-        .attr('r', (d:any) => d.cases.length)
->>>>>>> leafletsearchcontrol
-        // .attr('r', (d:any) => d.cases.length*5)
+        .attr('cx', (d: any) => d.x)
+        .attr('cy', (d: any) => d.y)
+      // .attr('r', (d:any) => rScale(d.radiusVal))
+        .attr('r', (d: any) => rScale(d.cases.length))
+      // attr('r', (d: any) => d.cases.length)
+      // >>> >>> > leafletsearchcontrol
+      // .attr('r', (d:any) => d.cases.length*5)
         .attr('stroke', 'black')
         // .style('fill', 'pink')
-        .style('fill', (d:any) => (interpolateCividis(cScale(d.radiusVal))))
-        .on('mouseover', function(d) {
+        .style('fill', (d: any) => (interpolateCividis(cScale(d.radiusVal))))
+        .on('mouseover', function (d) {
           // select(this).transition()
           select(this)
             .attr('stroke-width', '5px')
-            .attr('r', (d:any) => {
-              return rScale(d.radiusVal)*2;
+            .attr('r', (d: any) => {
+              return rScale(d.radiusVal) * 2;
             });
           // console.log('bubble hover', d);
           return d;
-          })
-        .on('mouseout', function(d) {
+        })
+        .on('mouseout', function (d) {
           select(this).transition()
-          .attr('stroke-width', '1px')
-          .style('fill', (d:any) => (interpolateCividis(cScale(d.radiusVal))))
-          .attr('r', (d:any) => d.cases.length*5);
-          })
-        .on('click', function(d:any) {
+            .attr('stroke-width', '1px')
+            .style('fill', (d: any) => (interpolateCividis(cScale(d.radiusVal))))
+            .attr('r', (d: any) => d.cases.length * 5);
+        })
+        .on('click', function (d: any) {
           const tractData = d;
           self.openPopup(tractData);
-          });
+        });
       ///////////////////////////////////////////////////////////////////////////////////////////////////////
       // Brushable legend
       const quarters = [1, 0.8, 0.6, 0.4, 0.2];
       // draw brushable circles map legend maplegend
       //Remove this once pulling from max cases for entire pop
       //TODO!! - this needs to match scales for map circles!
-<<<<<<< HEAD
       // maxCases = 5;
-=======
-      // maxCases = 6;
->>>>>>> leafletsearchcontrol
       const countScale = scaleSqrt()
         .domain([0, maxCases])
         .range([2, 10]);
-      const marg = {top: 20, bottom:50, right: 30, left:50},
+      const marg = {top: 20, bottom: 50, right: 30, left: 50},
         lwidth = 300 - marg.left - marg.right,
         lheight = 200 - marg.top - marg.bottom;
       const xax = scaleLinear()
         .domain([0, 1])
-        .range([0,lwidth]);
+        .range([0, lwidth]);
       const yax = scaleLinear()
         .domain([maxCases, 0])
-        .range([0,lheight])
+        .range([0, lheight])
         .nice();
-          // circle brush, map legend, brush
+      // circle brush, map legend, brush
       const mapLegend = select('#maplegend').append('svg')
-        // TODO - These width and heights are strange!!
+      // TODO - These width and heights are strange!!
         .attr('id', 'circleBrush')
-        .attr('width', lwidth+marg.left+marg.right)
-        .attr('height', lheight+marg.top+marg.bottom)
+        .attr('width', lwidth + marg.left + marg.right)
+        .attr('height', lheight + marg.top + marg.bottom)
         .append('g')
         .attr('id', 'brushLegendGroup')
-        .attr('transform', 'translate('+marg.left+','+marg.top+')');
-        // .attr('height', '100px');
+        .attr('transform', 'translate(' + marg.left + ',' + marg.top + ')');
+      // .attr('height', '100px');
       const xAxisGroup = mapLegend.append('g')
-        .attr('transform', 'translate(0,'+lheight+')')
+        .attr('transform', 'translate(0,' + lheight + ')')
         .call(axisBottom(xax)
-          // .tickValues([0.25, 0.5, 0.75]));
+        // .tickValues([0.25, 0.5, 0.75]));
           .ticks(5));
       const xAxisLabel = mapLegend.append('text')
-        .attr('transform', 'translate('+lwidth/2+','+(lheight+marg.top+10)+')')
-        .style('text-anchor', 'middle')
-<<<<<<< HEAD
-        .text('Cases/Population % of max (color)');
-=======
-        .text('Cases/Population %max (color)');
->>>>>>> leafletsearchcontrol
+          .attr('transform', 'translate(' + lwidth / 2 + ',' + (lheight + marg.top + 10) + ')')
+          .style('text-anchor', 'middle')
+          .text('Cases/Population % of max (color)');
+
       const yAxisGroup = mapLegend.append('g')
         .call(axisLeft(yax)
           .ticks(maxCases));
       const yAxisLabel = mapLegend.append('text')
         .attr('transform', 'rotate(-90)')
-        .attr('y', 0-marg.left)
-        .attr('x', 0-(lheight/2))
+        .attr('y', 0 - marg.left)
+        .attr('x', 0 - (lheight / 2))
         .style('text-anchor', 'middle')
         .attr('dy', '1em')
         .text('Cases per Tract (radius)');
 
 
       // @ts-ignore
-      const distinctVals = [...new Set(cCases.map((d)=> Math.floor(rScale(d.radiusVal))))].sort((a,b)=> a-b);
-      const caseRange = Array.from({length:maxCases},(v,k)=>k+1);
+      const distinctVals = [...new Set(cCases.map((d) => Math.floor(rScale(d.radiusVal))))].sort((a, b) => a - b);
+      const caseRange = Array.from({length: maxCases}, (v, k) => k + 1);
 
-      let brushPts = quarters.map((v)=> {
-        return caseRange.map((d)=> {
-          return [v,d];
+      let brushPts = quarters.map((v) => {
+        return caseRange.map((d) => {
+          return [v, d];
         });
       });
       brushPts = Array.prototype.concat.apply([], brushPts);
@@ -1026,35 +1003,30 @@ class MapView {
       brushCircles.exit().remove();
       brushCircles = brushCircles.enter().append('circle').merge(brushCircles)
       // brushCircles.enter().append('circle')
-        // .attr('class', 'leaflet-interactive')
-        .attr('cx', (d:any, i) => {
+      // .attr('class', 'leaflet-interactive')
+        .attr('cx', (d: any, i) => {
           const q = d[0];
           // return (q*130)+30;
           return xax(q);
         })
-        .attr('cy', (d:any, i) => {
+        .attr('cy', (d: any, i) => {
           const dd = d[1];
           // return (dd*25)-80;
           return yax(dd);
         })
         // .attr('cy', 60)
-        .attr('r', (d:any) => {
+        .attr('r', (d: any) => {
           return countScale(d[1]);
           // return d[1];
         })
         // .attr('r', (d:any) => Math.round(Math.random()*10))
         .attr('stroke', 'black')
         // .style('fill', 'pink')
-        .style('fill', (d:any) => (interpolateCividis(d[0])));
-        // .style('fill', (d:any) => (interpolateCividis(rScale.invert(d)/maxRadiusVal)));
+        .style('fill', (d: any) => (interpolateCividis(d[0])));
+      // .style('fill', (d:any) => (interpolateCividis(rScale.invert(d)/maxRadiusVal)));
       //Brush
-<<<<<<< HEAD
-      mapLegend.append('g').call(brush().extent([[-5, -5], [lwidth+10,lheight+10]]));
-=======
-      mapLegend.append('g').call(brush().extent([[-5, -5], [lwidth+5,lheight+5]]));
->>>>>>> leafletsearchcontrol
+      mapLegend.append('g').call(brush().extent([[-5, -5], [lwidth + 5, lheight + 5]]));
     }
-
   private updateCircles() {
       const self = this;
       const mapObject = self.leafMap;

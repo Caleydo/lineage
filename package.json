@@ -104,7 +104,9 @@
     "phovea_ui": "2.0.0",
     "sortablejs": "^1.5.0-rc1",
     "topojson": "^3.0.2",
-    "underscore": "^1.8.3"
+    "underscore": "^1.8.3",
+    "leaflet": "1.6.0",
+    "leaflet-search": "^2.9.8"
   },
   "name": "lineage",
   "description": "",

@@ -1,5 +1,6 @@
 import * as events from 'phovea_core/src/event';
-import {event, select, selectAll} from 'd3-selection';
+import {event, select, selectAll, selection} from 'd3-selection';
+
 import {format} from 'd3-format';
 import {Config} from './config';
 import {scaleLinear, scaleSqrt, schemeCategory10} from 'd3-scale';
@@ -77,7 +78,8 @@ class MapView {
       const leafdiv = leafmaster.append('div')
         .attr('id', 'leafdiv')
         // .style('flex-grow', '1')
-        .style('height', '600px');
+        .style('height', this.svgHeight+'px');
+        // .style('height', '600px');
       this.drawLeafletMap();
 
       select('#col4').append('div')
@@ -102,16 +104,14 @@ class MapView {
       // let resetButton = buttondiv.append('button')
       //             .attr('id','reset_button')
       //             .text('Reset zoom');
-
-
-    document.getElementById('col4').style.display = 'none';
-    const mapdropdownMenu = select('.navbar-collapse').append('ul')
+      document.getElementById('col4').style.display = 'none';
+      const mapdropdownMenu = select('.navbar-collapse').append('ul')
                                                       .attr('class','nav navbar-nav')
                                                       .attr('id','mapOption');
 
-    const optionList = mapdropdownMenu.append('li').attr('class','dropdown');
+      const optionList = mapdropdownMenu.append('li').attr('class','dropdown');
 
-    optionList.append('a')
+      optionList.append('a')
               .attr('class','dropdown-toggle')
               .attr('data-toggle','dropdown')
               .attr('role','button')
@@ -119,7 +119,7 @@ class MapView {
               .append('span')
               .attr('class', 'caret');
 
-    const mapMenu = optionList.append('ul').attr('class', 'dropdown-menu');
+      const mapMenu = optionList.append('ul').attr('class', 'dropdown-menu');
 
 
       let mapmenuItems = mapMenu.selectAll('.demoAttr')
@@ -132,25 +132,24 @@ class MapView {
         .html((d:any) => { return d; })
         .merge(mapmenuItems);
 
-    mapmenuItems.on('click',(d)=> {
-      const currSelection = selectAll('.layoutMenu').filter((e)=> {return e === d;});
-      // if (currSelection.classed('active')) {
-      //   return;
-      // }
-      selectAll('.layoutMenu').classed('active',false);
-      currSelection.classed('active',true);
+      mapmenuItems.on('click',(d)=> {
+        const currSelection = selectAll('.layoutMenu').filter((e)=> {return e === d;});
+        // if (currSelection.classed('active')) {
+        //   return;
+        // }
+        selectAll('.layoutMenu').classed('active',false);
+        currSelection.classed('active',true);
 
-      if (d === 'Detail') {
-          self.currentViewType = 'Detail';
-      } else if (d === 'Map') {
-          self.currentViewType = 'Map';
-      } else {
-         self.currentViewType = 'None';
-      }
-      self.update();
-      }
-    );
-    const dropdownMenu = select('.navbar-collapse')
+        if (d === 'Detail') {
+            self.currentViewType = 'Detail';
+        } else if (d === 'Map') {
+            self.currentViewType = 'Map';
+        } else {
+           self.currentViewType = 'None';
+        }
+        self.update();
+      });
+      const dropdownMenu = select('.navbar-collapse')
                         .append('ul')
                         .attr('class', 'nav navbar-nav')
                         .attr('id', 'mapAttribute');
@@ -650,9 +649,10 @@ class MapView {
           });
       const tracts = L.geoJSON(self.mapManager.topojsonFeatures);
       tracts.setStyle({fillOpacity:0.1, weight:1.0, color: '#285880'});
+      //This is the leaflet map object...
       const mapObject = L.map('leafdiv',{
           center: [39.384167, -111.683500],
-          zoom: 6,
+          zoom: 7,
           // layers: [tracts, positronBasemap]
         });
       // leafSVG is an svg layer/renderer that is added to leaflet overlay div by default
@@ -663,7 +663,8 @@ class MapView {
         jsonParam: 'json_callback',
         propertyName: 'display_name',
         propertyLoc: ['lat', 'lon'],
-        // marker: L.circleMarker([0,0],{radius:20}),
+        marker: false,
+        // marker: L.circleMarker([0,0],{radius:20}).bindTooltip('display_name'),
         autoCollapse: true,
         autoType: true,
         minLength: 3,
@@ -780,61 +781,61 @@ class MapView {
         const cname = vect.column.toString();
         attrColNames.push(cname);
         attrpromises.push(attributeTable.colData(cname));
-    });
-    const attrfinishedPromises = await Promise.all(attrpromises);
-    let cc = attrfinishedPromises[0].map((col, i)=> {
-      const datadict: any = {};
-      datadict.coords = {lat:undefined, lon:undefined};
-      attrfinishedPromises.forEach((ccol, ii)=> {
-        let dataVal = ccol[i];
-        const cname =  attrColNames[ii];
-        if (cname === 'GEOID10') {
-          dataVal = dataVal.toString();
-          const tractGEO = geographies.features.find((g)=>g.properties.GEOID10.toString() === dataVal);
-          if (typeof(tractGEO) !== 'undefined') {
-            datadict.coords =  {lat:tractGEO.properties.INTPTLAT10, lon: tractGEO.properties.INTPTLON10};
-            datadict.properties = tractGEO.properties;
+      });
+      const attrfinishedPromises = await Promise.all(attrpromises);
+      let cc = attrfinishedPromises[0].map((col, i)=> {
+        const datadict: any = {};
+        datadict.coords = {lat:undefined, lon:undefined};
+        attrfinishedPromises.forEach((ccol, ii)=> {
+          let dataVal = ccol[i];
+          const cname =  attrColNames[ii];
+          if (cname === 'GEOID10') {
+            dataVal = dataVal.toString();
+            const tractGEO = geographies.features.find((g)=>g.properties.GEOID10.toString() === dataVal);
+            if (typeof(tractGEO) !== 'undefined') {
+              datadict.coords =  {lat:tractGEO.properties.INTPTLAT10, lon: tractGEO.properties.INTPTLON10};
+              datadict.properties = tractGEO.properties;
+            }
           }
+          datadict[cname] = dataVal;
+        });
+        return datadict;
+      });
+      // const kindredIDVector = await self.mapManager.tableManager.getAttributeVector('KindredID', true); //get FamilyID vector for all families
+      const kindredIDVector = await self.mapManager.tableManager.getAttributeVector('KindredID', true); //get FamilyID vector for all families
+      const familyIDs: number[] = <number[]>await kindredIDVector.data();
+      const peopleIDs: string[] = await kindredIDVector.names();
+        console.log('fam', kindredIDVector);
+      cc = cc.map((d)=> {
+        const pID = d.personid;
+        d.KindredID = familyIDs[peopleIDs.indexOf(pID)];
+        d.personID = d.personid;
+        return d;
+      });
+      // Filter out records that do not have a matching tract (GEOID10)
+      //   Todo - need to make this not hardcoded with 'NaN' below
+      cc = cc.filter((d)=> {
+        return d.GEOID10 !== 'NaN';
+      });
+      const tractGroups = cc.reduce((d, i) => {
+        const tract = i.GEOID10.toString();
+        // const mapobj = new self.mapManager.mappedCase(i.GEOID10, i.dataVal, self.currentSelectedMapAttribute);
+        if(!d[tract]) {
+          const tractGEO = geographies.features.find((g)=>g.properties.GEOID10.toString() === tract);
+          d[tract] = {cases:[]
+            ,coords: {lat:tractGEO.properties.INTPTLAT10, lon: tractGEO.properties.INTPTLON10}
+            ,properties: tractGEO.properties};
         }
-        datadict[cname] = dataVal;
-      });
-      return datadict;
-    });
-    // const kindredIDVector = await self.mapManager.tableManager.getAttributeVector('KindredID', true); //get FamilyID vector for all families
-    const kindredIDVector = await self.mapManager.tableManager.getAttributeVector('KindredID', true); //get FamilyID vector for all families
-    const familyIDs: number[] = <number[]>await kindredIDVector.data();
-    const peopleIDs: string[] = await kindredIDVector.names();
-      console.log('fam', kindredIDVector);
-    cc = cc.map((d)=> {
-      const pID = d.personid;
-      d.KindredID = familyIDs[peopleIDs.indexOf(pID)];
-      d.personID = d.personid;
-      return d;
-    });
-    // Filter out records that do not have a matching tract (GEOID10)
-    //   Todo - need to make this not hardcoded with 'NaN' below
-    cc = cc.filter((d)=> {
-      return d.GEOID10 !== 'NaN';
-    });
-    const tractGroups = cc.reduce((d, i) => {
-      const tract = i.GEOID10.toString();
-      // const mapobj = new self.mapManager.mappedCase(i.GEOID10, i.dataVal, self.currentSelectedMapAttribute);
-      if(!d[tract]) {
-        const tractGEO = geographies.features.find((g)=>g.properties.GEOID10.toString() === tract);
-        d[tract] = {cases:[]
-          ,coords: {lat:tractGEO.properties.INTPTLAT10, lon: tractGEO.properties.INTPTLON10}
-          ,properties: tractGEO.properties};
-      }
-      d[tract].cases.push(i);
-      return d;
-    }, {});
+        d[tract].cases.push(i);
+        return d;
+      }, {});
       // Group the individual cases by tract (GEOID10) and assign to self.currentCases
-    self.currentCases = Object.keys(tractGroups).map((k)=> {
-      const datadict: any= {};
-      datadict.GEOID10 = k;
-      Object.assign(datadict, tractGroups[k]);
-      return datadict;
-      });
+      self.currentCases = Object.keys(tractGroups).map((k)=> {
+        const datadict: any= {};
+        datadict.GEOID10 = k;
+        Object.assign(datadict, tractGroups[k]);
+        return datadict;
+        });
     }
 
     private async drawCases() {
@@ -846,7 +847,7 @@ class MapView {
       console.log('Draw Cases');
       const normVar = 'POP100';
       let maxRadiusVal = 0;
-      let maxCases = 3;
+      let maxCases = 0;
 
       const mapObject = self.leafMap;
       if (self.displayfamilyCases === true) {
@@ -868,7 +869,7 @@ class MapView {
         d.radiusVal = d.cases.length / d.properties[normVar];
         maxRadiusVal = d.radiusVal > maxRadiusVal ? d.radiusVal : maxRadiusVal;
         //TODO: adjust max cases;
-        // maxCases = d.cases.length > maxCases?d.cases.length:maxCases;
+        maxCases = d.cases.length > maxCases?d.cases.length:maxCases;
         return d;
       });
       console.log('after filter cases: ', cCases.length);
@@ -927,7 +928,7 @@ class MapView {
           select(this).transition()
             .attr('stroke-width', '1px')
             .style('fill', (d: any) => (interpolateCividis(cScale(d.radiusVal))))
-            .attr('r', (d: any) => d.cases.length * 5);
+            .attr('r', (d: any) => rScale(d.cases.length));
         })
         .on('click', function (d: any) {
           const tractData = d;
@@ -935,7 +936,7 @@ class MapView {
         });
       ///////////////////////////////////////////////////////////////////////////////////////////////////////
       // Brushable legend
-      const quarters = [1, 0.8, 0.6, 0.4, 0.2];
+      const xTicks = [1, 0.8, 0.6, 0.4, 0.2];
       // draw brushable circles map legend maplegend
       //Remove this once pulling from max cases for entire pop
       //TODO!! - this needs to match scales for map circles!
@@ -946,9 +947,11 @@ class MapView {
       const marg = {top: 20, bottom: 50, right: 30, left: 50},
         lwidth = 300 - marg.left - marg.right,
         lheight = 200 - marg.top - marg.bottom;
+      //brush legend scales
       const xax = scaleLinear()
-        .domain([0, 1])
+        .domain([0, maxRadiusVal])
         .range([0, lwidth]);
+
       const yax = scaleLinear()
         .domain([maxCases, 0])
         .range([0, lheight])
@@ -966,12 +969,13 @@ class MapView {
       const xAxisGroup = mapLegend.append('g')
         .attr('transform', 'translate(0,' + lheight + ')')
         .call(axisBottom(xax)
-        // .tickValues([0.25, 0.5, 0.75]));
-          .ticks(5));
+          .tickValues([...xTicks.map((d)=>cScale.invert(d))])
+        //   .ticks((xTicks.length-1))
+          .tickFormat(format('.1e')));
       const xAxisLabel = mapLegend.append('text')
           .attr('transform', 'translate(' + lwidth / 2 + ',' + (lheight + marg.top + 10) + ')')
           .style('text-anchor', 'middle')
-          .text('Cases/Population % of max (color)');
+          .text('Cases/Population (color)');
 
       const yAxisGroup = mapLegend.append('g')
         .call(axisLeft(yax)
@@ -979,7 +983,7 @@ class MapView {
       const yAxisLabel = mapLegend.append('text')
         .attr('transform', 'rotate(-90)')
         .attr('y', 0 - marg.left)
-        .attr('x', 0 - (lheight / 2))
+        .attr('x', 0 - (lheight / 2.1))
         .style('text-anchor', 'middle')
         .attr('dy', '1em')
         .text('Cases per Tract (radius)');
@@ -989,7 +993,7 @@ class MapView {
       const distinctVals = [...new Set(cCases.map((d) => Math.floor(rScale(d.radiusVal))))].sort((a, b) => a - b);
       const caseRange = Array.from({length: maxCases}, (v, k) => k + 1);
 
-      let brushPts = quarters.map((v) => {
+      let brushPts = xTicks.map((v) => {
         return caseRange.map((d) => {
           return [v, d];
         });
@@ -1007,7 +1011,7 @@ class MapView {
         .attr('cx', (d: any, i) => {
           const q = d[0];
           // return (q*130)+30;
-          return xax(q);
+          return xax(cScale.invert(q));
         })
         .attr('cy', (d: any, i) => {
           const dd = d[1];
@@ -1024,10 +1028,44 @@ class MapView {
         // .style('fill', 'pink')
         .style('fill', (d: any) => (interpolateCividis(d[0])));
       // .style('fill', (d:any) => (interpolateCividis(rScale.invert(d)/maxRadiusVal)));
+      function withinBrush(selection) {
+        const brushExt = selection;
+        const selCircle = select('#col4')
+          .select('#leafSVG')
+          .selectAll('circle');
+        selCircle.classed('brushedTract', false);
+        selCircle
+          .filter((circ:any) => {
+            const casesCount = yax(circ.cases.length);
+            const casesPopNorm = xax(circ.radiusVal);
+            return casesCount > brushExt[0][1] && casesCount < brushExt[1][1] && casesPopNorm > brushExt[0][0] && casesPopNorm < brushExt[1][0];
+
+            /*
+            *  TODO
+            *   filter tractCircles based on brush selection
+            *     convert casesCount and radius val to brush coords with scales yax and xax
+            *   Create and apply class for selected tractCircles
+            *   Worry about classing the legend cirlces later
+            * */
+            // return circ;
+            // return circ within selection
+          }).classed('brushedTract', true);
+      }
       //Brush
-      mapLegend.append('g').call(brush().extent([[-5, -5], [lwidth + 5, lheight + 5]]));
+      function legendBrush() {
+        const evt = event;
+        const sel = evt.selection;
+        console.log('brush selection', sel);
+        withinBrush(sel);
+        // return sel;
+      }
+      const brush2d = brush()
+        .extent([[-5, -5], [lwidth + 5, lheight + 5]])
+        .on('brush', legendBrush)
+        .on('end', legendBrush);
+      mapLegend.append('g').call(brush2d);
     }
-  private updateCircles() {
+    private updateCircles() {
       const self = this;
       const mapObject = self.leafMap;
       let dots;
@@ -1069,102 +1107,96 @@ class MapView {
         //nothing here
     }
 
-  private drawGeographicalMap() {
-    const self = this;
-  //     const projection = d3.geoConicConformal()
-  // .parallels([39 + 1 / 60, 40 + 39 / 60])
-  // .rotate([111 + 30 / 60, 0])
-  // .fitExtent([[padding, padding],[width, height]], mapdata)
-    this.projection = geoConicConformal()
-      .parallels([39 + 1 / 60, 40 + 39 / 60])
-      .rotate([111 + 30 / 60, 0])
-      .fitExtent([[10, 10],[this.svgWidth, this.svgHeight]], self.mapManager.topojsonFeatures);
-    // this.projection = geoMercator()
-    //       .translate(this.nodeCenter)
-    //       .scale(5000)
-    //       .center(this.mapCenter);
-    const pathFuction = geoPath().projection(self.projection);
-    const countyTooltip = select('#countytip');
-    // console.log('topojsonFeatures', self.mapManager.topojsonFeatures);
-  //   let paths = select('#mapLayer').selectAll('path').data(self.mapManager.topojsonFeatures.features);
-  //   paths.exit().remove();
-  //   paths = paths.enter().append('path').merge(paths).classed('map-paths',true);
-  //   // paths.transition()
-  //   //      .duration(700)
-  //   paths.attr('id',(d)=>(d as any).properties.GEOID)
-  //        .attr('d', pathFuction);
-  // //  console.log(self.mapManager.topojson_features.features)
-  //   paths.on('mouseover',function(d) {
-  //            countyTooltip
-  //            // .transition()
-  //            // .duration(200)
-  //            .style('opacity',0.9);
-  //            countyTooltip.html((d as any).properties.NAME)
-  //            .style('left', (event.pageX) + 'px')
-  //             .style('top', (event.pageY - 28) + 'px');
-  //           })
-  //          .on('mouseout',function(d) {
-  //            countyTooltip
-  //                    //  .transition()
-  //                    // .duration(200)
-  //                    .style('opacity',0);});
+    private drawGeographicalMap() {
+      const self = this;
+    //     const projection = d3.geoConicConformal()
+    // .parallels([39 + 1 / 60, 40 + 39 / 60])
+    // .rotate([111 + 30 / 60, 0])
+    // .fitExtent([[padding, padding],[width, height]], mapdata)
+      this.projection = geoConicConformal()
+        .parallels([39 + 1 / 60, 40 + 39 / 60])
+        .rotate([111 + 30 / 60, 0])
+        .fitExtent([[10, 10],[this.svgWidth, this.svgHeight]], self.mapManager.topojsonFeatures);
+      // this.projection = geoMercator()
+      //       .translate(this.nodeCenter)
+      //       .scale(5000)
+      //       .center(this.mapCenter);
+      const pathFuction = geoPath().projection(self.projection);
+      const countyTooltip = select('#countytip');
+      // console.log('topojsonFeatures', self.mapManager.topojsonFeatures);
+    //   let paths = select('#mapLayer').selectAll('path').data(self.mapManager.topojsonFeatures.features);
+    //   paths.exit().remove();
+    //   paths = paths.enter().append('path').merge(paths).classed('map-paths',true);
+    //   // paths.transition()
+    //   //      .duration(700)
+    //   paths.attr('id',(d)=>(d as any).properties.GEOID)
+    //        .attr('d', pathFuction);
+    // //  console.log(self.mapManager.topojson_features.features)
+    //   paths.on('mouseover',function(d) {
+    //            countyTooltip
+    //            // .transition()
+    //            // .duration(200)
+    //            .style('opacity',0.9);
+    //            countyTooltip.html((d as any).properties.NAME)
+    //            .style('left', (event.pageX) + 'px')
+    //             .style('top', (event.pageY - 28) + 'px');
+    //           })
+    //          .on('mouseout',function(d) {
+    //            countyTooltip
+    //                    //  .transition()
+    //                    // .duration(200)
+    //                    .style('opacity',0);});
+         // select('#map-svg').call(zoom().on('zoom',function(){
+         //         self.projection.scale(event.transform.k*5000).center(self.mapCenter)
+         //         .translate([self.nodeCenter[0]+event.transform.x,self.nodeCenter[1]+event.transform.y]);
+         //         select('#mapLayer').selectAll('path').attr('d',pathFuction);
+         //         self.drawMapDots()
+         //         }))
+         // select('#reset_button').on('click',function(){
+         //   if(self.currentViewType==='mapView'){
+         //     zoom().transform(select('map-svg'),zoomIdentity)
+         //     self.projection.scale(5000).translate(self.nodeCenter).center(self.mapCenter);
+         //     select('#mapLayer').selectAll('path').attr('d',pathFuction);
+         //     self.drawMapDots();
+         //   }
+         // })
+    }
 
-       // select('#map-svg').call(zoom().on('zoom',function(){
-       //         self.projection.scale(event.transform.k*5000).center(self.mapCenter)
-       //         .translate([self.nodeCenter[0]+event.transform.x,self.nodeCenter[1]+event.transform.y]);
-       //         select('#mapLayer').selectAll('path').attr('d',pathFuction);
-       //         self.drawMapDots()
-       //         }))
-
-       // select('#reset_button').on('click',function(){
-       //   if(self.currentViewType==='mapView'){
-       //     zoom().transform(select('map-svg'),zoomIdentity)
-       //     self.projection.scale(5000).translate(self.nodeCenter).center(self.mapCenter);
-       //     select('#mapLayer').selectAll('path').attr('d',pathFuction);
-       //     self.drawMapDots();
-       //   }
-       // })
-
-     }
-
-     private drawLegend(dataArray,colorArray) {
-
-       const legendContainer = select('#map-util');
-       legendContainer.selectAll('text').remove();
-       legendContainer.append('text')
-                      .text(this.currentSelectedMapAttribute)
-                      .attr('font-size','20px')
-                      .attr('y',25)
-                      .attr('x',0.125*this.svgWidth)
-                      .attr('text-anchor','end');
-
-       if(colorArray==='TEXT') {
+    private drawLegend(dataArray,colorArray) {
+      const legendContainer = select('#map-util');
+      legendContainer.selectAll('text').remove();
+      legendContainer
+        .append('text')
+        .text(this.currentSelectedMapAttribute)
+        .attr('font-size','20px')
+        .attr('y',25)
+        .attr('x',0.125*this.svgWidth)
+        .attr('text-anchor','end');
+      if(colorArray==='TEXT') {
           legendContainer.selectAll('rect').remove();
          return;
-       }
-       let legendRects = legendContainer.selectAll('.legend-rect').data(colorArray);
-       legendRects.exit().remove();
-       legendRects = legendRects.enter().append('rect').merge(legendRects);
-
-       legendRects.attr('x',0)
-                  .attr('y',(d,i)=>i * 25+50)
-                  .attr('width', 100)
-                  .attr('height',20)
-                  .attr('fill',(d:any)=>d)
-                  .attr('class','legend-rect');
-       let legendText = legendContainer.selectAll('.legend-text').data(dataArray);
-       legendText.exit().remove();
-       legendText = legendText.enter().append('text').merge(legendText);
-
-       legendText.attr('x',110)
-                 .attr('y',(d,i)=>i*25+50)
-                 .attr('class','legend-text')
-                 .attr('alignment-baseline','hanging')
-                // .attr('fill','white')
-                 .text((d:any)=>d);
-
-     }
-       // console.log('this.dotDataColloection', this.dotDataColloection);
+      }
+      let legendRects = legendContainer.selectAll('.legend-rect').data(colorArray);
+      legendRects.exit().remove();
+      legendRects = legendRects.enter().append('rect').merge(legendRects);
+      legendRects
+       .attr('x',0)
+       .attr('y',(d,i)=>i * 25+50)
+       .attr('width', 100)
+       .attr('height',20)
+       .attr('fill',(d:any)=>d)
+       .attr('class','legend-rect');
+      let legendText = legendContainer.selectAll('.legend-text').data(dataArray);
+      legendText.exit().remove();
+      legendText = legendText.enter().append('text').merge(legendText);
+      legendText
+       .attr('x',110)
+       .attr('y',(d,i)=>i*25+50)
+       .attr('class','legend-text')
+       .attr('alignment-baseline','hanging')
+        // .attr('fill','white')
+       .text((d:any)=>d);
+    }
 
     private highlightID(selectedId) {
       console.log('HIGHLIGHT BY ID FUNCTION FROM mapView.ts');
@@ -1282,7 +1314,17 @@ class MapView {
       const [pID, kID] = selNode;
       const tractData:any = self.getTractCircleByID(pID, kID);
       self.openPopup(tractData);
+      self.selectPopupRow(pID);
       // self.openPopup(pID, kID);
+    }
+    private selectPopupRow(selectedId) {
+      const sID = selectedId;
+      const poprows = select('#col4').selectAll('tr.poprow');
+      poprows.classed('selected', false);
+      poprows.filter((d:any) => {
+        return d.personid.toString() === sID.toString();
+      })
+        .classed('selected', true);
     }
     private getMapOption() {
       const mapOption = select('#mapOption').selectAll('a');
@@ -1291,10 +1333,12 @@ class MapView {
     private attachListener() {
       const self = this;
       events.on(TABLE_VIS_ROWS_CHANGED_EVENT, () => {
-        self.update();
+        if (self.currentViewType === 'Map') { self.update();}
+        // self.update();
       });
       events.on(MAP_ATTRIBUTE_CHANGE_EVENT,()=> {
-        self.update();
+        if (self.currentViewType === 'Map') { self.update();}
+        // self.update();
      });
      events.on(SHOW_TOP_100_EVENT,()=> {
        self.update();
@@ -1311,15 +1355,17 @@ class MapView {
        self.update();
      });
      events.on(HIGHLIGHT_MAP_BY_ID,(evt,id)=> {
-      self.highlightID(id);
+       if (self.currentViewType === 'Map') {self.highlightID(id);}
+      // self.highlightID(id);
      });
      events.on(CLEAR_MAP_HIGHLIGHT,()=> {
-       self.clearAllHighlight();
+       if (self.currentViewType === 'Map') {self.clearAllHighlight();}
        });
      events.on(COL_ORDER_CHANGED_EVENT,()=> {
        self.update();
      });
      events.on(OPEN_MAP_POPUP,(evt, yVal)=> {
+       // if (self.currentViewType === 'Map') {self.openPopupFromY(yVal);}
        self.openPopupFromY(yVal);
      });
    }

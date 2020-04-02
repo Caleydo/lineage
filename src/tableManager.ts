@@ -243,6 +243,7 @@ export default class TableManager {
       //this.defaultCols = ['KindredID', 'RelativeID', 'sex', 'deceased', 'suicide', 'Age','bipolar spectrum illness','anxiety-non-trauma','alcohol','PD','psychosis','depression','cause_death','zip','longitude','latitude']; //set of default cols to read in, minimizes load time for large files;
       this.defaultCols = [
         'KindredID',
+        'RelativeID',
         'maxNO2day',
         'pm25day',
         'AirTempday',

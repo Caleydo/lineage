@@ -819,14 +819,20 @@ class MapView {
       });
       const tractGroups = cc.reduce((d, i) => {
         const tract = i.GEOID10.toString();
+        const tractGEO = geographies.features.find((g)=>g.properties.GEOID10.toString() === tract);
         // const mapobj = new self.mapManager.mappedCase(i.GEOID10, i.dataVal, self.currentSelectedMapAttribute);
-        if(!d[tract]) {
-          const tractGEO = geographies.features.find((g)=>g.properties.GEOID10.toString() === tract);
-          d[tract] = {cases:[]
-            ,coords: {lat:tractGEO.properties.INTPTLAT10, lon: tractGEO.properties.INTPTLON10}
-            ,properties: tractGEO.properties};
+        if(tractGEO) {
+          if (!d[tract]) {
+            console.log(tractGEO)
+            //TODO - handle these cases where there is no matching tractGEO
+            d[tract] = {
+              cases: []
+              , coords: {lat: tractGEO.properties.INTPTLAT10, lon: tractGEO.properties.INTPTLON10}
+              , properties: tractGEO.properties
+            };
+          }
+          d[tract].cases.push(i);
         }
-        d[tract].cases.push(i);
         return d;
       }, {});
       // Group the individual cases by tract (GEOID10) and assign to self.currentCases
@@ -884,7 +890,7 @@ class MapView {
         .force('collision', forceCollide().radius(function (d) {
           const radiusWeight = 1.2;
           // return rScale(d.radiusVal)*radiusWeight;
-          return d.cases.length * 5;
+          return rScale(d.cases.length);
           // return 10;
         }))
         .force('x', forceX().x(function (d) {

@@ -110,12 +110,14 @@ export class App {
     if (dataset === 'suicide' || !dataset) {
       dataset = 'suicide';
       //await tableManager.loadData('TenFamiliesDescend','TenFamiliesAttr');
-      await tableManager.loadData('TenFamiliesDescendAnon','TenFamiliesAttrAnon');
+      await tableManager.loadData('AllFamiliesDescendAnon','AllFamiliesAttrAnon');
+      // await tableManager.loadData('TenFamiliesDescendAnon','TenFamiliesAttrAnon');
     } else if (dataset === 'autism') {
      await tableManager.loadData('AllAutismFamiliesDescend', 'AllAutismFamiliesAttributes');
     } else if (dataset === 'suicide_anon') {
       dataset = 'suicide';
-      await tableManager.loadData('TenFamiliesDescendAnon', 'TenFamiliesAttrAnon');
+      await tableManager.loadData('AllFamiliesDescendAnon', 'AllFamiliesAttrAnon');
+      // await tableManager.loadData('TenFamiliesDescendAnon', 'TenFamiliesAttrAnon');
     }
     //await tableManager.loadData('TenFamiliesDescend', 'TenFamiliesAttr');
     //await tableManager.loadData('FiftyFamiliesDescendAnon', 'FiftyFamiliesAttributes');

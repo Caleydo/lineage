@@ -279,6 +279,12 @@ ul.nav.navbar-nav{
 #col4 path:hover{
   fill:#f7f7f7
 }
+#btable {
+  border-collapse: collapse;
+}
+#btable td {
+  border: 1px solid #6f7373;
+}
 #btable th{
   background-color: transparent;
   color: #020203;
@@ -300,6 +306,10 @@ ul.nav.navbar-nav{
   fill:white
 }
 
+#col4 .handle{
+  fill: #5a5959;
+}
+
 .highlightedCircle{
   opacity: 1
 }
@@ -310,6 +320,7 @@ ul.nav.navbar-nav{
 #col4 .brushedTract{
   stroke: orangered;
   stroke-width: 5;
+  opacity: .8;
 }
 
 .average_marker{

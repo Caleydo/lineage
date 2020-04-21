@@ -58,6 +58,10 @@ class MapView {
       meanO3day: [0,54,70,85,105],
       meanNO2day: [0,53,100,360,649,1249]
     };
+    private maxRadiusVAl = 0;
+    private maxCases = 0;
+    private brushSelection;
+    private brushMargin = {top: 20, bottom: 50, right: 30, left: 50}
     public init(mapManager) {
       this.mapManager = mapManager;
       //document.getElementById('col4').style.display = 'none';
@@ -260,6 +264,7 @@ class MapView {
       // if self.mapView === 'All Cases'... else if === 'Family Cases'::
       // console.log('dotDataColloection', self.dotDataColloection);
       if (this.currentViewType === 'Map') {
+        select('#circleBrush').remove();
         self.leafMap.closePopup();
         document.getElementById('col4').style.display = 'block';
         select('#graphLayer').attr('opacity',0).attr('pointer-events','none');
@@ -268,8 +273,15 @@ class MapView {
         select('#mapLayer').attr('opacity',1).attr('pointer-events','auto');
         select('#drawLayer').attr('opacity',1).attr('pointer-events','auto');
         console.log('map functions currently suppressed');
-
+        if (self.displayfamilyCases === true) {
+          console.log('draw family cases');
+          await self.getFamilyCases();
+        } else {
+          console.log('draw All Cases');
+          await self.getAllCases();
+        }
         await self.drawCases();
+        self.drawBrushLegend();
         // self.updateCircles();
         // self.drawGeographicalMap();
         // self.drawMapDots();
@@ -694,44 +706,6 @@ class MapView {
       });
       // TODO - maybe use this object, delete the entire map on update....?
       self.leafMap = mapObject;
-    //   const lmapLegend = select('#maplegend').append('div').attr('id','lmaplegend-div')
-    //     .append('ul')
-    //     .attr('class', 'nav navbar-nav navbar-left')
-    //     .attr('id', 'mapAttribute');
-    //
-    //   const legendlist = lmapLegend.append('li').attr('class','dropdown');
-    //   legendlist.append('a')
-    //     .attr('class','dropdown-toggle')
-    //     .attr('data-toggle','dropdown')
-    //     .attr('role','button')
-    //     .html('Map View')
-    //     .append('span')
-    //     .attr('class', 'caret');
-    //
-    //   const legendMenu = legendlist.append('ul').attr('class', 'dropdown-menu');
-    //   let maplegendItems = legendMenu.selectAll('.demoAttr')
-    //     .data(['All Tracts', 'Family Selection']);
-    //   maplegendItems = maplegendItems.enter()
-    //     .append('li')
-    //     .append('a')
-    //     .attr('class', 'layoutMenu')
-    //     .classed('active', function(d) { return d === 'Expand';})
-    //     .html((d:any) => { return d; })
-    //     .merge(maplegendItems);
-    // maplegendItems.on('click',(d)=> {
-    //   const currSelection = selectAll('.layoutMenu').filter((e)=> {return e === d;});
-    //   selectAll('.layoutMenu').classed('active',false);
-    //   currSelection.classed('active',true);
-    //   if (d === 'All Tracts') {
-    //     self.displayfamilyCases = false;
-    //     console.log('All Tracts');
-    //   } else if (d === 'Family Selection') {
-    //     self.displayfamilyCases = true;
-    //     console.log('Family Selection');
-    //   }
-    //   self.update();
-    //   });
-
     }
     private async getFamilyCases() {
       console.log('getFamilyCases');
@@ -743,8 +717,16 @@ class MapView {
       const familyIDs: number[] = <number[]>await kindredIDVector.data();
       const peopleIDs: string[] = await kindredIDVector.names();
       familyCases.forEach((d) => {
+        //This d.KindredID is just the first match...
         d.KindredID = familyIDs[peopleIDs.indexOf(d.ID)];
         d.personID = d.ID;
+        const allKindred = [];
+        let idx = peopleIDs.indexOf(d.ID);
+        while(idx !== -1) {
+          allKindred.push(familyIDs[idx]);
+          idx = peopleIDs.indexOf(d.ID, idx+1);
+        }
+        d.allKindred = allKindred;
       });
       const tractGroups = familyCases.reduce((d, i) => {
         // console.log('m,i', m,i);
@@ -787,43 +769,54 @@ class MapView {
         const datadict: any = {};
         datadict.coords = {lat:undefined, lon:undefined};
         attrfinishedPromises.forEach((ccol, ii)=> {
-          let dataVal = ccol[i];
+          let datavalue = ccol[i];
           const cname =  attrColNames[ii];
           if (cname === 'GEOID10') {
-            dataVal = dataVal.toString();
-            const tractGEO = geographies.features.find((g)=>g.properties.GEOID10.toString() === dataVal);
+            datavalue = datavalue.toString();
+            const tractGEO = geographies.features.find((g)=>g.properties.GEOID10.toString() === datavalue);
             if (typeof(tractGEO) !== 'undefined') {
               datadict.coords =  {lat:tractGEO.properties.INTPTLAT10, lon: tractGEO.properties.INTPTLON10};
               datadict.properties = tractGEO.properties;
             }
           }
-          datadict[cname] = dataVal;
+          datadict[cname] = datavalue;
         });
         return datadict;
       });
       // const kindredIDVector = await self.mapManager.tableManager.getAttributeVector('KindredID', true); //get FamilyID vector for all families
       const kindredIDVector = await self.mapManager.tableManager.getAttributeVector('KindredID', true); //get FamilyID vector for all families
+      const currentAttrVector = await self.mapManager.tableManager.getAttributeVector(self.currentSelectedMapAttribute, true);
+      const currentAttributeData: string[] = <string[]>await currentAttrVector.data();
       const familyIDs: number[] = <number[]>await kindredIDVector.data();
       const peopleIDs: string[] = await kindredIDVector.names();
         console.log('fam', kindredIDVector);
       cc = cc.map((d)=> {
         const pID = d.personid;
         d.KindredID = familyIDs[peopleIDs.indexOf(pID)];
+        d.dataVal = currentAttributeData[peopleIDs.indexOf(pID)];
         d.personID = d.personid;
+        const allKindred = [];
+        //Get all kindred id's for each case
+        let idx = peopleIDs.indexOf(pID);
+        while(idx !== -1) {
+          allKindred.push(familyIDs[idx]);
+          idx = peopleIDs.indexOf(pID, idx+1);
+        }
+        d.allKindred = allKindred;
         return d;
       });
       // Filter out records that do not have a matching tract (GEOID10)
       //   Todo - need to make this not hardcoded with 'NaN' below
       cc = cc.filter((d)=> {
-        return d.GEOID10 !== 'NaN';
+        // Records with person ID of 0 and matching census tract are omitted here...
+        return d.GEOID10 !== 'NaN' && d.personID !== '0';
       });
       const tractGroups = cc.reduce((d, i) => {
         const tract = i.GEOID10.toString();
         const tractGEO = geographies.features.find((g)=>g.properties.GEOID10.toString() === tract);
-        // const mapobj = new self.mapManager.mappedCase(i.GEOID10, i.dataVal, self.currentSelectedMapAttribute);
         if(tractGEO) {
           if (!d[tract]) {
-            console.log(tractGEO)
+            // console.log(tractGEO);
             //TODO - handle these cases where there is no matching tractGEO
             d[tract] = {
               cases: []
@@ -846,7 +839,7 @@ class MapView {
 
     private async drawCases() {
       const self = this;
-      select('#circleBrush').remove();
+      // select('#circleBrush').remove();
       const circleTip = select('#col4').select('#circletip');
       const leafMapObject = self.leafMap;
       leafMapObject.invalidateSize();
@@ -856,13 +849,13 @@ class MapView {
       let maxCases = 0;
 
       const mapObject = self.leafMap;
-      if (self.displayfamilyCases === true) {
-        console.log('draw family cases');
-        await self.getFamilyCases();
-      } else {
-        console.log('draw All Cases');
-        await self.getAllCases();
-      }
+      // if (self.displayfamilyCases === true) {
+      //   console.log('draw family cases');
+      //   await self.getFamilyCases();
+      // } else {
+      //   console.log('draw All Cases');
+      //   await self.getAllCases();
+      // }
       console.log('total cases: ', self.currentCases.length);
       console.log('current cases', self.currentCases);
       let cCases = self.currentCases.filter((d) => {
@@ -878,6 +871,8 @@ class MapView {
         maxCases = d.cases.length > maxCases?d.cases.length:maxCases;
         return d;
       });
+      self.maxRadiusVAl = maxRadiusVal;
+      self.maxCases = maxCases;
       console.log('after filter cases: ', cCases.length);
       const rScale = scaleSqrt()
         .domain([0, maxCases])
@@ -940,7 +935,137 @@ class MapView {
           const tractData = d;
           self.openPopup(tractData);
         });
+      //reselect
+      self.brushSelect(self.brushSelection);
       ///////////////////////////////////////////////////////////////////////////////////////////////////////
+      // Brushable legend
+      // const xTicks = [1, 0.8, 0.6, 0.4, 0.2];
+      // // draw brushable circles map legend maplegend
+      // //Remove this once pulling from max cases for entire pop
+      // //TODO!! - this needs to match scales for map circles!
+      // // maxCases = 5;
+      // const countScale = scaleSqrt()
+      //   .domain([0, maxCases])
+      //   .range([2, 10]);
+      // const marg = {top: 20, bottom: 50, right: 30, left: 50},
+      //   lwidth = 300 - marg.left - marg.right,
+      //   lheight = 200 - marg.top - marg.bottom;
+      // //brush legend scales
+      // const xax = scaleLinear()
+      //   .domain([0, maxRadiusVal])
+      //   .range([0, lwidth]);
+      //
+      // const yax = scaleLinear()
+      //   .domain([maxCases, 0])
+      //   .range([0, lheight])
+      //   .nice();
+      // // circle brush, map legend, brush
+      // const mapLegend = select('#maplegend').append('svg')
+      // // TODO - These width and heights are strange!!
+      //   .attr('id', 'circleBrush')
+      //   .attr('width', lwidth + marg.left + marg.right)
+      //   .attr('height', lheight + marg.top + marg.bottom)
+      //   .append('g')
+      //   .attr('id', 'brushLegendGroup')
+      //   .attr('transform', 'translate(' + marg.left + ',' + marg.top + ')');
+      // // .attr('height', '100px');
+      // const xAxisGroup = mapLegend.append('g')
+      //   .attr('transform', 'translate(0,' + lheight + ')')
+      //   .call(axisBottom(xax)
+      //     .tickValues([...xTicks.map((d)=>cScale.invert(d))])
+      //   //   .ticks((xTicks.length-1))
+      //     .tickFormat(format('.1e')));
+      // const xAxisLabel = mapLegend.append('text')
+      //     .attr('transform', 'translate(' + lwidth / 2 + ',' + (lheight + marg.top + 10) + ')')
+      //     .style('text-anchor', 'middle')
+      //     .text('Cases/Population (color)');
+      //
+      // const yAxisGroup = mapLegend.append('g')
+      //   .call(axisLeft(yax)
+      //     .ticks(maxCases));
+      // const yAxisLabel = mapLegend.append('text')
+      //   .attr('transform', 'rotate(-90)')
+      //   .attr('y', 0 - marg.left)
+      //   .attr('x', 0 - (lheight / 2.1))
+      //   .style('text-anchor', 'middle')
+      //   .attr('dy', '1em')
+      //   .text('Cases per Tract (radius)');
+      //
+      //
+      // // @ts-ignore
+      // const distinctVals = [...new Set(cCases.map((d) => Math.floor(rScale(d.radiusVal))))].sort((a, b) => a - b);
+      // const caseRange = Array.from({length: maxCases}, (v, k) => k + 1);
+      //
+      // let brushPts = xTicks.map((v) => {
+      //   return caseRange.map((d) => {
+      //     return [v, d];
+      //   });
+      // });
+      // brushPts = Array.prototype.concat.apply([], brushPts);
+      // // const legendCircles = [0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1];
+      //
+      // // let brushCircles = select ('#circleBrush').selectAll('circle').data(brushPts);
+      // let brushCircles = mapLegend.append('g').selectAll('circle').data(brushPts);
+      // // let brushCircles = select ('#circleBrush').selectAll('circle').data(distinctVals);
+      // brushCircles.exit().remove();
+      // brushCircles = brushCircles.enter().append('circle').merge(brushCircles)
+      // // brushCircles.enter().append('circle')
+      // // .attr('class', 'leaflet-interactive')
+      //   .attr('cx', (d: any, i) => {
+      //     const q = d[0];
+      //     // return (q*130)+30;
+      //     return xax(cScale.invert(q));
+      //   })
+      //   .attr('cy', (d: any, i) => {
+      //     const dd = d[1];
+      //     // return (dd*25)-80;
+      //     return yax(dd);
+      //   })
+      //   // .attr('cy', 60)
+      //   .attr('r', (d: any) => {
+      //     return countScale(d[1]);
+      //     // return d[1];
+      //   })
+      //   // .attr('r', (d:any) => Math.round(Math.random()*10))
+      //   .attr('stroke', 'black')
+      //   // .style('fill', 'pink')
+      //   .style('fill', (d: any) => (interpolateCividis(d[0])));
+      // // .style('fill', (d:any) => (interpolateCividis(rScale.invert(d)/maxRadiusVal)));
+      // function withinBrush(selection) {
+      //   const brushExt = selection;
+      //   const selCircle = select('#col4')
+      //     .select('#leafSVG')
+      //     .selectAll('circle');
+      //   selCircle.classed('brushedTract', false);
+      //   selCircle
+      //     .filter((circ:any) => {
+      //       const casesCount = yax(circ.cases.length);
+      //       const casesPopNorm = xax(circ.radiusVal);
+      //       return casesCount > brushExt[0][1] && casesCount < brushExt[1][1] && casesPopNorm > brushExt[0][0] && casesPopNorm < brushExt[1][0];
+      //     }).classed('brushedTract', true);
+      // }
+      // //Brush
+      // function legendBrush() {
+      //   const evt = event;
+      //   const sel = evt.selection;
+      //   console.log('brush selection', sel);
+      //   withinBrush(sel);
+      //   // return sel;
+      // }
+      // const brush2d = brush()
+      //   .extent([[-5, -5], [lwidth + 5, lheight + 5]])
+      //   .on('brush', legendBrush)
+      //   .on('end', legendBrush);
+      // mapLegend.append('g').call(brush2d);
+    }
+    //
+    // Brush legend
+    //
+    private drawBrushLegend() {
+      const self = this;
+      const maxRadiusVal = self.maxRadiusVAl;
+      const maxCases = self.maxCases;
+      const cScale = scaleLinear().domain([0, maxRadiusVal]).range([0, 1]);
       // Brushable legend
       const xTicks = [1, 0.8, 0.6, 0.4, 0.2];
       // draw brushable circles map legend maplegend
@@ -996,7 +1121,7 @@ class MapView {
 
 
       // @ts-ignore
-      const distinctVals = [...new Set(cCases.map((d) => Math.floor(rScale(d.radiusVal))))].sort((a, b) => a - b);
+      // const distinctVals = [...new Set(cCases.map((d) => Math.floor(rScale(d.radiusVal))))].sort((a, b) => a - b);
       const caseRange = Array.from({length: maxCases}, (v, k) => k + 1);
 
       let brushPts = xTicks.map((v) => {
@@ -1045,22 +1170,13 @@ class MapView {
             const casesCount = yax(circ.cases.length);
             const casesPopNorm = xax(circ.radiusVal);
             return casesCount > brushExt[0][1] && casesCount < brushExt[1][1] && casesPopNorm > brushExt[0][0] && casesPopNorm < brushExt[1][0];
-
-            /*
-            *  TODO
-            *   filter tractCircles based on brush selection
-            *     convert casesCount and radius val to brush coords with scales yax and xax
-            *   Create and apply class for selected tractCircles
-            *   Worry about classing the legend cirlces later
-            * */
-            // return circ;
-            // return circ within selection
           }).classed('brushedTract', true);
       }
       //Brush
       function legendBrush() {
         const evt = event;
         const sel = evt.selection;
+        self.brushSelection = sel;
         console.log('brush selection', sel);
         withinBrush(sel);
         // return sel;
@@ -1070,6 +1186,39 @@ class MapView {
         .on('brush', legendBrush)
         .on('end', legendBrush);
       mapLegend.append('g').call(brush2d);
+    }
+    private brushSelect(selection) {
+      if (selection !== undefined && selection !== null) {
+      console.log('Brush selection', selection);
+      const self = this;
+      const maxRadiusVal = self.maxRadiusVAl;
+      const maxCases = self.maxCases;
+      const cScale = scaleLinear().domain([0, maxRadiusVal]).range([0, 1]);
+      const marg = self.brushMargin;
+      const
+        lwidth = 300 - marg.left - marg.right,
+        lheight = 200 - marg.top - marg.bottom;
+      //brush legend scales
+      const xax = scaleLinear()
+        .domain([0, maxRadiusVal])
+        .range([0, lwidth]);
+
+      const yax = scaleLinear()
+        .domain([maxCases, 0])
+        .range([0, lheight])
+        .nice();
+        const brushExt = selection;
+        const selCircle = select('#col4')
+          .select('#leafSVG')
+          .selectAll('circle');
+        selCircle.classed('brushedTract', false);
+        selCircle
+          .filter((circ:any) => {
+            const casesCount = yax(circ.cases.length);
+            const casesPopNorm = xax(circ.radiusVal);
+            return casesCount > brushExt[0][1] && casesCount < brushExt[1][1] && casesPopNorm > brushExt[0][0] && casesPopNorm < brushExt[1][0];
+          }).classed('brushedTract', true);
+      }
     }
     private updateCircles() {
       const self = this;
@@ -1129,43 +1278,6 @@ class MapView {
       //       .center(this.mapCenter);
       const pathFuction = geoPath().projection(self.projection);
       const countyTooltip = select('#countytip');
-      // console.log('topojsonFeatures', self.mapManager.topojsonFeatures);
-    //   let paths = select('#mapLayer').selectAll('path').data(self.mapManager.topojsonFeatures.features);
-    //   paths.exit().remove();
-    //   paths = paths.enter().append('path').merge(paths).classed('map-paths',true);
-    //   // paths.transition()
-    //   //      .duration(700)
-    //   paths.attr('id',(d)=>(d as any).properties.GEOID)
-    //        .attr('d', pathFuction);
-    // //  console.log(self.mapManager.topojson_features.features)
-    //   paths.on('mouseover',function(d) {
-    //            countyTooltip
-    //            // .transition()
-    //            // .duration(200)
-    //            .style('opacity',0.9);
-    //            countyTooltip.html((d as any).properties.NAME)
-    //            .style('left', (event.pageX) + 'px')
-    //             .style('top', (event.pageY - 28) + 'px');
-    //           })
-    //          .on('mouseout',function(d) {
-    //            countyTooltip
-    //                    //  .transition()
-    //                    // .duration(200)
-    //                    .style('opacity',0);});
-         // select('#map-svg').call(zoom().on('zoom',function(){
-         //         self.projection.scale(event.transform.k*5000).center(self.mapCenter)
-         //         .translate([self.nodeCenter[0]+event.transform.x,self.nodeCenter[1]+event.transform.y]);
-         //         select('#mapLayer').selectAll('path').attr('d',pathFuction);
-         //         self.drawMapDots()
-         //         }))
-         // select('#reset_button').on('click',function(){
-         //   if(self.currentViewType==='mapView'){
-         //     zoom().transform(select('map-svg'),zoomIdentity)
-         //     self.projection.scale(5000).translate(self.nodeCenter).center(self.mapCenter);
-         //     select('#mapLayer').selectAll('path').attr('d',pathFuction);
-         //     self.drawMapDots();
-         //   }
-         // })
     }
 
     private drawLegend(dataArray,colorArray) {
@@ -1278,23 +1390,29 @@ class MapView {
         .attr('id', 'btable')
         .attr('class', 'popupTable');
       // const popupTable = select('#mapPopupTable');
-      btab.append('caption').html('Tract: '+tractData.GEOID10+'<br>2010 Pop: '+tractData.properties.POP100);
+      btab.append('caption').html(
+        self.countyFIPS(tractData.properties.COUNTYFP10)+' County'+
+        '<br>Tract: '+tractData.GEOID10+'' +
+        '<br>2010 Population: '+tractData.properties.POP100
+        );
       const popTableHeader = btab.append('thead');
       const popTableBody = btab.append('tbody');
-      const tableColumns = popTableHeader.append('tr').selectAll('th').data(['Family ID', 'Person ID', self.currentSelectedMapAttribute]).enter().append('th')
+      const tableColumns = popTableHeader.append('tr').selectAll('th')
+        .data(['Family ID(s)', 'Person ID', self.currentSelectedMapAttribute]).enter().append('th')
         .text((d)=> {return d;});
       // PROCESS THESE DATA POINTS SO THAT THEY ARE GROUPED BY FAMILY ID
       const tableRows = popTableBody.selectAll('tr').data(tractData.cases).enter().append('tr');
       tableRows.classed('poprow', true);
       const tableCells = tableRows.selectAll('td')
         .data((d:any, i) => {
-          return [d.KindredID, d.personid, d.dataVal];
+          // # Take first three Kindred ID's
+          return d.allKindred.length > 3? [d.allKindred.slice(0,3).concat(['...']).join(', '), d.personid, d.dataVal]: [d.allKindred.slice(0,3).join(', '), d.personid, d.dataVal];
         })
         .enter().append('td')
         .text((d:any, i) => {
           return d;});
       // Generate popup content and open:
-      const popUp = L.popup({closeOnClick: false, keepInView: true, maxWidth: '600'})
+      const popUp = L.popup({closeOnClick: false, keepInView: true, maxWidth: '600', maxHeight: '500'})
         .setLatLng([tractData.properties.INTPTLAT10, tractData.properties.INTPTLON10])
         // .setContent('<table id=mapPopupTable></table>')
         .setContent(document.getElementById('btable'))
@@ -1322,6 +1440,159 @@ class MapView {
       self.openPopup(tractData);
       self.selectPopupRow(pID);
       // self.openPopup(pID, kID);
+    }
+    private countyFIPS(fips) {
+      const fipsmap = [
+      {
+        'FIPS': 49001,
+        'NAME': 'Beaver',
+        'STATE': 'UT'
+      },
+      {
+        'FIPS': 49003,
+        'NAME': 'Box Elder',
+        'STATE': 'UT'
+      },
+      {
+        'FIPS': 49005,
+        'NAME': 'Cache',
+        'STATE': 'UT'
+      },
+      {
+        'FIPS': 49007,
+        'NAME': 'Carbon',
+        'STATE': 'UT'
+      },
+      {
+        'FIPS': 49009,
+        'NAME': 'Daggett',
+        'STATE': 'UT'
+      },
+      {
+        'FIPS': 49011,
+        'NAME': 'Davis',
+        'STATE': 'UT'
+      },
+      {
+        'FIPS': 49013,
+        'NAME': 'Duchesne',
+        'STATE': 'UT'
+      },
+      {
+        'FIPS': 49015,
+        'NAME': 'Emery',
+        'STATE': 'UT'
+      },
+      {
+        'FIPS': 49017,
+        'NAME': 'Garfield',
+        'STATE': 'UT'
+      },
+      {
+        'FIPS': 49019,
+        'NAME': 'Grand',
+        'STATE': 'UT'
+      },
+      {
+        'FIPS': 49021,
+        'NAME': 'Iron',
+        'STATE': 'UT'
+      },
+      {
+        'FIPS': 49023,
+        'NAME': 'Juab',
+        'STATE': 'UT'
+      },
+      {
+        'FIPS': 49025,
+        'NAME': 'Kane',
+        'STATE': 'UT'
+      },
+      {
+        'FIPS': 49027,
+        'NAME': 'Millard',
+        'STATE': 'UT'
+      },
+      {
+        'FIPS': 49029,
+        'NAME': 'Morgan',
+        'STATE': 'UT'
+      },
+      {
+        'FIPS': 49031,
+        'NAME': 'Piute',
+        'STATE': 'UT'
+      },
+      {
+        'FIPS': 49033,
+        'NAME': 'Rich',
+        'STATE': 'UT'
+      },
+      {
+        'FIPS': 49035,
+        'NAME': 'Salt Lake',
+        'STATE': 'UT'
+      },
+      {
+        'FIPS': 49037,
+        'NAME': 'San Juan',
+        'STATE': 'UT'
+      },
+      {
+        'FIPS': 49039,
+        'NAME': 'Sanpete',
+        'STATE': 'UT'
+      },
+      {
+        'FIPS': 49041,
+        'NAME': 'Sevier',
+        'STATE': 'UT'
+      },
+      {
+        'FIPS': 49043,
+        'NAME': 'Summit',
+        'STATE': 'UT'
+      },
+      {
+        'FIPS': 49045,
+        'NAME': 'Tooele',
+        'STATE': 'UT'
+      },
+      {
+        'FIPS': 49047,
+        'NAME': 'Uintah',
+        'STATE': 'UT'
+      },
+      {
+        'FIPS': 49049,
+        'NAME': 'Utah',
+        'STATE': 'UT'
+      },
+      {
+        'FIPS': 49051,
+        'NAME': 'Wasatch',
+        'STATE': 'UT'
+      },
+      {
+        'FIPS': 49053,
+        'NAME': 'Washington',
+        'STATE': 'UT'
+      },
+      {
+        'FIPS': 49055,
+        'NAME': 'Wayne',
+        'STATE': 'UT'
+      },
+      {
+        'FIPS': 49057,
+        'NAME': 'Weber',
+        'STATE': 'UT'
+      }
+    ];
+      const sel = fipsmap.filter((d) => {
+        return d.FIPS.toString().includes(fips);
+      });
+      return sel[0].NAME;
     }
     private selectPopupRow(selectedId) {
       const sID = selectedId;
@@ -1371,8 +1642,8 @@ class MapView {
        self.update();
      });
      events.on(OPEN_MAP_POPUP,(evt, yVal)=> {
-       // if (self.currentViewType === 'Map') {self.openPopupFromY(yVal);}
-       self.openPopupFromY(yVal);
+       if (self.currentViewType === 'Map') {self.openPopupFromY(yVal);}
+       // self.openPopupFromY(yVal);
      });
    }
 }

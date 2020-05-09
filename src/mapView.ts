@@ -1102,7 +1102,8 @@ class MapView {
         .call(axisBottom(xax)
           .tickValues([...xTicks.map((d)=>cScale.invert(d))])
         //   .ticks((xTicks.length-1))
-          .tickFormat(format('.1e')));
+        //   .tickFormat(format('.1e'))
+        );
       const xAxisLabel = mapLegend.append('text')
           .attr('transform', 'translate(' + lwidth / 2 + ',' + (lheight + marg.top + 10) + ')')
           .style('text-anchor', 'middle')

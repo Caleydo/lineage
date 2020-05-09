@@ -24,7 +24,7 @@ export default class MapManager {
   public scaleFunction;
 
   constructor() {
-    this.maptopo = require('../../lineage_server/data/utah.json');
+    this.maptopo = require('../../lineage_server/data/utah_tracts_topo.json');
   }
   public async init(tableManager) {
     this.tableManager = tableManager;
@@ -32,7 +32,7 @@ export default class MapManager {
     this.topojsonFeatures = topofeature(
       this.maptopo,
       // this.maptopo.objects.cb_2015_utah_county_20m
-            this.maptopo.objects.census_suic
+            this.maptopo.objects.tracts
     );
   }
 

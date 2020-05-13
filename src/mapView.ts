@@ -941,14 +941,14 @@ class MapView {
       //
       const cScale = scaleLinear().domain([0, maxRadiusVal]).range([0, 1]);
       // Brushable legend
-      // const xTicks = [1, 0.8, 0.6, 0.4, 0.2];
-      const xTicks = [1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1];
+      const xTicks = [1, 0.8, 0.6, 0.4, 0.2];
+      // const xTicks = [1, 0.85, 0.7, 0.55, 0.4, 0.25, 0.1];
       // draw brushable circles map legend maplegend
       const countScale = scaleSqrt()
         .domain([0, maxCases])
         .range([2, 10]);
       const marg = {top: 20, bottom: 50, right: 30, left: 50},
-        lwidth = 400 - marg.left - marg.right,
+        lwidth = 300 - marg.left - marg.right,
         lheight = 200 - marg.top - marg.bottom;
       //brush legend scales
       const xax = scaleLinear()
@@ -957,11 +957,10 @@ class MapView {
 
       const yax = scaleLinear()
         .domain([maxCases, 0])
-        .range([0, lheight])
-        .nice();
+        .range([0, lheight]);
+        // .nice();
       // circle brush, map legend, brush
       const mapLegend = select('#maplegend').append('svg')
-      // TODO - These width and heights are strange!!
         .attr('id', 'circleBrush')
         .attr('width', lwidth + marg.left + marg.right)
         .attr('height', lheight + marg.top + marg.bottom)
@@ -983,7 +982,6 @@ class MapView {
 
       const yAxisGroup = mapLegend.append('g')
         .call(axisLeft(yax)
-        // .ticks(maxCases)
         .tickValues(yTicks)
         );
       const yAxisLabel = mapLegend.append('text')
@@ -993,25 +991,16 @@ class MapView {
         .style('text-anchor', 'middle')
         .attr('dy', '1em')
         .text('Cases per Tract (radius)');
-
-      const caseRange = yTicks;
-      // const caseRange = Array.from({length: maxCases}, (v, k) => k + 1);
-
       let brushPts = xTicks.map((v) => {
-        return caseRange.map((d) => {
+        return yTicks.map((d) => {
           return [v, d];
         });
       });
       brushPts = Array.prototype.concat.apply([], brushPts);
-      // const legendCircles = [0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1];
-
-      // let brushCircles = select ('#circleBrush').selectAll('circle').data(brushPts);
       let brushCircles = mapLegend.append('g').selectAll('circle').data(brushPts);
       // let brushCircles = select ('#circleBrush').selectAll('circle').data(distinctVals);
       brushCircles.exit().remove();
       brushCircles = brushCircles.enter().append('circle').merge(brushCircles)
-      // brushCircles.enter().append('circle')
-      // .attr('class', 'leaflet-interactive')
         .attr('cx', (d: any, i) => {
           const q = d[0];
           // return (q*130)+30;
@@ -1019,19 +1008,13 @@ class MapView {
         })
         .attr('cy', (d: any, i) => {
           const dd = d[1];
-          // return (dd*25)-80;
           return yax(dd);
         })
-        // .attr('cy', 60)
         .attr('r', (d: any) => {
           return countScale(d[1]);
-          // return d[1];
         })
-        // .attr('r', (d:any) => Math.round(Math.random()*10))
         .attr('stroke', 'black')
-        // .style('fill', 'pink')
         .style('fill', (d: any) => (interpolateCividis(d[0])));
-      // .style('fill', (d:any) => (interpolateCividis(rScale.invert(d)/maxRadiusVal)));
       function withinBrush(selection) {
         const brushExt = selection;
         const selCircle = select('#col4')
@@ -1102,8 +1085,6 @@ class MapView {
       } catch(e) {
         console.log(e);
       }
-      // console.log('map has layer dots', mapObject.hasLayer(dots));
-      // console.log('mapObject layers', mapObject._layers);
       dots = new L.LayerGroup();
       dots.id = 'circledots';
 
@@ -1129,12 +1110,9 @@ class MapView {
         newdot.addTo(dots);
         return newdot;
       });
-        // console.log('new leaf circles', dots)
       mapObject.addLayer(dots);
       self.circleLayer = dots;
-        //nothing here
     }
-
     private drawGeographicalMap() {
       const self = this;
     //     const projection = d3.geoConicConformal()
@@ -1256,8 +1234,6 @@ class MapView {
         }
       });
       const kindredArray = Array.from(kindredMap.entries());
-      // console.log('kindred aray', kindredArray);
-      //Create this table at init, or when building the map, then no need to add and remove...
       select('#btable').remove();
       const btab = select('body').append('table')
         .attr('id', 'btable')
